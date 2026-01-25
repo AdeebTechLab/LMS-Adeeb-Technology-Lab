@@ -1,0 +1,349 @@
+import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import {
+    Search, UserCheck, UserX, Trash2, User, Mail, Phone, MapPin,
+    Calendar, GraduationCap, Loader2, RefreshCw, CheckCircle, XCircle, Clock, Shield
+} from 'lucide-react';
+import Badge from '../../components/ui/Badge';
+import Modal from '../../components/ui/Modal';
+import { userAPI } from '../../services/api';
+
+const TeachersManagement = () => {
+    const [searchQuery, setSearchQuery] = useState('');
+    const [teachers, setTeachers] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [filterStatus, setFilterStatus] = useState('all'); // all, verified, pending
+    const [confirmModal, setConfirmModal] = useState({ open: false, action: null, teacher: null });
+    const [isProcessing, setIsProcessing] = useState(false);
+
+    useEffect(() => {
+        fetchTeachers();
+    }, []);
+
+    const fetchTeachers = async () => {
+        setIsLoading(true);
+        try {
+            const res = await userAPI.getByRole('teacher');
+            setTeachers(res.data.data || []);
+        } catch (error) {
+            console.error('Error fetching teachers:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleVerify = async () => {
+        if (!confirmModal.teacher) return;
+        setIsProcessing(true);
+        try {
+            await userAPI.verify(confirmModal.teacher._id);
+            setTeachers(prev => prev.map(t =>
+                t._id === confirmModal.teacher._id ? { ...t, isVerified: true } : t
+            ));
+        } catch (error) {
+            console.error('Error verifying teacher:', error);
+        } finally {
+            setIsProcessing(false);
+            setConfirmModal({ open: false, action: null, teacher: null });
+        }
+    };
+
+    const handleUnverify = async () => {
+        if (!confirmModal.teacher) return;
+        setIsProcessing(true);
+        try {
+            await userAPI.unverify(confirmModal.teacher._id);
+            setTeachers(prev => prev.map(t =>
+                t._id === confirmModal.teacher._id ? { ...t, isVerified: false } : t
+            ));
+        } catch (error) {
+            console.error('Error unverifying teacher:', error);
+        } finally {
+            setIsProcessing(false);
+            setConfirmModal({ open: false, action: null, teacher: null });
+        }
+    };
+
+    const handleDelete = async () => {
+        if (!confirmModal.teacher) return;
+        setIsProcessing(true);
+        try {
+            await userAPI.delete(confirmModal.teacher._id);
+            setTeachers(prev => prev.filter(t => t._id !== confirmModal.teacher._id));
+        } catch (error) {
+            console.error('Error deleting teacher:', error);
+        } finally {
+            setIsProcessing(false);
+            setConfirmModal({ open: false, action: null, teacher: null });
+        }
+    };
+
+    const filteredTeachers = teachers.filter(t => {
+        const matchesSearch = t.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            t.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            t.cnic?.includes(searchQuery);
+
+        if (filterStatus === 'verified') return matchesSearch && t.isVerified;
+        if (filterStatus === 'pending') return matchesSearch && !t.isVerified;
+        return matchesSearch;
+    });
+
+    const verifiedCount = teachers.filter(t => t.isVerified).length;
+    const pendingCount = teachers.filter(t => !t.isVerified).length;
+
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center h-64">
+                <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
+                <span className="ml-2 text-gray-600">Loading teachers...</span>
+            </div>
+        );
+    }
+
+    return (
+        <div className="space-y-6">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                    <h1 className="text-2xl font-bold text-gray-900">Teachers Management</h1>
+                    <p className="text-gray-500">Verify and manage teacher accounts</p>
+                </div>
+                <div className="flex gap-4">
+                    <button onClick={fetchTeachers} className="p-2.5 hover:bg-gray-100 rounded-xl transition-colors">
+                        <RefreshCw className="w-5 h-5 text-gray-600" />
+                    </button>
+                    <div className="px-4 py-2 bg-emerald-50 rounded-xl text-center">
+                        <p className="text-2xl font-bold text-emerald-600">{verifiedCount}</p>
+                        <p className="text-xs text-gray-500">Verified</p>
+                    </div>
+                    <div className="px-4 py-2 bg-amber-50 rounded-xl text-center">
+                        <p className="text-2xl font-bold text-amber-600">{pendingCount}</p>
+                        <p className="text-xs text-gray-500">Pending</p>
+                    </div>
+                </div>
+            </div>
+
+            {/* Search & Filter */}
+            <div className="bg-white rounded-2xl p-4 border border-gray-100 flex flex-col sm:flex-row gap-4">
+                <div className="flex-1 flex items-center bg-gray-50 rounded-xl px-4 py-3">
+                    <Search className="w-5 h-5 text-gray-400 mr-3" />
+                    <input
+                        type="text"
+                        placeholder="Search by name, email, or CNIC..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="bg-transparent border-none outline-none w-full text-gray-700"
+                    />
+                </div>
+                <div className="flex gap-2">
+                    {['all', 'verified', 'pending'].map((status) => (
+                        <button
+                            key={status}
+                            onClick={() => setFilterStatus(status)}
+                            className={`px-4 py-2 rounded-xl font-medium capitalize transition-all ${filterStatus === status
+                                    ? 'bg-emerald-600 text-white'
+                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                }`}
+                        >
+                            {status}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            {/* Teachers List */}
+            {filteredTeachers.length === 0 ? (
+                <div className="bg-white rounded-2xl p-12 border border-gray-100 text-center">
+                    <User className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                    <p className="text-gray-500">No teachers found</p>
+                </div>
+            ) : (
+                <div className="grid gap-4">
+                    {filteredTeachers.map((teacher, index) => (
+                        <motion.div
+                            key={teacher._id}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: index * 0.05 }}
+                            className="bg-white rounded-2xl p-6 border border-gray-100"
+                        >
+                            <div className="flex flex-col md:flex-row md:items-center gap-4">
+                                {/* Photo & Basic Info */}
+                                <div className="flex items-center gap-4 flex-1">
+                                    <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center overflow-hidden">
+                                        {teacher.photo ? (
+                                            <img src={teacher.photo} alt={teacher.name} className="w-full h-full object-cover" />
+                                        ) : (
+                                            <span className="text-white text-xl font-bold">{teacher.name?.charAt(0)}</span>
+                                        )}
+                                    </div>
+                                    <div>
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <h3 className="font-semibold text-gray-900">{teacher.name}</h3>
+                                            {teacher.isVerified ? (
+                                                <Badge variant="success">
+                                                    <CheckCircle className="w-3 h-3 mr-1" />
+                                                    Verified
+                                                </Badge>
+                                            ) : (
+                                                <Badge variant="warning">
+                                                    <Clock className="w-3 h-3 mr-1" />
+                                                    Pending
+                                                </Badge>
+                                            )}
+                                        </div>
+                                        <p className="text-sm text-gray-500 flex items-center gap-1">
+                                            <Mail className="w-4 h-4" /> {teacher.email}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {/* Details */}
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm flex-1">
+                                    <div>
+                                        <p className="text-gray-400">Phone</p>
+                                        <p className="font-medium text-gray-700">{teacher.phone || 'N/A'}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-gray-400">CNIC</p>
+                                        <p className="font-medium text-gray-700 font-mono">{teacher.cnic || 'N/A'}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-gray-400">Qualification</p>
+                                        <p className="font-medium text-gray-700">{teacher.qualification || 'N/A'}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-gray-400">Location</p>
+                                        <p className="font-medium text-gray-700 capitalize">{teacher.location || 'N/A'}</p>
+                                    </div>
+                                </div>
+
+                                {/* Actions */}
+                                <div className="flex gap-2">
+                                    {!teacher.isVerified ? (
+                                        <button
+                                            onClick={() => setConfirmModal({ open: true, action: 'verify', teacher })}
+                                            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-medium flex items-center gap-2"
+                                        >
+                                            <UserCheck className="w-4 h-4" />
+                                            Verify
+                                        </button>
+                                    ) : (
+                                        <button
+                                            onClick={() => setConfirmModal({ open: true, action: 'unverify', teacher })}
+                                            className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-medium flex items-center gap-2"
+                                        >
+                                            <UserX className="w-4 h-4" />
+                                            Revoke
+                                        </button>
+                                    )}
+                                    <button
+                                        onClick={() => setConfirmModal({ open: true, action: 'delete', teacher })}
+                                        className="p-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl"
+                                    >
+                                        <Trash2 className="w-5 h-5" />
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Extra Info */}
+                            {(teacher.specialization || teacher.experience) && (
+                                <div className="mt-4 pt-4 border-t border-gray-100 flex gap-6 text-sm">
+                                    {teacher.specialization && (
+                                        <div className="flex items-center gap-2 text-gray-600">
+                                            <GraduationCap className="w-4 h-4 text-gray-400" />
+                                            <span>Skills: {teacher.specialization}</span>
+                                        </div>
+                                    )}
+                                    {teacher.experience && (
+                                        <div className="flex items-center gap-2 text-gray-600">
+                                            <Calendar className="w-4 h-4 text-gray-400" />
+                                            <span>Experience: {teacher.experience}</span>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </motion.div>
+                    ))}
+                </div>
+            )}
+
+            {/* Confirm Modal */}
+            <Modal
+                isOpen={confirmModal.open}
+                onClose={() => setConfirmModal({ open: false, action: null, teacher: null })}
+                title={
+                    confirmModal.action === 'verify' ? 'Verify Teacher' :
+                        confirmModal.action === 'unverify' ? 'Revoke Verification' : 'Delete Teacher'
+                }
+                size="md"
+            >
+                {confirmModal.teacher && (
+                    <div className="space-y-4">
+                        <div className={`p-4 rounded-xl text-center ${confirmModal.action === 'delete' ? 'bg-red-50' :
+                                confirmModal.action === 'verify' ? 'bg-emerald-50' : 'bg-amber-50'
+                            }`}>
+                            {confirmModal.action === 'verify' && <UserCheck className="w-12 h-12 text-emerald-600 mx-auto mb-2" />}
+                            {confirmModal.action === 'unverify' && <UserX className="w-12 h-12 text-amber-600 mx-auto mb-2" />}
+                            {confirmModal.action === 'delete' && <Trash2 className="w-12 h-12 text-red-600 mx-auto mb-2" />}
+
+                            <p className="text-gray-700">
+                                {confirmModal.action === 'verify' && 'You are about to verify:'}
+                                {confirmModal.action === 'unverify' && 'You are about to revoke verification for:'}
+                                {confirmModal.action === 'delete' && 'You are about to permanently delete:'}
+                            </p>
+                            <p className="text-xl font-bold text-gray-900 mt-2">{confirmModal.teacher.name}</p>
+                            <p className="text-sm text-gray-500">{confirmModal.teacher.email}</p>
+                        </div>
+
+                        {confirmModal.action === 'verify' && (
+                            <p className="text-sm text-gray-500 text-center">
+                                Once verified, this teacher can be assigned to courses.
+                            </p>
+                        )}
+                        {confirmModal.action === 'delete' && (
+                            <p className="text-sm text-red-500 text-center">
+                                This action cannot be undone. All data associated with this teacher will be removed.
+                            </p>
+                        )}
+
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setConfirmModal({ open: false, action: null, teacher: null })}
+                                className="flex-1 py-3 text-gray-600 hover:bg-gray-100 rounded-xl font-medium"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={
+                                    confirmModal.action === 'verify' ? handleVerify :
+                                        confirmModal.action === 'unverify' ? handleUnverify : handleDelete
+                                }
+                                disabled={isProcessing}
+                                className={`flex-1 py-3 rounded-xl font-medium flex items-center justify-center gap-2 ${confirmModal.action === 'delete'
+                                        ? 'bg-red-600 hover:bg-red-700 text-white'
+                                        : confirmModal.action === 'verify'
+                                            ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                                            : 'bg-amber-500 hover:bg-amber-600 text-white'
+                                    }`}
+                            >
+                                {isProcessing ? (
+                                    <Loader2 className="w-5 h-5 animate-spin" />
+                                ) : (
+                                    <>
+                                        {confirmModal.action === 'verify' && <UserCheck className="w-5 h-5" />}
+                                        {confirmModal.action === 'unverify' && <UserX className="w-5 h-5" />}
+                                        {confirmModal.action === 'delete' && <Trash2 className="w-5 h-5" />}
+                                    </>
+                                )}
+                                Confirm
+                            </button>
+                        </div>
+                    </div>
+                )}
+            </Modal>
+        </div>
+    );
+};
+
+export default TeachersManagement;
