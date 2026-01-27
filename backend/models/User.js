@@ -38,7 +38,6 @@ const userSchema = new mongoose.Schema({
     },
     rollNo: {
         type: String,
-        unique: true,
         sparse: true // allows multiple null values
     },
     // Additional fields for job role

@@ -1,6 +1,7 @@
-import { useState } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { assignmentAPI } from '../../services/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     LayoutDashboard,
@@ -19,6 +20,7 @@ import {
     X,
     Briefcase,
     Award,
+    Bell,
 } from 'lucide-react';
 import { logout } from '../../features/auth/authSlice';
 
@@ -26,6 +28,37 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const { user, role } = useSelector((state) => state.auth);
+    const [pendingCount, setPendingCount] = useState(0);
+
+    useEffect(() => {
+        if (role === 'student' || role === 'intern') {
+            fetchPendingCount();
+            // Refresh every 5 minutes to keep it relatively fresh
+            const interval = setInterval(fetchPendingCount, 5 * 60 * 1000);
+            return () => clearInterval(interval);
+        }
+    }, [role]);
+
+    const fetchPendingCount = async () => {
+        try {
+            const res = await assignmentAPI.getMy();
+            const assignments = res.data.assignments || [];
+
+            // Count assignments that are:
+            // 1. Not submitted yet
+            // 2. Deadline has not passed
+            const count = assignments.filter(a => {
+                const mySub = a.submissions?.find(s => (s.user?._id || s.user) === (user?._id || user?.id));
+                const isSubmitted = !!mySub;
+                const isDeadlinePassed = new Date(a.dueDate) < new Date();
+                return !isSubmitted && !isDeadlinePassed;
+            }).length;
+
+            setPendingCount(count);
+        } catch (error) {
+            console.error('Error fetching pending assignments for sidebar:', error);
+        }
+    };
 
     const handleLogout = () => {
         dispatch(logout());
@@ -44,6 +77,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 { id: 'teachers', label: 'Teachers', icon: GraduationCap, path: '/admin/teachers' },
                 { id: 'interns', label: 'Interns', icon: Users, path: '/admin/interns' },
                 { id: 'jobs', label: 'Freelancers', icon: Briefcase, path: '/admin/jobs' },
+                { id: 'notifications', label: 'Notifications', icon: Bell, path: '/admin/notifications' },
                 { id: 'fees', label: 'Fee Verification', icon: CreditCard, path: '/admin/fees' },
             ],
             teacher: [
@@ -54,10 +88,12 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 { id: 'profile', label: 'My Profile', icon: User, path: '/student/profile' },
                 { id: 'courses', label: 'Courses', icon: BookOpen, path: '/student/courses' },
                 { id: 'fees', label: 'Fee Payment', icon: CreditCard, path: '/student/fees' },
+                { id: 'assignments', label: 'Assignments', icon: ClipboardList, path: '/student/assignments' },
+                { id: 'marks', label: 'Marks Sheet', icon: FileText, path: '/student/marks' },
                 { id: 'attendance', label: 'My Attendance', icon: Calendar, path: '/student/attendance' },
             ],
             intern: [
-                { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/intern/dashboard' },
+                { id: 'profile', label: 'My Profile', icon: User, path: '/intern/profile' },
                 { id: 'courses', label: 'Browse Courses', icon: BookOpen, path: '/intern/courses' },
                 { id: 'fees', label: 'Fee Management', icon: CreditCard, path: '/intern/fees' },
                 { id: 'assignments', label: 'Assignments', icon: ClipboardList, path: '/intern/assignments' },
@@ -163,7 +199,16 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                                     }
                                 >
                                     <item.icon className="w-5 h-5 flex-shrink-0" />
-                                    <span className="font-medium">{item.label}</span>
+                                    <span className="font-medium flex-1">{item.label}</span>
+                                    {item.id === 'assignments' && pendingCount > 0 && (
+                                        <motion.span
+                                            initial={{ scale: 0 }}
+                                            animate={{ scale: 1 }}
+                                            className="bg-red-500 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow-sm shadow-red-900/20"
+                                        >
+                                            {pendingCount}
+                                        </motion.span>
+                                    )}
                                 </NavLink>
                             </li>
                         ))}

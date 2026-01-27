@@ -149,8 +149,12 @@ router.put('/:feeId/installments/:installmentId/verify', protect, authorize('adm
 
         // Assign roll number if first verified payment
         if (!fee.rollNoAssigned) {
-            const rollNo = await Counter.getNextRollNo();
-            await User.findByIdAndUpdate(fee.user, { rollNo });
+            const user = await User.findById(fee.user);
+            if (!user.rollNo) {
+                const rollNo = await Counter.getNextRollNo();
+                user.rollNo = rollNo;
+                await user.save();
+            }
 
             // Update enrollment to 'enrolled'
             await Enrollment.findOneAndUpdate(

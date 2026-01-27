@@ -10,7 +10,8 @@ import {
     RefreshCw,
     XCircle,
     ChevronLeft,
-    AlertCircle
+    AlertCircle,
+    GraduationCap
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import { enrollmentAPI, attendanceAPI } from '../../services/api';
@@ -110,44 +111,57 @@ const AttendanceView = () => {
             )}
 
             {!selectedCourse ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {enrolledCourses.map((course, index) => (
-                        <motion.div
-                            key={course.id}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: index * 0.1 }}
-                            onClick={() => handleCourseSelect(course)}
-                            className="bg-white rounded-3xl p-8 border border-gray-100 cursor-pointer hover:shadow-xl hover:border-emerald-500/30 transition-all group"
-                        >
-                            <div className="flex items-start justify-between mb-6">
-                                <div className="w-14 h-14 bg-emerald-100 rounded-2xl flex items-center justify-center">
-                                    <BookOpen className="w-7 h-7 text-emerald-600" />
-                                </div>
-                                <div className="text-right">
-                                    <p className="text-[10px] font-black text-emerald-600 uppercase mb-1 tracking-widest leading-none">Overall</p>
-                                    <p className={`text-3xl font-black ${course.progress >= 75 ? 'text-emerald-700' : 'text-amber-600'}`}>{course.progress}%</p>
-                                </div>
-                            </div>
-                            <h3 className="text-xl font-black text-gray-900 mb-1 uppercase tracking-tight group-hover:text-emerald-600 transition-colors">{course.title}</h3>
-                            <p className="text-sm text-gray-500 mb-6 italic">{course.teacher}</p>
+                <div className="space-y-8">
+                    {/* Guidance Header */}
+                    <div className="bg-[#f8fafc] p-8 rounded-3xl border-2 border-emerald-500/20 flex items-center gap-6 shadow-xl shadow-emerald-900/5">
+                        <div className="p-4 bg-emerald-600 rounded-2xl shadow-lg shadow-emerald-200">
+                            <GraduationCap className="w-8 h-8 text-white" />
+                        </div>
+                        <div>
+                            <h3 className="text-lg font-black text-gray-900 uppercase tracking-tighter leading-none mb-1">Step 1: Select Your Course</h3>
+                            <p className="text-sm text-gray-500 font-medium">Click on a course card below to reveal your detailed attendance history and logs</p>
+                        </div>
+                    </div>
 
-                            <div className="flex justify-between text-[10px] font-black uppercase text-gray-400 tracking-widest mb-3">
-                                <span>Presents: <strong className="text-emerald-600 text-sm italic">{course.attended}</strong></span>
-                                <span>Total Classes: <strong className="text-gray-900 text-sm">{course.totalClasses}</strong></span>
-                            </div>
-                            <div className="h-2 bg-gray-100 rounded-full overflow-hidden shadow-inner">
-                                <div
-                                    className={`h-full rounded-full transition-all duration-1000 ${course.progress >= 75 ? 'bg-emerald-500' : 'bg-amber-500'}`}
-                                    style={{ width: `${course.progress}%` }}
-                                />
-                            </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {enrolledCourses.map((course, index) => (
+                            <motion.div
+                                key={course.id}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: index * 0.1 }}
+                                onClick={() => handleCourseSelect(course)}
+                                className="bg-white rounded-3xl p-8 border border-gray-100 cursor-pointer hover:shadow-xl hover:border-emerald-500/30 transition-all group"
+                            >
+                                <div className="flex items-start justify-between mb-6">
+                                    <div className="w-14 h-14 bg-emerald-100 rounded-2xl flex items-center justify-center">
+                                        <BookOpen className="w-7 h-7 text-emerald-600" />
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-[10px] font-black text-emerald-600 uppercase mb-1 tracking-widest leading-none">Overall</p>
+                                        <p className={`text-3xl font-black ${course.progress >= 75 ? 'text-emerald-700' : 'text-amber-600'}`}>{course.progress}%</p>
+                                    </div>
+                                </div>
+                                <h3 className="text-xl font-black text-gray-900 mb-1 uppercase tracking-tight group-hover:text-emerald-600 transition-colors">{course.title}</h3>
+                                <p className="text-sm text-gray-500 mb-6 italic">{course.teacher}</p>
 
-                            <div className="mt-6 flex items-center justify-end text-emerald-600 text-xs font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
-                                View Details <ArrowRight className="w-4 h-4 ml-1" />
-                            </div>
-                        </motion.div>
-                    ))}
+                                <div className="flex justify-between text-[10px] font-black uppercase text-gray-400 tracking-widest mb-3">
+                                    <span>Presents: <strong className="text-emerald-600 text-sm italic">{course.attended}</strong></span>
+                                    <span>Total Classes: <strong className="text-gray-900 text-sm">{course.totalClasses}</strong></span>
+                                </div>
+                                <div className="h-2 bg-gray-100 rounded-full overflow-hidden shadow-inner">
+                                    <div
+                                        className={`h-full rounded-full transition-all duration-1000 ${course.progress >= 75 ? 'bg-emerald-500' : 'bg-amber-500'}`}
+                                        style={{ width: `${course.progress}%` }}
+                                    />
+                                </div>
+
+                                <div className="mt-6 flex items-center justify-end text-emerald-600 text-xs font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
+                                    View Details <ArrowRight className="w-4 h-4 ml-1" />
+                                </div>
+                            </motion.div>
+                        ))}
+                    </div>
                 </div>
             ) : (
                 <div className="space-y-6">
@@ -224,6 +238,7 @@ const AttendanceView = () => {
                                                     </p>
                                                     <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">
                                                         {date.toLocaleDateString('en-US', { weekday: 'long' })}
+                                                        {record.markedAt && ` • ${new Date(record.markedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`}
                                                     </p>
                                                 </div>
                                             </div>

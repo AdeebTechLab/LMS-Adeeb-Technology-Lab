@@ -97,63 +97,54 @@ const StudentCourseView = () => {
                 </div>
             </div>
 
-            {/* Content Logic */}
-            {role === 'student' && course.targetAudience === 'students' ? (
-                // STUDENT VIEW: Attendance & Marks (Marks mostly implied via attendance or future feature)
-                <div className="space-y-6">
-                    <h2 className="text-xl font-bold text-gray-900">Attendance & Performance</h2>
-                    <StudentAttendanceTab course={course} />
-                </div>
-            ) : (
-                // INTERN VIEW or Intern enrolled in Student course: Tabs
-                <div className="space-y-6">
-                    {/* Tab Nav */}
-                    <div className="flex gap-2 bg-gray-100 p-1 rounded-xl w-fit">
-                        <button
-                            onClick={() => setActiveTab('daily_tasks')}
-                            className={`px-6 py-2.5 rounded-lg font-medium transition-all ${activeTab === 'daily_tasks'
-                                ? 'bg-white text-emerald-600 shadow-sm'
-                                : 'text-gray-500 hover:text-gray-900'
-                                }`}
-                        >
-                            <ClipboardList className="w-4 h-4 inline mr-2" />
-                            Daily Tasks
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('assignments')}
-                            className={`px-6 py-2.5 rounded-lg font-medium transition-all ${activeTab === 'assignments'
-                                ? 'bg-white text-emerald-600 shadow-sm'
-                                : 'text-gray-600 hover:text-gray-900'
-                                }`}
-                        >
-                            <FileText className="w-4 h-4 inline mr-2" />
-                            Assignments
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('attendance')}
-                            className={`px-6 py-2.5 rounded-lg font-medium transition-all ${activeTab === 'attendance'
-                                ? 'bg-white text-emerald-600 shadow-sm'
-                                : 'text-gray-600 hover:text-gray-900'
-                                }`}
-                        >
-                            <Clock className="w-4 h-4 inline mr-2" />
-                            Attendance
-                        </button>
-                    </div>
-
-                    {/* Tab Content */}
-                    <motion.div
-                        key={activeTab}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="bg-white rounded-2xl p-6 border border-gray-100 min-h-[400px]"
+            {/* Content Logic - Show tabs for all (Interns and Students) */}
+            <div className="space-y-6">
+                {/* Tab Nav */}
+                <div className="flex gap-2 bg-gray-100 p-1 rounded-xl w-fit">
+                    <button
+                        onClick={() => setActiveTab('daily_tasks')}
+                        className={`px-6 py-2.5 rounded-lg font-medium transition-all ${activeTab === 'daily_tasks'
+                            ? 'bg-white text-emerald-600 shadow-sm'
+                            : 'text-gray-500 hover:text-gray-900'
+                            }`}
                     >
-                        {activeTab === 'daily_tasks' && <StudentDailyTasksTab course={course} />}
-                        {activeTab === 'assignments' && <StudentAssignmentsTab course={course} />}
-                        {activeTab === 'attendance' && <StudentAttendanceTab course={course} />}
-                    </motion.div>
+                        <ClipboardList className="w-4 h-4 inline mr-2" />
+                        {course.targetAudience === 'interns' ? 'Daily Tasks' : 'Class Logs'}
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('assignments')}
+                        className={`px-6 py-2.5 rounded-lg font-medium transition-all ${activeTab === 'assignments'
+                            ? 'bg-white text-emerald-600 shadow-sm'
+                            : 'text-gray-500 hover:text-gray-900'
+                            }`}
+                    >
+                        <FileText className="w-4 h-4 inline mr-2" />
+                        Assignments
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('attendance')}
+                        className={`px-6 py-2.5 rounded-lg font-medium transition-all ${activeTab === 'attendance'
+                            ? 'bg-white text-emerald-600 shadow-sm'
+                            : 'text-gray-500 hover:text-gray-900'
+                            }`}
+                    >
+                        <Clock className="w-4 h-4 inline mr-2" />
+                        Attendance
+                    </button>
                 </div>
-            )}
+
+                {/* Tab Content */}
+                <motion.div
+                    key={activeTab}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-white rounded-2xl p-6 border border-gray-100 min-h-[400px]"
+                >
+                    {activeTab === 'daily_tasks' && <StudentDailyTasksTab course={course} />}
+                    {activeTab === 'assignments' && <StudentAssignmentsTab course={course} />}
+                    {activeTab === 'attendance' && <StudentAttendanceTab course={course} />}
+                </motion.div>
+            </div>
         </div>
     );
 };

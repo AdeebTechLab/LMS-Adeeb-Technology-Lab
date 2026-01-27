@@ -79,6 +79,15 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
 
     const handleGradeSubmission = async (e) => {
         e.preventDefault();
+        submitAssignmentGrading('graded');
+    };
+
+    const handleRejectSubmission = async () => {
+        if (!confirm('Are you sure you want to reject this submission? The student will be notified to resubmit.')) return;
+        submitAssignmentGrading('rejected');
+    };
+
+    const submitAssignmentGrading = async (status) => {
         if (!selectedAssignment || !selectedSubmission) return;
 
         setIsGrading(true);
@@ -86,8 +95,9 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
             const res = await assignmentAPI.grade(
                 selectedAssignment._id,
                 selectedSubmission._id,
-                Number(gradeMarks),
-                gradeFeedback
+                status === 'rejected' ? 0 : Number(gradeMarks),
+                gradeFeedback,
+                status
             );
 
             // Update local state to reflect grade and feedback
@@ -101,10 +111,10 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
             setSelectedSubmission(null);
             setGradeMarks('');
             setGradeFeedback('');
-            alert('Grade and feedback submitted successfully!');
+            alert(`Submission ${status === 'rejected' ? 'rejected' : 'graded'} successfully!`);
         } catch (error) {
             console.error('Error grading:', error);
-            alert('Failed to grade submission');
+            alert(`Failed to ${status === 'rejected' ? 'reject' : 'grade'} submission`);
         } finally {
             setIsGrading(false);
         }
@@ -331,6 +341,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                 isOpen={isSubmissionsModalOpen}
                 onClose={() => setIsSubmissionsModalOpen(false)}
                 title={`Submissions: ${selectedAssignment?.title}`}
+                size="xl"
             >
                 <div className="space-y-4 max-h-[60vh] overflow-y-auto">
                     {selectedAssignment?.submissions && selectedAssignment.submissions.length > 0 ? (
@@ -348,11 +359,13 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                             </p>
                                         </div>
                                     </div>
-                                    {submission.marks ? (
+                                    {submission.status === 'graded' ? (
                                         <div className="text-right">
                                             <Badge variant="success">Graded</Badge>
                                             <p className="text-lg font-bold text-emerald-600 mt-1">{submission.marks}<span className="text-xs text-emerald-400">/{selectedAssignment.totalMarks}</span></p>
                                         </div>
+                                    ) : submission.status === 'rejected' ? (
+                                        <Badge variant="error">Rejected</Badge>
                                     ) : (
                                         <Badge variant="warning">Pending Grade</Badge>
                                     )}
@@ -418,9 +431,17 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                                 <button
                                                     type="submit"
                                                     disabled={isGrading}
-                                                    className="flex-1 py-2 bg-emerald-600 text-white text-xs font-black uppercase tracking-widest rounded-xl hover:bg-emerald-700 transition-all"
+                                                    className="flex-1 py-2 bg-emerald-600 text-white text-xs font-black uppercase tracking-widest rounded-xl hover:bg-emerald-700 transition-all font-bold"
                                                 >
                                                     {isGrading ? 'SAVING...' : 'SAVE GRADE'}
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={handleRejectSubmission}
+                                                    disabled={isGrading}
+                                                    className="px-6 py-2 bg-red-100 text-red-600 text-xs font-black uppercase tracking-widest rounded-xl hover:bg-red-200 transition-all font-bold"
+                                                >
+                                                    {isGrading ? '...' : 'REJECT'}
                                                 </button>
                                                 <button
                                                     type="button"

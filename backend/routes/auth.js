@@ -190,6 +190,16 @@ router.put('/profile', protect, uploadPhoto.single('photo'), async (req, res) =>
             updates.photo = req.file.path;
         }
 
+        // Restrict core fields for non-admins
+        if (req.user.role !== 'admin') {
+            const restrictedFields = [
+                'name', 'email', 'rollNo', 'cnic', 'dob', 'gender',
+                'education', 'department', 'specialization', 'qualification',
+                'role', 'isVerified'
+            ];
+            restrictedFields.forEach(field => delete updates[field]);
+        }
+
         // Remove password from updates (use separate route for password change)
         delete updates.password;
 

@@ -12,6 +12,11 @@ const submissionSchema = new mongoose.Schema({
         type: Date,
         default: Date.now
     },
+    status: {
+        type: String,
+        enum: ['submitted', 'graded', 'rejected'],
+        default: 'submitted'
+    },
     marks: Number,
     feedback: String,
     gradedBy: {

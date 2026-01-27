@@ -16,15 +16,16 @@ import {
 } from 'lucide-react';
 import StatCard from '../../components/ui/StatCard';
 import Badge from '../../components/ui/Badge';
-import { enrollmentAPI, feeAPI } from '../../services/api';
+import { enrollmentAPI, feeAPI, assignmentAPI } from '../../services/api';
 
 const StudentDashboard = () => {
     const navigate = useNavigate();
-    const { role } = useSelector((state) => state.auth);
+    const { role, user } = useSelector((state) => state.auth);
     const [isLoading, setIsLoading] = useState(true);
     const [enrolledCourses, setEnrolledCourses] = useState([]);
     const [pendingFees, setPendingFees] = useState(0);
     const [stats, setStats] = useState([]);
+    const [pendingAssignments, setPendingAssignments] = useState([]);
 
     useEffect(() => {
         fetchDashboardData();
@@ -38,10 +39,10 @@ const StudentDashboard = () => {
             const enrollments = enrollmentRes.data.data || [];
 
             const courses = enrollments.map(e => ({
-                id: e._id,
+                id: e.course?._id || e._id,
                 title: e.course?.title || 'Unknown Course',
                 teacher: e.course?.teacher?.name || 'TBA',
-                progress: e.progress || Math.floor(Math.random() * 100),
+                progress: e.progress || 0,
                 nextClass: e.course?.schedule || 'Check schedule'
             }));
             setEnrolledCourses(courses);
@@ -63,6 +64,24 @@ const StudentDashboard = () => {
             }
             setPendingFees(totalPending);
 
+            // Fetch assignments
+            let activeAssignments = [];
+            try {
+                const assignRes = await assignmentAPI.getMy();
+                const allAssignments = assignRes.data.assignments || [];
+
+                // Filter: Assigned to user, not submitted yet, and deadline is in the future
+                activeAssignments = allAssignments.filter(a => {
+                    const mySub = a.submissions?.find(s => (s.user?._id || s.user) === (user?._id || user?.id));
+                    const isSubmitted = !!mySub;
+                    const isDeadlinePassed = new Date(a.dueDate) < new Date();
+                    return !isSubmitted && !isDeadlinePassed;
+                });
+            } catch (e) {
+                console.error('Error fetching assignments:', e);
+            }
+            setPendingAssignments(activeAssignments);
+
             // Build stats
             setStats([
                 {
@@ -74,7 +93,7 @@ const StudentDashboard = () => {
                 },
                 {
                     title: 'Pending Assignments',
-                    value: '0',
+                    value: activeAssignments.length.toString(),
                     icon: Clock,
                     iconBg: 'bg-amber-100',
                     iconColor: 'text-amber-600',
@@ -139,9 +158,9 @@ const StudentDashboard = () => {
             >
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <div>
-                        <h2 className="text-2xl font-bold mb-2">Welcome back, Student!</h2>
-                        <p className="text-white/70">
-                            You have {enrolledCourses.length} enrolled courses.
+                        <h2 className="text-2xl font-bold mb-2 uppercase italic tracking-tight">Welcome back, {user?.name?.split(' ')[0] || (role === 'intern' ? 'Intern' : 'Student')}!</h2>
+                        <p className="text-white/70 font-medium">
+                            You have {enrolledCourses.length} active enrollments.
                         </p>
                     </div>
                     <div className="flex gap-3">
@@ -175,82 +194,113 @@ const StudentDashboard = () => {
                 ))}
             </div>
 
-            {/* Enrolled Courses */}
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5 }}
-            >
-                <div className="flex items-center justify-between mb-4">
-                    <div>
-                        <h3 className="text-lg font-bold text-gray-900">My Courses</h3>
-                        <p className="text-sm text-gray-500">Continue learning where you left off</p>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Pending Assignments List */}
+                <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.4 }}
+                    className="lg:col-span-1 space-y-4"
+                >
+                    <div className="flex items-center justify-between">
+                        <h3 className="text-lg font-bold text-gray-900 uppercase italic">Active Tasks</h3>
+                        <Badge variant="warning">{pendingAssignments.length}</Badge>
                     </div>
-                    <button
-                        onClick={fetchDashboardData}
-                        className="flex items-center gap-2 text-sm font-medium text-emerald-600 hover:text-emerald-700"
-                    >
-                        <RefreshCw className="w-4 h-4" />
-                        Refresh
-                    </button>
-                </div>
 
-                {enrolledCourses.length === 0 ? (
-                    <div className="bg-white rounded-2xl p-12 border border-gray-100 text-center">
-                        <BookOpen className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                        <p className="text-gray-500 mb-4">You haven't enrolled in any courses yet</p>
-                        <button
-                            onClick={() => navigate('/student/courses')}
-                            className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-medium"
-                        >
-                            Browse Courses
-                        </button>
-                    </div>
-                ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        {enrolledCourses.map((course, index) => (
-                            <motion.div
-                                key={course.id}
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.6 + index * 0.1 }}
-                                whileHover={{ y: -4 }}
-                                onClick={() => navigate(`../course/${course.id}`)}
-                                className="bg-white rounded-2xl p-6 border border-gray-100 cursor-pointer hover:shadow-lg transition-all"
-                            >
-                                <div className="flex items-start justify-between mb-4">
-                                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center">
-                                        <BookOpen className="w-6 h-6 text-white" />
+                    <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm space-y-4 max-h-[500px] overflow-y-auto">
+                        {pendingAssignments.length === 0 ? (
+                            <div className="text-center py-10 opacity-50">
+                                <CheckCircle className="w-10 h-10 text-emerald-500 mx-auto mb-2" />
+                                <p className="text-xs font-black uppercase">All Caught Up!</p>
+                            </div>
+                        ) : (
+                            pendingAssignments.map((assignment, index) => (
+                                <div key={assignment._id} className="p-4 bg-gray-50 rounded-2xl border border-gray-200 group hover:border-emerald-500/30 transition-all">
+                                    <div className="flex items-start justify-between mb-2">
+                                        <div className="flex items-center gap-2">
+                                            <div className="p-2 bg-emerald-100 rounded-lg">
+                                                <FileText className="w-4 h-4 text-emerald-600" />
+                                            </div>
+                                            <h4 className="font-bold text-gray-900 text-sm group-hover:text-emerald-600 transition-colors uppercase truncate max-w-[150px]">{assignment.title}</h4>
+                                        </div>
                                     </div>
-                                    <Badge variant="primary">{course.progress}%</Badge>
+                                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-3">
+                                        Due {new Date(assignment.dueDate).toLocaleDateString()}
+                                    </p>
+                                    <button
+                                        onClick={() => navigate(`/${role}/assignments`)}
+                                        className="w-full py-2 bg-white hover:bg-emerald-600 hover:text-white border border-gray-200 text-gray-600 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-sm active:scale-95"
+                                    >
+                                        Submit Now
+                                    </button>
                                 </div>
-                                <h4 className="font-bold text-gray-900 mb-1">{course.title}</h4>
-                                <p className="text-sm text-gray-500 mb-4">{course.teacher}</p>
+                            ))
+                        )}
+                    </div>
+                </motion.div>
 
-                                {/* Progress Bar */}
-                                <div className="mb-4">
-                                    <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                                        <motion.div
-                                            initial={{ width: 0 }}
-                                            animate={{ width: `${course.progress}%` }}
-                                            transition={{ duration: 1, delay: 0.8 }}
-                                            className="h-full bg-gradient-to-r from-emerald-400 to-teal-500 rounded-full"
+                {/* Enrolled Courses Grid */}
+                <motion.div
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.5 }}
+                    className="lg:col-span-2"
+                >
+                    <div className="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 className="text-lg font-bold text-gray-900 uppercase italic">My Courses</h3>
+                        </div>
+                    </div>
+
+                    {enrolledCourses.length === 0 ? (
+                        <div className="bg-white rounded-3xl p-12 border border-gray-100 text-center">
+                            <BookOpen className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                            <p className="text-gray-500 mb-4 font-bold uppercase tracking-widest text-xs">No active enrollments</p>
+                            <button
+                                onClick={() => navigate('/student/courses')}
+                                className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-medium"
+                            >
+                                Browse Courses
+                            </button>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {enrolledCourses.map((course, index) => (
+                                <motion.div
+                                    key={course.id}
+                                    whileHover={{ y: -4 }}
+                                    onClick={() => navigate(`../course/${course.id}`)}
+                                    className="bg-white rounded-3xl p-6 border border-gray-100 cursor-pointer hover:shadow-lg transition-all group"
+                                >
+                                    <div className="flex items-start justify-between mb-4">
+                                        <div className="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center border border-emerald-100 group-hover:bg-emerald-600 transition-colors">
+                                            <BookOpen className="w-6 h-6 text-emerald-600 group-hover:text-white transition-colors" />
+                                        </div>
+                                        <Badge variant="primary">{course.progress}%</Badge>
+                                    </div>
+                                    <h4 className="font-bold text-gray-900 mb-1 uppercase tracking-tight group-hover:text-emerald-600 transition-colors">{course.title}</h4>
+                                    <p className="text-xs text-gray-400 font-bold uppercase tracking-widest mb-4 italic">{course.teacher}</p>
+
+                                    <div className="h-2 bg-gray-100 rounded-full overflow-hidden mb-4 pr-0.5">
+                                        <div
+                                            className="h-full bg-emerald-500 rounded-full"
+                                            style={{ width: `${course.progress}%` }}
                                         />
                                     </div>
-                                </div>
 
-                                <div className="flex items-center justify-between text-sm">
-                                    <span className="text-gray-500 flex items-center gap-1">
-                                        <Calendar className="w-4 h-4" />
-                                        {course.nextClass}
-                                    </span>
-                                    <ArrowRight className="w-4 h-4 text-emerald-600" />
-                                </div>
-                            </motion.div>
-                        ))}
-                    </div>
-                )}
-            </motion.div>
+                                    <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-gray-400">
+                                        <span className="flex items-center gap-1">
+                                            <Calendar className="w-3 h-3" />
+                                            {course.nextClass}
+                                        </span>
+                                        <ArrowRight className="w-3 h-3 text-emerald-600 group-hover:translate-x-1 transition-transform" />
+                                    </div>
+                                </motion.div>
+                            ))}
+                        </div>
+                    )}
+                </motion.div>
+            </div>
         </div>
     );
 };

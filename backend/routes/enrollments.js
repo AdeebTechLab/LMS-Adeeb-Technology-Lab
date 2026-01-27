@@ -4,6 +4,7 @@ const { protect, authorize } = require('../middleware/auth');
 const Enrollment = require('../models/Enrollment');
 const Course = require('../models/Course');
 const Fee = require('../models/Fee');
+const Attendance = require('../models/Attendance');
 
 // @route   GET /api/enrollments/my
 // @desc    Get current user's enrollments
@@ -11,10 +12,37 @@ const Fee = require('../models/Fee');
 router.get('/my', protect, async (req, res) => {
     try {
         const enrollments = await Enrollment.find({ user: req.user.id })
-            .populate('course', 'title description fee duration location startDate endDate status category rating')
+            .populate({
+                path: 'course',
+                populate: { path: 'teacher', select: 'name' }
+            })
             .sort('-createdAt');
 
-        res.json({ success: true, data: enrollments });
+        // Calculate attendance stats for each enrollment
+        const data = await Promise.all(enrollments.map(async (e) => {
+            const eObj = e.toObject();
+            const courseId = e.course?._id;
+
+            if (courseId) {
+                const totalClasses = await Attendance.countDocuments({ course: courseId });
+                const attendedClasses = await Attendance.countDocuments({
+                    course: courseId,
+                    records: { $elemMatch: { user: req.user.id, status: 'present' } }
+                });
+
+                eObj.totalClasses = totalClasses;
+                eObj.attendedClasses = attendedClasses;
+                eObj.progress = totalClasses > 0 ? Math.round((attendedClasses / totalClasses) * 100) : 0;
+            } else {
+                eObj.totalClasses = 0;
+                eObj.attendedClasses = 0;
+                eObj.progress = 0;
+            }
+
+            return eObj;
+        }));
+
+        res.json({ success: true, data });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }

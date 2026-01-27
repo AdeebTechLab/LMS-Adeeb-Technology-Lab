@@ -31,7 +31,22 @@ const PaidTasksManagement = () => {
         budget: '',
         deadline: '',
         skills: '',
+        category: 'web',
     });
+
+    useEffect(() => {
+        const title = (formData.title || '').toLowerCase();
+
+        if (title.includes('web') || title.includes('site') || title.includes('react') || title.includes('html') || title.includes('frontend') || title.includes('backend') || title.includes('fullstack')) {
+            setFormData(prev => ({ ...prev, category: 'web' }));
+        } else if (title.includes('ai') || title.includes('ml') || title.includes('machine learning') || title.includes('intelligence') || title.includes('data')) {
+            setFormData(prev => ({ ...prev, category: 'ai' }));
+        } else if (title.includes('mobile') || title.includes('app') || title.includes('ios') || title.includes('android') || title.includes('flutter') || title.includes('react native')) {
+            setFormData(prev => ({ ...prev, category: 'mobile' }));
+        } else if (title.includes('design') || title.includes('logo') || title.includes('graphic') || title.includes('ui') || title.includes('ux') || title.includes('figma')) {
+            setFormData(prev => ({ ...prev, category: 'design' }));
+        }
+    }, [formData.title]);
 
     // Fetch tasks on component mount
     useEffect(() => {
@@ -101,9 +116,10 @@ const PaidTasksManagement = () => {
                 budget: Number(formData.budget),
                 deadline: formData.deadline,
                 skills: formData.skills,
+                category: formData.category,
             });
             setIsModalOpen(false);
-            setFormData({ title: '', description: '', budget: '', deadline: '', skills: '' });
+            setFormData({ title: '', description: '', budget: '', deadline: '', skills: '', category: 'web' });
             fetchTasks(); // Refresh list
         } catch (err) {
             console.error('Error creating task:', err);
@@ -397,6 +413,21 @@ const PaidTasksManagement = () => {
                             placeholder="e.g., React, Node.js, MongoDB"
                             className="w-full px-4 py-3 border border-gray-200 rounded-xl"
                         />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Task Category *</label>
+                        <select
+                            value={formData.category}
+                            onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                            className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white"
+                            required
+                        >
+                            <option value="web">Web Development</option>
+                            <option value="ai">AI & Machine Learning</option>
+                            <option value="mobile">Mobile App Development</option>
+                            <option value="design">Graphic Design</option>
+                            <option value="other">Other</option>
+                        </select>
                     </div>
                     <div className="flex gap-3 pt-4 border-t">
                         <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-3 text-gray-600 hover:bg-gray-100 rounded-xl font-medium">

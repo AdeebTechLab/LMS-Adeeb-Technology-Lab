@@ -17,6 +17,8 @@ const certificateSchema = new mongoose.Schema({
     },
     skills: String,
     duration: String,
+    passoutDate: String,
+    certificateLink: String,
     issuedAt: {
         type: Date,
         default: Date.now

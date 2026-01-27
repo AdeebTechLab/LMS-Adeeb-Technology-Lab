@@ -32,6 +32,11 @@ const paidTaskSchema = new mongoose.Schema({
         required: [true, 'Deadline is required']
     },
     skills: String,
+    category: {
+        type: String,
+        enum: ['web', 'ai', 'mobile', 'design', 'other'],
+        default: 'web'
+    },
     status: {
         type: String,
         enum: ['open', 'assigned', 'submitted', 'completed'],

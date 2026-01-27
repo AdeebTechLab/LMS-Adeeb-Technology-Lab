@@ -48,25 +48,36 @@ const StudentDailyTasksTab = ({ course }) => {
         }
     };
 
+    const handleDelete = async (taskId) => {
+        if (!confirm('Are you sure you want to delete this log entry?')) return;
+        try {
+            await api.delete(`/daily-tasks/${taskId}`);
+            setTasks(prev => prev.filter(t => t._id !== taskId));
+        } catch (error) {
+            console.error('Error deleting task:', error);
+            alert('Failed to delete task');
+        }
+    };
+
     return (
         <div className="space-y-6">
-            <h3 className="text-lg font-bold text-gray-900">Daily Work Log</h3>
+            <h3 className="text-lg font-bold text-gray-900">{course.targetAudience === 'interns' ? 'Daily Work Log' : 'Class Log Session'}</h3>
 
             {/* Submit New Task */}
             <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-                <h4 className="font-semibold text-gray-800 mb-4">Log Today's Work</h4>
+                <h4 className="font-semibold text-gray-800 mb-4">{course.targetAudience === 'interns' ? "Log Today's Work" : "Log Class Session"}</h4>
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <input
-                        type="url"
+                        type="text"
                         value={workLink}
                         onChange={(e) => setWorkLink(e.target.value)}
-                        placeholder="Work Link (GitHub, Drive, etc.)"
+                        placeholder={course.targetAudience === 'interns' ? "Work Link or Title (Optional)" : "Topic / Reference Link (Optional)"}
                         className="w-full px-4 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20"
                     />
                     <textarea
                         value={newTask}
                         onChange={(e) => setNewTask(e.target.value)}
-                        placeholder="What did you work on today?"
+                        placeholder={course.targetAudience === 'interns' ? "What did you work on today?" : "What was taught in this class?"}
                         rows="3"
                         className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20 resize-none"
                     />
@@ -95,10 +106,19 @@ const StudentDailyTasksTab = ({ course }) => {
                             key={task._id}
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="bg-white p-5 rounded-xl border border-gray-100"
+                            className={`bg-white p-5 rounded-xl border border-gray-100 transition-all ${task.status === 'verified' || task.status === 'graded' ? 'opacity-50 grayscale-[0.2]' : ''}`}
                         >
                             <div className="flex justify-between items-start gap-4">
                                 <div className="flex-1">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${task.status === 'verified' || task.status === 'graded' ? 'bg-emerald-100 text-emerald-700' : task.status === 'rejected' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-600'}`}>
+                                            {task.status === 'graded' ? 'verified' : task.status}
+                                        </span>
+                                        <span className="text-xs text-gray-400 font-medium">
+                                            {new Date(task.date || task.createdAt).toLocaleDateString()}
+                                        </span>
+                                    </div>
+
                                     {task.workLink && (
                                         <a
                                             href={task.workLink}
@@ -109,32 +129,24 @@ const StudentDailyTasksTab = ({ course }) => {
                                             View Work Link ↗
                                         </a>
                                     )}
-                                    <p className="text-gray-800 whitespace-pre-wrap">{task.content}</p>
+                                    <p className="text-gray-800 whitespace-pre-wrap text-sm">{task.content}</p>
 
                                     {task.feedback && (
-                                        <div className="mt-3 bg-emerald-50 p-3 rounded-lg border border-emerald-100">
-                                            <p className="text-xs font-bold text-emerald-700 uppercase mb-1">Feedback</p>
-                                            <p className="text-sm text-emerald-800">{task.feedback}</p>
+                                        <div className="mt-3 bg-blue-50 p-3 rounded-lg border border-blue-100">
+                                            <p className="text-[10px] font-bold text-blue-700 uppercase mb-1">Feedback</p>
+                                            <p className="text-sm text-blue-800 italic">{task.feedback}</p>
                                         </div>
                                     )}
-
-                                    <div className="flex items-center gap-3 mt-3 text-xs text-gray-500">
-                                        <span className="flex items-center gap-1">
-                                            <Clock className="w-3 h-3" />
-                                            {new Date(task.date || task.createdAt).toLocaleDateString()}
-                                        </span>
-                                        {task.status === 'graded' && (
-                                            <span className="flex items-center gap-1 text-emerald-600 font-bold">
-                                                <CheckCircle className="w-3 h-3" />
-                                                Marks: {task.marks}/100
-                                            </span>
-                                        )}
-                                    </div>
                                 </div>
-                                <div className={`px-2 py-1 rounded text-xs font-bold uppercase ${task.status === 'graded' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-600'
-                                    }`}>
-                                    {task.status}
-                                </div>
+                                {task.status !== 'verified' && task.status !== 'graded' && (
+                                    <button
+                                        onClick={() => handleDelete(task._id)}
+                                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                                        title="Delete Log"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                    </button>
+                                )}
                             </div>
                         </motion.div>
                     ))

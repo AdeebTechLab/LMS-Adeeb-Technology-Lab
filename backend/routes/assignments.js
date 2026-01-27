@@ -4,11 +4,12 @@ const { protect, authorize } = require('../middleware/auth');
 const { uploadSubmission } = require('../config/cloudinary');
 const Assignment = require('../models/Assignment');
 const Enrollment = require('../models/Enrollment');
+const Course = require('../models/Course');
 
 // @route   GET /api/assignments/course/:courseId
 // @desc    Get assignments for a course
-// @access  Private
-router.get('/course/:courseId', protect, async (req, res) => {
+// @access  Private (Teacher, Admin)
+router.get('/course/:courseId', protect, authorize('teacher', 'admin'), async (req, res) => {
     try {
         const assignments = await Assignment.find({ course: req.params.courseId })
             .populate('createdBy', 'name')
@@ -77,18 +78,25 @@ router.post('/:id/submit', protect, uploadSubmission.single('file'), async (req,
         }
 
         // Check if already submitted
-        const existingSubmission = assignment.submissions.find(
+        const existingSubmissionIndex = assignment.submissions.findIndex(
             s => s.user.toString() === req.user.id
         );
-        if (existingSubmission) {
-            return res.status(400).json({ success: false, message: 'Already submitted' });
+
+        if (existingSubmissionIndex !== -1) {
+            const existingSubmission = assignment.submissions[existingSubmissionIndex];
+            // Only allow resubmission if it was rejected
+            if (existingSubmission.status !== 'rejected') {
+                return res.status(400).json({ success: false, message: 'Already submitted and not rejected' });
+            }
+            // Remove the old submission to allow adding a new one (or just overwrite it)
+            assignment.submissions.splice(existingSubmissionIndex, 1);
         }
 
         // Add submission
         assignment.submissions.push({
             user: req.user.id,
-            notes,
-            fileUrl: req.file ? req.file.path : null,
+            notes: notes || req.body.notes,
+            fileUrl: req.file ? req.file.path : req.body.fileUrl || null,
             submittedAt: new Date()
         });
 
@@ -105,7 +113,7 @@ router.post('/:id/submit', protect, uploadSubmission.single('file'), async (req,
 // @access  Private (Teacher, Admin)
 router.put('/:assignmentId/grade/:submissionId', protect, authorize('teacher', 'admin'), async (req, res) => {
     try {
-        const { marks, feedback } = req.body;
+        const { marks, feedback, status } = req.body;
         const assignment = await Assignment.findById(req.params.assignmentId);
 
         if (!assignment) {
@@ -117,8 +125,9 @@ router.put('/:assignmentId/grade/:submissionId', protect, authorize('teacher', '
             return res.status(404).json({ success: false, message: 'Submission not found' });
         }
 
-        submission.marks = marks;
-        submission.feedback = feedback;
+        submission.marks = marks !== undefined ? marks : submission.marks;
+        submission.feedback = feedback || submission.feedback;
+        submission.status = status || 'graded';
         submission.gradedBy = req.user.id;
         submission.gradedAt = new Date();
 
@@ -150,7 +159,18 @@ router.get('/my', protect, async (req, res) => {
             .populate('course', 'title')
             .sort('-createdAt');
 
-        res.json({ success: true, assignments });
+        // SECURITY: Only return the current user's submission
+        const sanitizedAssignments = assignments.map(assignment => {
+            const assignmentObj = assignment.toObject();
+            if (assignmentObj.submissions) {
+                assignmentObj.submissions = assignmentObj.submissions.filter(
+                    s => s.user.toString() === req.user.id
+                );
+            }
+            return assignmentObj;
+        });
+
+        res.json({ success: true, assignments: sanitizedAssignments });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }

@@ -293,7 +293,7 @@ const StudentRegister = () => {
                             />
                             {photoFile && <p className="mt-1 text-sm text-emerald-600">Selected: {photoFile.name}</p>}
                         </div>
-                        <InputField label="Registration Fee Screenshot (Rs. 300) *" name="feeScreenshotUrl" type="url" icon={Receipt} placeholder="https://..." value={formData.feeScreenshotUrl} onChange={handleChange} error={errors.feeScreenshotUrl} />
+                        <InputField label="Registration Fee Screenshot (Rs. 300)" name="feeScreenshotUrl" type="url" icon={Receipt} placeholder="https://..." value={formData.feeScreenshotUrl} onChange={handleChange} error={errors.feeScreenshotUrl} />
                     </div>
 
                     {apiError && (

@@ -12,6 +12,7 @@ import {
     Moon,
 } from 'lucide-react';
 import Sidebar from './Sidebar';
+import NotificationPopup from '../shared/NotificationPopup';
 
 const DashboardLayout = () => {
     const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -39,6 +40,9 @@ const DashboardLayout = () => {
         <div className="h-screen bg-[#F8FAFC] flex overflow-hidden">
             {/* Sidebar - Fixed */}
             <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
+
+            {/* Notification Popup */}
+            <NotificationPopup />
 
             {/* Main Content - Scrollable */}
             <div className="flex-1 flex flex-col h-screen overflow-hidden">

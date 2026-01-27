@@ -39,7 +39,7 @@ const dailyTaskSchema = new mongoose.Schema({
     gradedAt: Date,
     status: {
         type: String,
-        enum: ['submitted', 'graded'],
+        enum: ['submitted', 'graded', 'verified', 'rejected'],
         default: 'submitted'
     }
 }, {

@@ -1,20 +1,13 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { FileText, CheckCircle, Clock, Search, Filter, Loader2, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
+import { FileText, CheckCircle, Clock, Search, Loader2, ExternalLink, Trash2 } from 'lucide-react';
 import Badge from '../../../components/ui/Badge';
-import Modal from '../../../components/ui/Modal';
 import api from '../../../services/api';
 
 const DailyTasksTab = ({ course }) => {
     const [tasks, setTasks] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
-    const [selectedTask, setSelectedTask] = useState(null);
-    const [isGradeModalOpen, setIsGradeModalOpen] = useState(false);
-
-    // Grading Form
-    const [marks, setMarks] = useState('');
-    const [feedback, setFeedback] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
@@ -33,28 +26,43 @@ const DailyTasksTab = ({ course }) => {
         }
     };
 
-    const handleGradeClick = (task) => {
-        setSelectedTask(task);
-        setMarks(task.marks || '');
-        setFeedback(task.feedback || '');
-        setIsGradeModalOpen(true);
+    const handleVerifyClick = (task) => {
+        submitVerification(task._id, 'verified');
     };
 
-    const handleSubmitGrade = async (e) => {
-        e.preventDefault();
+    const handleReject = async (task) => {
+        if (!confirm('Are you sure you want to reject this submission? The student will be notified to resubmit.')) return;
+        submitVerification(task._id, 'rejected');
+    };
+
+    const handleDelete = async (task) => {
+        if (!confirm('Are you sure you want to delete this log entry permanently?')) return;
         setIsSubmitting(true);
         try {
-            const res = await api.put(`/daily-tasks/${selectedTask._id}/grade`, {
-                marks: Number(marks),
-                feedback
+            await api.delete(`/daily-tasks/${task._id}`);
+            setTasks(prev => prev.filter(t => t._id !== task._id));
+            alert('Log entry deleted successfully');
+        } catch (error) {
+            console.error('Error deleting task:', error);
+            alert('Failed to delete task');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const submitVerification = async (taskId, status) => {
+        setIsSubmitting(true);
+        try {
+            const res = await api.put(`/daily-tasks/${taskId}/grade`, {
+                status
             });
 
             // Update local state
-            setTasks(prev => prev.map(t => t._id === selectedTask._id ? res.data.data : t));
-            setIsGradeModalOpen(false);
+            setTasks(prev => prev.map(t => t._id === taskId ? res.data.data : t));
+            alert(`Task ${status === 'verified' ? 'verified' : 'rejected'} successfully`);
         } catch (error) {
-            console.error('Error grading task:', error);
-            alert('Failed to submit grade');
+            console.error(`Error ${status} task:`, error);
+            alert(`Failed to ${status} task`);
         } finally {
             setIsSubmitting(false);
         }
@@ -68,7 +76,9 @@ const DailyTasksTab = ({ course }) => {
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
-                <h3 className="text-lg font-bold text-gray-900">Daily Task Submissions</h3>
+                <h3 className="text-lg font-bold text-gray-900 uppercase italic">
+                    {course.targetAudience === 'interns' ? 'Daily Task Submissions' : 'Class Log Submissions'}
+                </h3>
                 <button onClick={fetchTasks} className="p-2 hover:bg-gray-100 rounded-lg text-gray-500">
                     <Loader2 className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} />
                 </button>
@@ -91,16 +101,16 @@ const DailyTasksTab = ({ course }) => {
                 {filteredTasks.map((task) => {
                     // Calculate Log # for this specific user
                     const userTasks = tasks
-                        .filter(t => (t.user?._id || t.user) === (task.user?._id || task.user))
+                        .filter(t => String(t.user?._id || t.user) === String(task.user?._id || task.user))
                         .sort((a, b) => new Date(a.date || a.createdAt) - new Date(b.date || b.createdAt));
-                    const logNumber = userTasks.findIndex(t => t._id === task._id) + 1;
+                    const logNumber = userTasks.findIndex(t => String(t._id) === String(task._id)) + 1;
 
                     return (
                         <motion.div
                             key={task._id}
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="bg-white p-6 rounded-2xl border border-gray-100 hover:shadow-md transition-all group"
+                            className={`bg-white p-6 rounded-2xl border border-gray-100 hover:shadow-md transition-all group ${task.status === 'verified' ? 'opacity-60 bg-gray-50/30' : ''}`}
                         >
                             <div className="flex items-start justify-between gap-4">
                                 <div className="flex items-start gap-4 flex-1">
@@ -109,9 +119,14 @@ const DailyTasksTab = ({ course }) => {
                                     </div>
                                     <div className="flex-1">
                                         <div className="flex items-center gap-2 mb-1">
-                                            <span className="text-[10px] font-black text-gray-400 bg-gray-50 px-2 py-0.5 rounded-lg border border-gray-100 uppercase tracking-tight">LOG #{logNumber}</span>
+                                            <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-100 uppercase tracking-tight">
+                                                {task.user?.role === 'intern' ? 'LOG' : 'CLASS'} #{logNumber}
+                                            </span>
                                             <h4 className="font-bold text-gray-900">{task.user?.name}</h4>
-                                            <span className="text-xs text-gray-400 font-medium px-2 py-0.5 bg-gray-50 rounded-full border border-gray-100">Intern</span>
+                                            <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border ${task.user?.role === 'intern' ? 'bg-purple-50 text-purple-600 border-purple-100' : 'bg-blue-50 text-blue-600 border-blue-100'
+                                                }`}>
+                                                {task.user?.role || 'student'}
+                                            </span>
                                         </div>
                                         <p className="text-xs text-gray-400 mb-4 flex items-center gap-1.5 font-medium">
                                             <Clock className="w-3.5 h-3.5" />
@@ -144,26 +159,39 @@ const DailyTasksTab = ({ course }) => {
                                     </div>
                                 </div>
 
-                                <div className="flex flex-col items-end gap-4">
-                                    <Badge variant={task.status === 'graded' ? 'success' : 'warning'}>
-                                        {task.status === 'graded' ? 'GRADED ✅' : 'PENDING ⏳'}
+                                <div className="flex flex-col items-end gap-3">
+                                    <Badge variant={task.status === 'verified' || task.status === 'graded' ? 'success' : task.status === 'rejected' ? 'error' : 'warning'}>
+                                        {task.status === 'verified' || task.status === 'graded' ? 'VERIFIED ✅' : task.status === 'rejected' ? 'REJECTED ❌' : 'PENDING ⏳'}
                                     </Badge>
 
-                                    {task.status === 'graded' ? (
-                                        <div className="text-right bg-emerald-50 px-5 py-2 rounded-2xl border border-emerald-100">
-                                            <div className="flex flex-col">
-                                                <span className="text-xs font-black text-emerald-600 uppercase tracking-widest leading-none mb-1">Score</span>
-                                                <span className="text-2xl font-black text-emerald-700">{task.marks}<span className="text-sm text-emerald-400">/100</span></span>
-                                            </div>
-                                        </div>
-                                    ) : (
+                                    <div className="flex items-center gap-2">
+                                        {(task.status === 'submitted' || task.status === 'rejected') && (
+                                            <button
+                                                onClick={() => handleVerifyClick(task)}
+                                                disabled={isSubmitting}
+                                                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-black uppercase tracking-widest transition-all shadow-md active:scale-95 disabled:opacity-50"
+                                            >
+                                                {isSubmitting ? '...' : 'VERIFY'}
+                                            </button>
+                                        )}
+                                        {task.status === 'submitted' && (
+                                            <button
+                                                onClick={() => handleReject(task)}
+                                                disabled={isSubmitting}
+                                                className="px-4 py-2 bg-red-100 text-red-600 hover:bg-red-200 rounded-lg text-xs font-black uppercase tracking-widest transition-all active:scale-95 disabled:opacity-50"
+                                            >
+                                                REJECT
+                                            </button>
+                                        )}
                                         <button
-                                            onClick={() => handleGradeClick(task)}
-                                            className="px-6 py-3 bg-[#0D2818] hover:bg-[#1A5D3A] text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-emerald-900/10 active:scale-95"
+                                            onClick={() => handleDelete(task)}
+                                            disabled={isSubmitting}
+                                            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                                            title="Delete Log"
                                         >
-                                            ENTER GRADE
+                                            <Trash2 className="w-4 h-4" />
                                         </button>
-                                    )}
+                                    </div>
                                 </div>
                             </div>
                         </motion.div>
@@ -174,69 +202,10 @@ const DailyTasksTab = ({ course }) => {
                     <div className="text-center py-24 bg-gray-50 rounded-3xl border border-dashed border-gray-200">
                         <FileText className="w-12 h-12 text-gray-300 mx-auto mb-4" />
                         <h4 className="text-lg font-bold text-gray-400">No Submissions Found</h4>
-                        <p className="text-sm text-gray-400">When interns log their work, it will appear here.</p>
+                        <p className="text-sm text-gray-400">When {course.targetAudience === 'interns' ? 'interns' : 'students'} log their work, it will appear here.</p>
                     </div>
                 )}
             </div>
-
-            {/* Grade Modal */}
-            <Modal
-                isOpen={isGradeModalOpen}
-                onClose={() => setIsGradeModalOpen(false)}
-                title="Grade Daily Task Submission"
-            >
-                <form onSubmit={handleSubmitGrade} className="space-y-5">
-                    <div className="bg-emerald-50 p-4 rounded-2xl border border-emerald-100 mb-4">
-                        <p className="text-[10px] font-black text-emerald-600 uppercase mb-2 tracking-widest">Grading Instructions</p>
-                        <p className="text-xs text-emerald-800 font-medium">Please evaluate the intern's work log and submitted links. Daily tasks are graded on a scale of 0 to 100.</p>
-                    </div>
-
-                    <div>
-                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Obtained Marks</label>
-                        <div className="relative">
-                            <input
-                                type="number"
-                                min="0"
-                                max="100"
-                                value={marks}
-                                onChange={(e) => setMarks(e.target.value)}
-                                className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20 font-bold text-gray-800"
-                                placeholder="0-100"
-                                required
-                            />
-                            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400">/ 100</span>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Grading Feedback</label>
-                        <textarea
-                            value={feedback}
-                            onChange={(e) => setFeedback(e.target.value)}
-                            className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20 font-medium text-gray-800 resize-none"
-                            rows="3"
-                            placeholder="Provide constructive feedback for the intern..."
-                        />
-                    </div>
-
-                    <div className="flex gap-3 pt-2">
-                        <button
-                            type="button"
-                            onClick={() => setIsGradeModalOpen(false)}
-                            className="px-6 py-3 text-gray-500 hover:bg-gray-100 rounded-xl font-bold text-xs uppercase"
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            type="submit"
-                            disabled={isSubmitting}
-                            className="flex-1 py-3 bg-[#0D2818] hover:bg-[#1A5D3A] text-white rounded-xl font-black text-xs uppercase tracking-widest transition-all shadow-lg active:scale-95"
-                        >
-                            {isSubmitting ? 'Submitting...' : 'Submit Grade & Feedback'}
-                        </button>
-                    </div>
-                </form>
-            </Modal>
         </div>
     );
 };

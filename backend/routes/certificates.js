@@ -69,7 +69,7 @@ router.post('/request', protect, authorize('teacher'), async (req, res) => {
 // @access  Private (Admin)
 router.put('/requests/:id/approve', protect, authorize('admin'), async (req, res) => {
     try {
-        const { rollNo, skills, duration } = req.body;
+        const { rollNo, skills, duration, passoutDate, certificateLink } = req.body;
         const request = await CertificateRequest.findById(req.params.id);
 
         if (!request) {
@@ -82,8 +82,11 @@ router.put('/requests/:id/approve', protect, authorize('admin'), async (req, res
 
         // Update user rollNo if provided and different
         const user = await User.findById(request.user);
-        if (rollNo && user.rollNo !== rollNo) {
-            user.rollNo = rollNo;
+        const normalizedRollNo = rollNo ? rollNo.toString().trim() : '';
+        const existingRollNo = user.rollNo ? user.rollNo.toString().trim() : '';
+
+        if (normalizedRollNo && existingRollNo !== normalizedRollNo) {
+            user.rollNo = normalizedRollNo;
             await user.save();
         }
 
@@ -94,6 +97,8 @@ router.put('/requests/:id/approve', protect, authorize('admin'), async (req, res
             rollNo: rollNo || user.rollNo,
             skills: skills || request.skills,
             duration: duration || request.duration,
+            passoutDate: passoutDate || request.passoutDate,
+            certificateLink,
             issuedBy: req.user.id
         });
 
@@ -141,10 +146,9 @@ router.get('/courses', protect, authorize('admin'), async (req, res) => {
         const courses = await Course.find().sort('-createdAt');
 
         const coursesWithStudents = await Promise.all(courses.map(async (course) => {
-            // Get enrollments
+            // Get all enrollments for this course (removed status filter)
             const enrollments = await Enrollment.find({
-                course: course._id,
-                status: { $in: ['enrolled', 'completed'] }
+                course: course._id
             }).populate('user', 'name email phone photo rollNo role');
 
             // Get existing certificates
@@ -175,7 +179,7 @@ router.get('/courses', protect, authorize('admin'), async (req, res) => {
 // @access  Private (Admin)
 router.post('/issue', protect, authorize('admin'), async (req, res) => {
     try {
-        const { userId, courseId, skills } = req.body;
+        const { userId, courseId, skills, passoutDate, certificateLink, rollNo } = req.body;
 
         // Check if already issued
         const existing = await Certificate.findOne({ user: userId, course: courseId });
@@ -191,8 +195,18 @@ router.post('/issue', protect, authorize('admin'), async (req, res) => {
             return res.status(404).json({ success: false, message: 'User or course not found' });
         }
 
-        if (!user.rollNo) {
-            return res.status(400).json({ success: false, message: 'User does not have a roll number' });
+        // Handle roll number update/set
+        const normalizedRollNo = rollNo ? rollNo.toString().trim() : '';
+        const existingRollNo = user.rollNo ? user.rollNo.toString().trim() : '';
+        const finalRollNo = normalizedRollNo || existingRollNo;
+
+        if (!finalRollNo) {
+            return res.status(400).json({ success: false, message: 'Please provide a roll number' });
+        }
+
+        if (normalizedRollNo && existingRollNo !== normalizedRollNo) {
+            user.rollNo = normalizedRollNo;
+            await user.save();
         }
 
         // Calculate duration
@@ -204,9 +218,11 @@ router.post('/issue', protect, authorize('admin'), async (req, res) => {
         const certificate = await Certificate.create({
             user: userId,
             course: courseId,
-            rollNo: user.rollNo,
+            rollNo: finalRollNo,
             skills: skills || course.title,
-            duration,
+            duration: duration,
+            passoutDate,
+            certificateLink,
             issuedBy: req.user.id
         });
 
@@ -256,6 +272,8 @@ router.get('/verify/:rollNo', async (req, res) => {
             course: cert.course.title,
             skills: cert.skills,
             duration: cert.duration,
+            passoutDate: cert.passoutDate,
+            certificateLink: cert.certificateLink,
             location: cert.course.location,
             issuedAt: cert.issuedAt
         }));

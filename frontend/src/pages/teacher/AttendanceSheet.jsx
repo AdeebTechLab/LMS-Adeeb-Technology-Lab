@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useSelector } from 'react-redux';
 import {
@@ -14,6 +15,8 @@ import DailyTasksTab from './components/DailyTasksTab';
 import AssignmentsTab from './components/AssignmentsTab';
 
 const AttendanceSheet = () => {
+    const { id: routeCourseId } = useParams();
+    const navigate = useNavigate();
     const { user } = useSelector((state) => state.auth);
     const [selectedCourse, setSelectedCourse] = useState(null);
     const [activeTab, setActiveTab] = useState('daily_tasks'); // assignments | daily_tasks | attendance
@@ -24,6 +27,16 @@ const AttendanceSheet = () => {
     useEffect(() => {
         fetchMyCourses();
     }, []);
+
+    // Handle deep linking when courses are loaded
+    useEffect(() => {
+        if (routeCourseId && myCourses.length > 0) {
+            const course = myCourses.find(c => c.id.toString() === routeCourseId.toString());
+            if (course && (!selectedCourse || selectedCourse.id !== course.id)) {
+                handleSelectCourse(course, true); // true to skip navigation
+            }
+        }
+    }, [routeCourseId, myCourses]);
 
     const fetchMyCourses = async () => {
         setIsLoading(true);
@@ -92,7 +105,7 @@ const AttendanceSheet = () => {
         }
     };
 
-    const handleSelectCourse = (course) => {
+    const handleSelectCourse = (course, skipNavigation = false) => {
         const studentsList = course.enrollments.map((e, idx) => ({
             id: e.user?._id || e.user, // IMPORTANT: Repair script used 'user' field
             _id: e.user?._id || e.user,
@@ -107,6 +120,11 @@ const AttendanceSheet = () => {
         console.log('Selected course students:', studentsList);
         setCourseStudents(studentsList);
         setSelectedCourse(course);
+
+        // Update URL if not already there
+        if (!skipNavigation) {
+            navigate(`/teacher/course/${course.id}`);
+        }
 
         // Default tab based on audience
         if (course.targetAudience === 'interns') {
@@ -208,7 +226,10 @@ const AttendanceSheet = () => {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <button
-                        onClick={() => { setSelectedCourse(null); }}
+                        onClick={() => {
+                            setSelectedCourse(null);
+                            navigate('/teacher/attendance');
+                        }}
                         className="flex items-center gap-2 text-emerald-600 hover:text-emerald-700 mb-2 font-bold text-sm tracking-wide"
                     >
                         <ChevronLeft className="w-4 h-4" />
@@ -231,18 +252,16 @@ const AttendanceSheet = () => {
             <div className="space-y-6">
                 {/* Tab Navigation */}
                 <div className="flex gap-2 bg-gray-100/80 p-1.5 rounded-2xl w-fit border border-gray-200">
-                    {selectedCourse.targetAudience === 'interns' && (
-                        <button
-                            onClick={() => setActiveTab('daily_tasks')}
-                            className={`px-8 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 ${activeTab === 'daily_tasks'
-                                ? 'bg-white text-emerald-600 shadow-sm border border-emerald-100'
-                                : 'text-gray-500 hover:bg-gray-200 hover:text-gray-900'
-                                }`}
-                        >
-                            <ClipboardList className="w-4 h-4" />
-                            Daily Tasks
-                        </button>
-                    )}
+                    <button
+                        onClick={() => setActiveTab('daily_tasks')}
+                        className={`px-8 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 ${activeTab === 'daily_tasks'
+                            ? 'bg-white text-emerald-600 shadow-sm border border-emerald-100'
+                            : 'text-gray-500 hover:bg-gray-200 hover:text-gray-900'
+                            }`}
+                    >
+                        <ClipboardList className="w-4 h-4" />
+                        {selectedCourse.targetAudience === 'interns' ? 'Daily Tasks' : 'Class Logs'}
+                    </button>
                     <button
                         onClick={() => setActiveTab('assignments')}
                         className={`px-8 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 ${activeTab === 'assignments'
@@ -267,7 +286,7 @@ const AttendanceSheet = () => {
 
                 {/* Tab Content */}
                 <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-xl shadow-gray-200/50 min-h-[500px]">
-                    {activeTab === 'daily_tasks' && selectedCourse.targetAudience === 'interns' && (
+                    {activeTab === 'daily_tasks' && (
                         <DailyTasksTab course={selectedCourse} />
                     )}
                     {activeTab === 'assignments' && (

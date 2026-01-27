@@ -109,8 +109,8 @@ export const assignmentAPI = {
     submit: (id, formData) => api.post(`/assignments/${id}/submit`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
     }),
-    grade: (assignmentId, submissionId, marks, feedback) =>
-        api.put(`/assignments/${assignmentId}/grade/${submissionId}`, { marks, feedback })
+    grade: (assignmentId, submissionId, marks, feedback, status) =>
+        api.put(`/assignments/${assignmentId}/grade/${submissionId}`, { marks, feedback, status })
 };
 
 // Certificate APIs
@@ -146,6 +146,15 @@ export const dailyTaskAPI = {
     submit: (data) => api.post('/daily-tasks', data),
     getByCourse: (courseId) => api.get(`/daily-tasks/course/${courseId}`),
     getMy: (courseId) => api.get(`/daily-tasks/my/${courseId}`)
+};
+
+// Notification APIs
+export const notificationAPI = {
+    getActive: () => api.get('/notifications/active'),
+    getAll: () => api.get('/notifications'),
+    create: (data) => api.post('/notifications', data),
+    update: (id, data) => api.put(`/notifications/${id}`, data),
+    delete: (id) => api.delete(`/notifications/${id}`)
 };
 
 export default api;

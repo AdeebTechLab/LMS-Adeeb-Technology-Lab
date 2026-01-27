@@ -13,16 +13,18 @@ import {
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import { BarChart } from '../../components/charts/Charts';
+import { useSelector } from 'react-redux';
 import { assignmentAPI, dailyTaskAPI, enrollmentAPI } from '../../services/api';
 
 const MarksSheet = () => {
+    const { user } = useSelector((state) => state.auth);
     const [isLoading, setIsLoading] = useState(true);
     const [enrollments, setEnrollments] = useState([]);
     const [selectedCourseId, setSelectedCourseId] = useState('');
 
     useEffect(() => {
         fetchMarksData();
-    }, []);
+    }, [user?._id]);
 
     const fetchMarksData = async () => {
         setIsLoading(true);
@@ -45,7 +47,9 @@ const MarksSheet = () => {
                     .filter(a => (a.course?._id || a.course) === courseId)
                     .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate)) // Oldest first for #1, #2...
                     .map((a, index) => {
-                        const mySub = a.submissions?.[0]; // Usually transformed by backend to only include user's sub
+                        const mySub = a.submissions?.find(s =>
+                            (s.user?._id || s.user) === user?._id
+                        );
                         if (mySub && (mySub.marks !== undefined && mySub.marks !== null)) {
                             return {
                                 assessment: a.title,
@@ -123,14 +127,14 @@ const MarksSheet = () => {
     };
 
     const getOverallAverage = () => {
-        const allGrades = enrollments.flatMap((c) => c.grades || []);
-        if (allGrades.length === 0) return 0;
-        const totalMarks = allGrades.reduce((sum, g) => sum + g.marks, 0);
-        const totalPossible = allGrades.reduce((sum, g) => sum + g.total, 0);
-        return totalPossible > 0 ? ((totalMarks / totalPossible) * 100).toFixed(1) : 0;
+        // Average of ALL assignments across ALL courses
+        const allAssignments = enrollments.flatMap((c) => (c.grades || []).filter(g => g.type === 'Assignment'));
+        if (allAssignments.length === 0) return 0;
+        return calculateSimpleAverage(allAssignments);
     };
 
     const getGrade = (percentage) => {
+        if (!percentage || isNaN(percentage)) return { grade: 'N/A', color: 'text-gray-400' };
         if (percentage >= 90) return { grade: 'A+', color: 'text-emerald-600' };
         if (percentage >= 85) return { grade: 'A', color: 'text-emerald-600' };
         if (percentage >= 80) return { grade: 'B+', color: 'text-blue-600' };
@@ -141,9 +145,16 @@ const MarksSheet = () => {
         return { grade: 'F', color: 'text-red-600' };
     };
 
+    const calculateSimpleAverage = (grades) => {
+        if (!grades || grades.length === 0) return 0;
+        const percentages = grades.map(g => (g.marks / g.total) * 100);
+        const sum = percentages.reduce((a, b) => a + b, 0);
+        return (sum / grades.length).toFixed(1);
+    };
+
     const overallAverage = getOverallAverage();
     const overallGrade = getGrade(parseFloat(overallAverage));
-    const totalAssessments = enrollments.reduce((sum, c) => sum + (c.grades?.length || 0), 0);
+    const totalAssignmentsCount = enrollments.reduce((sum, c) => sum + (c.grades?.filter(g => g.type === 'Assignment').length || 0), 0);
 
     const selectedCourse = enrollments.find(c => c.courseId === selectedCourseId);
 
@@ -191,7 +202,7 @@ const MarksSheet = () => {
                         <div>
                             <p className="text-white/70 text-sm mb-1 uppercase font-black tracking-widest">Global average</p>
                             <p className="text-4xl font-black">{overallAverage}%</p>
-                            <p className={`text-lg font-black mt-1 text-white/80`}>Grade: {totalAssessments > 0 ? overallGrade.grade : 'N/A'}</p>
+                            <p className={`text-lg font-black mt-1 text-white/80`}>Grade: {totalAssignmentsCount > 0 ? overallGrade.grade : 'N/A'}</p>
                         </div>
                         <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center">
                             <Award className="w-8 h-8 text-white" />
@@ -211,8 +222,8 @@ const MarksSheet = () => {
 
                 <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex items-center justify-between">
                     <div>
-                        <p className="text-gray-400 text-[10px] font-black uppercase tracking-widest mb-1">Graded Tasks</p>
-                        <p className="text-3xl font-black text-gray-900">{totalAssessments}</p>
+                        <p className="text-gray-400 text-[10px] font-black uppercase tracking-widest mb-1">Graded Assignments</p>
+                        <p className="text-3xl font-black text-gray-900">{totalAssignmentsCount}</p>
                     </div>
                     <div className="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center">
                         <FileText className="w-6 h-6 text-emerald-600" />
@@ -220,28 +231,32 @@ const MarksSheet = () => {
                 </div>
             </div>
 
-            {/* Course Selector Step */}
-            <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-xl shadow-gray-200/50">
-                <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-                    <div className="flex items-center gap-4">
-                        <div className="p-3 bg-emerald-50 rounded-2xl">
-                            <GraduationCap className="w-6 h-6 text-emerald-600" />
-                        </div>
-                        <div>
-                            <h3 className="font-black text-gray-900 uppercase tracking-widest leading-none mb-1 text-sm">Course Selection</h3>
-                            <p className="text-xs text-gray-500 font-medium">Please select a course to load your performance data</p>
-                        </div>
+            {/* Course Selector Step - High Visibility */}
+            <div className="bg-[#f8fafc] p-8 rounded-3xl border-2 border-emerald-500/20 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl shadow-emerald-900/5">
+                <div className="flex items-center gap-4">
+                    <div className="p-4 bg-emerald-600 rounded-2xl shadow-lg shadow-emerald-200">
+                        <GraduationCap className="w-8 h-8 text-white" />
                     </div>
+                    <div>
+                        <h3 className="font-black text-gray-900 uppercase tracking-tighter leading-none mb-1 text-lg">Step 1: Select Course</h3>
+                        <p className="text-sm text-gray-500 font-medium italic">Reveal your detailed performance by choosing a course</p>
+                    </div>
+                </div>
+                <div className="relative w-full md:w-96">
                     <select
                         value={selectedCourseId}
                         onChange={(e) => setSelectedCourseId(e.target.value)}
-                        className="w-full md:w-80 px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:ring-4 focus:ring-emerald-500/10 font-black text-gray-800 uppercase tracking-tight"
+                        className={`w-full px-6 py-4 bg-white border-2 rounded-2xl outline-none transition-all font-black text-lg uppercase tracking-tight appearance-none cursor-pointer ${!selectedCourseId ? 'border-amber-400 text-amber-600 animate-pulse ring-4 ring-amber-400/10' : 'border-emerald-500 text-emerald-600'
+                            }`}
                     >
-                        <option value="">-- Choose a Course --</option>
+                        <option value="">-- Choose Course Here --</option>
                         {enrollments.map(c => (
                             <option key={c.courseId} value={c.courseId}>{c.name}</option>
                         ))}
                     </select>
+                    <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none">
+                        <div className={`w-3 h-3 border-r-2 border-b-2 rotate-45 ${!selectedCourseId ? 'border-amber-400' : 'border-emerald-600'}`}></div>
+                    </div>
                 </div>
             </div>
 
@@ -249,20 +264,15 @@ const MarksSheet = () => {
             {selectedCourse ? (
                 <div className="space-y-6">
                     {(() => {
-                        const average = calculateCourseAverage(selectedCourse.grades);
-                        const gradeInfo = getGrade(parseFloat(average));
                         const assignmentGrades = selectedCourse.grades.filter(g => g.type === 'Assignment');
                         const dailyTaskGrades = selectedCourse.grades.filter(g => g.type === 'Daily Task');
 
-                        const calculateCategoryAverage = (grades) => {
-                            if (!grades || grades.length === 0) return null;
-                            const totalMarks = grades.reduce((sum, g) => sum + g.marks, 0);
-                            const totalPossible = grades.reduce((sum, g) => sum + g.total, 0);
-                            return ((totalMarks / totalPossible) * 100).toFixed(1);
-                        };
+                        const average = calculateSimpleAverage(assignmentGrades);
+                        const gradeInfo = getGrade(parseFloat(average));
 
-                        const assignAvg = calculateCategoryAverage(assignmentGrades);
-                        const dailyAvg = calculateCategoryAverage(dailyTaskGrades);
+                        const dailyAvgMarks = dailyTaskGrades.length > 0
+                            ? (dailyTaskGrades.reduce((sum, g) => sum + g.marks, 0) / dailyTaskGrades.length).toFixed(1)
+                            : null;
 
                         return (
                             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-2xl shadow-gray-200/50">
@@ -293,7 +303,7 @@ const MarksSheet = () => {
                                                 <div className="p-2 bg-blue-50 rounded-lg"><FileText className="w-5 h-5 text-blue-600" /></div>
                                                 <h4 className="font-black text-gray-900 uppercase tracking-widest">Assignments</h4>
                                             </div>
-                                            {assignAvg && <span className="text-[10px] font-black text-blue-600 bg-blue-50 px-3 py-1.5 rounded-xl border border-blue-100 uppercase">Avg: {assignAvg}%</span>}
+                                            {average > 0 && <span className="text-[10px] font-black text-blue-600 bg-blue-50 px-3 py-1.5 rounded-xl border border-blue-100 uppercase">Assignment Avg: {average}%</span>}
                                         </div>
                                         {assignmentGrades.length > 0 ? (
                                             <div className="overflow-hidden rounded-2xl border border-gray-100">
@@ -334,7 +344,7 @@ const MarksSheet = () => {
                                                 <div className="p-2 bg-emerald-50 rounded-lg"><RefreshCw className="w-5 h-5 text-emerald-600" /></div>
                                                 <h4 className="font-black text-gray-900 uppercase tracking-widest">Daily work logs</h4>
                                             </div>
-                                            {dailyAvg && <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-100 uppercase">Avg: {dailyAvg}%</span>}
+                                            {dailyAvgMarks && <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-100 uppercase">Work Log Avg Score: {dailyAvgMarks}/100</span>}
                                         </div>
                                         {dailyTaskGrades.length > 0 ? (
                                             <div className="overflow-hidden rounded-2xl border border-gray-100">
@@ -344,7 +354,6 @@ const MarksSheet = () => {
                                                             <th className="py-4 px-6 text-[10px] font-black text-gray-400 uppercase tracking-widest">#</th>
                                                             <th className="py-4 px-6 text-[10px] font-black text-gray-400 uppercase tracking-widest">Date</th>
                                                             <th className="py-4 px-6 text-[10px] font-black text-gray-400 uppercase tracking-widest">Score</th>
-                                                            <th className="py-4 px-6 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Grade</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody className="divide-y divide-gray-50">
@@ -356,9 +365,8 @@ const MarksSheet = () => {
                                                                     <td className="py-4 px-6 font-black text-gray-300">LOG #{grade.number}</td>
                                                                     <td className="py-4 px-6 font-bold text-gray-900">{grade.assessment.split(': ')[1]}</td>
                                                                     <td className="py-4 px-6 font-medium text-gray-600">
-                                                                        <span className="text-gray-900 font-bold">{grade.marks}</span><span className="text-xs opacity-50">/{grade.total}</span>
+                                                                        <span className="text-gray-900 font-bold">{grade.marks}</span><span className="text-xs opacity-50">/100</span>
                                                                     </td>
-                                                                    <td className={`py-4 px-6 font-black text-right ${gInfo.color}`}>{gInfo.grade} ({perc}%)</td>
                                                                 </tr>
                                                             );
                                                         })}

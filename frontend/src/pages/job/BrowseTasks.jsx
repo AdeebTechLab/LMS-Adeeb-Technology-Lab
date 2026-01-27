@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useSelector } from 'react-redux';
 import {
-    Search, Calendar, Briefcase, CheckCircle, Send, Upload, CreditCard, Loader2, RefreshCw, AlertCircle, Link, Trash2
+    Search, Calendar, Briefcase, CheckCircle, Send, Upload, CreditCard, Loader2, RefreshCw, AlertCircle, Link, Trash2,
+    Globe, Cpu, Smartphone, Palette, Grid
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
@@ -107,6 +108,16 @@ const BrowseTasks = () => {
     const filteredTasks = getCurrentTasks().filter(t =>
         t.title?.toLowerCase().includes(searchQuery.toLowerCase())
     );
+
+    const getCategoryIcon = (category) => {
+        switch (category) {
+            case 'web': return <Globe className="w-6 h-6 text-white" />;
+            case 'ai': return <Cpu className="w-6 h-6 text-white" />;
+            case 'mobile': return <Smartphone className="w-6 h-6 text-white" />;
+            case 'design': return <Palette className="w-6 h-6 text-white" />;
+            default: return <Grid className="w-6 h-6 text-white" />;
+        }
+    };
 
     const handleApply = async () => {
         if (!applicationMessage.trim() || !selectedTask) return;
@@ -250,8 +261,13 @@ const BrowseTasks = () => {
                             className={`bg-white rounded-2xl p-6 border border-gray-100 hover:shadow-lg transition-all ${hasSubmitted ? 'opacity-75' : ''}`}
                         >
                             <div className="flex items-start justify-between mb-4">
-                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center">
-                                    <Briefcase className="w-6 h-6 text-white" />
+                                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br flex items-center justify-center ${task.category === 'web' ? 'from-blue-400 to-indigo-500' :
+                                        task.category === 'ai' ? 'from-purple-400 to-pink-500' :
+                                            task.category === 'mobile' ? 'from-emerald-400 to-teal-500' :
+                                                task.category === 'design' ? 'from-amber-400 to-orange-500' :
+                                                    'from-gray-400 to-slate-500'
+                                    }`}>
+                                    {getCategoryIcon(task.category)}
                                 </div>
                                 {hasApplied(task) && !assigned && <Badge variant="warning">Applied</Badge>}
                                 {assigned && !hasSubmitted && <Badge variant="info">Assigned</Badge>}

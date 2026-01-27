@@ -15,6 +15,7 @@ import {
     RefreshCw,
     ClipboardList,
     Plus,
+    XCircle,
     GraduationCap
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
@@ -37,6 +38,7 @@ const AssignmentSubmission = () => {
     const [selectedCourseId, setSelectedCourseId] = useState('');
     const [dailyTasks, setDailyTasks] = useState([]);
     const [newTaskContent, setNewTaskContent] = useState('');
+    const [resubmittingTaskId, setResubmittingTaskId] = useState(null);
 
     useEffect(() => {
         if (location.state?.tab) {
@@ -102,12 +104,20 @@ const AssignmentSubmission = () => {
             const res = await dailyTaskAPI.submit({
                 courseId: selectedCourseId,
                 content: newTaskContent,
-                workLink: newTaskLink
+                workLink: newTaskLink,
+                taskId: resubmittingTaskId
             });
-            setDailyTasks([res.data.data, ...dailyTasks]);
+
+            if (resubmittingTaskId) {
+                setDailyTasks(prev => prev.map(t => t._id === resubmittingTaskId ? res.data.data : t));
+                setResubmittingTaskId(null);
+            } else {
+                setDailyTasks([res.data.data, ...dailyTasks]);
+            }
+
             setNewTaskContent('');
             setNewTaskLink('');
-            alert('Daily task log submitted successfully!');
+            alert(`Daily task log ${resubmittingTaskId ? 'updated' : 'submitted'} successfully!`);
         } catch (error) {
             console.error('Error submitting daily task:', error);
             alert('Failed to submit daily task');
@@ -125,12 +135,14 @@ const AssignmentSubmission = () => {
             // Transform assignments to include user's submission status
             const transformedAssignments = data.map(assignment => {
                 const mySubmission = assignment.submissions?.find(
-                    s => s.user === user?._id || s.user?._id === user?._id
+                    s => (s.user?._id || s.user) === (user?._id || user?.id)
                 );
 
                 let status = 'pending';
                 if (mySubmission) {
-                    if (mySubmission.marks !== undefined && mySubmission.marks !== null) {
+                    if (mySubmission.status === 'rejected') {
+                        status = 'rejected';
+                    } else if (mySubmission.marks !== undefined && mySubmission.marks !== null) {
                         status = 'graded';
                     } else {
                         status = 'submitted';
@@ -189,6 +201,8 @@ const AssignmentSubmission = () => {
                 return { variant: 'success', icon: CheckCircle, label: 'Graded', color: 'text-emerald-600' };
             case 'overdue':
                 return { variant: 'error', icon: AlertCircle, label: 'Overdue', color: 'text-red-600' };
+            case 'rejected':
+                return { variant: 'error', icon: XCircle, label: 'Rejected', color: 'text-red-600' };
             default:
                 return { variant: 'warning', icon: Clock, label: 'Pending', color: 'text-amber-600' };
         }
@@ -286,52 +300,56 @@ const AssignmentSubmission = () => {
                         <RefreshCw className={`w-5 h-5 text-gray-600 ${isLoading ? 'animate-spin' : ''}`} />
                     </button>
                     {/* Tab Switcher for Interns */}
-                    {user?.role === 'intern' && (
-                        <div className="flex bg-gray-100 p-1 rounded-xl">
-                            <button
-                                onClick={() => setActiveTab('assignments')}
-                                className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'assignments'
-                                    ? 'bg-white text-emerald-600 shadow-sm'
-                                    : 'text-gray-500 hover:text-gray-700'}`}
-                            >
-                                <FileText className="w-4 h-4 inline mr-2" />
-                                Assignments
-                            </button>
-                            <button
-                                onClick={() => setActiveTab('daily_tasks')}
-                                className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'daily_tasks'
-                                    ? 'bg-white text-emerald-600 shadow-sm'
-                                    : 'text-gray-500 hover:text-gray-700'}`}
-                            >
-                                <ClipboardList className="w-4 h-4 inline mr-2" />
-                                Daily Tasks
-                            </button>
-                        </div>
-                    )}
+                    <div className="flex bg-gray-100 p-1 rounded-xl">
+                        <button
+                            onClick={() => setActiveTab('assignments')}
+                            className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'assignments'
+                                ? 'bg-white text-emerald-600 shadow-sm'
+                                : 'text-gray-500 hover:text-gray-700'}`}
+                        >
+                            <FileText className="w-4 h-4 inline mr-2" />
+                            Assignments
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('daily_tasks')}
+                            className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'daily_tasks'
+                                ? 'bg-white text-emerald-600 shadow-sm'
+                                : 'text-gray-500 hover:text-gray-700'}`}
+                        >
+                            <ClipboardList className="w-4 h-4 inline mr-2" />
+                            {user?.role === 'intern' ? 'Daily Tasks' : 'Class Logs'}
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            {/* Course Selector - Always Visible for better grouping */}
-            <div className="bg-white p-6 rounded-2xl border border-gray-100 flex flex-col md:flex-row items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                    <div className="p-2.5 bg-emerald-50 rounded-xl">
-                        <GraduationCap className="w-5 h-5 text-emerald-600" />
+            {/* Course Selector - High Contrast */}
+            <div className="bg-[#f8fafc] p-8 rounded-3xl border-2 border-emerald-500/20 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl shadow-emerald-900/5">
+                <div className="flex items-center gap-4">
+                    <div className="p-4 bg-emerald-600 rounded-2xl shadow-lg shadow-emerald-200">
+                        <GraduationCap className="w-8 h-8 text-white" />
                     </div>
                     <div>
-                        <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest leading-none mb-1">Select Course</h3>
-                        <p className="text-xs text-gray-500 font-medium">Filter work and submissions by course</p>
+                        <h3 className="text-lg font-black text-gray-900 uppercase tracking-tighter leading-none mb-1">Step 1: Select Your Course</h3>
+                        <p className="text-sm text-gray-500 font-medium">Choose a course to unlock its assignments and tasks</p>
                     </div>
                 </div>
-                <select
-                    value={selectedCourseId}
-                    onChange={(e) => handleCourseChange(e.target.value)}
-                    className="w-full md:w-64 px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20 font-bold text-gray-800"
-                >
-                    <option value="">All Courses</option>
-                    {myCourses.map(c => (
-                        <option key={c._id} value={c._id}>{c.title}</option>
-                    ))}
-                </select>
+                <div className="relative w-full md:w-96 group">
+                    <select
+                        value={selectedCourseId}
+                        onChange={(e) => handleCourseChange(e.target.value)}
+                        className={`w-full px-6 py-4 bg-white border-2 rounded-2xl outline-none focus:ring-4 transition-all font-black text-lg uppercase tracking-tight appearance-none cursor-pointer ${!selectedCourseId ? 'border-amber-400 text-amber-600 animate-pulse' : 'border-emerald-500 text-emerald-600 shadow-md'
+                            }`}
+                    >
+                        <option value="">-- Choose Course Here --</option>
+                        {myCourses.map(c => (
+                            <option key={c._id} value={c._id}>{c.title}</option>
+                        ))}
+                    </select>
+                    <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none">
+                        <div className={`w-3 h-3 border-r-2 border-b-2 rotate-45 transition-colors ${!selectedCourseId ? 'border-amber-400' : 'border-emerald-600'}`}></div>
+                    </div>
+                </div>
             </div>
 
             {activeTab === 'assignments' ? (
@@ -378,7 +396,10 @@ const AssignmentSubmission = () => {
                                             initial={{ opacity: 0, y: 20 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             transition={{ delay: index * 0.1 }}
-                                            className={`bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-lg transition-all ${assignment.status === 'graded' ? 'opacity-50 grayscale-[0.3]' : ''}`}
+                                            className={`bg-white rounded-2xl border transition-all overflow-hidden hover:shadow-lg ${isDeadlinePassed(assignment.deadline) && assignment.status === 'pending'
+                                                ? 'border-red-500 shadow-lg shadow-red-900/5'
+                                                : 'border-gray-100'
+                                                } ${assignment.status === 'graded' ? 'opacity-50 grayscale-[0.3]' : ''}`}
                                         >
                                             <div className="p-6">
                                                 <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
@@ -419,14 +440,20 @@ const AssignmentSubmission = () => {
                                                                 <p className="text-2xl font-black text-emerald-700">{assignment.grade}<span className="text-sm text-emerald-400">/{assignment.totalMarks}</span></p>
                                                             </div>
                                                         )}
-
-                                                        {canSubmit && (
+                                                        {(canSubmit || assignment.status === 'rejected') && (
                                                             <button
-                                                                onClick={() => setSelectedAssignment(assignment)}
-                                                                className="px-6 py-3 bg-[#0D2818] hover:bg-[#1A5D3A] text-white rounded-xl font-black text-xs uppercase tracking-widest transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2"
+                                                                onClick={() => {
+                                                                    setSelectedAssignment(assignment);
+                                                                    setSubmissionUrl('');
+                                                                    setSubmissionText('');
+                                                                }}
+                                                                className={`px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2 ${assignment.status === 'rejected'
+                                                                    ? 'bg-red-600 hover:bg-red-700 text-white'
+                                                                    : 'bg-[#0D2818] hover:bg-[#1A5D3A] text-white'
+                                                                    }`}
                                                             >
                                                                 <Send className="w-4 h-4" />
-                                                                Submit Work
+                                                                {assignment.status === 'rejected' ? 'Resubmit Work' : 'Submit Work'}
                                                             </button>
                                                         )}
 
@@ -443,7 +470,7 @@ const AssignmentSubmission = () => {
                                                         <div className="space-y-4">
                                                             <input
                                                                 type="text"
-                                                                placeholder="Paste your submission link here..."
+                                                                placeholder="Paste submission link or title here..."
                                                                 className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20"
                                                                 value={submissionUrl}
                                                                 onChange={(e) => setSubmissionUrl(e.target.value)}
@@ -481,122 +508,188 @@ const AssignmentSubmission = () => {
                     )}
                 </div>
             ) : (
-                /* DAILY TASKS VIEW */
+                /* DAILY TASKS / CLASS LOGS VIEW */
                 <div className="space-y-6">
-                    {/* Submit New Daily Log */}
+                    {/* Submit New Log */}
                     <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-xl shadow-gray-200/50">
-                        <h3 className="text-xl font-black text-gray-900 mb-4 uppercase italic">Log Today's Work</h3>
+                        <div className="flex items-center gap-4 mb-6">
+                            <div className="p-3 bg-emerald-100 rounded-xl">
+                                <ClipboardList className="w-6 h-6 text-emerald-600" />
+                            </div>
+                            <div>
+                                <h3 className="text-xl font-black text-gray-900 uppercase italic leading-none">
+                                    {resubmittingTaskId ? (user?.role === 'intern' ? "Update Work Log" : "Update Class Log") : (user?.role === 'intern' ? "Log Today's Work" : "Log Class Session")}
+                                </h3>
+                                <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mt-1.5">
+                                    {resubmittingTaskId ? `RESUBMITTING ${user?.role === 'intern' ? 'LOG' : 'CLASS'}` : `Next: ${user?.role === 'intern' ? 'LOG' : 'CLASS'} #${dailyTasks.length + 1}`}
+                                </p>
+                            </div>
+                        </div>
 
                         {!selectedCourseId && (
-                            <div className="bg-amber-50 text-amber-800 p-4 rounded-xl flex items-center gap-2 text-sm mb-4 border border-amber-100">
+                            <div className="bg-amber-50 text-amber-800 p-4 rounded-xl flex items-center gap-2 text-sm mb-4 border border-amber-100 font-bold uppercase tracking-tight">
                                 <AlertCircle className="w-4 h-4" />
-                                Please select a course above to log your work.
+                                Please select a course above to enable logging.
                             </div>
                         )}
 
                         <form onSubmit={handleSubmitDailyTask} className="space-y-4">
-                            <div>
-                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Work Link (GitHub, Drive, etc.)</label>
-                                <div className="relative">
-                                    <LinkIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                                    <input
-                                        type="url"
-                                        value={newTaskLink}
-                                        onChange={(e) => setNewTaskLink(e.target.value)}
-                                        placeholder="https://github.com/your-project"
-                                        className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20"
-                                    />
+                            {user?.role === 'intern' && (
+                                <div>
+                                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">
+                                        Work Link (GitHub, Drive, etc.)
+                                    </label>
+                                    <div className="relative">
+                                        <LinkIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                        <input
+                                            type="text"
+                                            value={newTaskLink}
+                                            onChange={(e) => setNewTaskLink(e.target.value)}
+                                            placeholder="Paste your link here..."
+                                            className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20 font-medium"
+                                        />
+                                    </div>
                                 </div>
-                            </div>
+                            )}
 
                             <div>
-                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Work Description</label>
+                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">
+                                    {user?.role === 'intern' ? 'Work Description' : 'Class Topic / Learnings'}
+                                </label>
                                 <textarea
                                     value={newTaskContent}
                                     onChange={(e) => setNewTaskContent(e.target.value)}
-                                    placeholder="Describe the tasks you worked on today, hurdles faced, and goals for tomorrow..."
+                                    placeholder={user?.role === 'intern'
+                                        ? "Describe the tasks you worked on today, hurdles faced, and goals for tomorrow..."
+                                        : "What was taught in this class? What were the key takeaways or specific tasks completed?"}
                                     rows="4"
-                                    className="w-full px-6 py-4 border border-gray-200 rounded-2xl outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 text-gray-800 font-medium resize-none"
+                                    className="w-full px-6 py-4 border border-gray-200 rounded-2xl outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 text-gray-800 font-medium resize-none shadow-inner"
                                 />
                             </div>
 
                             <button
                                 type="submit"
                                 disabled={isSubmitting || !newTaskContent.trim() || !selectedCourseId}
-                                className="w-full py-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-2xl font-black text-lg shadow-xl shadow-emerald-200 transition-all flex items-center justify-center gap-3 disabled:grayscale disabled:opacity-50"
+                                className={`w-full py-5 rounded-2xl font-black text-lg shadow-xl shadow-emerald-900/10 transition-all flex items-center justify-center gap-3 disabled:grayscale disabled:opacity-50 active:scale-[0.98] ${resubmittingTaskId ? 'bg-amber-600 hover:bg-amber-700' : 'bg-[#0D2818] hover:bg-[#1A5D3A]'} text-white`}
                             >
                                 {isSubmitting ? <Loader2 className="w-6 h-6 animate-spin" /> : <Send className="w-6 h-6" />}
-                                SUBMIT DAILY WORK LOG
+                                {resubmittingTaskId ? 'RESUBMIT CORRECTED ENTRY' : (user?.role === 'intern' ? 'SUBMIT DAILY WORK LOG' : 'SUBMIT CLASS LOG ENTRY')}
                             </button>
+                            {resubmittingTaskId && (
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setResubmittingTaskId(null);
+                                        setNewTaskContent('');
+                                        setNewTaskLink('');
+                                    }}
+                                    className="w-full py-3 text-gray-500 font-bold hover:bg-gray-100 rounded-xl transition-all uppercase text-xs tracking-widest"
+                                >
+                                    Cancel Resubmission
+                                </button>
+                            )}
                         </form>
                     </div>
 
                     {/* Task History */}
                     <div className="space-y-4">
                         <div className="flex items-center justify-between ml-2">
-                            <h4 className="text-sm font-bold text-gray-500 uppercase tracking-[0.2em]">Previous Work Logs</h4>
+                            <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">
+                                {user?.role === 'intern' ? 'Work History' : 'Academic Class Logs'}
+                            </h4>
                             {selectedCourseId && (
-                                <p className="text-xs font-bold text-emerald-600 uppercase">
+                                <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest px-3 py-1 bg-emerald-50 rounded-lg border border-emerald-100">
                                     {myCourses.find(c => c._id === selectedCourseId)?.title}
                                 </p>
                             )}
                         </div>
                         {dailyTasks.length === 0 ? (
-                            <div className="text-center py-12 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
-                                <Clock className="w-10 h-10 text-gray-300 mx-auto mb-2" />
-                                <p className="text-gray-400 font-medium">No work logs submitted for this selection yet.</p>
+                            <div className="text-center py-20 bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200">
+                                <Clock className="w-12 h-12 text-gray-200 mx-auto mb-3" />
+                                <p className="text-gray-400 font-black uppercase tracking-widest text-xs italic">No entries recorded for this course</p>
                             </div>
                         ) : (
-                            dailyTasks
+                            [...dailyTasks]
                                 .sort((a, b) => new Date(a.date || a.createdAt) - new Date(b.date || b.createdAt))
                                 .map((task, index) => (
                                     <motion.div
                                         key={task._id}
                                         initial={{ opacity: 0, x: -20 }}
                                         animate={{ opacity: 1, x: 0 }}
-                                        className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm"
+                                        className={`p-6 rounded-3xl border border-gray-100 bg-white shadow-sm transition-all hover:shadow-md ${task.status === 'verified' || task.status === 'graded' ? 'opacity-75 grayscale-[0.3]' : ''}`}
                                     >
                                         <div className="flex justify-between items-start gap-4 mb-4">
                                             <div className="flex items-center gap-3">
-                                                <span className="text-[10px] font-black text-gray-300 bg-gray-50 px-2.5 py-1 rounded-lg border border-gray-100 uppercase tracking-tight">LOG #{index + 1}</span>
-                                                <div className="p-2 bg-emerald-100 rounded-lg">
-                                                    <Calendar className="w-4 h-4 text-emerald-600" />
+                                                <span className={`text-[10px] font-black text-white px-3 py-1 rounded-lg uppercase tracking-tight shadow-sm ${task.status === 'verified' || task.status === 'graded' ? 'bg-gray-400 shadow-none' : 'bg-emerald-600 shadow-emerald-200'}`}>
+                                                    {user?.role === 'intern' ? 'LOG' : 'CLASS'} #{index + 1}
+                                                </span>
+                                                <div className="hidden md:flex p-2 bg-gray-50 rounded-xl border border-gray-100">
+                                                    <Calendar className="w-4 h-4 text-gray-400" />
                                                 </div>
                                                 <div>
-                                                    <p className="font-bold text-gray-900">{new Date(task.date || task.createdAt).toLocaleDateString()}</p>
-                                                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">SUBMITTED ON {new Date(task.createdAt).toLocaleTimeString()}</p>
+                                                    <p className="font-black text-gray-900 tracking-tight uppercase leading-none mb-1">{new Date(task.date || task.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
+                                                    <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest italic">{new Date(task.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
                                                 </div>
                                             </div>
-                                            <Badge variant={task.status === 'graded' ? 'success' : 'warning'}>
-                                                {task.status.toUpperCase()}
-                                            </Badge>
+                                            <div className="flex flex-col items-end gap-2">
+                                                <Badge variant={task.status === 'verified' || task.status === 'graded' ? 'success' : task.status === 'rejected' ? 'error' : 'warning'}>
+                                                    {task.status === 'verified' || task.status === 'graded' ? 'VERIFIED ✅' : task.status === 'rejected' ? 'REJECTED ❌' : 'PENDING ⏳'}
+                                                </Badge>
+                                                {task.status === 'rejected' && (
+                                                    <button
+                                                        onClick={() => {
+                                                            setResubmittingTaskId(task._id);
+                                                            setNewTaskContent(task.content);
+                                                            setNewTaskLink(task.workLink || '');
+                                                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                                                        }}
+                                                        className="text-[10px] font-black text-amber-600 uppercase underline tracking-tighter hover:text-amber-700"
+                                                    >
+                                                        Edit & Resubmit
+                                                    </button>
+                                                )}
+                                                <p className="text-[8px] font-black text-gray-300 uppercase italic tracking-widest">
+                                                    {task.status === 'verified' || task.status === 'graded' ? 'Archive Locked' : task.status === 'rejected' ? 'Needs Correction' : 'Submission Pending'}
+                                                </p>
+                                            </div>
                                         </div>
 
-                                        <div className="space-y-3">
+                                        <div className="space-y-4">
                                             {task.workLink && (
                                                 <a
                                                     href={task.workLink}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="flex items-center gap-2 text-sm text-emerald-600 font-bold hover:underline bg-emerald-50 w-fit px-3 py-1.5 rounded-lg border border-emerald-100"
+                                                    className="flex items-center gap-2 text-[10px] text-emerald-600 font-black uppercase bg-emerald-50 w-fit px-4 py-2 rounded-xl border border-emerald-100 hover:bg-emerald-600 hover:text-white transition-all tracking-widest shadow-sm"
                                                 >
                                                     <ExternalLink className="w-3.5 h-3.5" />
-                                                    VIEW WORK LINK
+                                                    View Submission
                                                 </a>
                                             )}
-                                            <p className="text-gray-700 whitespace-pre-wrap leading-relaxed bg-gray-50 p-4 rounded-xl border border-gray-100 italic">"{task.content}"</p>
+                                            <div className="text-gray-600 whitespace-pre-wrap leading-relaxed bg-gray-50/50 p-5 rounded-2xl border border-gray-100 text-sm font-medium italic relative group">
+                                                <span className="absolute -left-1 -top-1 opacity-10 group-hover:opacity-20 transition-opacity">
+                                                    <FileText className="w-8 h-8 rotate-12" />
+                                                </span>
+                                                "{task.content}"
+                                            </div>
                                         </div>
 
-                                        {task.status === 'graded' && (
-                                            <div className="mt-4 flex items-center justify-between p-4 bg-emerald-50 rounded-xl border border-emerald-100">
-                                                <div>
-                                                    <p className="text-[10px] font-black text-emerald-600 uppercase mb-1">Teacher Feedback</p>
-                                                    <p className="text-sm text-emerald-800 font-medium">{task.feedback || 'No written feedback'}</p>
+                                        {(task.status === 'graded' || (task.status === 'verified' && task.marks > 0)) && (
+                                            <div className="mt-5 flex items-center justify-between p-5 bg-gradient-to-r from-emerald-50 to-white rounded-2xl border border-emerald-100 shadow-sm">
+                                                <div className="flex-1">
+                                                    <p className="text-[10px] font-black text-emerald-600 uppercase mb-1.5 tracking-widest">Teacher Feedback</p>
+                                                    <p className="text-sm text-emerald-900 font-semibold italic">"{task.feedback || 'Excellent work keep it up!'}"</p>
                                                 </div>
-                                                <div className="text-right">
-                                                    <p className="text-[10px] font-black text-emerald-600 uppercase mb-1">Score</p>
-                                                    <p className="text-2xl font-black text-emerald-700">{task.marks}/100</p>
+                                                <div className="text-right pl-6 border-l border-emerald-100 ml-6">
+                                                    <p className="text-[10px] font-black text-emerald-600 uppercase mb-1 tracking-widest">Marked</p>
+                                                    <p className="text-3xl font-black text-emerald-700 leading-none">{task.marks}<span className="text-[10px] text-emerald-400 ml-0.5">/100</span></p>
                                                 </div>
+                                            </div>
+                                        )}
+                                        {task.status === 'verified' && !task.marks && task.feedback && (
+                                            <div className="mt-5 p-5 bg-gradient-to-r from-emerald-50 to-white rounded-2xl border border-emerald-100 shadow-sm">
+                                                <p className="text-[10px] font-black text-emerald-600 uppercase mb-1.5 tracking-widest">Teacher Feedback</p>
+                                                <p className="text-sm text-emerald-900 font-semibold italic">"{task.feedback}"</p>
                                             </div>
                                         )}
                                     </motion.div>
@@ -604,8 +697,9 @@ const AssignmentSubmission = () => {
                         )}
                     </div>
                 </div>
-            )}
-        </div>
+            )
+            }
+        </div >
     );
 };
 

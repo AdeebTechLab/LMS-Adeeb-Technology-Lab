@@ -213,30 +213,26 @@ const TeacherCourses = () => {
             {/* Tab Navigation (Unified for both Students and Interns) */}
             <div className="space-y-6">
                 <div className="flex gap-2 bg-gray-100 p-1 rounded-xl w-fit overflow-x-auto max-w-full">
-                    {selectedCourse.targetAudience === 'interns' && (
-                        <button
-                            onClick={() => setActiveTab('daily_tasks')}
-                            className={`px-6 py-2.5 rounded-lg font-medium transition-all whitespace-nowrap ${activeTab === 'daily_tasks'
-                                ? 'bg-white text-emerald-600 shadow-sm'
-                                : 'text-gray-600 hover:text-gray-900'
-                                }`}
-                        >
-                            <ClipboardList className="w-4 h-4 inline mr-2" />
-                            Daily Tasks
-                        </button>
-                    )}
-                    {selectedCourse.targetAudience === 'interns' && (
-                        <button
-                            onClick={() => setActiveTab('assignments')}
-                            className={`px-6 py-2.5 rounded-lg font-medium transition-all whitespace-nowrap ${activeTab === 'assignments'
-                                ? 'bg-white text-emerald-600 shadow-sm'
-                                : 'text-gray-600 hover:text-gray-900'
-                                }`}
-                        >
-                            <FileText className="w-4 h-4 inline mr-2" />
-                            Assignments
-                        </button>
-                    )}
+                    <button
+                        onClick={() => setActiveTab('daily_tasks')}
+                        className={`px-6 py-2.5 rounded-lg font-medium transition-all whitespace-nowrap ${activeTab === 'daily_tasks'
+                            ? 'bg-white text-emerald-600 shadow-sm'
+                            : 'text-gray-600 hover:text-gray-900'
+                            }`}
+                    >
+                        <ClipboardList className="w-4 h-4 inline mr-2" />
+                        {selectedCourse.targetAudience === 'interns' ? 'Daily Tasks' : 'Class Logs'}
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('assignments')}
+                        className={`px-6 py-2.5 rounded-lg font-medium transition-all whitespace-nowrap ${activeTab === 'assignments'
+                            ? 'bg-white text-emerald-600 shadow-sm'
+                            : 'text-gray-600 hover:text-gray-900'
+                            }`}
+                    >
+                        <FileText className="w-4 h-4 inline mr-2" />
+                        Assignments
+                    </button>
                     <button
                         onClick={() => setActiveTab('attendance')}
                         className={`px-6 py-2.5 rounded-lg font-medium transition-all whitespace-nowrap ${activeTab === 'attendance'
@@ -261,8 +257,8 @@ const TeacherCourses = () => {
 
                 {/* Tab Content */}
                 <div className="bg-white rounded-2xl p-6 border border-gray-100 min-h-[400px]">
-                    {activeTab === 'daily_tasks' && selectedCourse.targetAudience === 'interns' && <DailyTasksTab course={selectedCourse} />}
-                    {activeTab === 'assignments' && selectedCourse.targetAudience === 'interns' && <AssignmentsTab course={selectedCourse} students={courseStudents} />}
+                    {activeTab === 'daily_tasks' && <DailyTasksTab course={selectedCourse} />}
+                    {activeTab === 'assignments' && <AssignmentsTab course={selectedCourse} students={courseStudents} />}
                     {activeTab === 'attendance' && <AttendanceTab course={selectedCourse} students={courseStudents} />}
                     {activeTab === 'certificates' && <CertificatesTab course={selectedCourse} students={courseStudents} />}
                 </div>

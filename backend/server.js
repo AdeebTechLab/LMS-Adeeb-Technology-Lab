@@ -25,6 +25,7 @@ const assignmentRoutes = require('./routes/assignments');
 const certificateRoutes = require('./routes/certificates');
 const taskRoutes = require('./routes/tasks');
 const dailyTasksRoutes = require('./routes/dailyTasks');
+const notificationRoutes = require('./routes/notifications');
 
 // Import attendance lock function
 const { lockTodayAttendance } = require('./controllers/attendanceController');
@@ -85,6 +86,7 @@ app.use('/api/assignments', assignmentRoutes);
 app.use('/api/certificates', certificateRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/daily-tasks', dailyTasksRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

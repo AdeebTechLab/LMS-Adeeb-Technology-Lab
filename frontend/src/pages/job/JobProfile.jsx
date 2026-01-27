@@ -240,9 +240,10 @@ const JobProfile = () => {
                         Personal Information
                     </h2>
                     <div className="space-y-4">
-                        <InfoField icon={User} label="Full Name" value={profileData.fullName} name="fullName" />
+                        <InfoField icon={User} label="Full Name" value={profileData.fullName} name="fullName" editable={false} />
                         <InfoField icon={Mail} label="Email" value={profileData.email} name="email" type="email" editable={false} />
                         <InfoField icon={Phone} label="Phone" value={profileData.phone} name="phone" />
+                        <p className="text-[10px] text-amber-600 font-bold uppercase tracking-widest px-4 italic">* Contact admin to change legal biodata (Name, etc.)</p>
                         <InfoField icon={MapPin} label="City" value={profileData.city} name="city" />
                     </div>
                 </motion.div>

@@ -31,6 +31,7 @@ import TeachersManagement from './pages/admin/TeachersManagement';
 import StudentsManagement from './pages/admin/StudentsManagement';
 import InternsManagement from './pages/admin/InternsManagement';
 import JobsManagement from './pages/admin/JobsManagement';
+import NotificationManagement from './pages/admin/NotificationManagement';
 
 // Teacher Pages (handles both Students and Interns)
 import TeacherProfile from './pages/teacher/TeacherProfile';
@@ -122,6 +123,7 @@ const AppRoutes = () => {
         <Route path="interns" element={<InternsManagement />} />
         <Route path="jobs" element={<JobsManagement />} />
         <Route path="fees" element={<FeeVerification />} />
+        <Route path="notifications" element={<NotificationManagement />} />
         <Route path="settings" element={<div className="text-gray-500">Settings - Coming Soon</div>} />
       </Route>
 
@@ -136,6 +138,7 @@ const AppRoutes = () => {
         <Route index element={<Navigate to="profile" replace />} />
         <Route path="profile" element={<TeacherProfile />} />
         <Route path="attendance" element={<AttendanceSheet />} />
+        <Route path="course/:id" element={<AttendanceSheet />} />
         <Route path="settings" element={<div className="text-gray-500">Settings - Coming Soon</div>} />
       </Route>
 
@@ -149,6 +152,8 @@ const AppRoutes = () => {
         <Route path="courses" element={<BrowseCourses />} />
         <Route path="course/:id" element={<StudentCourseView />} />
         <Route path="fees" element={<FeeManagement />} />
+        <Route path="assignments" element={<AssignmentSubmission />} />
+        <Route path="marks" element={<MarksSheet />} />
         <Route path="attendance" element={<AttendanceView />} />
         <Route path="settings" element={<div className="text-gray-500">Settings - Coming Soon</div>} />
       </Route>
@@ -160,6 +165,7 @@ const AppRoutes = () => {
       >
         <Route index element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard" element={<StudentDashboard />} />
+        <Route path="profile" element={<StudentProfile />} />
         <Route path="courses" element={<BrowseCourses />} />
         <Route path="course/:id" element={<StudentCourseView />} />
         <Route path="fees" element={<FeeManagement />} />
@@ -183,7 +189,7 @@ const AppRoutes = () => {
       {/* Root redirect */}
       <Route
         path="/"
-        element={isAuthenticated ? <Navigate to={getDefaultPage()} replace /> : <Navigate to="/login" replace />}
+        element={isAuthenticated ? <Navigate to={getDefaultPage()} replace /> : <VerifyCertificate />}
       />
 
       {/* 404 */}

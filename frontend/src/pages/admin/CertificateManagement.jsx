@@ -21,7 +21,9 @@ const CertificateManagement = () => {
     const [editData, setEditData] = useState({
         rollNo: '',
         skills: '',
-        duration: ''
+        duration: '',
+        passoutDate: new Date().toISOString().split('T')[0],
+        certificateLink: ''
     });
 
     useEffect(() => {
@@ -47,38 +49,21 @@ const CertificateManagement = () => {
     const fetchCoursesWithEnrollments = async () => {
         setIsLoading(true);
         try {
-            const coursesRes = await courseAPI.getAll();
-            const allCourses = coursesRes.data.data || [];
-            const enrollmentsRes = await enrollmentAPI.getAll();
-            const allEnrollments = enrollmentsRes.data.data || [];
-
-            const coursesWithStudents = allCourses.map(course => {
-                const courseEnrollments = allEnrollments.filter(e => e.course?._id === course._id);
-                return {
-                    id: course._id,
-                    name: course.title,
-                    location: course.location || 'Unknown',
-                    duration: course.duration || '12 weeks',
-                    students: courseEnrollments.map((e, idx) => ({
-                        id: e.user?._id || e._id,
-                        _id: e.user?._id || e._id,
-                        rollNo: e.user?.rollNo || String(idx + 1).padStart(4, '0'),
-                        name: e.user?.name || 'Unknown',
-                        email: e.user?.email || '',
-                        photo: e.user?.photo || '',
-                        type: e.user?.role === 'intern' ? 'intern' : 'student',
-                        skills: course.title,
-                        startDate: e.enrolledAt || course.startDate || new Date().toISOString(),
-                        endDate: course.endDate || new Date().toISOString(),
-                        certificateIssued: e.status === 'completed',
-                        status: e.status
-                    }))
-                };
-            }).filter(c => c.students.length > 0);
-
-            setCourses(coursesWithStudents);
+            const response = await certificateAPI.getCourses();
+            const formattedCourses = (response.data.courses || []).map(course => ({
+                id: course._id,
+                name: course.title,
+                location: course.location || 'Unknown',
+                duration: course.duration || '12 weeks',
+                students: (course.students || []).map(s => ({
+                    ...s,
+                    id: s._id,
+                    type: s.role === 'intern' ? 'intern' : 'student',
+                }))
+            }));
+            setCourses(formattedCourses);
         } catch (error) {
-            console.error('Error fetching courses:', error);
+            console.error('Error fetching courses with certificates:', error);
         } finally {
             setIsLoading(false);
         }
@@ -94,7 +79,9 @@ const CertificateManagement = () => {
         setEditData({
             rollNo: request.user?.rollNo || '',
             skills: request.skills || request.course?.title || '',
-            duration: request.duration || request.course?.duration || ''
+            duration: request.duration || request.course?.duration || '',
+            passoutDate: new Date().toISOString().split('T')[0],
+            certificateLink: ''
         });
     };
 
@@ -113,7 +100,9 @@ const CertificateManagement = () => {
                     userId: confirmModal.student._id || confirmModal.student.id,
                     courseId: confirmModal.course._id || confirmModal.course.id,
                     rollNo: editData.rollNo,
-                    skills: editData.skills
+                    skills: editData.skills,
+                    passoutDate: editData.passoutDate,
+                    certificateLink: editData.certificateLink
                 });
                 fetchCoursesWithEnrollments();
             }
@@ -354,7 +343,9 @@ const CertificateManagement = () => {
                                                                     setEditData({
                                                                         rollNo: student.rollNo || '',
                                                                         skills: course.name || '',
-                                                                        duration: course.duration || ''
+                                                                        duration: course.duration || '',
+                                                                        passoutDate: new Date().toISOString().split('T')[0],
+                                                                        certificateLink: ''
                                                                     });
                                                                 }}
                                                                 className="p-2 hover:bg-emerald-50 text-emerald-600 rounded-lg transition-all"
@@ -426,12 +417,22 @@ const CertificateManagement = () => {
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Duration Display</label>
+                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Passout Date</label>
+                                <input
+                                    type="date"
+                                    value={editData.passoutDate}
+                                    onChange={(e) => setEditData({ ...editData, passoutDate: e.target.value })}
+                                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 outline-none font-bold"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Certificate Link (Cloudinary/Drive)</label>
                                 <input
                                     type="text"
-                                    value={editData.duration}
-                                    onChange={(e) => setEditData({ ...editData, duration: e.target.value })}
-                                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 outline-none"
+                                    placeholder="https://..."
+                                    value={editData.certificateLink}
+                                    onChange={(e) => setEditData({ ...editData, certificateLink: e.target.value })}
+                                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 outline-none font-medium"
                                 />
                             </div>
                         </div>

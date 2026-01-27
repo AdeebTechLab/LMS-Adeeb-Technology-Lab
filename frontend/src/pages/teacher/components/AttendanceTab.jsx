@@ -41,7 +41,10 @@ const AttendanceTab = ({ course, students }) => {
             const data = response.data.attendance || response.data.data || {};
             const serverMarks = {};
             (data.records || []).forEach(record => {
-                serverMarks[record.user?._id || record.user] = record.status;
+                serverMarks[record.user?._id || record.user] = {
+                    status: record.status,
+                    markedAt: record.markedAt
+                };
             });
 
             // Merge with local cache for unsaved changes
@@ -62,7 +65,7 @@ const AttendanceTab = ({ course, students }) => {
     const markAttendance = (studentId, status) => {
         if (isLocked) return;
         setAttendanceMarks(prev => {
-            const newMarks = { ...prev, [studentId]: status };
+            const newMarks = { ...prev, [studentId]: { status, markedAt: new Date().toISOString() } };
             // Save to local cache instantly
             const cacheKey = `attendance_${course._id}_${selectedDate}`;
             localStorage.setItem(cacheKey, JSON.stringify(newMarks));
@@ -75,7 +78,7 @@ const AttendanceTab = ({ course, students }) => {
         try {
             const records = students.map(student => ({
                 userId: student.id,
-                status: attendanceMarks[student.id] || 'absent'
+                status: attendanceMarks[student.id]?.status || 'absent'
             }));
             await attendanceAPI.mark({
                 courseId: course._id,
@@ -100,8 +103,8 @@ const AttendanceTab = ({ course, students }) => {
         student.rollNo?.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-    const getStatusButton = (studentId, status, currentStatus) => {
-        const isActive = currentStatus === status;
+    const getStatusButton = (studentId, status, currentMark) => {
+        const isActive = currentMark?.status === status;
         const config = status === 'present'
             ? { bg: isActive ? 'bg-emerald-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-emerald-100', label: 'P' }
             : { bg: isActive ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-red-100', label: 'A' };
@@ -186,6 +189,7 @@ const AttendanceTab = ({ course, students }) => {
                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Student</th>
                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Roll No</th>
                                 <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Status</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Marked At</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
@@ -199,12 +203,15 @@ const AttendanceTab = ({ course, students }) => {
                                             <div className="text-sm font-medium text-gray-900">{student.name}</div>
                                         </div>
                                     </td>
-                                    <td className="px-4 py-3 text-sm text-gray-500 font-mono">{student.rollNo}</td>
+                                    <td className="px-4 py-3 font-mono text-sm text-gray-500">{student.rollNo}</td>
                                     <td className="px-4 py-3">
                                         <div className="flex items-center justify-center gap-2">
                                             {getStatusButton(student.id, 'present', attendanceMarks[student.id])}
                                             {getStatusButton(student.id, 'absent', attendanceMarks[student.id])}
                                         </div>
+                                    </td>
+                                    <td className="px-4 py-3 text-xs text-gray-400">
+                                        {attendanceMarks[student.id]?.markedAt ? new Date(attendanceMarks[student.id].markedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-'}
                                     </td>
                                 </tr>
                             ))}

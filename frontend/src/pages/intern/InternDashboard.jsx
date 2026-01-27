@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import {
     Clock, CheckCircle, BookOpen, Calendar, Users, TrendingUp, Loader2, RefreshCw
 } from 'lucide-react';
-import { enrollmentAPI } from '../../services/api';
+import { enrollmentAPI, assignmentAPI } from '../../services/api';
 
 const InternDashboard = () => {
     const { user } = useSelector((state) => state.auth);
@@ -21,6 +21,7 @@ const InternDashboard = () => {
         totalModules: 0
     });
     const [enrollments, setEnrollments] = useState([]);
+    const [pendingAssignments, setPendingAssignments] = useState([]);
 
     useEffect(() => {
         fetchDashboardData();
@@ -39,12 +40,28 @@ const InternDashboard = () => {
                     program: firstEnrollment.course?.title || 'Internship Program',
                     duration: firstEnrollment.course?.duration || '3 Month',
                     status: firstEnrollment.status || 'Active',
-                    progress: firstEnrollment.progress || Math.floor(Math.random() * 60) + 20,
+                    progress: firstEnrollment.progress || 0,
                     mentor: firstEnrollment.course?.teacher?.name || 'TBA',
                     completedModules: Math.floor((firstEnrollment.progress || 0) / 10),
                     totalModules: 10
                 });
             }
+
+            // Fetch Assignments
+            let activeAssignments = [];
+            try {
+                const assignRes = await assignmentAPI.getMy();
+                const allAssignments = assignRes.data.assignments || [];
+                activeAssignments = allAssignments.filter(a => {
+                    const mySub = a.submissions?.find(s => (s.user?._id || s.user) === (user?._id || user?.id));
+                    const isSubmitted = !!mySub;
+                    const isDeadlinePassed = new Date(a.dueDate) < new Date();
+                    return !isSubmitted && !isDeadlinePassed;
+                });
+            } catch (e) {
+                console.error('Error fetching assignments:', e);
+            }
+            setPendingAssignments(activeAssignments);
         } catch (error) {
             console.error('Error fetching dashboard data:', error);
         } finally {
@@ -158,47 +175,85 @@ const InternDashboard = () => {
                 </motion.div>
             </div>
 
-            {/* Enrolled Programs */}
-            {enrollments.length > 0 && (
+            {/* Main Content Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Pending Tasks */}
                 <motion.div
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.5 }}
-                    className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100"
+                    className="lg:col-span-1 space-y-4"
                 >
-                    <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                        <BookOpen className="w-5 h-5 text-blue-600" />
-                        Your Programs
-                    </h2>
+                    <div className="flex items-center justify-between">
+                        <h2 className="text-xl font-bold text-gray-900 uppercase italic">Active Assignments</h2>
+                        <span className="px-2 py-0.5 bg-blue-100 text-blue-600 rounded-lg text-[10px] font-black">{pendingAssignments.length}</span>
+                    </div>
+                    <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 space-y-4 max-h-[500px] overflow-y-auto">
+                        {pendingAssignments.length === 0 ? (
+                            <div className="text-center py-12 opacity-50">
+                                <CheckCircle className="w-10 h-10 text-green-500 mx-auto mb-2" />
+                                <p className="text-xs font-black uppercase">Assignments Clear!</p>
+                            </div>
+                        ) : (
+                            pendingAssignments.map((assignment) => (
+                                <div key={assignment._id} className="p-4 bg-gray-50 rounded-2xl border border-gray-100 group hover:border-blue-500/30 transition-all">
+                                    <div className="flex items-center gap-3 mb-2">
+                                        <div className="p-2 bg-blue-100 rounded-lg">
+                                            <Clock className="w-4 h-4 text-blue-600" />
+                                        </div>
+                                        <h4 className="font-bold text-gray-900 text-sm group-hover:text-blue-600 transition-colors uppercase truncate">{assignment.title}</h4>
+                                    </div>
+                                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-4">
+                                        Ends {new Date(assignment.dueDate).toLocaleDateString()}
+                                    </p>
+                                    <button
+                                        onClick={() => navigate('/intern/assignments')}
+                                        className="w-full py-2 bg-white hover:bg-blue-600 hover:text-white border border-gray-200 text-gray-600 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-sm active:scale-95"
+                                    >
+                                        Go to Submission
+                                    </button>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                </motion.div>
+
+                {/* Enrolled Programs */}
+                <motion.div
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.6 }}
+                    className="lg:col-span-2 space-y-4"
+                >
+                    <h2 className="text-xl font-bold text-gray-900 uppercase italic">Registered Programs</h2>
                     <div className="space-y-4">
                         {enrollments.map((enrollment) => (
                             <div
                                 key={enrollment._id}
-                                className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors"
+                                className="flex items-center justify-between p-6 bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition-all group"
                             >
-                                <div className="flex items-center gap-4">
-                                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                                        <BookOpen className="w-5 h-5 text-blue-600" />
+                                <div className="flex items-center gap-5">
+                                    <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center border border-blue-100 group-hover:bg-blue-600 transition-colors">
+                                        <BookOpen className="w-6 h-6 text-blue-600 group-hover:text-white transition-colors" />
                                     </div>
                                     <div>
-                                        <h3 className="font-medium text-gray-900">{enrollment.course?.title || 'Program'}</h3>
-                                        <p className="text-sm text-gray-500 flex items-center gap-1">
-                                            <Calendar className="w-4 h-4" />
-                                            {enrollment.course?.duration || 'In Progress'}
+                                        <h3 className="font-bold text-gray-900 uppercase tracking-tight group-hover:text-blue-600 transition-colors">{enrollment.course?.title || 'Program'}</h3>
+                                        <p className="text-xs text-gray-400 font-bold uppercase tracking-widest mt-1 italic">
+                                            {enrollment.course?.duration || 'Ongoing'}
                                         </p>
                                     </div>
                                 </div>
                                 <button
                                     onClick={() => navigate('/intern/attendance')}
-                                    className="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+                                    className="px-6 py-2.5 text-[10px] font-black uppercase tracking-widest text-blue-600 bg-blue-50 rounded-xl hover:bg-blue-100 transition-all active:scale-95"
                                 >
-                                    View
+                                    Portal
                                 </button>
                             </div>
                         ))}
                     </div>
                 </motion.div>
-            )}
+            </div>
         </div>
     );
 };
