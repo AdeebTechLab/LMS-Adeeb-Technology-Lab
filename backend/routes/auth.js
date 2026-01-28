@@ -1,5 +1,7 @@
 const express = require('express');
 const router = express.Router();
+const crypto = require('crypto');
+const nodemailer = require('nodemailer');
 const { protect } = require('../middleware/auth');
 const { uploadPhoto } = require('../config/cloudinary');
 const User = require('../models/User');
@@ -74,6 +76,51 @@ router.post('/register', uploadPhoto.single('photo'), async (req, res) => {
 
         // For non-admins, return success message but no token
         if (user.role !== 'admin') {
+            // Send Email Notification to Admin
+            try {
+                const transporter = nodemailer.createTransport({
+                    service: 'gmail',
+                    auth: {
+                        user: process.env.EMAIL_USER,
+                        pass: process.env.EMAIL_PASS
+                    }
+                });
+
+                const mailOptions = {
+                    from: process.env.EMAIL_USER,
+                    to: 'adeebtechnologylab@gmail.com',
+                    subject: 'New User Registration Notification',
+                    html: `
+                        <div style="font-family: Arial, sans-serif; max-width: 600px; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
+                            <div style="background-color: #0d2818; padding: 20px; text-align: center;">
+                                <h1 style="color: #ffffff; margin: 0;">New Signup</h1>
+                            </div>
+                            <div style="padding: 20px; color: #333333;">
+                                <p>A new user has registered on the <strong>AdeebTechLab LMS</strong>.</p>
+                                <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                                    <p style="margin: 5px 0;"><strong>Name:</strong> ${user.name}</p>
+                                    <p style="margin: 5px 0;"><strong>Email:</strong> ${user.email}</p>
+                                    <p style="margin: 5px 0;"><strong>Role:</strong> <span style="text-transform: capitalize;">${user.role}</span></p>
+                                    <p style="margin: 5px 0;"><strong>Phone:</strong> ${user.phone || 'N/A'}</p>
+                                    <p style="margin: 5px 0;"><strong>Signup Date:</strong> ${new Date().toLocaleString()}</p>
+                                </div>
+                                <p>Please log in to the admin dashboard to verify this user.</p>
+                                <a href="${process.env.CLIENT_URL || 'http://localhost:5173'}/login" style="display: inline-block; padding: 12px 24px; background-color: #0d2818; color: white; text-decoration: none; border-radius: 5px; font-weight: bold; margin-top: 10px;">Login to Admin Panel</a>
+                            </div>
+                            <div style="background-color: #f1f1f1; padding: 10px; text-align: center; font-size: 12px; color: #666666;">
+                                This is an automated notification from AdeebTechLab LMS.
+                            </div>
+                        </div>
+                    `
+                };
+
+                await transporter.sendMail(mailOptions);
+                console.log('✅ Admin notification email sent for new user:', user.email);
+            } catch (emailError) {
+                console.error('❌ Error sending admin notification email:', emailError);
+                // We don't block registration if email fails
+            }
+
             return res.status(201).json({
                 success: true,
                 message: 'Registration successful! Your account is pending admin verification. You will be able to login once an admin approves your request.',
@@ -212,8 +259,6 @@ router.put('/profile', protect, uploadPhoto.single('photo'), async (req, res) =>
 });
 
 // ==================== FORGOT PASSWORD ====================
-const crypto = require('crypto');
-const nodemailer = require('nodemailer');
 
 // @route   POST /api/auth/forgot-password
 // @desc    Request password reset via email
@@ -308,21 +353,9 @@ router.post('/reset-password/:token', async (req, res) => {
         user.passwordResetExpires = undefined;
         await user.save();
 
-        // Generate new token
-        const token = user.getSignedJwtToken();
-
         res.json({
             success: true,
-            message: 'Password reset successful',
-            token,
-            user: {
-                id: user._id,
-                name: user.name,
-                email: user.email,
-                role: user.role,
-                photo: user.photo,
-                rollNo: user.rollNo
-            }
+            message: 'Password reset successful. Please login with your new password.'
         });
     } catch (error) {
         console.error('Reset password error:', error);

@@ -16,17 +16,34 @@ const notificationSchema = new mongoose.Schema({
         enum: ['info', 'warning', 'success', 'error'],
         default: 'info'
     },
+    isHtml: {
+        type: Boolean,
+        default: false
+    },
+    showLifetime: {
+        type: Boolean,
+        default: false
+    },
     startDate: {
         type: Date,
-        required: [true, 'Start date is required']
+        required: function () {
+            return !this.showLifetime;
+        }
     },
     endDate: {
         type: Date,
-        required: [true, 'End date is required']
+        required: function () {
+            return !this.showLifetime;
+        }
     },
     isActive: {
         type: Boolean,
         default: true
+    },
+    targetAudience: {
+        type: [String],
+        enum: ['all', 'student', 'teacher', 'intern', 'course_creator', 'job'],
+        default: ['all']
     },
     createdBy: {
         type: mongoose.Schema.Types.ObjectId,
@@ -39,8 +56,10 @@ const notificationSchema = new mongoose.Schema({
 
 // Virtual to check if notification is currently active based on time
 notificationSchema.virtual('isCurrentlyEffective').get(function () {
+    if (!this.isActive) return false;
+    if (this.showLifetime) return true;
     const now = new Date();
-    return this.isActive && now >= this.startDate && now <= this.endDate;
+    return now >= this.startDate && now <= this.endDate;
 });
 
 module.exports = mongoose.model('Notification', notificationSchema);

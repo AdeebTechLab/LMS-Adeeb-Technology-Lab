@@ -7,6 +7,21 @@ const Course = require('../models/Course');
 const Enrollment = require('../models/Enrollment');
 const User = require('../models/User');
 
+// @route   GET /api/certificates/my
+// @desc    Get logged-in user's certificates
+// @access  Private
+router.get('/my', protect, async (req, res) => {
+    try {
+        const certificates = await Certificate.find({ user: req.user.id })
+            .populate('course', 'title description location')
+            .sort('-issuedAt');
+
+        res.json({ success: true, certificates });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
 // @route   GET /api/certificates/requests
 // @desc    Get all pending certificate requests
 // @access  Private (Admin)
@@ -151,15 +166,25 @@ router.get('/courses', protect, authorize('admin'), async (req, res) => {
                 course: course._id
             }).populate('user', 'name email phone photo rollNo role');
 
-            // Get existing certificates
+            // Get existing certificates as a map for quick lookup
             const certificates = await Certificate.find({ course: course._id });
-            const certifiedUserIds = certificates.map(c => c.user.toString());
+            const certMap = {};
+            certificates.forEach(c => {
+                certMap[c.user.toString()] = {
+                    _id: c._id,
+                    passoutDate: c.passoutDate,
+                    skills: c.skills,
+                    certificateLink: c.certificateLink,
+                    issuedAt: c.issuedAt
+                };
+            });
 
-            // Add certificate status to each student
+            // Add certificate status and data to each student
             const students = enrollments.map(e => ({
                 ...e.user.toObject(),
                 enrollmentStatus: e.status,
-                certificateIssued: certifiedUserIds.includes(e.user._id.toString())
+                certificateIssued: !!certMap[e.user._id.toString()],
+                certificate: certMap[e.user._id.toString()] || null
             }));
 
             return {
@@ -238,22 +263,50 @@ router.post('/issue', protect, authorize('admin'), async (req, res) => {
     }
 });
 
+// @route   PUT /api/certificates/:id
+// @desc    Update certificate details (passoutDate, skills, certificateLink)
+// @access  Private (Admin)
+router.put('/:id', protect, authorize('admin'), async (req, res) => {
+    try {
+        const { passoutDate, skills, certificateLink } = req.body;
+
+        const certificate = await Certificate.findById(req.params.id);
+        if (!certificate) {
+            return res.status(404).json({ success: false, message: 'Certificate not found' });
+        }
+
+        // Update fields if provided
+        if (passoutDate) certificate.passoutDate = passoutDate;
+        if (skills) certificate.skills = skills;
+        if (certificateLink !== undefined) certificate.certificateLink = certificateLink;
+
+        await certificate.save();
+
+        res.json({ success: true, certificate });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
 // @route   GET /api/certificates/verify/:rollNo
 // @desc    Public verification by roll number
 // @access  Public
 router.get('/verify/:rollNo', async (req, res) => {
     try {
-        const user = await User.findOne({ rollNo: req.params.rollNo });
+        const users = await User.find({ rollNo: req.params.rollNo });
 
-        if (!user) {
+        if (!users || users.length === 0) {
             return res.status(404).json({
                 success: false,
                 message: 'No record found for this roll number'
             });
         }
 
-        // Get certificates for this user
-        const certificates = await Certificate.find({ user: user._id })
+        const userIds = users.map(u => u._id);
+
+        // Get certificates for all matching users
+        const certificates = await Certificate.find({ user: { $in: userIds } })
+            .populate('user', 'name photo role rollNo')
             .populate('course', 'title location');
 
         if (certificates.length === 0) {
@@ -265,10 +318,10 @@ router.get('/verify/:rollNo', async (req, res) => {
 
         // Format response
         const result = certificates.map(cert => ({
-            rollNo: user.rollNo,
-            name: user.name,
-            photo: user.photo,
-            position: user.role === 'student' ? 'Student' : 'Intern',
+            rollNo: cert.user.rollNo,
+            name: cert.user.name,
+            photo: cert.user.photo,
+            position: cert.user.role === 'student' ? 'Student' : 'Intern',
             course: cert.course.title,
             skills: cert.skills,
             duration: cert.duration,

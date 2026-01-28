@@ -15,6 +15,28 @@ router.get('/', protect, authorize('admin'), async (req, res) => {
     }
 });
 
+// @route   GET /api/users/pending-counts
+// @desc    Get count of unverified users grouped by role (admin only)
+// @access  Private/Admin
+router.get('/pending-counts', protect, authorize('admin'), async (req, res) => {
+    try {
+        const counts = await User.aggregate([
+            { $match: { isVerified: false, role: { $ne: 'admin' } } },
+            { $group: { _id: '$role', count: { $sum: 1 } } }
+        ]);
+
+        // Transform into a simpler object: { student: 5, teacher: 2, ... }
+        const result = counts.reduce((acc, curr) => {
+            acc[curr._id] = curr.count;
+            return acc;
+        }, {});
+
+        res.json({ success: true, data: result });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
 // @route   GET /api/users/role/:role
 // @desc    Get users by role (admin only)
 // @access  Private/Admin
