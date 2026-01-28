@@ -20,7 +20,9 @@ import {
 import StatCard from '../../components/ui/StatCard';
 import Badge from '../../components/ui/Badge';
 import { BarChart } from '../../components/charts/Charts';
+import AnnouncementsPopup from '../../components/ui/AnnouncementsPopup';
 import { courseAPI, enrollmentAPI } from '../../services/api';
+
 
 const TeacherDashboard = () => {
     const { user } = useSelector((state) => state.auth);
@@ -134,176 +136,180 @@ const TeacherDashboard = () => {
     }
 
     return (
-        <div className="space-y-6">
-            {/* Welcome Section */}
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-gradient-to-r from-[#0D2818] to-[#1A5D3A] rounded-2xl p-6 text-white"
-            >
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                    <div>
-                        <h2 className="text-2xl font-bold mb-2">Welcome back, {user?.name || 'Teacher'}!</h2>
-                        <p className="text-white/70">
-                            You have {myCourses.length} courses with {totalStudents} students enrolled.
-                        </p>
+        <>
+            <AnnouncementsPopup />
+            <div className="space-y-6">
+                {/* Welcome Section */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-gradient-to-r from-[#0D2818] to-[#1A5D3A] rounded-2xl p-6 text-white"
+                >
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                        <div>
+                            <h2 className="text-2xl font-bold mb-2">Welcome back, {user?.name || 'Teacher'}!</h2>
+                            <p className="text-white/70">
+                                You have {myCourses.length} courses with {totalStudents} students enrolled.
+                            </p>
+                        </div>
+                        <div className="flex gap-3">
+                            <button onClick={fetchDashboardData} className="p-3 bg-white/10 hover:bg-white/20 rounded-xl transition-colors">
+                                <RefreshCw className="w-5 h-5" />
+                            </button>
+                            <button
+                                onClick={() => navigate('/teacher/attendance')}
+                                className="px-5 py-2.5 bg-white hover:bg-white/90 text-[#0D2818] rounded-xl font-medium transition-all duration-300"
+                            >
+                                Mark Attendance
+                            </button>
+                        </div>
                     </div>
-                    <div className="flex gap-3">
-                        <button onClick={fetchDashboardData} className="p-3 bg-white/10 hover:bg-white/20 rounded-xl transition-colors">
-                            <RefreshCw className="w-5 h-5" />
-                        </button>
-                        <button
-                            onClick={() => navigate('/teacher/attendance')}
-                            className="px-5 py-2.5 bg-white hover:bg-white/90 text-[#0D2818] rounded-xl font-medium transition-all duration-300"
-                        >
-                            Mark Attendance
-                        </button>
-                    </div>
-                </div>
-            </motion.div>
+                </motion.div>
 
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {stats.map((stat, index) => (
+                {/* Stats Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {stats.map((stat, index) => (
+                        <motion.div
+                            key={stat.title}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: index * 0.1 }}
+                        >
+                            <StatCard {...stat} />
+                        </motion.div>
+                    ))}
+                </div>
+
+                {/* Main Content */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* My Courses */}
                     <motion.div
-                        key={stat.title}
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.1 }}
+                        transition={{ delay: 0.3 }}
+                        className="lg:col-span-2 bg-white rounded-2xl p-6 border border-gray-100"
                     >
-                        <StatCard {...stat} />
-                    </motion.div>
-                ))}
-            </div>
-
-            {/* Main Content */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* My Courses */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3 }}
-                    className="lg:col-span-2 bg-white rounded-2xl p-6 border border-gray-100"
-                >
-                    <div className="flex items-center justify-between mb-6">
-                        <div>
-                            <h3 className="text-lg font-bold text-gray-900">My Courses</h3>
-                            <p className="text-sm text-gray-500">Select a course to manage assignments and daily work</p>
+                        <div className="flex items-center justify-between mb-6">
+                            <div>
+                                <h3 className="text-lg font-bold text-gray-900">My Courses</h3>
+                                <p className="text-sm text-gray-500">Select a course to manage assignments and daily work</p>
+                            </div>
                         </div>
-                    </div>
 
-                    {myCourses.length === 0 ? (
-                        <div className="text-center py-12">
-                            <BookOpen className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                            <p className="text-gray-500">No courses assigned yet</p>
-                            <p className="text-sm text-gray-400 mt-1">Contact admin to get courses assigned to you</p>
-                        </div>
-                    ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {myCourses.map((course, index) => (
-                                <motion.div
-                                    key={course.id}
-                                    initial={{ opacity: 0, x: -20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: 0.4 + index * 0.1 }}
-                                    className="p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors cursor-pointer border border-gray-100"
-                                >
-                                    <div className="flex items-start justify-between mb-3">
-                                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center flex-shrink-0">
-                                            <BookOpen className="w-6 h-6 text-white" />
-                                        </div>
-                                        <Badge variant={course.status === 'active' ? 'success' : 'secondary'}>
-                                            {course.status}
-                                        </Badge>
-                                    </div>
-                                    <h4 className="font-semibold text-gray-900 mb-2">{course.title}</h4>
-                                    <div className="flex items-center gap-4 text-sm text-gray-500 mb-3">
-                                        <span className="flex items-center gap-1">
-                                            <Users className="w-4 h-4" /> {course.students} students
-                                        </span>
-                                        {course.startDate && (
-                                            <span className="flex items-center gap-1">
-                                                <Calendar className="w-4 h-4" /> {new Date(course.startDate).toLocaleDateString()}
-                                            </span>
-                                        )}
-                                    </div>
-                                    <button
-                                        onClick={() => navigate('/teacher/attendance')}
-                                        className="flex items-center gap-1 text-sm font-medium text-emerald-600 hover:text-emerald-700"
+                        {myCourses.length === 0 ? (
+                            <div className="text-center py-12">
+                                <BookOpen className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                                <p className="text-gray-500">No courses assigned yet</p>
+                                <p className="text-sm text-gray-400 mt-1">Contact admin to get courses assigned to you</p>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {myCourses.map((course, index) => (
+                                    <motion.div
+                                        key={course.id}
+                                        initial={{ opacity: 0, x: -20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ delay: 0.4 + index * 0.1 }}
+                                        className="p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors cursor-pointer border border-gray-100"
                                     >
-                                        Manage Course <ArrowRight className="w-4 h-4" />
-                                    </button>
-                                </motion.div>
-                            ))}
-                        </div>
-                    )}
-                </motion.div>
+                                        <div className="flex items-start justify-between mb-3">
+                                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center flex-shrink-0">
+                                                <BookOpen className="w-6 h-6 text-white" />
+                                            </div>
+                                            <Badge variant={course.status === 'active' ? 'success' : 'secondary'}>
+                                                {course.status}
+                                            </Badge>
+                                        </div>
+                                        <h4 className="font-semibold text-gray-900 mb-2">{course.title}</h4>
+                                        <div className="flex items-center gap-4 text-sm text-gray-500 mb-3">
+                                            <span className="flex items-center gap-1">
+                                                <Users className="w-4 h-4" /> {course.students} students
+                                            </span>
+                                            {course.startDate && (
+                                                <span className="flex items-center gap-1">
+                                                    <Calendar className="w-4 h-4" /> {new Date(course.startDate).toLocaleDateString()}
+                                                </span>
+                                            )}
+                                        </div>
+                                        <button
+                                            onClick={() => navigate('/teacher/attendance')}
+                                            className="flex items-center gap-1 text-sm font-medium text-emerald-600 hover:text-emerald-700"
+                                        >
+                                            Manage Course <ArrowRight className="w-4 h-4" />
+                                        </button>
+                                    </motion.div>
+                                ))}
+                            </div>
+                        )}
+                    </motion.div>
 
-                {/* Submissions Chart */}
+                    {/* Submissions Chart */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.4 }}
+                        className="bg-white rounded-2xl p-6 border border-gray-100"
+                    >
+                        <div className="flex items-center justify-between mb-6">
+                            <div>
+                                <h3 className="text-lg font-bold text-gray-900">Weekly Activity</h3>
+                                <p className="text-sm text-gray-500">Student submissions</p>
+                            </div>
+                        </div>
+                        <BarChart data={submissionsChartData} height={200} />
+                    </motion.div>
+                </div>
+
+                {/* Quick Actions */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.4 }}
+                    transition={{ delay: 0.5 }}
                     className="bg-white rounded-2xl p-6 border border-gray-100"
                 >
-                    <div className="flex items-center justify-between mb-6">
-                        <div>
-                            <h3 className="text-lg font-bold text-gray-900">Weekly Activity</h3>
-                            <p className="text-sm text-gray-500">Student submissions</p>
-                        </div>
+                    <h3 className="text-lg font-bold text-gray-900 mb-4">Quick Actions</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <button
+                            onClick={() => navigate('/teacher/attendance')}
+                            className="flex items-center gap-4 p-4 bg-emerald-50 rounded-xl hover:bg-emerald-100 transition-colors"
+                        >
+                            <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center">
+                                <ClipboardList className="w-6 h-6 text-emerald-600" />
+                            </div>
+                            <div className="text-left">
+                                <p className="font-semibold text-gray-900">Mark Attendance</p>
+                                <p className="text-sm text-gray-500">Take today's attendance</p>
+                            </div>
+                        </button>
+                        <button
+                            onClick={() => navigate('/teacher/profile')}
+                            className="flex items-center gap-4 p-4 bg-blue-50 rounded-xl hover:bg-blue-100 transition-colors"
+                        >
+                            <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                                <Users className="w-6 h-6 text-blue-600" />
+                            </div>
+                            <div className="text-left">
+                                <p className="font-semibold text-gray-900">My Profile</p>
+                                <p className="text-sm text-gray-500">View and edit profile</p>
+                            </div>
+                        </button>
+                        <button
+                            className="flex items-center gap-4 p-4 bg-purple-50 rounded-xl hover:bg-purple-100 transition-colors"
+                        >
+                            <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
+                                <TrendingUp className="w-6 h-6 text-purple-600" />
+                            </div>
+                            <div className="text-left">
+                                <p className="font-semibold text-gray-900">View Reports</p>
+                                <p className="text-sm text-gray-500">Check attendance reports</p>
+                            </div>
+                        </button>
                     </div>
-                    <BarChart data={submissionsChartData} height={200} />
                 </motion.div>
             </div>
-
-            {/* Quick Actions */}
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5 }}
-                className="bg-white rounded-2xl p-6 border border-gray-100"
-            >
-                <h3 className="text-lg font-bold text-gray-900 mb-4">Quick Actions</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <button
-                        onClick={() => navigate('/teacher/attendance')}
-                        className="flex items-center gap-4 p-4 bg-emerald-50 rounded-xl hover:bg-emerald-100 transition-colors"
-                    >
-                        <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center">
-                            <ClipboardList className="w-6 h-6 text-emerald-600" />
-                        </div>
-                        <div className="text-left">
-                            <p className="font-semibold text-gray-900">Mark Attendance</p>
-                            <p className="text-sm text-gray-500">Take today's attendance</p>
-                        </div>
-                    </button>
-                    <button
-                        onClick={() => navigate('/teacher/profile')}
-                        className="flex items-center gap-4 p-4 bg-blue-50 rounded-xl hover:bg-blue-100 transition-colors"
-                    >
-                        <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                            <Users className="w-6 h-6 text-blue-600" />
-                        </div>
-                        <div className="text-left">
-                            <p className="font-semibold text-gray-900">My Profile</p>
-                            <p className="text-sm text-gray-500">View and edit profile</p>
-                        </div>
-                    </button>
-                    <button
-                        className="flex items-center gap-4 p-4 bg-purple-50 rounded-xl hover:bg-purple-100 transition-colors"
-                    >
-                        <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
-                            <TrendingUp className="w-6 h-6 text-purple-600" />
-                        </div>
-                        <div className="text-left">
-                            <p className="font-semibold text-gray-900">View Reports</p>
-                            <p className="text-sm text-gray-500">Check attendance reports</p>
-                        </div>
-                    </button>
-                </div>
-            </motion.div>
-        </div>
+        </>
     );
 };
 
 export default TeacherDashboard;
+

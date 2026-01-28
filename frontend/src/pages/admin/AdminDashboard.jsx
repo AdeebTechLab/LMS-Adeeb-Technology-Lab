@@ -20,6 +20,7 @@ import StatCard from '../../components/ui/StatCard';
 import DataTable from '../../components/ui/DataTable';
 import Badge from '../../components/ui/Badge';
 import { BarChart, DoughnutChart } from '../../components/charts/Charts';
+import AnnouncementsPopup from '../../components/ui/AnnouncementsPopup';
 import { courseAPI, feeAPI, userAPI } from '../../services/api';
 
 const AdminDashboard = () => {
@@ -245,7 +246,7 @@ const AdminDashboard = () => {
                     <div>
                         <h2 className="text-2xl font-bold mb-2">Welcome back, Admin!</h2>
                         <p className="text-white/70">
-                            Here's what's happening with your LMS today.
+                            Here's what's happening with your AdeebTechLab portal today.
                         </p>
                     </div>
                     <div className="flex gap-3">
@@ -358,3 +359,4 @@ const AdminDashboard = () => {
 };
 
 export default AdminDashboard;
+

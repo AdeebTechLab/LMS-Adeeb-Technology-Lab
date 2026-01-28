@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
-    Search, UserCheck, UserX, Trash2, User, Mail, Phone, MapPin,
-    Calendar, GraduationCap, Loader2, RefreshCw, CheckCircle, Clock, BookOpen, Edit2, Save, Download
+    Calendar, GraduationCap, Loader2, RefreshCw, CheckCircle, Clock, BookOpen, Edit2, Save, Download,
+    FileText, Users, Search, User, Mail, Phone, MapPin, UserCheck, UserX, Trash2
 } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -19,6 +19,7 @@ const InternsManagement = () => {
     const [editModal, setEditModal] = useState({ open: false, user: null });
     const [editForm, setEditForm] = useState({});
     const [isProcessing, setIsProcessing] = useState(false);
+    const [showExportOptions, setShowExportOptions] = useState(false);
 
     useEffect(() => {
         fetchInterns();
@@ -97,35 +98,77 @@ const InternsManagement = () => {
         });
     };
 
-    const downloadPDF = () => {
-        const doc = new jsPDF();
+    const downloadPDF = (type = 'full') => {
+        const doc = new jsPDF('l', 'mm', 'a4');
+        const title = type === 'phone' ? 'AdeebTechLab - Interns Phone Directory' :
+            type === 'email' ? 'AdeebTechLab - Interns Email List' :
+                type === 'academic' ? 'AdeebTechLab - Interns Academic Profile' :
+                    type === 'address' ? 'AdeebTechLab - Interns Address List' :
+                        'AdeebTechLab - Interns Complete Report';
+
         doc.setFontSize(20);
-        doc.text('EduLMS - Interns Report', 14, 22);
+        doc.text(title, 14, 22);
         doc.setFontSize(11);
         doc.setTextColor(100);
         doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 30);
-        doc.text(`Total Interns: ${filteredInterns.length}`, 14, 37);
+        doc.text(`Total Records: ${filteredInterns.length}`, 14, 37);
 
-        const tableData = filteredInterns.map(i => [
-            i.name || 'N/A',
-            i.email || 'N/A',
-            i.phone || 'N/A',
-            i.cnic || 'N/A',
-            i.education || 'N/A',
-            i.location || 'N/A',
-            i.isVerified ? 'Verified' : 'Pending'
-        ]);
+        let headers, body;
+
+        if (type === 'phone') {
+            headers = [['Name', 'Phone', 'Identity']];
+            body = filteredInterns.map(i => [i.name || 'N/A', i.phone || 'N/A', 'Intern']);
+        } else if (type === 'email') {
+            headers = [['Name', 'Email', 'Identity']];
+            body = filteredInterns.map(i => [i.name || 'N/A', i.email || 'N/A', 'Intern']);
+        } else if (type === 'academic') {
+            headers = [['Roll No', 'Name', 'Degree', 'University', 'CGPA', 'Semester']];
+            body = filteredInterns.map(i => [
+                i.rollNumber || 'N/A',
+                i.name || 'N/A',
+                i.degree || 'N/A',
+                i.university || 'N/A',
+                i.cgpa || 'N/A',
+                i.semester || 'N/A'
+            ]);
+        } else if (type === 'address') {
+            headers = [['Roll No', 'Name', 'Address', 'City']];
+            body = filteredInterns.map(i => [
+                i.rollNumber || 'N/A',
+                i.name || 'N/A',
+                i.homeAddress || 'N/A',
+                i.city || 'N/A'
+            ]);
+        } else {
+            headers = [['Roll No', 'Name', 'Email', 'Phone', 'CNIC', 'DOB', 'Degree', 'University', 'CGPA', 'Duration', 'Type', 'Status']];
+            body = filteredInterns.map(i => [
+                i.rollNumber || 'N/A',
+                i.name || 'N/A',
+                i.email || 'N/A',
+                i.phone || 'N/A',
+                i.cnic || 'N/A',
+                i.dob ? new Date(i.dob).toLocaleDateString() : 'N/A',
+                i.degree || 'N/A',
+                i.university || 'N/A',
+                i.cgpa || 'N/A',
+                i.duration || 'N/A',
+                i.internType || 'N/A',
+                i.isVerified ? 'Verified' : 'Pending'
+            ]);
+        }
 
         autoTable(doc, {
             startY: 45,
-            head: [['Name', 'Email', 'Phone', 'CNIC', 'Education', 'Location', 'Status']],
-            body: tableData,
+            head: headers,
+            body: body,
             theme: 'grid',
             headStyles: { fillColor: [13, 40, 24] },
-            styles: { fontSize: 8 }
+            styles: { fontSize: 8, overflow: 'linebreak' }
         });
 
-        doc.save(`Interns_Report_${new Date().toISOString().split('T')[0]}.pdf`);
+        const fileName = `Interns_${type.charAt(0).toUpperCase() + type.slice(1)}_${new Date().toISOString().split('T')[0]}.pdf`;
+        doc.save(fileName);
+        setShowExportOptions(false);
     };
 
     const downloadInternPDF = (i) => {
@@ -230,13 +273,61 @@ const InternsManagement = () => {
                     <p className="text-gray-500">View and manage registered interns</p>
                 </div>
                 <div className="flex flex-wrap gap-4">
-                    <button
-                        onClick={downloadPDF}
-                        className="p-2.5 bg-white border border-gray-200 hover:bg-gray-50 rounded-xl transition-colors flex items-center gap-2 text-sm font-bold text-gray-700 shadow-sm"
-                    >
-                        <Download className="w-5 h-5 text-blue-600" />
-                        EXPORT PDF
-                    </button>
+                    <div className="relative">
+                        <button
+                            onClick={() => setShowExportOptions(!showExportOptions)}
+                            className="p-2.5 bg-white border border-gray-200 hover:bg-gray-50 rounded-xl transition-colors flex items-center gap-2 text-sm font-bold text-gray-700 shadow-sm"
+                        >
+                            <Download className="w-5 h-5 text-blue-600" />
+                            EXPORT DATA
+                        </button>
+
+                        {showExportOptions && (
+                            <>
+                                <div className="fixed inset-0 z-10" onClick={() => setShowExportOptions(false)}></div>
+                                <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-100 rounded-2xl shadow-2xl z-20 py-2 overflow-hidden animate-in fade-in zoom-in duration-200">
+                                    <div className="px-4 py-2 border-b border-gray-50 mb-1">
+                                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Select Format</p>
+                                    </div>
+                                    <button
+                                        onClick={() => downloadPDF('full')}
+                                        className="w-full px-4 py-2.5 text-left text-sm font-bold text-gray-700 hover:bg-blue-50 hover:text-blue-700 flex items-center gap-3 transition-colors"
+                                    >
+                                        <FileText className="w-4 h-4" />
+                                        Complete Report
+                                    </button>
+                                    <button
+                                        onClick={() => downloadPDF('phone')}
+                                        className="w-full px-4 py-2.5 text-left text-sm font-bold text-gray-700 hover:bg-blue-50 hover:text-blue-700 flex items-center gap-3 transition-colors"
+                                    >
+                                        <Phone className="w-4 h-4" />
+                                        Phone Directory
+                                    </button>
+                                    <button
+                                        onClick={() => downloadPDF('email')}
+                                        className="w-full px-4 py-2.5 text-left text-sm font-bold text-gray-700 hover:bg-blue-50 hover:text-blue-700 flex items-center gap-3 transition-colors"
+                                    >
+                                        <Mail className="w-4 h-4" />
+                                        Email List
+                                    </button>
+                                    <button
+                                        onClick={() => downloadPDF('academic')}
+                                        className="w-full px-4 py-2 text-left text-sm font-bold text-gray-700 hover:bg-blue-50 hover:text-blue-700 flex items-center gap-3 transition-colors"
+                                    >
+                                        <GraduationCap className="w-4 h-4" />
+                                        Academic Info
+                                    </button>
+                                    <button
+                                        onClick={() => downloadPDF('address')}
+                                        className="w-full px-4 py-2 text-left text-sm font-bold text-gray-700 hover:bg-blue-50 hover:text-blue-700 flex items-center gap-3 transition-colors"
+                                    >
+                                        <MapPin className="w-4 h-4" />
+                                        Address List
+                                    </button>
+                                </div>
+                            </>
+                        )}
+                    </div>
                     <button onClick={fetchInterns} className="p-2.5 hover:bg-gray-100 rounded-xl transition-colors">
                         <RefreshCw className="w-5 h-5 text-gray-600" />
                     </button>

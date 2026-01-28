@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Search, User, XCircle, Loader2, Award, CheckCircle, ShieldCheck, Download } from 'lucide-react';
+import { Search, User, XCircle, Loader2, Award, CheckCircle, ShieldCheck, Download, FileText, BookOpen, Calendar, MapPin, Briefcase, GraduationCap } from 'lucide-react';
 import { certificateAPI } from '../../services/api';
 
 const VerifyCertificate = () => {
@@ -8,6 +8,32 @@ const VerifyCertificate = () => {
     const [certificates, setCertificates] = useState([]);
     const [isSearching, setIsSearching] = useState(false);
     const [hasSearched, setHasSearched] = useState(false);
+
+    // Group certificates by rollNo AND position (role)
+    const groupedCertificates = certificates.reduce((acc, cert) => {
+        const key = `${cert.rollNo}-${cert.position}`;
+        if (!acc[key]) {
+            acc[key] = {
+                rollNo: cert.rollNo,
+                name: cert.name,
+                photo: cert.photo,
+                position: cert.position,
+                location: cert.location,
+                courses: []
+            };
+        }
+        acc[key].courses.push({
+            course: cert.course,
+            skills: cert.skills,
+            duration: cert.duration,
+            passoutDate: cert.passoutDate,
+            certificateLink: cert.certificateLink,
+            issuedAt: cert.issuedAt
+        });
+        return acc;
+    }, {});
+
+    const certificateGroups = Object.values(groupedCertificates);
 
     const handleSearch = async () => {
         if (!searchQuery.trim()) return;
@@ -46,6 +72,29 @@ const VerifyCertificate = () => {
 
                 <div className="max-w-4xl mx-auto text-center relative z-10 space-y-4">
                     <motion.div
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="flex flex-col items-center gap-4 mb-4"
+                    >
+                        <div className="w-20 h-20 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 flex items-center justify-center overflow-hidden">
+                            <img
+                                src="/logo.png"
+                                alt="AdeebTechLab Logo"
+                                className="w-12 h-12 object-contain"
+                                onError={(e) => {
+                                    e.target.style.display = 'none';
+                                    e.target.nextSibling.style.display = 'block';
+                                }}
+                            />
+                            <GraduationCap className="w-12 h-12 text-white hidden" />
+                        </div>
+                        <div className="text-center">
+                            <h2 className="text-white text-3xl font-black tracking-tighter leading-none">AdeebTechLab</h2>
+                            <p className="text-emerald-300 text-[10px] font-black uppercase tracking-[0.4em] mt-2">Empowering Your Tech Journey</p>
+                        </div>
+                    </motion.div>
+
+                    <motion.div
                         initial={{ opacity: 0, y: -20 }}
                         animate={{ opacity: 1, y: 0 }}
                         className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/10 backdrop-blur-md rounded-full border border-white/20 text-emerald-300 text-sm font-bold uppercase tracking-widest mb-4"
@@ -73,13 +122,13 @@ const VerifyCertificate = () => {
             </div>
 
             {/* Main Content Area */}
-            <main className="max-w-5xl mx-auto px-4 -mt-10 mb-20 relative z-20">
+            <main className="max-w-[1400px] mx-auto px-4 -mt-10 mb-20 relative z-20">
                 {/* Search Box Card */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 }}
-                    className="bg-white rounded-3xl p-6 md:p-8 shadow-2xl shadow-emerald-900/10 border border-emerald-50"
+                    className="bg-white rounded-3xl p-6 md:p-8 shadow-2xl shadow-emerald-900/10 border border-emerald-50 max-w-4xl mx-auto"
                 >
                     <div className="space-y-6">
                         <div className="space-y-2">
@@ -145,7 +194,7 @@ const VerifyCertificate = () => {
                             </div>
 
                             <div className="grid gap-12">
-                                {certificates.map((cert, index) => (
+                                {certificateGroups.map((group, index) => (
                                     <motion.div
                                         key={index}
                                         initial={{ opacity: 0, y: 30 }}
@@ -163,13 +212,20 @@ const VerifyCertificate = () => {
                                                     <div className="relative group/photo mb-6">
                                                         <div className="absolute -inset-2 bg-gradient-to-tr from-emerald-600 to-teal-400 rounded-3xl opacity-20 blur-lg group-hover/photo:opacity-40 transition-opacity" />
                                                         <div className="w-40 h-52 rounded-2xl bg-white border-4 border-white shadow-2xl overflow-hidden relative z-10 transform hover:scale-[1.02] transition-transform duration-500">
-                                                            {cert.photo ? (
-                                                                <img src={cert.photo} alt={cert.name} className="w-full h-full object-cover" />
-                                                            ) : (
-                                                                <div className="w-full h-full flex items-center justify-center bg-slate-50">
-                                                                    <User className="w-16 h-16 text-slate-200" />
-                                                                </div>
-                                                            )}
+                                                            {group.photo ? (
+                                                                <img
+                                                                    src={group.photo.startsWith('http') ? group.photo : `http://localhost:5000${group.photo}`}
+                                                                    alt={group.name}
+                                                                    className="w-full h-full object-cover"
+                                                                    onError={(e) => {
+                                                                        e.target.style.display = 'none';
+                                                                        e.target.nextSibling.style.display = 'flex';
+                                                                    }}
+                                                                />
+                                                            ) : null}
+                                                            <div className={`w-full h-full flex items-center justify-center bg-slate-50 ${group.photo ? 'hidden' : ''}`}>
+                                                                <User className="w-16 h-16 text-slate-200" />
+                                                            </div>
                                                         </div>
                                                         <div className="absolute -bottom-3 -right-3 w-12 h-12 bg-white rounded-2xl shadow-xl flex items-center justify-center z-20 border border-slate-50">
                                                             <div className="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center text-white">
@@ -180,11 +236,11 @@ const VerifyCertificate = () => {
 
                                                     <div className="space-y-1 mb-6">
                                                         <p className="text-[10px] font-black text-emerald-600 uppercase tracking-[0.2em]">Verified Identity</p>
-                                                        <h3 className="text-2xl font-black text-slate-900 leading-tight">{cert.name}</h3>
-                                                        <div className="inline-flex items-center gap-2 px-3 py-1 bg-white border border-slate-200 rounded-lg shadow-sm">
+                                                        <h3 className="text-2xl font-black text-slate-900 leading-tight">{group.name}</h3>
+                                                        <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-50 border border-emerald-100 rounded-lg shadow-sm">
                                                             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                                                            <p className="text-xs font-bold text-slate-600 uppercase tracking-tighter">
-                                                                {cert.position || 'Student'}
+                                                            <p className="text-xs font-bold text-emerald-700 uppercase tracking-tighter">
+                                                                {group.position || 'Student'}
                                                             </p>
                                                         </div>
                                                     </div>
@@ -192,12 +248,9 @@ const VerifyCertificate = () => {
                                                     <div className="w-full pt-6 border-t border-slate-200/60 text-left space-y-4">
                                                         <div>
                                                             <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Registration</label>
-                                                            <p className="text-lg font-black text-slate-800 font-mono tracking-tighter">{cert.rollNo}</p>
+                                                            <p className="text-lg font-black text-slate-800 font-mono tracking-tighter">{group.rollNo}</p>
                                                         </div>
-                                                        <div>
-                                                            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Campus Location</label>
-                                                            <p className="text-sm font-bold text-slate-600">{cert.location || 'Official Center'}</p>
-                                                        </div>
+
                                                     </div>
                                                 </div>
 
@@ -209,80 +262,49 @@ const VerifyCertificate = () => {
                                                             <span className="text-xs font-black text-emerald-600 uppercase tracking-[0.3em]">Course Credentials</span>
                                                         </div>
 
-                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
-                                                            <div className="space-y-2">
-                                                                <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Training Program</p>
-                                                                <p className="text-2xl font-black text-slate-900 leading-tight">{cert.course}</p>
-                                                            </div>
-                                                            <div className="space-y-2">
-                                                                <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Completion Date</p>
-                                                                <p className="text-2xl font-black text-emerald-700">{cert.passoutDate || 'Validated'}</p>
-                                                            </div>
-                                                            <div className="md:col-span-2 space-y-4">
-                                                                <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Mastery & Specialization</p>
-                                                                <div className="flex flex-wrap gap-2.5">
-                                                                    {(cert.skills || '').split(',').map((skill, i) => (
-                                                                        <span key={i} className="px-4 py-2 bg-emerald-50/50 text-emerald-800 rounded-xl text-sm font-bold border border-emerald-100 flex items-center gap-2">
-                                                                            <CheckCircle className="w-3.5 h-3.5 text-emerald-500" />
-                                                                            {skill.trim()}
-                                                                        </span>
-                                                                    ))}
+                                                        {/* Loop through courses */}
+                                                        <div className="space-y-10">
+                                                            {group.courses.map((courseData, courseIndex) => (
+                                                                <div key={courseIndex} className="pb-8 border-b border-slate-100 last:border-b-0 last:pb-0">
+                                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
+                                                                        <div className="space-y-2">
+                                                                            <p className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                                                                <BookOpen className="w-3.5 h-3.5 text-emerald-500" /> Training Program
+                                                                            </p>
+                                                                            <p className="text-2xl font-black text-slate-900 leading-tight">{courseData.course}</p>
+                                                                        </div>
+                                                                        <div className="space-y-2">
+                                                                            <p className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                                                                <Calendar className="w-3.5 h-3.5 text-emerald-500" /> Completion Date
+                                                                            </p>
+                                                                            <p className="text-2xl font-black text-emerald-700">{courseData.passoutDate || 'Validated'}</p>
+                                                                        </div>
+                                                                        <div className="space-y-2">
+                                                                            <p className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                                                                <MapPin className="w-3.5 h-3.5 text-emerald-500" /> Certified At
+                                                                            </p>
+                                                                            <p className="text-lg font-bold text-slate-700">{group.location || 'Official Center'}</p>
+                                                                        </div>
+                                                                        <div className="md:col-span-2 space-y-4">
+                                                                            <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Mastery & Specialization</p>
+                                                                            <div className="flex flex-wrap gap-2.5">
+                                                                                {(courseData.skills || '').split(',').map((skill, i) => (
+                                                                                    <span key={i} className="px-4 py-2 bg-emerald-50/50 text-emerald-800 rounded-xl text-sm font-bold border border-emerald-100 flex items-center gap-2 hover:bg-emerald-100 transition-colors">
+                                                                                        <CheckCircle className="w-3.5 h-3.5 text-emerald-500" />
+                                                                                        {skill.trim()}
+                                                                                    </span>
+                                                                                ))}
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
                                                                 </div>
-                                                            </div>
+                                                            ))}
                                                         </div>
                                                     </div>
 
-                                                    {/* Footer Action Area */}
-                                                    {cert.certificateLink && (
-                                                        <div className="mt-12 pt-10 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-6">
-                                                            <div className="flex items-center gap-4">
-                                                                <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center">
-                                                                    <ShieldCheck className="w-6 h-6 text-emerald-600" />
-                                                                </div>
-                                                                <div>
-                                                                    <p className="text-sm font-black text-slate-900">Digitally Secured</p>
-                                                                    <p className="text-xs font-medium text-slate-400">Validated by Adeeb Lab</p>
-                                                                </div>
-                                                            </div>
-                                                            <a
-                                                                href={cert.certificateLink}
-                                                                target="_blank"
-                                                                rel="noopener noreferrer"
-                                                                className="w-full sm:w-auto px-8 py-4 bg-slate-900 hover:bg-black text-white rounded-2xl font-black text-sm tracking-wider flex items-center justify-center gap-3 transition-all hover:shadow-2xl hover:-translate-y-1"
-                                                            >
-                                                                DOWNLOAD CERTIFICATE
-                                                                <Download className="w-4 h-4" />
-                                                            </a>
-                                                        </div>
-                                                    )}
+
                                                 </div>
                                             </div>
-
-                                            {/* Preview Embed Area */}
-                                            {cert.certificateLink && (
-                                                <div className="bg-slate-900 p-4 md:p-8">
-                                                    <div className="max-w-4xl mx-auto space-y-4">
-                                                        <div className="flex items-center justify-between px-2">
-                                                            <h4 className="text-[10px] font-black text-white/40 uppercase tracking-[0.4em]">Digital Preview</h4>
-                                                            <div className="flex gap-1.5">
-                                                                <div className="w-2 h-2 rounded-full bg-red-400 opacity-50" />
-                                                                <div className="w-2 h-2 rounded-full bg-yellow-400 opacity-50" />
-                                                                <div className="w-2 h-2 rounded-full bg-green-400 opacity-50" />
-                                                            </div>
-                                                        </div>
-                                                        <div className="aspect-[1.414/1] w-full bg-white rounded-2xl overflow-hidden shadow-2xl relative group/preview">
-                                                            <iframe
-                                                                src={cert.certificateLink.replace('/view', '/preview').replace('?usp=sharing', '')}
-                                                                className="w-full h-full border-none"
-                                                                title={`Certificate Preview ${index}`}
-                                                                allow="autoplay"
-                                                            ></iframe>
-                                                            {/* Overlay to ensure scrolling page isn't blocked by iframe */}
-                                                            <div className="absolute inset-0 pointer-events-none border-4 border-white/10 rounded-2xl" />
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            )}
                                         </div>
                                     </motion.div>
                                 ))}

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Mail, ArrowLeft, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import { Mail, ArrowLeft, Loader2, CheckCircle, AlertCircle, GraduationCap } from 'lucide-react';
 import { authAPI } from '../../services/api';
 
 const ForgotPassword = () => {
@@ -33,6 +33,22 @@ const ForgotPassword = () => {
                         <ArrowLeft className="w-4 h-4 mr-2" />
                         Back to Login
                     </Link>
+
+                    <div className="flex flex-col items-center mb-8">
+                        <div className="w-20 h-20 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 overflow-hidden mb-4">
+                            <img
+                                src="/logo.png"
+                                alt="AdeebTechLab Logo"
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                    e.target.style.display = 'none';
+                                    e.target.nextSibling.style.display = 'block';
+                                }}
+                            />
+                            <AlertCircle className="w-10 h-10 text-white hidden" />
+                        </div>
+                        <h2 className="text-white text-2xl font-bold tracking-tight">AdeebTechLab</h2>
+                    </div>
 
                     <h1 className="text-3xl font-bold text-white mb-2">Forgot Password</h1>
                     <p className="text-gray-300 mb-6">

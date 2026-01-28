@@ -21,7 +21,10 @@ const NotificationManagement = () => {
         type: 'info',
         startDate: '',
         endDate: '',
-        isActive: true
+        isActive: true,
+        isHtml: false,
+        showLifetime: false,
+        targetAudience: ['all']
     });
 
     useEffect(() => {
@@ -47,9 +50,12 @@ const NotificationManagement = () => {
                 title: data.title,
                 message: data.message,
                 type: data.type,
-                startDate: new Date(data.startDate).toISOString().slice(0, 16),
-                endDate: new Date(data.endDate).toISOString().slice(0, 16),
-                isActive: data.isActive
+                startDate: data.startDate ? new Date(data.startDate).toISOString().slice(0, 16) : '',
+                endDate: data.endDate ? new Date(data.endDate).toISOString().slice(0, 16) : '',
+                isActive: data.isActive,
+                isHtml: data.isHtml || false,
+                showLifetime: data.showLifetime || false,
+                targetAudience: data.targetAudience || ['all']
             });
         } else {
             setFormData({
@@ -58,7 +64,10 @@ const NotificationManagement = () => {
                 type: 'info',
                 startDate: new Date().toISOString().slice(0, 16),
                 endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16),
-                isActive: true
+                isActive: true,
+                isHtml: false,
+                showLifetime: false,
+                targetAudience: ['all']
             });
         }
     };
@@ -66,12 +75,30 @@ const NotificationManagement = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsSaving(true);
+
         try {
-            if (modal.mode === 'create') {
-                await notificationAPI.create(formData);
-            } else {
-                await notificationAPI.update(modal.data._id, formData);
+            const payload = {
+                title: formData.title,
+                message: formData.message,
+                type: formData.type,
+                isActive: formData.isActive,
+                isHtml: formData.isHtml,
+                showLifetime: formData.showLifetime,
+                targetAudience: formData.targetAudience
+            };
+
+            // Only include dates if not lifetime
+            if (!formData.showLifetime) {
+                payload.startDate = formData.startDate;
+                payload.endDate = formData.endDate;
             }
+
+            if (modal.mode === 'edit') {
+                await notificationAPI.update(modal.data._id, payload);
+            } else {
+                await notificationAPI.create(payload);
+            }
+
             fetchNotifications();
             setModal({ open: false, mode: 'create', data: null });
         } catch (error) {
@@ -139,8 +166,8 @@ const NotificationManagement = () => {
                                     className={`bg-white rounded-2xl border border-gray-100 overflow-hidden flex flex-col transition-all shadow-sm hover:shadow-md ${status.dimmed ? 'opacity-60 grayscale-[0.3]' : ''}`}
                                 >
                                     <div className={`h-1.5 w-full ${n.type === 'warning' ? 'bg-amber-400' :
-                                            n.type === 'success' ? 'bg-emerald-500' :
-                                                n.type === 'error' ? 'bg-rose-500' : 'bg-blue-500'
+                                        n.type === 'success' ? 'bg-emerald-500' :
+                                            n.type === 'error' ? 'bg-rose-500' : 'bg-blue-500'
                                         }`} />
 
                                     <div className="p-6 flex-1 flex flex-col">
@@ -223,14 +250,95 @@ const NotificationManagement = () => {
 
                         <div>
                             <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Message</label>
+
+                            {/* HTML Enable Checkbox */}
+                            <div className="mb-3 flex items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    id="isHtml"
+                                    checked={formData.isHtml}
+                                    onChange={(e) => setFormData({ ...formData, isHtml: e.target.checked })}
+                                    className="w-4 h-4 text-emerald-600 rounded focus:ring-2 focus:ring-emerald-500"
+                                />
+                                <label htmlFor="isHtml" className="text-sm font-medium text-gray-700 cursor-pointer">
+                                    Enable HTML Rendering
+                                </label>
+                            </div>
+
+                            {formData.isHtml && (
+                                <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-xl text-sm text-blue-800">
+                                    ℹ️ <strong>HTML + CSS Supported:</strong> You can use inline styles and CSS for rich formatting. Safe tags like p, div, span, h1-h6, img, table, etc. are allowed.
+                                </div>
+                            )}
+
                             <textarea
                                 required
-                                rows={4}
+                                rows={formData.isHtml ? 8 : 6}
                                 value={formData.message}
                                 onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                                className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 outline-none"
-                                placeholder="Enter notification message"
+                                className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 outline-none font-mono text-sm"
+                                placeholder={formData.isHtml ? `<div style="background: linear-gradient(to right, #10b981, #3b82f6); padding: 20px; border-radius: 12px; color: white;">\n  <h2 style="margin: 0; font-size: 24px;">Important Update!</h2>\n  <p style="margin-top: 10px;">Your notification with <strong>CSS styling</strong></p>\n</div>` : "Enter notification message"}
                             />
+                        </div>
+
+                        {/* Lifetime Toggle */}
+                        <div className="border-t border-gray-200 pt-6">
+                            <div className="flex items-center gap-2 mb-4">
+                                <input
+                                    type="checkbox"
+                                    id="showLifetime"
+                                    checked={formData.showLifetime}
+                                    onChange={(e) => {
+                                        const isLifetime = e.target.checked;
+                                        setFormData({
+                                            ...formData,
+                                            showLifetime: isLifetime,
+                                            // Clear dates when enabling lifetime
+                                            startDate: isLifetime ? '' : formData.startDate || new Date().toISOString().slice(0, 16),
+                                            endDate: isLifetime ? '' : formData.endDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16)
+                                        });
+                                    }}
+                                    className="w-4 h-4 text-emerald-600 rounded focus:ring-2 focus:ring-emerald-500"
+                                />
+                                <label htmlFor="showLifetime" className="text-sm font-bold text-gray-700 cursor-pointer">
+                                    🕒 Show Lifetime (Permanent Display)
+                                </label>
+                            </div>
+                            {formData.showLifetime && (
+                                <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl text-sm text-blue-800">
+                                    ℹ️ This notification will display permanently until manually dismissed by users.
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Date Fields - Dimmed when lifetime is enabled */}
+                        <div className={`grid grid-cols-2 gap-4 transition-opacity ${formData.showLifetime ? 'opacity-40 pointer-events-none' : ''}`}>
+                            <div>
+                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">
+                                    Start Date {formData.showLifetime && '(Disabled)'}
+                                </label>
+                                <input
+                                    type="datetime-local"
+                                    required={!formData.showLifetime}
+                                    disabled={formData.showLifetime}
+                                    value={formData.startDate}
+                                    onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 outline-none"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">
+                                    End Date {formData.showLifetime && '(Disabled)'}
+                                </label>
+                                <input
+                                    type="datetime-local"
+                                    required={!formData.showLifetime}
+                                    disabled={formData.showLifetime}
+                                    value={formData.endDate}
+                                    onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 outline-none"
+                                />
+                            </div>
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
@@ -264,28 +372,55 @@ const NotificationManagement = () => {
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Start Date & Time</label>
-                                <input
-                                    type="datetime-local"
-                                    required
-                                    value={formData.startDate}
-                                    onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 outline-none font-bold"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">End Date & Time</label>
-                                <input
-                                    type="datetime-local"
-                                    required
-                                    value={formData.endDate}
-                                    onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 outline-none font-bold"
-                                />
+                        {/* Target Audience Selector */}
+                        <div>
+                            <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 ml-1">Target Audience</label>
+                            <div className="flex flex-wrap gap-2">
+                                {['all', 'student', 'teacher', 'intern', 'job'].map(role => {
+                                    const isSelected = (formData.targetAudience || ['all']).includes(role);
+                                    return (
+                                        <button
+                                            key={role}
+                                            type="button"
+                                            onClick={() => {
+                                                const current = formData.targetAudience || ['all'];
+                                                let newAudience;
+
+                                                if (role === 'all') {
+                                                    newAudience = ['all'];
+                                                } else {
+                                                    // If clicking a specific role, remove 'all'
+                                                    let withoutAll = current.filter(r => r !== 'all');
+
+                                                    if (current.includes(role)) {
+                                                        // Toggle off
+                                                        newAudience = withoutAll.filter(r => r !== role);
+                                                    } else {
+                                                        // Toggle on
+                                                        newAudience = [...withoutAll, role];
+                                                    }
+
+                                                    // If nothing selected, default back to 'all'
+                                                    if (newAudience.length === 0) newAudience = ['all'];
+                                                }
+                                                setFormData({ ...formData, targetAudience: newAudience });
+                                            }}
+                                            className={`px-4 py-2 rounded-xl text-sm font-bold border transition-all ${isSelected
+                                                    ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-500/20'
+                                                    : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                                                }`}
+                                        >
+                                            {role === 'all' ? '📢 All Users' :
+                                                role === 'student' ? '🎓 Students' :
+                                                    role === 'teacher' ? '👨‍🏫 Teachers' :
+                                                        role === 'intern' ? '💼 Interns' : '🔍 Job Seekers'}
+                                        </button>
+                                    );
+                                })}
                             </div>
                         </div>
+
+
                     </div>
 
                     <div className="flex gap-4 pt-4">

@@ -1,14 +1,20 @@
 import { useState, useEffect } from 'react';
+import { useSelector } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Bell, Info, AlertCircle, CheckCircle, ExternalLink } from 'lucide-react';
+import { X, Bell, Info, AlertCircle, CheckCircle } from 'lucide-react';
 import { notificationAPI } from '../../services/api';
 
 const NotificationPopup = () => {
     const [activeNotifications, setActiveNotifications] = useState([]);
-    const [currentIdx, setCurrentIdx] = useState(0);
     const [isVisible, setIsVisible] = useState(false);
+    const { user } = useSelector((state) => state.auth);
 
     useEffect(() => {
+        // Don't show notifications to admin users
+        if (user?.role === 'admin') {
+            return;
+        }
+
         const fetchActive = async () => {
             try {
                 const response = await notificationAPI.getActive();
@@ -23,97 +29,142 @@ const NotificationPopup = () => {
         };
 
         fetchActive();
-    }, []);
+    }, [user]);
 
     const handleDismiss = () => {
-        if (currentIdx < activeNotifications.length - 1) {
-            setCurrentIdx(prev => prev + 1);
-        } else {
-            setIsVisible(false);
-        }
+        setIsVisible(false);
     };
+
+
 
     if (!isVisible || activeNotifications.length === 0) return null;
 
-    const current = activeNotifications[currentIdx];
-
-    const getIcon = () => {
-        switch (current.type) {
-            case 'warning': return <AlertCircle className="w-6 h-6 text-amber-500" />;
-            case 'success': return <CheckCircle className="w-6 h-6 text-emerald-500" />;
-            case 'error': return <AlertCircle className="w-6 h-6 text-rose-500" />;
-            default: return <Info className="w-6 h-6 text-blue-500" />;
+    const getIcon = (type) => {
+        switch (type) {
+            case 'warning': return <AlertCircle className="w-5 h-5 text-amber-500" />;
+            case 'success': return <CheckCircle className="w-5 h-5 text-emerald-500" />;
+            case 'error': return <AlertCircle className="w-5 h-5 text-rose-500" />;
+            default: return <Info className="w-5 h-5 text-blue-500" />;
         }
     };
 
-    const getColorClass = () => {
-        switch (current.type) {
-            case 'warning': return 'border-amber-100 bg-amber-50/50';
-            case 'success': return 'border-emerald-100 bg-emerald-50/50';
-            case 'error': return 'border-rose-100 bg-rose-50/50';
-            default: return 'border-blue-100 bg-blue-50/50';
+    const getColorClasses = (type) => {
+        switch (type) {
+            case 'warning': return {
+                border: 'border-amber-200',
+                bg: 'bg-amber-50/80',
+                iconBg: 'bg-amber-100',
+                bar: 'bg-amber-500'
+            };
+            case 'success': return {
+                border: 'border-emerald-200',
+                bg: 'bg-emerald-50/80',
+                iconBg: 'bg-emerald-100',
+                bar: 'bg-emerald-500'
+            };
+            case 'error': return {
+                border: 'border-rose-200',
+                bg: 'bg-rose-50/80',
+                iconBg: 'bg-rose-100',
+                bar: 'bg-rose-500'
+            };
+            default: return {
+                border: 'border-blue-200',
+                bg: 'bg-blue-50/80',
+                iconBg: 'bg-blue-100',
+                bar: 'bg-blue-500'
+            };
         }
     };
 
     return (
         <AnimatePresence>
             {isVisible && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-6 bg-slate-900/70 backdrop-blur-md">
                     <motion.div
-                        initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                        initial={{ opacity: 0, scale: 0.95, y: 30 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                        className={`w-full max-w-lg bg-white rounded-[2rem] border-4 shadow-2xl shadow-slate-900/20 overflow-hidden ${getColorClass()}`}
+                        exit={{ opacity: 0, scale: 0.95, y: 30 }}
+                        className="w-full max-w-6xl bg-white rounded-[2.5rem] shadow-[0_40px_150px_-30px_rgba(0,0,0,0.4)] overflow-hidden relative max-h-[90vh] flex flex-col"
                     >
-                        <div className="p-8">
-                            <div className="flex items-start justify-between mb-6">
-                                <div className="flex items-center gap-4">
-                                    <div className="p-3 bg-white rounded-2xl shadow-sm border border-slate-100">
-                                        {getIcon()}
-                                    </div>
-                                    <div className="text-xs font-black text-slate-400 uppercase tracking-[0.3em]">
-                                        Important Notice
-                                    </div>
+                        {/* Header */}
+                        <div className="p-6 md:p-8 pb-4 border-b border-slate-100 flex items-center justify-between flex-shrink-0">
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 bg-emerald-50 rounded-2xl">
+                                    <Bell className="w-6 h-6 text-emerald-600" />
                                 </div>
-                                <button
-                                    onClick={handleDismiss}
-                                    className="p-2 hover:bg-slate-100 rounded-xl transition-colors text-slate-400"
-                                >
-                                    <X className="w-6 h-6" />
-                                </button>
-                            </div>
-
-                            <div className="space-y-4">
-                                <h3 className="text-2xl font-black text-slate-900 leading-tight">
-                                    {current.title}
-                                </h3>
-                                <div className="text-slate-600 leading-relaxed font-medium">
-                                    {current.message.split('\n').map((line, i) => (
-                                        <p key={i} className={i > 0 ? 'mt-3' : ''}>{line}</p>
-                                    ))}
+                                <div>
+                                    <h2 className="text-2xl font-black text-slate-900 tracking-tight">Important Announcements</h2>
+                                    <p className="text-sm text-slate-500 font-medium mt-0.5">
+                                        {activeNotifications.length} {activeNotifications.length === 1 ? 'Notification' : 'Notifications'}
+                                    </p>
                                 </div>
                             </div>
-
-                            <div className="mt-10 flex items-center justify-between gap-4">
-                                <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                                    Notification {currentIdx + 1} of {activeNotifications.length}
-                                </div>
-                                <button
-                                    onClick={handleDismiss}
-                                    className="px-8 py-3.5 bg-slate-900 hover:bg-black text-white rounded-2xl font-black text-sm tracking-wider shadow-lg shadow-slate-900/20 transition-all active:scale-95"
-                                >
-                                    {currentIdx < activeNotifications.length - 1 ? 'NEXT NOTIFICATION' : 'DISMISS NOTICE'}
-                                </button>
-                            </div>
+                            <button
+                                onClick={handleDismiss}
+                                className="p-3 hover:bg-slate-100 rounded-2xl transition-all text-slate-400 hover:text-slate-900 active:scale-90 flex-shrink-0"
+                            >
+                                <X className="w-6 h-6" />
+                            </button>
                         </div>
 
-                        {/* Progress Bar */}
-                        <div className="h-2 w-full bg-slate-100">
-                            <motion.div
-                                initial={{ width: 0 }}
-                                animate={{ width: `${((currentIdx + 1) / activeNotifications.length) * 100}%` }}
-                                className="h-full bg-emerald-500"
-                            />
+                        {/* Scrollable Notifications Container */}
+                        <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6">
+                            {activeNotifications.map((notification, index) => {
+                                const colors = getColorClasses(notification.type);
+                                return (
+                                    <motion.div
+                                        key={notification._id || index}
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: index * 0.1 }}
+                                        className={`border-2 ${colors.border} ${colors.bg} rounded-3xl overflow-hidden shadow-lg hover:shadow-xl transition-all`}
+                                    >
+                                        {/* Type Color Bar */}
+                                        <div className={`h-2 w-full ${colors.bar}`} />
+
+                                        {/* Notification Content */}
+                                        <div className="p-6 md:p-8 max-h-[400px] overflow-y-auto">
+                                            <div className="flex items-start gap-4">
+                                                <div className={`p-3 ${colors.iconBg} rounded-xl flex-shrink-0 mt-1`}>
+                                                    {getIcon(notification.type)}
+                                                </div>
+                                                <div className="flex-1 min-w-0 space-y-3">
+                                                    <h3 className="text-xl md:text-2xl font-black text-slate-900 leading-tight">
+                                                        {notification.title}
+                                                    </h3>
+                                                    {notification.isHtml ? (
+                                                        <div
+                                                            className="text-slate-700 text-base md:text-lg leading-relaxed prose prose-sm max-w-none"
+                                                            dangerouslySetInnerHTML={{ __html: notification.message }}
+                                                        />
+                                                    ) : (
+                                                        <div className="text-slate-700 text-base md:text-lg leading-relaxed space-y-2">
+                                                            {notification.message.split('\n').map((line, i) => (
+                                                                <p key={i}>{line}</p>
+                                                            ))}
+                                                        </div>
+                                                    )}
+
+                                                    {/* Metadata */}
+                                                    <div className="flex items-center gap-3 pt-2 text-xs text-slate-400 font-medium">
+                                                        <div className="flex items-center gap-1.5">
+                                                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                                            <span className="uppercase tracking-wider">Live Update</span>
+                                                        </div>
+                                                        {notification.showLifetime && (
+                                                            <div className="flex items-center gap-1.5">
+                                                                <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                                                                <span className="uppercase tracking-wider">Permanent Notice</span>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </motion.div>
+                                );
+                            })}
                         </div>
                     </motion.div>
                 </div>

@@ -16,7 +16,9 @@ import {
 } from 'lucide-react';
 import StatCard from '../../components/ui/StatCard';
 import Badge from '../../components/ui/Badge';
+import AnnouncementsPopup from '../../components/ui/AnnouncementsPopup';
 import { enrollmentAPI, feeAPI, assignmentAPI } from '../../services/api';
+
 
 const StudentDashboard = () => {
     const navigate = useNavigate();
@@ -149,160 +151,164 @@ const StudentDashboard = () => {
     }
 
     return (
-        <div className="space-y-6">
-            {/* Welcome Section */}
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-gradient-to-r from-[#0D2818] to-[#1A5D3A] rounded-2xl p-6 text-white"
-            >
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                    <div>
-                        <h2 className="text-2xl font-bold mb-2 uppercase italic tracking-tight">Welcome back, {user?.name?.split(' ')[0] || (role === 'intern' ? 'Intern' : 'Student')}!</h2>
-                        <p className="text-white/70 font-medium">
-                            You have {enrolledCourses.length} active enrollments.
-                        </p>
-                    </div>
-                    <div className="flex gap-3">
-                        <button
-                            onClick={() => navigate(`/${role}/attendance`)}
-                            className="px-5 py-2.5 bg-white/10 hover:bg-white/20 rounded-xl font-medium transition-all duration-300 border border-white/20"
-                        >
-                            View Attendance
-                        </button>
-                        <button
-                            onClick={() => navigate('/student/courses')}
-                            className="px-5 py-2.5 bg-white hover:bg-white/90 text-[#0D2818] rounded-xl font-medium transition-all duration-300"
-                        >
-                            Browse Courses
-                        </button>
-                    </div>
-                </div>
-            </motion.div>
-
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {stats.map((stat, index) => (
-                    <motion.div
-                        key={stat.title}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.1 }}
-                    >
-                        <StatCard {...stat} />
-                    </motion.div>
-                ))}
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Pending Assignments List */}
+        <>
+            <AnnouncementsPopup />
+            <div className="space-y-6">
+                {/* Welcome Section */}
                 <motion.div
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.4 }}
-                    className="lg:col-span-1 space-y-4"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-gradient-to-r from-[#0D2818] to-[#1A5D3A] rounded-2xl p-6 text-white"
                 >
-                    <div className="flex items-center justify-between">
-                        <h3 className="text-lg font-bold text-gray-900 uppercase italic">Active Tasks</h3>
-                        <Badge variant="warning">{pendingAssignments.length}</Badge>
-                    </div>
-
-                    <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm space-y-4 max-h-[500px] overflow-y-auto">
-                        {pendingAssignments.length === 0 ? (
-                            <div className="text-center py-10 opacity-50">
-                                <CheckCircle className="w-10 h-10 text-emerald-500 mx-auto mb-2" />
-                                <p className="text-xs font-black uppercase">All Caught Up!</p>
-                            </div>
-                        ) : (
-                            pendingAssignments.map((assignment, index) => (
-                                <div key={assignment._id} className="p-4 bg-gray-50 rounded-2xl border border-gray-200 group hover:border-emerald-500/30 transition-all">
-                                    <div className="flex items-start justify-between mb-2">
-                                        <div className="flex items-center gap-2">
-                                            <div className="p-2 bg-emerald-100 rounded-lg">
-                                                <FileText className="w-4 h-4 text-emerald-600" />
-                                            </div>
-                                            <h4 className="font-bold text-gray-900 text-sm group-hover:text-emerald-600 transition-colors uppercase truncate max-w-[150px]">{assignment.title}</h4>
-                                        </div>
-                                    </div>
-                                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-3">
-                                        Due {new Date(assignment.dueDate).toLocaleDateString()}
-                                    </p>
-                                    <button
-                                        onClick={() => navigate(`/${role}/assignments`)}
-                                        className="w-full py-2 bg-white hover:bg-emerald-600 hover:text-white border border-gray-200 text-gray-600 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-sm active:scale-95"
-                                    >
-                                        Submit Now
-                                    </button>
-                                </div>
-                            ))
-                        )}
-                    </div>
-                </motion.div>
-
-                {/* Enrolled Courses Grid */}
-                <motion.div
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.5 }}
-                    className="lg:col-span-2"
-                >
-                    <div className="flex items-center justify-between mb-4">
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                         <div>
-                            <h3 className="text-lg font-bold text-gray-900 uppercase italic">My Courses</h3>
+                            <h2 className="text-2xl font-bold mb-2 uppercase italic tracking-tight">Welcome back, {user?.name?.split(' ')[0] || (role === 'intern' ? 'Intern' : 'Student')}!</h2>
+                            <p className="text-white/70 font-medium">
+                                You have {enrolledCourses.length} active enrollments.
+                            </p>
                         </div>
-                    </div>
-
-                    {enrolledCourses.length === 0 ? (
-                        <div className="bg-white rounded-3xl p-12 border border-gray-100 text-center">
-                            <BookOpen className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                            <p className="text-gray-500 mb-4 font-bold uppercase tracking-widest text-xs">No active enrollments</p>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => navigate(`/${role}/attendance`)}
+                                className="px-5 py-2.5 bg-white/10 hover:bg-white/20 rounded-xl font-medium transition-all duration-300 border border-white/20"
+                            >
+                                View Attendance
+                            </button>
                             <button
                                 onClick={() => navigate('/student/courses')}
-                                className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-medium"
+                                className="px-5 py-2.5 bg-white hover:bg-white/90 text-[#0D2818] rounded-xl font-medium transition-all duration-300"
                             >
                                 Browse Courses
                             </button>
                         </div>
-                    ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {enrolledCourses.map((course, index) => (
-                                <motion.div
-                                    key={course.id}
-                                    whileHover={{ y: -4 }}
-                                    onClick={() => navigate(`../course/${course.id}`)}
-                                    className="bg-white rounded-3xl p-6 border border-gray-100 cursor-pointer hover:shadow-lg transition-all group"
-                                >
-                                    <div className="flex items-start justify-between mb-4">
-                                        <div className="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center border border-emerald-100 group-hover:bg-emerald-600 transition-colors">
-                                            <BookOpen className="w-6 h-6 text-emerald-600 group-hover:text-white transition-colors" />
-                                        </div>
-                                        <Badge variant="primary">{course.progress}%</Badge>
-                                    </div>
-                                    <h4 className="font-bold text-gray-900 mb-1 uppercase tracking-tight group-hover:text-emerald-600 transition-colors">{course.title}</h4>
-                                    <p className="text-xs text-gray-400 font-bold uppercase tracking-widest mb-4 italic">{course.teacher}</p>
-
-                                    <div className="h-2 bg-gray-100 rounded-full overflow-hidden mb-4 pr-0.5">
-                                        <div
-                                            className="h-full bg-emerald-500 rounded-full"
-                                            style={{ width: `${course.progress}%` }}
-                                        />
-                                    </div>
-
-                                    <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-gray-400">
-                                        <span className="flex items-center gap-1">
-                                            <Calendar className="w-3 h-3" />
-                                            {course.nextClass}
-                                        </span>
-                                        <ArrowRight className="w-3 h-3 text-emerald-600 group-hover:translate-x-1 transition-transform" />
-                                    </div>
-                                </motion.div>
-                            ))}
-                        </div>
-                    )}
+                    </div>
                 </motion.div>
+
+                {/* Stats Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {stats.map((stat, index) => (
+                        <motion.div
+                            key={stat.title}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: index * 0.1 }}
+                        >
+                            <StatCard {...stat} />
+                        </motion.div>
+                    ))}
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* Pending Assignments List */}
+                    <motion.div
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.4 }}
+                        className="lg:col-span-1 space-y-4"
+                    >
+                        <div className="flex items-center justify-between">
+                            <h3 className="text-lg font-bold text-gray-900 uppercase italic">Active Tasks</h3>
+                            <Badge variant="warning">{pendingAssignments.length}</Badge>
+                        </div>
+
+                        <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm space-y-4 max-h-[500px] overflow-y-auto">
+                            {pendingAssignments.length === 0 ? (
+                                <div className="text-center py-10 opacity-50">
+                                    <CheckCircle className="w-10 h-10 text-emerald-500 mx-auto mb-2" />
+                                    <p className="text-xs font-black uppercase">All Caught Up!</p>
+                                </div>
+                            ) : (
+                                pendingAssignments.map((assignment, index) => (
+                                    <div key={assignment._id} className="p-4 bg-gray-50 rounded-2xl border border-gray-200 group hover:border-emerald-500/30 transition-all">
+                                        <div className="flex items-start justify-between mb-2">
+                                            <div className="flex items-center gap-2">
+                                                <div className="p-2 bg-emerald-100 rounded-lg">
+                                                    <FileText className="w-4 h-4 text-emerald-600" />
+                                                </div>
+                                                <h4 className="font-bold text-gray-900 text-sm group-hover:text-emerald-600 transition-colors uppercase truncate max-w-[150px]">{assignment.title}</h4>
+                                            </div>
+                                        </div>
+                                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-3">
+                                            Due {new Date(assignment.dueDate).toLocaleDateString()}
+                                        </p>
+                                        <button
+                                            onClick={() => navigate(`/${role}/assignments`)}
+                                            className="w-full py-2 bg-white hover:bg-emerald-600 hover:text-white border border-gray-200 text-gray-600 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-sm active:scale-95"
+                                        >
+                                            Submit Now
+                                        </button>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    </motion.div>
+
+                    {/* Enrolled Courses Grid */}
+                    <motion.div
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.5 }}
+                        className="lg:col-span-2"
+                    >
+                        <div className="flex items-center justify-between mb-4">
+                            <div>
+                                <h3 className="text-lg font-bold text-gray-900 uppercase italic">My Courses</h3>
+                            </div>
+                        </div>
+
+                        {enrolledCourses.length === 0 ? (
+                            <div className="bg-white rounded-3xl p-12 border border-gray-100 text-center">
+                                <BookOpen className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                                <p className="text-gray-500 mb-4 font-bold uppercase tracking-widest text-xs">No active enrollments</p>
+                                <button
+                                    onClick={() => navigate('/student/courses')}
+                                    className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-medium"
+                                >
+                                    Browse Courses
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {enrolledCourses.map((course, index) => (
+                                    <motion.div
+                                        key={course.id}
+                                        whileHover={{ y: -4 }}
+                                        onClick={() => navigate(`../course/${course.id}`)}
+                                        className="bg-white rounded-3xl p-6 border border-gray-100 cursor-pointer hover:shadow-lg transition-all group"
+                                    >
+                                        <div className="flex items-start justify-between mb-4">
+                                            <div className="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center border border-emerald-100 group-hover:bg-emerald-600 transition-colors">
+                                                <BookOpen className="w-6 h-6 text-emerald-600 group-hover:text-white transition-colors" />
+                                            </div>
+                                            <Badge variant="primary">{course.progress}%</Badge>
+                                        </div>
+                                        <h4 className="font-bold text-gray-900 mb-1 uppercase tracking-tight group-hover:text-emerald-600 transition-colors">{course.title}</h4>
+                                        <p className="text-xs text-gray-400 font-bold uppercase tracking-widest mb-4 italic">{course.teacher}</p>
+
+                                        <div className="h-2 bg-gray-100 rounded-full overflow-hidden mb-4 pr-0.5">
+                                            <div
+                                                className="h-full bg-emerald-500 rounded-full"
+                                                style={{ width: `${course.progress}%` }}
+                                            />
+                                        </div>
+
+                                        <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-gray-400">
+                                            <span className="flex items-center gap-1">
+                                                <Calendar className="w-3 h-3" />
+                                                {course.nextClass}
+                                            </span>
+                                            <ArrowRight className="w-3 h-3 text-emerald-600 group-hover:translate-x-1 transition-transform" />
+                                        </div>
+                                    </motion.div>
+                                ))}
+                            </div>
+                        )}
+                    </motion.div>
+                </div>
             </div>
-        </div>
+        </>
     );
 };
 
 export default StudentDashboard;
+

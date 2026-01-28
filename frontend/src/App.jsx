@@ -98,7 +98,7 @@ const AppRoutes = () => {
       />
       <Route
         path="/reset-password/:token"
-        element={isAuthenticated ? <Navigate to={getDefaultPage()} replace /> : <ResetPassword />}
+        element={<ResetPassword />}
       />
 
       {/* Registration Routes */}

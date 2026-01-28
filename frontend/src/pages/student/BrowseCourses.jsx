@@ -6,12 +6,12 @@ import {
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
-import { courseAPI, enrollmentAPI } from '../../services/api';
+import { courseAPI, enrollmentAPI, certificateAPI } from '../../services/api';
 
 const BrowseCourses = () => {
     const { role, user } = useSelector((state) => state.auth);
     const [searchQuery, setSearchQuery] = useState('');
-    const [activeTab, setActiveTab] = useState('available');
+    const [activeTab, setActiveTab] = useState('enrolled');
     const [isEnrollModalOpen, setIsEnrollModalOpen] = useState(false);
     const [selectedCourse, setSelectedCourse] = useState(null);
     const [isFetching, setIsFetching] = useState(true);
@@ -19,6 +19,7 @@ const BrowseCourses = () => {
     const [error, setError] = useState('');
     const [courses, setCourses] = useState([]);
     const [myEnrollments, setMyEnrollments] = useState([]);
+    const [myCertificates, setMyCertificates] = useState([]);
 
     // Fetch data on component mount
     useEffect(() => {
@@ -35,6 +36,14 @@ const BrowseCourses = () => {
             ]);
             setCourses(coursesRes.data.data || []);
             setMyEnrollments(enrollmentsRes.data.data || []);
+
+            // Fetch user's certificates
+            try {
+                const certRes = await certificateAPI.getMy();
+                setMyCertificates(certRes.data.certificates || []);
+            } catch (e) {
+                // User might not have certificates yet
+            }
         } catch (err) {
             console.error('Error fetching data:', err);
             setError('Failed to load courses. Please try again.');
@@ -171,6 +180,7 @@ const BrowseCourses = () => {
                 {filteredCourses.map((course, index) => {
                     const status = getEnrollmentStatus(course._id);
                     const enrollment = myEnrollments.find(e => e.course?._id === course._id);
+                    const certificate = myCertificates.find(c => c.course?._id === course._id || c.course === course._id);
 
                     return (
                         <motion.div
@@ -268,9 +278,31 @@ const BrowseCourses = () => {
                                         </button>
                                     )}
                                     {status === 'completed' && (
-                                        <button className="px-4 py-2 bg-purple-100 text-purple-600 rounded-lg font-medium">
-                                            View Certificate
-                                        </button>
+                                        <div className="flex gap-2">
+                                            {certificate?.certificateLink ? (
+                                                <>
+                                                    <a
+                                                        href={certificate.certificateLink}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="px-3 py-2 bg-purple-100 text-purple-600 rounded-lg font-medium text-sm hover:bg-purple-200 transition-all"
+                                                    >
+                                                        View
+                                                    </a>
+                                                    <a
+                                                        href={certificate.certificateLink}
+                                                        download
+                                                        className="px-3 py-2 bg-purple-600 text-white rounded-lg font-medium text-sm hover:bg-purple-700 transition-all"
+                                                    >
+                                                        Download
+                                                    </a>
+                                                </>
+                                            ) : (
+                                                <span className="px-3 py-2 bg-gray-100 text-gray-500 rounded-lg font-medium text-sm">
+                                                    Certificate Pending
+                                                </span>
+                                            )}
+                                        </div>
                                     )}
                                 </div>
                             </div>

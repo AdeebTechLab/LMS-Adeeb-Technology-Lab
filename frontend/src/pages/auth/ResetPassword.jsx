@@ -1,11 +1,14 @@
 import { useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { logout } from '../../features/auth/authSlice';
 import { Lock, ArrowLeft, Loader2, CheckCircle, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { authAPI } from '../../services/api';
 
 const ResetPassword = () => {
     const { token } = useParams();
     const navigate = useNavigate();
+    const dispatch = useDispatch();
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
@@ -32,9 +35,11 @@ const ResetPassword = () => {
         try {
             await authAPI.resetPassword(token, password);
             setSuccess(true);
+            // Clear any existing session before redirecting
+            dispatch(logout());
             // Redirect to login after 3 seconds
             setTimeout(() => {
-                navigate('/login');
+                navigate('/login', { replace: true });
             }, 3000);
         } catch (err) {
             setError(err.response?.data?.message || 'Invalid or expired reset link. Please try again.');

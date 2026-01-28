@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
     Search, UserCheck, UserX, Trash2, User, Mail, Phone, MapPin,
-    Calendar, GraduationCap, Loader2, RefreshCw, CheckCircle, XCircle, Clock, Shield, Edit2, Save, Download
+    Calendar, GraduationCap, Loader2, RefreshCw, CheckCircle, XCircle, Clock, Shield, Edit2, Save, Download,
+    FileText, Users
 } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -19,6 +20,7 @@ const TeachersManagement = () => {
     const [editModal, setEditModal] = useState({ open: false, user: null });
     const [editForm, setEditForm] = useState({});
     const [isProcessing, setIsProcessing] = useState(false);
+    const [showExportOptions, setShowExportOptions] = useState(false);
 
     useEffect(() => {
         fetchTeachers();
@@ -98,35 +100,74 @@ const TeachersManagement = () => {
         });
     };
 
-    const downloadPDF = () => {
-        const doc = new jsPDF();
+    const downloadPDF = (type = 'full') => {
+        const doc = new jsPDF('l', 'mm', 'a4');
+        const title = type === 'phone' ? 'AdeebTechLab - Teachers Phone Directory' :
+            type === 'email' ? 'AdeebTechLab - Teachers Email List' :
+                type === 'academic' ? 'AdeebTechLab - Teachers Academic Profile' :
+                    type === 'address' ? 'AdeebTechLab - Teachers Address List' :
+                        'AdeebTechLab - Teachers Complete Report';
+
         doc.setFontSize(20);
-        doc.text('EduLMS - Teachers Report', 14, 22);
+        doc.text(title, 14, 22);
         doc.setFontSize(11);
         doc.setTextColor(100);
         doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 30);
-        doc.text(`Total Teachers: ${filteredTeachers.length}`, 14, 37);
+        doc.text(`Total Records: ${filteredTeachers.length}`, 14, 37);
 
-        const tableData = filteredTeachers.map(t => [
-            t.name || 'N/A',
-            t.email || 'N/A',
-            t.phone || 'N/A',
-            t.qualification || 'N/A',
-            t.department || 'N/A',
-            t.location || 'N/A',
-            t.isVerified ? 'Verified' : 'Pending'
-        ]);
+        let headers, body;
+
+        if (type === 'phone') {
+            headers = [['Name', 'Phone', 'Identity']];
+            body = filteredTeachers.map(t => [t.name || 'N/A', t.phone || 'N/A', 'Teacher']);
+        } else if (type === 'email') {
+            headers = [['Name', 'Email', 'Identity']];
+            body = filteredTeachers.map(t => [t.name || 'N/A', t.email || 'N/A', 'Teacher']);
+        } else if (type === 'academic') {
+            headers = [['Name', 'Qualification', 'Specialization', 'Experience', 'Department']];
+            body = filteredTeachers.map(t => [
+                t.name || 'N/A',
+                t.qualification || 'N/A',
+                t.specialization || 'N/A',
+                t.experience || 'N/A',
+                t.department || 'N/A'
+            ]);
+        } else if (type === 'address') {
+            headers = [['Name', 'Address', 'Location']];
+            body = filteredTeachers.map(t => [
+                t.name || 'N/A',
+                t.address || 'N/A',
+                t.location || 'N/A'
+            ]);
+        } else {
+            headers = [['Name', 'Email', 'Phone', 'CNIC', 'Qualification', 'Specialization', 'Experience', 'Department', 'Location', 'Address', 'Status']];
+            body = filteredTeachers.map(t => [
+                t.name || 'N/A',
+                t.email || 'N/A',
+                t.phone || 'N/A',
+                t.cnic || 'N/A',
+                t.qualification || 'N/A',
+                t.specialization || 'N/A',
+                t.experience || 'N/A',
+                t.department || 'N/A',
+                t.location || 'N/A',
+                t.address || 'N/A',
+                t.isVerified ? 'Verified' : 'Pending'
+            ]);
+        }
 
         autoTable(doc, {
             startY: 45,
-            head: [['Name', 'Email', 'Phone', 'Qualification', 'Department', 'Location', 'Status']],
-            body: tableData,
+            head: headers,
+            body: body,
             theme: 'grid',
             headStyles: { fillColor: [13, 40, 24] },
-            styles: { fontSize: 8 }
+            styles: { fontSize: 8, overflow: 'linebreak' }
         });
 
-        doc.save(`Teachers_Report_${new Date().toISOString().split('T')[0]}.pdf`);
+        const fileName = `Teachers_${type.charAt(0).toUpperCase() + type.slice(1)}_${new Date().toISOString().split('T')[0]}.pdf`;
+        doc.save(fileName);
+        setShowExportOptions(false);
     };
 
     const downloadTeacherPDF = (t) => {
@@ -221,13 +262,61 @@ const TeachersManagement = () => {
                     <p className="text-gray-500">Verify and manage teacher accounts</p>
                 </div>
                 <div className="flex flex-wrap gap-4">
-                    <button
-                        onClick={downloadPDF}
-                        className="p-2.5 bg-white border border-gray-200 hover:bg-gray-50 rounded-xl transition-colors flex items-center gap-2 text-sm font-bold text-gray-700 shadow-sm"
-                    >
-                        <Download className="w-5 h-5 text-emerald-600" />
-                        EXPORT PDF
-                    </button>
+                    <div className="relative">
+                        <button
+                            onClick={() => setShowExportOptions(!showExportOptions)}
+                            className="p-2.5 bg-white border border-gray-200 hover:bg-gray-50 rounded-xl transition-colors flex items-center gap-2 text-sm font-bold text-gray-700 shadow-sm"
+                        >
+                            <Download className="w-5 h-5 text-emerald-600" />
+                            EXPORT DATA
+                        </button>
+
+                        {showExportOptions && (
+                            <>
+                                <div className="fixed inset-0 z-10" onClick={() => setShowExportOptions(false)}></div>
+                                <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-100 rounded-2xl shadow-2xl z-20 py-2 overflow-hidden animate-in fade-in zoom-in duration-200">
+                                    <div className="px-4 py-2 border-b border-gray-50 mb-1">
+                                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Select Format</p>
+                                    </div>
+                                    <button
+                                        onClick={() => downloadPDF('full')}
+                                        className="w-full px-4 py-2.5 text-left text-sm font-bold text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 flex items-center gap-3 transition-colors"
+                                    >
+                                        <FileText className="w-4 h-4" />
+                                        Complete Report
+                                    </button>
+                                    <button
+                                        onClick={() => downloadPDF('phone')}
+                                        className="w-full px-4 py-2.5 text-left text-sm font-bold text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 flex items-center gap-3 transition-colors"
+                                    >
+                                        <Phone className="w-4 h-4" />
+                                        Phone Directory
+                                    </button>
+                                    <button
+                                        onClick={() => downloadPDF('email')}
+                                        className="w-full px-4 py-2.5 text-left text-sm font-bold text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 flex items-center gap-3 transition-colors"
+                                    >
+                                        <Mail className="w-4 h-4" />
+                                        Email List
+                                    </button>
+                                    <button
+                                        onClick={() => downloadPDF('academic')}
+                                        className="w-full px-4 py-2 text-left text-sm font-bold text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 flex items-center gap-3 transition-colors"
+                                    >
+                                        <GraduationCap className="w-4 h-4" />
+                                        Academic Info
+                                    </button>
+                                    <button
+                                        onClick={() => downloadPDF('address')}
+                                        className="w-full px-4 py-2 text-left text-sm font-bold text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 flex items-center gap-3 transition-colors"
+                                    >
+                                        <MapPin className="w-4 h-4" />
+                                        Address List
+                                    </button>
+                                </div>
+                            </>
+                        )}
+                    </div>
                     <button onClick={fetchTeachers} className="p-2.5 hover:bg-gray-100 rounded-xl transition-colors">
                         <RefreshCw className="w-5 h-5 text-gray-600" />
                     </button>

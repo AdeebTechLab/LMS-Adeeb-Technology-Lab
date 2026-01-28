@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { motion } from 'framer-motion';
-import { Eye, EyeOff, Mail, Lock, ArrowLeft, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, ArrowLeft, Loader2, GraduationCap } from 'lucide-react';
 import { loginStart, loginSuccess, loginFailure } from '../../features/auth/authSlice';
 import { authAPI } from '../../services/api';
 
@@ -103,51 +103,42 @@ const Login = () => {
 
                 {/* Content */}
                 <div className="relative z-10 flex flex-col items-center justify-center w-full p-12">
-                    {/* Logo */}
+                    {/* Logo & Branding */}
+                    {/* Branding Text */}
                     <motion.div
                         initial={{ opacity: 0, y: -20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.3, duration: 0.5 }}
-                        className="mb-8"
+                        className="mb-8 flex flex-col items-center"
                     >
-                        <div className="w-16 h-16 bg-white/10 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-white/20">
-                            <svg className="w-10 h-10 text-white" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" />
-                            </svg>
-                        </div>
+                        <h2 className="text-white text-2xl font-bold tracking-tight">AdeebTechLab</h2>
+                        <p className="text-white/60 text-sm mt-1">Empowering Your Tech Journey</p>
                     </motion.div>
 
-                    {/* Illustration */}
+                    {/* Centered Logo Square */}
                     <motion.div
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: 0.4, duration: 0.6 }}
-                        className="relative"
+                        className="relative w-full h-full flex items-center justify-center p-12"
                     >
-                        {/* Abstract VR/Education illustration */}
-                        <div className="w-80 h-80 relative">
-                            <div className="absolute inset-0 flex items-center justify-center">
-                                <div className="w-48 h-48 rounded-full bg-gradient-to-br from-orange-400/30 to-red-500/30 backdrop-blur-sm animate-spin-slow"></div>
-                            </div>
-                            <div className="absolute inset-0 flex items-center justify-center">
-                                <div className="text-center text-white">
-                                    <motion.h2
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        transition={{ delay: 0.8 }}
-                                        className="text-3xl font-bold mb-2"
-                                    >
-                                        EduLMS
-                                    </motion.h2>
-                                    <motion.p
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        transition={{ delay: 1 }}
-                                        className="text-white/70 text-sm"
-                                    >
-                                        Learn. Grow. Succeed.
-                                    </motion.p>
-                                </div>
+                        <div className="relative w-64 h-64 group">
+                            {/* Outer Glow */}
+                            <div className="absolute -inset-4 bg-emerald-500/20 rounded-3xl blur-2xl group-hover:bg-emerald-500/30 transition-all duration-500"></div>
+
+                            {/* Square Glass Container */}
+                            <div className="absolute inset-0 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 shadow-2xl overflow-hidden flex items-center justify-center p-6">
+                                <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
+                                <img
+                                    src="/logo.png"
+                                    alt="AdeebTechLab Logo"
+                                    className="w-full h-full object-contain transform group-hover:scale-105 transition-transform duration-500 relation z-10"
+                                    onError={(e) => {
+                                        e.target.style.display = 'none';
+                                        e.target.nextSibling.style.display = 'block';
+                                    }}
+                                />
+                                <GraduationCap className="w-20 h-20 text-white hidden" />
                             </div>
                         </div>
                     </motion.div>

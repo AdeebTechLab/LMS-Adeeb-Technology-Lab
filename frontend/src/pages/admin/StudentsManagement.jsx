@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
     Search, UserCheck, UserX, Trash2, User, Mail, Phone, MapPin,
-    Calendar, GraduationCap, Loader2, RefreshCw, CheckCircle, XCircle, Clock, Edit2, Save, Download
+    Calendar, GraduationCap, Loader2, RefreshCw, CheckCircle, XCircle, Clock, Edit2, Save, Download,
+    FileText, Users, BookOpen, Shield
 } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -14,11 +15,14 @@ const StudentsManagement = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [students, setStudents] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [filterStatus, setFilterStatus] = useState('all');
-    const [confirmModal, setConfirmModal] = useState({ open: false, action: null, user: null });
+    const [isProcessing, setIsProcessing] = useState(false);
+    const [modal, setModal] = useState({ open: false, data: null });
+    const [showExportOptions, setShowExportOptions] = useState(false);
+    const [exportType, setExportType] = useState('full'); // full | phone | email
     const [editModal, setEditModal] = useState({ open: false, user: null });
     const [editForm, setEditForm] = useState({});
-    const [isProcessing, setIsProcessing] = useState(false);
+    const [filterStatus, setFilterStatus] = useState('all');
+    const [confirmModal, setConfirmModal] = useState({ open: false, action: null, user: null });
 
     useEffect(() => {
         fetchStudents();
@@ -112,35 +116,94 @@ const StudentsManagement = () => {
         }
     };
 
-    const downloadPDF = () => {
-        const doc = new jsPDF();
+    const downloadPDF = (type = 'full') => {
+        const doc = new jsPDF('l', 'mm', 'a4'); // Use landscape for wide tables
+        const title = type === 'phone' ? 'AdeebTechLab - Students Phone Directory' :
+            type === 'email' ? 'AdeebTechLab - Students Email List' :
+                type === 'guardian' ? 'AdeebTechLab - Students Guardian Information' :
+                    type === 'academic' ? 'AdeebTechLab - Students Academic Records' :
+                        type === 'address' ? 'AdeebTechLab - Students Address List' :
+                            'AdeebTechLab - Students Complete Report';
+
         doc.setFontSize(20);
-        doc.text('EduLMS - Students Report', 14, 22);
+        doc.text(title, 14, 22);
         doc.setFontSize(11);
         doc.setTextColor(100);
         doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 30);
-        doc.text(`Total Students: ${filteredStudents.length}`, 14, 37);
+        doc.text(`Total Records: ${filteredStudents.length}`, 14, 37);
 
-        const tableData = filteredStudents.map(s => [
-            s.rollNo || 'N/A',
-            s.name || 'N/A',
-            s.email || 'N/A',
-            s.phone || 'N/A',
-            s.cnic || 'N/A',
-            s.location || 'N/A',
-            s.isVerified ? 'Verified' : 'Pending'
-        ]);
+        let headers, body;
+
+        if (type === 'phone') {
+            headers = [['Roll No', 'Name', 'Phone', 'Identity']];
+            body = filteredStudents.map(s => [s.rollNo || 'N/A', s.name || 'N/A', s.phone || 'N/A', 'Student']);
+        } else if (type === 'email') {
+            headers = [['Roll No', 'Name', 'Email', 'Identity']];
+            body = filteredStudents.map(s => [s.rollNo || 'N/A', s.name || 'N/A', s.email || 'N/A', 'Student']);
+        } else if (type === 'guardian') {
+            headers = [['Roll No', 'Name', 'Guardian Name', 'Guardian Phone', 'Guardian Job']];
+            body = filteredStudents.map(s => [
+                s.rollNo || 'N/A',
+                s.name || 'N/A',
+                s.guardianName || 'N/A',
+                s.guardianPhone || 'N/A',
+                s.guardianOccupation || 'N/A'
+            ]);
+        } else if (type === 'academic') {
+            headers = [['Roll No', 'Name', 'Course', 'Education', 'Status']];
+            body = filteredStudents.map(s => [
+                s.rollNo || 'N/A',
+                s.name || 'N/A',
+                s.course || 'N/A',
+                s.education || 'N/A',
+                s.isVerified ? 'Verified' : 'Pending'
+            ]);
+        } else if (type === 'address') {
+            headers = [['Roll No', 'Name', 'Address', 'City', 'Country']];
+            body = filteredStudents.map(s => [
+                s.rollNo || 'N/A',
+                s.name || 'N/A',
+                s.address || 'N/A',
+                s.city || 'N/A',
+                s.country || 'N/A'
+            ]);
+        } else {
+            // Full Report
+            headers = [['Roll No', 'Name', 'Email', 'Phone', 'CNIC', 'DOB', 'Age', 'Gender', 'Course', 'Attendance', 'Guardian', 'Guardian Ph', 'Address', 'Status']];
+            body = filteredStudents.map(s => [
+                s.rollNo || 'N/A',
+                s.name || 'N/A',
+                s.email || 'N/A',
+                s.phone || 'N/A',
+                s.cnic || 'N/A',
+                s.dob ? new Date(s.dob).toLocaleDateString() : 'N/A',
+                s.age || 'N/A',
+                s.gender || 'N/A',
+                s.course || 'N/A',
+                s.cityToAttend || 'N/A',
+                s.guardianName || 'N/A',
+                s.guardianPhone || 'N/A',
+                s.address || 'N/A',
+                s.isVerified ? 'Verified' : 'Pending'
+            ]);
+        }
 
         autoTable(doc, {
             startY: 45,
-            head: [['Roll No', 'Name', 'Email', 'Phone', 'CNIC', 'Location', 'Status']],
-            body: tableData,
+            head: headers,
+            body: body,
             theme: 'grid',
             headStyles: { fillColor: [13, 40, 24] },
-            styles: { fontSize: 8 }
+            styles: { fontSize: 7, overflow: 'linebreak' },
+            columnStyles: {
+                // Adjust styles for long text if needed
+                12: { cellWidth: 30 } // Address column in full report
+            }
         });
 
-        doc.save(`Students_Report_${new Date().toISOString().split('T')[0]}.pdf`);
+        const fileName = `Students_${type.charAt(0).toUpperCase() + type.slice(1)}_${new Date().toISOString().split('T')[0]}.pdf`;
+        doc.save(fileName);
+        setShowExportOptions(false);
     };
 
     const downloadStudentPDF = (s) => {
@@ -235,13 +298,68 @@ const StudentsManagement = () => {
                     <p className="text-gray-500">View and manage registered students</p>
                 </div>
                 <div className="flex flex-wrap gap-4">
-                    <button
-                        onClick={downloadPDF}
-                        className="p-2.5 bg-white border border-gray-200 hover:bg-gray-50 rounded-xl transition-colors flex items-center gap-2 text-sm font-bold text-gray-700 shadow-sm"
-                    >
-                        <Download className="w-5 h-5 text-emerald-600" />
-                        EXPORT PDF
-                    </button>
+                    <div className="relative">
+                        <button
+                            onClick={() => setShowExportOptions(!showExportOptions)}
+                            className="p-2.5 bg-white border border-gray-200 hover:bg-gray-50 rounded-xl transition-colors flex items-center gap-2 text-sm font-bold text-gray-700 shadow-sm"
+                        >
+                            <Download className="w-5 h-5 text-emerald-600" />
+                            EXPORT DATA
+                        </button>
+
+                        {showExportOptions && (
+                            <>
+                                <div className="fixed inset-0 z-10" onClick={() => setShowExportOptions(false)}></div>
+                                <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-100 rounded-2xl shadow-2xl z-20 py-2 overflow-hidden animate-in fade-in zoom-in duration-200">
+                                    <div className="px-4 py-2 border-b border-gray-50 mb-1">
+                                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Select Format</p>
+                                    </div>
+                                    <button
+                                        onClick={() => downloadPDF('full')}
+                                        className="w-full px-4 py-2.5 text-left text-sm font-bold text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 flex items-center gap-3 transition-colors"
+                                    >
+                                        <FileText className="w-4 h-4" />
+                                        Complete Report
+                                    </button>
+                                    <button
+                                        onClick={() => downloadPDF('phone')}
+                                        className="w-full px-4 py-2.5 text-left text-sm font-bold text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 flex items-center gap-3 transition-colors"
+                                    >
+                                        <Phone className="w-4 h-4" />
+                                        Phone Directory
+                                    </button>
+                                    <button
+                                        onClick={() => downloadPDF('email')}
+                                        className="w-full px-4 py-2.5 text-left text-sm font-bold text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 flex items-center gap-3 transition-colors"
+                                    >
+                                        <Mail className="w-4 h-4" />
+                                        Email List
+                                    </button>
+                                    <button
+                                        onClick={() => downloadPDF('guardian')}
+                                        className="w-full px-4 py-2.5 text-left text-sm font-bold text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 flex items-center gap-3 transition-colors"
+                                    >
+                                        <Users className="w-4 h-4" />
+                                        Guardian Info
+                                    </button>
+                                    <button
+                                        onClick={() => downloadPDF('academic')}
+                                        className="w-full px-4 py-2.5 text-left text-sm font-bold text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 flex items-center gap-3 transition-colors"
+                                    >
+                                        <GraduationCap className="w-4 h-4" />
+                                        Academic Info
+                                    </button>
+                                    <button
+                                        onClick={() => downloadPDF('address')}
+                                        className="w-full px-4 py-2.5 text-left text-sm font-bold text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 flex items-center gap-3 transition-colors"
+                                    >
+                                        <MapPin className="w-4 h-4" />
+                                        Address List
+                                    </button>
+                                </div>
+                            </>
+                        )}
+                    </div>
                     <button onClick={fetchStudents} className="p-2.5 hover:bg-gray-100 rounded-xl transition-colors">
                         <RefreshCw className="w-5 h-5 text-gray-600" />
                     </button>

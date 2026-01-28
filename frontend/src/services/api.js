@@ -57,6 +57,7 @@ export const userAPI = {
     getByRole: (role) => api.get(`/users/role/${role}`),
     getVerifiedByRole: (role) => api.get(`/users/role/${role}/verified`),
     getAll: () => api.get('/users'),
+    getPendingCounts: () => api.get('/users/pending-counts'),
     verify: (id) => api.put(`/users/${id}/verify`),
     unverify: (id) => api.put(`/users/${id}/unverify`),
     delete: (id) => api.delete(`/users/${id}`),
@@ -115,8 +116,10 @@ export const assignmentAPI = {
 
 // Certificate APIs
 export const certificateAPI = {
+    getMy: () => api.get('/certificates/my'),
     getCourses: () => api.get('/certificates/courses'),
     issue: (data) => api.post('/certificates/issue', data),
+    update: (id, data) => api.put(`/certificates/${id}`, data),
     getRequests: () => api.get('/certificates/requests'),
     request: (data) => api.post('/certificates/request', data),
     approveRequest: (id, data) => api.put(`/certificates/requests/${id}/approve`, data),

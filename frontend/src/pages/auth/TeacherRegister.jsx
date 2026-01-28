@@ -160,12 +160,12 @@ const TeacherRegister = () => {
 
     return (
         <div className="min-h-screen flex">
-            {/* Left Side - Decorative */}
+            {/* Left Side - Decorative - Fixed */}
             <motion.div
                 initial={{ opacity: 0, x: -50 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.6 }}
-                className="hidden lg:flex lg:w-1/2 relative overflow-hidden"
+                className="hidden lg:flex lg:w-1/2 h-screen sticky top-0 relative overflow-hidden"
             >
                 {/* Gradient Background */}
                 <div className="absolute inset-0 bg-gradient-to-br from-orange-600 via-red-500 to-orange-700">
@@ -177,16 +177,25 @@ const TeacherRegister = () => {
 
                 {/* Content */}
                 <div className="relative z-10 flex flex-col items-center justify-center w-full p-12">
-                    {/* Logo */}
                     <motion.div
                         initial={{ opacity: 0, y: -20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.3, duration: 0.5 }}
-                        className="mb-8"
+                        className="mb-8 flex flex-col items-center"
                     >
-                        <div className="w-20 h-20 bg-white/10 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-white/20">
-                            <GraduationCap className="w-12 h-12 text-white" />
+                        <div className="w-20 h-20 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 overflow-hidden mb-4 shadow-xl">
+                            <img
+                                src="/logo.png"
+                                alt="AdeebTechLab Logo"
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                    e.target.style.display = 'none';
+                                    e.target.nextSibling.style.display = 'block';
+                                }}
+                            />
+                            <GraduationCap className="w-12 h-12 text-white hidden" />
                         </div>
+                        <h2 className="text-white text-2xl font-bold tracking-tight">AdeebTechLab</h2>
                     </motion.div>
 
                     {/* Text Content */}
@@ -234,27 +243,43 @@ const TeacherRegister = () => {
                 </div>
             </motion.div>
 
-            {/* Right Side - Register Form */}
+            {/* Right Side - Register Form - Scrollable */}
             <motion.div
                 initial={{ opacity: 0, x: 50 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.6 }}
-                className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-white overflow-y-auto"
+                className="w-full lg:w-1/2 h-screen overflow-y-auto p-8 bg-white"
             >
                 <div className="w-full max-w-md py-8">
-                    {/* Back Button */}
+                    {/* Back Button and Branding */}
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.2 }}
+                        className="flex items-center justify-between mb-8"
                     >
                         <Link
                             to="/register"
-                            className="flex items-center text-gray-500 hover:text-gray-700 mb-6 transition-colors"
+                            className="flex items-center text-gray-500 hover:text-gray-700 transition-colors"
                         >
                             <ArrowLeft className="w-5 h-5 mr-2" />
-                            <span>Back to Role Selection</span>
+                            <span>Back</span>
                         </Link>
+                        <div className="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-2xl border border-gray-100">
+                            <div className="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center overflow-hidden">
+                                <img
+                                    src="/logo.png"
+                                    alt="Logo"
+                                    className="w-full h-full object-cover"
+                                    onError={(e) => {
+                                        e.target.style.display = 'none';
+                                        e.target.nextSibling.style.display = 'block';
+                                    }}
+                                />
+                                <GraduationCap className="w-6 h-6 text-orange-600 hidden" />
+                            </div>
+                            <span className="font-bold text-gray-900">AdeebTechLab</span>
+                        </div>
                     </motion.div>
 
                     {/* Header */}

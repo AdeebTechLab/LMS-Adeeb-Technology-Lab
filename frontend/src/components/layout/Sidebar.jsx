@@ -23,21 +23,37 @@ import {
     Bell,
 } from 'lucide-react';
 import { logout } from '../../features/auth/authSlice';
+import { userAPI } from '../../services/api';
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const { user, role } = useSelector((state) => state.auth);
     const [pendingCount, setPendingCount] = useState(0);
+    const [adminPendingCounts, setAdminPendingCounts] = useState({});
 
     useEffect(() => {
         if (role === 'student' || role === 'intern') {
             fetchPendingCount();
-            // Refresh every 5 minutes to keep it relatively fresh
             const interval = setInterval(fetchPendingCount, 5 * 60 * 1000);
+            return () => clearInterval(interval);
+        } else if (role === 'admin') {
+            fetchAdminPendingCounts();
+            const interval = setInterval(fetchAdminPendingCounts, 2 * 60 * 1000); // Admin refresh more frequent
             return () => clearInterval(interval);
         }
     }, [role]);
+
+    const fetchAdminPendingCounts = async () => {
+        try {
+            const res = await userAPI.getPendingCounts();
+            if (res.data.success) {
+                setAdminPendingCounts(res.data.data);
+            }
+        } catch (error) {
+            console.error('Error fetching admin pending counts:', error);
+        }
+    };
 
     const fetchPendingCount = async () => {
         try {
@@ -73,10 +89,10 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 { id: 'courses', label: 'Courses', icon: BookOpen, path: '/admin/courses' },
                 { id: 'paid-tasks', label: 'Paid Tasks', icon: Briefcase, path: '/admin/paid-tasks' },
                 { id: 'certificates', label: 'Certificates', icon: Award, path: '/admin/certificates' },
-                { id: 'students', label: 'Students', icon: Users, path: '/admin/students' },
-                { id: 'teachers', label: 'Teachers', icon: GraduationCap, path: '/admin/teachers' },
-                { id: 'interns', label: 'Interns', icon: Users, path: '/admin/interns' },
-                { id: 'jobs', label: 'Freelancers', icon: Briefcase, path: '/admin/jobs' },
+                { id: 'students', label: 'Students', icon: Users, path: '/admin/students', badge: adminPendingCounts.student },
+                { id: 'teachers', label: 'Teachers', icon: GraduationCap, path: '/admin/teachers', badge: adminPendingCounts.teacher },
+                { id: 'interns', label: 'Interns', icon: Users, path: '/admin/interns', badge: adminPendingCounts.intern },
+                { id: 'jobs', label: 'Freelancers', icon: Briefcase, path: '/admin/jobs', badge: adminPendingCounts.job },
                 { id: 'notifications', label: 'Notifications', icon: Bell, path: '/admin/notifications' },
                 { id: 'fees', label: 'Fee Verification', icon: CreditCard, path: '/admin/fees' },
             ],
@@ -148,11 +164,21 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 <div className="p-6 border-b border-white/10">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-gradient-to-br from-emerald-400 to-green-600 rounded-xl flex items-center justify-center">
-                                <GraduationCap className="w-6 h-6 text-white" />
+                            <div className="w-10 h-10 bg-gradient-to-br from-emerald-400 to-green-600 rounded-xl flex items-center justify-center overflow-hidden">
+                                <img
+                                    src="/logo.png"
+                                    alt="Logo"
+                                    className="w-full h-full object-cover"
+                                    onError={(e) => {
+                                        // Fallback to Icon if image doesn't exist
+                                        e.target.style.display = 'none';
+                                        e.target.nextSibling.style.display = 'block';
+                                    }}
+                                />
+                                <GraduationCap className="w-6 h-6 text-white hidden" />
                             </div>
                             <div>
-                                <h1 className="text-white font-bold text-lg">EduLMS</h1>
+                                <h1 className="text-white font-bold text-lg">AdeebTechLab</h1>
                                 <p className="text-emerald-300/60 text-xs">{getRoleDisplayName()} Portal</p>
                             </div>
                         </div>
@@ -207,6 +233,15 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                                             className="bg-red-500 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow-sm shadow-red-900/20"
                                         >
                                             {pendingCount}
+                                        </motion.span>
+                                    )}
+                                    {item.badge > 0 && (
+                                        <motion.span
+                                            initial={{ scale: 0 }}
+                                            animate={{ scale: 1 }}
+                                            className="bg-red-500 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow-sm shadow-red-900/20"
+                                        >
+                                            {item.badge}
                                         </motion.span>
                                     )}
                                 </NavLink>
