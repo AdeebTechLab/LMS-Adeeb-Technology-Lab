@@ -5,6 +5,7 @@ import {
     User, Mail, Phone, MapPin, CreditCard,
     Edit2, Save, X, Camera, BookOpen, GraduationCap, Briefcase, Loader2
 } from 'lucide-react';
+import AnnouncementsPopup from '../../components/ui/AnnouncementsPopup';
 import { authAPI, courseAPI } from '../../services/api';
 import { updateUser } from '../../features/auth/authSlice';
 
@@ -274,6 +275,8 @@ const TeacherProfile = () => {
                     )}
                 </motion.div>
             </div>
+            {/* Announcements Popup - Only on Main Profile Page */}
+            <AnnouncementsPopup />
         </div>
     );
 };

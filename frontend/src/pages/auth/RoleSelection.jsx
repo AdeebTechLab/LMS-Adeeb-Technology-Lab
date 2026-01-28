@@ -158,17 +158,6 @@ const RoleSelection = () => {
                 {/* Content */}
                 <div className="relative z-10 flex flex-col items-center justify-center w-full p-12">
                     {/* Logo & Branding */}
-                    {/* Branding Text */}
-                    <motion.div
-                        initial={{ opacity: 0, y: -20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.3, duration: 0.5 }}
-                        className="mb-8 flex flex-col items-center"
-                    >
-                        <h2 className="text-white text-2xl font-bold tracking-tight">AdeebTechLab</h2>
-                        <p className="text-white/60 text-sm mt-1">Empowering Your Tech Journey</p>
-                    </motion.div>
-
                     {/* Centered Logo Square */}
                     <motion.div
                         initial={{ opacity: 0, scale: 0.9 }}
@@ -195,6 +184,17 @@ const RoleSelection = () => {
                                 <GraduationCap className="w-20 h-20 text-white hidden" />
                             </div>
                         </div>
+                    </motion.div>
+
+                    {/* Branding Text - Moved Below Logo */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.5, duration: 0.5 }}
+                        className="mb-8 flex flex-col items-center -mt-32 relative z-20"
+                    >
+                        <h2 className="text-white text-3xl font-bold tracking-tight mb-2 text-center">Adeeb Technology Lab</h2>
+                        <p className="text-white/60 text-base text-center">Digital tech expert software house LMS</p>
                     </motion.div>
 
                     {/* Decorative Lines */}

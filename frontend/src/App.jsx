@@ -50,7 +50,7 @@ import AttendanceView from './pages/student/AttendanceView';
 import StudentCourseView from './pages/student/StudentCourseView';
 
 // Public Pages
-import VerifyCertificate from './pages/public/VerifyCertificate';
+
 
 // Protected Route Component
 const ProtectedRoute = ({ children, allowedRoles }) => {
@@ -127,8 +127,8 @@ const AppRoutes = () => {
         <Route path="settings" element={<div className="text-gray-500">Settings - Coming Soon</div>} />
       </Route>
 
-      {/* Public Verification Route */}
-      <Route path="/verify" element={<VerifyCertificate />} />
+      {/* Public Verification Route - REDIRECT TO LOGIN (Page Moved) */}
+      <Route path="/verify" element={<Navigate to="/login" replace />} />
 
       {/* Teacher Routes - handles Students AND Interns */}
       <Route
@@ -189,7 +189,7 @@ const AppRoutes = () => {
       {/* Root redirect */}
       <Route
         path="/"
-        element={isAuthenticated ? <Navigate to={getDefaultPage()} replace /> : <VerifyCertificate />}
+        element={isAuthenticated ? <Navigate to={getDefaultPage()} replace /> : <Navigate to="/login" replace />}
       />
 
       {/* 404 */}

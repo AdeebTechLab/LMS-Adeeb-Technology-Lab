@@ -354,6 +354,8 @@ const AdminDashboard = () => {
                     <DataTable columns={columns} data={recentFees} />
                 )}
             </motion.div>
+            {/* Announcements Popup - Only on Main Dashboard */}
+            <AnnouncementsPopup />
         </div>
     );
 };

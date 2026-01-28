@@ -9,6 +9,7 @@ import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
 import { taskAPI } from '../../services/api';
 import TaskChat from './components/TaskChat';
+import AnnouncementsPopup from '../../components/ui/AnnouncementsPopup';
 import { io } from 'socket.io-client';
 
 const SOCKET_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace('/api', '');
@@ -189,6 +190,7 @@ const BrowseTasks = () => {
 
     return (
         <div className="space-y-6">
+            <AnnouncementsPopup />
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
@@ -262,10 +264,10 @@ const BrowseTasks = () => {
                         >
                             <div className="flex items-start justify-between mb-4">
                                 <div className={`w-12 h-12 rounded-xl bg-gradient-to-br flex items-center justify-center ${task.category === 'web' ? 'from-blue-400 to-indigo-500' :
-                                        task.category === 'ai' ? 'from-purple-400 to-pink-500' :
-                                            task.category === 'mobile' ? 'from-emerald-400 to-teal-500' :
-                                                task.category === 'design' ? 'from-amber-400 to-orange-500' :
-                                                    'from-gray-400 to-slate-500'
+                                    task.category === 'ai' ? 'from-purple-400 to-pink-500' :
+                                        task.category === 'mobile' ? 'from-emerald-400 to-teal-500' :
+                                            task.category === 'design' ? 'from-amber-400 to-orange-500' :
+                                                'from-gray-400 to-slate-500'
                                     }`}>
                                     {getCategoryIcon(task.category)}
                                 </div>

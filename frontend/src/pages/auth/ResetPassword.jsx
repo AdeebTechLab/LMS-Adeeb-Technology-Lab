@@ -39,8 +39,8 @@ const ResetPassword = () => {
             dispatch(logout());
             // Redirect to login after 3 seconds
             setTimeout(() => {
-                navigate('/login', { replace: true });
-            }, 3000);
+                window.location.href = '/login';
+            }, 2000);
         } catch (err) {
             setError(err.response?.data?.message || 'Invalid or expired reset link. Please try again.');
         } finally {
