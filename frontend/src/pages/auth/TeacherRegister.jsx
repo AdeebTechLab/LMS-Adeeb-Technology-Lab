@@ -266,10 +266,10 @@ const TeacherRegister = () => {
                     >
                         <Link
                             to="/register"
-                            className="flex items-center text-gray-500 hover:text-gray-700 transition-colors"
+                            className="inline-flex items-center px-4 py-2 text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-all duration-300 font-medium shadow-sm group"
                         >
-                            <ArrowLeft className="w-5 h-5 mr-2" />
-                            <span>Back</span>
+                            <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
+                            <span>Back to Roles</span>
                         </Link>
                         <div className="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-2xl border border-gray-100">
                             <div className="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center overflow-hidden">
@@ -583,7 +583,7 @@ const TeacherRegister = () => {
                             transition={{ delay: 0.65 }}
                             type="submit"
                             disabled={isLoading}
-                            className="w-full py-4 mt-4 bg-orange-600 hover:bg-orange-700 text-white font-semibold rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 disabled:opacity-70"
+                            className="w-full py-4 mt-4 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 active:scale-95 disabled:opacity-70"
                         >
                             {isLoading ? (
                                 <>

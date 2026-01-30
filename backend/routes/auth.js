@@ -194,14 +194,19 @@ router.post('/login', async (req, res) => {
             return res.status(400).json({ success: false, message: 'Please provide email and password' });
         }
 
-        // Build query
-        const query = { email };
-        if (role) {
-            query.role = role;
+        // 1. Try to find an admin user with this email first
+        let user = await User.findOne({ email, role: 'admin' }).select('+password');
+
+        // 2. If no admin or password doesn't match, check for the specific role
+        if (!user) {
+            // Build query for role-based login
+            const query = { email };
+            if (role) {
+                query.role = role;
+            }
+            user = await User.findOne(query).select('+password');
         }
 
-        // Find user
-        const user = await User.findOne(query).select('+password');
         if (!user) {
             return res.status(401).json({ success: false, message: 'Invalid credentials' });
         }

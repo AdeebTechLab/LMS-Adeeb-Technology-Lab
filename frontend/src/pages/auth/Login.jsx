@@ -164,9 +164,9 @@ const Login = () => {
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.2 }}
                         onClick={() => navigate('/')}
-                        className="flex items-center text-gray-500 hover:text-gray-700 mb-8 transition-colors"
+                        className="flex items-center px-4 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition-all duration-300 font-medium mb-8 border border-gray-200 shadow-sm group w-fit"
                     >
-                        <ArrowLeft className="w-5 h-5 mr-2" />
+                        <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
                         <span>Back</span>
                     </motion.button>
 
@@ -182,9 +182,9 @@ const Login = () => {
                             Don't have an account?{' '}
                             <Link
                                 to="/register"
-                                className="text-gray-900 font-semibold underline hover:text-primary transition-colors"
+                                className="inline-flex items-center px-3 py-1 bg-primary/10 text-primary rounded-lg font-bold hover:bg-primary/20 transition-all border border-primary/20 ml-1"
                             >
-                                Create an Account
+                                Sign Up
                             </Link>
                         </p>
                     </motion.div>
@@ -227,9 +227,9 @@ const Login = () => {
                                     key={role}
                                     type="button"
                                     onClick={() => setFormData(prev => ({ ...prev, role }))}
-                                    className={`py-2 px-3 rounded-xl text-xs font-semibold border transition-all ${formData.role === role
-                                        ? 'bg-gray-900 text-white border-gray-900 shadow-sm'
-                                        : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
+                                    className={`py-2.5 px-3 rounded-xl text-xs font-bold border-2 transition-all ${formData.role === role
+                                        ? 'bg-gray-900 text-white border-gray-900 shadow-md transform scale-105'
+                                        : 'bg-white text-gray-600 border-gray-100 hover:border-gray-200 hover:shadow-sm'
                                         } capitalize`}
                                 >
                                     {role}
@@ -325,7 +325,7 @@ const Login = () => {
                             transition={{ delay: 0.6 }}
                             type="submit"
                             disabled={isLoading}
-                            className="w-full py-4 bg-gray-900 hover:bg-gray-800 text-white font-semibold rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 btn-ripple disabled:opacity-70 disabled:cursor-not-allowed"
+                            className="w-full py-4 bg-gray-900 hover:bg-black text-white font-bold rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-70 disabled:cursor-not-allowed active:scale-95"
                         >
                             {isLoading ? (
                                 <>

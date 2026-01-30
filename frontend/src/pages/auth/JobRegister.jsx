@@ -196,9 +196,12 @@ const JobRegister = () => {
                     {/* Header */}
                     <div className="mb-8">
                         <div className="flex items-center justify-between mb-6">
-                            <Link to="/register" className="inline-flex items-center text-gray-500 hover:text-gray-700 transition-colors">
-                                <ArrowLeft className="w-5 h-5 mr-2" />
-                                <span>Back to Role Selection</span>
+                            <Link
+                                to="/register"
+                                className="inline-flex items-center px-4 py-2 text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-all duration-300 font-medium shadow-sm group"
+                            >
+                                <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
+                                <span>Back to Roles</span>
                             </Link>
                             <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-2xl shadow-sm border border-gray-100">
                                 <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center overflow-hidden">
@@ -383,7 +386,7 @@ const JobRegister = () => {
                         <button
                             type="submit"
                             disabled={isLoading || !formData.termsAccepted}
-                            className="w-full py-4 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-semibold rounded-xl transition-all duration-300 flex items-center justify-center gap-2"
+                            className="w-full py-4 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 active:scale-95"
                         >
                             {isLoading ? (
                                 <>
