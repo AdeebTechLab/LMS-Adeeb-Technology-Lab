@@ -36,12 +36,17 @@ const InternDashboard = () => {
 
             if (data.length > 0) {
                 const firstEnrollment = data[0];
+                const durationText = firstEnrollment.course?.durationMonths
+                    ? `${firstEnrollment.course.durationMonths} ${firstEnrollment.course.durationMonths === 1 ? 'Month' : 'Months'}`
+                    : 'Ongoing';
+                const mentorName = firstEnrollment.course?.teachers?.[0]?.name || 'TBA';
+
                 setInternshipData({
                     program: firstEnrollment.course?.title || 'Internship Program',
-                    duration: firstEnrollment.course?.duration || '3 Month',
+                    duration: durationText,
                     status: firstEnrollment.status || 'Active',
                     progress: firstEnrollment.progress || 0,
-                    mentor: firstEnrollment.course?.teacher?.name || 'TBA',
+                    mentor: mentorName,
                     completedModules: Math.floor((firstEnrollment.progress || 0) / 10),
                     totalModules: 10
                 });
@@ -80,22 +85,47 @@ const InternDashboard = () => {
 
     return (
         <div className="space-y-6">
+            {/* High Priority Highlight */}
+            {pendingAssignments.length > 0 && (
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="bg-orange-50 border-2 border-[#ff8e01]/20 rounded-2xl p-4 flex items-center justify-between"
+                >
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-[#ff8e01] rounded-xl flex items-center justify-center text-white shadow-lg shadow-orange-200">
+                            <Clock className="w-6 h-6 animate-pulse" />
+                        </div>
+                        <div>
+                            <h3 className="text-sm font-black text-gray-900 uppercase tracking-tight">Assignment Due Soon</h3>
+                            <p className="text-xs text-gray-600 font-medium lowercase">You have {pendingAssignments.length} pending task(s) in your pipeline.</p>
+                        </div>
+                    </div>
+                    <button
+                        onClick={() => navigate('/intern/assignments')}
+                        className="px-4 py-2 bg-[#ff8e01] text-white text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-[#e67e00] transition-colors shadow-sm"
+                    >
+                        Review Now
+                    </button>
+                </motion.div>
+            )}
+
             {/* Welcome Header */}
             <motion.div
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-8 text-white"
+                className="bg-gradient-to-r from-[#222d38] to-[#394251] rounded-2xl p-8 text-white shadow-xl"
             >
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-3xl font-bold mb-2">
-                            Welcome back, {user?.name || 'Intern'}! 👋
+                        <h1 className="text-3xl font-black mb-1 uppercase italic tracking-tighter">
+                            Welcome back, {user?.name?.split(' ')[0] || 'Intern'}! 👋
                         </h1>
-                        <p className="text-blue-100 text-lg">
-                            Keep up the great work on your {internshipData.program} internship!
+                        <p className="text-white/60 text-sm font-bold uppercase tracking-widest">
+                            {internshipData.program} Internship • {internshipData.progress}% Progress
                         </p>
                     </div>
-                    <button onClick={fetchDashboardData} className="p-3 bg-white/10 rounded-xl hover:bg-white/20 transition-colors">
+                    <button onClick={fetchDashboardData} className="p-3 bg-white/10 rounded-xl hover:bg-white/20 transition-colors border border-white/10">
                         <RefreshCw className="w-5 h-5" />
                     </button>
                 </div>
@@ -128,15 +158,15 @@ const InternDashboard = () => {
                     className="bg-white rounded-xl p-6 shadow-sm border border-gray-100"
                 >
                     <div className="flex items-center justify-between mb-4">
-                        <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-                            <TrendingUp className="w-6 h-6 text-green-600" />
+                        <div className="w-12 h-12 bg-orange-50 rounded-xl flex items-center justify-center border border-orange-100">
+                            <TrendingUp className="w-6 h-6 text-[#ff8e01]" />
                         </div>
                     </div>
-                    <h3 className="text-2xl font-bold text-gray-900">{internshipData.progress}%</h3>
-                    <p className="text-gray-500 text-sm mt-1">Overall Progress</p>
-                    <div className="mt-3 w-full bg-gray-200 rounded-full h-2">
+                    <h3 className="text-2xl font-black text-gray-900">{internshipData.progress}%</h3>
+                    <p className="text-gray-500 text-xs font-bold uppercase tracking-widest mt-1">Overall Progress</p>
+                    <div className="mt-3 w-full bg-gray-100 rounded-full h-2">
                         <div
-                            className="bg-green-500 h-2 rounded-full transition-all"
+                            className="bg-[#ff8e01] h-2 rounded-full transition-all shadow-sm"
                             style={{ width: `${internshipData.progress}%` }}
                         />
                     </div>
@@ -196,19 +226,23 @@ const InternDashboard = () => {
                             </div>
                         ) : (
                             pendingAssignments.map((assignment) => (
-                                <div key={assignment._id} className="p-4 bg-gray-50 rounded-2xl border border-gray-100 group hover:border-blue-500/30 transition-all">
-                                    <div className="flex items-center gap-3 mb-2">
-                                        <div className="p-2 bg-blue-100 rounded-lg">
-                                            <Clock className="w-4 h-4 text-blue-600" />
+                                <div key={assignment._id} className="p-5 bg-gray-50 rounded-2xl border border-gray-100 group hover:border-[#ff8e01]/30 hover:bg-white hover:shadow-xl transition-all">
+                                    <div className="flex items-start justify-between mb-3">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 bg-orange-50 rounded-xl flex items-center justify-center border border-orange-100 group-hover:bg-[#ff8e01] transition-colors">
+                                                <Clock className="w-5 h-5 text-[#ff8e01] group-hover:text-white" />
+                                            </div>
+                                            <div>
+                                                <h4 className="font-black text-gray-900 text-sm group-hover:text-[#ff8e01] transition-colors uppercase italic truncate max-w-[150px]">{assignment.title}</h4>
+                                                <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mt-0.5">
+                                                    Deadline: {new Date(assignment.dueDate).toLocaleDateString(undefined, { day: '2-digit', month: 'short' })}
+                                                </p>
+                                            </div>
                                         </div>
-                                        <h4 className="font-bold text-gray-900 text-sm group-hover:text-blue-600 transition-colors uppercase truncate">{assignment.title}</h4>
                                     </div>
-                                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-4">
-                                        Ends {new Date(assignment.dueDate).toLocaleDateString()}
-                                    </p>
                                     <button
                                         onClick={() => navigate('/intern/assignments')}
-                                        className="w-full py-2 bg-white hover:bg-blue-600 hover:text-white border border-gray-200 text-gray-600 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-sm active:scale-95"
+                                        className="w-full py-2.5 bg-[#222d38] hover:bg-[#394251] text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg active:scale-95"
                                     >
                                         Go to Submission
                                     </button>
@@ -239,7 +273,9 @@ const InternDashboard = () => {
                                     <div>
                                         <h3 className="font-bold text-gray-900 uppercase tracking-tight group-hover:text-blue-600 transition-colors">{enrollment.course?.title || 'Program'}</h3>
                                         <p className="text-xs text-gray-400 font-bold uppercase tracking-widest mt-1 italic">
-                                            {enrollment.course?.duration || 'Ongoing'}
+                                            {enrollment.course?.durationMonths
+                                                ? `${enrollment.course.durationMonths} ${enrollment.course.durationMonths === 1 ? 'Month' : 'Months'}`
+                                                : 'Ongoing'}
                                         </p>
                                     </div>
                                 </div>

@@ -159,6 +159,24 @@ const FeeVerification = () => {
         }
     };
 
+    const handleDeleteInstallment = async (feeId, installmentId) => {
+        if (!window.confirm('Are you sure you want to delete this installment? This will remove it from the student\'s plan.')) return;
+
+        setIsProcessing(true);
+        setError('');
+        try {
+            await feeAPI.deleteInstallment(feeId, installmentId);
+            // Refresh counts/list
+            if (activeTab === 'pending') fetchPendingFees();
+            else fetchAllFees();
+        } catch (err) {
+            console.error('Error deleting installment:', err);
+            setError(err.response?.data?.message || 'Failed to delete installment');
+        } finally {
+            setIsProcessing(false);
+        }
+    };
+
     const formatDate = (dateString) => {
         if (!dateString) return 'N/A';
         return new Date(dateString).toLocaleDateString('en-US', {
@@ -270,6 +288,13 @@ const FeeVerification = () => {
                                                     <XCircle className="w-4 h-4" />
                                                     Reject
                                                 </button>
+                                                <button
+                                                    onClick={() => handleDeleteInstallment(fee._id, inst._id)}
+                                                    className="p-2.5 bg-gray-100 hover:bg-red-50 text-gray-500 hover:text-red-600 rounded-xl transition-all"
+                                                    title="Delete Installment"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
                                             </div>
                                         </motion.div>
                                     ))
@@ -303,9 +328,18 @@ const FeeVerification = () => {
                                                     <p className="text-xs text-gray-500">{fee.course?.title} • Due: {formatDate(inst.dueDate)}</p>
                                                 </div>
                                             </div>
-                                            <div className="text-left md:text-right">
-                                                <span className="font-bold text-gray-700">Rs {(inst.amount || 0).toLocaleString()}</span>
-                                                <span className="ml-3 text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded">Pending</span>
+                                            <div className="flex items-center gap-4">
+                                                <div className="text-left md:text-right">
+                                                    <span className="font-bold text-gray-700">Rs {(inst.amount || 0).toLocaleString()}</span>
+                                                    <span className="ml-3 text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded">Pending</span>
+                                                </div>
+                                                <button
+                                                    onClick={() => handleDeleteInstallment(fee._id, inst._id)}
+                                                    className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                                                    title="Delete Installment"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
                                             </div>
                                         </div>
                                     ))
@@ -424,7 +458,8 @@ const FeeVerification = () => {
                         </div>
                     )}
                 </div>
-            )}
+            )
+            }
 
             {/* Screenshot Modal */}
             <Modal isOpen={isImageModalOpen} onClose={() => setIsImageModalOpen(false)} title="Payment Receipt">
@@ -514,7 +549,7 @@ const FeeVerification = () => {
                     </div>
                 </div>
             </Modal>
-        </div>
+        </div >
     );
 };
 

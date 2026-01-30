@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
     ArrowLeft, Loader2, User, Mail, Phone, CreditCard,
-    MapPin, Briefcase, FileText, Camera, ChevronDown, AlertCircle
+    MapPin, Briefcase, FileText, Camera, ChevronDown, AlertCircle, Eye, EyeOff
 } from 'lucide-react';
 import { authAPI } from '../../services/api';
 
@@ -68,6 +68,8 @@ const JobRegister = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [errors, setErrors] = useState({});
     const [apiError, setApiError] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const [formData, setFormData] = useState({
         fullName: '',
@@ -83,12 +85,12 @@ const JobRegister = () => {
         cvUrl: '',
         preferredCity: '',
         preferredMode: '',
-        pictureUrl: '',
         heardAbout: '',
         password: '',
         confirmPassword: '',
         termsAccepted: false
     });
+    const [photoFile, setPhotoFile] = useState(null);
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -110,6 +112,12 @@ const JobRegister = () => {
         const formatted = formatCNIC(e.target.value);
         if (formatted.length <= 15) {
             setFormData(prev => ({ ...prev, cnic: formatted }));
+        }
+    };
+
+    const handlePhotoChange = (e) => {
+        if (e.target.files && e.target.files[0]) {
+            setPhotoFile(e.target.files[0]);
         }
     };
 
@@ -151,14 +159,20 @@ const JobRegister = () => {
             submitData.append('phone', formData.phone);
             submitData.append('role', 'job');
             submitData.append('location', formData.preferredCity.toLowerCase());
-
+            submitData.append('cnic', formData.cnic);
             submitData.append('skills', formData.skills.join(', '));
+            submitData.append('experience', formData.experienceDetails);
+            submitData.append('portfolio', formData.cvUrl);
+
+            if (photoFile) {
+                submitData.append('photo', photoFile);
+            }
 
             await authAPI.register(submitData);
             navigate('/login', {
                 state: {
-                    message: 'Application submitted! Your account is now pending admin verification. You will be able to log in once an admin approves your request.',
-                    isPending: true
+                    message: 'Application submitted! You can now login with your credentials.',
+                    isPending: false
                 }
             });
         } catch (err) {
@@ -286,7 +300,17 @@ const JobRegister = () => {
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
                             <InputField label="CV/Resume URL (Drive/Dropbox)" name="cvUrl" type="url" icon={FileText} placeholder="https://drive.google.com/..." value={formData.cvUrl} onChange={handleChange} error={errors.cvUrl} />
-                            <InputField label="Picture URL (Drive/Social Media)" name="pictureUrl" type="url" icon={Camera} placeholder="https://..." value={formData.pictureUrl} onChange={handleChange} error={errors.pictureUrl} />
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1.5">Profile Photo</label>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handlePhotoChange}
+                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all bg-gray-50/50"
+                                />
+                                <p className="mt-1 text-xs text-red-500 font-medium">⚠️ Upload image less than 1MB</p>
+                                {photoFile && <p className="mt-1 text-sm text-purple-600">Selected: {photoFile.name}</p>}
+                            </div>
                             <SelectField label="Preferred City *" name="preferredCity" options={CITIES} placeholder="Select City" value={formData.preferredCity} onChange={handleChange} error={errors.preferredCity} />
                             <SelectField label="Preferred Mode *" name="preferredMode" options={['Remote', 'On-Site']} placeholder="Select Mode" value={formData.preferredMode} onChange={handleChange} error={errors.preferredMode} />
                             <div className="md:col-span-2">
@@ -297,8 +321,48 @@ const JobRegister = () => {
                         {/* Account Setup */}
                         <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-2 border-b">Account Setup</h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
-                            <InputField label="Password *" name="password" type="password" placeholder="Create a password" value={formData.password} onChange={handleChange} error={errors.password} />
-                            <InputField label="Confirm Password *" name="confirmPassword" type="password" placeholder="Confirm password" value={formData.confirmPassword} onChange={handleChange} error={errors.confirmPassword} />
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1.5">Password *</label>
+                                <div className="relative">
+                                    <input
+                                        type={showPassword ? 'text' : 'password'}
+                                        name="password"
+                                        value={formData.password}
+                                        onChange={handleChange}
+                                        placeholder="Create a password"
+                                        className={`w-full px-4 py-3 border ${errors.password ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all bg-gray-50/50`}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                    >
+                                        {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                    </button>
+                                </div>
+                                {errors.password && <p className="mt-1 text-sm text-red-500">{errors.password}</p>}
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1.5">Confirm Password *</label>
+                                <div className="relative">
+                                    <input
+                                        type={showConfirmPassword ? 'text' : 'password'}
+                                        name="confirmPassword"
+                                        value={formData.confirmPassword}
+                                        onChange={handleChange}
+                                        placeholder="Confirm password"
+                                        className={`w-full px-4 py-3 border ${errors.confirmPassword ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all bg-gray-50/50`}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                    >
+                                        {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                    </button>
+                                </div>
+                                {errors.confirmPassword && <p className="mt-1 text-sm text-red-500">{errors.confirmPassword}</p>}
+                            </div>
                         </div>
 
                         {/* Terms Checkbox */}
@@ -350,15 +414,15 @@ const JobRegister = () => {
                 </div>
 
                 {/* Content */}
-                <div className="relative z-10 flex flex-col items-center justify-center w-full p-12">
-                    {/* Logo & Branding */}
+                <div className="relative z-10 flex flex-col items-center justify-center w-full h-full p-12">
+                    {/* Logo & Branding - Centered */}
                     <motion.div
-                        initial={{ opacity: 0, y: -20 }}
-                        animate={{ opacity: 1, y: 0 }}
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: 0.3, duration: 0.5 }}
-                        className="mb-8 flex flex-col items-center"
+                        className="flex flex-col items-center"
                     >
-                        <div className="w-20 h-20 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 overflow-hidden mb-4 shadow-xl">
+                        <div className="w-32 h-32 bg-white/10 backdrop-blur-md rounded-3xl flex items-center justify-center border border-white/20 overflow-hidden mb-6 shadow-2xl">
                             <img
                                 src="/logo.png"
                                 alt="AdeebTechLab Logo"
@@ -368,42 +432,11 @@ const JobRegister = () => {
                                     e.target.nextSibling.style.display = 'block';
                                 }}
                             />
-                            <Briefcase className="w-10 h-10 text-white hidden" />
+                            <Briefcase className="w-16 h-16 text-white hidden" />
                         </div>
-                        <h2 className="text-white text-2xl font-bold tracking-tight">AdeebTechLab</h2>
-                        <p className="text-white/60 text-sm mt-1">Empowering Your Tech Journey</p>
+                        <h1 className="text-white text-4xl font-bold tracking-tight mb-2">AdeebTechLab</h1>
+                        <p className="text-white/70 text-lg">Empowering Your Tech Journey</p>
                     </motion.div>
-
-                    {/* Illustration */}
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 0.4, duration: 0.6 }}
-                        className="relative w-full h-full flex items-center justify-center p-12"
-                    >
-                        <div className="relative w-full max-w-md aspect-[3/4] group">
-                            {/* Outer Glow */}
-                            <div className="absolute -inset-4 bg-purple-500/20 rounded-[2.5rem] blur-2xl group-hover:bg-purple-500/30 transition-all duration-500"></div>
-
-                            {/* Glass Frame */}
-                            <div className="absolute inset-0 bg-white/5 backdrop-blur-md rounded-[2rem] border border-white/10 shadow-2xl overflow-hidden">
-                                <img
-                                    src="/loginimage.webp"
-                                    alt="Job Application Illustration"
-                                    className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
-                                />
-                                {/* Overlay gradient to blend bottom */}
-                                <div className="absolute inset-0 bg-gradient-to-t from-[#1a1a2e]/60 via-transparent to-transparent"></div>
-                            </div>
-
-                            {/* Floating decorative elements */}
-                            <div className="absolute -top-6 -right-6 w-24 h-24 bg-purple-500/20 rounded-full blur-2xl animate-pulse"></div>
-                            <div className="absolute -bottom-8 -left-8 w-32 h-32 bg-pink-500/10 rounded-full blur-3xl animate-pulse delay-700"></div>
-                        </div>
-                    </motion.div>
-
-                    {/* Decorative Lines */}
-                    <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-purple-500/10 to-transparent"></div>
                 </div>
             </motion.div>
         </div>

@@ -98,105 +98,107 @@ const DailyTasksTab = ({ course }) => {
 
             {/* Task List */}
             <div className="space-y-4">
-                {filteredTasks.map((task) => {
-                    // Calculate Log # for this specific user
-                    const userTasks = tasks
-                        .filter(t => String(t.user?._id || t.user) === String(task.user?._id || task.user))
-                        .sort((a, b) => new Date(a.date || a.createdAt) - new Date(b.date || b.createdAt));
-                    const logNumber = userTasks.findIndex(t => String(t._id) === String(task._id)) + 1;
+                {filteredTasks
+                    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+                    .map((task) => {
+                        // Calculate Log # for this specific user
+                        const userTasks = tasks
+                            .filter(t => String(t.user?._id || t.user) === String(task.user?._id || task.user))
+                            .sort((a, b) => new Date(a.date || a.createdAt) - new Date(b.date || b.createdAt));
+                        const logNumber = userTasks.findIndex(t => String(t._id) === String(task._id)) + 1;
 
-                    return (
-                        <motion.div
-                            key={task._id}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className={`bg-white p-6 rounded-2xl border border-gray-100 hover:shadow-md transition-all group ${task.status === 'verified' ? 'opacity-60 bg-gray-50/30' : ''}`}
-                        >
-                            <div className="flex items-start justify-between gap-4">
-                                <div className="flex items-start gap-4 flex-1">
-                                    <div className="w-12 h-12 rounded-full bg-emerald-50 flex items-center justify-center text-base font-bold text-emerald-600 border border-emerald-100">
-                                        {task.user?.name?.charAt(0)}
-                                    </div>
-                                    <div className="flex-1">
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-100 uppercase tracking-tight">
-                                                {task.user?.role === 'intern' ? 'LOG' : 'CLASS'} #{logNumber}
-                                            </span>
-                                            <h4 className="font-bold text-gray-900">{task.user?.name}</h4>
-                                            <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border ${task.user?.role === 'intern' ? 'bg-purple-50 text-purple-600 border-purple-100' : 'bg-blue-50 text-blue-600 border-blue-100'
-                                                }`}>
-                                                {task.user?.role || 'student'}
-                                            </span>
+                        return (
+                            <motion.div
+                                key={task._id}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className={`bg-white p-6 rounded-2xl border border-gray-100 hover:shadow-md transition-all group ${task.status === 'verified' ? 'opacity-60 bg-gray-50/30' : ''}`}
+                            >
+                                <div className="flex items-start justify-between gap-4">
+                                    <div className="flex items-start gap-4 flex-1">
+                                        <div className="w-12 h-12 rounded-full bg-emerald-50 flex items-center justify-center text-base font-bold text-emerald-600 border border-emerald-100">
+                                            {task.user?.name?.charAt(0)}
                                         </div>
-                                        <p className="text-xs text-gray-400 mb-4 flex items-center gap-1.5 font-medium">
-                                            <Clock className="w-3.5 h-3.5" />
-                                            {new Date(task.date || task.createdAt).toLocaleDateString()} at {new Date(task.createdAt).toLocaleTimeString()}
-                                        </p>
+                                        <div className="flex-1">
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-100 uppercase tracking-tight">
+                                                    {task.user?.role === 'intern' ? 'LOG' : 'CLASS'} #{logNumber}
+                                                </span>
+                                                <h4 className="font-bold text-gray-900">{task.user?.name}</h4>
+                                                <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border ${task.user?.role === 'intern' ? 'bg-purple-50 text-purple-600 border-purple-100' : 'bg-blue-50 text-blue-600 border-blue-100'
+                                                    }`}>
+                                                    {task.user?.role || 'student'}
+                                                </span>
+                                            </div>
+                                            <p className="text-xs text-gray-400 mb-4 flex items-center gap-1.5 font-medium">
+                                                <Clock className="w-3.5 h-3.5" />
+                                                {new Date(task.date || task.createdAt).toLocaleDateString()} at {new Date(task.createdAt).toLocaleTimeString()}
+                                            </p>
 
-                                        <div className="space-y-3">
-                                            {task.workLink && (
-                                                <a
-                                                    href={task.workLink}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="flex items-center gap-2 text-sm text-emerald-600 font-bold hover:underline bg-emerald-50 w-fit px-3 py-2 rounded-xl border border-emerald-100"
-                                                >
-                                                    <ExternalLink className="w-4 h-4" />
-                                                    SUBMITTED WORK LINK
-                                                </a>
+                                            <div className="space-y-3">
+                                                {task.workLink && (
+                                                    <a
+                                                        href={task.workLink}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="flex items-center gap-2 text-sm text-emerald-600 font-bold hover:underline bg-emerald-50 w-fit px-3 py-2 rounded-xl border border-emerald-100"
+                                                    >
+                                                        <ExternalLink className="w-4 h-4" />
+                                                        SUBMITTED WORK LINK
+                                                    </a>
+                                                )}
+                                                <div className="bg-gray-50 p-4 rounded-2xl text-gray-700 text-sm whitespace-pre-wrap italic border border-gray-100 leading-relaxed">
+                                                    "{task.content}"
+                                                </div>
+                                            </div>
+
+                                            {task.feedback && (
+                                                <div className="mt-4 p-3 bg-blue-50/50 rounded-xl border border-blue-100/50">
+                                                    <p className="text-[10px] font-black text-blue-600 uppercase mb-1 tracking-widest">Feedback Given</p>
+                                                    <p className="text-sm text-blue-900 font-medium italic">{task.feedback}</p>
+                                                </div>
                                             )}
-                                            <div className="bg-gray-50 p-4 rounded-2xl text-gray-700 text-sm whitespace-pre-wrap italic border border-gray-100 leading-relaxed">
-                                                "{task.content}"
-                                            </div>
                                         </div>
+                                    </div>
 
-                                        {task.feedback && (
-                                            <div className="mt-4 p-3 bg-blue-50/50 rounded-xl border border-blue-100/50">
-                                                <p className="text-[10px] font-black text-blue-600 uppercase mb-1 tracking-widest">Feedback Given</p>
-                                                <p className="text-sm text-blue-900 font-medium italic">{task.feedback}</p>
-                                            </div>
-                                        )}
+                                    <div className="flex flex-col items-end gap-3">
+                                        <Badge variant={task.status === 'verified' || task.status === 'graded' ? 'success' : task.status === 'rejected' ? 'error' : 'warning'}>
+                                            {task.status === 'verified' || task.status === 'graded' ? 'VERIFIED ✅' : task.status === 'rejected' ? 'REJECTED ❌' : 'PENDING ⏳'}
+                                        </Badge>
+
+                                        <div className="flex items-center gap-2">
+                                            {(task.status === 'submitted' || task.status === 'rejected') && (
+                                                <button
+                                                    onClick={() => handleVerifyClick(task)}
+                                                    disabled={isSubmitting}
+                                                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-black uppercase tracking-widest transition-all shadow-md active:scale-95 disabled:opacity-50"
+                                                >
+                                                    {isSubmitting ? '...' : 'VERIFY'}
+                                                </button>
+                                            )}
+                                            {task.status === 'submitted' && (
+                                                <button
+                                                    onClick={() => handleReject(task)}
+                                                    disabled={isSubmitting}
+                                                    className="px-4 py-2 bg-red-100 text-red-600 hover:bg-red-200 rounded-lg text-xs font-black uppercase tracking-widest transition-all active:scale-95 disabled:opacity-50"
+                                                >
+                                                    REJECT
+                                                </button>
+                                            )}
+                                            <button
+                                                onClick={() => handleDelete(task)}
+                                                disabled={isSubmitting}
+                                                className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                                                title="Delete Log"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
-
-                                <div className="flex flex-col items-end gap-3">
-                                    <Badge variant={task.status === 'verified' || task.status === 'graded' ? 'success' : task.status === 'rejected' ? 'error' : 'warning'}>
-                                        {task.status === 'verified' || task.status === 'graded' ? 'VERIFIED ✅' : task.status === 'rejected' ? 'REJECTED ❌' : 'PENDING ⏳'}
-                                    </Badge>
-
-                                    <div className="flex items-center gap-2">
-                                        {(task.status === 'submitted' || task.status === 'rejected') && (
-                                            <button
-                                                onClick={() => handleVerifyClick(task)}
-                                                disabled={isSubmitting}
-                                                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-black uppercase tracking-widest transition-all shadow-md active:scale-95 disabled:opacity-50"
-                                            >
-                                                {isSubmitting ? '...' : 'VERIFY'}
-                                            </button>
-                                        )}
-                                        {task.status === 'submitted' && (
-                                            <button
-                                                onClick={() => handleReject(task)}
-                                                disabled={isSubmitting}
-                                                className="px-4 py-2 bg-red-100 text-red-600 hover:bg-red-200 rounded-lg text-xs font-black uppercase tracking-widest transition-all active:scale-95 disabled:opacity-50"
-                                            >
-                                                REJECT
-                                            </button>
-                                        )}
-                                        <button
-                                            onClick={() => handleDelete(task)}
-                                            disabled={isSubmitting}
-                                            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
-                                            title="Delete Log"
-                                        >
-                                            <Trash2 className="w-4 h-4" />
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </motion.div>
-                    );
-                })}
+                            </motion.div>
+                        );
+                    })}
 
                 {filteredTasks.length === 0 && !isLoading && (
                     <div className="text-center py-24 bg-gray-50 rounded-3xl border border-dashed border-gray-200">

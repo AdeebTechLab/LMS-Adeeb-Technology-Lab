@@ -51,10 +51,13 @@ const AttendanceSheet = () => {
             console.log('Logged in Teacher ID:', teacherId);
 
             const teacherCourses = allCourses.filter(c => {
-                const courseTeacherId = (c.teacher?._id || c.teacher)?.toString();
-                const isMatch = courseTeacherId === teacherId;
+                const isMatch = c.teachers?.some(t => {
+                    const tId = (t._id || t)?.toString();
+                    return tId === teacherId;
+                });
+
                 if (!isMatch) {
-                    console.log(`Filtering out course: ${c.title}. Course Teacher ID: ${courseTeacherId}, Expected: ${teacherId}`);
+                    console.log(`Filtering out course: ${c.title}. Teachers IDs: ${c.teachers?.map(t => t._id || t).join(', ')}, Expected: ${teacherId}`);
                 }
                 return isMatch;
             });
@@ -235,7 +238,7 @@ const AttendanceSheet = () => {
                         <ChevronLeft className="w-4 h-4" />
                         BACK TO ALL COURSES
                     </button>
-                    <h1 className="text-3xl font-black text-gray-900 uppercase tracking-tight">{selectedCourse.name}</h1>
+                    <h1 className="text-3xl font-black text-gray-900 uppercase tracking-tight">{selectedCourse.name || 'Course Dashboard'}</h1>
                     <div className="flex items-center gap-3 mt-1">
                         <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${selectedCourse.targetAudience === 'interns'
                             ? 'bg-purple-600 text-white'

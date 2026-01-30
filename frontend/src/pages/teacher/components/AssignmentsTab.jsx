@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { FileText, Plus, Calendar, MoreHorizontal, Users, Loader2, CheckCircle, Clock, X, Upload } from 'lucide-react';
+import { FileText, Plus, Calendar, MoreHorizontal, Users, Loader2, CheckCircle, Clock, X, Upload, Edit2, Search, ChevronDown, Check } from 'lucide-react';
 import api, { assignmentAPI } from '../../../services/api';
 import Modal from '../../../components/ui/Modal';
 import Badge from '../../../components/ui/Badge';
@@ -11,7 +11,12 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isSubmissionsModalOpen, setIsSubmissionsModalOpen] = useState(false);
     const [selectedAssignment, setSelectedAssignment] = useState(null);
+    const [editingAssignment, setEditingAssignment] = useState(null);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [selectedSubmission, setSelectedSubmission] = useState(null);
+    const [selectedStudentFilter, setSelectedStudentFilter] = useState('all');
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [studentSearchTerm, setStudentSearchTerm] = useState('');
 
     // Create Form State
     const [newAssignment, setNewAssignment] = useState({
@@ -63,11 +68,49 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                 assignTo: 'all',
                 assignedUsers: []
             });
+            alert('Assignment created successfully!');
         } catch (error) {
             console.error('Error creating assignment:', error);
             alert('Failed to create assignment');
         } finally {
             setIsCreating(false);
+        }
+    };
+
+    const handleEditAssignment = (assignment) => {
+        setEditingAssignment({
+            ...assignment,
+            dueDate: assignment.dueDate ? new Date(assignment.dueDate).toISOString().split('T')[0] : ''
+        });
+        setIsEditModalOpen(true);
+    };
+
+    const handleUpdateAssignment = async (e) => {
+        e.preventDefault();
+        setIsCreating(true);
+        try {
+            await assignmentAPI.update(editingAssignment._id, editingAssignment);
+            await fetchAssignments();
+            setIsEditModalOpen(false);
+            setEditingAssignment(null);
+            alert('Assignment updated successfully!');
+        } catch (error) {
+            console.error('Error updating assignment:', error);
+            alert('Failed to update assignment');
+        } finally {
+            setIsCreating(false);
+        }
+    };
+
+    const handleDeleteAssignment = async (id) => {
+        if (!confirm('Are you sure you want to delete this assignment? This will remove all student submissions as well.')) return;
+        try {
+            await assignmentAPI.delete(id);
+            setAssignments(prev => prev.filter(a => a._id !== id));
+            alert('Assignment deleted successfully');
+        } catch (error) {
+            console.error('Error deleting assignment:', error);
+            alert('Failed to delete assignment');
         }
     };
 
@@ -82,21 +125,22 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
         submitAssignmentGrading('graded');
     };
 
-    const handleRejectSubmission = async () => {
+    const handleRejectSubmission = async (submission = null) => {
         if (!confirm('Are you sure you want to reject this submission? The student will be notified to resubmit.')) return;
-        submitAssignmentGrading('rejected');
+        submitAssignmentGrading('rejected', submission);
     };
 
-    const submitAssignmentGrading = async (status) => {
-        if (!selectedAssignment || !selectedSubmission) return;
+    const submitAssignmentGrading = async (status, submissionOverride = null) => {
+        const targetSubmission = submissionOverride || selectedSubmission;
+        if (!selectedAssignment || !targetSubmission) return;
 
         setIsGrading(true);
         try {
             const res = await assignmentAPI.grade(
                 selectedAssignment._id,
-                selectedSubmission._id,
+                targetSubmission._id,
                 status === 'rejected' ? 0 : Number(gradeMarks),
-                gradeFeedback,
+                submissionOverride ? '' : gradeFeedback,
                 status
             );
 
@@ -133,6 +177,124 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                 </button>
             </div>
 
+            {/* Student Filter - Improved Design */}
+            <div className="relative">
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2 mb-2">
+                    <Users className="w-3 h-3" />
+                    Filter Assignments by Student
+                </p>
+
+                <div className="flex flex-wrap items-center gap-3">
+                    <div className="relative min-w-[300px]">
+                        <button
+                            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                            className={`w-full flex items-center justify-between px-4 py-3 bg-white border-2 rounded-xl transition-all ${isDropdownOpen ? 'border-emerald-500 ring-4 ring-emerald-500/10' : 'border-gray-100 hover:border-gray-200'
+                                }`}
+                        >
+                            <div className="flex items-center gap-2">
+                                <Users className="w-4 h-4 text-emerald-600" />
+                                <span className="text-sm font-bold text-gray-700">
+                                    {selectedStudentFilter === 'all'
+                                        ? 'All Students (View All Assignments)'
+                                        : students.find(s => s.id === selectedStudentFilter)?.name || 'Select Student'}
+                                </span>
+                            </div>
+                            <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                        </button>
+
+                        {isDropdownOpen && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-100 rounded-2xl shadow-2xl z-[60] overflow-hidden"
+                            >
+                                <div className="p-3 border-b border-gray-50 bg-gray-50/50">
+                                    <div className="relative">
+                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                        <input
+                                            type="text"
+                                            placeholder="Search student name..."
+                                            value={studentSearchTerm}
+                                            onChange={(e) => setStudentSearchTerm(e.target.value)}
+                                            className="w-full pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm outline-none focus:border-emerald-500 transition-all font-medium"
+                                            onClick={(e) => e.stopPropagation()}
+                                            autoFocus
+                                        />
+                                    </div>
+                                </div>
+                                <div className="max-h-60 overflow-y-auto p-2 space-y-1 custom-scrollbar">
+                                    <button
+                                        onClick={() => {
+                                            setSelectedStudentFilter('all');
+                                            setIsDropdownOpen(false);
+                                            setStudentSearchTerm('');
+                                        }}
+                                        className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${selectedStudentFilter === 'all'
+                                                ? 'bg-emerald-50 text-emerald-700'
+                                                : 'text-gray-600 hover:bg-gray-50'
+                                            }`}
+                                    >
+                                        View All Assignments
+                                        {selectedStudentFilter === 'all' && <Check className="w-4 h-4" />}
+                                    </button>
+
+                                    <div className="h-px bg-gray-50 my-1" />
+
+                                    {students && students
+                                        .filter(s => s.name.toLowerCase().includes(studentSearchTerm.toLowerCase()))
+                                        .map((student) => (
+                                            <button
+                                                key={student.id}
+                                                onClick={() => {
+                                                    setSelectedStudentFilter(student.id);
+                                                    setIsDropdownOpen(false);
+                                                    setStudentSearchTerm('');
+                                                }}
+                                                className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${selectedStudentFilter === student.id
+                                                        ? 'bg-emerald-50 text-emerald-700'
+                                                        : 'text-gray-600 hover:bg-gray-50'
+                                                    }`}
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center text-[10px] text-emerald-700">
+                                                        {student.name.charAt(0)}
+                                                    </div>
+                                                    {student.name}
+                                                </div>
+                                                {selectedStudentFilter === student.id && <Check className="w-4 h-4" />}
+                                            </button>
+                                        ))}
+
+                                    {students && students.filter(s => s.name.toLowerCase().includes(studentSearchTerm.toLowerCase())).length === 0 && (
+                                        <div className="py-8 text-center text-xs text-gray-400 font-medium">
+                                            No students found
+                                        </div>
+                                    )}
+                                </div>
+                            </motion.div>
+                        )}
+                    </div>
+
+                    {selectedStudentFilter !== 'all' && (
+                        <button
+                            onClick={() => setSelectedStudentFilter('all')}
+                            className="text-xs font-bold text-red-500 hover:text-red-600 uppercase tracking-wider flex items-center gap-1.5 px-3 py-2 bg-red-50 rounded-lg transition-colors"
+                        >
+                            <X className="w-3 h-3" />
+                            Clear Filter
+                        </button>
+                    )}
+                </div>
+
+                {/* Overlay to close dropdown when clicking outside */}
+                {isDropdownOpen && (
+                    <div
+                        className="fixed inset-0 z-[55]"
+                        onClick={() => setIsDropdownOpen(false)}
+                    />
+                )}
+            </div>
+
             {isLoading ? (
                 <div className="flex justify-center py-12">
                     <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
@@ -140,7 +302,13 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
             ) : (
                 <div className="space-y-4">
                     {assignments
-                        .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate))
+                        .filter(assignment => {
+                            if (selectedStudentFilter === 'all') return true;
+                            // Show if assigned to all OR specifically assigned to this student
+                            return assignment.assignTo === 'all' ||
+                                (assignment.assignedUsers && assignment.assignedUsers.includes(selectedStudentFilter));
+                        })
+                        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
                         .map((assignment, index) => {
                             const submissionCount = assignment.submissions?.length || 0;
                             const gradedCount = assignment.submissions?.filter(s => s.marks !== undefined && s.marks !== null).length || 0;
@@ -172,6 +340,22 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                             <div className="flex items-center gap-2">
                                                 <span className="text-xl font-black text-gray-900">{gradedCount}<span className="text-sm text-gray-400">/{submissionCount}</span></span>
                                             </div>
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <button
+                                                onClick={() => handleEditAssignment(assignment)}
+                                                className="p-2 hover:bg-blue-50 text-blue-600 rounded-lg transition-colors border border-transparent hover:border-blue-100"
+                                                title="Edit Assignment"
+                                            >
+                                                <Edit2 className="w-4 h-4" />
+                                            </button>
+                                            <button
+                                                onClick={() => handleDeleteAssignment(assignment._id)}
+                                                className="p-2 hover:bg-red-50 text-red-600 rounded-lg transition-colors border border-transparent hover:border-red-100"
+                                                title="Delete Assignment"
+                                            >
+                                                <X className="w-4 h-4" />
+                                            </button>
                                         </div>
                                     </div>
 
@@ -336,6 +520,77 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                 </form>
             </Modal>
 
+            {/* Edit Assignment Modal */}
+            <Modal
+                isOpen={isEditModalOpen}
+                onClose={() => setIsEditModalOpen(false)}
+                title="Edit Assignment"
+            >
+                {editingAssignment && (
+                    <form onSubmit={handleUpdateAssignment} className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                            <input
+                                type="text"
+                                value={editingAssignment.title}
+                                onChange={(e) => setEditingAssignment({ ...editingAssignment, title: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20"
+                                required
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                            <textarea
+                                value={editingAssignment.description}
+                                onChange={(e) => setEditingAssignment({ ...editingAssignment, description: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20"
+                                rows="3"
+                            />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Due Date</label>
+                                <input
+                                    type="date"
+                                    value={editingAssignment.dueDate}
+                                    onChange={(e) => setEditingAssignment({ ...editingAssignment, dueDate: e.target.value })}
+                                    className="w-full px-4 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Total Marks</label>
+                                <input
+                                    type="number"
+                                    value={editingAssignment.totalMarks}
+                                    onChange={(e) => setEditingAssignment({ ...editingAssignment, totalMarks: e.target.value })}
+                                    className="w-full px-4 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20"
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        <div className="flex justify-end gap-3 pt-4">
+                            <button
+                                type="button"
+                                onClick={() => setIsEditModalOpen(false)}
+                                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg font-medium"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="submit"
+                                disabled={isCreating}
+                                className="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium flex items-center gap-2"
+                            >
+                                {isCreating ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
+                                Save Changes
+                            </button>
+                        </div>
+                    </form>
+                )}
+            </Modal>
+
             {/* Submissions Modal */}
             <Modal
                 isOpen={isSubmissionsModalOpen}
@@ -437,7 +692,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                                 </button>
                                                 <button
                                                     type="button"
-                                                    onClick={handleRejectSubmission}
+                                                    onClick={() => handleRejectSubmission()}
                                                     disabled={isGrading}
                                                     className="px-6 py-2 bg-red-100 text-red-600 text-xs font-black uppercase tracking-widest rounded-xl hover:bg-red-200 transition-all font-bold"
                                                 >
@@ -457,16 +712,27 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                             </div>
                                         </form>
                                     ) : (
-                                        <button
-                                            onClick={() => {
-                                                setSelectedSubmission(submission);
-                                                setGradeMarks(submission.marks || '');
-                                                setGradeFeedback(submission.feedback || '');
-                                            }}
-                                            className="w-full py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-xl text-xs font-black uppercase tracking-widest transition-all"
-                                        >
-                                            {submission.marks ? 'EDIT GRADE & FEEDBACK' : 'GRADE SUBMISSION'}
-                                        </button>
+                                        <div className="flex gap-2">
+                                            <button
+                                                onClick={() => {
+                                                    setSelectedSubmission(submission);
+                                                    setGradeMarks(submission.marks || '');
+                                                    setGradeFeedback(submission.feedback || '');
+                                                }}
+                                                className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-emerald-200 active:scale-95"
+                                            >
+                                                {submission.marks ? 'EDIT GRADE' : 'GRADE SUBMISSION'}
+                                            </button>
+                                            {(submission.status === 'submitted' || !submission.status) && (
+                                                <button
+                                                    onClick={() => handleRejectSubmission(submission)}
+                                                    disabled={isGrading}
+                                                    className="px-6 py-2.5 bg-red-100 text-red-600 hover:bg-red-200 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 disabled:opacity-50"
+                                                >
+                                                    REJECT
+                                                </button>
+                                            )}
+                                        </div>
                                     )}
                                 </div>
                             </div>

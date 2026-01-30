@@ -20,7 +20,6 @@ import {
 import StatCard from '../../components/ui/StatCard';
 import Badge from '../../components/ui/Badge';
 import { BarChart } from '../../components/charts/Charts';
-import AnnouncementsPopup from '../../components/ui/AnnouncementsPopup';
 import { courseAPI, enrollmentAPI } from '../../services/api';
 
 
@@ -43,8 +42,10 @@ const TeacherDashboard = () => {
             const coursesRes = await courseAPI.getAll();
             const allCourses = coursesRes.data.data || [];
 
-            // Filter courses where this teacher is assigned
-            const teacherCourses = allCourses.filter(c => c.teacher?._id === user?._id);
+            // Filter courses where this teacher is assigned (check teachers array)
+            const teacherCourses = allCourses.filter(c =>
+                c.teachers?.some(t => String(t._id || t) === String(user?._id))
+            );
 
             // Get enrollments to count students per course
             let enrollments = [];
@@ -137,7 +138,6 @@ const TeacherDashboard = () => {
 
     return (
         <>
-            <AnnouncementsPopup />
             <div className="space-y-6">
                 {/* Welcome Section */}
                 <motion.div

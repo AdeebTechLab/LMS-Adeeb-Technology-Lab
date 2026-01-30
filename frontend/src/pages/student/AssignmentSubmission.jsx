@@ -154,6 +154,7 @@ const AssignmentSubmission = () => {
                 return {
                     id: assignment._id,
                     _id: assignment._id,
+                    createdAt: assignment.createdAt, // Keep for sorting
                     courseId: assignment.course?._id || assignment.course,
                     title: assignment.title,
                     course: assignment.course?.title || 'Course',
@@ -162,13 +163,14 @@ const AssignmentSubmission = () => {
                     status,
                     submittedAt: mySubmission?.submittedAt || null,
                     submissionLink: mySubmission?.fileUrl || null,
-                    grade: mySubmission?.marks || null,
+                    grade: mySubmission?.marks ?? null, // Use ?? to allow 0
                     totalMarks: assignment.totalMarks || 100,
                     feedback: mySubmission?.feedback || null
                 };
             });
 
-            setAssignments(transformedAssignments);
+            // Sort by createdAt descending (Newest first)
+            setAssignments(transformedAssignments.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
 
             // Also fetch courses if not already fetched for the dropdown
             if (myCourses.length === 0) {
@@ -385,7 +387,6 @@ const AssignmentSubmission = () => {
                     ) : (
                         <div className="space-y-4">
                             {filteredAssignments
-                                .sort((a, b) => new Date(a.deadline) - new Date(b.deadline))
                                 .map((assignment, index) => {
                                     const statusConfig = getStatusConfig(assignment.status, assignment.deadline);
                                     const canSubmit = !isDeadlinePassed(assignment.deadline) && assignment.status === 'pending';
@@ -610,7 +611,7 @@ const AssignmentSubmission = () => {
                             </div>
                         ) : (
                             [...dailyTasks]
-                                .sort((a, b) => new Date(a.date || a.createdAt) - new Date(b.date || b.createdAt))
+                                .sort((a, b) => new Date(b.date || b.createdAt) - new Date(a.date || a.createdAt))
                                 .map((task, index) => (
                                     <motion.div
                                         key={task._id}

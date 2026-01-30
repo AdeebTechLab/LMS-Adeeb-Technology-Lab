@@ -8,6 +8,7 @@ const AttendanceTab = ({ course, students }) => {
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
     const [attendanceMarks, setAttendanceMarks] = useState({});
     const [isSaving, setIsSaving] = useState(false);
+    const [lastSaved, setLastSaved] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [isLocked, setIsLocked] = useState(false);
 
@@ -62,15 +63,39 @@ const AttendanceTab = ({ course, students }) => {
         }
     };
 
-    const markAttendance = (studentId, status) => {
+    const markAttendance = async (studentId, status) => {
         if (isLocked) return;
-        setAttendanceMarks(prev => {
-            const newMarks = { ...prev, [studentId]: { status, markedAt: new Date().toISOString() } };
-            // Save to local cache instantly
-            const cacheKey = `attendance_${course._id}_${selectedDate}`;
-            localStorage.setItem(cacheKey, JSON.stringify(newMarks));
-            return newMarks;
-        });
+
+        // 1. Update local state immediately for UI responsiveness
+        const newMarks = { ...attendanceMarks, [studentId]: { status, markedAt: new Date().toISOString() } };
+        setAttendanceMarks(newMarks);
+
+        // 2. Save to local cache (fallback)
+        const cacheKey = `attendance_${course._id}_${selectedDate}`;
+        localStorage.setItem(cacheKey, JSON.stringify(newMarks));
+
+        // 3. Auto-save to server
+        setIsSaving(true);
+        try {
+            const records = students.map(student => ({
+                userId: student.id,
+                status: newMarks[student.id]?.status || 'absent'
+            }));
+
+            await attendanceAPI.mark({
+                courseId: course._id,
+                date: selectedDate,
+                records
+            });
+
+            setLastSaved(new Date());
+            // Clear cache after successful server sync
+            // localStorage.removeItem(cacheKey); // Keep it just in case? No, better clear if server has it.
+        } catch (err) {
+            console.error('Auto-save failed:', err);
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     const handleSave = async () => {
@@ -126,7 +151,14 @@ const AttendanceTab = ({ course, students }) => {
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
                     <div>
                         <h3 className="text-lg font-black text-gray-900 uppercase italic">Attendance Sheet</h3>
-                        <p className="text-sm text-gray-500 font-medium">{selectedDate === new Date().toISOString().split('T')[0] ? "Current Session" : "Historical Record"}</p>
+                        <div className="flex items-center gap-2">
+                            <p className="text-sm text-gray-500 font-medium">{selectedDate === new Date().toISOString().split('T')[0] ? "Current Session" : "Historical Record"}</p>
+                            {lastSaved && (
+                                <span className="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded font-bold uppercase animate-pulse">
+                                    Auto-saved {lastSaved.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                                </span>
+                            )}
+                        </div>
                     </div>
                     <div className="flex items-center gap-3">
                         <div className="relative">

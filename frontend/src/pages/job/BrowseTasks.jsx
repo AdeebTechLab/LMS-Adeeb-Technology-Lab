@@ -8,11 +8,6 @@ import {
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
 import { taskAPI } from '../../services/api';
-import TaskChat from './components/TaskChat';
-import AnnouncementsPopup from '../../components/ui/AnnouncementsPopup';
-import { io } from 'socket.io-client';
-
-const SOCKET_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace('/api', '');
 
 const BrowseTasks = () => {
     const { user } = useSelector((state) => state.auth);
@@ -21,7 +16,6 @@ const BrowseTasks = () => {
     const [selectedTask, setSelectedTask] = useState(null);
     const [applyModalOpen, setApplyModalOpen] = useState(false);
     const [submitModalOpen, setSubmitModalOpen] = useState(false);
-    const [chatModalOpen, setChatModalOpen] = useState(false);
     const [applicationMessage, setApplicationMessage] = useState('');
     const [submission, setSubmission] = useState({ notes: '', projectLink: '', accountDetails: '' });
     const [tasks, setTasks] = useState([]);
@@ -34,24 +28,6 @@ const BrowseTasks = () => {
     // Fetch tasks on component mount
     useEffect(() => {
         fetchTasks();
-
-        // Socket for real-time unread updates
-        const socket = io(SOCKET_URL, { withCredentials: true });
-        socket.on('new_message', (data) => {
-            // Refresh tasks to get latest messages and timestamps
-            // Alternatively, we could update the specific task in state
-            setMyTasks(prev => prev.map(t => {
-                if (t._id === data.taskId) {
-                    return {
-                        ...t,
-                        messages: [...(t.messages || []), { ...data, createdAt: new Date() }]
-                    };
-                }
-                return t;
-            }));
-        });
-
-        return () => socket.disconnect();
     }, []);
 
     const fetchTasks = async () => {
@@ -97,13 +73,6 @@ const BrowseTasks = () => {
             case 'assigned': return assignedTasks;
             default: return availableTasks;
         }
-    };
-
-    const hasUnread = (task) => {
-        if (!task.messages || task.messages.length === 0) return false;
-        const lastMessage = task.messages[task.messages.length - 1];
-        const lastRead = new Date(task.lastReadByJober || 0);
-        return new Date(lastMessage.createdAt) > lastRead && (lastMessage.sender?._id !== user.id && lastMessage.senderId !== user.id);
     };
 
     const filteredTasks = getCurrentTasks().filter(t =>
@@ -190,7 +159,6 @@ const BrowseTasks = () => {
 
     return (
         <div className="space-y-6">
-            <AnnouncementsPopup />
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
@@ -322,21 +290,6 @@ const BrowseTasks = () => {
                                             Submit
                                         </button>
                                         <button
-                                            onClick={() => {
-                                                setSelectedTask(task);
-                                                setChatModalOpen(true);
-                                                // Update local state immediately to hide dot
-                                                setMyTasks(prev => prev.map(t => t._id === task._id ? { ...t, lastReadByJober: new Date().toISOString() } : t));
-                                            }}
-                                            className="flex-1 py-2.5 bg-purple-100 text-purple-600 hover:bg-purple-200 rounded-xl font-medium flex items-center justify-center gap-2 relative"
-                                        >
-                                            <Link className="w-4 h-4" />
-                                            Chat
-                                            {hasUnread(task) && (
-                                                <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 border-2 border-white rounded-full animate-pulse" />
-                                            )}
-                                        </button>
-                                        <button
                                             onClick={() => handleDeleteTask(task._id)}
                                             disabled={isDeleting === task._id}
                                             className="px-4 py-2.5 bg-red-50 text-red-600 hover:bg-red-600 hover:text-white rounded-xl transition-all disabled:opacity-50 flex items-center gap-2 font-medium"
@@ -461,29 +414,6 @@ const BrowseTasks = () => {
                                 className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-medium flex items-center justify-center gap-2 disabled:opacity-70"
                             >
                                 {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Submit Work'}
-                            </button>
-                        </div>
-                    </div>
-                )}
-            </Modal>
-            {/* Chat Modal */}
-            <Modal isOpen={chatModalOpen} onClose={() => setChatModalOpen(false)} title="Project Discussion" size="md">
-                {selectedTask && (
-                    <div className="space-y-4">
-                        <div className="p-4 bg-gray-50 rounded-xl">
-                            <h3 className="font-semibold text-gray-900 leading-tight">{selectedTask.title}</h3>
-                            <p className="text-xs text-gray-500 mt-1 uppercase font-bold tracking-widest">Chat with Admin</p>
-                        </div>
-
-                        <TaskChat
-                            taskId={selectedTask._id}
-                            currentUser={user}
-                            taskMessages={selectedTask.messages || []}
-                        />
-
-                        <div className="pt-2">
-                            <button onClick={() => setChatModalOpen(false)} className="w-full py-3 text-gray-600 hover:bg-gray-100 rounded-xl font-medium">
-                                Close
                             </button>
                         </div>
                     </div>

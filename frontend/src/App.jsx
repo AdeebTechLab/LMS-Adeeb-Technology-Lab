@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { Provider } from 'react-redux';
 import { useSelector } from 'react-redux';
 import store from './store/store';
+import useAutoLogout from './hooks/useAutoLogout';
 
 // Auth Pages
 import Login from './pages/auth/Login';
@@ -62,10 +63,10 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
 
   if (allowedRoles && !allowedRoles.includes(role)) {
     if (role === 'admin') return <Navigate to="/admin/dashboard" replace />;
-    if (role === 'teacher') return <Navigate to="/teacher/profile" replace />;
+    if (role === 'teacher') return <Navigate to="/teacher/dashboard" replace />;
     if (role === 'job') return <Navigate to="/job/tasks" replace />;
     if (role === 'intern') return <Navigate to="/intern/dashboard" replace />;
-    return <Navigate to="/student/profile" replace />;
+    return <Navigate to="/student/dashboard" replace />;
   }
 
   return children;
@@ -75,13 +76,16 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
 const AppRoutes = () => {
   const { isAuthenticated, role } = useSelector((state) => state.auth);
 
+  // Enable auto-logout after 2 hours
+  useAutoLogout();
+
   const getDefaultPage = () => {
     switch (role) {
       case 'admin': return '/admin/dashboard';
-      case 'teacher': return '/teacher/profile';
+      case 'teacher': return '/teacher/dashboard';
       case 'job': return '/job/tasks';
       case 'intern': return '/intern/dashboard';
-      default: return '/student/profile';
+      default: return '/student/dashboard';
     }
   };
 
@@ -135,7 +139,8 @@ const AppRoutes = () => {
         path="/teacher"
         element={<ProtectedRoute allowedRoles={['teacher']}><DashboardLayout /></ProtectedRoute>}
       >
-        <Route index element={<Navigate to="profile" replace />} />
+        <Route index element={<Navigate to="dashboard" replace />} />
+        <Route path="dashboard" element={<TeacherCourses />} />
         <Route path="profile" element={<TeacherProfile />} />
         <Route path="attendance" element={<AttendanceSheet />} />
         <Route path="course/:id" element={<AttendanceSheet />} />
@@ -147,7 +152,8 @@ const AppRoutes = () => {
         path="/student"
         element={<ProtectedRoute allowedRoles={['student']}><DashboardLayout /></ProtectedRoute>}
       >
-        <Route index element={<Navigate to="profile" replace />} />
+        <Route index element={<Navigate to="dashboard" replace />} />
+        <Route path="dashboard" element={<StudentDashboard />} />
         <Route path="profile" element={<StudentProfile />} />
         <Route path="courses" element={<BrowseCourses />} />
         <Route path="course/:id" element={<StudentCourseView />} />

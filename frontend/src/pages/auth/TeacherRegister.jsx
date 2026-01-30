@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
     Eye, EyeOff, Mail, Lock, User, ArrowLeft, Loader2, GraduationCap, MapPin, ChevronDown,
-    CreditCard, BookOpen, Phone, Briefcase
+    CreditCard, BookOpen, Phone, Briefcase, Calendar
 } from 'lucide-react';
 import { authAPI } from '../../services/api';
 
@@ -31,6 +31,9 @@ const TeacherRegister = () => {
         specialization: '',
         experience: '',
         location: '',
+        fatherName: '',
+        dob: '',
+        gender: '',
         password: '',
         confirmPassword: '',
         agreeTerms: false,
@@ -142,12 +145,15 @@ const TeacherRegister = () => {
             submitData.append('specialization', formData.specialization);
             submitData.append('experience', formData.experience);
             submitData.append('location', formData.location.toLowerCase());
+            submitData.append('fatherName', formData.fatherName);
+            submitData.append('dob', formData.dob);
+            submitData.append('gender', formData.gender);
 
             await authAPI.register(submitData);
             navigate('/login', {
                 state: {
-                    message: 'Registration successful! Your account is now pending admin verification. You will be able to log in once an admin approves your request.',
-                    isPending: true
+                    message: 'Registration successful! You can now login with your credentials.',
+                    isPending: false
                 }
             });
         } catch (err) {
@@ -375,6 +381,56 @@ const TeacherRegister = () => {
                                     <CreditCard className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                                 </div>
                                 {errors.cnic && <p className="mt-1 text-sm text-red-500">{errors.cnic}</p>}
+                            </div>
+                        </div>
+
+                        {/* Father Name */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1.5">Father Name</label>
+                            <div className="relative">
+                                <input
+                                    type="text"
+                                    name="fatherName"
+                                    value={formData.fatherName}
+                                    onChange={handleChange}
+                                    placeholder="Father's Name"
+                                    className="w-full px-4 py-3 pl-11 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all bg-gray-50/50"
+                                />
+                                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                            </div>
+                        </div>
+
+                        {/* DOB and Gender */}
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1.5">Date of Birth</label>
+                                <div className="relative">
+                                    <input
+                                        type="date"
+                                        name="dob"
+                                        value={formData.dob}
+                                        onChange={handleChange}
+                                        className="w-full px-4 py-3 pl-11 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all bg-gray-50/50"
+                                    />
+                                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1.5">Gender</label>
+                                <div className="relative">
+                                    <select
+                                        name="gender"
+                                        value={formData.gender}
+                                        onChange={handleChange}
+                                        className="w-full px-4 py-3 pl-11 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all bg-gray-50/50 appearance-none cursor-pointer"
+                                    >
+                                        <option value="">Select Gender</option>
+                                        <option value="Male">Male</option>
+                                        <option value="Female">Female</option>
+                                    </select>
+                                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+                                </div>
                             </div>
                         </div>
 

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
     Calendar, GraduationCap, Loader2, RefreshCw, CheckCircle, Clock, BookOpen, Edit2, Save, Download,
-    FileText, Users, Search, User, Mail, Phone, MapPin, UserCheck, UserX, Trash2
+    FileText, Users, Search, User, Mail, Phone, MapPin, UserCheck, UserX, Trash2, Receipt, Camera, Upload, Plus
 } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -16,10 +16,13 @@ const InternsManagement = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [filterStatus, setFilterStatus] = useState('all');
     const [confirmModal, setConfirmModal] = useState({ open: false, action: null, user: null });
+    const [viewFeeModal, setViewFeeModal] = useState({ open: false, url: null });
     const [editModal, setEditModal] = useState({ open: false, user: null });
     const [editForm, setEditForm] = useState({});
     const [isProcessing, setIsProcessing] = useState(false);
     const [showExportOptions, setShowExportOptions] = useState(false);
+    const [selectedFile, setSelectedFile] = useState(null);
+    const [photoPreview, setPhotoPreview] = useState(null);
 
     useEffect(() => {
         fetchInterns();
@@ -84,17 +87,51 @@ const InternsManagement = () => {
     };
 
     const handleEditClick = (intern) => {
+        let degree = intern.degree || '';
+        let university = intern.university || '';
+
+        // If degree/university are empty but education exists, try to parse it
+        if (!degree && !university && intern.education) {
+            const parts = intern.education.split(' - ');
+            if (parts.length >= 2) {
+                degree = parts[0];
+                university = parts.slice(1).join(' - ');
+            } else if (intern.education.toLowerCase().includes(' at ')) {
+                const partsAt = intern.education.split(/ at /i);
+                degree = partsAt[0];
+                university = partsAt.slice(1).join(' at ');
+            } else {
+                degree = intern.education;
+            }
+        }
+
         setEditModal({ open: true, user: intern });
+        setSelectedFile(null);
+        setPhotoPreview(intern.photo || null);
         setEditForm({
             name: intern.name || '',
             email: intern.email || '',
             phone: intern.phone || '',
             cnic: intern.cnic || '',
+            dob: intern.dob ? new Date(intern.dob).toISOString().split('T')[0] : '',
+            fatherName: intern.fatherName || intern.guardianName || '',
+            gender: intern.gender || '',
             education: intern.education || '',
             location: intern.location || '',
-            gender: intern.gender || '',
-            guardianName: intern.guardianName || '',
-            address: intern.address || ''
+            city: intern.city || '',
+            address: intern.address || '',
+            guardianName: intern.guardianName || intern.fatherName || '',
+            guardianPhone: intern.guardianPhone || '',
+            guardianOccupation: intern.guardianOccupation || '',
+            degree: degree,
+            university: university,
+            department: intern.department || '',
+            semester: intern.semester || '',
+            rollNumber: intern.rollNumber || '',
+            cgpa: intern.cgpa || '',
+            majorSubjects: intern.majorSubjects || '',
+            attendType: intern.attendType || '',
+            heardAbout: intern.heardAbout || ''
         });
     };
 
@@ -232,9 +269,22 @@ const InternsManagement = () => {
         e.preventDefault();
         setIsProcessing(true);
         try {
-            const res = await userAPI.update(editModal.user._id, editForm);
+            const formData = new FormData();
+            Object.keys(editForm).forEach(key => {
+                if (editForm[key] !== null && editForm[key] !== undefined) {
+                    formData.append(key, editForm[key]);
+                }
+            });
+
+            if (selectedFile) {
+                formData.append('photo', selectedFile);
+            }
+
+            const res = await userAPI.update(editModal.user._id, formData);
             setInterns(prev => prev.map(i => i._id === editModal.user._id ? res.data.data : i));
             setEditModal({ open: false, user: null });
+            setSelectedFile(null);
+            setPhotoPreview(null);
         } catch (error) {
             console.error('Error updating intern:', error);
         } finally {
@@ -440,6 +490,13 @@ const InternsManagement = () => {
                                 {/* Actions */}
                                 <div className="flex gap-2">
                                     <button
+                                        onClick={() => setViewFeeModal({ open: true, url: intern.feeScreenshot })}
+                                        className="p-2 bg-purple-50 hover:bg-purple-100 text-purple-600 rounded-xl"
+                                        title="View Registration Fee"
+                                    >
+                                        <Receipt className="w-5 h-5" />
+                                    </button>
+                                    <button
                                         onClick={() => downloadInternPDF(intern)}
                                         className="p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl"
                                         title="Download PDF"
@@ -553,6 +610,37 @@ const InternsManagement = () => {
                 )}
             </Modal>
 
+            <Modal
+                isOpen={viewFeeModal.open}
+                onClose={() => setViewFeeModal({ open: false, url: null })}
+                title="Registration Fee Screenshot"
+                size="lg"
+            >
+                <div className="flex items-center justify-center bg-gray-50 rounded-xl p-4">
+                    {viewFeeModal.url ? (
+                        <img
+                            src={viewFeeModal.url}
+                            alt="Fee Screenshot"
+                            className="max-w-full max-h-[70vh] rounded-lg shadow-sm"
+                        />
+                    ) : (
+                        <div className="text-center py-8">
+                            <Receipt className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                            <p className="text-gray-500 font-medium">No Fee Screenshot Uploaded</p>
+                            <p className="text-sm text-gray-400">This user has not provided a registration fee screenshot.</p>
+                        </div>
+                    )}
+                </div>
+                <div className="mt-4 flex justify-end">
+                    <button
+                        onClick={() => setViewFeeModal({ open: false, url: null })}
+                        className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium"
+                    >
+                        Close
+                    </button>
+                </div>
+            </Modal>
+
             {/* Edit Modal */}
             <Modal
                 isOpen={editModal.open}
@@ -561,9 +649,43 @@ const InternsManagement = () => {
                 size="lg"
             >
                 <form onSubmit={handleUpdate} className="space-y-4">
+                    {/* Profile Picture Section */}
+                    <div className="flex flex-col items-center justify-center pb-6 border-b border-gray-100 mb-6">
+                        <div className="relative group">
+                            <div className="w-24 h-24 rounded-2xl bg-gray-100 flex items-center justify-center overflow-hidden border-2 border-dashed border-gray-200 group-hover:border-emerald-500 transition-all">
+                                {photoPreview ? (
+                                    <img src={photoPreview} alt="Preview" className="w-full h-full object-cover" />
+                                ) : (
+                                    <Camera className="w-8 h-8 text-gray-400" />
+                                )}
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                    <Upload className="w-6 h-6 text-white" />
+                                </div>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => {
+                                        const file = e.target.files[0];
+                                        if (file) {
+                                            setSelectedFile(file);
+                                            setPhotoPreview(URL.createObjectURL(file));
+                                        }
+                                    }}
+                                    className="absolute inset-0 opacity-0 cursor-pointer"
+                                />
+                            </div>
+                            <div className="absolute -bottom-2 -right-2 bg-emerald-600 text-white p-1.5 rounded-lg shadow-lg">
+                                <Plus className="w-3.5 h-3.5" />
+                            </div>
+                        </div>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-3">Click to update profile photo</p>
+                    </div>
+
+                    {/* Personal Information */}
+                    <h3 className="font-semibold text-gray-900 pb-2 border-b">Personal Information</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">Full Name</label>
+                            <label className="text-sm font-medium text-gray-700">Full Name *</label>
                             <input
                                 type="text"
                                 value={editForm.name}
@@ -573,7 +695,16 @@ const InternsManagement = () => {
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">Email Address</label>
+                            <label className="text-sm font-medium text-gray-700">Father Name</label>
+                            <input
+                                type="text"
+                                value={editForm.fatherName}
+                                onChange={(e) => setEditForm({ ...editForm, fatherName: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">Email Address *</label>
                             <input
                                 type="email"
                                 value={editForm.email}
@@ -601,11 +732,146 @@ const InternsManagement = () => {
                             />
                         </div>
                         <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">Date of Birth</label>
+                            <input
+                                type="date"
+                                value={editForm.dob}
+                                onChange={(e) => setEditForm({ ...editForm, dob: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">Gender</label>
+                            <select
+                                value={editForm.gender}
+                                onChange={(e) => setEditForm({ ...editForm, gender: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                            >
+                                <option value="">Select Gender</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                            </select>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">Roll Number</label>
+                            <input
+                                type="text"
+                                value={editForm.rollNumber}
+                                onChange={(e) => setEditForm({ ...editForm, rollNumber: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Academic Information */}
+                    <h3 className="font-semibold text-gray-900 pb-2 border-b mt-6">Academic Information</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">Degree</label>
+                            <input
+                                type="text"
+                                value={editForm.degree}
+                                onChange={(e) => setEditForm({ ...editForm, degree: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">University</label>
+                            <input
+                                type="text"
+                                value={editForm.university}
+                                onChange={(e) => setEditForm({ ...editForm, university: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">Department</label>
+                            <input
+                                type="text"
+                                value={editForm.department}
+                                onChange={(e) => setEditForm({ ...editForm, department: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">Semester</label>
+                            <input
+                                type="text"
+                                value={editForm.semester}
+                                onChange={(e) => setEditForm({ ...editForm, semester: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">CGPA</label>
+                            <input
+                                type="text"
+                                value={editForm.cgpa}
+                                onChange={(e) => setEditForm({ ...editForm, cgpa: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">Major Subjects</label>
+                            <input
+                                type="text"
+                                value={editForm.majorSubjects}
+                                onChange={(e) => setEditForm({ ...editForm, majorSubjects: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                            />
+                        </div>
+                        <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-700">Education</label>
                             <input
                                 type="text"
                                 value={editForm.education}
                                 onChange={(e) => setEditForm({ ...editForm, education: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Guardian Information */}
+                    <h3 className="font-semibold text-gray-900 pb-2 border-b mt-6">Guardian Information</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">Guardian Name</label>
+                            <input
+                                type="text"
+                                value={editForm.guardianName}
+                                onChange={(e) => setEditForm({ ...editForm, guardianName: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">Guardian Phone</label>
+                            <input
+                                type="text"
+                                value={editForm.guardianPhone}
+                                onChange={(e) => setEditForm({ ...editForm, guardianPhone: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">Guardian Occupation</label>
+                            <input
+                                type="text"
+                                value={editForm.guardianOccupation}
+                                onChange={(e) => setEditForm({ ...editForm, guardianOccupation: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Address Information */}
+                    <h3 className="font-semibold text-gray-900 pb-2 border-b mt-6">Address Information</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">City</label>
+                            <input
+                                type="text"
+                                value={editForm.city}
+                                onChange={(e) => setEditForm({ ...editForm, city: e.target.value })}
                                 className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
                             />
                         </div>
@@ -621,28 +887,32 @@ const InternsManagement = () => {
                                 <option value="bahawalpur">Bahawalpur</option>
                             </select>
                         </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">Gender</label>
+                            <label className="text-sm font-medium text-gray-700">Attendance Type</label>
                             <select
-                                value={editForm.gender}
-                                onChange={(e) => setEditForm({ ...editForm, gender: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                                value={editForm.attendType}
+                                onChange={(e) => setEditForm({ ...editForm, attendType: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none font-medium"
                             >
-                                <option value="">Select Gender</option>
-                                <option value="Male">Male</option>
-                                <option value="Female">Female</option>
+                                <option value="">Select Type</option>
+                                <option value="Physical">Physical</option>
+                                <option value="Online">Online</option>
                             </select>
                         </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">Heard About Us</label>
+                            <input
+                                type="text"
+                                value={editForm.heardAbout}
+                                onChange={(e) => setEditForm({ ...editForm, heardAbout: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                            />
+                        </div>
                     </div>
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700">Guardian Name</label>
-                        <input
-                            type="text"
-                            value={editForm.guardianName}
-                            onChange={(e) => setEditForm({ ...editForm, guardianName: e.target.value })}
-                            className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
-                        />
-                    </div>
+
                     <div className="space-y-2">
                         <label className="text-sm font-medium text-gray-700">Address</label>
                         <textarea
@@ -669,9 +939,9 @@ const InternsManagement = () => {
                             Update Bio
                         </button>
                     </div>
-                </form>
-            </Modal>
-        </div>
+                </form >
+            </Modal >
+        </div >
     );
 };
 

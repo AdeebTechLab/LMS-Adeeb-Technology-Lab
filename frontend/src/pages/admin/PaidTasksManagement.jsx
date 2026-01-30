@@ -6,11 +6,7 @@ import {
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
 import { taskAPI } from '../../services/api';
-import TaskChat from '../job/components/TaskChat';
 import { useSelector } from 'react-redux';
-import { io } from 'socket.io-client';
-
-const SOCKET_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace('/api', '');
 
 const PaidTasksManagement = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -51,22 +47,6 @@ const PaidTasksManagement = () => {
     // Fetch tasks on component mount
     useEffect(() => {
         fetchTasks();
-
-        // Socket for real-time unread updates
-        const socket = io(SOCKET_URL, { withCredentials: true });
-        socket.on('new_message', (data) => {
-            setTasks(prev => prev.map(t => {
-                if (t._id === data.taskId) {
-                    return {
-                        ...t,
-                        messages: [...(t.messages || []), { ...data, createdAt: new Date() }]
-                    };
-                }
-                return t;
-            }));
-        });
-
-        return () => socket.disconnect();
     }, []);
 
     const fetchTasks = async () => {
@@ -81,13 +61,6 @@ const PaidTasksManagement = () => {
         } finally {
             setIsFetching(false);
         }
-    };
-
-    const hasUnread = (task) => {
-        if (!task.messages || task.messages.length === 0) return false;
-        const lastMessage = task.messages[task.messages.length - 1];
-        const lastRead = new Date(task.lastReadByAdmin || 0);
-        return new Date(lastMessage.createdAt) > lastRead && (lastMessage.sender?._id !== user.id && lastMessage.senderId !== user.id);
     };
 
     const filteredTasks = tasks.filter((task) =>
@@ -302,21 +275,9 @@ const PaidTasksManagement = () => {
                                         <div className="flex-1 py-2 text-sm text-gray-500">
                                             Assigned to: <strong>{task.assignedTo?.name}</strong>
                                         </div>
-                                        <button
-                                            onClick={() => {
-                                                setSelectedTask(task);
-                                                setViewMode('chat');
-                                                // Update local state immediately
-                                                setTasks(prev => prev.map(t => t._id === task._id ? { ...t, lastReadByAdmin: new Date().toISOString() } : t));
-                                            }}
-                                            className="px-4 py-2 text-sm font-medium text-purple-600 bg-purple-50 hover:bg-purple-100 rounded-xl flex items-center justify-center gap-1 relative"
-                                        >
-                                            <Link className="w-4 h-4" />
-                                            Chat
-                                            {hasUnread(task) && (
-                                                <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 border-2 border-white rounded-full animate-pulse" />
-                                            )}
-                                        </button>
+                                        <div className="flex-1 py-2 text-sm text-gray-500">
+                                            Assigned to: <strong>{task.assignedTo?.name}</strong>
+                                        </div>
                                     </div>
                                 )}
                                 {task.status === 'submitted' && (
@@ -327,21 +288,6 @@ const PaidTasksManagement = () => {
                                         >
                                             <Eye className="w-4 h-4" />
                                             Review
-                                        </button>
-                                        <button
-                                            onClick={() => {
-                                                setSelectedTask(task);
-                                                setViewMode('chat');
-                                                // Update local state immediately
-                                                setTasks(prev => prev.map(t => t._id === task._id ? { ...t, lastReadByAdmin: new Date().toISOString() } : t));
-                                            }}
-                                            className="flex-1 py-2 text-sm font-medium text-purple-600 bg-purple-50 hover:bg-purple-100 rounded-xl flex items-center justify-center gap-1 relative"
-                                        >
-                                            <Link className="w-4 h-4" />
-                                            Chat
-                                            {hasUnread(task) && (
-                                                <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 border-2 border-white rounded-full animate-pulse" />
-                                            )}
                                         </button>
                                     </div>
                                 )}
@@ -613,29 +559,6 @@ const PaidTasksManagement = () => {
                 )}
             </Modal>
 
-            {/* Chat Modal */}
-            <Modal isOpen={viewMode === 'chat' && selectedTask} onClose={() => { setViewMode(null); setSelectedTask(null); }} title="Project Discussion" size="md">
-                {selectedTask && (
-                    <div className="space-y-4">
-                        <div className="p-4 bg-gray-50 rounded-xl">
-                            <h3 className="font-semibold text-gray-900 leading-tight">{selectedTask.title}</h3>
-                            <p className="text-xs text-gray-500 mt-1 uppercase font-bold tracking-widest">Chat with {selectedTask.assignedTo?.name || 'Jober'}</p>
-                        </div>
-
-                        <TaskChat
-                            taskId={selectedTask._id}
-                            currentUser={user}
-                            taskMessages={selectedTask.messages || []}
-                        />
-
-                        <div className="pt-2">
-                            <button onClick={() => { setViewMode(null); setSelectedTask(null); }} className="w-full py-3 text-gray-600 hover:bg-gray-100 rounded-xl font-medium">
-                                Close
-                            </button>
-                        </div>
-                    </div>
-                )}
-            </Modal>
         </div>
     );
 };

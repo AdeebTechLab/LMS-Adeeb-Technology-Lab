@@ -3,8 +3,9 @@ const router = express.Router();
 const { protect, authorize } = require('../middleware/auth');
 const Enrollment = require('../models/Enrollment');
 const Course = require('../models/Course');
-const Fee = require('../models/Fee');
+const User = require('../models/User');
 const Attendance = require('../models/Attendance');
+const Fee = require('../models/Fee');
 
 // @route   GET /api/enrollments/my
 // @desc    Get current user's enrollments
@@ -14,7 +15,7 @@ router.get('/my', protect, async (req, res) => {
         const enrollments = await Enrollment.find({ user: req.user.id })
             .populate({
                 path: 'course',
-                populate: { path: 'teacher', select: 'name' }
+                populate: { path: 'teachers', select: 'name email specialization photo' }
             })
             .sort('-createdAt');
 
@@ -49,16 +50,19 @@ router.get('/my', protect, async (req, res) => {
 });
 
 // @route   POST /api/enrollments
-// @desc    Enroll in a course
+// @desc    Enroll in a course (creates pending enrollment with installments)
 // @access  Private
 router.post('/', protect, async (req, res) => {
     try {
-        const { courseId } = req.body;
+        const { courseId, installments } = req.body;
 
-        // Check if course exists
+        // Check if course exists and is active
         const course = await Course.findById(courseId);
         if (!course) {
             return res.status(404).json({ success: false, message: 'Course not found' });
+        }
+        if (!course.isActive) {
+            return res.status(400).json({ success: false, message: 'Course is not active' });
         }
 
         // Check if already enrolled
@@ -67,36 +71,156 @@ router.post('/', protect, async (req, res) => {
             return res.status(400).json({ success: false, message: 'Already enrolled in this course' });
         }
 
-        // Check max students
-        if (course.enrolledCount >= course.maxStudents) {
-            return res.status(400).json({ success: false, message: 'Course is full' });
-        }
+        // Get user registration date
+        const user = await User.findById(req.user.id);
 
-        // Create enrollment
-        const enrollment = await Enrollment.create({
+        // Create enrollment with installments
+        const enrollmentData = {
             user: req.user.id,
             course: courseId,
-            status: 'pending'
-        });
+            status: 'pending', // Will change to 'enrolled' when first installment verified
+            registrationDate: user.createdAt,
+            feeStatus: 'pending',
+            isActive: false // Will become true when first installment verified
+        };
 
-        // Create fee record
-        // Create fee record with default full payment installment
-        const feeAmount = course.fee || 0;
+        // If installments provided, add them; otherwise create single default installment
+        if (installments && installments.length > 0) {
+            enrollmentData.installments = installments.map((inst, index) => ({
+                installmentNumber: index + 1,
+                amount: inst.amount,
+                dueDate: inst.dueDate,
+                status: 'pending'
+            }));
+        } else {
+            // Single default installment for full fee
+            enrollmentData.installments = [{
+                installmentNumber: 1,
+                amount: course.fee,
+                dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // Due in 7 days
+                status: 'pending'
+            }];
+        }
+
+        const enrollment = await Enrollment.create(enrollmentData);
+
+        // Also create a corresponding Fee record for the management system
         await Fee.create({
             user: req.user.id,
             course: courseId,
-            totalFee: feeAmount,
-            installments: [{
-                amount: feeAmount,
-                dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // Due in 7 days
+            totalFee: course.fee,
+            installments: enrollmentData.installments.map(inst => ({
+                amount: inst.amount,
+                dueDate: inst.dueDate,
                 status: 'pending'
-            }]
+            })),
+            status: 'pending'
         });
 
-        // Increment enrolled count
-        await Course.findByIdAndUpdate(courseId, { $inc: { enrolledCount: 1 } });
+        res.status(201).json({
+            success: true,
+            enrollment,
+            message: 'Enrollment created. Please submit payment for verification.'
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
 
-        res.status(201).json({ success: true, enrollment });
+// @route   PUT /api/enrollments/:id/verify-installment
+// @desc    Admin verifies an installment payment
+// @access  Private (Admin)
+router.put('/:id/verify-installment', protect, authorize('admin'), async (req, res) => {
+    try {
+        const { installmentNumber, paymentProof } = req.body;
+
+        const enrollment = await Enrollment.findById(req.params.id);
+        if (!enrollment) {
+            return res.status(404).json({ success: false, message: 'Enrollment not found' });
+        }
+
+        // Find the installment
+        const installment = enrollment.installments.find(
+            inst => inst.installmentNumber === installmentNumber
+        );
+
+        if (!installment) {
+            return res.status(404).json({ success: false, message: 'Installment not found' });
+        }
+
+        // Update installment status
+        installment.status = 'verified';
+        installment.paidDate = new Date();
+        installment.verifiedBy = req.user.id;
+        installment.verifiedAt = new Date();
+        if (paymentProof) installment.paymentProof = paymentProof;
+
+        // Update enrollment status
+        const allVerified = enrollment.installments.every(inst => inst.status === 'verified');
+        const firstVerified = enrollment.installments[0].status === 'verified';
+
+        if (allVerified) {
+            enrollment.feeStatus = 'verified';
+            enrollment.status = 'enrolled';
+            enrollment.isActive = true;
+            if (!enrollment.enrollmentDate) {
+                enrollment.enrollmentDate = new Date();
+                // Increment course enrolled count
+                await Course.findByIdAndUpdate(enrollment.course, { $inc: { enrolledCount: 1 } });
+            }
+        } else if (firstVerified) {
+            enrollment.feeStatus = 'partial';
+            enrollment.status = 'enrolled';
+            enrollment.isActive = true;
+            if (!enrollment.enrollmentDate) {
+                enrollment.enrollmentDate = new Date();
+                // Increment course enrolled count
+                await Course.findByIdAndUpdate(enrollment.course, { $inc: { enrolledCount: 1 } });
+            }
+        }
+
+        await enrollment.save();
+
+        res.json({
+            success: true,
+            enrollment,
+            message: `Installment ${installmentNumber} verified successfully`
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// @route   PUT /api/enrollments/check-overdue
+// @desc    Check and update overdue enrollments (cron job endpoint)
+// @access  Private (Admin)
+router.put('/check-overdue', protect, authorize('admin'), async (req, res) => {
+    try {
+        const now = new Date();
+        const enrollments = await Enrollment.find({ isActive: true });
+
+        let updatedCount = 0;
+
+        for (const enrollment of enrollments) {
+            const lastInstallment = enrollment.installments[enrollment.installments.length - 1];
+
+            // Check if last installment is overdue
+            if (lastInstallment &&
+                lastInstallment.status !== 'verified' &&
+                now > lastInstallment.dueDate) {
+
+                enrollment.isActive = false;
+                enrollment.feeStatus = 'overdue';
+                enrollment.status = 'suspended';
+                await enrollment.save();
+                updatedCount++;
+            }
+        }
+
+        res.json({
+            success: true,
+            message: `Checked enrollments. ${updatedCount} suspended due to overdue payments.`
+        });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
@@ -136,8 +260,8 @@ router.put('/:id/complete', protect, authorize('admin'), async (req, res) => {
 router.get('/all', protect, authorize('admin', 'teacher'), async (req, res) => {
     try {
         const enrollments = await Enrollment.find()
-            .populate('user', 'name email rollNo role')
-            .populate('course', 'title')
+            .populate('user', 'name email rollNo role photo')
+            .populate('course', 'title city durationMonths')
             .sort('-createdAt');
 
         res.json({ success: true, count: enrollments.length, data: enrollments });

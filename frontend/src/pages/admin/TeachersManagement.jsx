@@ -91,6 +91,8 @@ const TeachersManagement = () => {
             email: teacher.email || '',
             phone: teacher.phone || '',
             cnic: teacher.cnic || '',
+            dob: teacher.dob ? new Date(teacher.dob).toISOString().split('T')[0] : '',
+            gender: teacher.gender || '',
             qualification: teacher.qualification || '',
             specialization: teacher.specialization || '',
             department: teacher.department || '',
@@ -573,9 +575,11 @@ const TeachersManagement = () => {
                 size="lg"
             >
                 <form onSubmit={handleUpdate} className="space-y-4">
+                    {/* Personal Information */}
+                    <h3 className="font-semibold text-gray-900 pb-2 border-b">Personal Information</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">Full Name</label>
+                            <label className="text-sm font-medium text-gray-700">Full Name *</label>
                             <input
                                 type="text"
                                 value={editForm.name}
@@ -585,7 +589,7 @@ const TeachersManagement = () => {
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">Email Address</label>
+                            <label className="text-sm font-medium text-gray-700">Email Address *</label>
                             <input
                                 type="email"
                                 value={editForm.email}
@@ -612,6 +616,32 @@ const TeachersManagement = () => {
                                 className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none"
                             />
                         </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">Date of Birth</label>
+                            <input
+                                type="date"
+                                value={editForm.dob}
+                                onChange={(e) => setEditForm({ ...editForm, dob: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">Gender</label>
+                            <select
+                                value={editForm.gender}
+                                onChange={(e) => setEditForm({ ...editForm, gender: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none"
+                            >
+                                <option value="">Select Gender</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    {/* Professional Information */}
+                    <h3 className="font-semibold text-gray-900 pb-2 border-b mt-6">Professional Information</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-700">Qualification</label>
                             <input
@@ -648,6 +678,11 @@ const TeachersManagement = () => {
                                 className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none"
                             />
                         </div>
+                    </div>
+
+                    {/* Address Information */}
+                    <h3 className="font-semibold text-gray-900 pb-2 border-b mt-6">Address Information</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-700">Location</label>
                             <select

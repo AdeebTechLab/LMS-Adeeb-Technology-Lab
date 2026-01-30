@@ -5,49 +5,7 @@ const Attendance = require('../models/Attendance');
 const Enrollment = require('../models/Enrollment');
 const Course = require('../models/Course');
 
-// Lock function for cron job
-const lockTodayAttendance = async () => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    // Find all unlocked attendance records for today
-    const attendances = await Attendance.find({
-        date: today,
-        isLocked: false
-    }).populate({
-        path: 'course',
-        select: 'startDate endDate'
-    });
-
-    for (const attendance of attendances) {
-        // Get all enrolled students for this course
-        const enrollments = await Enrollment.find({
-            course: attendance.course._id,
-            status: 'enrolled'
-        });
-
-        // Mark all unmarked students as absent
-        for (const enrollment of enrollments) {
-            const existingRecord = attendance.records.find(
-                r => r.user.toString() === enrollment.user.toString()
-            );
-
-            if (!existingRecord) {
-                attendance.records.push({
-                    user: enrollment.user,
-                    status: 'absent',
-                    markedAt: new Date()
-                });
-            }
-        }
-
-        attendance.isLocked = true;
-        attendance.lockedAt = new Date();
-        await attendance.save();
-    }
-
-    return attendances.length;
-};
+// Lock function is now handled in controllers/attendanceController.js
 
 // @route   GET /api/attendance/my/:courseId
 // @desc    Get current user's attendance history for a course
@@ -101,17 +59,10 @@ router.get('/:courseId/:date', protect, authorize('teacher', 'admin'), async (re
             };
         }
 
-        // Check if should be locked (12pm passed)
-        const now = new Date();
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const isToday = attendanceDate.getTime() === today.getTime();
-        const isPast12pm = now.getHours() >= 12;
-
         res.json({
             success: true,
             attendance,
-            canEdit: isToday && !isPast12pm && !attendance.isLocked
+            canEdit: !attendance.isLocked // Simply check if locked by cron or admin
         });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
@@ -185,4 +136,3 @@ router.get('/report/:courseId', protect, authorize('teacher', 'admin'), async (r
 });
 
 module.exports = router;
-module.exports.lockTodayAttendance = lockTodayAttendance;

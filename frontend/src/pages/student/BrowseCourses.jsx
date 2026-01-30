@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useSelector } from 'react-redux';
 import {
-    Search, BookOpen, Users, Star, Clock, CheckCircle, Calendar, Award, Loader2, RefreshCw, AlertCircle
+    Search, BookOpen, Users, Star, Clock, CheckCircle, Calendar, Award, Loader2, RefreshCw, AlertCircle, Upload
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
 import { courseAPI, enrollmentAPI, certificateAPI } from '../../services/api';
 
 const BrowseCourses = () => {
+    const navigate = useNavigate();
     const { role, user } = useSelector((state) => state.auth);
     const [searchQuery, setSearchQuery] = useState('');
     const [activeTab, setActiveTab] = useState('enrolled');
@@ -56,8 +58,7 @@ const BrowseCourses = () => {
     const getEnrollmentStatus = (courseId) => {
         const enrollment = myEnrollments.find(e => e.course?._id === courseId);
         if (!enrollment) return 'available';
-        if (enrollment.status === 'completed') return 'completed';
-        return 'enrolled';
+        return enrollment.status; // 'pending', 'enrolled', 'completed', 'suspended'
     };
 
     // Separate courses by enrollment status
@@ -75,7 +76,7 @@ const BrowseCourses = () => {
 
     const filteredCourses = getCurrentCourses().filter((course) => {
         return course.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            course.teacher?.name?.toLowerCase().includes(searchQuery.toLowerCase());
+            course.teachers?.some(t => t.name?.toLowerCase().includes(searchQuery.toLowerCase()));
     });
 
     const handleEnrollClick = (course) => {
@@ -91,12 +92,30 @@ const BrowseCourses = () => {
             await enrollmentAPI.enroll(selectedCourse._id);
             setIsEnrollModalOpen(false);
             setSelectedCourse(null);
-            fetchData(); // Refresh data
+            // fetchData(); // No need to fetch here if we are navigating
+            navigate(`/${role === 'intern' ? 'intern' : 'student'}/fees`, {
+                state: {
+                    message: 'Enrollment successful! Please upload your payment receipt here to get verified.'
+                }
+            });
         } catch (err) {
             console.error('Error enrolling:', err);
             setError(err.response?.data?.message || 'Failed to enroll. Please try again.');
         } finally {
             setIsEnrolling(false);
+        }
+    };
+
+    const handleViewCourse = (course) => {
+        const enrollment = myEnrollments.find(e => e.course?._id === course._id);
+        if (!enrollment) return;
+
+        // If status is enrolled, it means at least the first installment is verified.
+        // The user wants to see assignments if verified, otherwise payment.
+        if (enrollment.status === 'enrolled') {
+            navigate(`/${role === 'intern' ? 'intern' : 'student'}/assignments`);
+        } else {
+            navigate(`/${role === 'intern' ? 'intern' : 'student'}/fees`);
         }
     };
 
@@ -198,9 +217,9 @@ const BrowseCourses = () => {
                                 <div className="absolute inset-0 flex items-center justify-center">
                                     <BookOpen className="w-16 h-16 text-white/30" />
                                 </div>
-                                {course.location && (
+                                {course.city && (
                                     <div className="absolute top-4 right-4">
-                                        <Badge variant="primary" size="sm">{course.location}</Badge>
+                                        <Badge variant="primary" size="sm">{course.city}</Badge>
                                     </div>
                                 )}
                                 {status === 'enrolled' && (
@@ -208,6 +227,14 @@ const BrowseCourses = () => {
                                         <Badge variant="success" size="sm">
                                             <CheckCircle className="w-3 h-3 mr-1" />
                                             Enrolled
+                                        </Badge>
+                                    </div>
+                                )}
+                                {status === 'pending' && (
+                                    <div className="absolute top-4 left-4">
+                                        <Badge variant="warning" size="sm">
+                                            <Clock className="w-3 h-3 mr-1" />
+                                            Waiting for Verification
                                         </Badge>
                                     </div>
                                 )}
@@ -226,25 +253,34 @@ const BrowseCourses = () => {
                                 <h3 className="font-bold text-gray-900 mb-2 line-clamp-1">{course.title}</h3>
                                 <p className="text-sm text-gray-500 mb-4 line-clamp-2">{course.description}</p>
 
-                                {/* Teacher */}
-                                <div className="flex items-center gap-2 mb-4">
-                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-sm font-medium">
-                                        {course.teacher?.name?.charAt(0) || 'T'}
-                                    </div>
-                                    <span className="text-sm text-gray-600">{course.teacher?.name || 'No teacher'}</span>
+                                {/* Teachers */}
+                                <div className="mb-4">
+                                    {course.teachers && course.teachers.length > 0 ? (
+                                        <div className="flex flex-wrap gap-1.5">
+                                            {course.teachers.slice(0, 2).map((teacher, idx) => (
+                                                <div key={idx} className="flex items-center gap-1.5 bg-gray-50 px-2 py-1 rounded-lg">
+                                                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-xs font-medium">
+                                                        {teacher?.name?.charAt(0) || 'T'}
+                                                    </div>
+                                                    <span className="text-xs text-gray-600">{teacher?.name || 'Teacher'}</span>
+                                                </div>
+                                            ))}
+                                            {course.teachers.length > 2 && (
+                                                <span className="text-xs text-gray-500 px-2 py-1">+{course.teachers.length - 2} more</span>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <span className="text-sm text-gray-400">No teachers assigned</span>
+                                    )}
                                 </div>
 
                                 {/* Stats */}
                                 <div className="flex items-center gap-4 mb-4 text-sm text-gray-500">
                                     <span className="flex items-center gap-1">
-                                        <Users className="w-4 h-4" /> {course.maxStudents || 0}
+                                        <Clock className="w-4 h-4" /> {course.durationMonths} {course.durationMonths === 1 ? 'month' : 'months'}
                                     </span>
                                     <span className="flex items-center gap-1">
-                                        <Clock className="w-4 h-4" /> {course.duration}
-                                    </span>
-                                    <span className="flex items-center gap-1">
-                                        <Calendar className="w-4 h-4" />
-                                        {course.startDate && new Date(course.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                        <Users className="w-4 h-4" /> Unlimited
                                     </span>
                                 </div>
 
@@ -272,8 +308,20 @@ const BrowseCourses = () => {
                                             Enroll Now
                                         </button>
                                     )}
+                                    {status === 'pending' && (
+                                        <button
+                                            onClick={() => navigate(`/${role === 'intern' ? 'intern' : 'student'}/fees`)}
+                                            className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-medium transition-all flex items-center gap-2"
+                                        >
+                                            <Upload className="w-4 h-4" />
+                                            Upload Receipt
+                                        </button>
+                                    )}
                                     {status === 'enrolled' && (
-                                        <button className="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg font-medium">
+                                        <button
+                                            onClick={() => handleViewCourse(course)}
+                                            className="px-4 py-2 bg-white border-2 border-gray-900 text-gray-900 hover:bg-gray-900 hover:text-white rounded-xl font-bold transition-all duration-300 shadow-sm"
+                                        >
                                             View Course
                                         </button>
                                     )}

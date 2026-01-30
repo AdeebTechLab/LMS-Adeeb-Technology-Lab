@@ -29,13 +29,10 @@ const CourseManagement = () => {
         title: '',
         description: '',
         fee: '',
-        duration: '',
-        teacher: '',
-        maxStudents: '',
-        startDate: '',
-        endDate: '',
+        durationMonths: '',
+        teachers: [],
         targetAudience: '',
-        location: '',
+        city: '',
     });
 
     // Fetch courses and users on component mount
@@ -63,7 +60,7 @@ const CourseManagement = () => {
 
     const filteredCourses = courses.filter((course) =>
         course.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        course.teacher?.name?.toLowerCase().includes(searchQuery.toLowerCase())
+        course.teachers?.some(t => t.name?.toLowerCase().includes(searchQuery.toLowerCase()))
     );
 
     const handleOpenModal = (course = null) => {
@@ -73,13 +70,10 @@ const CourseManagement = () => {
                 title: course.title,
                 description: course.description,
                 fee: course.fee?.toString() || '',
-                duration: course.duration,
-                teacher: course.teacher?._id || '',
-                maxStudents: course.maxStudents?.toString() || '',
-                startDate: course.startDate?.split('T')[0] || '',
-                endDate: course.endDate?.split('T')[0] || '',
+                durationMonths: course.durationMonths?.toString() || '',
+                teachers: course.teachers?.map(t => t._id) || [],
                 targetAudience: course.targetAudience || 'students',
-                location: course.location || '',
+                city: course.city || '',
             });
         } else {
             setEditingCourse(null);
@@ -87,13 +81,10 @@ const CourseManagement = () => {
                 title: '',
                 description: '',
                 fee: '',
-                duration: '',
-                teacher: '',
-                maxStudents: '',
-                startDate: '',
-                endDate: '',
+                durationMonths: '',
+                teachers: [],
                 targetAudience: '',
-                location: '',
+                city: '',
             });
         }
         setIsModalOpen(true);
@@ -114,13 +105,11 @@ const CourseManagement = () => {
                 title: formData.title,
                 description: formData.description,
                 fee: Number(formData.fee),
-                duration: formData.duration,
-                teacher: formData.teacher,
-                maxStudents: Number(formData.maxStudents),
-                startDate: formData.startDate,
-                endDate: formData.endDate,
+                durationMonths: Number(formData.durationMonths),
+                teachers: formData.teachers,
                 targetAudience: formData.targetAudience,
-                location: formData.location,
+                location: formData.city.toLowerCase(),
+                city: formData.city,
             };
 
             if (editingCourse) {
@@ -237,10 +226,10 @@ const CourseManagement = () => {
                                 <BookOpen className="w-6 h-6 text-white" />
                             </div>
                             <div className="flex items-center gap-2">
-                                <Badge variant={course.status === 'active' ? 'success' : 'warning'}>
-                                    {course.status}
+                                <Badge variant="info">
+                                    {course.city || 'N/A'}
                                 </Badge>
-                                <Badge variant={course.targetAudience === 'students' ? 'info' : 'purple'}>
+                                <Badge variant={course.targetAudience === 'students' ? 'success' : 'purple'}>
                                     {course.targetAudience}
                                 </Badge>
                             </div>
@@ -249,28 +238,39 @@ const CourseManagement = () => {
                         <h3 className="font-bold text-gray-900 mb-2">{course.title}</h3>
                         <p className="text-sm text-gray-500 mb-4 line-clamp-2">{course.description}</p>
 
-                        <div className="flex items-center gap-2 mb-3">
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-sm font-medium">
-                                {course.teacher?.name?.charAt(0) || 'T'}
-                            </div>
-                            <span className="text-sm text-gray-600">{course.teacher?.name || 'No teacher assigned'}</span>
+                        {/* Teachers */}
+                        <div className="mb-3">
+                            {course.teachers && course.teachers.length > 0 ? (
+                                <div className="flex flex-wrap gap-1.5">
+                                    {course.teachers.map((teacher, idx) => (
+                                        <div key={idx} className="flex items-center gap-1.5 bg-gray-50 px-2 py-1 rounded-lg">
+                                            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-xs font-medium">
+                                                {teacher?.name?.charAt(0) || 'T'}
+                                            </div>
+                                            <span className="text-xs text-gray-600">{teacher?.name || 'Teacher'}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <span className="text-sm text-gray-400">No teachers assigned</span>
+                            )}
                         </div>
 
                         <div className="grid grid-cols-2 gap-2 mb-4 text-sm">
                             <div className="flex items-center gap-1.5 text-gray-500">
                                 <Clock className="w-4 h-4" />
-                                {course.duration}
+                                {course.durationMonths} {course.durationMonths === 1 ? 'month' : 'months'}
                             </div>
                             <div className="flex items-center gap-1.5 text-gray-500">
                                 <Calendar className="w-4 h-4" />
-                                {course.startDate && new Date(course.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                {course.isActive ? 'Active' : 'Inactive'}
                             </div>
                         </div>
 
                         <div className="flex items-center justify-between pt-4 border-t border-gray-100">
                             <div className="flex items-center gap-1 text-gray-500">
                                 <Users className="w-4 h-4" />
-                                <span className="text-sm">{getEnrolledCount(course)}/{course.maxStudents}</span>
+                                <span className="text-sm">{getEnrolledCount(course)} enrolled</span>
                             </div>
                             <div className="flex items-center gap-1 text-emerald-600 font-semibold">
                                 <span>Rs {(course.fee || 0).toLocaleString()}</span>
@@ -343,25 +343,42 @@ const CourseManagement = () => {
                         />
                     </div>
 
-                    {/* Assign Teacher */}
+                    {/* Assign Teachers (Checkboxes) */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Assign Teacher <span className="text-red-500">*</span>
+                            Assign Teachers <span className="text-red-500">*</span>
                         </label>
-                        <select
-                            value={formData.teacher}
-                            onChange={(e) => setFormData({ ...formData, teacher: e.target.value })}
-                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all bg-white"
-                            required
-                        >
-                            <option value="">Select a registered teacher</option>
-                            {teachers.map((teacher) => (
-                                <option key={teacher._id} value={teacher._id}>
-                                    {teacher.name} - {teacher.specialization || teacher.email}
-                                </option>
-                            ))}
-                        </select>
-                        <p className="text-xs text-gray-500 mt-1">Only registered teachers are shown</p>
+                        <div className="border border-gray-200 rounded-xl p-4 max-h-48 overflow-y-auto bg-gray-50">
+                            {teachers.length === 0 ? (
+                                <p className="text-sm text-gray-400">No teachers available</p>
+                            ) : (
+                                <div className="space-y-2">
+                                    {teachers.map((teacher) => (
+                                        <label key={teacher._id} className="flex items-center gap-3 p-2 hover:bg-white rounded-lg cursor-pointer transition-colors">
+                                            <input
+                                                type="checkbox"
+                                                checked={formData.teachers.includes(teacher._id)}
+                                                onChange={(e) => {
+                                                    if (e.target.checked) {
+                                                        setFormData({ ...formData, teachers: [...formData.teachers, teacher._id] });
+                                                    } else {
+                                                        setFormData({ ...formData, teachers: formData.teachers.filter(id => id !== teacher._id) });
+                                                    }
+                                                }}
+                                                className="w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500"
+                                            />
+                                            <div className="flex-1">
+                                                <span className="text-sm font-medium text-gray-700">{teacher.name}</span>
+                                                <span className="text-xs text-gray-500 ml-2">({teacher.specialization || teacher.email})</span>
+                                            </div>
+                                        </label>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">
+                            {formData.teachers.length} teacher(s) selected
+                        </p>
                     </div>
 
                     {/* Fee and Duration Row */}
@@ -386,106 +403,61 @@ const CourseManagement = () => {
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Duration <span className="text-red-500">*</span>
+                                Duration (Months) <span className="text-red-500">*</span>
                             </label>
                             <select
-                                value={formData.duration}
-                                onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
+                                value={formData.durationMonths}
+                                onChange={(e) => setFormData({ ...formData, durationMonths: e.target.value })}
                                 className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all bg-white"
                                 required
                             >
                                 <option value="">Select duration</option>
-                                <option value="4 weeks">4 weeks</option>
-                                <option value="6 weeks">6 weeks</option>
-                                <option value="8 weeks">8 weeks</option>
-                                <option value="10 weeks">10 weeks</option>
-                                <option value="12 weeks">12 weeks</option>
-                                <option value="14 weeks">14 weeks</option>
-                                <option value="16 weeks">16 weeks</option>
+                                <option value="1">1 month</option>
+                                <option value="2">2 months</option>
+                                <option value="3">3 months</option>
+                                <option value="4">4 months</option>
+                                <option value="5">5 months</option>
+                                <option value="6">6 months</option>
+                                <option value="7">7 months</option>
+                                <option value="8">8 months</option>
+                                <option value="9">9 months</option>
+                                <option value="10">10 months</option>
                             </select>
                         </div>
                     </div>
 
-                    {/* Max Students and Target Audience Row */}
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Max Students <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                                type="number"
-                                min="1"
-                                max="100"
-                                value={formData.maxStudents}
-                                onChange={(e) => setFormData({ ...formData, maxStudents: e.target.value })}
-                                placeholder="50"
-                                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
-                                required
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Target Audience <span className="text-red-500">*</span>
-                            </label>
-                            <select
-                                value={formData.targetAudience}
-                                onChange={(e) => setFormData({ ...formData, targetAudience: e.target.value })}
-                                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all bg-white"
-                                required
-                            >
-                                <option value="">Select audience</option>
-                                <option value="students">For Students</option>
-                                <option value="interns">For Interns</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    {/* Location */}
+                    {/* Target Audience */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Course Location <span className="text-red-500">*</span>
+                            Target Audience <span className="text-red-500">*</span>
                         </label>
                         <select
-                            value={formData.location}
-                            onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                            value={formData.targetAudience}
+                            onChange={(e) => setFormData({ ...formData, targetAudience: e.target.value })}
                             className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all bg-white"
                             required
                         >
-                            <option value="">Select location</option>
-                            <option value="islamabad">Islamabad</option>
-                            <option value="bahawalpur">Bahawalpur</option>
+                            <option value="">Select audience</option>
+                            <option value="students">For Students</option>
+                            <option value="interns">For Interns</option>
                         </select>
                     </div>
 
-                    {/* Start and End Date Row */}
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Start Date <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                                type="date"
-                                value={formData.startDate}
-                                onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
-                                required
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                End Date <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                                type="date"
-                                value={formData.endDate}
-                                onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                                min={formData.startDate}
-                                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
-                                required
-                            />
-                        </div>
+                    {/* City */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            City <span className="text-red-500">*</span>
+                        </label>
+                        <select
+                            value={formData.city}
+                            onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all bg-white"
+                            required
+                        >
+                            <option value="">Select city</option>
+                            <option value="Bahawalpur">Bahawalpur</option>
+                            <option value="Islamabad">Islamabad</option>
+                        </select>
                     </div>
 
 

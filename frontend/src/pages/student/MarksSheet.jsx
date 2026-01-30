@@ -44,11 +44,11 @@ const MarksSheet = () => {
 
                 // Get assignment marks for this course (Sort by date for consistent numbering)
                 const courseAssignments = assignments
-                    .filter(a => (a.course?._id || a.course) === courseId)
+                    .filter(a => String(a.course?._id || a.course) === String(courseId))
                     .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate)) // Oldest first for #1, #2...
                     .map((a, index) => {
                         const mySub = a.submissions?.find(s =>
-                            (s.user?._id || s.user) === user?._id
+                            String(s.user?._id || s.user) === String(user?._id || user?.id)
                         );
                         if (mySub && (mySub.marks !== undefined && mySub.marks !== null)) {
                             return {
@@ -63,10 +63,14 @@ const MarksSheet = () => {
                     })
                     .filter(Boolean);
 
+                // Find teacher name from teachers array
+                const teacherObj = enrollment.course?.teachers?.[0]; // Default to first teacher
+                const teacherName = teacherObj?.name || (typeof teacherObj === 'string' ? 'Assigned' : 'TBA');
+
                 return {
                     id: enrollment._id,
                     name: courseTitle,
-                    teacher: enrollment.course?.teacher?.name || 'TBA',
+                    teacher: teacherName,
                     status: enrollment.status || 'enrolled',
                     grades: courseAssignments, // Start with assignments
                     courseId // Keep for fetching daily tasks later if needed
@@ -79,7 +83,7 @@ const MarksSheet = () => {
                     const dtRes = await dailyTaskAPI.getMy(course.courseId);
                     const tasks = dtRes.data.data || [];
                     const gradedTasks = tasks
-                        .filter(t => t.status === 'graded')
+                        .filter(t => t.status === 'graded' || t.status === 'verified')
                         .sort((a, b) => new Date(a.date || a.createdAt) - new Date(b.date || b.createdAt)) // Oldest first
                         .map((t, index) => ({
                             assessment: `Work Log: ${new Date(t.date || t.createdAt).toLocaleDateString()}`,

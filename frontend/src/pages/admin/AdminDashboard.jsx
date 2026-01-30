@@ -20,7 +20,6 @@ import StatCard from '../../components/ui/StatCard';
 import DataTable from '../../components/ui/DataTable';
 import Badge from '../../components/ui/Badge';
 import { BarChart, DoughnutChart } from '../../components/charts/Charts';
-import AnnouncementsPopup from '../../components/ui/AnnouncementsPopup';
 import { courseAPI, feeAPI, userAPI } from '../../services/api';
 
 const AdminDashboard = () => {
@@ -33,26 +32,27 @@ const AdminDashboard = () => {
 
     useEffect(() => {
         fetchDashboardData();
-    }, []);
+    }, [selectedPeriod]); // Re-fetch or re-filter when period changes
 
     const fetchDashboardData = async () => {
         setIsLoading(true);
         try {
-            // Fetch courses count
-            let totalCourses = 0;
-            try {
-                const coursesRes = await courseAPI.getAll();
-                totalCourses = coursesRes.data.data?.length || 0;
-            } catch (e) { console.log('Courses API error'); }
+            const [coursesRes, studentsRes, feesRes] = await Promise.all([
+                courseAPI.getAll().catch(() => ({ data: { data: [] } })),
+                userAPI.getByRole('student').catch(() => ({ data: { data: [] } })),
+                feeAPI.getAll().catch(() => ({ data: { data: [] } }))
+            ]);
 
-            // Fetch students count
-            let totalStudents = 0;
-            try {
-                const studentsRes = await userAPI.getByRole('student');
-                totalStudents = studentsRes.data.data?.length || 0;
-            } catch (e) { console.log('Students API error'); }
+            const totalCourses = coursesRes.data.data?.length || 0;
+            const totalStudents = studentsRes.data.data?.length || 0;
+            const fees = feesRes.data.data || [];
 
-            // Fetch fees data
+            // Revenue calculation logic based on periods
+            const now = new Date();
+            const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay()));
+            const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+            const startOfYear = new Date(now.getFullYear(), 0, 1);
+
             let totalRevenue = 0;
             let pendingFees = 0;
             let verifiedCount = 0;
@@ -60,52 +60,68 @@ const AdminDashboard = () => {
             let rejectedCount = 0;
             let feeSubmissions = [];
 
-            try {
-                const feesRes = await feeAPI.getAll();
-                const fees = feesRes.data.data || [];
+            // Period-specific revenue
+            let weeklyRevenue = 0;
+            let monthlyRevenue = 0;
+            let yearlyRevenue = 0;
 
-                fees.forEach(fee => {
-                    fee.installments?.forEach(inst => {
-                        if (inst.status === 'verified') {
-                            totalRevenue += inst.amount || 0;
-                            verifiedCount++;
-                        } else if (inst.status === 'pending' || inst.status === 'under_review') {
-                            pendingFees += inst.amount || 0;
-                            pendingCount++;
-                        } else if (inst.status === 'rejected') {
-                            rejectedCount++;
-                        }
+            fees.forEach(fee => {
+                fee.installments?.forEach(inst => {
+                    const paidDate = inst.paidAt || inst.verifiedAt || fee.createdAt;
+                    const amount = inst.amount || 0;
+                    const dateObj = new Date(paidDate);
 
-                        // Collect recent submissions for the table
-                        if (inst.receiptUrl) {
-                            feeSubmissions.push({
-                                id: `${fee._id}-${inst.installmentNumber}`,
-                                student: fee.student?.name || 'Unknown',
-                                course: fee.course?.title || 'Unknown Course',
-                                amount: `Rs ${(inst.amount || 0).toLocaleString()}`,
-                                date: new Date(inst.uploadedAt || fee.createdAt).toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' }),
-                                status: inst.status === 'under_review' ? 'pending' : inst.status
-                            });
-                        }
-                    });
+                    if (inst.status === 'verified') {
+                        totalRevenue += amount;
+                        verifiedCount++;
+
+                        // Aggregate by period
+                        if (dateObj >= startOfWeek) weeklyRevenue += amount;
+                        if (dateObj >= startOfMonth) monthlyRevenue += amount;
+                        if (dateObj >= startOfYear) yearlyRevenue += amount;
+                    } else if (inst.status === 'pending' || inst.status === 'under_review' || inst.status === 'submitted') {
+                        pendingFees += amount;
+                        pendingCount++;
+                    } else if (inst.status === 'rejected') {
+                        rejectedCount++;
+                    }
+
+                    // Collect recent submissions for the table
+                    if (inst.receiptUrl || inst.status === 'submitted') {
+                        feeSubmissions.push({
+                            id: inst._id || `${fee._id}-${inst.installmentNumber}`,
+                            student: fee.user?.name || 'Unknown', // FIXED: user instead of student
+                            course: fee.course?.title || 'Unknown Course',
+                            amount: `Rs ${amount.toLocaleString()}`,
+                            date: new Date(paidDate).toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' }),
+                            status: inst.status === 'under_review' ? 'pending' : (inst.status === 'submitted' ? 'pending' : inst.status),
+                            paidAt: dateObj
+                        });
+                    }
                 });
-            } catch (e) { console.log('Fee API error:', e); }
+            });
+
+            // Sort submissions by date
+            feeSubmissions.sort((a, b) => b.paidAt - a.paidAt);
+
+            const displayRevenue = selectedPeriod === 'weekly' ? weeklyRevenue :
+                selectedPeriod === 'monthly' ? monthlyRevenue : yearlyRevenue;
 
             setStats([
                 {
-                    title: 'Total Revenue',
-                    value: `Rs ${totalRevenue.toLocaleString()}`,
+                    title: `${selectedPeriod.charAt(0).toUpperCase() + selectedPeriod.slice(1)} Revenue`,
+                    value: `Rs ${displayRevenue.toLocaleString()}`,
                     change: '',
                     changeType: 'positive',
                     icon: DollarSign,
-                    iconBg: 'bg-emerald-100',
-                    iconColor: 'text-emerald-600',
+                    iconBg: 'bg-orange-100', // Matches theme
+                    iconColor: 'text-[#ff8e01]',
                 },
                 {
-                    title: 'Pending Fees',
-                    value: `Rs ${pendingFees.toLocaleString()}`,
+                    title: 'Verification Needed',
+                    value: pendingCount.toString(),
                     change: '',
-                    changeType: pendingFees > 0 ? 'negative' : 'positive',
+                    changeType: pendingCount > 0 ? 'negative' : 'positive',
                     icon: Clock,
                     iconBg: 'bg-amber-100',
                     iconColor: 'text-amber-600',
@@ -131,7 +147,14 @@ const AdminDashboard = () => {
             ]);
 
             setRecentFees(feeSubmissions.slice(0, 5));
-            setFeeStats({ verified: verifiedCount, pending: pendingCount, rejected: rejectedCount });
+            setFeeStats({
+                verified: verifiedCount,
+                pending: pendingCount,
+                rejected: rejectedCount,
+                weekly: weeklyRevenue,
+                monthly: monthlyRevenue,
+                yearly: yearlyRevenue
+            });
 
         } catch (error) {
             console.error('Error fetching dashboard data:', error);
@@ -165,10 +188,10 @@ const AdminDashboard = () => {
             accessor: 'student',
             render: (row) => (
                 <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-sm font-medium">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#394251] to-[#222d38] flex items-center justify-center text-white text-[10px] font-black border border-white/10 uppercase italic">
                         {row.student.charAt(0)}
                     </div>
-                    <span className="font-medium text-gray-900">{row.student}</span>
+                    <span className="font-bold text-gray-900 text-sm uppercase italic tracking-tighter">{row.student}</span>
                 </div>
             ),
         },
@@ -200,13 +223,17 @@ const AdminDashboard = () => {
         },
     ];
 
-    // Bar chart data for monthly revenue (placeholder - would need time-series data from backend)
+    // Dynamic bar chart data
     const barChartData = {
-        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+        labels: selectedPeriod === 'weekly' ? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] :
+            selectedPeriod === 'monthly' ? ['Week 1', 'Week 2', 'Week 3', 'Week 4'] :
+                ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
         datasets: [
             {
-                data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, stats[0]?.value ? parseInt(stats[0].value.replace(/[^\d]/g, '')) || 0 : 0],
-                backgroundColor: '#22C55E',
+                data: selectedPeriod === 'weekly' ? [0, 0, 0, 0, 0, 0, feeStats.weekly || 0] :
+                    selectedPeriod === 'monthly' ? [0, 0, 0, feeStats.monthly || 0] :
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, feeStats.yearly || 0],
+                backgroundColor: '#ff8e01', // Slate/Orange Theme
                 borderRadius: 6,
                 barThickness: 20,
             },
@@ -219,7 +246,7 @@ const AdminDashboard = () => {
         datasets: [
             {
                 data: [feeStats.verified || 1, feeStats.pending || 0, feeStats.rejected || 0],
-                backgroundColor: ['#22C55E', '#F59E0B', '#EF4444'],
+                backgroundColor: ['#ff8e01', '#394251', '#EF4444'], // Theme-aligned
                 borderWidth: 0,
             },
         ],
@@ -228,7 +255,7 @@ const AdminDashboard = () => {
     if (isLoading) {
         return (
             <div className="flex items-center justify-center h-64">
-                <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
+                <Loader2 className="w-8 h-8 animate-spin text-[#ff8e01]" />
                 <span className="ml-2 text-gray-600">Loading dashboard...</span>
             </div>
         );
@@ -240,7 +267,7 @@ const AdminDashboard = () => {
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-gradient-to-r from-[#0D2818] to-[#1A5D3A] rounded-2xl p-6 text-white"
+                className="bg-gradient-to-r from-[#222d38] to-[#394251] rounded-2xl p-6 text-white shadow-xl shadow-slate-900/10"
             >
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <div>
@@ -294,8 +321,8 @@ const AdminDashboard = () => {
                                 <button
                                     key={period}
                                     onClick={() => setSelectedPeriod(period)}
-                                    className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-all ${selectedPeriod === period
-                                        ? 'bg-[#0D2818] text-white'
+                                    className={`px-3 py-1.5 text-sm font-black uppercase tracking-widest rounded-lg transition-all ${selectedPeriod === period
+                                        ? 'bg-[#ff8e01] text-white shadow-lg shadow-orange-900/20'
                                         : 'text-gray-500 hover:bg-gray-100'
                                         }`}
                                 >
@@ -340,9 +367,9 @@ const AdminDashboard = () => {
                     </div>
                     <button
                         onClick={() => navigate('/admin/fee-verification')}
-                        className="text-sm font-medium text-emerald-600 hover:text-emerald-700"
+                        className="text-[10px] font-black uppercase tracking-[0.2em] text-[#ff8e01] hover:text-[#e67e00] transition-colors"
                     >
-                        View All →
+                        View All Portal →
                     </button>
                 </div>
                 {recentFees.length === 0 ? (
@@ -355,7 +382,6 @@ const AdminDashboard = () => {
                 )}
             </motion.div>
             {/* Announcements Popup - Only on Main Dashboard */}
-            <AnnouncementsPopup />
         </div>
     );
 };

@@ -11,7 +11,6 @@ const userSchema = new mongoose.Schema({
     email: {
         type: String,
         required: [true, 'Email is required'],
-        unique: true,
         lowercase: true,
         trim: true
     },
@@ -31,6 +30,10 @@ const userSchema = new mongoose.Schema({
         type: String, // Cloudinary URL
         default: null
     },
+    feeScreenshot: {
+        type: String, // Cloudinary URL or external link
+        default: null
+    },
     role: {
         type: String,
         enum: ['admin', 'teacher', 'student', 'intern', 'job'],
@@ -44,6 +47,11 @@ const userSchema = new mongoose.Schema({
     skills: String,
     experience: String,
     portfolio: String,
+    teachingExperience: String,
+    experienceDetails: String,
+    preferredCity: String,
+    preferredMode: String,
+    cvUrl: String,
     completedTasks: { type: Number, default: 0 },
     rating: { type: Number, default: 0 },
     // Location preference
@@ -54,6 +62,7 @@ const userSchema = new mongoose.Schema({
     },
     // Common fields
     cnic: String,
+    fatherName: String, // Added for all user types
     // Student/Intern specific fields
     dob: Date,
     age: String,
@@ -67,9 +76,16 @@ const userSchema = new mongoose.Schema({
     country: { type: String, default: 'Pakistan' },
     attendType: String, // Physical/Online
     heardAbout: String,
+    // Intern academic fields
+    degree: String,
+    university: String,
+    department: String,
+    semester: String,
+    rollNumber: String,
+    cgpa: String,
+    majorSubjects: String,
     // Teacher specific
     specialization: String,
-    department: String,
     qualification: String,
     // Verification status
     isVerified: {
@@ -84,6 +100,9 @@ const userSchema = new mongoose.Schema({
 }, {
     timestamps: true
 });
+
+// Compound unique index for email and role
+userSchema.index({ email: 1, role: 1 }, { unique: true });
 
 // Hash password before saving - DISABLED AS PER USER REQUEST
 // userSchema.pre('save', async function (next) {

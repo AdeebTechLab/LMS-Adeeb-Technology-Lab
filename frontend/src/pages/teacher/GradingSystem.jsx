@@ -34,7 +34,9 @@ const GradingSystem = () => {
             // Fetch courses where this teacher is assigned
             const coursesRes = await courseAPI.getAll();
             const allCourses = coursesRes.data.data || [];
-            const teacherCourses = allCourses.filter(c => c.teacher?._id === user?._id);
+            const teacherCourses = allCourses.filter(c =>
+                c.teachers?.some(t => String(t._id || t) === String(user?._id))
+            );
             setCourses(teacherCourses);
 
             // Fetch assignments for each course
@@ -121,6 +123,28 @@ const GradingSystem = () => {
         } catch (error) {
             console.error('Error saving grade:', error);
             alert(error.response?.data?.message || 'Failed to save grade');
+        } finally {
+            setIsSaving(null);
+        }
+    };
+
+    const handleRejectSubmission = async (submission) => {
+        if (!confirm('Are you sure you want to reject this submission? The student will be notified to resubmit.')) return;
+
+        setIsSaving(submission.id);
+        try {
+            await assignmentAPI.grade(submission.assignmentId, submission.id, 0, '', 'rejected');
+
+            // Update local state
+            setSubmissions(prev => prev.map(s =>
+                s.id === submission.id
+                    ? { ...s, status: 'rejected', currentGrade: 0 }
+                    : s
+            ));
+            alert('Submission rejected successfully');
+        } catch (error) {
+            console.error('Error rejecting grade:', error);
+            alert(error.response?.data?.message || 'Failed to reject submission');
         } finally {
             setIsSaving(null);
         }
@@ -280,6 +304,15 @@ const GradingSystem = () => {
                                     )}
                                     Save
                                 </button>
+                                {submission.status !== 'rejected' && (
+                                    <button
+                                        onClick={() => handleRejectSubmission(submission)}
+                                        disabled={isSaving === submission.id}
+                                        className="px-4 py-2 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg font-medium transition-all flex items-center gap-2 disabled:opacity-50"
+                                    >
+                                        Reject
+                                    </button>
+                                )}
                             </div>
                         </div>
 

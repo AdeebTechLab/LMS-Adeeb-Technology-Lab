@@ -27,8 +27,10 @@ const authSlice = createSlice({
             state.user = action.payload.user;
             state.token = action.payload.token;
             state.role = action.payload.user.role;
+            const loginTime = new Date().getTime();
             localStorage.setItem('token', action.payload.token);
             localStorage.setItem('user', JSON.stringify(action.payload.user));
+            localStorage.setItem('loginTime', loginTime.toString());
         },
         loginFailure: (state, action) => {
             state.isLoading = false;
@@ -43,6 +45,7 @@ const authSlice = createSlice({
             state.error = null;
             localStorage.removeItem('token');
             localStorage.removeItem('user');
+            localStorage.removeItem('loginTime');
         },
         clearError: (state) => {
             state.error = null;

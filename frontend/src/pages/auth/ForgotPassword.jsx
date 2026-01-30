@@ -5,6 +5,7 @@ import { authAPI } from '../../services/api';
 
 const ForgotPassword = () => {
     const [email, setEmail] = useState('');
+    const [role, setRole] = useState('student'); // Default role
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
     const [error, setError] = useState('');
@@ -16,7 +17,7 @@ const ForgotPassword = () => {
         setSuccess(false);
 
         try {
-            await authAPI.forgotPassword(email);
+            await authAPI.forgotPassword({ email, role });
             setSuccess(true);
         } catch (err) {
             setError(err.response?.data?.message || 'Something went wrong. Please try again.');
@@ -67,6 +68,28 @@ const ForgotPassword = () => {
                         </div>
                     ) : (
                         <form onSubmit={handleSubmit} className="space-y-4">
+                            {/* Role Selection */}
+                            <div className="mb-4">
+                                <label className="block text-gray-300 text-sm font-medium mb-2">
+                                    Select Role
+                                </label>
+                                <div className="grid grid-cols-2 gap-2">
+                                    {['student', 'teacher', 'intern', 'job'].map((r) => (
+                                        <button
+                                            key={r}
+                                            type="button"
+                                            onClick={() => setRole(r)}
+                                            className={`py-2 px-3 rounded-xl text-xs font-semibold border transition-all ${role === r
+                                                ? 'bg-white text-gray-900 border-white shadow-lg'
+                                                : 'bg-white/5 text-gray-300 border-white/10 hover:bg-white/10'
+                                                } capitalize`}
+                                        >
+                                            {r}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
                             {error && (
                                 <div className="bg-red-500/20 border border-red-500/50 rounded-lg p-3 flex items-center gap-2">
                                     <AlertCircle className="w-4 h-4 text-red-400" />

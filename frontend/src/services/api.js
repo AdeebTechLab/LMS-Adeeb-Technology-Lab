@@ -48,7 +48,7 @@ export const authAPI = {
     updateProfile: (formData) => api.put('/auth/profile', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
     }),
-    forgotPassword: (email) => api.post('/auth/forgot-password', { email }),
+    forgotPassword: (data) => api.post('/auth/forgot-password', data),
     resetPassword: (token, password) => api.post(`/auth/reset-password/${token}`, { password })
 };
 
@@ -91,7 +91,8 @@ export const feeAPI = {
         headers: { 'Content-Type': 'multipart/form-data' }
     }),
     verify: (feeId, installmentId) => api.put(`/fees/${feeId}/installments/${installmentId}/verify`),
-    setInstallments: (feeId, installments) => api.post(`/fees/${feeId}/installments`, { installments })
+    setInstallments: (feeId, installments) => api.post(`/fees/${feeId}/installments`, { installments }),
+    deleteInstallment: (feeId, installmentId) => api.delete(`/fees/${feeId}/installments/${installmentId}`)
 };
 
 // Attendance APIs
@@ -111,7 +112,9 @@ export const assignmentAPI = {
         headers: { 'Content-Type': 'multipart/form-data' }
     }),
     grade: (assignmentId, submissionId, marks, feedback, status) =>
-        api.put(`/assignments/${assignmentId}/grade/${submissionId}`, { marks, feedback, status })
+        api.put(`/assignments/${assignmentId}/grade/${submissionId}`, { marks, feedback, status }),
+    update: (id, data) => api.put(`/assignments/${id}`, data),
+    delete: (id) => api.delete(`/assignments/${id}`)
 };
 
 // Certificate APIs
@@ -138,9 +141,6 @@ export const taskAPI = {
         headers: { 'Content-Type': 'multipart/form-data' }
     }),
     complete: (id) => api.put(`/tasks/${id}/complete`),
-    addMessage: (id, text) => api.post(`/tasks/${id}/messages`, { text }),
-    getMessages: (id) => api.get(`/tasks/${id}/messages`),
-    markAsRead: (id) => api.put(`/tasks/${id}/read`),
     delete: (id) => api.delete(`/tasks/${id}`)
 };
 
@@ -158,6 +158,16 @@ export const notificationAPI = {
     create: (data) => api.post('/notifications', data),
     update: (id, data) => api.put(`/notifications/${id}`, data),
     delete: (id) => api.delete(`/notifications/${id}`)
+};
+
+// Chat APIs
+export const chatAPI = {
+    getMessages: (otherUserId) => api.get(`/chat/messages/${otherUserId}`),
+    sendMessage: (recipientId, text) => api.post('/chat/messages', { recipientId, text }),
+    getConversations: () => api.get('/chat/conversations'),
+    markAsRead: (senderId) => api.put(`/chat/read/${senderId}`),
+    getUnread: () => api.get('/chat/unread'),
+    deleteConversation: (userId) => api.delete(`/chat/conversations/${userId}`)
 };
 
 export default api;

@@ -140,20 +140,29 @@ router.put('/:assignmentId/grade/:submissionId', protect, authorize('teacher', '
 });
 
 // @route   GET /api/assignments/my
-// @desc    Get assignments for current user
+// @desc    Get assignments for current user (only those created after user registration)
 // @access  Private
 router.get('/my', protect, async (req, res) => {
     try {
-        // Get user's enrolled courses (including pending or completed)
+        // Get user's enrolled courses and registration date
         const enrollments = await Enrollment.find({ user: req.user.id });
         const courseIds = enrollments.map(e => e.course);
+
+        // Get user registration date from first enrollment (all should have same registrationDate)
+        const userRegistrationDate = enrollments.length > 0 && enrollments[0].registrationDate
+            ? enrollments[0].registrationDate
+            : new Date(0); // Fallback to epoch if no registration date
 
         // Get assignments for those courses
         const assignments = await Assignment.find({
             course: { $in: courseIds },
             $or: [
-                { assignTo: 'all' },
-                { assignedUsers: req.user.id }
+                {
+                    createdAt: { $gte: userRegistrationDate },
+                    assignTo: 'all'
+                },
+                { assignedUsers: req.user.id },
+                { "submissions.user": req.user.id } // Always include if there's a submission
             ]
         })
             .populate('course', 'title')
@@ -171,6 +180,45 @@ router.get('/my', protect, async (req, res) => {
         });
 
         res.json({ success: true, assignments: sanitizedAssignments });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// @route   PUT /api/assignments/:id
+// @desc    Update assignment
+// @access  Private (Teacher, Admin)
+router.put('/:id', protect, authorize('teacher', 'admin'), async (req, res) => {
+    try {
+        const assignment = await Assignment.findByIdAndUpdate(
+            req.params.id,
+            req.body,
+            { new: true, runValidators: true }
+        );
+
+        if (!assignment) {
+            return res.status(404).json({ success: false, message: 'Assignment not found' });
+        }
+
+        res.json({ success: true, assignment });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// @route   DELETE /api/assignments/:id
+// @desc    Delete assignment
+// @access  Private (Teacher, Admin)
+router.delete('/:id', protect, authorize('teacher', 'admin'), async (req, res) => {
+    try {
+        const assignment = await Assignment.findById(req.params.id);
+
+        if (!assignment) {
+            return res.status(404).json({ success: false, message: 'Assignment not found' });
+        }
+
+        await assignment.deleteOne();
+        res.json({ success: true, message: 'Assignment deleted' });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }

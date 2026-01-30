@@ -14,14 +14,21 @@ const courseSchema = new mongoose.Schema({
         type: Number,
         required: [true, 'Fee is required']
     },
-    duration: {
-        type: String,
-        required: [true, 'Duration is required']
+    durationMonths: {
+        type: Number,
+        required: [true, 'Duration is required'],
+        min: [1, 'Duration must be at least 1 month'],
+        max: [10, 'Duration cannot exceed 10 months']
     },
-    teacher: {
+    city: {
+        type: String,
+        enum: ['Bahawalpur', 'Islamabad'],
+        required: [true, 'City is required']
+    },
+    teachers: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
-    },
+    }],
     jober: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
@@ -36,14 +43,6 @@ const courseSchema = new mongoose.Schema({
         enum: ['islamabad', 'bahawalpur'],
         required: [true, 'Location is required']
     },
-    startDate: {
-        type: Date,
-        required: [true, 'Start date is required']
-    },
-    endDate: {
-        type: Date,
-        required: [true, 'End date is required']
-    },
     maxStudents: {
         type: Number,
         default: 50
@@ -52,10 +51,9 @@ const courseSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
-    status: {
-        type: String,
-        enum: ['active', 'completed', 'upcoming'],
-        default: 'upcoming'
+    isActive: {
+        type: Boolean,
+        default: true
     },
     category: {
         type: String,
@@ -67,19 +65,6 @@ const courseSchema = new mongoose.Schema({
     }
 }, {
     timestamps: true
-});
-
-// Update status based on dates
-courseSchema.pre('save', function (next) {
-    const now = new Date();
-    if (now < this.startDate) {
-        this.status = 'upcoming';
-    } else if (now >= this.startDate && now <= this.endDate) {
-        this.status = 'active';
-    } else {
-        this.status = 'completed';
-    }
-    next();
 });
 
 module.exports = mongoose.model('Course', courseSchema);

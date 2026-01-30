@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const { protect, authorize } = require('../middleware/auth');
 const User = require('../models/User');
+const Fee = require('../models/Fee');
+const { uploadPhoto } = require('../config/cloudinary');
 
 // @route   GET /api/users
 // @desc    Get all users (admin only)
@@ -30,6 +32,16 @@ router.get('/pending-counts', protect, authorize('admin'), async (req, res) => {
             acc[curr._id] = curr.count;
             return acc;
         }, {});
+
+        // Count pending fees (installments that are 'submitted' OR 'pending')
+        const feeCounts = await Fee.aggregate([
+            { $unwind: '$installments' },
+            { $match: { 'installments.status': { $in: ['submitted', 'pending'] } } },
+            { $count: 'count' }
+        ]);
+
+        // Add to result (default to 0 if no results)
+        result.fees = feeCounts.length > 0 ? feeCounts[0].count : 0;
 
         res.json({ success: true, data: result });
     } catch (error) {
@@ -67,9 +79,16 @@ router.get('/:id', protect, authorize('admin'), async (req, res) => {
 // @route   PUT /api/users/:id
 // @desc    Update user (admin only)
 // @access  Private/Admin
-router.put('/:id', protect, authorize('admin'), async (req, res) => {
+router.put('/:id', protect, authorize('admin'), uploadPhoto.single('photo'), async (req, res) => {
     try {
-        const user = await User.findByIdAndUpdate(req.params.id, req.body, {
+        const updateData = { ...req.body };
+
+        // If photo uploaded, update path
+        if (req.file) {
+            updateData.photo = req.file.path;
+        }
+
+        const user = await User.findByIdAndUpdate(req.params.id, updateData, {
             new: true,
             runValidators: true
         }).select('-password');
@@ -146,9 +165,9 @@ router.put('/:id/unverify', protect, authorize('admin'), async (req, res) => {
 });
 
 // @route   GET /api/users/role/:role/verified
-// @desc    Get only verified users by role (admin only)
-// @access  Private/Admin
-router.get('/role/:role/verified', protect, authorize('admin'), async (req, res) => {
+// @desc    Get only verified users by role (authenticated users only)
+// @access  Private
+router.get('/role/:role/verified', protect, async (req, res) => {
     try {
         const users = await User.find({ role: req.params.role, isVerified: true }).select('-password');
         res.json({ success: true, data: users });

@@ -9,13 +9,14 @@ const Enrollment = require('../models/Enrollment');
 // @access  Public
 router.get('/', async (req, res) => {
     try {
-        const { targetAudience, location, status, search } = req.query;
+        const { targetAudience, location, city, isActive, search } = req.query;
 
         let query = {};
 
         if (targetAudience) query.targetAudience = targetAudience;
         if (location) query.location = location;
-        if (status) query.status = status;
+        if (city) query.city = city;
+        if (isActive !== undefined) query.isActive = isActive === 'true';
         if (search) {
             query.$or = [
                 { title: { $regex: search, $options: 'i' } },
@@ -24,7 +25,7 @@ router.get('/', async (req, res) => {
         }
 
         const courses = await Course.find(query)
-            .populate('teacher', 'name email specialization')
+            .populate('teachers', 'name email specialization photo')
             .populate('jober', 'name email')
             .sort('-createdAt');
 
@@ -40,7 +41,7 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
     try {
         const course = await Course.findById(req.params.id)
-            .populate('teacher', 'name email specialization photo')
+            .populate('teachers', 'name email specialization photo')
             .populate('jober', 'name email');
 
         if (!course) {

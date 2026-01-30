@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
     Search, UserCheck, UserX, Trash2, User, Mail, Phone, MapPin,
-    Briefcase, Loader2, RefreshCw, CheckCircle, Clock, Star, FileText
+    Briefcase, Loader2, RefreshCw, CheckCircle, Clock, Star, FileText, Edit2, Save, Camera, Upload, Plus
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
@@ -14,7 +14,11 @@ const JobsManagement = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [filterStatus, setFilterStatus] = useState('all');
     const [confirmModal, setConfirmModal] = useState({ open: false, action: null, user: null });
+    const [editModal, setEditModal] = useState({ open: false, user: null });
+    const [editForm, setEditForm] = useState({});
     const [isProcessing, setIsProcessing] = useState(false);
+    const [selectedFile, setSelectedFile] = useState(null);
+    const [photoPreview, setPhotoPreview] = useState(null);
 
     useEffect(() => {
         fetchJobUsers();
@@ -75,6 +79,54 @@ const JobsManagement = () => {
         } finally {
             setIsProcessing(false);
             setConfirmModal({ open: false, action: null, user: null });
+        }
+    };
+
+    const handleEditClick = (user) => {
+        setEditModal({ open: true, user });
+        setSelectedFile(null);
+        setPhotoPreview(user.photo || null);
+        setEditForm({
+            name: user.name || '',
+            email: user.email || '',
+            phone: user.phone || '',
+            cnic: user.cnic || '',
+            fatherName: user.fatherName || user.guardianName || '',
+            city: user.city || '',
+            qualification: user.qualification || '',
+            teachingExperience: user.teachingExperience || '',
+            experienceDetails: user.experienceDetails || '',
+            skills: user.skills || '',
+            preferredCity: user.preferredCity || '',
+            preferredMode: user.preferredMode || '',
+            heardAbout: user.heardAbout || ''
+        });
+    };
+
+    const handleUpdate = async (e) => {
+        e.preventDefault();
+        setIsProcessing(true);
+        try {
+            const formData = new FormData();
+            Object.keys(editForm).forEach(key => {
+                if (editForm[key] !== null && editForm[key] !== undefined) {
+                    formData.append(key, editForm[key]);
+                }
+            });
+
+            if (selectedFile) {
+                formData.append('photo', selectedFile);
+            }
+
+            const res = await userAPI.update(editModal.user._id, formData);
+            setJobUsers(prev => prev.map(u => u._id === editModal.user._id ? res.data.data : u));
+            setEditModal({ open: false, user: null });
+            setSelectedFile(null);
+            setPhotoPreview(null);
+        } catch (error) {
+            console.error('Error updating user:', error);
+        } finally {
+            setIsProcessing(false);
         }
     };
 
@@ -241,6 +293,13 @@ const JobsManagement = () => {
                                         </button>
                                     )}
                                     <button
+                                        onClick={() => handleEditClick(user)}
+                                        className="p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl"
+                                        title="Edit Bio"
+                                    >
+                                        <Edit2 className="w-5 h-5" />
+                                    </button>
+                                    <button
                                         onClick={() => setConfirmModal({ open: true, action: 'delete', user })}
                                         className="p-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl"
                                     >
@@ -280,7 +339,7 @@ const JobsManagement = () => {
                 {confirmModal.user && (
                     <div className="space-y-4">
                         <div className={`p-4 rounded-xl text-center ${confirmModal.action === 'delete' ? 'bg-red-50' :
-                                confirmModal.action === 'verify' ? 'bg-purple-50' : 'bg-amber-50'
+                            confirmModal.action === 'verify' ? 'bg-purple-50' : 'bg-amber-50'
                             }`}>
                             {confirmModal.action === 'verify' && <UserCheck className="w-12 h-12 text-purple-600 mx-auto mb-2" />}
                             {confirmModal.action === 'unverify' && <UserX className="w-12 h-12 text-amber-600 mx-auto mb-2" />}
@@ -315,10 +374,10 @@ const JobsManagement = () => {
                                 }
                                 disabled={isProcessing}
                                 className={`flex-1 py-3 rounded-xl font-medium flex items-center justify-center gap-2 ${confirmModal.action === 'delete'
-                                        ? 'bg-red-600 hover:bg-red-700 text-white'
-                                        : confirmModal.action === 'verify'
-                                            ? 'bg-purple-600 hover:bg-purple-700 text-white'
-                                            : 'bg-amber-500 hover:bg-amber-600 text-white'
+                                    ? 'bg-red-600 hover:bg-red-700 text-white'
+                                    : confirmModal.action === 'verify'
+                                        ? 'bg-purple-600 hover:bg-purple-700 text-white'
+                                        : 'bg-amber-500 hover:bg-amber-600 text-white'
                                     }`}
                             >
                                 {isProcessing ? (
@@ -335,6 +394,211 @@ const JobsManagement = () => {
                         </div>
                     </div>
                 )}
+            </Modal>
+
+            {/* Edit Modal */}
+            <Modal
+                isOpen={editModal.open}
+                onClose={() => setEditModal({ open: false, user: null })}
+                title="Edit Applicant Bio"
+                size="lg"
+            >
+                <form onSubmit={handleUpdate} className="space-y-4">
+                    {/* Profile Picture Section */}
+                    <div className="flex flex-col items-center justify-center pb-6 border-b border-gray-100 mb-6">
+                        <div className="relative group">
+                            <div className="w-24 h-24 rounded-2xl bg-gray-100 flex items-center justify-center overflow-hidden border-2 border-dashed border-gray-200 group-hover:border-emerald-500 transition-all">
+                                {photoPreview ? (
+                                    <img src={photoPreview} alt="Preview" className="w-full h-full object-cover" />
+                                ) : (
+                                    <Camera className="w-8 h-8 text-gray-400" />
+                                )}
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                    <Upload className="w-6 h-6 text-white" />
+                                </div>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => {
+                                        const file = e.target.files[0];
+                                        if (file) {
+                                            setSelectedFile(file);
+                                            setPhotoPreview(URL.createObjectURL(file));
+                                        }
+                                    }}
+                                    className="absolute inset-0 opacity-0 cursor-pointer"
+                                />
+                            </div>
+                            <div className="absolute -bottom-2 -right-2 bg-emerald-600 text-white p-1.5 rounded-lg shadow-lg">
+                                <Plus className="w-3.5 h-3.5" />
+                            </div>
+                        </div>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-3">Click to update profile photo</p>
+                    </div>
+
+                    {/* Personal Information */}
+                    <h3 className="font-semibold text-gray-900 pb-2 border-b">Personal Information</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">Full Name *</label>
+                            <input
+                                type="text"
+                                value={editForm.name}
+                                onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none"
+                                required
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">Email Address *</label>
+                            <input
+                                type="email"
+                                value={editForm.email}
+                                onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none"
+                                required
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">Father Name</label>
+                            <input
+                                type="text"
+                                value={editForm.fatherName}
+                                onChange={(e) => setEditForm({ ...editForm, fatherName: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">Phone Number</label>
+                            <input
+                                type="text"
+                                value={editForm.phone}
+                                onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">CNIC Number</label>
+                            <input
+                                type="text"
+                                value={editForm.cnic}
+                                onChange={(e) => setEditForm({ ...editForm, cnic: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">Home City</label>
+                            <select
+                                value={editForm.city}
+                                onChange={(e) => setEditForm({ ...editForm, city: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none"
+                            >
+                                <option value="">Select City</option>
+                                <option value="Bahawalpur">Bahawalpur</option>
+                                <option value="Islamabad">Islamabad</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    {/* Professional Details */}
+                    <h3 className="font-semibold text-gray-900 pb-2 border-b mt-6">Professional Details</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">Qualification</label>
+                            <input
+                                type="text"
+                                value={editForm.qualification}
+                                onChange={(e) => setEditForm({ ...editForm, qualification: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">Teaching Experience</label>
+                            <input
+                                type="text"
+                                value={editForm.teachingExperience}
+                                onChange={(e) => setEditForm({ ...editForm, teachingExperience: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none"
+                            />
+                        </div>
+                        <div className="md:col-span-2 space-y-2">
+                            <label className="text-sm font-medium text-gray-700">Skills (Comma separated)</label>
+                            <input
+                                type="text"
+                                value={editForm.skills}
+                                onChange={(e) => setEditForm({ ...editForm, skills: e.target.value })}
+                                placeholder="e.g. Photoshop, Web Design, Data Entry"
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none"
+                            />
+                        </div>
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700">Work Experience Details</label>
+                        <textarea
+                            value={editForm.experienceDetails}
+                            onChange={(e) => setEditForm({ ...editForm, experienceDetails: e.target.value })}
+                            rows={2}
+                            className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none"
+                        />
+                    </div>
+
+                    {/* Preferences & Misc */}
+                    <h3 className="font-semibold text-gray-900 pb-2 border-b mt-6">Preferences & Misc</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">Preferred City</label>
+                            <select
+                                value={editForm.preferredCity}
+                                onChange={(e) => setEditForm({ ...editForm, preferredCity: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none"
+                            >
+                                <option value="">Select City</option>
+                                <option value="Bahawalpur">Bahawalpur</option>
+                                <option value="Islamabad">Islamabad</option>
+                            </select>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">Preferred Mode</label>
+                            <select
+                                value={editForm.preferredMode}
+                                onChange={(e) => setEditForm({ ...editForm, preferredMode: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none"
+                            >
+                                <option value="">Select Mode</option>
+                                <option value="Physical">Physical</option>
+                                <option value="Online">Online</option>
+                                <option value="Both">Both</option>
+                            </select>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">Heard About</label>
+                            <input
+                                type="text"
+                                value={editForm.heardAbout}
+                                onChange={(e) => setEditForm({ ...editForm, heardAbout: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="flex gap-3 pt-4">
+                        <button
+                            type="button"
+                            onClick={() => setEditModal({ open: false, user: null })}
+                            className="flex-1 py-3 text-gray-600 hover:bg-gray-100 rounded-xl font-medium"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={isProcessing}
+                            className="flex-1 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-medium flex items-center justify-center gap-2"
+                        >
+                            {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+                            Update Bio
+                        </button>
+                    </div>
+                </form>
             </Modal>
         </div>
     );

@@ -213,6 +213,7 @@ const StudentAssignmentsTab = ({ course }) => {
                                 <div className="space-y-1">
                                     <Upload className="w-8 h-8 text-gray-400 mx-auto" />
                                     <p className="text-sm text-gray-500">Click to upload file</p>
+                                    <p className="text-xs text-red-500 font-medium">⚠️ Upload file less than 1MB</p>
                                 </div>
                             )}
                         </div>

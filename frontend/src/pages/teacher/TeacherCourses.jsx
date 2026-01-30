@@ -33,8 +33,10 @@ const TeacherCourses = () => {
             const coursesRes = await courseAPI.getAll();
             const allCourses = coursesRes.data.data || [];
 
-            // Filter courses where this teacher is assigned
-            const teacherCourses = allCourses.filter(c => c.teacher?._id === user?._id);
+            // Filter courses where this teacher is assigned (check teachers array)
+            const teacherCourses = allCourses.filter(c =>
+                c.teachers?.some(t => String(t._id || t) === String(user?._id))
+            );
 
             // Get enrollments to count students per course
             let enrollments = [];
@@ -46,26 +48,18 @@ const TeacherCourses = () => {
             // Map courses with student counts and enrollment data
             const coursesWithData = teacherCourses.map(course => {
                 const courseEnrollments = enrollments.filter(e => e.course?._id === course._id);
-                // DEBUG: Check targetAudience
                 console.log(`Course: ${course.title}, Audience: ${course.targetAudience}`);
-
-                // FORCE FIX: Check title
-                let audience = course.targetAudience || 'students';
-                if (course.title && course.title.toLowerCase().includes('gen')) {
-                    audience = 'interns';
-                }
 
                 return {
                     id: course._id,
-                    _id: course._id, // Keep both for compatibility
+                    _id: course._id,
                     name: course.title,
                     internCount: courseEnrollments.length,
-                    startDate: course.startDate,
-                    endDate: course.endDate,
+                    durationMonths: course.durationMonths,
+                    city: course.city,
                     status: course.isActive !== false ? 'active' : 'inactive',
                     location: course.location,
-                    duration: course.duration,
-                    targetAudience: audience,
+                    targetAudience: course.targetAudience || 'students',
                     enrollments: courseEnrollments
                 };
             });
@@ -149,8 +143,8 @@ const TeacherCourses = () => {
                                         <BookOpen className="w-7 h-7 text-white" />
                                     </div>
                                     <div className="flex flex-col items-end gap-2">
-                                        <Badge variant={course.status === 'active' ? 'success' : 'warning'}>
-                                            {course.status}
+                                        <Badge variant="info">
+                                            {course.city || course.location}
                                         </Badge>
                                         <span className={`text-xs px-2 py-1 rounded font-medium ${course.targetAudience === 'interns'
                                             ? 'bg-purple-100 text-purple-700'
@@ -166,10 +160,10 @@ const TeacherCourses = () => {
                                         <Users className="w-4 h-4" />
                                         {course.internCount} Enrolled
                                     </span>
-                                    {course.startDate && (
+                                    {course.durationMonths && (
                                         <span className="flex items-center gap-1">
-                                            <Calendar className="w-4 h-4" />
-                                            {new Date(course.startDate).toLocaleDateString()}
+                                            <Clock className="w-4 h-4" />
+                                            {course.durationMonths} {course.durationMonths === 1 ? 'month' : 'months'}
                                         </span>
                                     )}
                                 </div>
@@ -197,7 +191,7 @@ const TeacherCourses = () => {
                         <ChevronLeft className="w-4 h-4" />
                         Back to Courses
                     </button>
-                    <h1 className="text-2xl font-bold text-gray-900">{selectedCourse.name}</h1>
+                    <h1 className="text-2xl font-bold text-gray-900">{selectedCourse.name || 'Course Management'}</h1>
                     <div className="flex items-center gap-3 mt-1">
                         <span className={`px-2 py-0.5 rounded text-xs font-medium ${selectedCourse.targetAudience === 'interns'
                             ? 'bg-purple-100 text-purple-700'

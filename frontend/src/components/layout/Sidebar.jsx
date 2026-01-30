@@ -60,14 +60,16 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             const res = await assignmentAPI.getMy();
             const assignments = res.data.assignments || [];
 
-            // Count assignments that are:
-            // 1. Not submitted yet
-            // 2. Deadline has not passed
             const count = assignments.filter(a => {
                 const mySub = a.submissions?.find(s => (s.user?._id || s.user) === (user?._id || user?.id));
                 const isSubmitted = !!mySub;
+                const isRejected = mySub?.status === 'rejected';
                 const isDeadlinePassed = new Date(a.dueDate) < new Date();
-                return !isSubmitted && !isDeadlinePassed;
+
+                // Count if: 
+                // 1. Never submitted AND deadline not passed
+                // 2. OR Submitted but REJECTED (needs action regardless of deadline usually)
+                return (!isSubmitted && !isDeadlinePassed) || isRejected;
             }).length;
 
             setPendingCount(count);
@@ -94,13 +96,15 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 { id: 'interns', label: 'Interns', icon: Users, path: '/admin/interns', badge: adminPendingCounts.intern },
                 { id: 'jobs', label: 'Freelancers', icon: Briefcase, path: '/admin/jobs', badge: adminPendingCounts.job },
                 { id: 'notifications', label: 'Notifications', icon: Bell, path: '/admin/notifications' },
-                { id: 'fees', label: 'Fee Verification', icon: CreditCard, path: '/admin/fees' },
+                { id: 'fees', label: 'Fee Verification', icon: CreditCard, path: '/admin/fees', badge: adminPendingCounts.fees },
             ],
             teacher: [
+                { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/teacher/dashboard' },
                 { id: 'profile', label: 'My Profile', icon: User, path: '/teacher/profile' },
                 { id: 'attendance', label: 'My Courses', icon: BookOpen, path: '/teacher/attendance' },
             ],
             student: [
+                { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/student/dashboard' },
                 { id: 'profile', label: 'My Profile', icon: User, path: '/student/profile' },
                 { id: 'courses', label: 'Courses', icon: BookOpen, path: '/student/courses' },
                 { id: 'fees', label: 'Fee Payment', icon: CreditCard, path: '/student/fees' },
@@ -109,6 +113,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 { id: 'attendance', label: 'My Attendance', icon: Calendar, path: '/student/attendance' },
             ],
             intern: [
+                { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/intern/dashboard' },
                 { id: 'profile', label: 'My Profile', icon: User, path: '/intern/profile' },
                 { id: 'courses', label: 'Browse Courses', icon: BookOpen, path: '/intern/courses' },
                 { id: 'fees', label: 'Fee Management', icon: CreditCard, path: '/intern/fees' },
@@ -157,20 +162,31 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
 
             {/* Sidebar */}
             <aside
-                className={`fixed lg:static top-0 left-0 z-50 h-screen w-[280px] bg-[#0D2818] flex flex-col transition-transform duration-300 ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+                className={`fixed lg:static top-0 left-0 z-50 h-screen w-[280px] bg-[#222d38] flex flex-col transition-transform duration-300 ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
                     }`}
             >
-                {/* Logo Section */}
-                <div className="p-6 border-b border-white/10">
+                <div
+                    className="p-6 border-b border-white/10 cursor-pointer hover:bg-white/[0.02] transition-colors"
+                    onClick={() => {
+                        const defaultPages = {
+                            admin: '/admin/dashboard',
+                            teacher: '/teacher/dashboard',
+                            student: '/student/dashboard',
+                            intern: '/intern/dashboard',
+                            job: '/job/tasks'
+                        };
+                        navigate(defaultPages[role] || '/');
+                        setIsOpen(false);
+                    }}
+                >
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-gradient-to-br from-emerald-400 to-green-600 rounded-xl flex items-center justify-center overflow-hidden">
+                            <div className="w-10 h-10 bg-gradient-to-br from-[#ff8e01] to-[#ffab40] rounded-xl flex items-center justify-center overflow-hidden shadow-lg shadow-orange-900/20">
                                 <img
                                     src="/logo.png"
                                     alt="Logo"
                                     className="w-full h-full object-cover"
                                     onError={(e) => {
-                                        // Fallback to Icon if image doesn't exist
                                         e.target.style.display = 'none';
                                         e.target.nextSibling.style.display = 'block';
                                     }}
@@ -178,12 +194,15 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                                 <GraduationCap className="w-6 h-6 text-white hidden" />
                             </div>
                             <div>
-                                <h1 className="text-white font-bold text-lg">AdeebTechLab</h1>
-                                <p className="text-emerald-300/60 text-xs">{getRoleDisplayName()} Portal</p>
+                                <h1 className="text-white font-bold text-lg tracking-tight">AdeebTechLab</h1>
+                                <p className="text-[#ff8e01]/70 text-[10px] font-black uppercase tracking-[0.2em]">{getRoleDisplayName()} Portal</p>
                             </div>
                         </div>
                         <button
-                            onClick={() => setIsOpen(false)}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setIsOpen(false);
+                            }}
                             className="lg:hidden text-white/60 hover:text-white"
                         >
                             <X className="w-5 h-5" />
@@ -192,20 +211,20 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 </div>
 
                 {/* User Info */}
-                <div className="p-4 mx-4 mt-4 bg-white/5 rounded-xl">
+                <div className="p-4 mx-4 mt-4 bg-white/5 rounded-xl border border-white/5 shadow-inner">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white font-semibold">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#394251] to-[#222d38] flex items-center justify-center text-white font-semibold border border-white/10">
                             {user?.name?.charAt(0) || 'U'}
                         </div>
                         <div className="flex-1 min-w-0">
                             <p className="text-white font-medium text-sm truncate">
                                 {user?.name || 'User'}
                             </p>
-                            <p className="text-emerald-300/60 text-xs truncate">
+                            <p className="text-white/40 text-xs truncate">
                                 {user?.email || 'user@example.com'}
                             </p>
                         </div>
-                        <ChevronDown className="w-4 h-4 text-white/40" />
+                        <ChevronDown className="w-4 h-4 text-white/30" />
                     </div>
                 </div>
 
@@ -218,9 +237,9 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                                     to={item.path}
                                     onClick={() => setIsOpen(false)}
                                     className={({ isActive }) =>
-                                        `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${isActive
-                                            ? 'bg-gradient-to-r from-emerald-500/20 to-transparent text-white border-l-4 border-emerald-400'
-                                            : 'text-white/60 hover:text-white hover:bg-white/5'
+                                        `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 group ${isActive
+                                            ? 'bg-[#394251] text-white border-l-4 border-[#ff8e01] shadow-lg shadow-black/20'
+                                            : 'text-white/60 hover:text-white hover:bg-[#394251]/50'
                                         }`
                                     }
                                 >
@@ -230,7 +249,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                                         <motion.span
                                             initial={{ scale: 0 }}
                                             animate={{ scale: 1 }}
-                                            className="bg-red-500 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow-sm shadow-red-900/20"
+                                            className="bg-[#ff8e01] text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow-lg shadow-[#ff8e01]/20"
                                         >
                                             {pendingCount}
                                         </motion.span>
@@ -239,7 +258,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                                         <motion.span
                                             initial={{ scale: 0 }}
                                             animate={{ scale: 1 }}
-                                            className="bg-red-500 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow-sm shadow-red-900/20"
+                                            className="bg-[#ff8e01] text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow-lg shadow-[#ff8e01]/20"
                                         >
                                             {item.badge}
                                         </motion.span>

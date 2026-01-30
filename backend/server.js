@@ -26,6 +26,7 @@ const certificateRoutes = require('./routes/certificates');
 const taskRoutes = require('./routes/tasks');
 const dailyTasksRoutes = require('./routes/dailyTasks');
 const notificationRoutes = require('./routes/notifications');
+const chatRoutes = require('./routes/chat');
 
 // Import attendance lock function
 const { lockTodayAttendance } = require('./controllers/attendanceController');
@@ -47,14 +48,35 @@ const io = require('socket.io')(server, {
 io.on('connection', (socket) => {
     console.log('🔌 New client connected');
 
-    socket.on('join_task', (taskId) => {
-        socket.join(taskId);
-        console.log(`👤 User joined task room: ${taskId}`);
+    socket.on('join_chat', (userId) => {
+        const room = userId.toString();
+        socket.join(room);
+        socket.userId = room; // Store user identifier on socket
+        console.log(`👤 User joined personal chat room: ${room}`);
     });
 
-    socket.on('send_message', (data) => {
-        console.log(`💬 Message in room ${data.taskId}: ${data.text}`);
-        io.to(data.taskId).emit('new_message', data);
+    socket.on('send_global_message', async (data) => {
+        const targetRoom = data.recipientId.toString();
+        const senderRoom = data.senderId.toString();
+
+        console.log(`💬 Global Message from ${senderRoom} to ${targetRoom}: ${data.text}`);
+
+        // Ensure recipient is in room if connected
+        const socketsInRoom = io.sockets.adapter.rooms.get(targetRoom);
+        if (!socketsInRoom || socketsInRoom.size === 0) {
+            const allSockets = await io.fetchSockets();
+            for (const s of allSockets) {
+                if (s.userId === targetRoom) {
+                    s.join(targetRoom);
+                    console.log(`🔄 Auto-joined socket ${s.id} to room ${targetRoom}`);
+                }
+            }
+        }
+
+        // Emit to recipient
+        io.to(targetRoom).emit('new_global_message', data);
+        // Emit back to sender
+        io.to(senderRoom).emit('new_global_message', data);
     });
 
     socket.on('disconnect', () => {
@@ -87,18 +109,20 @@ app.use('/api/certificates', certificateRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/daily-tasks', dailyTasksRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/chat', chatRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', socket: !!io });
 });
 
-cron.schedule('0 12 * * *', async () => {
+// Attendance lock cron job - Runs daily at 12:00 AM
+cron.schedule('0 0 * * *', async () => {
     try {
         await lockTodayAttendance();
-        console.log('✅ Attendance locked');
+        console.log('✅ Daily Attendance locking completed');
     } catch (error) {
-        console.error('❌ Lock failed:', error);
+        console.error('❌ Attendance lock failed:', error);
     }
 });
 

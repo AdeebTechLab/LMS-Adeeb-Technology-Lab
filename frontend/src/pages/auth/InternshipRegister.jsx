@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
     ArrowLeft, Loader2, User, Mail, Phone, CreditCard, Calendar,
-    MapPin, BookOpen, Building, GraduationCap, FileText, Camera, Receipt, ChevronDown
+    MapPin, BookOpen, Building, GraduationCap, FileText, Camera, Receipt, ChevronDown, Eye, EyeOff, Users, Briefcase
 } from 'lucide-react';
 import { authAPI } from '../../services/api';
 
@@ -23,7 +23,6 @@ const HEARD_OPTIONS = [
     'YouTube', 'Event / Seminar', 'Friends & Family', 'Other'
 ];
 
-// Define components OUTSIDE to prevent re-creation and focus loss
 const InputField = ({ label, name, type = 'text', icon: Icon, placeholder, value, onChange, error, ...props }) => (
     <div>
         <label className="block text-sm font-medium text-gray-700 mb-1.5">{label}</label>
@@ -69,7 +68,11 @@ const InternshipRegister = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [errors, setErrors] = useState({});
     const [apiError, setApiError] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+    const [feeFile, setFeeFile] = useState(null);
+    const [photoFile, setPhotoFile] = useState(null);
     const [formData, setFormData] = useState({
         fullName: '',
         fatherName: '',
@@ -93,7 +96,8 @@ const InternshipRegister = () => {
         internType: '',
         requirements: [],
         resumeUrl: '',
-        pictureUrl: '',
+        guardianPhone: '',
+        guardianOccupation: '',
         feeUrl: '',
         reason: '',
         heardAbout: '',
@@ -105,11 +109,26 @@ const InternshipRegister = () => {
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
+
+        let finalValue = type === 'checkbox' ? checked : value;
+
         setFormData(prev => ({
             ...prev,
-            [name]: type === 'checkbox' ? checked : value
+            [name]: finalValue
         }));
         if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
+    };
+
+    const handleFeeChange = (e) => {
+        if (e.target.files[0]) {
+            setFeeFile(e.target.files[0]);
+        }
+    };
+
+    const handlePhotoChange = (e) => {
+        if (e.target.files[0]) {
+            setPhotoFile(e.target.files[0]);
+        }
     };
 
     const handleRequirementChange = (value) => {
@@ -182,18 +201,36 @@ const InternshipRegister = () => {
             submitData.append('cnic', formData.cnic);
             submitData.append('dob', formData.dob);
             submitData.append('gender', formData.gender);
-            submitData.append('guardianName', formData.fatherName);
+            submitData.append('fatherName', formData.fatherName);
+            submitData.append('guardianName', formData.fatherName); // Keep fallback if needed
             submitData.append('address', formData.homeAddress);
             submitData.append('city', formData.city);
             submitData.append('education', `${formData.degree} - ${formData.university}`);
+            submitData.append('degree', formData.degree);
+            submitData.append('university', formData.university);
+            submitData.append('department', formData.department);
+            submitData.append('semester', formData.semester);
+            submitData.append('rollNumber', formData.rollNumber);
+            submitData.append('cgpa', formData.cgpa);
+            submitData.append('majorSubjects', formData.majorSubjects);
             submitData.append('attendType', formData.internType);
             submitData.append('heardAbout', formData.heardAbout);
+            submitData.append('guardianPhone', formData.guardianPhone);
+            submitData.append('guardianOccupation', formData.guardianOccupation);
+
+            if (feeFile) {
+                submitData.append('feeScreenshot', feeFile);
+            }
+
+            if (photoFile) {
+                submitData.append('photo', photoFile);
+            }
 
             await authAPI.register(submitData);
             navigate('/login', {
                 state: {
-                    message: 'Registration successful! Your account is now pending admin verification. You will be able to log in once an admin approves your request.',
-                    isPending: true
+                    message: 'Registration successful! You can now login with your credentials.',
+                    isPending: false
                 }
             });
         } catch (err) {
@@ -267,9 +304,33 @@ const InternshipRegister = () => {
                             <InputField label="Contact Number *" name="contact" type="tel" icon={Phone} placeholder="+92 300 1234567" value={formData.contact} onChange={handleChange} error={errors.contact} />
                             <InputField label="Email Address *" name="email" type="email" icon={Mail} placeholder="your@email.com" value={formData.email} onChange={handleChange} error={errors.email} />
                             <InputField label="City *" name="city" icon={MapPin} placeholder="Your city" value={formData.city} onChange={handleChange} error={errors.city} />
-                            <div className="md:col-span-2">
-                                <InputField label="Home Address *" name="homeAddress" icon={MapPin} placeholder="Complete address" value={formData.homeAddress} onChange={handleChange} error={errors.homeAddress} />
-                            </div>
+                        </div>
+
+                        {/* Guardian Information */}
+                        <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-2 border-b flex items-center gap-2">
+                            <Users className="w-5 h-5 text-blue-600" /> Guardian Information
+                        </h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
+                            <InputField
+                                label="Guardian Phone"
+                                name="guardianPhone"
+                                icon={Phone}
+                                placeholder="Guardian's Phone"
+                                value={formData.guardianPhone}
+                                onChange={handleChange}
+                            />
+                            <InputField
+                                label="Guardian Occupation"
+                                name="guardianOccupation"
+                                icon={Briefcase}
+                                placeholder="Guardian's Occupation"
+                                value={formData.guardianOccupation}
+                                onChange={handleChange}
+                            />
+                        </div>
+
+                        <div className="md:col-span-2 mb-8">
+                            <InputField label="Home Address *" name="homeAddress" icon={MapPin} placeholder="Complete address" value={formData.homeAddress} onChange={handleChange} error={errors.homeAddress} />
                         </div>
 
                         {/* Educational Details */}
@@ -326,8 +387,35 @@ const InternshipRegister = () => {
                         </h2>
                         <div className="grid grid-cols-1 gap-5 mb-8">
                             <InputField label="Resume / CV (Google Drive Link)" name="resumeUrl" type="url" icon={FileText} placeholder="https://drive.google.com/..." value={formData.resumeUrl} onChange={handleChange} error={errors.resumeUrl} />
-                            <InputField label="Picture URL (Drive/Social Media)" name="pictureUrl" type="url" icon={Camera} placeholder="https://..." value={formData.pictureUrl} onChange={handleChange} error={errors.pictureUrl} />
-                            <InputField label="Registration Fee Screenshot (Link)" name="feeUrl" type="url" icon={Receipt} placeholder="https://drive.google.com/..." value={formData.feeUrl} onChange={handleChange} error={errors.feeUrl} />
+
+                            <div className="space-y-2">
+                                <label className="block text-sm font-medium text-gray-700 mb-1.5 flex items-center gap-2">
+                                    <Camera className="w-4 h-4 text-gray-400" /> Profile Picture Upload <span className="text-gray-400 font-normal">(Optional)</span>
+                                </label>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handlePhotoChange}
+                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all bg-gray-50/50"
+                                />
+                                <p className="mt-1 text-xs text-red-500 font-medium">⚠️ Upload image less than 1MB</p>
+                                {errors.photo && <p className="mt-1 text-sm text-red-500">{errors.photo}</p>}
+                                {photoFile && <p className="mt-1 text-sm text-blue-600">Selected: {photoFile.name}</p>}
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="block text-sm font-medium text-gray-700 mb-1.5 break-words flex items-center gap-2">
+                                    <Receipt className="w-4 h-4 text-gray-400" /> Registration Fee Screenshot <span className="text-gray-400 font-normal">(Optional)</span>
+                                </label>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handleFeeChange}
+                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all bg-gray-50/50"
+                                />
+                                <p className="mt-1 text-xs text-red-500 font-medium">⚠️ Upload image less than 1MB</p>
+                                {feeFile && <p className="mt-1 text-sm text-blue-600">Selected: {feeFile.name}</p>}
+                            </div>
                         </div>
 
                         {/* Additional Info */}
@@ -349,8 +437,48 @@ const InternshipRegister = () => {
                         {/* Account Setup */}
                         <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-2 border-b">Account Setup</h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
-                            <InputField label="Password *" name="password" type="password" placeholder="Create a password" value={formData.password} onChange={handleChange} error={errors.password} />
-                            <InputField label="Confirm Password *" name="confirmPassword" type="password" placeholder="Confirm password" value={formData.confirmPassword} onChange={handleChange} error={errors.confirmPassword} />
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1.5">Password *</label>
+                                <div className="relative">
+                                    <input
+                                        type={showPassword ? 'text' : 'password'}
+                                        name="password"
+                                        value={formData.password}
+                                        onChange={handleChange}
+                                        placeholder="Create a password"
+                                        className={`w-full px-4 py-3 border ${errors.password ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all bg-gray-50/50`}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                    >
+                                        {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                    </button>
+                                </div>
+                                {errors.password && <p className="mt-1 text-sm text-red-500">{errors.password}</p>}
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1.5">Confirm Password *</label>
+                                <div className="relative">
+                                    <input
+                                        type={showConfirmPassword ? 'text' : 'password'}
+                                        name="confirmPassword"
+                                        value={formData.confirmPassword}
+                                        onChange={handleChange}
+                                        placeholder="Confirm password"
+                                        className={`w-full px-4 py-3 border ${errors.confirmPassword ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all bg-gray-50/50`}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                    >
+                                        {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                    </button>
+                                </div>
+                                {errors.confirmPassword && <p className="mt-1 text-sm text-red-500">{errors.confirmPassword}</p>}
+                            </div>
                         </div>
 
                         {/* Checkboxes */}
@@ -413,15 +541,15 @@ const InternshipRegister = () => {
                 </div>
 
                 {/* Content */}
-                <div className="relative z-10 flex flex-col items-center justify-center w-full p-12">
-                    {/* Logo & Branding */}
+                <div className="relative z-10 flex flex-col items-center justify-center w-full h-full p-12">
+                    {/* Logo & Branding - Centered */}
                     <motion.div
-                        initial={{ opacity: 0, y: -20 }}
-                        animate={{ opacity: 1, y: 0 }}
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: 0.3, duration: 0.5 }}
-                        className="mb-8 flex flex-col items-center"
+                        className="flex flex-col items-center"
                     >
-                        <div className="w-20 h-20 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 overflow-hidden mb-4 shadow-xl">
+                        <div className="w-32 h-32 bg-white/10 backdrop-blur-md rounded-3xl flex items-center justify-center border border-white/20 overflow-hidden mb-6 shadow-2xl">
                             <img
                                 src="/logo.png"
                                 alt="AdeebTechLab Logo"
@@ -431,42 +559,11 @@ const InternshipRegister = () => {
                                     e.target.nextSibling.style.display = 'block';
                                 }}
                             />
-                            <GraduationCap className="w-10 h-10 text-white hidden" />
+                            <GraduationCap className="w-16 h-16 text-white hidden" />
                         </div>
-                        <h2 className="text-white text-2xl font-bold tracking-tight">AdeebTechLab</h2>
-                        <p className="text-white/60 text-sm mt-1">Empowering Your Tech Journey</p>
+                        <h1 className="text-white text-4xl font-bold tracking-tight mb-2">AdeebTechLab</h1>
+                        <p className="text-white/70 text-lg">Empowering Your Tech Journey</p>
                     </motion.div>
-
-                    {/* Illustration */}
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 0.4, duration: 0.6 }}
-                        className="relative w-full h-full flex items-center justify-center p-12"
-                    >
-                        <div className="relative w-full max-w-md aspect-[3/4] group">
-                            {/* Outer Glow */}
-                            <div className="absolute -inset-4 bg-blue-500/20 rounded-[2.5rem] blur-2xl group-hover:bg-blue-500/30 transition-all duration-500"></div>
-
-                            {/* Glass Frame */}
-                            <div className="absolute inset-0 bg-white/5 backdrop-blur-md rounded-[2rem] border border-white/10 shadow-2xl overflow-hidden">
-                                <img
-                                    src="/loginimage.webp"
-                                    alt="Registration Illustration"
-                                    className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
-                                />
-                                {/* Overlay gradient to blend bottom */}
-                                <div className="absolute inset-0 bg-gradient-to-t from-[#1a1a2e]/60 via-transparent to-transparent"></div>
-                            </div>
-
-                            {/* Floating decorative elements */}
-                            <div className="absolute -top-6 -right-6 w-24 h-24 bg-blue-500/20 rounded-full blur-2xl animate-pulse"></div>
-                            <div className="absolute -bottom-8 -left-8 w-32 h-32 bg-indigo-500/10 rounded-full blur-3xl animate-pulse delay-700"></div>
-                        </div>
-                    </motion.div>
-
-                    {/* Decorative Lines */}
-                    <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-blue-500/10 to-transparent"></div>
                 </div>
             </motion.div>
         </div>
@@ -474,4 +571,3 @@ const InternshipRegister = () => {
 };
 
 export default InternshipRegister;
-

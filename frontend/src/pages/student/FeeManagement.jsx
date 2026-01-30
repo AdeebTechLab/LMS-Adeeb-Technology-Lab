@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
     CreditCard, Upload, Clock, CheckCircle, AlertCircle, FileText, Loader2, RefreshCw, FileImage
@@ -8,6 +9,8 @@ import Modal from '../../components/ui/Modal';
 import { feeAPI } from '../../services/api';
 
 const FeeManagement = () => {
+    const location = useLocation();
+    const successMsg = location.state?.message;
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
     const [selectedFee, setSelectedFee] = useState(null);
     const [selectedInstallment, setSelectedInstallment] = useState(null);
@@ -48,8 +51,8 @@ const FeeManagement = () => {
     const handleFileChange = (e) => {
         const file = e.target.files[0];
         if (file) {
-            if (file.size > 5 * 1024 * 1024) {
-                alert('File size must be less than 5MB');
+            if (file.size > 1 * 1024 * 1024) {
+                alert('File size must be less than 1MB');
                 return;
             }
             setUploadedFile(file);
@@ -143,6 +146,18 @@ const FeeManagement = () => {
                 </div>
             )}
 
+            {/* Success Message */}
+            {successMsg && (
+                <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex items-center gap-3"
+                >
+                    <CheckCircle className="w-5 h-5 text-emerald-500" />
+                    <span className="text-emerald-600 font-medium">{successMsg}</span>
+                </motion.div>
+            )}
+
             {/* Summary Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-2xl p-6 border border-gray-100">
@@ -182,94 +197,141 @@ const FeeManagement = () => {
                 </motion.div>
             </div>
 
-            {/* Payment Methods Instruction */}
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-gradient-to-br from-emerald-900 to-[#0D2818] rounded-3xl p-8 text-white shadow-xl relative overflow-hidden"
-            >
-                <div className="relative z-10">
-                    <div className="flex items-center gap-3 mb-6">
-                        <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center backdrop-blur-md">
+            {/* Payment Methods Section */}
+            <div className="space-y-4">
+                <div className="flex items-center gap-2 mb-2">
+                    <div className="w-1 h-6 bg-emerald-600 rounded-full"></div>
+                    <h2 className="text-xl font-bold text-gray-900">Payment Methods</h2>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {/* HBL Card */}
+                    <motion.div
+                        whileHover={{ y: -5 }}
+                        className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition-all border-l-4 border-l-emerald-600"
+                    >
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="p-2 bg-emerald-50 rounded-lg">
+                                <CreditCard className="w-5 h-5 text-emerald-600" />
+                            </div>
+                            <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest bg-emerald-50 px-2 py-1 rounded-md">Bank Transfer</span>
+                        </div>
+                        <div className="space-y-3">
+                            <div>
+                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Bank Name</p>
+                                <p className="font-bold text-gray-900">HBL</p>
+                            </div>
+                            <div>
+                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Account Name</p>
+                                <p className="font-bold text-gray-900 text-lg">Salman</p>
+                            </div>
+                            <div className="pt-2">
+                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter mb-1">Account Number</p>
+                                <div
+                                    onClick={() => {
+                                        navigator.clipboard.writeText('14737991982703');
+                                        alert('Account number copied!');
+                                    }}
+                                    className="bg-gray-50 p-3 rounded-xl border border-gray-100 font-black text-gray-900 text-lg tracking-widest cursor-pointer hover:bg-emerald-50 hover:border-emerald-100 transition-all select-all flex justify-between items-center"
+                                >
+                                    14737991982703
+                                    <span className="text-[10px] font-bold text-emerald-600 bg-white px-2 py-1 rounded shadow-sm">COPY</span>
+                                </div>
+                            </div>
+                        </div>
+                    </motion.div>
+
+                    {/* JazzCash Card */}
+                    <motion.div
+                        whileHover={{ y: -5 }}
+                        className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition-all border-l-4 border-l-orange-500"
+                    >
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="p-2 bg-orange-50 rounded-lg">
+                                <CreditCard className="w-5 h-5 text-orange-600" />
+                            </div>
+                            <span className="text-[10px] font-black text-orange-600 uppercase tracking-widest bg-orange-50 px-2 py-1 rounded-md">Mobile Wallet</span>
+                        </div>
+                        <div className="space-y-3">
+                            <div>
+                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Provider</p>
+                                <p className="font-bold text-orange-600 text-lg">JAZZCASH</p>
+                            </div>
+                            <div>
+                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Account Name</p>
+                                <p className="font-bold text-gray-900 text-lg">Salman Yasin</p>
+                            </div>
+                            <div className="pt-2">
+                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter mb-1">Phone Number</p>
+                                <div
+                                    onClick={() => {
+                                        navigator.clipboard.writeText('03092333121');
+                                        alert('Number copied!');
+                                    }}
+                                    className="bg-gray-50 p-3 rounded-xl border border-gray-100 font-black text-orange-600 text-2xl tracking-widest cursor-pointer hover:bg-orange-50 hover:border-orange-100 transition-all select-all flex justify-between items-center"
+                                >
+                                    03092333121
+                                    <span className="text-[10px] font-bold text-orange-600 bg-white px-2 py-1 rounded shadow-sm">COPY</span>
+                                </div>
+                            </div>
+                        </div>
+                    </motion.div>
+
+                    {/* Easypaisa Card */}
+                    <motion.div
+                        whileHover={{ y: -5 }}
+                        className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition-all border-l-4 border-l-emerald-400"
+                    >
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="p-2 bg-emerald-50 rounded-lg">
+                                <CreditCard className="w-5 h-5 text-emerald-500" />
+                            </div>
+                            <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest bg-emerald-50 px-2 py-1 rounded-md">Mobile Wallet</span>
+                        </div>
+                        <div className="space-y-3">
+                            <div>
+                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Provider</p>
+                                <p className="font-bold text-emerald-500 text-lg">EASYPAISA</p>
+                            </div>
+                            <div>
+                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Account Name</p>
+                                <p className="font-bold text-gray-900 text-lg">Salman Yasin</p>
+                            </div>
+                            <div className="pt-2">
+                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter mb-1">Phone Number</p>
+                                <div
+                                    onClick={() => {
+                                        navigator.clipboard.writeText('03441713141');
+                                        alert('Number copied!');
+                                    }}
+                                    className="bg-gray-50 p-3 rounded-xl border border-gray-100 font-black text-emerald-600 text-2xl tracking-widest cursor-pointer hover:bg-emerald-50 hover:border-emerald-100 transition-all select-all flex justify-between items-center"
+                                >
+                                    03441713141
+                                    <span className="text-[10px] font-bold text-emerald-600 bg-white px-2 py-1 rounded shadow-sm">COPY</span>
+                                </div>
+                            </div>
+                        </div>
+                    </motion.div>
+                </div>
+
+                {/* Clear Step Banner */}
+                <div className="bg-[#0D2818] rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-4 text-white">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 bg-white/10 rounded-lg">
                             <AlertCircle className="w-5 h-5 text-emerald-400" />
                         </div>
                         <div>
-                            <h2 className="text-xl font-bold">Important Instructions</h2>
-                            <p className="text-emerald-300/80 text-sm">Please follow these steps to pay your fee</p>
+                            <p className="font-bold text-sm">Transfer the amount, take a screenshot, and click "Pay Now" below.</p>
+                            <p className="text-emerald-300/60 text-[10px] uppercase font-bold">Please ensure the Slip ID is correct for verification.</p>
                         </div>
                     </div>
-
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                        {/* Step-by-Step */}
-                        <div className="space-y-4">
-                            <div className="flex gap-4">
-                                <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center font-bold text-emerald-400 border border-emerald-500/30 flex-shrink-0">1</div>
-                                <p className="text-emerald-100/90 text-sm leading-relaxed">
-                                    Send your fee amount to one of the official payment accounts displayed on the right.
-                                </p>
-                            </div>
-                            <div className="flex gap-4">
-                                <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center font-bold text-emerald-400 border border-emerald-500/30 flex-shrink-0">2</div>
-                                <p className="text-emerald-100/90 text-sm leading-relaxed">
-                                    Take a clear **Screenshot** of the successful transaction and note down the **Slip ID** (Transaction ID).
-                                </p>
-                            </div>
-                            <div className="flex gap-4">
-                                <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center font-bold text-emerald-400 border border-emerald-500/30 flex-shrink-0">3</div>
-                                <p className="text-emerald-100/90 text-sm leading-relaxed">
-                                    Click the **"Pay Now"** button below for your respective installment, upload the screenshot, and enter the Slip ID.
-                                </p>
-                            </div>
-                        </div>
-
-                        {/* Account Details */}
-                        <div className="space-y-4">
-                            <div className="bg-white/5 backdrop-blur-md rounded-2xl p-5 border border-white/10">
-                                <div className="flex items-center justify-between mb-4">
-                                    <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-400">Option 1: Bank Transfer</span>
-                                    <Badge variant="success" className="bg-emerald-500/20 text-emerald-400 border-none">Fastest</Badge>
-                                </div>
-                                <div className="space-y-2">
-                                    <div className="flex justify-between items-center text-sm">
-                                        <span className="text-emerald-300/60 font-medium">Bank Name</span>
-                                        <span className="font-bold">HBL</span>
-                                    </div>
-                                    <div className="flex justify-between items-center text-sm">
-                                        <span className="text-emerald-300/60 font-medium">Account Name</span>
-                                        <span className="font-bold">Salman</span>
-                                    </div>
-                                    <div className="flex justify-between items-center text-sm">
-                                        <span className="text-emerald-300/60 font-medium">Account No.</span>
-                                        <span className="font-bold tracking-wider select-all">14737991982703</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="bg-white/5 backdrop-blur-md rounded-2xl p-5 border border-white/10">
-                                <div className="flex items-center justify-between mb-4">
-                                    <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-400">Option 2: Mobile Wallet</span>
-                                    <Badge variant="info" className="bg-blue-500/20 text-blue-400 border-none text-[8px]">JazzCash</Badge>
-                                </div>
-                                <div className="space-y-2">
-                                    <div className="flex justify-between items-center text-sm">
-                                        <span className="text-emerald-300/60 font-medium">Account Name</span>
-                                        <span className="font-bold">Salman Yasin</span>
-                                    </div>
-                                    <div className="flex justify-between items-center text-sm">
-                                        <span className="text-emerald-300/60 font-medium">Account No.</span>
-                                        <span className="font-bold tracking-wider select-all">03092333121</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                    <div className="flex gap-2">
+                        <div className="px-3 py-1 bg-white/5 rounded-full text-[10px] font-bold border border-white/10">1. TRANSFER</div>
+                        <div className="px-3 py-1 bg-white/5 rounded-full text-[10px] font-bold border border-white/10">2. SCREENSHOT</div>
+                        <div className="px-3 py-1 bg-white/5 rounded-full text-[10px] font-bold border border-white/10">3. UPLOAD</div>
                     </div>
                 </div>
-
-                {/* Decorative Pattern */}
-                <div className="absolute top-0 right-0 p-4 opacity-10">
-                    <CreditCard className="w-32 h-32 -mr-8 -mt-8 rotate-12" />
-                </div>
-            </motion.div>
+            </div>
 
             {/* Fees List */}
             {fees.length === 0 ? (
@@ -390,7 +452,8 @@ const FeeManagement = () => {
                                         <Upload className="w-6 h-6" />
                                     </div>
                                     <p className="text-gray-900 font-medium mb-1">Click to upload receipt</p>
-                                    <p className="text-sm text-gray-400">PNG, JPG up to 5MB</p>
+                                    <p className="text-xs text-red-500 font-medium mb-1">⚠️ Upload image less than 1MB</p>
+                                    <p className="text-sm text-gray-400">PNG, JPG, HEIC, WebP</p>
                                     <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
                                 </label>
                             )}

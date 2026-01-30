@@ -191,7 +191,7 @@ const RoleSelection = () => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.5, duration: 0.5 }}
-                        className="mb-8 flex flex-col items-center -mt-56 relative z-20"
+                        className="mb-8 flex flex-col items-center -mt-85 relative z-20"
                     >
                         <h2 className="text-white text-3xl font-bold tracking-tight mb-2 text-center">Adeeb Technology Lab</h2>
                         <p className="text-white/60 text-base text-center">Digital tech expert software house LMS</p>

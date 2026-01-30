@@ -5,7 +5,6 @@ import {
     User, Mail, Phone, MapPin, CreditCard,
     Edit2, Save, X, Camera, BookOpen, GraduationCap, Briefcase, Loader2
 } from 'lucide-react';
-import AnnouncementsPopup from '../../components/ui/AnnouncementsPopup';
 import { authAPI, courseAPI } from '../../services/api';
 import { updateUser } from '../../features/auth/authSlice';
 
@@ -42,8 +41,10 @@ const TeacherProfile = () => {
         try {
             const response = await courseAPI.getAll();
             const allCourses = response.data.data || [];
-            // Filter courses where this teacher is assigned
-            const teacherCourses = allCourses.filter(c => c.teacher?._id === user?._id);
+            // Filter courses where this teacher is assigned (check teachers array)
+            const teacherCourses = allCourses.filter(c =>
+                c.teachers?.some(t => String(t._id || t) === String(user?._id))
+            );
             setMyCourses(teacherCourses);
             // Calculate total students
             const students = teacherCourses.reduce((sum, c) => sum + (c.enrolledCount || 0), 0);
@@ -276,7 +277,6 @@ const TeacherProfile = () => {
                 </motion.div>
             </div>
             {/* Announcements Popup - Only on Main Profile Page */}
-            <AnnouncementsPopup />
         </div>
     );
 };

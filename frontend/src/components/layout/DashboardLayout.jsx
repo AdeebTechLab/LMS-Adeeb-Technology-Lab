@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import Sidebar from './Sidebar';
 import NotificationPopup from '../shared/NotificationPopup';
+import ChatWidget from '../shared/ChatWidget';
 
 const DashboardLayout = () => {
     const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -23,8 +24,22 @@ const DashboardLayout = () => {
 
     // Get current page title from path
     const getPageTitle = () => {
-        const path = location.pathname.split('/').pop();
-        return path.charAt(0).toUpperCase() + path.slice(1).replace(/-/g, ' ');
+        const segments = location.pathname.split('/').filter(Boolean);
+        const lastSegment = segments[segments.length - 1];
+
+        if (!lastSegment) return 'Dashboard';
+
+        // Check if last segment is a MongoDB ObjectId (24 hex characters)
+        const isObjectId = /^[0-9a-fA-F]{24}$/.test(lastSegment);
+
+        if (isObjectId) {
+            // If it's a course ID, check the previous segment
+            const prevSegment = segments[segments.length - 2];
+            if (prevSegment === 'course') return 'Course Details';
+            return 'Details';
+        }
+
+        return lastSegment.charAt(0).toUpperCase() + lastSegment.slice(1).replace(/-/g, ' ');
     };
 
     // Mock notifications
@@ -85,7 +100,7 @@ const DashboardLayout = () => {
                                 >
                                     <Bell className="w-5 h-5 text-gray-600" />
                                     {unreadCount > 0 && (
-                                        <span className="absolute top-1.5 right-1.5 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-medium">
+                                        <span className="absolute top-1.5 right-1.5 w-5 h-5 bg-[#ff8e01] text-white text-xs rounded-full flex items-center justify-center font-medium">
                                             {unreadCount}
                                         </span>
                                     )}
@@ -102,7 +117,7 @@ const DashboardLayout = () => {
                                         <div className="p-4 border-b border-gray-100">
                                             <div className="flex items-center justify-between">
                                                 <h3 className="font-semibold text-gray-900">Notifications</h3>
-                                                <button className="text-sm text-emerald-600 hover:text-emerald-700">
+                                                <button className="text-sm text-[#ff8e01] hover:text-[#ffab40]">
                                                     Mark all read
                                                 </button>
                                             </div>
@@ -111,12 +126,12 @@ const DashboardLayout = () => {
                                             {notifications.map((notification) => (
                                                 <div
                                                     key={notification.id}
-                                                    className={`p-4 border-b border-gray-50 hover:bg-gray-50 cursor-pointer transition-colors ${notification.unread ? 'bg-emerald-50/50' : ''
+                                                    className={`p-4 border-b border-gray-50 hover:bg-gray-50 cursor-pointer transition-colors ${notification.unread ? 'bg-[#ff8e01]/5' : ''
                                                         }`}
                                                 >
                                                     <div className="flex items-start gap-3">
                                                         <div
-                                                            className={`w-2 h-2 rounded-full mt-2 ${notification.unread ? 'bg-emerald-500' : 'bg-gray-300'
+                                                            className={`w-2 h-2 rounded-full mt-2 ${notification.unread ? 'bg-[#ff8e01]' : 'bg-gray-300'
                                                                 }`}
                                                         />
                                                         <div>
@@ -146,7 +161,7 @@ const DashboardLayout = () => {
                                     onClick={() => setShowUserMenu(!showUserMenu)}
                                     className="flex items-center gap-3 p-1.5 hover:bg-gray-100 rounded-xl transition-colors"
                                 >
-                                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white font-semibold text-sm">
+                                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#ff8e01] to-[#ffab40] flex items-center justify-center text-white font-semibold text-sm">
                                         {user?.name?.charAt(0) || 'U'}
                                     </div>
                                     <div className="hidden md:block text-left">
@@ -207,6 +222,8 @@ const DashboardLayout = () => {
                     }}
                 />
             )}
+            {/* Global Chat Widget */}
+            <ChatWidget />
         </div>
     );
 };

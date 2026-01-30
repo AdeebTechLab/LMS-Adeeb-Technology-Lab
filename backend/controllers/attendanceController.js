@@ -2,7 +2,7 @@ const Attendance = require('../models/Attendance');
 const Enrollment = require('../models/Enrollment');
 const Course = require('../models/Course');
 
-// Called by cron job at 12:00 PM
+// Called by cron job at 12:00 AM (midnight)
 const lockTodayAttendance = async () => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -70,7 +70,7 @@ const lockTodayAttendance = async () => {
         processedCount++;
     }
 
-    console.log(`✅ Locked ${processedCount} attendance records at 12:00 PM`);
+    console.log(`✅ Locked ${processedCount} attendance records at 12:00 AM`);
     return processedCount;
 };
 

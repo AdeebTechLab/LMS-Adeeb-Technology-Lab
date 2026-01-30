@@ -14,7 +14,7 @@ const photoStorage = new CloudinaryStorage({
     cloudinary: cloudinary,
     params: {
         folder: 'lms/photos',
-        allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'webp'],
+        allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'heic', 'heif', 'bmp', 'tiff'],
         transformation: [{ width: 400, height: 400, crop: 'fill' }]
     }
 });
@@ -24,7 +24,7 @@ const receiptStorage = new CloudinaryStorage({
     cloudinary: cloudinary,
     params: {
         folder: 'lms/receipts',
-        allowed_formats: ['jpg', 'jpeg', 'png', 'pdf', 'webp']
+        allowed_formats: ['jpg', 'jpeg', 'png', 'pdf', 'webp', 'heic', 'heif', 'bmp', 'tiff']
     }
 });
 
@@ -42,9 +42,35 @@ const uploadPhoto = multer({ storage: photoStorage });
 const uploadReceipt = multer({ storage: receiptStorage });
 const uploadSubmission = multer({ storage: submissionStorage });
 
+// Unified storage for registration (handles both photo and receipt)
+const registrationStorage = new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: async (req, file) => {
+        if (file.fieldname === 'photo') {
+            return {
+                folder: 'lms/photos',
+                allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'heic', 'heif', 'bmp', 'tiff'],
+                transformation: [{ width: 400, height: 400, crop: 'fill' }]
+            };
+        } else if (file.fieldname === 'feeScreenshot') {
+            return {
+                folder: 'lms/receipts',
+                allowed_formats: ['jpg', 'jpeg', 'png', 'pdf', 'webp', 'heic', 'heif', 'bmp', 'tiff']
+            };
+        }
+        return {
+            folder: 'lms/others',
+            allowed_formats: ['jpg', 'jpeg', 'png', 'pdf', 'webp']
+        };
+    }
+});
+
+const uploadRegistration = multer({ storage: registrationStorage });
+
 module.exports = {
     cloudinary,
     uploadPhoto,
     uploadReceipt,
-    uploadSubmission
+    uploadSubmission,
+    uploadRegistration
 };

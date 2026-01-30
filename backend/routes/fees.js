@@ -165,6 +165,19 @@ router.put('/:feeId/installments/:installmentId/verify', protect, authorize('adm
             fee.rollNoAssigned = true;
         }
 
+        // Also sync this specific installment verification with Enrollment
+        await Enrollment.findOneAndUpdate(
+            { user: fee.user, course: fee.course, "installments.installmentNumber": installment.installmentNumber || 1 },
+            {
+                $set: {
+                    "installments.$.status": "verified",
+                    "installments.$.paidDate": new Date(),
+                    "installments.$.verifiedBy": req.user.id,
+                    "installments.$.verifiedAt": new Date()
+                }
+            }
+        );
+
         await fee.save();
 
         res.json({ success: true, fee, message: 'Payment verified successfully' });
@@ -206,6 +219,18 @@ router.put('/:feeId/installments/:installmentId/reject', protect, authorize('adm
         installment.slipId = null;
 
         await fee.save();
+
+        // Sync with Enrollment model
+        await Enrollment.findOneAndUpdate(
+            { user: fee.user, course: fee.course, "installments.installmentNumber": installment.installmentNumber || 1 },
+            {
+                $set: {
+                    "installments.$.status": "pending",
+                    "installments.$.paymentProof": null,
+                    "installments.$.paidDate": null
+                }
+            }
+        );
 
         res.json({ success: true, fee, message: 'Payment rejected. Student can now re-upload.' });
     } catch (error) {
@@ -259,8 +284,21 @@ router.post('/:id/installments', protect, authorize('admin'), async (req, res) =
         }
 
         fee.installments = newInstallments;
-
         await fee.save();
+
+        // Sync with Enrollment model if it exists
+        await Enrollment.findOneAndUpdate(
+            { user: fee.user, course: fee.course },
+            {
+                installments: newInstallments.map((inst, index) => ({
+                    installmentNumber: index + 1,
+                    amount: inst.amount,
+                    dueDate: inst.dueDate,
+                    status: inst.status === 'verified' ? 'verified' : 'pending',
+                    paymentProof: inst.receiptUrl
+                }))
+            }
+        );
 
         res.json({ success: true, fee });
     } catch (error) {
@@ -303,6 +341,46 @@ router.get('/all', protect, authorize('admin'), async (req, res) => {
             .sort('-createdAt');
 
         res.json({ success: true, data: fees });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// @route   DELETE /api/fees/:id/installments/:installmentId
+// @desc    Delete a specific installment (admin)
+// @access  Private (Admin)
+router.delete('/:id/installments/:installmentId', protect, authorize('admin'), async (req, res) => {
+    try {
+        const fee = await Fee.findById(req.params.id);
+        if (!fee) return res.status(404).json({ success: false, message: 'Fee not found' });
+
+        // Filter out the installment
+        const initialCount = fee.installments.length;
+        fee.installments = fee.installments.filter(inst => inst._id.toString() !== req.params.installmentId);
+
+        if (fee.installments.length === initialCount) {
+            return res.status(404).json({ success: false, message: 'Installment not found' });
+        }
+
+        // Update fee status
+        fee.updateStatus();
+        await fee.save();
+
+        // Sync with Enrollment model
+        await Enrollment.findOneAndUpdate(
+            { user: fee.user, course: fee.course },
+            {
+                installments: fee.installments.map((inst, index) => ({
+                    installmentNumber: index + 1,
+                    amount: inst.amount,
+                    dueDate: inst.dueDate,
+                    status: inst.status === 'verified' ? 'verified' : 'pending',
+                    paymentProof: inst.receiptUrl
+                }))
+            }
+        );
+
+        res.json({ success: true, message: 'Installment deleted successfully', fee });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }

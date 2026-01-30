@@ -3,13 +3,16 @@ const router = express.Router();
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const { protect } = require('../middleware/auth');
-const { uploadPhoto } = require('../config/cloudinary');
+const { uploadPhoto, uploadRegistration } = require('../config/cloudinary');
 const User = require('../models/User');
 
 // @route   POST /api/auth/register
 // @desc    Register new user
 // @access  Public
-router.post('/register', uploadPhoto.single('photo'), async (req, res) => {
+router.post('/register', uploadRegistration.fields([
+    { name: 'photo', maxCount: 1 },
+    { name: 'feeScreenshot', maxCount: 1 }
+]), async (req, res) => {
     try {
         const {
             name, email, password, phone, role, location,
@@ -19,13 +22,16 @@ router.post('/register', uploadPhoto.single('photo'), async (req, res) => {
             specialization, department, cnic, qualification,
             // Student/Intern fields
             dob, age, gender, education, guardianName, guardianPhone,
-            guardianOccupation, address, city, country, attendType, heardAbout
+            guardianOccupation, address, city, country, attendType, heardAbout,
+            fatherName, degree, university, semester, rollNumber, cgpa, majorSubjects,
+            // Job fields
+            teachingExperience, experienceDetails, preferredCity, preferredMode
         } = req.body;
 
-        // Check if user exists
-        const existingUser = await User.findOne({ email });
+        // Check if user exists for this specific role
+        const existingUser = await User.findOne({ email, role: role || 'student' });
         if (existingUser) {
-            return res.status(400).json({ success: false, message: 'User already exists' });
+            return res.status(400).json({ success: false, message: `Account already exists for this email as a ${role || 'student'}` });
         }
 
         // Create user
@@ -35,12 +41,18 @@ router.post('/register', uploadPhoto.single('photo'), async (req, res) => {
             password,
             phone,
             role: role || 'student',
-            location
+            location,
+            isVerified: true  // Auto-verify all new users
         };
 
         // Add photo if uploaded
-        if (req.file) {
-            userData.photo = req.file.path;
+        if (req.files && req.files['photo']) {
+            userData.photo = req.files['photo'][0].path;
+        }
+
+        // Add fee screenshot if uploaded
+        if (req.files && req.files['feeScreenshot']) {
+            userData.feeScreenshot = req.files['feeScreenshot'][0].path;
         }
 
         // Add role-specific fields
@@ -48,6 +60,15 @@ router.post('/register', uploadPhoto.single('photo'), async (req, res) => {
             userData.skills = skills;
             userData.experience = experience;
             userData.portfolio = portfolio;
+            userData.cnic = cnic;
+            userData.city = city;
+            userData.qualification = qualification;
+            userData.teachingExperience = teachingExperience;
+            userData.experienceDetails = experienceDetails;
+            userData.preferredCity = preferredCity;
+            userData.preferredMode = preferredMode;
+            userData.heardAbout = heardAbout;
+            userData.fatherName = fatherName;
         }
         if (role === 'teacher') {
             userData.specialization = specialization;
@@ -70,6 +91,18 @@ router.post('/register', uploadPhoto.single('photo'), async (req, res) => {
             userData.country = country || 'Pakistan';
             userData.attendType = attendType;
             userData.heardAbout = heardAbout;
+            userData.fatherName = fatherName;
+            userData.degree = degree;
+            userData.university = university;
+            userData.department = department; // Also used for interns
+            userData.semester = semester;
+            userData.rollNumber = rollNumber;
+            userData.cgpa = cgpa;
+            userData.majorSubjects = majorSubjects;
+            // Also support URL if sent as string (fallback)
+            if (req.body.feeScreenshotUrl && !userData.feeScreenshot) {
+                userData.feeScreenshot = req.body.feeScreenshotUrl;
+            }
         }
 
         const user = await User.create(userData);
@@ -104,7 +137,7 @@ router.post('/register', uploadPhoto.single('photo'), async (req, res) => {
                                     <p style="margin: 5px 0;"><strong>Phone:</strong> ${user.phone || 'N/A'}</p>
                                     <p style="margin: 5px 0;"><strong>Signup Date:</strong> ${new Date().toLocaleString()}</p>
                                 </div>
-                                <p>Please log in to the admin dashboard to verify this user.</p>
+                                <p>Please log in to the admin dashboard to view this user. The account has been automatically verified.</p>
                                 <a href="${process.env.CLIENT_URL || 'http://localhost:5173'}/login" style="display: inline-block; padding: 12px 24px; background-color: #0d2818; color: white; text-decoration: none; border-radius: 5px; font-weight: bold; margin-top: 10px;">Login to Admin Panel</a>
                             </div>
                             <div style="background-color: #f1f1f1; padding: 10px; text-align: center; font-size: 12px; color: #666666;">
@@ -123,8 +156,8 @@ router.post('/register', uploadPhoto.single('photo'), async (req, res) => {
 
             return res.status(201).json({
                 success: true,
-                message: 'Registration successful! Your account is pending admin verification. You will be able to login once an admin approves your request.',
-                isPending: true
+                message: 'Registration successful! Your account has been verified. You can now login.',
+                isPending: false
             });
         }
 
@@ -154,15 +187,21 @@ router.post('/register', uploadPhoto.single('photo'), async (req, res) => {
 // @access  Public
 router.post('/login', async (req, res) => {
     try {
-        const { email, password } = req.body;
+        const { email, password, role } = req.body;
 
         // Validate
         if (!email || !password) {
             return res.status(400).json({ success: false, message: 'Please provide email and password' });
         }
 
-        // Check user
-        const user = await User.findOne({ email }).select('+password');
+        // Build query
+        const query = { email };
+        if (role) {
+            query.role = role;
+        }
+
+        // Find user
+        const user = await User.findOne(query).select('+password');
         if (!user) {
             return res.status(401).json({ success: false, message: 'Invalid credentials' });
         }
@@ -173,7 +212,9 @@ router.post('/login', async (req, res) => {
             return res.status(401).json({ success: false, message: 'Invalid credentials' });
         }
 
-        // Check verification status (skip for admins)
+        // Check verification status (skip for admins and job seekers)
+        // Disable verification check for now to allow immediate login
+        /*
         if (user.role !== 'admin' && !user.isVerified) {
             return res.status(403).json({
                 success: false,
@@ -181,6 +222,7 @@ router.post('/login', async (req, res) => {
                 isPending: true
             });
         }
+        */
 
         // Generate token
         const token = user.getSignedJwtToken();
@@ -197,14 +239,34 @@ router.post('/login', async (req, res) => {
                 rollNo: user.rollNo,
                 phone: user.phone,
                 location: user.location,
+                // Job fields
                 skills: user.skills,
                 experience: user.experience,
                 portfolio: user.portfolio,
+                completedTasks: user.completedTasks,
+                rating: user.rating,
+                // Teacher fields
                 specialization: user.specialization,
                 department: user.department,
-                cnic: user.cnic,
                 qualification: user.qualification,
-                isVerified: user.isVerified
+                // Student/Intern fields
+                cnic: user.cnic,
+                dob: user.dob,
+                age: user.age,
+                gender: user.gender,
+                education: user.education,
+                guardianName: user.guardianName,
+                guardianPhone: user.guardianPhone,
+                guardianOccupation: user.guardianOccupation,
+                address: user.address,
+                city: user.city,
+                country: user.country,
+                attendType: user.attendType,
+                heardAbout: user.heardAbout,
+                feeScreenshot: user.feeScreenshot,
+                // Common fields
+                isVerified: user.isVerified,
+                createdAt: user.createdAt
             }
         });
     } catch (error) {
@@ -265,16 +327,16 @@ router.put('/profile', protect, uploadPhoto.single('photo'), async (req, res) =>
 // @access  Public
 router.post('/forgot-password', async (req, res) => {
     try {
-        const { email } = req.body;
+        const { email, role } = req.body;
 
-        if (!email) {
-            return res.status(400).json({ success: false, message: 'Please provide email' });
+        if (!email || !role) {
+            return res.status(400).json({ success: false, message: 'Please provide email and role' });
         }
 
-        const user = await User.findOne({ email });
+        const user = await User.findOne({ email, role });
         if (!user) {
             // Don't reveal if user doesn't exist for security
-            return res.json({ success: true, message: 'If account exists, password reset email has been sent' });
+            return res.json({ success: true, message: 'If account exists for this role, password reset email has been sent' });
         }
 
         // Generate reset token
