@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
     Eye, EyeOff, Mail, Lock, User, ArrowLeft, Loader2, GraduationCap, MapPin, ChevronDown,
-    CreditCard, BookOpen, Phone, Briefcase, Calendar
+    CreditCard, BookOpen, Phone, Briefcase, Calendar, Camera, Upload, X
 } from 'lucide-react';
 import { authAPI } from '../../services/api';
 
@@ -21,6 +21,8 @@ const TeacherRegister = () => {
     const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(false);
     const [apiError, setApiError] = useState('');
+    const [photoFile, setPhotoFile] = useState(null);
+    const [photoPreview, setPhotoPreview] = useState(null);
 
     const [formData, setFormData] = useState({
         name: '',
@@ -126,6 +128,21 @@ const TeacherRegister = () => {
         }
     };
 
+    const handlePhotoChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            if (file.size > 2 * 1024 * 1024) {
+                setErrors(prev => ({ ...prev, photo: 'Image size should be less than 2MB' }));
+                return;
+            }
+            setPhotoFile(file);
+            const reader = new FileReader();
+            reader.onloadend = () => setPhotoPreview(reader.result);
+            reader.readAsDataURL(file);
+            if (errors.photo) setErrors(prev => ({ ...prev, photo: '' }));
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!validateForm()) return;
@@ -148,6 +165,11 @@ const TeacherRegister = () => {
             submitData.append('fatherName', formData.fatherName);
             submitData.append('dob', formData.dob);
             submitData.append('gender', formData.gender);
+            submitData.append('address', formData.address);
+
+            if (photoFile) {
+                submitData.append('photo', photoFile);
+            }
 
             await authAPI.register(submitData);
             navigate('/login', {
@@ -316,6 +338,40 @@ const TeacherRegister = () => {
 
                     {/* Registration Form */}
                     <form onSubmit={handleSubmit} className="space-y-4">
+                        {/* Photo Upload */}
+                        <div className="flex flex-col items-center mb-6">
+                            <div className="relative group">
+                                <div className="w-24 h-24 rounded-2xl bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden transition-all group-hover:border-orange-500">
+                                    {photoPreview ? (
+                                        <img src={photoPreview} alt="Preview" className="w-full h-full object-cover" />
+                                    ) : (
+                                        <div className="text-center">
+                                            <Camera className="w-8 h-8 text-gray-400 mx-auto mb-1" />
+                                            <span className="text-[10px] text-gray-500 font-medium">Photo *</span>
+                                        </div>
+                                    )}
+                                </div>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handlePhotoChange}
+                                    className="absolute inset-0 opacity-0 cursor-pointer"
+                                    id="photo-upload"
+                                />
+                                {photoPreview && (
+                                    <button
+                                        type="button"
+                                        onClick={() => { setPhotoFile(null); setPhotoPreview(null); }}
+                                        className="absolute -top-2 -right-2 p-1 bg-red-500 text-white rounded-full shadow-lg hover:bg-red-600 transition-colors"
+                                    >
+                                        <X className="w-3 h-3" />
+                                    </button>
+                                )}
+                            </div>
+                            <p className="mt-2 text-xs text-gray-500">Upload profile picture (Max 2MB)</p>
+                            {errors.photo && <p className="mt-1 text-xs text-red-500">{errors.photo}</p>}
+                        </div>
+
                         {/* Full Name */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1.5">Full Name *</label>

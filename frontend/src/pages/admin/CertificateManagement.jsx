@@ -83,6 +83,14 @@ const CertificateManagement = () => {
     const handleIssueCertificate = async () => {
         if (!confirmModal.student || !confirmModal.course) return;
 
+        // Add confirmation to prevent accidental issuance
+        const isApprove = !!confirmModal.request;
+        const confirmMessage = isApprove
+            ? `Are you sure you want to APPROVE this request and issue a certificate? This will mark the course as COMPLETED for ${confirmModal.student?.name}.`
+            : `Are you sure you want to ISSUE a certificate to ${confirmModal.student?.name}? This will mark their enrollment as COMPLETED.`;
+
+        if (!window.confirm(confirmMessage)) return;
+
         setIsIssuing(true);
         try {
             if (confirmModal.request) {

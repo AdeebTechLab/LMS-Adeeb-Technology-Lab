@@ -49,7 +49,10 @@ const AdminDashboard = () => {
 
             // Revenue calculation logic based on periods
             const now = new Date();
-            const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay()));
+            const startOfWeek = new Date(now);
+            startOfWeek.setDate(now.getDate() - (now.getDay() === 0 ? 6 : now.getDay() - 1));
+            startOfWeek.setHours(0, 0, 0, 0);
+
             const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
             const startOfYear = new Date(now.getFullYear(), 0, 1);
 
@@ -65,36 +68,54 @@ const AdminDashboard = () => {
             let monthlyRevenue = 0;
             let yearlyRevenue = 0;
 
+            // Chart data arrays
+            const weeklyData = new Array(7).fill(0);
+            const monthlyData = new Array(4).fill(0);
+            const yearlyData = new Array(12).fill(0);
+
             fees.forEach(fee => {
                 fee.installments?.forEach(inst => {
-                    const paidDate = inst.paidAt || inst.verifiedAt || fee.createdAt;
+                    // Critical priority: verifiedAt > paidAt > createdAt
+                    const revenueDate = inst.verifiedAt || inst.paidAt || fee.createdAt;
                     const amount = inst.amount || 0;
-                    const dateObj = new Date(paidDate);
+                    const dateObj = new Date(revenueDate);
 
                     if (inst.status === 'verified') {
                         totalRevenue += amount;
                         verifiedCount++;
 
-                        // Aggregate by period
-                        if (dateObj >= startOfWeek) weeklyRevenue += amount;
-                        if (dateObj >= startOfMonth) monthlyRevenue += amount;
-                        if (dateObj >= startOfYear) yearlyRevenue += amount;
-                    } else if (inst.status === 'pending' || inst.status === 'under_review' || inst.status === 'submitted') {
+                        // Aggregate by period for stats & charts
+                        if (dateObj >= startOfWeek) {
+                            weeklyRevenue += amount;
+                            const day = dateObj.getDay(); // 0 is Sun
+                            const idx = day === 0 ? 6 : day - 1;
+                            weeklyData[idx] += amount;
+                        }
+                        if (dateObj >= startOfMonth) {
+                            monthlyRevenue += amount;
+                            const weekIdx = Math.floor((dateObj.getDate() - 1) / 7);
+                            if (weekIdx < 4) monthlyData[weekIdx] += amount;
+                        }
+                        if (dateObj >= startOfYear) {
+                            yearlyRevenue += amount;
+                            yearlyData[dateObj.getMonth()] += amount;
+                        }
+                    } else if (inst.status === 'pending' || inst.status === 'submitted') {
                         pendingFees += amount;
                         pendingCount++;
                     } else if (inst.status === 'rejected') {
                         rejectedCount++;
                     }
 
-                    // Collect recent submissions for the table
-                    if (inst.receiptUrl || inst.status === 'submitted') {
+                    // Collect submissions for the table (unverified/recent)
+                    if (inst.status === 'submitted' || inst.receiptUrl) {
                         feeSubmissions.push({
                             id: inst._id || `${fee._id}-${inst.installmentNumber}`,
-                            student: fee.user?.name || 'Unknown', // FIXED: user instead of student
+                            student: fee.user?.name || 'Unknown',
                             course: fee.course?.title || 'Unknown Course',
                             amount: `Rs ${amount.toLocaleString()}`,
-                            date: new Date(paidDate).toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' }),
-                            status: inst.status === 'under_review' ? 'pending' : (inst.status === 'submitted' ? 'pending' : inst.status),
+                            date: dateObj.toLocaleDateString('en-US', { day: '2-digit', month: 'short' }),
+                            status: inst.status === 'submitted' ? 'pending' : inst.status,
                             paidAt: dateObj
                         });
                     }
@@ -111,16 +132,25 @@ const AdminDashboard = () => {
                 {
                     title: `${selectedPeriod.charAt(0).toUpperCase() + selectedPeriod.slice(1)} Revenue`,
                     value: `Rs ${displayRevenue.toLocaleString()}`,
-                    change: '',
+                    change: 'Verified Only',
                     changeType: 'positive',
                     icon: DollarSign,
-                    iconBg: 'bg-orange-100', // Matches theme
+                    iconBg: 'bg-orange-100',
                     iconColor: 'text-[#ff8e01]',
+                },
+                {
+                    title: 'Lifetime Revenue',
+                    value: `Rs ${totalRevenue.toLocaleString()}`,
+                    change: 'Total Verified',
+                    changeType: 'positive',
+                    icon: TrendingUp,
+                    iconBg: 'bg-emerald-100',
+                    iconColor: 'text-emerald-600',
                 },
                 {
                     title: 'Verification Needed',
                     value: pendingCount.toString(),
-                    change: '',
+                    change: 'Submitted Receipts',
                     changeType: pendingCount > 0 ? 'negative' : 'positive',
                     icon: Clock,
                     iconBg: 'bg-amber-100',
@@ -129,20 +159,11 @@ const AdminDashboard = () => {
                 {
                     title: 'Total Students',
                     value: totalStudents.toString(),
-                    change: '',
+                    change: 'Enrolled',
                     changeType: 'positive',
                     icon: Users,
                     iconBg: 'bg-blue-100',
                     iconColor: 'text-blue-600',
-                },
-                {
-                    title: 'Active Courses',
-                    value: totalCourses.toString(),
-                    change: '',
-                    changeType: 'positive',
-                    icon: BookOpen,
-                    iconBg: 'bg-purple-100',
-                    iconColor: 'text-purple-600',
                 },
             ]);
 
@@ -151,9 +172,9 @@ const AdminDashboard = () => {
                 verified: verifiedCount,
                 pending: pendingCount,
                 rejected: rejectedCount,
-                weekly: weeklyRevenue,
-                monthly: monthlyRevenue,
-                yearly: yearlyRevenue
+                weeklyData,
+                monthlyData,
+                yearlyData
             });
 
         } catch (error) {
@@ -230,9 +251,9 @@ const AdminDashboard = () => {
                 ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
         datasets: [
             {
-                data: selectedPeriod === 'weekly' ? [0, 0, 0, 0, 0, 0, feeStats.weekly || 0] :
-                    selectedPeriod === 'monthly' ? [0, 0, 0, feeStats.monthly || 0] :
-                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, feeStats.yearly || 0],
+                data: selectedPeriod === 'weekly' ? feeStats.weeklyData :
+                    selectedPeriod === 'monthly' ? feeStats.monthlyData :
+                        feeStats.yearlyData,
                 backgroundColor: '#ff8e01', // Slate/Orange Theme
                 borderRadius: 6,
                 barThickness: 20,

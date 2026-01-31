@@ -32,6 +32,12 @@ const ChatWidget = () => {
 
     const socketRef = useRef();
     const scrollRef = useRef();
+    const activeChatRef = useRef(activeChat);
+    const [incomingNotify, setIncomingNotify] = useState(null); // { senderName, text }
+
+    useEffect(() => {
+        activeChatRef.current = activeChat;
+    }, [activeChat]);
 
     // Show for all authenticated users
     const shouldShow = isAuthenticated;
@@ -48,14 +54,22 @@ const ChatWidget = () => {
         socketRef.current.emit('join_chat', myId);
 
         socketRef.current.on('new_global_message', (data) => {
-            const myId = (user.id || user._id).toString();
-            const senderId = (data.senderId || data.sender?._id || data.sender).toString();
-            const recipientId = (data.recipientId || data.recipient?._id || data.recipient).toString();
+            const myIdStr = (user.id || user._id || '').toString();
+            const senderIdRaw = data.senderId || data.sender?._id || data.sender;
+            const recipientIdRaw = data.recipientId || data.recipient?._id || data.recipient;
+
+            if (!senderIdRaw || !recipientIdRaw) return;
+
+            const senderId = senderIdRaw.toString();
+            const recipientId = recipientIdRaw.toString();
 
             // The 'other side' of the conversation
-            const otherSideId = senderId === myId ? recipientId : senderId;
+            const otherSideId = senderId === myIdStr ? recipientId : senderId;
 
-            if (activeChat && activeChat.userId.toString() === otherSideId) {
+            // Use ref to check active chat without re-binding listener
+            const currentActive = activeChatRef.current;
+
+            if (isOpen && currentActive && currentActive.userId && currentActive.userId.toString() === otherSideId) {
                 setMessages(prev => [...prev, data]);
                 // Mark as read immediately if chat is open
                 chatAPI.markAsRead(otherSideId)
@@ -63,15 +77,24 @@ const ChatWidget = () => {
                     .catch(console.error);
             } else {
                 // If not in this chat, increment unread count immediately for badge
-                if (recipientId === myId) {
+                if (recipientId === myIdStr) {
                     setUnreadCount(prev => prev + 1);
+
+                    // Show a temporary visual notification if widget is closed or on a different screen
+                    setIncomingNotify({
+                        senderName: data.senderName || 'New Message',
+                        text: data.text
+                    });
+                    setTimeout(() => setIncomingNotify(null), 5000);
                 }
 
-                // Then sync with server and update lists
-                fetchUnreadCount();
-                if (user?.role === 'admin') {
-                    fetchConversations();
-                }
+                // Then sync with server and update lists (slight delay to ensure DB sync)
+                setTimeout(() => {
+                    fetchUnreadCount();
+                    if (user?.role === 'admin') {
+                        fetchConversations();
+                    }
+                }, 500);
             }
         });
 
@@ -82,16 +105,11 @@ const ChatWidget = () => {
             // Also fetch messages/check for existing conversation
             const checkExistingChat = async () => {
                 try {
-                    // We need to know who the admin is first, which fetchAdmin does. 
-                    // But we can also just fetch messages if we assume there's only one main admin context
-                    // For now, let's wait for adminUser to be set or just try to get messages
                     const res = await userAPI.getVerifiedByRole('admin');
                     if (res.data.data && res.data.data.length > 0) {
                         const admin = res.data.data[0];
-                        // Fetch messages to see if we have history
                         const msgRes = await chatAPI.getMessages(admin._id);
                         if (msgRes.data.data && msgRes.data.data.length > 0) {
-                            // We have history, auto-open chat
                             startChat(admin);
                         }
                     }
@@ -107,7 +125,7 @@ const ChatWidget = () => {
         return () => {
             socketRef.current?.disconnect();
         };
-    }, [shouldShow, user?.role, activeChat?.userId]);
+    }, [shouldShow, user?.role, (user.id || user._id)]);
 
     const scrollToBottom = (instant = false) => {
         if (!scrollRef.current) return;
@@ -263,23 +281,41 @@ const ChatWidget = () => {
     };
 
     const handleDeleteChat = async () => {
-        if (!confirm('Are you sure you want to delete this conversation? This cannot be undone.')) return;
+        const confirmClear = confirm(
+            "⚠️ CLEAR CHAT HISTORY ONLY?\n\n" +
+            "This will permanently remove all messages with this user.\n" +
+            "The user account will NOT be deleted and will remain in the 'Students/Teachers' sections.\n\n" +
+            "Proceed?"
+        );
+        if (!confirmClear) return;
 
         try {
-            await chatAPI.deleteConversation(activeChat.userId);
+            console.log('[ChatWidget] Calling chatAPI.clearChatHistory...');
+            const res = await chatAPI.clearChatHistory(activeChat.userId);
+            alert(
+                `✅ Success: Chat history cleared.\n\n` +
+                `The user has been removed from the "Recent" list because there are no messages.\n` +
+                `You can find them again in the "Students", "Teachers", or "Freelancers" tabs to start a new chat.`
+            );
             closeChat();
             fetchConversations();
         } catch (e) {
             console.error('Error deleting chat:', e);
-            alert('Failed to delete chat');
+            alert('Failed to clear chat history');
         }
     };
 
     const startChat = (targetUser) => {
-        const targetId = targetUser._id || targetUser.userId;
+        if (!targetUser) return;
+        const targetId = targetUser._id || targetUser.userId || targetUser.id;
+        if (!targetId) {
+            console.error('StartChat failed: No ID found for user', targetUser);
+            return;
+        }
+
         setActiveChat({
             userId: targetId,
-            userName: targetUser.name || targetUser.user?.name
+            userName: targetUser.name || targetUser.user?.name || 'User'
         });
         fetchMessages(targetId);
     };
@@ -332,7 +368,7 @@ const ChatWidget = () => {
                                     <button
                                         onClick={handleDeleteChat}
                                         className="p-3 hover:bg-white/10 rounded-full transition-all text-white/80 hover:text-white hover:bg-red-500/20"
-                                        title="Delete Conversation"
+                                        title="Clear Chat History (Messages Only)"
                                     >
                                         <Trash2 className="w-5 h-5" />
                                     </button>
@@ -364,7 +400,7 @@ const ChatWidget = () => {
                                             {/* Tabs */}
                                             <div className="flex gap-2 mb-4 overflow-x-auto pb-2 scrollbar-hide">
                                                 {[
-                                                    { id: 'all', label: 'All' },
+                                                    { id: 'all', label: 'Recent' },
                                                     { id: 'student', label: 'Students' },
                                                     { id: 'intern', label: 'Interns' },
                                                     { id: 'teacher', label: 'Teachers' },
@@ -397,8 +433,9 @@ const ChatWidget = () => {
                                                 } else {
                                                     // Map of existing convos for this tab for easy lookup
                                                     const convoMap = new Map();
-                                                    conversations.filter(c => c.user.role === activeTab).forEach(c => {
-                                                        convoMap.set(c.user._id.toString(), c);
+                                                    conversations.filter(c => c.user && c.user.role === activeTab).forEach(c => {
+                                                        const uid = c.user?._id || c._id;
+                                                        if (uid) convoMap.set(uid.toString(), c);
                                                     });
 
                                                     // Merge: All users from directory
@@ -436,7 +473,10 @@ const ChatWidget = () => {
 
                                                 // Final Filter & Sort
                                                 const filtered = displayedItems
-                                                    .filter(item => item.userObj.name.toLowerCase().includes(searchQuery.toLowerCase()))
+                                                    .filter(item => {
+                                                        const name = item.userObj?.name || '';
+                                                        return name.toLowerCase().includes(searchQuery.toLowerCase());
+                                                    })
                                                     .sort((a, b) => {
                                                         // Sort by most recent first
                                                         if (a.lastMessageAt && b.lastMessageAt) {
@@ -469,13 +509,13 @@ const ChatWidget = () => {
                                                                 <div className="absolute left-0 top-0 bottom-0 w-1 bg-transparent group-hover:bg-purple-600 transition-all" />
 
                                                                 <div className="w-14 h-14 bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl flex items-center justify-center text-purple-600 font-black text-xl shadow-inner text-center">
-                                                                    {item.userObj.name.charAt(0).toUpperCase()}
+                                                                    {(item.userObj?.name || 'U').charAt(0).toUpperCase()}
                                                                 </div>
                                                                 <div className="flex-1 min-w-0">
                                                                     <div className="flex items-center justify-between mb-1.5">
                                                                         <div className="flex items-center gap-2">
                                                                             <h4 className="font-black text-gray-900 truncate text-base group-hover:text-purple-600 transition-colors">
-                                                                                {item.userObj.name}
+                                                                                {item.userObj?.name || 'Unknown User'}
                                                                             </h4>
                                                                             <span className="px-2 py-0.5 bg-gray-100 text-[10px] rounded-lg font-bold text-gray-500 uppercase tracking-wider">
                                                                                 {item.userObj.role || 'User'}
@@ -588,6 +628,36 @@ const ChatWidget = () => {
                 )}
             </AnimatePresence>
 
+            {/* Incoming Message Notification */}
+            <AnimatePresence>
+                {incomingNotify && !isOpen && (
+                    <motion.div
+                        initial={{ opacity: 0, x: 50, scale: 0.8 }}
+                        animate={{ opacity: 1, x: 0, scale: 1 }}
+                        exit={{ opacity: 0, x: 50, scale: 0.8 }}
+                        onClick={() => {
+                            setIsOpen(true);
+                            setIncomingNotify(null);
+                        }}
+                        className="absolute bottom-20 right-0 w-64 bg-white rounded-2xl shadow-2xl border border-purple-100 p-4 cursor-pointer hover:bg-purple-50 transition-colors z-50 flex items-start gap-3"
+                    >
+                        <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                            <MessageCircle className="w-5 h-5 text-purple-600" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <p className="text-xs font-black text-purple-600 uppercase tracking-widest mb-0.5">{incomingNotify.senderName}</p>
+                            <p className="text-sm text-gray-700 truncate font-medium">{incomingNotify.text}</p>
+                        </div>
+                        <button
+                            onClick={(e) => { e.stopPropagation(); setIncomingNotify(null); }}
+                            className="text-gray-400 hover:text-gray-600"
+                        >
+                            <X className="w-4 h-4" />
+                        </button>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             {/* Bubble */}
             <motion.button
                 whileHover={{ scale: 1.05 }}
@@ -606,7 +676,7 @@ const ChatWidget = () => {
                     </span>
                 )}
             </motion.button>
-        </div>
+        </div >
     );
 };
 

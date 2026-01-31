@@ -6,7 +6,7 @@ import { assignmentAPI } from '../../../services/api';
 import Modal from '../../../components/ui/Modal';
 import { useSelector } from 'react-redux';
 
-const StudentAssignmentsTab = ({ course }) => {
+const StudentAssignmentsTab = ({ course, isRestricted }) => {
     const { user } = useSelector(state => state.auth);
     const [assignments, setAssignments] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -35,6 +35,10 @@ const StudentAssignmentsTab = ({ course }) => {
     };
 
     const handleOpenSubmit = (assignment) => {
+        if (isRestricted) {
+            alert('Submission actions are disabled due to overdue fees.');
+            return;
+        }
         setSelectedAssignment(assignment);
         setIsSubmitModalOpen(true);
         setNotes('');
@@ -47,6 +51,7 @@ const StudentAssignmentsTab = ({ course }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (isRestricted) return;
         setIsSubmitting(true);
 
         try {
@@ -94,7 +99,7 @@ const StudentAssignmentsTab = ({ course }) => {
                             key={assignment._id}
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm"
+                            className={`bg-white rounded-2xl p-6 border border-gray-100 shadow-sm ${isRestricted && !isSubmitted ? 'opacity-70' : ''}`}
                         >
                             <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
                                 <div className="flex-1">
@@ -138,7 +143,7 @@ const StudentAssignmentsTab = ({ course }) => {
                                                     href={submission.fileUrl}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="text-xs text-blue-600 hover:underline flex items-center gap-1"
+                                                    className="text-xs text-blue-600 hover:underline flex items-center gap-1 font-bold"
                                                 >
                                                     <FileText className="w-3 h-3" />
                                                     View Submission
@@ -148,12 +153,12 @@ const StudentAssignmentsTab = ({ course }) => {
                                     ) : (
                                         <button
                                             onClick={() => handleOpenSubmit(assignment)}
-                                            disabled={isOverdue}
-                                            className={`px-5 py-2.5 rounded-xl font-medium transition-colors flex items-center gap-2 text-sm text-white ${isOverdue ? 'bg-gray-400 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-700'
+                                            disabled={isOverdue || isRestricted}
+                                            className={`px-5 py-2.5 rounded-xl font-bold transition-all flex items-center gap-2 text-xs uppercase tracking-widest text-white ${isOverdue || isRestricted ? 'bg-gray-400 cursor-not-allowed shadow-none' : 'bg-emerald-600 hover:bg-emerald-700 shadow-lg shadow-emerald-200 active:scale-95'
                                                 }`}
                                         >
                                             <Upload className="w-4 h-4" />
-                                            Submit Work
+                                            {isRestricted ? 'Locked' : 'Submit Work'}
                                         </button>
                                     )}
                                 </div>

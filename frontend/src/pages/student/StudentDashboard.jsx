@@ -44,7 +44,11 @@ const StudentDashboard = () => {
                 title: e.course?.title || 'Unknown Course',
                 teacher: e.course?.teacher?.name || 'TBA',
                 progress: e.progress || 0,
-                nextClass: e.course?.schedule || 'Check schedule'
+                nextClass: e.course?.schedule || 'Check schedule',
+                isActive: e.isActive,
+                status: e.status,
+                isCompleted: e.status === 'completed',
+                isFirstMonthVerified: e.installments?.[0]?.status === 'verified'
             }));
             setEnrolledCourses(courses);
 
@@ -72,11 +76,19 @@ const StudentDashboard = () => {
                 const allAssignments = assignRes.data.assignments || [];
 
                 // Filter: Assigned to user, not submitted yet, and deadline is in the future
+                // AND only show assignments for courses where at least the first month is verified
                 activeAssignments = allAssignments.filter(a => {
+                    const courseId = a.course?._id || a.course;
+                    const courseEnroll = courses.find(c => c.id === courseId);
+                    const isFirstMonthVerified = courseEnroll?.isFirstMonthVerified;
+
                     const mySub = a.submissions?.find(s => (s.user?._id || s.user) === (user?._id || user?.id));
                     const isSubmitted = !!mySub;
                     const isRejected = mySub?.status === 'rejected';
                     const isDeadlinePassed = new Date(a.dueDate) < new Date();
+
+                    // Only count if course first month is verified
+                    if (!isFirstMonthVerified) return false;
 
                     // Return true if (never submitted AND not expired) OR (Submitted but REJECTED)
                     return (!isSubmitted && !isDeadlinePassed) || isRejected;
@@ -104,10 +116,11 @@ const StudentDashboard = () => {
                 },
                 {
                     title: 'Completed',
-                    value: courses.filter(c => c.progress === 100).length.toString(),
+                    value: courses.filter(c => c.isCompleted || c.progress === 100).length.toString(),
                     icon: CheckCircle,
                     iconBg: 'bg-blue-100',
                     iconColor: 'text-blue-600',
+                    onClick: () => navigate(`/${role}/assignments`)
                 },
                 {
                     title: 'Pending Fees',
@@ -190,7 +203,7 @@ const StudentDashboard = () => {
                         <div>
                             <h2 className="text-2xl font-black mb-1 uppercase italic tracking-tighter">Welcome back, {user?.name?.split(' ')[0] || (role === 'intern' ? 'Intern' : 'Student')}!</h2>
                             <p className="text-white/60 font-bold text-xs uppercase tracking-widest">
-                                {enrolledCourses.length} active enrollments • {pendingAssignments.length} pending tasks
+                                {enrolledCourses.filter(c => c.isActive).length} active enrollments • {pendingAssignments.length} pending tasks
                             </p>
                         </div>
                         <div className="flex gap-3">
@@ -301,14 +314,31 @@ const StudentDashboard = () => {
                                     <motion.div
                                         key={course.id}
                                         whileHover={{ y: -4 }}
-                                        onClick={() => navigate(`../course/${course.id}`)}
+                                        onClick={() => {
+                                            if (course.isCompleted) {
+                                                navigate(`/${role}/assignments`);
+                                            } else {
+                                                navigate(`../course/${course.id}`);
+                                            }
+                                        }}
                                         className="bg-white rounded-3xl p-6 border border-gray-100 cursor-pointer hover:shadow-lg transition-all group"
                                     >
                                         <div className="flex items-start justify-between mb-4">
                                             <div className="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100 group-hover:bg-[#ff8e01] transition-colors shadow-inner">
                                                 <BookOpen className="w-6 h-6 text-slate-600 group-hover:text-white transition-colors" />
                                             </div>
-                                            <Badge variant="success">{course.progress}%</Badge>
+                                            <div className="flex gap-2">
+                                                {course.isCompleted ? (
+                                                    <Badge variant="success">Completed</Badge>
+                                                ) : !course.isFirstMonthVerified ? (
+                                                    <Badge variant="warning">Verification Pending</Badge>
+                                                ) : !course.isActive ? (
+                                                    <Badge variant="danger">Restricted</Badge>
+                                                ) : (
+                                                    <Badge variant="success">Active</Badge>
+                                                )}
+                                                <Badge variant="info">{course.progress}%</Badge>
+                                            </div>
                                         </div>
                                         <h4 className="font-bold text-gray-900 mb-1 uppercase tracking-tight group-hover:text-emerald-600 transition-colors">{course.title}</h4>
                                         <p className="text-xs text-gray-400 font-bold uppercase tracking-widest mb-4 italic">{course.teacher}</p>

@@ -54,9 +54,75 @@ router.get('/pending-counts', protect, authorize('admin'), async (req, res) => {
 // @access  Private/Admin
 router.get('/role/:role', protect, authorize('admin'), async (req, res) => {
     try {
-        const users = await User.find({ role: req.params.role }).select('-password');
+        // Use aggregation to get users with their enrollment stats
+        const users = await User.aggregate([
+            // 1. Match users by role
+            { $match: { role: req.params.role } },
+
+            // 2. Lookup Enrollments
+            {
+                $lookup: {
+                    from: 'enrollments',
+                    localField: '_id',
+                    foreignField: 'user',
+                    as: 'enrollmentData'
+                }
+            },
+
+            // 3. Add fields for stats
+            {
+                $addFields: {
+                    totalEnrollments: { $size: '$enrollmentData' },
+                    completedEnrollments: {
+                        $size: {
+                            $filter: {
+                                input: '$enrollmentData',
+                                as: 'e',
+                                cond: { $eq: ['$$e.status', 'completed'] }
+                            }
+                        }
+                    },
+                    activeEnrollments: {
+                        $size: {
+                            $filter: {
+                                input: '$enrollmentData',
+                                as: 'e',
+                                cond: { $in: ['$$e.status', ['enrolled', 'pending']] }
+                            }
+                        }
+                    },
+                    // Simplify courses list for display if needed
+                    courses: {
+                        $map: {
+                            input: '$enrollmentData',
+                            as: 'e',
+                            in: '$$e.course' // This will be just IDs unless we lookup courses too, but usually simple stats are enough
+                        }
+                    }
+                }
+            },
+
+            // 4. Project only necessary fields (exclude password)
+            {
+                $project: {
+                    password: 0,
+                    enrollmentData: 0 // Remove the heavy array, keep the stats
+                }
+            }
+        ]);
+
+        // Populate course titles separate if needed, or just return users
+        // Since we need to show which courses they are in, we might want to populate.
+        // But for now, let's just return the user data + stats.
+        // To keep compatibility with existing code, we ensure the structure matches what Mongoose .find() returns
+        // Aggregation returns plain objects, not Mongoose documents.
+
+        // We also need to populate 'verifiedBy' manually or via another lookup if strictly needed,
+        // but likely the frontend just checks 'isVerified'.
+
         res.json({ success: true, data: users });
     } catch (error) {
+        console.error('Error fetching users by role:', error);
         res.status(500).json({ success: false, message: error.message });
     }
 });
@@ -106,12 +172,16 @@ router.put('/:id', protect, authorize('admin'), uploadPhoto.single('photo'), asy
 // @access  Private/Admin
 router.delete('/:id', protect, authorize('admin'), async (req, res) => {
     try {
+        console.log(`[USER DELETE] Admin ${req.user.id} is attempting to PERMANENTLY DELETE user: ${req.params.id}`);
         const user = await User.findByIdAndDelete(req.params.id);
         if (!user) {
+            console.log(`[USER DELETE] Failed: User ${req.params.id} not found.`);
             return res.status(404).json({ success: false, message: 'User not found' });
         }
+        console.log(`[USER DELETE] Success: User ${user.name} (${user.email}) has been DELETED.`);
         res.json({ success: true, message: 'User deleted' });
     } catch (error) {
+        console.error('[USER DELETE] Error:', error);
         res.status(500).json({ success: false, message: error.message });
     }
 });

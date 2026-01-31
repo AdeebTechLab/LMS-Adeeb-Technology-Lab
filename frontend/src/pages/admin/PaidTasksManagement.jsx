@@ -33,14 +33,50 @@ const PaidTasksManagement = () => {
     useEffect(() => {
         const title = (formData.title || '').toLowerCase();
 
-        if (title.includes('web') || title.includes('site') || title.includes('react') || title.includes('html') || title.includes('frontend') || title.includes('backend') || title.includes('fullstack')) {
-            setFormData(prev => ({ ...prev, category: 'web' }));
-        } else if (title.includes('ai') || title.includes('ml') || title.includes('machine learning') || title.includes('intelligence') || title.includes('data')) {
+        if (title.includes('web dev without coding')) {
+            setFormData(prev => ({ ...prev, category: 'Web Dev Without Coding' }));
+        } else if (title.includes('app dev without coding')) {
+            setFormData(prev => ({ ...prev, category: 'App Dev Without Coding' }));
+        } else if (title.includes('web development') || title.includes('site') || title.includes('react') || title.includes('html') || title.includes('frontend') || title.includes('backend') || title.includes('fullstack')) {
+            setFormData(prev => ({ ...prev, category: 'Web Development' }));
+        } else if (title.includes('app development') || title.includes('ios') || title.includes('android') || title.includes('flutter')) {
+            setFormData(prev => ({ ...prev, category: 'App Development' }));
+        } else if (title.includes('cyber security')) {
+            setFormData(prev => ({ ...prev, category: 'Cyber Security' }));
+        } else if (title.includes('machine learning') || title.includes('ml')) {
+            setFormData(prev => ({ ...prev, category: 'Machine learning' }));
+        } else if (title.includes('ai') || title.includes('intelligence')) {
             setFormData(prev => ({ ...prev, category: 'ai' }));
-        } else if (title.includes('mobile') || title.includes('app') || title.includes('ios') || title.includes('android') || title.includes('flutter') || title.includes('react native')) {
-            setFormData(prev => ({ ...prev, category: 'mobile' }));
-        } else if (title.includes('design') || title.includes('logo') || title.includes('graphic') || title.includes('ui') || title.includes('ux') || title.includes('figma')) {
-            setFormData(prev => ({ ...prev, category: 'design' }));
+        } else if (title.includes('iot') || title.includes('internet of thing')) {
+            setFormData(prev => ({ ...prev, category: 'Internet of Thing [IOT]' }));
+        } else if (title.includes('office work')) {
+            setFormData(prev => ({ ...prev, category: 'Office Work [IT]' }));
+        } else if (title.includes('freelanc')) {
+            setFormData(prev => ({ ...prev, category: 'Freelancing' }));
+        } else if (title.includes('marketing') || title.includes('ads')) {
+            setFormData(prev => ({ ...prev, category: 'Digital Marketing, Ads' }));
+        } else if (title.includes('video edit')) {
+            setFormData(prev => ({ ...prev, category: 'Video Editing' }));
+        } else if (title.includes('graphic design')) {
+            setFormData(prev => ({ ...prev, category: 'Graphic Designer' }));
+        } else if (title.includes('e-commerce') || title.includes('amazon') || title.includes('shopify')) {
+            setFormData(prev => ({ ...prev, category: 'E-Commerce' }));
+        } else if (title.includes('ui') || title.includes('ux') || title.includes('design') || title.includes('figma')) {
+            setFormData(prev => ({ ...prev, category: 'UX/UI Designing' }));
+        } else if (title.includes('youtube')) {
+            setFormData(prev => ({ ...prev, category: 'Youtuber Course' }));
+        } else if (title.includes('arch')) {
+            setFormData(prev => ({ ...prev, category: 'Home Architecture' }));
+        } else if (title.includes('programm')) {
+            setFormData(prev => ({ ...prev, category: 'Programming' }));
+        } else if (title.includes('tax')) {
+            setFormData(prev => ({ ...prev, category: 'Taxation' }));
+        } else if (title.includes('trad')) {
+            setFormData(prev => ({ ...prev, category: 'Trading' }));
+        } else if (title.includes('truck') || title.includes('dispatch')) {
+            setFormData(prev => ({ ...prev, category: 'Truck Dispatching' }));
+        } else if (title.includes('software dev')) {
+            setFormData(prev => ({ ...prev, category: 'Software Development' }));
         }
     }, [formData.title]);
 
@@ -368,10 +404,29 @@ const PaidTasksManagement = () => {
                             className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white"
                             required
                         >
-                            <option value="web">Web Development</option>
-                            <option value="ai">AI & Machine Learning</option>
-                            <option value="mobile">Mobile App Development</option>
-                            <option value="design">Graphic Design</option>
+                            <option value="web">Web Development (General)</option>
+                            <option value="ai">AI (General)</option>
+                            <option value="Web Development">Web Development (Full Stack)</option>
+                            <option value="Web Dev Without Coding">Web Dev Without Coding</option>
+                            <option value="App Development">App Development</option>
+                            <option value="App Dev Without Coding">App Dev Without Coding</option>
+                            <option value="Software Development">Software Development</option>
+                            <option value="Programming">Programming</option>
+                            <option value="Cyber Security">Cyber Security</option>
+                            <option value="Machine learning">Machine learning</option>
+                            <option value="Internet of Thing [IOT]">Internet of Thing [IOT]</option>
+                            <option value="Office Work [IT]">Office Work [IT]</option>
+                            <option value="Freelancing">Freelancing</option>
+                            <option value="Digital Marketing, Ads">Digital Marketing, Ads</option>
+                            <option value="E-Commerce">E-Commerce</option>
+                            <option value="Video Editing">Video Editing</option>
+                            <option value="Graphic Designer">Graphic Designer</option>
+                            <option value="UX/UI Designing">UX/UI Designing</option>
+                            <option value="Youtuber Course">Youtuber Course</option>
+                            <option value="Home Architecture">Home Architecture</option>
+                            <option value="Taxation">Taxation</option>
+                            <option value="Trading">Trading</option>
+                            <option value="Truck Dispatching">Truck Dispatching</option>
                             <option value="other">Other</option>
                         </select>
                     </div>

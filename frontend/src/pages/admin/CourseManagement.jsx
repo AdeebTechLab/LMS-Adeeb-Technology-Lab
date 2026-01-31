@@ -11,6 +11,8 @@ import {
     Clock,
     AlertCircle,
     RefreshCw,
+    Filter,
+    X,
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
@@ -33,7 +35,12 @@ const CourseManagement = () => {
         teachers: [],
         targetAudience: '',
         city: '',
+        bookLink: '',
     });
+
+    // Filters State
+    const [selectedRoles, setSelectedRoles] = useState([]); // 'students', 'interns'
+    const [selectedCities, setSelectedCities] = useState([]); // 'Bahawalpur', 'Islamabad'
 
     // Fetch courses and users on component mount
     useEffect(() => {
@@ -58,10 +65,33 @@ const CourseManagement = () => {
         }
     };
 
-    const filteredCourses = courses.filter((course) =>
-        course.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        course.teachers?.some(t => t.name?.toLowerCase().includes(searchQuery.toLowerCase()))
-    );
+    const filteredCourses = courses.filter((course) => {
+        const matchesSearch = course.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            course.teachers?.some(t => t.name?.toLowerCase().includes(searchQuery.toLowerCase()));
+
+        const matchesRole = selectedRoles.length === 0 || selectedRoles.includes(course.targetAudience);
+        const matchesCity = selectedCities.length === 0 || selectedCities.includes(course.city);
+
+        return matchesSearch && matchesRole && matchesCity;
+    });
+
+    const toggleFilter = (type, value) => {
+        if (type === 'role') {
+            setSelectedRoles(prev =>
+                prev.includes(value) ? prev.filter(v => v !== value) : [...prev, value]
+            );
+        } else {
+            setSelectedCities(prev =>
+                prev.includes(value) ? prev.filter(v => v !== value) : [...prev, value]
+            );
+        }
+    };
+
+    const clearFilters = () => {
+        setSelectedRoles([]);
+        setSelectedCities([]);
+        setSearchQuery('');
+    };
 
     const handleOpenModal = (course = null) => {
         if (course) {
@@ -74,6 +104,7 @@ const CourseManagement = () => {
                 teachers: course.teachers?.map(t => t._id) || [],
                 targetAudience: course.targetAudience || 'students',
                 city: course.city || '',
+                bookLink: course.bookLink || '',
             });
         } else {
             setEditingCourse(null);
@@ -85,6 +116,7 @@ const CourseManagement = () => {
                 teachers: [],
                 targetAudience: '',
                 city: '',
+                bookLink: '',
             });
         }
         setIsModalOpen(true);
@@ -110,6 +142,7 @@ const CourseManagement = () => {
                 targetAudience: formData.targetAudience,
                 location: formData.city.toLowerCase(),
                 city: formData.city,
+                bookLink: formData.targetAudience === 'students' ? formData.bookLink : '',
             };
 
             if (editingCourse) {
@@ -188,17 +221,85 @@ const CourseManagement = () => {
                 </div>
             )}
 
-            {/* Search */}
-            <div className="bg-white rounded-2xl p-4 border border-gray-100">
-                <div className="flex items-center bg-gray-50 rounded-xl px-4 py-3">
-                    <Search className="w-5 h-5 text-gray-400 mr-3" />
-                    <input
-                        type="text"
-                        placeholder="Search courses or teachers..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="bg-transparent border-none outline-none w-full text-gray-700 placeholder:text-gray-400"
-                    />
+            {/* Filters and Search */}
+            <div className="bg-white rounded-2xl p-6 border border-gray-100 space-y-4">
+                <div className="flex flex-col md:flex-row gap-4">
+                    {/* Search */}
+                    <div className="flex-1 flex items-center bg-gray-50 rounded-xl px-4 py-3 border border-transparent focus-within:border-emerald-500/20 focus-within:bg-white transition-all">
+                        <Search className="w-5 h-5 text-gray-400 mr-3" />
+                        <input
+                            type="text"
+                            placeholder="Search courses or teachers..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="bg-transparent border-none outline-none w-full text-gray-700 placeholder:text-gray-400"
+                        />
+                    </div>
+
+                    {/* Clear Button */}
+                    {(selectedRoles.length > 0 || selectedCities.length > 0 || searchQuery) && (
+                        <button
+                            onClick={clearFilters}
+                            className="flex items-center justify-center gap-2 px-4 py-2 text-rose-500 hover:bg-rose-50 rounded-xl transition-all text-sm font-medium"
+                        >
+                            <X className="w-4 h-4" />
+                            Clear Filters
+                        </button>
+                    )}
+                </div>
+
+                <div className="flex flex-wrap items-center gap-6 pt-2">
+                    {/* Role Filters */}
+                    <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Audience:</span>
+                        <div className="flex bg-gray-100 p-1 rounded-lg">
+                            <button
+                                onClick={() => toggleFilter('role', 'students')}
+                                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${selectedRoles.includes('students')
+                                    ? 'bg-white text-emerald-600 shadow-sm'
+                                    : 'text-gray-500 hover:text-gray-700'
+                                    }`}
+                            >
+                                Students
+                            </button>
+                            <button
+                                onClick={() => toggleFilter('role', 'interns')}
+                                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${selectedRoles.includes('interns')
+                                    ? 'bg-white text-emerald-600 shadow-sm'
+                                    : 'text-gray-500 hover:text-gray-700'
+                                    }`}
+                            >
+                                Interns
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="h-6 w-px bg-gray-200 hidden sm:block" />
+
+                    {/* City Filters */}
+                    <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Location:</span>
+                        <div className="flex bg-gray-100 p-1 rounded-lg">
+                            <button
+                                onClick={() => toggleFilter('city', 'Islamabad')}
+                                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${selectedCities.includes('Islamabad')
+                                    ? 'bg-white text-emerald-600 shadow-sm'
+                                    : 'text-gray-500 hover:text-gray-700'
+                                    }`}
+                            >
+                                Islamabad
+                            </button>
+                            <button
+                                onClick={() => toggleFilter('city', 'Bahawalpur')}
+                                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${selectedCities.includes('Bahawalpur')
+                                    ? 'bg-white text-emerald-600 shadow-sm'
+                                    : 'text-gray-500 hover:text-gray-700'
+                                    }`}
+                            >
+                                Bahawalpur
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -459,6 +560,23 @@ const CourseManagement = () => {
                             <option value="Islamabad">Islamabad</option>
                         </select>
                     </div>
+
+                    {/* Book Link - ONLY for Students */}
+                    {formData.targetAudience === 'students' && (
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Book / Resource Link
+                            </label>
+                            <input
+                                type="url"
+                                value={formData.bookLink}
+                                onChange={(e) => setFormData({ ...formData, bookLink: e.target.value })}
+                                placeholder="https://example.com/course-book.pdf"
+                                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all font-mono text-xs"
+                            />
+                            <p className="text-[10px] text-gray-400 mt-1 italic uppercase tracking-widest font-black">Direct link to course materials</p>
+                        </div>
+                    )}
 
 
                     {/* Buttons */}

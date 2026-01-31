@@ -303,9 +303,30 @@ const StudentsManagement = () => {
             s.rollNo?.includes(searchQuery) ||
             s.cnic?.includes(searchQuery);
 
-        if (filterStatus === 'verified') return matchesSearch && s.isVerified;
-        if (filterStatus === 'pending') return matchesSearch && !s.isVerified;
-        return matchesSearch;
+        if (!matchesSearch) return false;
+
+        // "Registered" = No enrollments (totalEnrollments === 0)
+        if (filterStatus === 'registered') return (s.totalEnrollments || 0) === 0;
+
+        // "Enrolled" (Active) = Has enrollments AND not all completed
+        // (totalEnrollments > 0 AND (activeEnrollments > 0 OR completed < total))
+        if (filterStatus === 'enrolled') {
+            const total = s.totalEnrollments || 0;
+            const completed = s.completedEnrollments || 0;
+            return total > 0 && completed < total;
+        }
+
+        // "Completed" = All enrollments are completed
+        if (filterStatus === 'completed') {
+            const total = s.totalEnrollments || 0;
+            const completed = s.completedEnrollments || 0;
+            return total > 0 && total === completed;
+        }
+
+        if (filterStatus === 'verified') return s.isVerified;
+        if (filterStatus === 'pending') return !s.isVerified;
+
+        return true;
     });
 
     const verifiedCount = students.filter(s => s.isVerified).length;
@@ -416,16 +437,23 @@ const StudentsManagement = () => {
                     />
                 </div>
                 <div className="flex gap-2">
-                    {['all', 'verified', 'pending'].map((status) => (
+                    {[
+                        { id: 'all', label: 'All' },
+                        { id: 'registered', label: 'Registered (New)' },
+                        { id: 'enrolled', label: 'Enrolled (Active)' },
+                        { id: 'completed', label: 'Completed' },
+                        { id: 'verified', label: 'Verified' },
+                        { id: 'pending', label: 'Pending' }
+                    ].map((tab) => (
                         <button
-                            key={status}
-                            onClick={() => setFilterStatus(status)}
-                            className={`px-4 py-2 rounded-xl font-medium capitalize transition-all ${filterStatus === status
-                                ? 'bg-emerald-600 text-white'
+                            key={tab.id}
+                            onClick={() => setFilterStatus(tab.id)}
+                            className={`px-4 py-2 rounded-xl font-medium text-sm transition-all whitespace-nowrap ${filterStatus === tab.id
+                                ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-200'
                                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                                 }`}
                         >
-                            {status}
+                            {tab.label}
                         </button>
                     ))}
                 </div>
@@ -434,119 +462,124 @@ const StudentsManagement = () => {
             {filteredStudents.length === 0 ? (
                 <div className="bg-white rounded-2xl p-12 border border-gray-100 text-center">
                     <User className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                    <p className="text-gray-500">No students found</p>
+                    <p className="text-gray-500">No students found in this category.</p>
                 </div>
             ) : (
-                <div className="grid gap-4">
-                    {filteredStudents.map((student, index) => (
-                        <motion.div
-                            key={student._id}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: index * 0.05 }}
-                            className="bg-white rounded-2xl p-6 border border-gray-100"
-                        >
-                            <div className="flex flex-col md:flex-row md:items-center gap-4">
-                                <div className="flex items-center gap-4 flex-1">
-                                    <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center overflow-hidden">
-                                        {student.photo ? (
-                                            <img src={student.photo} alt={student.name} className="w-full h-full object-cover" />
-                                        ) : (
-                                            <span className="text-white text-xl font-bold">{student.name?.charAt(0)}</span>
-                                        )}
-                                    </div>
-                                    <div>
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <h3 className="font-semibold text-gray-900">{student.name}</h3>
-                                            {student.rollNo && (
-                                                <Badge variant="primary">#{student.rollNo}</Badge>
-                                            )}
-                                            {student.isVerified ? (
-                                                <Badge variant="success">
-                                                    <CheckCircle className="w-3 h-3 mr-1" />
-                                                    Verified
-                                                </Badge>
+                <div className="space-y-4">
+                    <div className="px-2 text-sm font-bold text-gray-500 uppercase tracking-widest">
+                        Showing {filteredStudents.length} Students
+                    </div>
+                    <div className="grid gap-4">
+                        {filteredStudents.map((student, index) => (
+                            <motion.div
+                                key={student._id}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: index * 0.05 }}
+                                className="bg-white rounded-2xl p-6 border border-gray-100"
+                            >
+                                <div className="flex flex-col md:flex-row md:items-center gap-4">
+                                    <div className="flex items-center gap-4 flex-1">
+                                        <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center overflow-hidden">
+                                            {student.photo ? (
+                                                <img src={student.photo} alt={student.name} className="w-full h-full object-cover" />
                                             ) : (
-                                                <Badge variant="warning">
-                                                    <Clock className="w-3 h-3 mr-1" />
-                                                    Pending
-                                                </Badge>
+                                                <span className="text-white text-xl font-bold">{student.name?.charAt(0)}</span>
                                             )}
                                         </div>
-                                        <p className="text-sm text-gray-500 flex items-center gap-1">
-                                            <Mail className="w-4 h-4" /> {student.email}
-                                        </p>
+                                        <div>
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <h3 className="font-semibold text-gray-900">{student.name}</h3>
+                                                {student.rollNo && (
+                                                    <Badge variant="primary">#{student.rollNo}</Badge>
+                                                )}
+                                                {student.isVerified ? (
+                                                    <Badge variant="success">
+                                                        <CheckCircle className="w-3 h-3 mr-1" />
+                                                        Verified
+                                                    </Badge>
+                                                ) : (
+                                                    <Badge variant="warning">
+                                                        <Clock className="w-3 h-3 mr-1" />
+                                                        Pending
+                                                    </Badge>
+                                                )}
+                                            </div>
+                                            <p className="text-sm text-gray-500 flex items-center gap-1">
+                                                <Mail className="w-4 h-4" /> {student.email}
+                                            </p>
+                                        </div>
                                     </div>
-                                </div>
 
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm flex-1">
-                                    <div>
-                                        <p className="text-gray-400">Phone</p>
-                                        <p className="font-medium text-gray-700">{student.phone || 'N/A'}</p>
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm flex-1">
+                                        <div>
+                                            <p className="text-gray-400">Phone</p>
+                                            <p className="font-medium text-gray-700">{student.phone || 'N/A'}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-gray-400">CNIC</p>
+                                            <p className="font-medium text-gray-700 font-mono">{student.cnic || 'N/A'}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-gray-400">Education</p>
+                                            <p className="font-medium text-gray-700">{student.education || 'N/A'}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-gray-400">Location</p>
+                                            <p className="font-medium text-gray-700 capitalize">{student.location || 'N/A'}</p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <p className="text-gray-400">CNIC</p>
-                                        <p className="font-medium text-gray-700 font-mono">{student.cnic || 'N/A'}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-gray-400">Education</p>
-                                        <p className="font-medium text-gray-700">{student.education || 'N/A'}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-gray-400">Location</p>
-                                        <p className="font-medium text-gray-700 capitalize">{student.location || 'N/A'}</p>
-                                    </div>
-                                </div>
 
-                                <div className="flex gap-2">
-                                    <button
-                                        onClick={() => setViewFeeModal({ open: true, url: student.feeScreenshot })}
-                                        className="p-2 bg-purple-50 hover:bg-purple-100 text-purple-600 rounded-xl"
-                                        title="View Registration Fee"
-                                    >
-                                        <Receipt className="w-5 h-5" />
-                                    </button>
-                                    <button
-                                        onClick={() => downloadStudentPDF(student)}
-                                        className="p-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 rounded-xl"
-                                        title="Download PDF"
-                                    >
-                                        <Download className="w-5 h-5" />
-                                    </button>
-                                    {!student.isVerified ? (
+                                    <div className="flex gap-2">
                                         <button
-                                            onClick={() => setConfirmModal({ open: true, action: 'verify', user: student })}
-                                            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-medium flex items-center gap-2"
+                                            onClick={() => setViewFeeModal({ open: true, url: student.feeScreenshot })}
+                                            className="p-2 bg-purple-50 hover:bg-purple-100 text-purple-600 rounded-xl"
+                                            title="View Registration Fee"
                                         >
-                                            <UserCheck className="w-4 h-4" />
-                                            Verify
+                                            <Receipt className="w-5 h-5" />
                                         </button>
-                                    ) : (
                                         <button
-                                            onClick={() => setConfirmModal({ open: true, action: 'unverify', user: student })}
-                                            className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-medium flex items-center gap-2"
+                                            onClick={() => downloadStudentPDF(student)}
+                                            className="p-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 rounded-xl"
+                                            title="Download PDF"
                                         >
-                                            <UserX className="w-4 h-4" />
-                                            Revoke
+                                            <Download className="w-5 h-5" />
                                         </button>
-                                    )}
-                                    <button
-                                        onClick={() => handleEditClick(student)}
-                                        className="p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl"
-                                        title="Edit Bio"
-                                    >
-                                        <Edit2 className="w-5 h-5" />
-                                    </button>
-                                    <button
-                                        onClick={() => setConfirmModal({ open: true, action: 'delete', user: student })}
-                                        className="p-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl"
-                                    >
-                                        <Trash2 className="w-5 h-5" />
-                                    </button>
+                                        {!student.isVerified ? (
+                                            <button
+                                                onClick={() => setConfirmModal({ open: true, action: 'verify', user: student })}
+                                                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-medium flex items-center gap-2"
+                                            >
+                                                <UserCheck className="w-4 h-4" />
+                                                Verify
+                                            </button>
+                                        ) : (
+                                            <button
+                                                onClick={() => setConfirmModal({ open: true, action: 'unverify', user: student })}
+                                                className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-medium flex items-center gap-2"
+                                            >
+                                                <UserX className="w-4 h-4" />
+                                                Revoke
+                                            </button>
+                                        )}
+                                        <button
+                                            onClick={() => handleEditClick(student)}
+                                            className="p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl"
+                                            title="Edit Bio"
+                                        >
+                                            <Edit2 className="w-5 h-5" />
+                                        </button>
+                                        <button
+                                            onClick={() => setConfirmModal({ open: true, action: 'delete', user: student })}
+                                            className="p-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl"
+                                        >
+                                            <Trash2 className="w-5 h-5" />
+                                        </button>
+                                    </div>
                                 </div>
-                            </div>
-                        </motion.div>
-                    ))}
+                            </motion.div>
+                        ))}
+                    </div>
                 </div>
             )}
 

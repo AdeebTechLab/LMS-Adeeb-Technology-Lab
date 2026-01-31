@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Clock, CheckCircle, Loader2 } from 'lucide-react';
+import { Plus, Clock, CheckCircle, Loader2, Trash2 } from 'lucide-react';
 import api from '../../../services/api';
 
-const StudentDailyTasksTab = ({ course }) => {
+const StudentDailyTasksTab = ({ course, isRestricted }) => {
     const [tasks, setTasks] = useState([]);
     const [newTask, setNewTask] = useState('');
     const [workLink, setWorkLink] = useState('');
@@ -28,7 +28,7 @@ const StudentDailyTasksTab = ({ course }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!newTask.trim()) return;
+        if (!newTask.trim() || isRestricted) return;
 
         setIsSubmitting(true);
         try {
@@ -49,6 +49,10 @@ const StudentDailyTasksTab = ({ course }) => {
     };
 
     const handleDelete = async (taskId) => {
+        if (isRestricted) {
+            alert('Submission actions are disabled due to overdue fees.');
+            return;
+        }
         if (!confirm('Are you sure you want to delete this log entry?')) return;
         try {
             await api.delete(`/daily-tasks/${taskId}`);
@@ -64,7 +68,7 @@ const StudentDailyTasksTab = ({ course }) => {
             <h3 className="text-lg font-bold text-gray-900">{course.targetAudience === 'interns' ? 'Daily Work Log' : 'Class Log Session'}</h3>
 
             {/* Submit New Task */}
-            <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+            <div className={`bg-white p-6 rounded-2xl border border-gray-100 shadow-sm ${isRestricted ? 'opacity-60 grayscale-[0.5] pointer-events-none' : ''}`}>
                 <h4 className="font-semibold text-gray-800 mb-4">{course.targetAudience === 'interns' ? "Log Today's Work" : "Log Class Session"}</h4>
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <input
@@ -73,6 +77,7 @@ const StudentDailyTasksTab = ({ course }) => {
                         onChange={(e) => setWorkLink(e.target.value)}
                         placeholder={course.targetAudience === 'interns' ? "Work Link or Title (Optional)" : "Topic / Reference Link (Optional)"}
                         className="w-full px-4 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20"
+                        disabled={isRestricted}
                     />
                     <textarea
                         value={newTask}
@@ -80,15 +85,16 @@ const StudentDailyTasksTab = ({ course }) => {
                         placeholder={course.targetAudience === 'interns' ? "What did you work on today?" : "What was taught in this class?"}
                         rows="3"
                         className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20 resize-none"
+                        disabled={isRestricted}
                     />
                     <div className="flex justify-end">
                         <button
                             type="submit"
-                            disabled={isSubmitting || !newTask.trim()}
+                            disabled={isSubmitting || !newTask.trim() || isRestricted}
                             className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-300 text-white rounded-xl font-medium transition-colors flex items-center gap-2"
                         >
                             {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-                            Submit Log
+                            {isRestricted ? 'Submissions Disabled' : 'Submit Log'}
                         </button>
                     </div>
                 </form>

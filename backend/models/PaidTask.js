@@ -34,7 +34,16 @@ const paidTaskSchema = new mongoose.Schema({
     skills: String,
     category: {
         type: String,
-        enum: ['web', 'ai', 'mobile', 'design', 'other'],
+        enum: [
+            'web', 'ai', 'mobile', 'design', 'other',
+            'Office Work [IT]', 'Freelancing', 'Digital Marketing, Ads',
+            'Video Editing', 'Graphic Designer', 'E-Commerce',
+            'UX/UI Designing', 'Youtuber Course', 'Home Architecture',
+            'Web Development', 'App Development', 'App Dev Without Coding',
+            'Web Dev Without Coding', 'Cyber Security', 'Machine learning',
+            'Internet of Thing [IOT]', 'Programming', 'Taxation',
+            'Trading', 'Truck Dispatching', 'Software Development'
+        ],
         default: 'web'
     },
     status: {

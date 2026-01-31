@@ -62,6 +62,10 @@ const courseSchema = new mongoose.Schema({
     rating: {
         type: Number,
         default: 0
+    },
+    bookLink: {
+        type: String,
+        default: ''
     }
 }, {
     timestamps: true

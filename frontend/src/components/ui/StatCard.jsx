@@ -9,13 +9,15 @@ const StatCard = ({
     iconBg = 'bg-emerald-100',
     iconColor = 'text-emerald-600',
     className = '',
+    onClick,
 }) => {
     return (
         <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             whileHover={{ y: -4 }}
-            className={`bg-white rounded-2xl p-6 shadow-sm border border-gray-100 transition-all duration-300 hover:shadow-lg ${className}`}
+            onClick={onClick}
+            className={`bg-white rounded-2xl p-6 shadow-sm border border-gray-100 transition-all duration-300 hover:shadow-lg ${className} ${onClick ? 'cursor-pointer active:scale-95' : ''}`}
         >
             <div className="flex items-start justify-between">
                 <div>

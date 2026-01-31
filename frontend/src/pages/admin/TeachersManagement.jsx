@@ -409,7 +409,7 @@ const TeachersManagement = () => {
                                 </div>
 
                                 {/* Details */}
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm flex-1">
+                                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 text-sm flex-[2]">
                                     <div>
                                         <p className="text-gray-400">Phone</p>
                                         <p className="font-medium text-gray-700">{teacher.phone || 'N/A'}</p>
@@ -419,8 +419,16 @@ const TeachersManagement = () => {
                                         <p className="font-medium text-gray-700 font-mono">{teacher.cnic || 'N/A'}</p>
                                     </div>
                                     <div>
+                                        <p className="text-gray-400">DOB</p>
+                                        <p className="font-medium text-gray-700">{teacher.dob ? new Date(teacher.dob).toLocaleDateString() : 'N/A'}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-gray-400">Gender</p>
+                                        <p className="font-medium text-gray-700">{teacher.gender || 'N/A'}</p>
+                                    </div>
+                                    <div>
                                         <p className="text-gray-400">Qualification</p>
-                                        <p className="font-medium text-gray-700">{teacher.qualification || 'N/A'}</p>
+                                        <p className="font-medium text-gray-700 truncate">{teacher.qualification || 'N/A'}</p>
                                     </div>
                                     <div>
                                         <p className="text-gray-400">Location</p>
@@ -471,22 +479,24 @@ const TeachersManagement = () => {
                             </div>
 
                             {/* Extra Info */}
-                            {(teacher.specialization || teacher.experience) && (
-                                <div className="mt-4 pt-4 border-t border-gray-100 flex gap-6 text-sm">
-                                    {teacher.specialization && (
-                                        <div className="flex items-center gap-2 text-gray-600">
-                                            <GraduationCap className="w-4 h-4 text-gray-400" />
-                                            <span>Skills: {teacher.specialization}</span>
-                                        </div>
-                                    )}
-                                    {teacher.experience && (
-                                        <div className="flex items-center gap-2 text-gray-600">
-                                            <Calendar className="w-4 h-4 text-gray-400" />
-                                            <span>Experience: {teacher.experience}</span>
-                                        </div>
-                                    )}
+                            <div className="mt-4 pt-4 border-t border-gray-100 flex flex-wrap gap-6 text-sm">
+                                {teacher.specialization && (
+                                    <div className="flex items-center gap-2 text-gray-600">
+                                        <GraduationCap className="w-4 h-4 text-gray-400" />
+                                        <span>Skills: {teacher.specialization}</span>
+                                    </div>
+                                )}
+                                {teacher.experience && (
+                                    <div className="flex items-center gap-2 text-gray-600">
+                                        <Calendar className="w-4 h-4 text-gray-400" />
+                                        <span>Experience: {teacher.experience}</span>
+                                    </div>
+                                )}
+                                <div className="flex items-center gap-2 text-gray-600">
+                                    <MapPin className="w-4 h-4 text-gray-400" />
+                                    <span>Address: {teacher.address || 'N/A'}</span>
                                 </div>
-                            )}
+                            </div>
                         </motion.div>
                     ))}
                 </div>

@@ -130,7 +130,7 @@ const FeeManagement = () => {
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Fee Management</h1>
-                    <p className="text-gray-500">View and manage your course fees</p>
+                    <p className="text-gray-500">View and manage your monthly course fees</p>
                 </div>
                 <button onClick={fetchFees} className="flex items-center gap-2 px-4 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl">
                     <RefreshCw className="w-4 h-4" />
@@ -360,7 +360,7 @@ const FeeManagement = () => {
                                     <div className="p-8 text-center bg-gray-50 rounded-xl border border-dashed border-gray-200">
                                         <AlertCircle className="w-8 h-8 text-gray-400 mx-auto mb-2" />
                                         <p className="text-gray-600 font-medium">No payment plan active</p>
-                                        <p className="text-sm text-gray-400 mt-1">Please contact the administration to set up your payment installments.</p>
+                                        <p className="text-sm text-gray-400 mt-1">Please contact the administration to set up your monthly fee plan.</p>
                                     </div>
                                 ) : (
                                     fee.installments.map((inst, index) => {
@@ -369,7 +369,7 @@ const FeeManagement = () => {
                                             <div key={inst._id || index} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-gray-50 rounded-xl gap-4 border border-gray-100 hover:border-emerald-100 transition-colors">
                                                 <div>
                                                     <div className="flex items-center gap-2 mb-1">
-                                                        <span className="font-medium text-gray-900">Installment {index + 1}</span>
+                                                        <span className="font-medium text-gray-900">Month {index + 1} Fee</span>
                                                         <Badge variant={
                                                             inst.status === 'verified' ? 'success' :
                                                                 inst.status === 'submitted' ? 'info' :
@@ -418,7 +418,7 @@ const FeeManagement = () => {
                                 <p className="font-medium text-gray-900">{selectedFee.course?.title}</p>
                                 <p className="text-xl font-bold text-emerald-600">Rs {(selectedInstallment.amount || 0).toLocaleString()}</p>
                             </div>
-                            <p className="text-sm text-gray-500">Installment Payment</p>
+                            <p className="text-sm text-gray-500">Monthly Course Fee</p>
                         </div>
 
                         <div>

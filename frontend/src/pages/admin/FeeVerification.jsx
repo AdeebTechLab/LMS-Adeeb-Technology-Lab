@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
     Search, Eye, CheckCircle, XCircle, Clock, AlertCircle, Loader2, RefreshCw,
-    Plus, Trash2, Calendar, DollarSign, FileText, ArrowLeft
+    Plus, Trash2, Calendar, DollarSign, FileText, ArrowLeft, MapPin
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
@@ -68,15 +68,16 @@ const FeeVerification = () => {
         // Pre-fill existing installments or start with one empty
         const existing = fee.installments?.map(i => ({
             amount: i.amount,
-            dueDate: i.dueDate ? new Date(i.dueDate).toISOString().split('T')[0] : ''
+            dueDate: i.dueDate ? new Date(i.dueDate).toISOString().split('T')[0] : '',
+            status: i.status
         })) || [];
 
-        setInstallmentPlan(existing.length > 0 ? existing : [{ amount: '', dueDate: '' }]);
+        setInstallmentPlan(existing.length > 0 ? existing : [{ amount: '', dueDate: '', status: 'pending' }]);
         setIsInstallmentModalOpen(true);
     };
 
     const handleAddInstallmentRow = () => {
-        setInstallmentPlan([...installmentPlan, { amount: '', dueDate: '' }]);
+        setInstallmentPlan([...installmentPlan, { amount: '', dueDate: '', status: 'pending' }]);
     };
 
     const handleRemoveInstallmentRow = (index) => {
@@ -116,8 +117,7 @@ const FeeVerification = () => {
 
         setIsProcessing(true);
         try {
-            const token = localStorage.getItem('token');
-            const res = await api.put(`/fees/${feeId}/installments/${installmentId}/reject`);
+            const res = await feeAPI.reject(feeId, installmentId);
 
             if (res.data.success) {
                 // Update local state to remove the rejected item from the view
@@ -198,7 +198,7 @@ const FeeVerification = () => {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Fee Management</h1>
-                    <p className="text-gray-500">Verify payments and manage installment plans</p>
+                    <p className="text-gray-500">Verify payments and manage monthly fee plans</p>
                 </div>
                 <div className="flex bg-gray-100 p-1 rounded-xl">
                     <button
@@ -213,7 +213,7 @@ const FeeVerification = () => {
                         className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === 'all' ? 'bg-white shadow text-emerald-600' : 'text-gray-500 hover:text-gray-700'
                             }`}
                     >
-                        All Fees & Installments
+                        All Fees & Months
                     </button>
                 </div>
             </div>
@@ -252,7 +252,7 @@ const FeeVerification = () => {
                                                 </div>
                                                 <div>
                                                     <h3 className="font-semibold text-gray-900">{fee.user?.name || 'Unknown Student'}</h3>
-                                                    <p className="text-sm text-gray-500">{fee.course?.title || 'Unknown Course'}</p>
+                                                    <p className="text-sm text-gray-500">{fee.course?.title || 'Unknown Course'} ({fee.course?.city || 'N/A'})</p>
                                                     <div className="flex gap-4 mt-1 text-sm text-gray-500">
                                                         <span>Slip ID: {inst.slipId || 'N/A'}</span>
                                                         <span>•</span>
@@ -291,7 +291,7 @@ const FeeVerification = () => {
                                                 <button
                                                     onClick={() => handleDeleteInstallment(fee._id, inst._id)}
                                                     className="p-2.5 bg-gray-100 hover:bg-red-50 text-gray-500 hover:text-red-600 rounded-xl transition-all"
-                                                    title="Delete Installment"
+                                                    title="Delete Month"
                                                 >
                                                     <Trash2 className="w-4 h-4" />
                                                 </button>
@@ -325,7 +325,7 @@ const FeeVerification = () => {
                                                 </div>
                                                 <div>
                                                     <h3 className="font-medium text-gray-700">{fee.user?.name || 'Unknown Student'}</h3>
-                                                    <p className="text-xs text-gray-500">{fee.course?.title} • Due: {formatDate(inst.dueDate)}</p>
+                                                    <p className="text-xs text-gray-500">{fee.course?.title} ({fee.course?.city}) • Due: {formatDate(inst.dueDate)}</p>
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-4">
@@ -336,7 +336,7 @@ const FeeVerification = () => {
                                                 <button
                                                     onClick={() => handleDeleteInstallment(fee._id, inst._id)}
                                                     className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
-                                                    title="Delete Installment"
+                                                    title="Delete Month"
                                                 >
                                                     <Trash2 className="w-4 h-4" />
                                                 </button>
@@ -370,6 +370,7 @@ const FeeVerification = () => {
                                                 id: fee.course._id,
                                                 title: fee.course.title,
                                                 fee: fee.course.fee,
+                                                location: fee.course.city || fee.course.location,
                                                 students: 0
                                             };
                                         }
@@ -394,8 +395,12 @@ const FeeVerification = () => {
                                         <h3 className="font-bold text-lg text-gray-900 mb-2 truncate" title={course.title}>
                                             {course.title}
                                         </h3>
-                                        <div className="flex items-center text-gray-500 text-sm">
-                                            {course.students} Students Enrolled
+                                        <div className="flex items-center justify-between text-gray-500 text-sm">
+                                            <span>{course.students} Students Enrolled</span>
+                                            <span className="flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-700 rounded-lg font-bold text-xs capitalize border border-emerald-100">
+                                                <MapPin className="w-3.5 h-3.5" />
+                                                {course.location}
+                                            </span>
                                         </div>
                                     </motion.div>
                                 ))}
@@ -422,6 +427,10 @@ const FeeVerification = () => {
                                 <FileText className="w-5 h-5 text-indigo-600" />
                                 <span className="font-semibold text-indigo-900">
                                     {allFees.find(f => String(f.course?._id) === String(selectedCourse))?.course?.title || 'Selected Course'}
+                                </span>
+                                <span className="bg-white text-indigo-700 px-3 py-1 rounded-lg text-xs font-bold capitalize border border-indigo-100 flex items-center gap-1.5 shadow-sm">
+                                    <MapPin className="w-3.5 h-3.5 text-indigo-500" />
+                                    {allFees.find(f => String(f.course?._id) === String(selectedCourse))?.course?.city || 'N/A'}
                                 </span>
                                 <span className="bg-white text-indigo-600 px-2 py-0.5 rounded text-xs border border-indigo-100">
                                     {allFees.filter(f => String(f.course?._id) === String(selectedCourse)).length} Students
@@ -450,7 +459,7 @@ const FeeVerification = () => {
                                                 onClick={() => handleManageInstallments(fee)}
                                                 className="px-4 py-2 border border-gray-200 hover:bg-gray-50 rounded-lg text-sm font-medium transition-colors"
                                             >
-                                                Manage Installments
+                                                Manage Months
                                             </button>
                                         </div>
                                     ))}
@@ -492,49 +501,61 @@ const FeeVerification = () => {
                 )}
             </Modal>
 
-            {/* Installment Management Modal */}
-            <Modal isOpen={isInstallmentModalOpen} onClose={() => setIsInstallmentModalOpen(false)} title="Manage Installments">
+            {/* Monthly Fee Management Modal */}
+            <Modal isOpen={isInstallmentModalOpen} onClose={() => setIsInstallmentModalOpen(false)} title="Manage Months">
                 <div className="space-y-6">
                     <div className="bg-blue-50 p-4 rounded-xl text-sm text-blue-800 border border-blue-100">
-                        <p>Set up the installment plan for <strong>{selectedFee?.user?.name}</strong>.</p>
+                        <p>Set up the monthly fee plan for <strong>{selectedFee?.user?.name}</strong>.</p>
                         <p className="mt-1">Course Fee: <strong>Rs {(selectedFee?.totalFee || 0).toLocaleString()}</strong></p>
                     </div>
 
                     <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2">
                         {installmentPlan.map((inst, idx) => (
-                            <div key={idx} className="flex gap-3 items-end">
-                                <div className="flex-1">
-                                    <label className="text-xs text-gray-500 mb-1 block">Amount</label>
+                            <div key={idx} className="flex flex-wrap md:flex-nowrap gap-3 items-end p-3 bg-gray-50/50 rounded-xl border border-gray-100">
+                                <div className="flex-1 min-w-[120px]">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1 block">Amount (Rs)</label>
                                     <input
                                         type="number"
                                         value={inst.amount}
                                         onChange={(e) => handleInstallmentChange(idx, 'amount', e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-sm font-bold"
                                         placeholder="0"
                                     />
                                 </div>
-                                <div className="flex-1">
-                                    <label className="text-xs text-gray-500 mb-1 block">Due Date</label>
+                                <div className="flex-1 min-w-[150px]">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1 block">Due Date</label>
                                     <input
                                         type="date"
                                         value={inst.dueDate}
                                         onChange={(e) => handleInstallmentChange(idx, 'dueDate', e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-sm"
                                     />
                                 </div>
-                                <button
-                                    onClick={() => handleRemoveInstallmentRow(idx)}
-                                    className="p-2.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors mb-[1px]"
-                                    title="Remove installment"
-                                >
-                                    <Trash2 className="w-4 h-4" />
-                                </button>
+                                <div className="flex items-center gap-2 pb-1">
+                                    <button
+                                        type="button"
+                                        onClick={() => handleInstallmentChange(idx, 'status', inst.status === 'verified' ? 'pending' : 'verified')}
+                                        className={`px-3 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest border-2 transition-all ${inst.status === 'verified'
+                                            ? 'bg-emerald-500 border-emerald-500 text-white shadow-lg shadow-emerald-500/20'
+                                            : 'bg-white border-gray-200 text-gray-400 hover:border-emerald-200 hover:text-emerald-500'
+                                            }`}
+                                    >
+                                        {inst.status === 'verified' ? 'PAID ✓' : 'UNPAID'}
+                                    </button>
+                                    <button
+                                        onClick={() => handleRemoveInstallmentRow(idx)}
+                                        className="p-2.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                        title="Remove month"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                    </button>
+                                </div>
                             </div>
                         ))}
                     </div>
 
                     <button onClick={handleAddInstallmentRow} className="flex items-center gap-2 text-sm text-emerald-600 font-medium hover:underline">
-                        <Plus className="w-4 h-4" /> Add Installment
+                        <Plus className="w-4 h-4" /> Add Month Fee
                     </button>
 
                     <div className="border-t pt-4 flex justify-end gap-3">

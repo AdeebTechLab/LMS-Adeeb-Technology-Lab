@@ -109,7 +109,11 @@ const AttendanceSheet = () => {
     };
 
     const handleSelectCourse = (course, skipNavigation = false) => {
-        const studentsList = course.enrollments.map((e, idx) => ({
+        // Filter out students who are inactive (unverified first payment or overdue installments)
+        // ALSO filter out students who have completed the course (assigned certificate)
+        const activeEnrollments = course.enrollments.filter(e => e.isActive && e.status !== 'completed');
+
+        const studentsList = activeEnrollments.map((e, idx) => ({
             id: e.user?._id || e.user, // IMPORTANT: Repair script used 'user' field
             _id: e.user?._id || e.user,
             name: e.user?.name || 'Enrolled Student',
@@ -120,7 +124,7 @@ const AttendanceSheet = () => {
             enrolledAt: e.enrolledAt
         }));
 
-        console.log('Selected course students:', studentsList);
+        console.log('Selected course eligible students:', studentsList);
         setCourseStudents(studentsList);
         setSelectedCourse(course);
 
@@ -290,7 +294,7 @@ const AttendanceSheet = () => {
                 {/* Tab Content */}
                 <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-xl shadow-gray-200/50 min-h-[500px]">
                     {activeTab === 'daily_tasks' && (
-                        <DailyTasksTab course={selectedCourse} />
+                        <DailyTasksTab course={selectedCourse} students={courseStudents} />
                     )}
                     {activeTab === 'assignments' && (
                         <AssignmentsTab course={selectedCourse} students={courseStudents} />

@@ -24,7 +24,6 @@ router.get('/', async (req, res) => {
         const tasks = await PaidTask.find(query)
             .populate('assignedTo', 'name email')
             .populate('applicants.user', 'name email phone skills experience portfolio completedTasks rating')
-            .populate('messages.sender', 'name role')
             .sort('-createdAt');
 
         res.json({ success: true, data: tasks });

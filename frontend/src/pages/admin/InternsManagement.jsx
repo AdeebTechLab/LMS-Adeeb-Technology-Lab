@@ -297,9 +297,28 @@ const InternsManagement = () => {
             i.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
             i.cnic?.includes(searchQuery);
 
-        if (filterStatus === 'verified') return matchesSearch && i.isVerified;
-        if (filterStatus === 'pending') return matchesSearch && !i.isVerified;
-        return matchesSearch;
+        if (!matchesSearch) return false;
+
+        // "Registered" = No enrollments (totalEnrollments === 0)
+        if (filterStatus === 'registered') return (i.totalEnrollments || 0) === 0;
+
+        // "Enrolled" (Active) = Has enrollments AND not all completed
+        if (filterStatus === 'enrolled') {
+            const total = i.totalEnrollments || 0;
+            const completed = i.completedEnrollments || 0;
+            return total > 0 && completed < total;
+        }
+
+        // "Completed" = All enrollments are completed
+        if (filterStatus === 'completed') {
+            const total = i.totalEnrollments || 0;
+            const completed = i.completedEnrollments || 0;
+            return total > 0 && total === completed;
+        }
+
+        if (filterStatus === 'verified') return i.isVerified;
+        if (filterStatus === 'pending') return !i.isVerified;
+        return true;
     });
 
     const verifiedCount = interns.filter(i => i.isVerified).length;
@@ -405,16 +424,23 @@ const InternsManagement = () => {
                     />
                 </div>
                 <div className="flex gap-2">
-                    {['all', 'verified', 'pending'].map((status) => (
+                    {[
+                        { id: 'all', label: 'All' },
+                        { id: 'registered', label: 'Registered (New)' },
+                        { id: 'enrolled', label: 'Enrolled (Active)' },
+                        { id: 'completed', label: 'Completed' },
+                        { id: 'verified', label: 'Verified' },
+                        { id: 'pending', label: 'Pending' }
+                    ].map((tab) => (
                         <button
-                            key={status}
-                            onClick={() => setFilterStatus(status)}
-                            className={`px-4 py-2 rounded-xl font-medium capitalize transition-all ${filterStatus === status
-                                ? 'bg-blue-600 text-white'
+                            key={tab.id}
+                            onClick={() => setFilterStatus(tab.id)}
+                            className={`px-4 py-2 rounded-xl font-medium text-sm transition-all whitespace-nowrap ${filterStatus === tab.id
+                                ? 'bg-blue-600 text-white shadow-lg shadow-blue-200'
                                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                                 }`}
                         >
-                            {status}
+                            {tab.label}
                         </button>
                     ))}
                 </div>
@@ -424,119 +450,124 @@ const InternsManagement = () => {
             {filteredInterns.length === 0 ? (
                 <div className="bg-white rounded-2xl p-12 border border-gray-100 text-center">
                     <User className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                    <p className="text-gray-500">No interns found</p>
+                    <p className="text-gray-500">No interns found in this category.</p>
                 </div>
             ) : (
-                <div className="grid gap-4">
-                    {filteredInterns.map((intern, index) => (
-                        <motion.div
-                            key={intern._id}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: index * 0.05 }}
-                            className="bg-white rounded-2xl p-6 border border-gray-100"
-                        >
-                            <div className="flex flex-col md:flex-row md:items-center gap-4">
-                                {/* Photo & Basic Info */}
-                                <div className="flex items-center gap-4 flex-1">
-                                    <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center overflow-hidden">
-                                        {intern.photo ? (
-                                            <img src={intern.photo} alt={intern.name} className="w-full h-full object-cover" />
-                                        ) : (
-                                            <span className="text-white text-xl font-bold">{intern.name?.charAt(0)}</span>
-                                        )}
-                                    </div>
-                                    <div>
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <h3 className="font-semibold text-gray-900">{intern.name}</h3>
-                                            {intern.isVerified ? (
-                                                <Badge variant="success">
-                                                    <CheckCircle className="w-3 h-3 mr-1" />
-                                                    Verified
-                                                </Badge>
+                <div className="space-y-4">
+                    <div className="px-2 text-sm font-bold text-gray-500 uppercase tracking-widest">
+                        Showing {filteredInterns.length} Interns
+                    </div>
+                    <div className="grid gap-4">
+                        {filteredInterns.map((intern, index) => (
+                            <motion.div
+                                key={intern._id}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: index * 0.05 }}
+                                className="bg-white rounded-2xl p-6 border border-gray-100"
+                            >
+                                <div className="flex flex-col md:flex-row md:items-center gap-4">
+                                    {/* Photo & Basic Info */}
+                                    <div className="flex items-center gap-4 flex-1">
+                                        <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center overflow-hidden">
+                                            {intern.photo ? (
+                                                <img src={intern.photo} alt={intern.name} className="w-full h-full object-cover" />
                                             ) : (
-                                                <Badge variant="warning">
-                                                    <Clock className="w-3 h-3 mr-1" />
-                                                    Pending
-                                                </Badge>
+                                                <span className="text-white text-xl font-bold">{intern.name?.charAt(0)}</span>
                                             )}
                                         </div>
-                                        <p className="text-sm text-gray-500 flex items-center gap-1">
-                                            <Mail className="w-4 h-4" /> {intern.email}
-                                        </p>
+                                        <div>
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <h3 className="font-semibold text-gray-900">{intern.name}</h3>
+                                                {intern.isVerified ? (
+                                                    <Badge variant="success">
+                                                        <CheckCircle className="w-3 h-3 mr-1" />
+                                                        Verified
+                                                    </Badge>
+                                                ) : (
+                                                    <Badge variant="warning">
+                                                        <Clock className="w-3 h-3 mr-1" />
+                                                        Pending
+                                                    </Badge>
+                                                )}
+                                            </div>
+                                            <p className="text-sm text-gray-500 flex items-center gap-1">
+                                                <Mail className="w-4 h-4" /> {intern.email}
+                                            </p>
+                                        </div>
                                     </div>
-                                </div>
 
-                                {/* Details */}
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm flex-1">
-                                    <div>
-                                        <p className="text-gray-400">Phone</p>
-                                        <p className="font-medium text-gray-700">{intern.phone || 'N/A'}</p>
+                                    {/* Details */}
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm flex-1">
+                                        <div>
+                                            <p className="text-gray-400">Phone</p>
+                                            <p className="font-medium text-gray-700">{intern.phone || 'N/A'}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-gray-400">CNIC</p>
+                                            <p className="font-medium text-gray-700 font-mono">{intern.cnic || 'N/A'}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-gray-400">Education</p>
+                                            <p className="font-medium text-gray-700">{intern.education || 'N/A'}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-gray-400">Location</p>
+                                            <p className="font-medium text-gray-700 capitalize">{intern.location || 'N/A'}</p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <p className="text-gray-400">CNIC</p>
-                                        <p className="font-medium text-gray-700 font-mono">{intern.cnic || 'N/A'}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-gray-400">Education</p>
-                                        <p className="font-medium text-gray-700">{intern.education || 'N/A'}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-gray-400">Location</p>
-                                        <p className="font-medium text-gray-700 capitalize">{intern.location || 'N/A'}</p>
-                                    </div>
-                                </div>
 
-                                {/* Actions */}
-                                <div className="flex gap-2">
-                                    <button
-                                        onClick={() => setViewFeeModal({ open: true, url: intern.feeScreenshot })}
-                                        className="p-2 bg-purple-50 hover:bg-purple-100 text-purple-600 rounded-xl"
-                                        title="View Registration Fee"
-                                    >
-                                        <Receipt className="w-5 h-5" />
-                                    </button>
-                                    <button
-                                        onClick={() => downloadInternPDF(intern)}
-                                        className="p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl"
-                                        title="Download PDF"
-                                    >
-                                        <Download className="w-5 h-5" />
-                                    </button>
-                                    {!intern.isVerified ? (
+                                    {/* Actions */}
+                                    <div className="flex gap-2">
                                         <button
-                                            onClick={() => setConfirmModal({ open: true, action: 'verify', user: intern })}
-                                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium flex items-center gap-2"
+                                            onClick={() => setViewFeeModal({ open: true, url: intern.feeScreenshot })}
+                                            className="p-2 bg-purple-50 hover:bg-purple-100 text-purple-600 rounded-xl"
+                                            title="View Registration Fee"
                                         >
-                                            <UserCheck className="w-4 h-4" />
-                                            Verify
+                                            <Receipt className="w-5 h-5" />
                                         </button>
-                                    ) : (
                                         <button
-                                            onClick={() => setConfirmModal({ open: true, action: 'unverify', user: intern })}
-                                            className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-medium flex items-center gap-2"
+                                            onClick={() => downloadInternPDF(intern)}
+                                            className="p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl"
+                                            title="Download PDF"
                                         >
-                                            <UserX className="w-4 h-4" />
-                                            Revoke
+                                            <Download className="w-5 h-5" />
                                         </button>
-                                    )}
-                                    <button
-                                        onClick={() => handleEditClick(intern)}
-                                        className="p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl"
-                                        title="Edit Bio"
-                                    >
-                                        <Edit2 className="w-5 h-5" />
-                                    </button>
-                                    <button
-                                        onClick={() => setConfirmModal({ open: true, action: 'delete', user: intern })}
-                                        className="p-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl"
-                                    >
-                                        <Trash2 className="w-5 h-5" />
-                                    </button>
+                                        {!intern.isVerified ? (
+                                            <button
+                                                onClick={() => setConfirmModal({ open: true, action: 'verify', user: intern })}
+                                                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium flex items-center gap-2"
+                                            >
+                                                <UserCheck className="w-4 h-4" />
+                                                Verify
+                                            </button>
+                                        ) : (
+                                            <button
+                                                onClick={() => setConfirmModal({ open: true, action: 'unverify', user: intern })}
+                                                className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-medium flex items-center gap-2"
+                                            >
+                                                <UserX className="w-4 h-4" />
+                                                Revoke
+                                            </button>
+                                        )}
+                                        <button
+                                            onClick={() => handleEditClick(intern)}
+                                            className="p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl"
+                                            title="Edit Bio"
+                                        >
+                                            <Edit2 className="w-5 h-5" />
+                                        </button>
+                                        <button
+                                            onClick={() => setConfirmModal({ open: true, action: 'delete', user: intern })}
+                                            className="p-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl"
+                                        >
+                                            <Trash2 className="w-5 h-5" />
+                                        </button>
+                                    </div>
                                 </div>
-                            </div>
-                        </motion.div>
-                    ))}
+                            </motion.div>
+                        ))}
+                    </div>
                 </div>
             )}
 

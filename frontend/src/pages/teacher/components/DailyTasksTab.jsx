@@ -68,10 +68,15 @@ const DailyTasksTab = ({ course }) => {
         }
     };
 
-    const filteredTasks = tasks.filter(task =>
-        task.user?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        task.content?.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const filteredTasks = tasks.filter(task => {
+        // Only show tasks from students passed in props (active & not completed)
+        const isStudentActive = students.some(s => String(s.id) === String(task.user?._id || task.user));
+
+        const matchesSearch = task.user?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            task.content?.toLowerCase().includes(searchQuery.toLowerCase());
+
+        return isStudentActive && matchesSearch;
+    });
 
     return (
         <div className="space-y-6">

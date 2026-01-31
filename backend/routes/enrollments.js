@@ -19,8 +19,15 @@ router.get('/my', protect, async (req, res) => {
             })
             .sort('-createdAt');
 
-        // Calculate attendance stats for each enrollment
+        // Calculate attendance stats for each enrollment and update active status
         const data = await Promise.all(enrollments.map(async (e) => {
+            // Recalculate active status based on recent dates/fees
+            const wasActive = e.isActive;
+            const nowActive = e.updateActiveStatus();
+            if (wasActive !== nowActive) {
+                await e.save();
+            }
+
             const eObj = e.toObject();
             const courseId = e.course?._id;
 
@@ -264,8 +271,22 @@ router.get('/all', protect, authorize('admin', 'teacher'), async (req, res) => {
             .populate('course', 'title city durationMonths')
             .sort('-createdAt');
 
+        // Sync statuses (Safer)
+        for (let e of enrollments) {
+            try {
+                const wasActive = e.isActive;
+                const nowActive = e.updateActiveStatus();
+                if (wasActive !== nowActive) {
+                    await e.save();
+                }
+            } catch (err) {
+                console.error(`Sync error for enrollment ${e?._id}:`, err.message);
+            }
+        }
+
         res.json({ success: true, count: enrollments.length, data: enrollments });
     } catch (error) {
+        console.error('CRITICAL ERROR in GET /api/enrollments/all:', error);
         res.status(500).json({ success: false, message: error.message });
     }
 });

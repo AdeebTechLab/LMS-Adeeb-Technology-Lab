@@ -91,6 +91,7 @@ export const feeAPI = {
         headers: { 'Content-Type': 'multipart/form-data' }
     }),
     verify: (feeId, installmentId) => api.put(`/fees/${feeId}/installments/${installmentId}/verify`),
+    reject: (feeId, installmentId) => api.put(`/fees/${feeId}/installments/${installmentId}/reject`),
     setInstallments: (feeId, installments) => api.post(`/fees/${feeId}/installments`, { installments }),
     deleteInstallment: (feeId, installmentId) => api.delete(`/fees/${feeId}/installments/${installmentId}`)
 };
@@ -167,7 +168,10 @@ export const chatAPI = {
     getConversations: () => api.get('/chat/conversations'),
     markAsRead: (senderId) => api.put(`/chat/read/${senderId}`),
     getUnread: () => api.get('/chat/unread'),
-    deleteConversation: (userId) => api.delete(`/chat/conversations/${userId}`)
+    clearChatHistory: (userId) => {
+        console.log(`[API] Requesting to CLEAR CHAT HISTORY for user ${userId} via POST /chat/action/clear-messages/`);
+        return api.post(`/chat/action/clear-messages/${userId}`);
+    }
 };
 
 export default api;

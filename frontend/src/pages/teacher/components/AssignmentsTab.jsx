@@ -17,6 +17,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
     const [selectedStudentFilter, setSelectedStudentFilter] = useState('all');
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [studentSearchTerm, setStudentSearchTerm] = useState('');
+    const [assignSearchTerm, setAssignSearchTerm] = useState(''); // For searching students when assigning
 
     // Create Form State
     const [newAssignment, setNewAssignment] = useState({
@@ -230,8 +231,8 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                             setStudentSearchTerm('');
                                         }}
                                         className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${selectedStudentFilter === 'all'
-                                                ? 'bg-emerald-50 text-emerald-700'
-                                                : 'text-gray-600 hover:bg-gray-50'
+                                            ? 'bg-emerald-50 text-emerald-700'
+                                            : 'text-gray-600 hover:bg-gray-50'
                                             }`}
                                     >
                                         View All Assignments
@@ -251,8 +252,8 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                                     setStudentSearchTerm('');
                                                 }}
                                                 className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${selectedStudentFilter === student.id
-                                                        ? 'bg-emerald-50 text-emerald-700'
-                                                        : 'text-gray-600 hover:bg-gray-50'
+                                                    ? 'bg-emerald-50 text-emerald-700'
+                                                    : 'text-gray-600 hover:bg-gray-50'
                                                     }`}
                                             >
                                                 <div className="flex items-center gap-3">
@@ -467,35 +468,94 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                         </div>
 
                         {newAssignment.assignTo === 'selected' && (
-                            <div className="border border-gray-200 rounded-xl p-3 max-h-40 overflow-y-auto space-y-2">
-                                {students && students.length > 0 ? (
-                                    students.map(student => (
-                                        <label key={student.id} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg cursor-pointer">
+                            <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-200">
+                                {/* Search & Controls */}
+                                <div className="flex gap-2">
+                                    <div className="relative flex-1">
+                                        <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                                        <input
+                                            type="text"
+                                            placeholder="Search by name or reg no..."
+                                            value={assignSearchTerm}
+                                            onChange={(e) => setAssignSearchTerm(e.target.value)}
+                                            className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all"
+                                        />
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            const searchTerm = assignSearchTerm.toLowerCase();
+                                            const visibleStudents = students.filter(s =>
+                                            (s.name?.toLowerCase().includes(searchTerm) ||
+                                                s.rollNo?.toLowerCase().includes(searchTerm))
+                                            );
+                                            // Add visible students to selection if not already selected
+                                            const newSelection = new Set(newAssignment.assignedUsers || []);
+                                            visibleStudents.forEach(s => newSelection.add(s.id || s._id));
+                                            setNewAssignment({ ...newAssignment, assignedUsers: Array.from(newSelection) });
+                                        }}
+                                        className="px-3 py-2 text-xs font-bold text-emerald-600 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition-colors whitespace-nowrap"
+                                    >
+                                        Select All
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setNewAssignment({ ...newAssignment, assignedUsers: [] })}
+                                        className="px-3 py-2 text-xs font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors whitespace-nowrap"
+                                    >
+                                        Clear
+                                    </button>
+                                </div>
+
+                                {/* List */}
+                                <div className="border border-gray-200 rounded-xl max-h-48 overflow-y-auto divide-y divide-gray-100 bg-white shadow-inner">
+                                    {students?.filter(s =>
+                                        s.name?.toLowerCase().includes(assignSearchTerm.toLowerCase()) ||
+                                        s.rollNo?.toLowerCase().includes(assignSearchTerm.toLowerCase())
+                                    ).map(student => (
+                                        <label key={student.id || student._id} className="flex items-center gap-3 p-3 hover:bg-gray-50 cursor-pointer transition-colors">
                                             <input
                                                 type="checkbox"
-                                                checked={newAssignment.assignedUsers?.includes(student.id)}
+                                                checked={newAssignment.assignedUsers?.includes(student.id || student._id)}
                                                 onChange={(e) => {
+                                                    const sId = student.id || student._id;
                                                     const current = newAssignment.assignedUsers || [];
                                                     if (e.target.checked) {
-                                                        setNewAssignment({ ...newAssignment, assignedUsers: [...current, student.id] });
+                                                        setNewAssignment({ ...newAssignment, assignedUsers: [...current, sId] });
                                                     } else {
-                                                        setNewAssignment({ ...newAssignment, assignedUsers: current.filter(id => id !== student.id) });
+                                                        setNewAssignment({ ...newAssignment, assignedUsers: current.filter(id => id !== sId) });
                                                     }
                                                 }}
-                                                className="rounded text-emerald-600 focus:ring-emerald-500"
+                                                className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 border-gray-300"
                                             />
-                                            <div className="flex items-center gap-2">
-                                                <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-600">
-                                                    {student.name?.charAt(0)}
+                                            <div className="flex-1 flex items-center justify-between">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-xs font-bold">
+                                                        {student.name?.charAt(0)}
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-sm font-medium text-gray-900">{student.name}</p>
+                                                        <p className="text-xs text-gray-400">{student.rollNo}</p>
+                                                    </div>
                                                 </div>
-                                                <span className="text-sm text-gray-700">{student.name}</span>
-                                                <span className="text-xs text-gray-400">({student.rollNo})</span>
+                                                {newAssignment.assignedUsers?.includes(student.id || student._id) && (
+                                                    <CheckCircle className="w-4 h-4 text-emerald-500" />
+                                                )}
                                             </div>
                                         </label>
-                                    ))
-                                ) : (
-                                    <p className="text-sm text-gray-400 text-center py-2">No students enrolled</p>
-                                )}
+                                    ))}
+                                    {students?.length === 0 && (
+                                        <p className="text-sm text-gray-400 text-center py-4">No students enrolled</p>
+                                    )}
+                                </div>
+                                <div className="flex justify-between items-center px-1">
+                                    <span className="text-xs text-gray-400">
+                                        {students?.length} total students
+                                    </span>
+                                    <span className="text-xs font-bold text-emerald-600">
+                                        {newAssignment.assignedUsers?.length || 0} selected
+                                    </span>
+                                </div>
                             </div>
                         )}
                     </div>

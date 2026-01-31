@@ -76,6 +76,9 @@ router.post('/register', uploadRegistration.fields([
             userData.cnic = cnic;
             userData.qualification = qualification;
             userData.experience = experience;
+            userData.dob = dob;
+            userData.gender = gender;
+            userData.address = address;
         }
         if (role === 'student' || role === 'intern') {
             userData.cnic = cnic;

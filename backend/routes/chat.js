@@ -110,9 +110,11 @@ router.get('/conversations', protect, authorize('admin'), async (req, res) => {
                     lastMessage: 1,
                     lastMessageAt: 1,
                     unreadCount: 1,
+                    "user._id": 1,
                     "user.name": 1,
                     "user.role": 1,
-                    "user.email": 1
+                    "user.email": 1,
+                    "user.photo": 1
                 }
             },
             { $sort: { lastMessageAt: -1 } }
@@ -157,24 +159,46 @@ router.get('/unread', protect, async (req, res) => {
         res.status(500).json({ success: false, message: error.message });
     }
 });
-// @route   DELETE /api/chat/conversations/:userId
-// @desc    Delete a conversation (Admin only)
+// @route   POST /api/chat/action/clear-messages/:userId
+// @desc    Delete ALL messages with a user (Admin only)
 // @access  Private (Admin)
-router.delete('/conversations/:userId', protect, authorize('admin'), async (req, res) => {
+router.post('/action/clear-messages/:userId', protect, authorize('admin'), async (req, res) => {
     try {
         const adminId = req.user.id;
         const otherUserId = req.params.userId;
 
-        // Delete all messages between admin and this user
-        await GlobalMessage.deleteMany({
+        console.log(`[CHAT CLEAR] Admin ${adminId} requested to CLEAR MESSAGES ONLY with User ${otherUserId}`);
+
+        // 1. Verify User exists before doing anything
+        const targetUser = await User.findById(otherUserId);
+        if (!targetUser) {
+            console.log(`[CHAT CLEAR] Failed: Target user ${otherUserId} not found.`);
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+
+        // 2. STRICTLY only delete messages from GlobalMessage collection
+        const result = await GlobalMessage.deleteMany({
             $or: [
                 { sender: adminId, recipient: otherUserId },
                 { sender: otherUserId, recipient: adminId }
             ]
         });
 
-        res.json({ success: true, message: 'Conversation deleted' });
+        // 3. SECURE CHECK: Verify user still exists
+        const userCheck = await User.findById(otherUserId);
+        if (userCheck) {
+            console.log(`[CHAT CLEAR] SUCCESS: Removed ${result.deletedCount} messages. VERIFIED: User ${userCheck.name} still exists in database.`);
+        } else {
+            console.error(`[CHAT CLEAR] CRITICAL ERROR: User ${otherUserId} was deleted during chat cleanup! This shouldn't happen.`);
+        }
+
+        res.json({
+            success: true,
+            message: 'Chat history cleared successfully. User account was NOT affected.',
+            messagesRemoved: result.deletedCount
+        });
     } catch (error) {
+        console.error('[CHAT CLEAR] Error:', error);
         res.status(500).json({ success: false, message: error.message });
     }
 });

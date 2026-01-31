@@ -15,7 +15,7 @@ const Counter = require('../models/Counter');
 router.get('/my', protect, async (req, res) => {
     try {
         let fees = await Fee.find({ user: req.user.id })
-            .populate('course', 'title fee duration')
+            .populate('course', 'title fee duration city location')
             .sort('-createdAt');
 
         // Auto-repair: If any fee has no installments, create default one
@@ -38,7 +38,7 @@ router.get('/my', protect, async (req, res) => {
         // Refetch if we made changes to ensure consistency
         if (updated) {
             fees = await Fee.find({ user: req.user.id })
-                .populate('course', 'title fee duration')
+                .populate('course', 'title fee duration city location')
                 .sort('-createdAt');
         }
 
@@ -156,10 +156,14 @@ router.put('/:feeId/installments/:installmentId/verify', protect, authorize('adm
                 await user.save();
             }
 
-            // Update enrollment to 'enrolled'
+            // Update enrollment to 'enrolled' and activate it
             await Enrollment.findOneAndUpdate(
                 { user: fee.user, course: fee.course },
-                { status: 'enrolled' }
+                {
+                    status: 'enrolled',
+                    isActive: true,
+                    enrollmentDate: new Date()
+                }
             );
 
             fee.rollNoAssigned = true;
@@ -274,11 +278,13 @@ router.post('/:id/installments', protect, authorize('admin'), async (req, res) =
                 // Preserve existing paid installment exactly as is
                 newInstallments.push(existing);
             } else {
-                // Create/Update pending installment
+                // Create/Update installment - allow setting status to 'verified' (e.g. for cash payments)
                 newInstallments.push({
                     amount: newInst.amount,
                     dueDate: newInst.dueDate,
-                    status: 'pending' // Reset to pending if it was rejected or is new
+                    status: newInst.status === 'verified' ? 'verified' : 'pending',
+                    verifiedBy: newInst.status === 'verified' ? req.user.id : undefined,
+                    verifiedAt: newInst.status === 'verified' ? new Date() : undefined
                 });
             }
         }
@@ -314,7 +320,7 @@ router.get('/pending', protect, authorize('admin'), async (req, res) => {
         // Fetch all fees first
         const allFees = await Fee.find()
             .populate('user', 'name email rollNo photo')
-            .populate('course', 'title fee')
+            .populate('course', 'title fee city location')
             .sort('-updatedAt');
 
         // Return ALL fees and let frontend filter 'submitted' installments
@@ -337,7 +343,7 @@ router.get('/all', protect, authorize('admin'), async (req, res) => {
     try {
         const fees = await Fee.find()
             .populate('user', 'name email rollNo photo')
-            .populate('course', 'title fee')
+            .populate('course', 'title fee city location')
             .sort('-createdAt');
 
         res.json({ success: true, data: fees });
