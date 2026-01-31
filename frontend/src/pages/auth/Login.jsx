@@ -69,9 +69,9 @@ const Login = () => {
             const { user, token } = response.data;
 
             // Store user in localStorage for persistence
-            localStorage.setItem('user', JSON.stringify(user));
+            // localStorage.setItem('user', JSON.stringify(user));
 
-            dispatch(loginSuccess({ user, token }));
+            dispatch(loginSuccess({ user, token, rememberMe: formData.rememberMe }));
 
             // Navigate based on role
             const role = user.role;
@@ -303,13 +303,27 @@ const Login = () => {
                             )}
                         </motion.div>
 
-                        {/* Forgot Password */}
+                        {/* Remember Me & Forgot Password */}
                         <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             transition={{ delay: 0.55 }}
-                            className="text-right"
+                            className="flex items-center justify-between"
                         >
+                            <div className="flex items-center">
+                                <input
+                                    id="remember-me"
+                                    name="rememberMe"
+                                    type="checkbox"
+                                    checked={formData.rememberMe}
+                                    onChange={handleChange}
+                                    className="h-4 w-4 text-gray-900 focus:ring-gray-500 border-gray-300 rounded cursor-pointer"
+                                />
+                                <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700 cursor-pointer select-none">
+                                    Remember me
+                                </label>
+                            </div>
+
                             <Link
                                 to="/forgot-password"
                                 className="text-sm text-gray-600 hover:text-primary underline transition-colors"

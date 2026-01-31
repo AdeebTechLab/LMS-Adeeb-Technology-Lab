@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import {
-    Clock, CheckCircle, BookOpen, Calendar, Users, TrendingUp, Loader2, RefreshCw
+    Clock, CheckCircle, BookOpen, Calendar, Users, TrendingUp, Loader2
 } from 'lucide-react';
 import { enrollmentAPI, assignmentAPI } from '../../services/api';
 
@@ -125,9 +125,6 @@ const InternDashboard = () => {
                             {internshipData.program} Internship • {internshipData.progress}% Progress
                         </p>
                     </div>
-                    <button onClick={fetchDashboardData} className="p-3 bg-white/10 rounded-xl hover:bg-white/20 transition-colors border border-white/10">
-                        <RefreshCw className="w-5 h-5" />
-                    </button>
                 </div>
             </motion.div>
 
@@ -149,6 +146,17 @@ const InternDashboard = () => {
                     </div>
                     <h3 className="text-2xl font-bold text-gray-900">{internshipData.program}</h3>
                     <p className="text-gray-500 text-sm mt-1">Current Program</p>
+                    {enrollments[0]?.course?.bookLink && (
+                        <a
+                            href={enrollments[0].course.bookLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="mt-6 flex items-center justify-center gap-3 w-full py-4 bg-indigo-600 text-white rounded-2xl shadow-xl shadow-indigo-200 text-sm font-black uppercase tracking-[0.2em] hover:bg-indigo-700 hover:scale-[1.02] transition-all"
+                        >
+                            <BookOpen className="w-5 h-5" />
+                            Access Course Book
+                        </a>
+                    )}
                 </motion.div>
 
                 <motion.div

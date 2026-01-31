@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
     Search, UserCheck, UserX, Trash2, User, Mail, Phone, MapPin,
-    Briefcase, Loader2, RefreshCw, CheckCircle, Clock, Star, FileText, Edit2, Save, Camera, Upload, Plus
+    Briefcase, Loader2, CheckCircle, Clock, Star, FileText, Edit2, Save, Camera, Upload, Plus
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
@@ -161,9 +161,6 @@ const JobsManagement = () => {
                     <p className="text-gray-500">View and manage registered job seekers</p>
                 </div>
                 <div className="flex gap-4">
-                    <button onClick={fetchJobUsers} className="p-2.5 hover:bg-gray-100 rounded-xl transition-colors">
-                        <RefreshCw className="w-5 h-5 text-gray-600" />
-                    </button>
                     <div className="px-4 py-2 bg-purple-50 rounded-xl text-center">
                         <p className="text-2xl font-bold text-purple-600">{verifiedCount}</p>
                         <p className="text-xs text-gray-500">Verified</p>

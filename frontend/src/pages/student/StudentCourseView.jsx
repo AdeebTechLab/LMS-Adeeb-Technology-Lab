@@ -134,10 +134,10 @@ const StudentCourseView = () => {
                                         href={course.bookLink}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="flex items-center gap-2 px-4 py-1.5 bg-indigo-50 text-indigo-600 rounded-lg border border-indigo-100 text-xs font-black uppercase tracking-widest hover:bg-indigo-100 transition-colors shadow-sm"
+                                        className="flex items-center gap-2 px-8 py-3 bg-indigo-600 text-white rounded-2xl shadow-2xl shadow-indigo-300 hover:bg-indigo-700 hover:scale-105 transition-all font-black text-sm uppercase tracking-[0.1em] active:scale-95 animate-pulse-subtle"
                                     >
-                                        <BookOpen className="w-4 h-4" />
-                                        BOOK
+                                        <BookOpen className="w-5 h-5" />
+                                        OPEN COURSE BOOK
                                     </a>
                                 )}
                                 <Badge variant={course.status === 'active' ? 'success' : 'warning'}>

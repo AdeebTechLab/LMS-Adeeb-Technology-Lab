@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import Select from 'react-select';
 import {
     BookOpen, Users, Calendar, ArrowRight, ChevronLeft,
-    FileText, ClipboardList, CheckCircle, Clock, Loader2, RefreshCw, User, Award, X, Search
+    FileText, ClipboardList, CheckCircle, Clock, Loader2, User, Award, X, Search
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import { courseAPI, enrollmentAPI, assignmentAPI, attendanceAPI } from '../../services/api';
@@ -244,9 +244,6 @@ const TeacherCourses = () => {
                         <h1 className="text-2xl font-bold text-gray-900">Teacher Dashboard</h1>
                         <p className="text-gray-500">Overview of your courses and student activity</p>
                     </div>
-                    <button onClick={fetchMyCourses} className="p-2.5 hover:bg-gray-100 rounded-xl transition-colors">
-                        <RefreshCw className={`w-5 h-5 text-gray-600 ${isLoading ? 'animate-spin' : ''}`} />
-                    </button>
                 </div>
 
                 {/* Summary Stats */}

@@ -14,7 +14,6 @@ import {
     XCircle,
     Clock,
     Loader2,
-    RefreshCw
 } from 'lucide-react';
 import StatCard from '../../components/ui/StatCard';
 import DataTable from '../../components/ui/DataTable';
@@ -305,9 +304,6 @@ const AdminDashboard = () => {
                         </p>
                     </div>
                     <div className="flex gap-3">
-                        <button onClick={fetchDashboardData} className="p-3 bg-white/10 hover:bg-white/20 rounded-xl transition-colors">
-                            <RefreshCw className="w-5 h-5" />
-                        </button>
                         <button className="px-6 py-3 bg-white/10 hover:bg-white/20 rounded-xl font-medium transition-all duration-300 flex items-center gap-2 backdrop-blur-sm border border-white/20">
                             View Reports
                             <ArrowUpRight className="w-4 h-4" />

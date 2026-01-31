@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import { useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
-    CheckCircle, Clock, Calendar, Search, Filter, AlertCircle, XCircle, ChevronLeft, ChevronRight, RefreshCw,
+    CheckCircle, Clock, Calendar, Search, Filter, AlertCircle, XCircle, ChevronLeft, ChevronRight,
     BookOpen, GraduationCap, ArrowRight, ExternalLink, Send, FileText, ClipboardList, Plus, Loader2, Link as LinkIcon
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
@@ -345,13 +345,6 @@ const AssignmentSubmission = () => {
                 </div>
 
                 <div className="flex items-center gap-3">
-                    <button
-                        onClick={() => activeTab === 'assignments' ? fetchAssignments() : fetchInternData()}
-                        className="p-2.5 hover:bg-gray-100 rounded-xl transition-colors border border-gray-100"
-                        title="Refresh Data"
-                    >
-                        <RefreshCw className={`w-5 h-5 text-gray-600 ${isLoading ? 'animate-spin' : ''}`} />
-                    </button>
                     {/* Tab Switcher for Interns */}
                     <div className="flex bg-gray-100 p-1 rounded-xl">
                         <button
@@ -425,6 +418,18 @@ const AssignmentSubmission = () => {
                                                 <Calendar className="w-3.5 h-3.5" />
                                                 {new Date(course.startDate).toLocaleDateString()}
                                             </span>
+                                            {course.bookLink && (
+                                                <a
+                                                    href={course.bookLink}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    onClick={(e) => e.stopPropagation()}
+                                                    className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl shadow-md shadow-indigo-200 hover:bg-indigo-700 hover:shadow-lg transition-all font-black text-[10px] uppercase tracking-widest mt-2 w-fit group-hover:scale-105"
+                                                >
+                                                    <BookOpen className="w-3.5 h-3.5" />
+                                                    OPEN COURSE BOOK
+                                                </a>
+                                            )}
                                         </div>
                                     </div>
                                     <div className="mt-8 pt-4 border-t border-gray-50 flex items-center justify-between relative z-10">
@@ -452,9 +457,22 @@ const AssignmentSubmission = () => {
                             </button>
                             <div>
                                 <h2 className="text-2xl font-black text-gray-900 uppercase tracking-tighter leading-none">{myCourses.find(c => c._id === selectedCourseId)?.title}</h2>
-                                <div className="flex items-center gap-2 mt-1">
-                                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                                    <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Workspace Active</span>
+                                <div className="flex items-center gap-4 mt-1">
+                                    <div className="flex items-center gap-2">
+                                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                                        <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Workspace Active</span>
+                                    </div>
+                                    {myCourses.find(c => c._id === selectedCourseId)?.bookLink && (
+                                        <a
+                                            href={myCourses.find(c => c._id === selectedCourseId).bookLink}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-xl shadow-lg shadow-indigo-100 text-xs font-black uppercase tracking-widest hover:bg-indigo-700 hover:scale-105 transition-all outline-none focus:ring-4 focus:ring-indigo-500/20"
+                                        >
+                                            <BookOpen className="w-4 h-4" />
+                                            ACCESS COURSE BOOK
+                                        </a>
+                                    )}
                                 </div>
                             </div>
                         </div>

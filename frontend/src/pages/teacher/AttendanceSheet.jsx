@@ -5,7 +5,7 @@ import { useSelector } from 'react-redux';
 import Select from 'react-select'; // Added import
 import {
     BookOpen, Users, Calendar, ArrowRight, ChevronLeft,
-    FileText, ClipboardList, CheckCircle, Clock, Loader2, RefreshCw, User, Search, Filter // Added Search, Filter
+    FileText, ClipboardList, CheckCircle, Clock, Loader2, User, Search, Filter // Added Search, Filter
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import { courseAPI, enrollmentAPI } from '../../services/api';
@@ -210,9 +210,6 @@ const AttendanceSheet = () => {
                         <h1 className="text-2xl font-bold text-gray-900">Attendance & Logs</h1>
                         <p className="text-gray-500">Manage your students, assignments and daily tasks</p>
                     </div>
-                    <button onClick={fetchMyCourses} className="p-2.5 hover:bg-gray-100 rounded-xl transition-colors">
-                        <RefreshCw className="w-5 h-5 text-gray-600" />
-                    </button>
                 </div>
 
                 {/* Filters and Search */}

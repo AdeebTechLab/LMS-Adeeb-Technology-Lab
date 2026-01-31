@@ -14,7 +14,6 @@ import {
     FileText,
     TrendingUp,
     Loader2,
-    RefreshCw,
     Calendar
 } from 'lucide-react';
 import StatCard from '../../components/ui/StatCard';
@@ -153,9 +152,6 @@ const TeacherDashboard = () => {
                             </p>
                         </div>
                         <div className="flex gap-3">
-                            <button onClick={fetchDashboardData} className="p-3 bg-white/10 hover:bg-white/20 rounded-xl transition-colors">
-                                <RefreshCw className="w-5 h-5" />
-                            </button>
                             <button
                                 onClick={() => navigate('/teacher/attendance')}
                                 className="px-5 py-2.5 bg-white hover:bg-white/90 text-[#0D2818] rounded-xl font-medium transition-all duration-300"

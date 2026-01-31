@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
-    Calendar, GraduationCap, Loader2, RefreshCw, CheckCircle, Clock, BookOpen, Edit2, Save, Download,
+    Calendar, GraduationCap, Loader2, CheckCircle, Clock, BookOpen, Edit2, Save, Download,
     FileText, Users, Search, User, Mail, Phone, MapPin, UserCheck, UserX, Trash2, Receipt, Camera, Upload, Plus
 } from 'lucide-react';
 import { jsPDF } from 'jspdf';
@@ -397,9 +397,6 @@ const InternsManagement = () => {
                             </>
                         )}
                     </div>
-                    <button onClick={fetchInterns} className="p-2.5 hover:bg-gray-100 rounded-xl transition-colors">
-                        <RefreshCw className="w-5 h-5 text-gray-600" />
-                    </button>
                     <div className="px-4 py-2 bg-blue-50 rounded-xl text-center">
                         <p className="text-2xl font-bold text-blue-600">{verifiedCount}</p>
                         <p className="text-xs text-gray-500">Verified</p>

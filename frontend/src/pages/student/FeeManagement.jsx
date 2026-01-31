@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
-    CreditCard, Upload, Clock, CheckCircle, AlertCircle, FileText, Loader2, RefreshCw, FileImage, Trash2
+    CreditCard, Upload, Clock, CheckCircle, AlertCircle, FileText, Loader2, FileImage, Trash2
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
@@ -22,6 +22,7 @@ const FeeManagement = () => {
     const [isFetching, setIsFetching] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState('');
+    const [showSlipError, setShowSlipError] = useState(false);
 
     useEffect(() => {
         fetchFees();
@@ -81,7 +82,7 @@ const FeeManagement = () => {
             return;
         }
         if (!slipId.trim()) {
-            alert('Please enter the Slip ID');
+            setShowSlipError(true);
             return;
         }
 
@@ -160,10 +161,6 @@ const FeeManagement = () => {
                     <h1 className="text-2xl font-bold text-gray-900">Fee Management</h1>
                     <p className="text-gray-500">View and manage your monthly course fees</p>
                 </div>
-                <button onClick={fetchFees} className="flex items-center gap-2 px-4 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl">
-                    <RefreshCw className="w-4 h-4" />
-                    Refresh
-                </button>
             </div>
 
             {/* Error */}
@@ -456,14 +453,22 @@ const FeeManagement = () => {
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Bank Slip ID (Transaction ID)</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Bank Slip ID (Transaction ID) <span className="text-red-500">*</span></label>
                             <input
                                 type="text"
                                 value={slipId}
-                                onChange={(e) => setSlipId(e.target.value)}
+                                onChange={(e) => {
+                                    setSlipId(e.target.value);
+                                    if (e.target.value.trim()) setShowSlipError(false);
+                                }}
                                 placeholder="Enter the unique ID from your slip"
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all"
+                                className={`w-full px-4 py-2 border ${showSlipError ? 'border-red-500 ring-1 ring-red-500' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all`}
                             />
+                            {showSlipError && (
+                                <p className="text-xs text-red-500 mt-1 font-bold italic">
+                                    enter id number to submit
+                                </p>
+                            )}
                         </div>
 
                         <div className="border-2 border-dashed border-gray-200 rounded-xl p-8 text-center hover:border-emerald-400 transition-colors group cursor-pointer relative">

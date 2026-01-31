@@ -1,8 +1,8 @@
 import { createSlice } from '@reduxjs/toolkit';
 
-// Try to restore user from localStorage
-const storedUser = localStorage.getItem('user');
-const storedToken = localStorage.getItem('token');
+// Try to restore user from localStorage or sessionStorage
+const storedUser = localStorage.getItem('user') || sessionStorage.getItem('user');
+const storedToken = localStorage.getItem('token') || sessionStorage.getItem('token');
 
 const initialState = {
     user: storedUser ? JSON.parse(storedUser) : null,
@@ -27,10 +27,20 @@ const authSlice = createSlice({
             state.user = action.payload.user;
             state.token = action.payload.token;
             state.role = action.payload.user.role;
+
+            const { rememberMe } = action.payload;
+            const storage = rememberMe ? localStorage : sessionStorage;
             const loginTime = new Date().getTime();
-            localStorage.setItem('token', action.payload.token);
-            localStorage.setItem('user', JSON.stringify(action.payload.user));
-            localStorage.setItem('loginTime', loginTime.toString());
+
+            storage.setItem('token', action.payload.token);
+            storage.setItem('user', JSON.stringify(action.payload.user));
+            storage.setItem('loginTime', loginTime.toString());
+
+            // Clear other storage to avoid conflict
+            const otherStorage = rememberMe ? sessionStorage : localStorage;
+            otherStorage.removeItem('token');
+            otherStorage.removeItem('user');
+            otherStorage.removeItem('loginTime');
         },
         loginFailure: (state, action) => {
             state.isLoading = false;
@@ -46,6 +56,8 @@ const authSlice = createSlice({
             localStorage.removeItem('token');
             localStorage.removeItem('user');
             localStorage.removeItem('loginTime');
+            sessionStorage.removeItem('token');
+            sessionStorage.removeItem('user');
         },
         clearError: (state) => {
             state.error = null;

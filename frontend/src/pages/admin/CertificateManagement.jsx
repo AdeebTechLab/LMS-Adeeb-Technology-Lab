@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
-    Search, Award, BookOpen, Users, CheckCircle, ChevronDown, ChevronRight, User, Loader2, RefreshCw, XCircle, FileText, ClipboardList, Calendar, Edit2
+    Search, Award, BookOpen, Users, CheckCircle, ChevronDown, ChevronRight, User, Loader2, XCircle, FileText, ClipboardList, Calendar, Edit2
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
@@ -187,9 +187,6 @@ const CertificateManagement = () => {
                     <p className="text-gray-500">Issue and manage student certificates</p>
                 </div>
                 <div className="flex gap-4">
-                    <button onClick={fetchAllData} className="p-2.5 hover:bg-gray-100 rounded-xl transition-colors">
-                        <RefreshCw className="w-5 h-5 text-gray-600" />
-                    </button>
                     <div className="px-4 py-2 bg-amber-50 rounded-xl text-center">
                         <p className="text-2xl font-bold text-amber-600">{requests.length}</p>
                         <p className="text-xs text-gray-500">Pending</p>

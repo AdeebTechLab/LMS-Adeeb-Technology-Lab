@@ -192,11 +192,6 @@ const MarksSheet = () => {
                     <h1 className="text-2xl font-bold text-gray-900">Academic Marks Sheet</h1>
                     <p className="text-gray-500">Select a course to view detailed grading and feedback</p>
                 </div>
-                <div className="flex gap-3">
-                    <button onClick={fetchMarksData} className="p-2.5 hover:bg-gray-100 rounded-xl transition-colors border border-gray-100">
-                        <RefreshCw className={`w-5 h-5 text-gray-600 ${isLoading ? 'animate-spin' : ''}`} />
-                    </button>
-                </div>
             </div>
 
             {/* Overall Stats */}

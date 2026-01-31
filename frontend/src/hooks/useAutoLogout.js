@@ -14,7 +14,7 @@ const useAutoLogout = () => {
         if (!isAuthenticated) return;
 
         const checkSession = () => {
-            const loginTime = localStorage.getItem('loginTime');
+            const loginTime = localStorage.getItem('loginTime') || sessionStorage.getItem('loginTime');
             if (!loginTime) {
                 // No login time stored, logout for safety
                 dispatch(logout());

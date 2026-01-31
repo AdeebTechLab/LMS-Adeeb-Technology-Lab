@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import {
-    Briefcase, Clock, FileText, CheckCircle, XCircle, AlertCircle, Loader2, RefreshCw
+    Briefcase, Clock, FileText, CheckCircle, XCircle, AlertCircle, Loader2
 } from 'lucide-react';
 import { taskAPI } from '../../services/api';
 
@@ -82,9 +82,6 @@ const JobDashboard = () => {
                             Browse available tasks and track your work!
                         </p>
                     </div>
-                    <button onClick={fetchDashboardData} className="p-3 bg-white/10 rounded-xl hover:bg-white/20 transition-colors">
-                        <RefreshCw className="w-5 h-5" />
-                    </button>
                 </div>
             </motion.div>
 

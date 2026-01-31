@@ -7,7 +7,6 @@ import {
     Calendar,
     ArrowRight,
     Loader2,
-    RefreshCw,
     XCircle,
     ChevronLeft,
     AlertCircle,
@@ -94,13 +93,6 @@ const AttendanceView = () => {
                     <h2 className="text-2xl font-black text-gray-900 uppercase italic">My Attendance</h2>
                     <p className="text-gray-500 font-medium">Track your attendance and progress across all courses</p>
                 </div>
-                <button
-                    onClick={() => selectedCourse ? fetchAttendance(selectedCourse.courseId) : fetchEnrollments()}
-                    className="flex items-center gap-2 px-4 py-2 bg-gray-50 text-gray-600 hover:bg-gray-100 rounded-xl font-bold text-xs transition-all"
-                >
-                    <RefreshCw className="w-3.5 h-3.5" />
-                    SYNC
-                </button>
             </div>
 
             {error && (

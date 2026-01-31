@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
+import { useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Bell, Info, AlertCircle, CheckCircle } from 'lucide-react';
 import { notificationAPI } from '../../services/api';
@@ -8,8 +9,16 @@ const NotificationPopup = () => {
     const [activeNotifications, setActiveNotifications] = useState([]);
     const [isVisible, setIsVisible] = useState(false);
     const { user } = useSelector((state) => state.auth);
+    const location = useLocation();
 
     useEffect(() => {
+        // Only show popup on Dashboard or Tasks pages
+        const isDashboardOrTasks =
+            location.pathname.endsWith('/dashboard') ||
+            location.pathname.endsWith('/tasks');
+
+        if (!isDashboardOrTasks) return;
+
         const fetchActive = async () => {
             try {
                 const response = await notificationAPI.getActive();
@@ -24,7 +33,7 @@ const NotificationPopup = () => {
         };
 
         fetchActive();
-    }, []);
+    }, [location.pathname]);
 
     const handleDismiss = () => {
         setIsVisible(false);

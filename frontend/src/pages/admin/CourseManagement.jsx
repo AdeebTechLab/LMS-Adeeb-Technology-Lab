@@ -10,7 +10,6 @@ import {
     Calendar,
     Clock,
     AlertCircle,
-    RefreshCw,
     Filter,
     X,
 } from 'lucide-react';
@@ -142,7 +141,7 @@ const CourseManagement = () => {
                 targetAudience: formData.targetAudience,
                 location: formData.city.toLowerCase(),
                 city: formData.city,
-                bookLink: formData.targetAudience === 'students' ? formData.bookLink : '',
+                bookLink: formData.bookLink,
             };
 
             if (editingCourse) {
@@ -196,13 +195,6 @@ const CourseManagement = () => {
                     <p className="text-gray-500">Create and manage all courses</p>
                 </div>
                 <div className="flex items-center gap-2">
-                    <button
-                        onClick={fetchData}
-                        className="flex items-center gap-2 px-4 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl transition-all"
-                    >
-                        <RefreshCw className="w-4 h-4" />
-                        Refresh
-                    </button>
                     <button
                         onClick={() => handleOpenModal()}
                         className="flex items-center justify-center gap-2 px-5 py-2.5 bg-[#0D2818] hover:bg-[#1A5D3A] text-white rounded-xl transition-all duration-300 font-medium"
@@ -561,22 +553,20 @@ const CourseManagement = () => {
                         </select>
                     </div>
 
-                    {/* Book Link - ONLY for Students */}
-                    {formData.targetAudience === 'students' && (
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Book / Resource Link
-                            </label>
-                            <input
-                                type="url"
-                                value={formData.bookLink}
-                                onChange={(e) => setFormData({ ...formData, bookLink: e.target.value })}
-                                placeholder="https://example.com/course-book.pdf"
-                                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all font-mono text-xs"
-                            />
-                            <p className="text-[10px] text-gray-400 mt-1 italic uppercase tracking-widest font-black">Direct link to course materials</p>
-                        </div>
-                    )}
+                    {/* Book Link */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Book / Resource Link
+                        </label>
+                        <input
+                            type="url"
+                            value={formData.bookLink}
+                            onChange={(e) => setFormData({ ...formData, bookLink: e.target.value })}
+                            placeholder="https://example.com/course-book.pdf"
+                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all font-mono text-xs"
+                        />
+                        <p className="text-[10px] text-gray-400 mt-1 italic uppercase tracking-widest font-black">Direct link to course materials</p>
+                    </div>
 
 
                     {/* Buttons */}

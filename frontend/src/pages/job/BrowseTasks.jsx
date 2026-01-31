@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useSelector } from 'react-redux';
 import {
-    Search, Calendar, Briefcase, CheckCircle, Send, Upload, CreditCard, Loader2, RefreshCw, AlertCircle, Link, Trash2,
+    Search, Calendar, Briefcase, CheckCircle, Send, Upload, CreditCard, Loader2, AlertCircle, Link, Trash2,
     Globe, Cpu, Smartphone, Palette, Grid
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
@@ -165,10 +165,6 @@ const BrowseTasks = () => {
                     <h1 className="text-2xl font-bold text-gray-900">Paid Tasks</h1>
                     <p className="text-gray-500">Browse, apply, and complete paid tasks</p>
                 </div>
-                <button onClick={fetchTasks} className="flex items-center gap-2 px-4 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl">
-                    <RefreshCw className="w-4 h-4" />
-                    Refresh
-                </button>
             </div>
 
             {/* Error */}

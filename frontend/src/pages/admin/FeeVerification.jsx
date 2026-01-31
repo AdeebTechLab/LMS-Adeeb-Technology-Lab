@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
-    Search, Eye, CheckCircle, XCircle, Clock, AlertCircle, Loader2, RefreshCw,
+    Search, Eye, CheckCircle, XCircle, Clock, AlertCircle, Loader2,
     Plus, Trash2, Calendar, DollarSign, FileText, ArrowLeft, MapPin
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
@@ -378,10 +378,6 @@ const FeeVerification = () => {
                         <>
                             <div className="flex items-center justify-between mb-4">
                                 <h2 className="text-lg font-bold text-gray-900">All Courses</h2>
-                                <button onClick={fetchAllFees} className="flex items-center gap-2 px-4 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl">
-                                    <RefreshCw className="w-4 h-4" />
-                                    Refresh
-                                </button>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {/* Group fees by course */}

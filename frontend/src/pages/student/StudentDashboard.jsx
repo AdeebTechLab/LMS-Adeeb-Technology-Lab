@@ -12,7 +12,6 @@ import {
     FileText,
     Bell,
     Loader2,
-    RefreshCw,
     Trash2
 } from 'lucide-react';
 import StatCard from '../../components/ui/StatCard';
@@ -62,7 +61,8 @@ const StudentDashboard = () => {
                 id: e.course?._id || e._id,
                 enrollmentId: e._id,
                 title: e.course?.title || 'Unknown Course',
-                teacher: e.course?.teacher?.name || 'TBA',
+                teacher: e.course?.teachers?.[0]?.name || 'TBA',
+                bookLink: e.course?.bookLink || '',
                 progress: e.progress || 0,
                 nextClass: e.course?.schedule || 'Check schedule',
                 isActive: e.isActive,
@@ -375,6 +375,19 @@ const StudentDashboard = () => {
                                                 <Calendar className="w-3 h-3" />
                                                 {course.nextClass}
                                             </span>
+
+                                            {course.bookLink && (
+                                                <a
+                                                    href={course.bookLink}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    onClick={(e) => e.stopPropagation()}
+                                                    className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl shadow-md shadow-indigo-200 hover:bg-indigo-700 hover:shadow-lg transition-all font-black text-[10px] uppercase tracking-widest active:scale-95"
+                                                >
+                                                    <BookOpen className="w-3.5 h-3.5" />
+                                                    COURSE BOOK
+                                                </a>
+                                            )}
 
                                             {/* Withdraw Option for Unverified Courses */}
                                             {!course.isFirstMonthVerified && (

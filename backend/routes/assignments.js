@@ -165,7 +165,7 @@ router.get('/my', protect, async (req, res) => {
                 { "submissions.user": req.user.id } // Always include if there's a submission
             ]
         })
-            .populate('course', 'title')
+            .populate('course', 'title bookLink')
             .sort('-createdAt');
 
         // SECURITY: Only return the current user's submission

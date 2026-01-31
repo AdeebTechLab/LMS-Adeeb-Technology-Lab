@@ -8,7 +8,6 @@ import {
     ExternalLink,
     Save,
     Loader2,
-    RefreshCw,
     FileText
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
@@ -176,9 +175,6 @@ const GradingSystem = () => {
                     <h1 className="text-2xl font-bold text-gray-900">Grading System</h1>
                     <p className="text-gray-500">Review submissions and assign grades</p>
                 </div>
-                <button onClick={fetchData} className="p-2.5 hover:bg-gray-100 rounded-xl">
-                    <RefreshCw className="w-5 h-5 text-gray-600" />
-                </button>
             </div>
 
             {/* Filters */}
