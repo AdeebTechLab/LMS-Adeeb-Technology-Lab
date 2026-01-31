@@ -28,7 +28,7 @@ router.get('/my', protect, async (req, res) => {
 router.get('/requests', protect, authorize('admin'), async (req, res) => {
     try {
         const requests = await CertificateRequest.find()
-            .populate('user', 'name email rollNo photo role')
+            .populate('user', 'name email rollNo photo role cnic')
             .populate('course', 'title description location')
             .populate('teacher', 'name email')
             .sort('-createdAt');
@@ -164,7 +164,7 @@ router.get('/courses', protect, authorize('admin'), async (req, res) => {
             // Get all enrollments for this course (removed status filter)
             const enrollments = await Enrollment.find({
                 course: course._id
-            }).populate('user', 'name email phone photo rollNo role');
+            }).populate('user', 'name email phone photo rollNo role cnic');
 
             // Get existing certificates as a map for quick lookup
             const certificates = await Certificate.find({ course: course._id });
@@ -174,6 +174,8 @@ router.get('/courses', protect, authorize('admin'), async (req, res) => {
                     _id: c._id,
                     passoutDate: c.passoutDate,
                     skills: c.skills,
+                    duration: c.duration,
+                    rollNo: c.rollNo,
                     certificateLink: c.certificateLink,
                     issuedAt: c.issuedAt
                 };
@@ -268,7 +270,7 @@ router.post('/issue', protect, authorize('admin'), async (req, res) => {
 // @access  Private (Admin)
 router.put('/:id', protect, authorize('admin'), async (req, res) => {
     try {
-        const { passoutDate, skills, certificateLink } = req.body;
+        const { passoutDate, skills, certificateLink, rollNo, duration } = req.body;
 
         const certificate = await Certificate.findById(req.params.id);
         if (!certificate) {
@@ -278,6 +280,8 @@ router.put('/:id', protect, authorize('admin'), async (req, res) => {
         // Update fields if provided
         if (passoutDate) certificate.passoutDate = passoutDate;
         if (skills) certificate.skills = skills;
+        if (rollNo) certificate.rollNo = rollNo;
+        if (duration) certificate.duration = duration;
         if (certificateLink !== undefined) certificate.certificateLink = certificateLink;
 
         await certificate.save();
@@ -332,6 +336,32 @@ router.get('/verify/:rollNo', async (req, res) => {
         }));
 
         res.json({ success: true, certificates: result });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// @route   DELETE /api/certificates/:id
+// @desc    Delete certificate
+// @access  Private (Admin)
+router.delete('/:id', protect, authorize('admin'), async (req, res) => {
+    try {
+        const certificate = await Certificate.findById(req.params.id);
+        if (!certificate) {
+            return res.status(404).json({ success: false, message: 'Certificate not found' });
+        }
+
+        // Optional: Revert enrollment status? 
+        // If we want the student to be able to request again or admin to re-issue,
+        // we might want to revert enrollment status.
+        await Enrollment.findOneAndUpdate(
+            { user: certificate.user, course: certificate.course },
+            { status: 'enrolled', completedAt: null }
+        );
+
+        await certificate.deleteOne();
+
+        res.json({ success: true, message: 'Certificate deleted successfully' });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }

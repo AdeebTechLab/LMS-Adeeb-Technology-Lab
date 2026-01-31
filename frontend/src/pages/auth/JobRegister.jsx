@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
     ArrowLeft, Loader2, User, Mail, Phone, CreditCard,
-    MapPin, Briefcase, FileText, Camera, ChevronDown, AlertCircle, Eye, EyeOff
+    MapPin, Briefcase, FileText, Camera, ChevronDown, AlertCircle, Eye, EyeOff, Calendar
 } from 'lucide-react';
 import { authAPI } from '../../services/api';
 
@@ -88,16 +88,42 @@ const JobRegister = () => {
         heardAbout: '',
         password: '',
         confirmPassword: '',
+        dob: '',
+        age: '',
         termsAccepted: false
     });
+
+    const calculateAge = (dob) => {
+        if (!dob) return '';
+        const birthDate = new Date(dob);
+        const today = new Date();
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const monthDiff = today.getMonth() - birthDate.getMonth();
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+            age--;
+        }
+        return age;
+    };
     const [photoFile, setPhotoFile] = useState(null);
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: type === 'checkbox' ? checked : value
-        }));
+
+        if (name === 'dob') {
+            const age = calculateAge(value);
+            setFormData(prev => ({
+                ...prev,
+                dob: value,
+                age: age.toString()
+            }));
+            if (errors.age) setErrors(prev => ({ ...prev, age: '' }));
+        } else {
+            setFormData(prev => ({
+                ...prev,
+                [name]: type === 'checkbox' ? checked : value
+            }));
+        }
+
         if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
     };
 
@@ -129,6 +155,7 @@ const JobRegister = () => {
         else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Invalid email format';
         if (!formData.phone) newErrors.phone = 'Phone is required';
         if (!formData.cnic) newErrors.cnic = 'CNIC is required';
+        if (!formData.dob) newErrors.dob = 'Date of Birth is required';
         if (!formData.city) newErrors.city = 'City is required';
         if (!formData.qualification) newErrors.qualification = 'Qualification is required';
         if (!formData.teachingExp) newErrors.teachingExp = 'This field is required';
@@ -160,6 +187,8 @@ const JobRegister = () => {
             submitData.append('role', 'job');
             submitData.append('location', formData.preferredCity.toLowerCase());
             submitData.append('cnic', formData.cnic);
+            submitData.append('dob', formData.dob);
+            submitData.append('age', formData.age);
             submitData.append('skills', formData.skills.join(', '));
             submitData.append('experience', formData.experienceDetails);
             submitData.append('portfolio', formData.cvUrl);
@@ -244,6 +273,8 @@ const JobRegister = () => {
                             <InputField label="Email Address *" name="email" type="email" icon={Mail} placeholder="your@email.com" value={formData.email} onChange={handleChange} error={errors.email} />
                             <InputField label="Phone Number *" name="phone" type="tel" icon={Phone} placeholder="+92 300 1234567" value={formData.phone} onChange={handleChange} error={errors.phone} />
                             <InputField label="CNIC Number *" name="cnic" icon={CreditCard} placeholder="XXXXX-XXXXXXX-X" value={formData.cnic} onChange={handleCNICChange} error={errors.cnic} />
+                            <InputField label="Date of Birth *" name="dob" type="date" icon={Calendar} value={formData.dob} onChange={handleChange} error={errors.dob} />
+                            <InputField label="Age (Auto) *" name="age" type="number" placeholder="Calculated automatically" value={formData.age} onChange={handleChange} error={errors.age} readOnly />
                             <InputField label="City *" name="city" icon={MapPin} placeholder="Your city" value={formData.city} onChange={handleChange} error={errors.city} />
                         </div>
 

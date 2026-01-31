@@ -17,7 +17,7 @@ const DailyTasksTab = ({ course }) => {
     const fetchTasks = async () => {
         setIsLoading(true);
         try {
-            const res = await api.get(`/daily-tasks/course/${course._id}`);
+            const res = await api.get(`/ daily - tasks / course / ${course._id} `);
             setTasks(res.data.data || []);
         } catch (error) {
             console.error('Error fetching daily tasks:', error);
@@ -39,7 +39,7 @@ const DailyTasksTab = ({ course }) => {
         if (!confirm('Are you sure you want to delete this log entry permanently?')) return;
         setIsSubmitting(true);
         try {
-            await api.delete(`/daily-tasks/${task._id}`);
+            await api.delete(`/ daily - tasks / ${task._id} `);
             setTasks(prev => prev.filter(t => t._id !== task._id));
             alert('Log entry deleted successfully');
         } catch (error) {
@@ -53,7 +53,7 @@ const DailyTasksTab = ({ course }) => {
     const submitVerification = async (taskId, status) => {
         setIsSubmitting(true);
         try {
-            const res = await api.put(`/daily-tasks/${taskId}/grade`, {
+            const res = await api.put(`/ daily - tasks / ${taskId}/grade`, {
                 status
             });
 

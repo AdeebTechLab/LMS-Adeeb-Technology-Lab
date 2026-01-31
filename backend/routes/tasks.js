@@ -48,6 +48,28 @@ router.post('/', protect, authorize('admin'), async (req, res) => {
     }
 });
 
+// @route   PUT /api/tasks/:id
+// @desc    Update task details
+// @access  Private (Admin)
+router.put('/:id', protect, authorize('admin'), async (req, res) => {
+    try {
+        let task = await PaidTask.findById(req.params.id);
+
+        if (!task) {
+            return res.status(404).json({ success: false, message: 'Task not found' });
+        }
+
+        task = await PaidTask.findByIdAndUpdate(req.params.id, req.body, {
+            new: true,
+            runValidators: true
+        });
+
+        res.json({ success: true, task });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
 // @route   POST /api/tasks/:id/apply
 // @desc    Apply for a task
 // @access  Private (Job role)

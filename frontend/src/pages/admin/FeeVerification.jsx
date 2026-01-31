@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
     Search, Eye, CheckCircle, XCircle, Clock, AlertCircle, Loader2,
-    Plus, Trash2, Calendar, DollarSign, FileText, ArrowLeft, MapPin
+    Plus, Trash2, Calendar, DollarSign, FileText, ArrowLeft, MapPin, Users
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
@@ -16,6 +16,10 @@ const FeeVerification = () => {
     const [isImageModalOpen, setIsImageModalOpen] = useState(false);
     const [isInstallmentModalOpen, setIsInstallmentModalOpen] = useState(false);
     const [selectedCourse, setSelectedCourse] = useState(null); // For Course Grouping
+
+    // Filters State
+    const [selectedRoles, setSelectedRoles] = useState([]); // 'students', 'interns'
+    const [selectedCities, setSelectedCities] = useState([]); // 'Bahawalpur', 'Islamabad'
 
     // Data states
     const [fees, setFees] = useState([]); // Pending fees
@@ -199,6 +203,37 @@ const FeeVerification = () => {
         }
     };
 
+    const toggleFilter = (type, value) => {
+        if (type === 'role') {
+            setSelectedRoles(prev =>
+                prev.includes(value) ? prev.filter(v => v !== value) : [...prev, value]
+            );
+        } else {
+            setSelectedCities(prev =>
+                prev.includes(value) ? prev.filter(v => v !== value) : [...prev, value]
+            );
+        }
+    };
+
+    const clearFilters = () => {
+        setSelectedRoles([]);
+        setSelectedCities([]);
+        setSearchQuery('');
+    };
+
+    const getFilteredFees = (data) => {
+        return data.filter(fee => {
+            const matchesSearch =
+                fee.user?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                fee.course?.title?.toLowerCase().includes(searchQuery.toLowerCase());
+
+            const matchesRole = selectedRoles.length === 0 || selectedRoles.includes(fee.course?.targetAudience);
+            const matchesCity = selectedCities.length === 0 || selectedCities.includes(fee.course?.city);
+
+            return matchesSearch && matchesRole && matchesCity;
+        });
+    };
+
     const formatDate = (dateString) => {
         if (!dateString) return 'N/A';
         return new Date(dateString).toLocaleDateString('en-US', {
@@ -240,6 +275,88 @@ const FeeVerification = () => {
                 </div>
             </div>
 
+            {/* Filters and Search */}
+            <div className="bg-white rounded-2xl p-6 border border-gray-100 space-y-4">
+                <div className="flex flex-col md:flex-row gap-4">
+                    {/* Search */}
+                    <div className="flex-1 flex items-center bg-gray-50 rounded-xl px-4 py-3 border border-transparent focus-within:border-emerald-500/20 focus-within:bg-white transition-all">
+                        <Search className="w-5 h-5 text-gray-400 mr-3" />
+                        <input
+                            type="text"
+                            placeholder="Search students or courses..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="bg-transparent border-none outline-none w-full text-gray-700 placeholder:text-gray-400 font-medium"
+                        />
+                    </div>
+
+                    {/* Clear Button */}
+                    {(selectedRoles.length > 0 || selectedCities.length > 0 || searchQuery) && (
+                        <button
+                            onClick={clearFilters}
+                            className="flex items-center justify-center gap-2 px-4 py-2 text-rose-500 hover:bg-rose-50 rounded-xl transition-all text-sm font-black uppercase tracking-widest"
+                        >
+                            <XCircle className="w-4 h-4" />
+                            Clear
+                        </button>
+                    )}
+                </div>
+
+                <div className="flex flex-wrap items-center gap-6 pt-2">
+                    {/* Role Filters */}
+                    <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Audience:</span>
+                        <div className="flex bg-gray-100 p-1 rounded-lg">
+                            <button
+                                onClick={() => toggleFilter('role', 'students')}
+                                className={`px-4 py-1.5 rounded-md text-[10px] font-black uppercase tracking-widest transition-all ${selectedRoles.includes('students')
+                                    ? 'bg-white text-emerald-600 shadow-sm'
+                                    : 'text-gray-500 hover:text-gray-700'
+                                    }`}
+                            >
+                                Students
+                            </button>
+                            <button
+                                onClick={() => toggleFilter('role', 'interns')}
+                                className={`px-4 py-1.5 rounded-md text-[10px] font-black uppercase tracking-widest transition-all ${selectedRoles.includes('interns')
+                                    ? 'bg-white text-emerald-600 shadow-sm'
+                                    : 'text-gray-500 hover:text-gray-700'
+                                    }`}
+                            >
+                                Interns
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="h-6 w-px bg-gray-200 hidden sm:block" />
+
+                    {/* City Filters */}
+                    <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Location:</span>
+                        <div className="flex bg-gray-100 p-1 rounded-lg">
+                            <button
+                                onClick={() => toggleFilter('city', 'Islamabad')}
+                                className={`px-4 py-1.5 rounded-md text-[10px] font-black uppercase tracking-widest transition-all ${selectedCities.includes('Islamabad')
+                                    ? 'bg-white text-emerald-600 shadow-sm'
+                                    : 'text-gray-500 hover:text-gray-700'
+                                    }`}
+                            >
+                                Islamabad
+                            </button>
+                            <button
+                                onClick={() => toggleFilter('city', 'Bahawalpur')}
+                                className={`px-4 py-1.5 rounded-md text-[10px] font-black uppercase tracking-widest transition-all ${selectedCities.includes('Bahawalpur')
+                                    ? 'bg-white text-emerald-600 shadow-sm'
+                                    : 'text-gray-500 hover:text-gray-700'
+                                    }`}
+                            >
+                                Bahawalpur
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             {/* Error */}
             {error && (
                 <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-center gap-3">
@@ -258,14 +375,14 @@ const FeeVerification = () => {
                             Submitted for Review
                         </h2>
 
-                        {fees.reduce((acc, f) => acc + (f.installments?.filter(i => i.status === 'submitted').length || 0), 0) === 0 ? (
+                        {getFilteredFees(fees).reduce((acc, f) => acc + (f.installments?.filter(i => i.status === 'submitted').length || 0), 0) === 0 ? (
                             <div className="bg-white p-6 rounded-2xl border border-gray-100 text-center text-gray-500">
                                 <CheckCircle className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-                                No receipts to verify
+                                No receipts to verify matching your filters
                             </div>
                         ) : (
                             <div className="grid gap-4">
-                                {fees.map(fee => (
+                                {getFilteredFees(fees).map(fee => (
                                     (fee.installments || []).filter(i => i.status === 'submitted').map(inst => (
                                         <motion.div key={`${fee._id}-${inst._id}`} layout className="bg-white p-6 rounded-2xl border border-amber-200 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                                             <div className="flex items-center gap-4">
@@ -274,7 +391,12 @@ const FeeVerification = () => {
                                                 </div>
                                                 <div>
                                                     <h3 className="font-semibold text-gray-900">{fee.user?.name || 'Unknown Student'}</h3>
-                                                    <p className="text-sm text-gray-500">{fee.course?.title || 'Unknown Course'} ({fee.course?.city || 'N/A'})</p>
+                                                    <p className="text-sm text-gray-500">
+                                                        {fee.course?.title || 'Unknown Course'} ({fee.course?.city || 'N/A'})
+                                                        <span className={`ml-2 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest ${fee.course?.targetAudience === 'students' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-purple-50 text-purple-600 border border-purple-100'}`}>
+                                                            {fee.course?.targetAudience}
+                                                        </span>
+                                                    </p>
                                                     <div className="flex gap-4 mt-1 text-sm text-gray-500">
                                                         <span>Slip ID: {inst.slipId || 'N/A'}</span>
                                                         <span>•</span>
@@ -332,13 +454,13 @@ const FeeVerification = () => {
                             Awaiting Payment
                         </h2>
 
-                        {fees.reduce((acc, f) => acc + (f.installments?.filter(i => i.status === 'pending').length || 0), 0) === 0 ? (
+                        {getFilteredFees(fees).reduce((acc, f) => acc + (f.installments?.filter(i => i.status === 'pending').length || 0), 0) === 0 ? (
                             <div className="bg-gray-50 p-6 rounded-2xl border border-gray-100 text-center text-gray-400 text-sm">
-                                No pending payments
+                                No pending payments matching your filters
                             </div>
                         ) : (
                             <div className="grid gap-3">
-                                {fees.map(fee => (
+                                {getFilteredFees(fees).map(fee => (
                                     (fee.installments || []).filter(i => i.status === 'pending').map(inst => (
                                         <div key={`${fee._id}-${inst._id}`} className="bg-gray-50 p-4 rounded-xl border border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4 opacity-75 hover:opacity-100 transition-opacity">
                                             <div className="flex items-center gap-3">
@@ -347,7 +469,12 @@ const FeeVerification = () => {
                                                 </div>
                                                 <div>
                                                     <h3 className="font-medium text-gray-700">{fee.user?.name || 'Unknown Student'}</h3>
-                                                    <p className="text-xs text-gray-500">{fee.course?.title} ({fee.course?.city}) • Due: {formatDate(inst.dueDate)}</p>
+                                                    <p className="text-xs text-gray-500">
+                                                        {fee.course?.title} ({fee.course?.city}) • Due: {formatDate(inst.dueDate)}
+                                                        <span className={`ml-2 px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest ${fee.course?.targetAudience === 'students' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-purple-50 text-purple-600 border border-purple-100'}`}>
+                                                            {fee.course?.targetAudience}
+                                                        </span>
+                                                    </p>
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-4">
@@ -381,7 +508,7 @@ const FeeVerification = () => {
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {/* Group fees by course */}
-                                {Object.values(allFees.reduce((acc, fee) => {
+                                {Object.values(getFilteredFees(allFees).reduce((acc, fee) => {
                                     if (fee.course) {
                                         if (!acc[fee.course._id]) {
                                             acc[fee.course._id] = {
@@ -389,6 +516,7 @@ const FeeVerification = () => {
                                                 title: fee.course.title,
                                                 fee: fee.course.fee,
                                                 location: fee.course.city || fee.course.location,
+                                                targetAudience: fee.course.targetAudience,
                                                 students: 0
                                             };
                                         }
@@ -406,9 +534,14 @@ const FeeVerification = () => {
                                             <div className="p-3 bg-indigo-50 rounded-xl text-indigo-600">
                                                 <FileText className="w-6 h-6" />
                                             </div>
-                                            <div className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-xs font-medium">
+                                            <div className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">
                                                 Rs {course.fee?.toLocaleString()}
                                             </div>
+                                        </div>
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest ${course.targetAudience === 'students' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-purple-50 text-purple-600 border border-purple-100'}`}>
+                                                {course.targetAudience}
+                                            </span>
                                         </div>
                                         <h3 className="font-bold text-lg text-gray-900 mb-2 truncate" title={course.title}>
                                             {course.title}
@@ -423,9 +556,9 @@ const FeeVerification = () => {
                                     </motion.div>
                                 ))}
 
-                                {Object.keys(allFees.reduce((acc, f) => (f.course && (acc[f.course._id] = 1), acc), {})).length === 0 && (
+                                {Object.keys(getFilteredFees(allFees).reduce((acc, f) => (f.course && (acc[f.course._id] = 1), acc), {})).length === 0 && (
                                     <div className="col-span-full py-12 text-center text-gray-500 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
-                                        No courses found with registered students.
+                                        No courses found matching your filters.
                                     </div>
                                 )}
                             </div>
@@ -450,19 +583,28 @@ const FeeVerification = () => {
                                     <MapPin className="w-3.5 h-3.5 text-indigo-500" />
                                     {allFees.find(f => String(f.course?._id) === String(selectedCourse))?.course?.city || 'N/A'}
                                 </span>
+                                <span className="bg-white text-indigo-700 px-3 py-1 rounded-lg text-xs font-bold capitalize border border-indigo-100 flex items-center gap-1.5 shadow-sm">
+                                    <Users className="w-3.5 h-3.5 text-indigo-500" />
+                                    {allFees.find(f => String(f.course?._id) === String(selectedCourse))?.course?.targetAudience || 'N/A'}
+                                </span>
                                 <span className="bg-white text-indigo-600 px-2 py-0.5 rounded text-xs border border-indigo-100">
-                                    {allFees.filter(f => String(f.course?._id) === String(selectedCourse)).length} Students
+                                    {getFilteredFees(allFees).filter(f => String(f.course?._id) === String(selectedCourse)).length} Students
                                 </span>
                             </div>
 
                             <div className="grid gap-4">
-                                {allFees
+                                {getFilteredFees(allFees)
                                     .filter(fee => String(fee.course?._id) === String(selectedCourse))
                                     .map(fee => (
                                         <div key={fee._id} className="bg-white p-6 rounded-2xl border border-gray-100 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                                             <div>
                                                 <h3 className="font-semibold text-gray-900">{fee.user?.name || 'Unknown Student'}</h3>
-                                                <p className="text-sm text-gray-500">{fee.course?.title || 'Unknown Course'}</p>
+                                                <p className="text-sm text-gray-500">
+                                                    {fee.course?.title || 'Unknown Course'}
+                                                    <span className={`ml-2 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest ${fee.course?.targetAudience === 'students' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-purple-50 text-purple-600 border border-purple-100'}`}>
+                                                        {fee.course?.targetAudience}
+                                                    </span>
+                                                </p>
                                                 <div className="flex flex-wrap gap-3 mt-2">
                                                     <Badge variant={fee.status === 'verified' ? 'success' : 'warning'}>{fee.status}</Badge>
                                                     <span className="text-xs bg-gray-100 px-2 py-1 rounded text-gray-600 flex items-center gap-1">

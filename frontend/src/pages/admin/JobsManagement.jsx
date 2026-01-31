@@ -2,11 +2,11 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
     Search, UserCheck, UserX, Trash2, User, Mail, Phone, MapPin,
-    Briefcase, Loader2, CheckCircle, Clock, Star, FileText, Edit2, Save, Camera, Upload, Plus
+    Briefcase, Loader2, CheckCircle, Clock, Star, FileText, Edit2, Save, Camera, Upload, Plus, Shield
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
-import { userAPI } from '../../services/api';
+import { userAPI, settingsAPI } from '../../services/api';
 
 const JobsManagement = () => {
     const [searchQuery, setSearchQuery] = useState('');
@@ -22,7 +22,29 @@ const JobsManagement = () => {
 
     useEffect(() => {
         fetchJobUsers();
+        fetchSettings();
     }, []);
+
+    const fetchSettings = async () => {
+        try {
+            const res = await settingsAPI.getAll();
+            setAllowBioEditing(res.data.data.allowBioEditing ?? false);
+        } catch (error) {
+            console.error('Error fetching settings:', error);
+        }
+    };
+
+    const [allowBioEditing, setAllowBioEditing] = useState(false);
+
+    const toggleBioEditing = async () => {
+        try {
+            const newValue = !allowBioEditing;
+            await settingsAPI.update('allowBioEditing', newValue);
+            setAllowBioEditing(newValue);
+        } catch (error) {
+            console.error('Error updating setting:', error);
+        }
+    };
 
     const fetchJobUsers = async () => {
         setIsLoading(true);
@@ -169,6 +191,17 @@ const JobsManagement = () => {
                         <p className="text-2xl font-bold text-amber-600">{pendingCount}</p>
                         <p className="text-xs text-gray-500">Pending</p>
                     </div>
+                    <button
+                        onClick={toggleBioEditing}
+                        className={`p-2.5 border rounded-xl transition-colors flex items-center gap-2 text-sm font-bold shadow-sm ${allowBioEditing
+                            ? 'bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100'
+                            : 'bg-red-50 border-red-200 text-red-700 hover:bg-red-100'
+                            }`}
+                        title={allowBioEditing ? "Bio Editing is Enabled for Users" : "Bio Editing is Disabled for Users"}
+                    >
+                        {allowBioEditing ? <Edit2 className="w-5 h-5" /> : <Shield className="w-5 h-5" />}
+                        {allowBioEditing ? 'EDITS ON' : 'EDITS OFF'}
+                    </button>
                 </div>
             </div>
 

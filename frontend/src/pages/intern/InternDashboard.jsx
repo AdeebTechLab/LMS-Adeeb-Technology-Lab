@@ -3,25 +3,20 @@ import { motion } from 'framer-motion';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import {
-    Clock, CheckCircle, BookOpen, Calendar, Users, TrendingUp, Loader2
+    Clock, CheckCircle, BookOpen, CreditCard, Users, TrendingUp, Loader2, Bell
 } from 'lucide-react';
-import { enrollmentAPI, assignmentAPI } from '../../services/api';
+import StatCard from '../../components/ui/StatCard';
+import Badge from '../../components/ui/Badge';
+import { enrollmentAPI, assignmentAPI, feeAPI } from '../../services/api';
+import { getCourseIcon } from '../../utils/courseIcons';
 
 const InternDashboard = () => {
-    const { user } = useSelector((state) => state.auth);
+    const { user, role } = useSelector((state) => state.auth);
     const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(true);
-    const [internshipData, setInternshipData] = useState({
-        program: 'Loading...',
-        duration: '',
-        status: 'Active',
-        progress: 0,
-        mentor: 'TBA',
-        completedModules: 0,
-        totalModules: 0
-    });
     const [enrollments, setEnrollments] = useState([]);
     const [pendingAssignments, setPendingAssignments] = useState([]);
+    const [stats, setStats] = useState([]);
 
     useEffect(() => {
         fetchDashboardData();
@@ -30,26 +25,36 @@ const InternDashboard = () => {
     const fetchDashboardData = async () => {
         setIsLoading(true);
         try {
+            // Fetch Enrollments
             const response = await enrollmentAPI.getMy();
             const data = response.data.data || [];
             setEnrollments(data);
 
-            if (data.length > 0) {
-                const firstEnrollment = data[0];
-                const durationText = firstEnrollment.course?.durationMonths
-                    ? `${firstEnrollment.course.durationMonths} ${firstEnrollment.course.durationMonths === 1 ? 'Month' : 'Months'}`
-                    : 'Ongoing';
-                const mentorName = firstEnrollment.course?.teachers?.[0]?.name || 'TBA';
+            const courses = data.map(e => ({
+                id: e.course?._id || e._id,
+                title: e.course?.title || 'Unknown Program',
+                isActive: e.isActive,
+                isCompleted: e.status === 'completed',
+                isFirstMonthVerified: e.installments?.[0]?.status === 'verified',
+                durationMonths: e.course?.durationMonths
+            }));
 
-                setInternshipData({
-                    program: firstEnrollment.course?.title || 'Internship Program',
-                    duration: durationText,
-                    status: firstEnrollment.status || 'Active',
-                    progress: firstEnrollment.progress || 0,
-                    mentor: mentorName,
-                    completedModules: Math.floor((firstEnrollment.progress || 0) / 10),
-                    totalModules: 10
+            // Fetch Fees
+            let totalPendingAmount = 0;
+            let totalPendingInstallments = 0;
+            try {
+                const feeRes = await feeAPI.getMy();
+                const fees = feeRes.data.data || [];
+                fees.forEach(f => {
+                    f.installments?.forEach(inst => {
+                        if (inst.status === 'pending' || inst.status === 'rejected') {
+                            totalPendingAmount += inst.amount || 0;
+                            totalPendingInstallments++;
+                        }
+                    });
                 });
+            } catch (e) {
+                // Ignore if no fee API access
             }
 
             // Fetch Assignments
@@ -58,15 +63,58 @@ const InternDashboard = () => {
                 const assignRes = await assignmentAPI.getMy();
                 const allAssignments = assignRes.data.assignments || [];
                 activeAssignments = allAssignments.filter(a => {
+                    const courseId = a.course?._id || a.course;
+                    const courseEnroll = courses.find(c => c.id === courseId);
+                    const isFirstMonthVerified = courseEnroll?.isFirstMonthVerified;
+
                     const mySub = a.submissions?.find(s => (s.user?._id || s.user) === (user?._id || user?.id));
                     const isSubmitted = !!mySub;
-                    const isDeadlinePassed = new Date(a.dueDate) < new Date();
-                    return !isSubmitted && !isDeadlinePassed;
+                    const isRejected = mySub?.status === 'rejected';
+
+                    if (!isFirstMonthVerified) return false;
+
+                    return (!isSubmitted) || isRejected;
                 });
             } catch (e) {
                 console.error('Error fetching assignments:', e);
             }
             setPendingAssignments(activeAssignments);
+
+            // Build Stats
+            setStats([
+                {
+                    title: 'Enrolled Programs',
+                    value: courses.filter(c => c.isActive && !c.isCompleted).length.toString(),
+                    icon: BookOpen,
+                    iconBg: 'bg-emerald-100',
+                    iconColor: 'text-emerald-600',
+                },
+                {
+                    title: 'Pending Assignments',
+                    value: activeAssignments.length.toString(),
+                    icon: Clock,
+                    iconBg: 'bg-amber-100',
+                    iconColor: 'text-amber-600',
+                    onClick: () => navigate(`/${role}/assignments`)
+                },
+                {
+                    title: 'Certificates',
+                    value: courses.filter(c => c.isCompleted).length.toString(),
+                    icon: CheckCircle,
+                    iconBg: 'bg-blue-100',
+                    iconColor: 'text-blue-600',
+                },
+                {
+                    title: 'Pending Fees',
+                    value: totalPendingInstallments > 0 ? `${totalPendingInstallments} Pending` : 'All Clear',
+                    subValue: totalPendingAmount > 0 ? `(Rs ${totalPendingAmount.toLocaleString()})` : '',
+                    icon: CreditCard,
+                    iconBg: totalPendingInstallments > 0 ? 'bg-red-100' : 'bg-green-100',
+                    iconColor: totalPendingInstallments > 0 ? 'text-red-600' : 'text-green-600',
+                    onClick: () => navigate(`/${role}/fees`)
+                },
+            ]);
+
         } catch (error) {
             console.error('Error fetching dashboard data:', error);
         } finally {
@@ -94,7 +142,7 @@ const InternDashboard = () => {
                 >
                     <div className="flex items-center gap-4">
                         <div className="w-12 h-12 bg-[#ff8e01] rounded-xl flex items-center justify-center text-white shadow-lg shadow-orange-200">
-                            <Clock className="w-6 h-6 animate-pulse" />
+                            <Bell className="w-6 h-6 animate-bounce" />
                         </div>
                         <div>
                             <h3 className="text-sm font-black text-gray-900 uppercase tracking-tight">Assignment Due Soon</h3>
@@ -102,7 +150,7 @@ const InternDashboard = () => {
                         </div>
                     </div>
                     <button
-                        onClick={() => navigate('/intern/assignments')}
+                        onClick={() => navigate(`/${role}/assignments`)}
                         className="px-4 py-2 bg-[#ff8e01] text-white text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-[#e67e00] transition-colors shadow-sm"
                     >
                         Review Now
@@ -122,7 +170,7 @@ const InternDashboard = () => {
                             Welcome back, {user?.name?.split(' ')[0] || 'Intern'}! 👋
                         </h1>
                         <p className="text-white/60 text-sm font-bold uppercase tracking-widest">
-                            {internshipData.program} Internship • {internshipData.progress}% Progress
+                            {enrollments.filter(e => e.isActive).length} Active Programs • {pendingAssignments.length} Pending Tasks
                         </p>
                     </div>
                 </div>
@@ -130,87 +178,16 @@ const InternDashboard = () => {
 
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.1 }}
-                    className="bg-white rounded-xl p-6 shadow-sm border border-gray-100"
-                >
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                            <BookOpen className="w-6 h-6 text-blue-600" />
-                        </div>
-                        <span className="text-sm text-blue-600 font-medium bg-blue-50 px-3 py-1 rounded-full">
-                            {internshipData.status}
-                        </span>
-                    </div>
-                    <h3 className="text-2xl font-bold text-gray-900">{internshipData.program}</h3>
-                    <p className="text-gray-500 text-sm mt-1">Current Program</p>
-                    {enrollments[0]?.course?.bookLink && (
-                        <a
-                            href={enrollments[0].course.bookLink}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="mt-6 flex items-center justify-center gap-3 w-full py-4 bg-indigo-600 text-white rounded-2xl shadow-xl shadow-indigo-200 text-sm font-black uppercase tracking-[0.2em] hover:bg-indigo-700 hover:scale-[1.02] transition-all"
-                        >
-                            <BookOpen className="w-5 h-5" />
-                            Access Course Book
-                        </a>
-                    )}
-                </motion.div>
-
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2 }}
-                    className="bg-white rounded-xl p-6 shadow-sm border border-gray-100"
-                >
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="w-12 h-12 bg-orange-50 rounded-xl flex items-center justify-center border border-orange-100">
-                            <TrendingUp className="w-6 h-6 text-[#ff8e01]" />
-                        </div>
-                    </div>
-                    <h3 className="text-2xl font-black text-gray-900">{internshipData.progress}%</h3>
-                    <p className="text-gray-500 text-xs font-bold uppercase tracking-widest mt-1">Overall Progress</p>
-                    <div className="mt-3 w-full bg-gray-100 rounded-full h-2">
-                        <div
-                            className="bg-[#ff8e01] h-2 rounded-full transition-all shadow-sm"
-                            style={{ width: `${internshipData.progress}%` }}
-                        />
-                    </div>
-                </motion.div>
-
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3 }}
-                    className="bg-white rounded-xl p-6 shadow-sm border border-gray-100"
-                >
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
-                            <CheckCircle className="w-6 h-6 text-purple-600" />
-                        </div>
-                    </div>
-                    <h3 className="text-2xl font-bold text-gray-900">
-                        {internshipData.completedModules}/{internshipData.totalModules}
-                    </h3>
-                    <p className="text-gray-500 text-sm mt-1">Modules Completed</p>
-                </motion.div>
-
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.4 }}
-                    className="bg-white rounded-xl p-6 shadow-sm border border-gray-100"
-                >
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
-                            <Users className="w-6 h-6 text-orange-600" />
-                        </div>
-                    </div>
-                    <h3 className="text-xl font-bold text-gray-900">{internshipData.mentor}</h3>
-                    <p className="text-gray-500 text-sm mt-1">Your Mentor</p>
-                </motion.div>
+                {stats.map((stat, index) => (
+                    <motion.div
+                        key={stat.title}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                    >
+                        <StatCard {...stat} />
+                    </motion.div>
+                ))}
             </div>
 
             {/* Main Content Grid */}
@@ -224,7 +201,7 @@ const InternDashboard = () => {
                 >
                     <div className="flex items-center justify-between">
                         <h2 className="text-xl font-bold text-gray-900 uppercase italic">Active Assignments</h2>
-                        <span className="px-2 py-0.5 bg-blue-100 text-blue-600 rounded-lg text-[10px] font-black">{pendingAssignments.length}</span>
+                        <Badge variant="warning">{pendingAssignments.length}</Badge>
                     </div>
                     <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 space-y-4 max-h-[500px] overflow-y-auto">
                         {pendingAssignments.length === 0 ? (
@@ -249,7 +226,7 @@ const InternDashboard = () => {
                                         </div>
                                     </div>
                                     <button
-                                        onClick={() => navigate('/intern/assignments')}
+                                        onClick={() => navigate(`/${role}/assignments`)}
                                         className="w-full py-2.5 bg-[#222d38] hover:bg-[#394251] text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg active:scale-95"
                                     >
                                         Go to Submission
@@ -276,7 +253,10 @@ const InternDashboard = () => {
                             >
                                 <div className="flex items-center gap-5">
                                     <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center border border-blue-100 group-hover:bg-blue-600 transition-colors">
-                                        <BookOpen className="w-6 h-6 text-blue-600 group-hover:text-white transition-colors" />
+                                        {(() => {
+                                            const Icon = getCourseIcon(enrollment.course?.category, enrollment.course?.title);
+                                            return <Icon className="w-6 h-6 text-blue-600 group-hover:text-white transition-colors" />;
+                                        })()}
                                     </div>
                                     <div>
                                         <h3 className="font-bold text-gray-900 uppercase tracking-tight group-hover:text-blue-600 transition-colors">{enrollment.course?.title || 'Program'}</h3>
@@ -287,12 +267,23 @@ const InternDashboard = () => {
                                         </p>
                                     </div>
                                 </div>
-                                <button
-                                    onClick={() => navigate('/intern/attendance')}
-                                    className="px-6 py-2.5 text-[10px] font-black uppercase tracking-widest text-blue-600 bg-blue-50 rounded-xl hover:bg-blue-100 transition-all active:scale-95"
-                                >
-                                    Portal
-                                </button>
+                                <div className="flex gap-2">
+                                    {enrollment.installments?.[0]?.status !== 'verified' ? (
+                                        <button
+                                            onClick={() => navigate(`/${role}/fees`)}
+                                            className="px-6 py-2.5 text-[10px] font-black uppercase tracking-widest text-red-600 bg-red-50 rounded-xl hover:bg-red-100 transition-all active:scale-95"
+                                        >
+                                            Pay Fee
+                                        </button>
+                                    ) : (
+                                        <button
+                                            onClick={() => navigate(`/${role}/attendance`)}
+                                            className="px-6 py-2.5 text-[10px] font-black uppercase tracking-widest text-blue-600 bg-blue-50 rounded-xl hover:bg-blue-100 transition-all active:scale-95"
+                                        >
+                                            Portal
+                                        </button>
+                                    )}
+                                </div>
                             </div>
                         ))}
                     </div>

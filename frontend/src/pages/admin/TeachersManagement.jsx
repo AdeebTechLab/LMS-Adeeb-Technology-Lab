@@ -9,7 +9,7 @@ import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
-import { userAPI } from '../../services/api';
+import { userAPI, settingsAPI } from '../../services/api';
 
 const TeachersManagement = () => {
     const [searchQuery, setSearchQuery] = useState('');
@@ -25,7 +25,29 @@ const TeachersManagement = () => {
 
     useEffect(() => {
         fetchTeachers();
+        fetchSettings();
     }, []);
+
+    const fetchSettings = async () => {
+        try {
+            const res = await settingsAPI.getAll();
+            setAllowBioEditing(res.data.data.allowBioEditing ?? false);
+        } catch (error) {
+            console.error('Error fetching settings:', error);
+        }
+    };
+
+    const [allowBioEditing, setAllowBioEditing] = useState(false);
+
+    const toggleBioEditing = async () => {
+        try {
+            const newValue = !allowBioEditing;
+            await settingsAPI.update('allowBioEditing', newValue);
+            setAllowBioEditing(newValue);
+        } catch (error) {
+            console.error('Error updating setting:', error);
+        }
+    };
 
     const fetchTeachers = async () => {
         setIsLoading(true);
@@ -286,6 +308,18 @@ const TeachersManagement = () => {
                         >
                             <Download className="w-5 h-5 text-emerald-600" />
                             EXPORT DATA
+                        </button>
+
+                        <button
+                            onClick={toggleBioEditing}
+                            className={`p-2.5 border rounded-xl transition-colors flex items-center gap-2 text-sm font-bold shadow-sm ${allowBioEditing
+                                    ? 'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100'
+                                    : 'bg-red-50 border-red-200 text-red-700 hover:bg-red-100'
+                                }`}
+                            title={allowBioEditing ? "Bio Editing is Enabled for Users" : "Bio Editing is Disabled for Users"}
+                        >
+                            {allowBioEditing ? <Edit2 className="w-5 h-5" /> : <Shield className="w-5 h-5" />}
+                            {allowBioEditing ? 'EDITS ON' : 'EDITS OFF'}
                         </button>
 
                         {showExportOptions && (

@@ -2,10 +2,9 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useSelector } from 'react-redux';
-import Select from 'react-select'; // Added import
 import {
     BookOpen, Users, Calendar, ArrowRight, ChevronLeft,
-    FileText, ClipboardList, CheckCircle, Clock, Loader2, User, Search, Filter // Added Search, Filter
+    FileText, ClipboardList, CheckCircle, Clock, Loader2, User, Search, Filter
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import { courseAPI, enrollmentAPI } from '../../services/api';
@@ -14,16 +13,6 @@ import { courseAPI, enrollmentAPI } from '../../services/api';
 import AttendanceTab from './components/AttendanceTab';
 import DailyTasksTab from './components/DailyTasksTab';
 import AssignmentsTab from './components/AssignmentsTab';
-
-const CITY_OPTIONS = [
-    { value: 'Bahawalpur', label: 'Bahawalpur' },
-    { value: 'Islamabad', label: 'Islamabad' }
-];
-
-const TYPE_OPTIONS = [
-    { value: 'students', label: 'Student' },
-    { value: 'interns', label: 'Intern' }
-];
 
 const AttendanceSheet = () => {
     const { id: routeCourseId } = useParams();
@@ -37,9 +26,10 @@ const AttendanceSheet = () => {
     const [filteredCourses, setFilteredCourses] = useState([]); // Filtered list
 
     // Filter States
+    // Filter States
     const [searchQuery, setSearchQuery] = useState('');
-    const [selectedCities, setSelectedCities] = useState([]);
-    const [selectedTypes, setSelectedTypes] = useState([]);
+    const [selectedCities, setSelectedCities] = useState([]); // Array of strings
+    const [selectedTypes, setSelectedTypes] = useState([]);   // Array of strings
 
     useEffect(() => {
         fetchMyCourses();
@@ -69,17 +59,15 @@ const AttendanceSheet = () => {
 
         // 2. City Filter
         if (selectedCities.length > 0) {
-            const cities = selectedCities.map(c => c.value);
             result = result.filter(course =>
-                cities.includes(course.city || course.location)
+                selectedCities.includes(course.city || course.location)
             );
         }
 
         // 3. Type Filter
         if (selectedTypes.length > 0) {
-            const types = selectedTypes.map(t => t.value);
             result = result.filter(course =>
-                types.includes(course.targetAudience)
+                selectedTypes.includes(course.targetAudience)
             );
         }
 
@@ -213,55 +201,65 @@ const AttendanceSheet = () => {
                 </div>
 
                 {/* Filters and Search */}
-                <div className="bg-white rounded-2xl p-4 border border-gray-100 flex flex-col md:flex-row gap-4 items-center justify-between z-50 relative">
-                    <div className="flex-1 w-full relative">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                {/* Filters and Search */}
+                <div className="bg-white rounded-2xl p-4 border border-gray-100 flex flex-col xl:flex-row gap-4">
+                    <div className="flex-1 flex items-center bg-gray-50 rounded-xl px-4 py-3">
+                        <Search className="w-5 h-5 text-gray-400 mr-3" />
                         <input
                             type="text"
                             placeholder="Search courses..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
+                            className="bg-transparent border-none outline-none w-full text-gray-700 placeholder-gray-400"
                         />
                     </div>
-                    <div className="flex gap-4 w-full md:w-auto">
-                        <div className="w-full md:w-48">
-                            <Select
-                                options={CITY_OPTIONS}
-                                isMulti
-                                value={selectedCities}
-                                onChange={setSelectedCities}
-                                placeholder="Filter by City"
-                                className="react-select-container"
-                                classNamePrefix="react-select"
-                                styles={{
-                                    control: (base) => ({
-                                        ...base,
-                                        borderRadius: '0.75rem',
-                                        backgroundColor: '#f9fafb',
-                                        borderColor: '#e5e7eb',
-                                    })
-                                }}
-                            />
+
+                    <div className="flex flex-col sm:flex-row gap-4">
+                        {/* City Filters */}
+                        <div className="flex items-center gap-2 bg-gray-50 p-1 rounded-xl">
+                            {['Bahawalpur', 'Islamabad'].map((city) => (
+                                <button
+                                    key={city}
+                                    onClick={() => {
+                                        setSelectedCities(prev =>
+                                            prev.includes(city)
+                                                ? prev.filter(c => c !== city)
+                                                : [...prev, city]
+                                        );
+                                    }}
+                                    className={`px-4 py-2 rounded-lg font-medium text-sm transition-all whitespace-nowrap ${selectedCities.includes(city)
+                                        ? 'bg-white text-emerald-600 shadow-sm border border-emerald-100'
+                                        : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'
+                                        }`}
+                                >
+                                    {city}
+                                </button>
+                            ))}
                         </div>
-                        <div className="w-full md:w-48">
-                            <Select
-                                options={TYPE_OPTIONS}
-                                isMulti
-                                value={selectedTypes}
-                                onChange={setSelectedTypes}
-                                placeholder="Filter by Type"
-                                className="react-select-container"
-                                classNamePrefix="react-select"
-                                styles={{
-                                    control: (base) => ({
-                                        ...base,
-                                        borderRadius: '0.75rem',
-                                        backgroundColor: '#f9fafb',
-                                        borderColor: '#e5e7eb',
-                                    })
-                                }}
-                            />
+
+                        {/* Type Filters */}
+                        <div className="flex items-center gap-2 bg-gray-50 p-1 rounded-xl">
+                            {[
+                                { id: 'students', label: 'Student' },
+                                { id: 'interns', label: 'Intern' }
+                            ].map((type) => (
+                                <button
+                                    key={type.id}
+                                    onClick={() => {
+                                        setSelectedTypes(prev =>
+                                            prev.includes(type.id)
+                                                ? prev.filter(t => t !== type.id)
+                                                : [...prev, type.id]
+                                        );
+                                    }}
+                                    className={`px-4 py-2 rounded-lg font-medium text-sm transition-all whitespace-nowrap ${selectedTypes.includes(type.id)
+                                        ? 'bg-white text-emerald-600 shadow-sm border border-emerald-100'
+                                        : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'
+                                        }`}
+                                >
+                                    {type.label}
+                                </button>
+                            ))}
                         </div>
                     </div>
                 </div>

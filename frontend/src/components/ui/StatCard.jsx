@@ -10,6 +10,7 @@ const StatCard = ({
     iconColor = 'text-emerald-600',
     className = '',
     onClick,
+    subValue,
 }) => {
     return (
         <motion.div
@@ -23,6 +24,8 @@ const StatCard = ({
                 <div>
                     <p className="text-sm font-medium text-gray-500 mb-1">{title}</p>
                     <p className="text-3xl font-bold text-gray-900">{value}</p>
+                    {/* Optional Subvalue (e.g., fee amount) */}
+                    {subValue && <p className="text-xs font-bold text-gray-500 mt-1">{subValue}</p>}
                     {change && (
                         <div className="flex items-center mt-2">
                             <span

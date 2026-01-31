@@ -136,6 +136,7 @@ export const certificateAPI = {
     request: (data) => api.post('/certificates/request', data),
     approveRequest: (id, data) => api.put(`/certificates/requests/${id}/approve`, data),
     rejectRequest: (id) => api.put(`/certificates/requests/${id}/reject`),
+    delete: (id) => api.delete(`/certificates/${id}`),
     verify: (rollNo) => api.get(`/certificates/verify/${rollNo}`)
 };
 
@@ -144,6 +145,7 @@ export const taskAPI = {
     getAll: (params) => api.get('/tasks', { params }),
     getMy: () => api.get('/tasks/my'),
     create: (data) => api.post('/tasks', data),
+    update: (id, data) => api.put(`/tasks/${id}`, data),
     apply: (id, message) => api.post(`/tasks/${id}/apply`, { message }),
     assign: (id, userId) => api.put(`/tasks/${id}/assign`, { userId }),
     submit: (id, formData) => api.post(`/tasks/${id}/submit`, formData, {
@@ -180,6 +182,17 @@ export const chatAPI = {
         console.log(`[API] Requesting to CLEAR CHAT HISTORY for user ${userId} via POST /chat/action/clear-messages/`);
         return api.post(`/chat/action/clear-messages/${userId}`);
     }
+};
+
+// Stats APIs
+export const statsAPI = {
+    getAdminDashboard: (params) => api.get('/stats/admin-dashboard', { params })
+};
+
+// Settings API
+export const settingsAPI = {
+    getAll: () => api.get('/settings'),
+    update: (key, value) => api.put(`/settings/${key}`, { value })
 };
 
 export default api;

@@ -15,7 +15,7 @@ const Counter = require('../models/Counter');
 router.get('/my', protect, async (req, res) => {
     try {
         let fees = await Fee.find({ user: req.user.id })
-            .populate('course', 'title fee duration city location')
+            .populate('course', 'title fee duration city location targetAudience')
             .sort('-createdAt');
 
         // Auto-repair: If any fee has no installments, create default one
@@ -38,7 +38,7 @@ router.get('/my', protect, async (req, res) => {
         // Refetch if we made changes to ensure consistency
         if (updated) {
             fees = await Fee.find({ user: req.user.id })
-                .populate('course', 'title fee duration city location')
+                .populate('course', 'title fee duration city location targetAudience')
                 .sort('-createdAt');
         }
 
@@ -147,13 +147,14 @@ router.put('/:feeId/installments/:installmentId/verify', protect, authorize('adm
         // Update fee status
         fee.updateStatus();
 
-        // Assign roll number if first verified payment
+        // Assign roll number fallback if missing (for older accounts) and activate enrollment
         if (!fee.rollNoAssigned) {
             const user = await User.findById(fee.user);
             if (!user.rollNo) {
-                const rollNo = await Counter.getNextRollNo();
-                user.rollNo = rollNo;
+                const Counter = require('../models/Counter');
+                user.rollNo = await Counter.getNextRollNo();
                 await user.save();
+                console.log(`Fallback: Assigned roll number ${user.rollNo} to user ${user.email} during fee verification`);
             }
 
             // Update enrollment to 'enrolled' and activate it
@@ -320,7 +321,7 @@ router.get('/pending', protect, authorize('admin'), async (req, res) => {
         // Fetch all fees first
         const allFees = await Fee.find()
             .populate('user', 'name email rollNo photo')
-            .populate('course', 'title fee city location')
+            .populate('course', 'title fee city location targetAudience')
             .sort('-updatedAt');
 
         // Return ALL fees and let frontend filter 'submitted' installments
@@ -343,7 +344,7 @@ router.get('/all', protect, authorize('admin'), async (req, res) => {
     try {
         const fees = await Fee.find()
             .populate('user', 'name email rollNo photo')
-            .populate('course', 'title fee city location')
+            .populate('course', 'title fee city location targetAudience')
             .sort('-createdAt');
 
         res.json({ success: true, data: fees });

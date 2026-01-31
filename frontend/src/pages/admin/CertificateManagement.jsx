@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
-    Search, Award, BookOpen, Users, CheckCircle, ChevronDown, ChevronRight, User, Loader2, XCircle, FileText, ClipboardList, Calendar, Edit2
+    Search, Award, BookOpen, Users, CheckCircle, ChevronDown, ChevronRight, User, Loader2, XCircle, FileText, ClipboardList, Calendar, Edit2, Trash2, Filter, X
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
@@ -9,6 +9,8 @@ import { courseAPI, enrollmentAPI, certificateAPI } from '../../services/api';
 
 const CertificateManagement = () => {
     const [searchQuery, setSearchQuery] = useState('');
+    const [selectedCities, setSelectedCities] = useState([]); // Array of strings
+    const [selectedTypes, setSelectedTypes] = useState([]);  // Array of strings
     const [expandedCourse, setExpandedCourse] = useState(null);
     const [confirmModal, setConfirmModal] = useState({ open: false, student: null, course: null, request: null });
     const [editCertModal, setEditCertModal] = useState({ open: false, certificate: null, student: null });
@@ -28,7 +30,11 @@ const CertificateManagement = () => {
 
     // Edit Certificate State
     const [editCertData, setEditCertData] = useState({
-        passoutDate: ''
+        rollNo: '',
+        skills: '',
+        duration: '',
+        passoutDate: '',
+        certificateLink: ''
     });
 
     useEffect(() => {
@@ -48,7 +54,9 @@ const CertificateManagement = () => {
             const formattedCourses = (coursesRes.data.courses || []).map(course => ({
                 id: course._id,
                 name: course.title,
-                location: course.location || 'Unknown',
+                location: course.location || course.city || 'Unknown',
+                city: course.city || course.location || 'Unknown',
+                targetAudience: course.targetAudience || 'students',
                 duration: course.duration || '12 weeks',
                 students: (course.students || []).map(s => ({
                     ...s,
@@ -133,9 +141,14 @@ const CertificateManagement = () => {
     };
 
     const handleOpenEditCertModal = (student, course) => {
-        setEditCertModal({ open: true, certificate: student.certificate, student });
+        const cert = student.certificate;
+        setEditCertModal({ open: true, certificate: cert, student });
         setEditCertData({
-            passoutDate: student.certificate?.passoutDate || new Date().toISOString().split('T')[0]
+            rollNo: cert?.rollNo || student.rollNo || '',
+            skills: cert?.skills || course.name || '',
+            duration: cert?.duration || course.duration || '',
+            passoutDate: cert?.passoutDate ? new Date(cert.passoutDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+            certificateLink: cert?.certificateLink || ''
         });
     };
 
@@ -144,8 +157,8 @@ const CertificateManagement = () => {
 
         setIsIssuing(true);
         try {
-            await certificateAPI.update(editCertModal.certificate._id, { passoutDate: editCertData.passoutDate });
-            alert('Passout date updated successfully!');
+            await certificateAPI.update(editCertModal.certificate._id, editCertData);
+            alert('Certificate updated successfully!');
             fetchAllData();
             setEditCertModal({ open: false, certificate: null, student: null });
         } catch (error) {
@@ -156,15 +169,61 @@ const CertificateManagement = () => {
         }
     };
 
-    const filteredCourses = courses.filter(c =>
-        c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        c.students.some(s => s.name?.toLowerCase().includes(searchQuery.toLowerCase()) || s.rollNo?.includes(searchQuery))
-    );
+    const handleDeleteCertificate = async (certificateId) => {
+        if (!window.confirm('Are you sure you want to DELETE this certificate? Once deleted, you will be able to issue it again.')) return;
 
-    const filteredRequests = requests.filter(r =>
-        r.user?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        r.course?.title?.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+        try {
+            await certificateAPI.delete(certificateId);
+            alert('Certificate deleted successfully!');
+            fetchAllData();
+        } catch (error) {
+            console.error('Error deleting certificate:', error);
+            alert(error.response?.data?.message || 'Failed to delete certificate');
+        }
+    };
+
+    const toggleFilter = (type, value) => {
+        if (type === 'type') {
+            setSelectedTypes(prev =>
+                prev.includes(value) ? prev.filter(v => v !== value) : [...prev, value]
+            );
+        } else {
+            setSelectedCities(prev =>
+                prev.includes(value) ? prev.filter(v => v !== value) : [...prev, value]
+            );
+        }
+    };
+
+    const clearFilters = () => {
+        setSelectedTypes([]);
+        setSelectedCities([]);
+        setSearchQuery('');
+    };
+
+    const filteredCourses = courses.filter(c => {
+        const matchesSearch = c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            c.students.some(s =>
+                s.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                s.rollNo?.includes(searchQuery) ||
+                s.cnic?.includes(searchQuery)
+            );
+
+        const matchesCity = selectedCities.length === 0 || selectedCities.includes(c.city || c.location);
+        const matchesType = selectedTypes.length === 0 || selectedTypes.includes(c.targetAudience);
+
+        return matchesSearch && matchesCity && matchesType;
+    });
+
+    const filteredRequests = requests.filter(r => {
+        const matchesSearch = r.user?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            r.course?.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            r.user?.cnic?.includes(searchQuery);
+
+        const matchesCity = selectedCities.length === 0 || selectedCities.includes(r.course?.city || r.course?.location);
+        const matchesType = selectedTypes.length === 0 || selectedTypes.includes(r.course?.targetAudience || (r.user?.role === 'intern' ? 'interns' : 'students'));
+
+        return matchesSearch && matchesCity && matchesType;
+    });
 
     const totalStudents = courses.reduce((acc, c) => acc + c.students.length, 0);
     const totalCertified = courses.reduce((acc, c) => acc + c.students.filter(s => s.certificateIssued).length, 0);
@@ -198,17 +257,85 @@ const CertificateManagement = () => {
                 </div>
             </div>
 
-            {/* Search */}
-            <div className="bg-white rounded-2xl p-4 border border-gray-100">
-                <div className="flex items-center bg-gray-50 rounded-xl px-4 py-3">
-                    <Search className="w-5 h-5 text-gray-400 mr-3" />
-                    <input
-                        type="text"
-                        placeholder="Search by course, student name, or roll number..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="bg-transparent border-none outline-none w-full text-gray-700"
-                    />
+            {/* Filters and Search */}
+            <div className="bg-white rounded-2xl p-6 border border-gray-100 space-y-4">
+                <div className="flex flex-col md:flex-row gap-4">
+                    {/* Search */}
+                    <div className="flex-1 flex items-center bg-gray-50 rounded-xl px-4 py-3 border border-transparent focus-within:border-emerald-500/20 focus-within:bg-white transition-all">
+                        <Search className="w-5 h-5 text-gray-400 mr-3" />
+                        <input
+                            type="text"
+                            placeholder="Search by course, student, roll no, CNIC..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="bg-transparent border-none outline-none w-full text-gray-700 placeholder:text-gray-400"
+                        />
+                    </div>
+
+                    {/* Clear Button */}
+                    {(selectedTypes.length > 0 || selectedCities.length > 0 || searchQuery) && (
+                        <button
+                            onClick={clearFilters}
+                            className="flex items-center justify-center gap-2 px-4 py-2 text-rose-500 hover:bg-rose-50 rounded-xl transition-all text-sm font-medium"
+                        >
+                            <X className="w-4 h-4" />
+                            Clear Filters
+                        </button>
+                    )}
+                </div>
+
+                <div className="flex flex-wrap items-center gap-6 pt-2">
+                    {/* Audience Filters */}
+                    <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Audience:</span>
+                        <div className="flex bg-gray-100 p-1 rounded-lg">
+                            <button
+                                onClick={() => toggleFilter('type', 'students')}
+                                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${selectedTypes.includes('students')
+                                    ? 'bg-white text-emerald-600 shadow-sm'
+                                    : 'text-gray-500 hover:text-gray-700'
+                                    }`}
+                            >
+                                Students
+                            </button>
+                            <button
+                                onClick={() => toggleFilter('type', 'interns')}
+                                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${selectedTypes.includes('interns')
+                                    ? 'bg-white text-emerald-600 shadow-sm'
+                                    : 'text-gray-500 hover:text-gray-700'
+                                    }`}
+                            >
+                                Interns
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="h-6 w-px bg-gray-200 hidden sm:block" />
+
+                    {/* City Filters */}
+                    <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Location:</span>
+                        <div className="flex bg-gray-100 p-1 rounded-lg">
+                            <button
+                                onClick={() => toggleFilter('city', 'Islamabad')}
+                                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${selectedCities.includes('Islamabad')
+                                    ? 'bg-white text-emerald-600 shadow-sm'
+                                    : 'text-gray-500 hover:text-gray-700'
+                                    }`}
+                            >
+                                Islamabad
+                            </button>
+                            <button
+                                onClick={() => toggleFilter('city', 'Bahawalpur')}
+                                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${selectedCities.includes('Bahawalpur')
+                                    ? 'bg-white text-emerald-600 shadow-sm'
+                                    : 'text-gray-500 hover:text-gray-700'
+                                    }`}
+                            >
+                                Bahawalpur
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -244,6 +371,14 @@ const CertificateManagement = () => {
                                         </Badge>
                                     </div>
                                     <p className="text-sm text-emerald-600 font-medium">{request.course?.title}</p>
+                                    <div className="flex items-center gap-2 mt-1">
+                                        <Badge variant="info">
+                                            {request.course?.city || request.course?.location || 'Unknown'}
+                                        </Badge>
+                                        <Badge variant={(request.course?.targetAudience || (request.user?.role === 'intern' ? 'interns' : 'students')) === 'interns' ? 'purple' : 'success'}>
+                                            {(request.course?.targetAudience || (request.user?.role === 'intern' ? 'interns' : 'students')) === 'interns' ? 'Intern' : 'Student'}
+                                        </Badge>
+                                    </div>
                                     <p className="text-xs text-gray-500 mt-1">Recommended by: {request.teacher?.name}</p>
                                 </div>
                             </div>
@@ -274,6 +409,13 @@ const CertificateManagement = () => {
                 </div>
             )}
 
+            {requests.length > 0 && filteredRequests.length === 0 && (
+                <div className="bg-white rounded-2xl p-8 border border-gray-100 text-center">
+                    <Filter className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+                    <p className="text-gray-500">No pending requests match your filters</p>
+                </div>
+            )}
+
             {/* Courses with Students */}
             <div className="space-y-4">
                 <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
@@ -294,10 +436,15 @@ const CertificateManagement = () => {
                                     <BookOpen className="w-6 h-6 text-emerald-600" />
                                 </div>
                                 <div>
-                                    <h3 className="font-bold text-gray-900">{course.name}</h3>
-                                    <p className="text-xs text-gray-500">
-                                        {course.students.length} students • {course.students.filter(s => s.certificateIssued).length} certified
-                                    </p>
+                                    <h3 className="font-bold text-gray-900 line-clamp-1">{course.name}</h3>
+                                    <div className="flex items-center gap-2 mt-1">
+                                        <Badge variant="info" size="sm">
+                                            {course.city}
+                                        </Badge>
+                                        <Badge variant={course.targetAudience === 'interns' ? 'purple' : 'success'} size="sm">
+                                            {course.targetAudience === 'interns' ? 'Intern' : 'Student'}
+                                        </Badge>
+                                    </div>
                                 </div>
                             </div>
                             <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform ${expandedCourse === course.id ? 'rotate-180' : ''}`} />
@@ -331,8 +478,8 @@ const CertificateManagement = () => {
                                                         </div>
                                                         <div>
                                                             <p className="font-bold text-gray-900 text-sm">{student.name}</p>
-                                                            <Badge variant={student.type === 'intern' ? 'warning' : 'info'} className="text-[10px] py-0">
-                                                                {student.type}
+                                                            <Badge variant={student.type === 'intern' ? 'purple' : 'success'} className="text-[10px] py-0">
+                                                                {student.type === 'intern' ? 'Intern' : 'Student'}
                                                             </Badge>
                                                         </div>
                                                     </div>
@@ -352,32 +499,43 @@ const CertificateManagement = () => {
                                                     {student.certificate?.passoutDate || '-'}
                                                 </td>
                                                 <td className="px-6 py-4">
-                                                    {student.certificateIssued ? (
-                                                        <button
-                                                            onClick={() => handleOpenEditCertModal(student, course)}
-                                                            className="p-2 hover:bg-blue-50 text-blue-600 rounded-lg transition-all"
-                                                            title="Edit Certificate"
-                                                        >
-                                                            <Edit2 className="w-5 h-5" />
-                                                        </button>
-                                                    ) : (
-                                                        <button
-                                                            onClick={() => {
-                                                                setConfirmModal({ open: true, student, course });
-                                                                setEditData({
-                                                                    rollNo: student.rollNo || '',
-                                                                    skills: course.name || '',
-                                                                    duration: course.duration || '',
-                                                                    passoutDate: new Date().toISOString().split('T')[0],
-                                                                    certificateLink: ''
-                                                                });
-                                                            }}
-                                                            className="p-2 hover:bg-emerald-50 text-emerald-600 rounded-lg transition-all"
-                                                            title="Issue Certificate"
-                                                        >
-                                                            <Award className="w-5 h-5" />
-                                                        </button>
-                                                    )}
+                                                    <div className="flex items-center gap-2">
+                                                        {student.certificateIssued ? (
+                                                            <>
+                                                                <button
+                                                                    onClick={() => handleOpenEditCertModal(student, course)}
+                                                                    className="p-2 hover:bg-blue-50 text-blue-600 rounded-lg transition-all"
+                                                                    title="Edit Certificate"
+                                                                >
+                                                                    <Edit2 className="w-5 h-5" />
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => handleDeleteCertificate(student.certificate._id)}
+                                                                    className="p-2 hover:bg-red-50 text-red-600 rounded-lg transition-all"
+                                                                    title="Delete Certificate"
+                                                                >
+                                                                    <Trash2 className="w-5 h-5" />
+                                                                </button>
+                                                            </>
+                                                        ) : (
+                                                            <button
+                                                                onClick={() => {
+                                                                    setConfirmModal({ open: true, student, course });
+                                                                    setEditData({
+                                                                        rollNo: student.rollNo || '',
+                                                                        skills: course.name || '',
+                                                                        duration: course.duration || '',
+                                                                        passoutDate: new Date().toISOString().split('T')[0],
+                                                                        certificateLink: ''
+                                                                    });
+                                                                }}
+                                                                className="p-2 hover:bg-emerald-50 text-emerald-600 rounded-lg transition-all"
+                                                                title="Issue Certificate"
+                                                            >
+                                                                <Award className="w-5 h-5" />
+                                                            </button>
+                                                        )}
+                                                    </div>
                                                 </td>
                                             </tr>
                                         ))}
@@ -387,6 +545,21 @@ const CertificateManagement = () => {
                         )}
                     </motion.div>
                 ))}
+
+                {filteredCourses.length === 0 && (
+                    <div className="bg-white rounded-2xl p-12 border border-gray-100 text-center">
+                        <BookOpen className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                        <p className="text-gray-500">No courses match your filters</p>
+                        {(searchQuery || selectedCities.length > 0 || selectedTypes.length > 0) && (
+                            <button
+                                onClick={() => { setSearchQuery(''); setSelectedCities([]); setSelectedTypes([]); }}
+                                className="mt-2 text-emerald-600 hover:text-emerald-700 font-medium text-sm"
+                            >
+                                Clear all filters
+                            </button>
+                        )}
+                    </div>
+                )}
             </div>
 
             {/* Approve/Issue Modal */}
@@ -498,12 +671,48 @@ const CertificateManagement = () => {
 
                         <div className="grid grid-cols-1 gap-4">
                             <div>
+                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Roll Number</label>
+                                <input
+                                    type="text"
+                                    value={editCertData.rollNo}
+                                    onChange={(e) => setEditCertData({ ...editCertData, rollNo: e.target.value })}
+                                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 outline-none font-mono font-bold"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Skills/Course Title</label>
+                                <input
+                                    type="text"
+                                    value={editCertData.skills}
+                                    onChange={(e) => setEditCertData({ ...editCertData, skills: e.target.value })}
+                                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 outline-none font-bold"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-gray-400 uppercaseTracking-widest mb-1.5 ml-1">Duration</label>
+                                <input
+                                    type="text"
+                                    value={editCertData.duration}
+                                    onChange={(e) => setEditCertData({ ...editCertData, duration: e.target.value })}
+                                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 outline-none font-bold"
+                                />
+                            </div>
+                            <div>
                                 <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Passout Date</label>
                                 <input
                                     type="date"
                                     value={editCertData.passoutDate}
                                     onChange={(e) => setEditCertData({ ...editCertData, passoutDate: e.target.value })}
                                     className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 outline-none font-bold"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Certificate Link</label>
+                                <input
+                                    type="text"
+                                    value={editCertData.certificateLink}
+                                    onChange={(e) => setEditCertData({ ...editCertData, certificateLink: e.target.value })}
+                                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 outline-none font-medium text-sm"
                                 />
                             </div>
                         </div>

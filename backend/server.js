@@ -27,6 +27,8 @@ const taskRoutes = require('./routes/tasks');
 const dailyTasksRoutes = require('./routes/dailyTasks');
 const notificationRoutes = require('./routes/notifications');
 const chatRoutes = require('./routes/chat');
+const statsRoutes = require('./routes/stats');
+const settingsRoutes = require('./routes/settings');
 
 // Import attendance lock function
 const { lockTodayAttendance } = require('./controllers/attendanceController');
@@ -44,6 +46,8 @@ const io = require('socket.io')(server, {
         credentials: true
     }
 });
+
+app.set('io', io);
 
 io.on('connection', (socket) => {
     console.log('🔌 New client connected');
@@ -110,6 +114,8 @@ app.use('/api/tasks', taskRoutes);
 app.use('/api/daily-tasks', dailyTasksRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/api/stats', statsRoutes);
+app.use('/api/settings', settingsRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

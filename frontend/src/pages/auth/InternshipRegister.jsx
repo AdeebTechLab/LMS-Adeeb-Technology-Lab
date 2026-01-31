@@ -101,21 +101,43 @@ const InternshipRegister = () => {
         feeUrl: '',
         reason: '',
         heardAbout: '',
+        age: '',
         password: '',
         confirmPassword: '',
         termsAccepted: false,
         dataConfirmed: false
     });
 
+    const calculateAge = (dob) => {
+        if (!dob) return '';
+        const birthDate = new Date(dob);
+        const today = new Date();
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const monthDiff = today.getMonth() - birthDate.getMonth();
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+            age--;
+        }
+        return age;
+    };
+
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
 
-        let finalValue = type === 'checkbox' ? checked : value;
-
-        setFormData(prev => ({
-            ...prev,
-            [name]: finalValue
-        }));
+        if (name === 'dob') {
+            const age = calculateAge(value);
+            setFormData(prev => ({
+                ...prev,
+                dob: value,
+                age: age.toString()
+            }));
+            if (errors.age) setErrors(prev => ({ ...prev, age: '' }));
+        } else {
+            let finalValue = type === 'checkbox' ? checked : value;
+            setFormData(prev => ({
+                ...prev,
+                [name]: finalValue
+            }));
+        }
         if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
     };
 
@@ -200,6 +222,7 @@ const InternshipRegister = () => {
             // Intern-specific fields
             submitData.append('cnic', formData.cnic);
             submitData.append('dob', formData.dob);
+            submitData.append('age', formData.age);
             submitData.append('gender', formData.gender);
             submitData.append('fatherName', formData.fatherName);
             submitData.append('guardianName', formData.fatherName); // Keep fallback if needed
@@ -302,6 +325,7 @@ const InternshipRegister = () => {
                             <InputField label="Full Name *" name="fullName" icon={User} placeholder="Your full name" value={formData.fullName} onChange={handleChange} error={errors.fullName} />
                             <InputField label="Father's Name *" name="fatherName" icon={User} placeholder="Father's name" value={formData.fatherName} onChange={handleChange} error={errors.fatherName} />
                             <InputField label="Date of Birth *" name="dob" type="date" icon={Calendar} value={formData.dob} onChange={handleChange} error={errors.dob} />
+                            <InputField label="Age (Auto) *" name="age" type="number" placeholder="Calculated automatically" value={formData.age} onChange={handleChange} error={errors.age} readOnly />
                             <SelectField label="Gender *" name="gender" options={['Male', 'Female']} placeholder="Select Gender" value={formData.gender} onChange={handleChange} error={errors.gender} />
                             <InputField label="CNIC / B-Form *" name="cnic" icon={CreditCard} placeholder="XXXXX-XXXXXXX-X" value={formData.cnic} onChange={handleCNICChange} error={errors.cnic} />
                             <InputField label="Contact Number *" name="contact" type="tel" icon={Phone} placeholder="+92 300 1234567" value={formData.contact} onChange={handleChange} error={errors.contact} />

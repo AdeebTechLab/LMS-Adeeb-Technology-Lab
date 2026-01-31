@@ -140,9 +140,11 @@ const StudentCourseView = () => {
                                         OPEN COURSE BOOK
                                     </a>
                                 )}
-                                <Badge variant={course.status === 'active' ? 'success' : 'warning'}>
-                                    {course.status.toUpperCase()}
-                                </Badge>
+                                {course.status && (
+                                    <Badge variant={course.status === 'active' ? 'success' : 'warning'}>
+                                        {course.status.toUpperCase()}
+                                    </Badge>
+                                )}
                             </div>
                             {(isAccessBlocked || isSubmissionRestricted) && (
                                 <div className="flex items-center gap-1.5 px-3 py-1 bg-red-50 text-red-600 rounded-lg border border-red-100 text-[10px] font-black uppercase tracking-widest">

@@ -34,6 +34,20 @@ router.post('/register', uploadRegistration.fields([
             return res.status(400).json({ success: false, message: `Account already exists for this email as a ${role || 'student'}` });
         }
 
+        // Check if any user with this email already has a roll number
+        let assignedRollNo = null;
+        const otherUserWithSameEmail = await User.findOne({ email, rollNo: { $exists: true, $ne: null } });
+
+        if (otherUserWithSameEmail) {
+            assignedRollNo = otherUserWithSameEmail.rollNo;
+            console.log(`Reusing roll number ${assignedRollNo} for email ${email}`);
+        } else if (['student', 'intern'].includes(role || 'student')) {
+            // Generate new roll number ONLY for students/interns if they don't have one yet
+            const Counter = require('../models/Counter');
+            assignedRollNo = await Counter.getNextRollNo();
+            console.log(`Generated new roll number ${assignedRollNo} for email ${email}`);
+        }
+
         // Create user
         const userData = {
             name,
@@ -42,7 +56,8 @@ router.post('/register', uploadRegistration.fields([
             phone,
             role: role || 'student',
             location,
-            isVerified: false
+            isVerified: false,
+            rollNo: assignedRollNo
         };
 
         // Add photo if uploaded
@@ -295,8 +310,32 @@ router.get('/me', protect, async (req, res) => {
 // @route   PUT /api/auth/profile
 // @desc    Update user profile
 // @access  Private
+const SystemSetting = require('../models/SystemSetting'); // Import SystemSetting
+
+// ... [existing imports]
+
+// ... [lines 9-313]
+
 router.put('/profile', protect, uploadPhoto.single('photo'), async (req, res) => {
     try {
+        // Check Global Bio Editing Permission
+        if (req.user.role !== 'admin') { // Admin always allowed
+            const bioSetting = await SystemSetting.findOne({ key: 'allowBioEditing' });
+            const isBioEditingAllowed = bioSetting ? bioSetting.value : false; // Default to false if not set
+
+            if (!isBioEditingAllowed) {
+                // If editing is disabled, allow ONLY photo updates
+                if (!req.file) {
+                    return res.status(403).json({
+                        success: false,
+                        message: 'Profile editing is currently disabled by the administrator.'
+                    });
+                }
+                // If photo is uploaded, we proceed but ignore all body fields
+                req.body = {};
+            }
+        }
+
         const updates = { ...req.body };
 
         // Add new photo if uploaded
@@ -344,6 +383,12 @@ router.post('/forgot-password', async (req, res) => {
             return res.json({ success: true, message: 'If account exists for this role, password reset email has been sent' });
         }
 
+        // Check for missing ENV variables early
+        if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+            console.error('❌ EMAIL_USER or EMAIL_PASS environment variables are not set!');
+            return res.status(500).json({ success: false, message: 'Email service is not configured.' });
+        }
+
         // Generate reset token
         const resetToken = crypto.randomBytes(32).toString('hex');
         user.passwordResetToken = crypto.createHash('sha256').update(resetToken).digest('hex');
@@ -354,9 +399,13 @@ router.post('/forgot-password', async (req, res) => {
         const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
         const resetUrl = `${clientUrl}/reset-password/${resetToken}`;
 
+        console.log(`🔑 Generated reset link for ${user.email}: ${resetUrl}`);
+
         // Send email
         const transporter = nodemailer.createTransport({
-            service: 'gmail',
+            host: 'smtp.gmail.com',
+            port: 465,
+            secure: true, // use SSL
             auth: {
                 user: process.env.EMAIL_USER,
                 pass: process.env.EMAIL_PASS

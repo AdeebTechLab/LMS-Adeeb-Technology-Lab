@@ -5,7 +5,7 @@ import {
     User, Mail, Phone, MapPin, CreditCard,
     Edit2, Save, X, Camera, BookOpen, GraduationCap, Briefcase, Loader2
 } from 'lucide-react';
-import { authAPI, courseAPI } from '../../services/api';
+import { authAPI, courseAPI, settingsAPI } from '../../services/api';
 import { updateUser } from '../../features/auth/authSlice';
 
 const TeacherProfile = () => {
@@ -35,7 +35,19 @@ const TeacherProfile = () => {
 
     useEffect(() => {
         fetchMyCourses();
+        fetchSettings();
     }, []);
+
+    const [allowBioEditing, setAllowBioEditing] = useState(true);
+
+    const fetchSettings = async () => {
+        try {
+            const res = await settingsAPI.getAll();
+            setAllowBioEditing(res.data.data.allowBioEditing ?? false);
+        } catch (error) {
+            console.error('Error fetching settings:', error);
+        }
+    };
 
     const fetchMyCourses = async () => {
         try {
@@ -232,13 +244,20 @@ const TeacherProfile = () => {
                     <div className="space-y-4">
                         <InfoField icon={User} label="Full Name" value={profileData.fullName} name="fullName" editable={false} />
                         <InfoField icon={Mail} label="Email" value={profileData.email} name="email" type="email" editable={false} />
-                        <InfoField icon={Phone} label="Phone" value={profileData.phone} name="phone" />
+                        <InfoField icon={Mail} label="Email" value={profileData.email} name="email" type="email" editable={false} />
+                        <InfoField icon={Phone} label="Phone" value={profileData.phone} name="phone" editable={allowBioEditing} />
+                        {!allowBioEditing && isEditing && (
+                            <p className="text-xs text-red-500 font-medium px-4">
+                                * Bio editing is currently disabled by administrator.
+                            </p>
+                        )}
                         <p className="text-[10px] text-amber-600 font-bold uppercase tracking-widest px-4 italic">* Contact admin to change legal biodata (Name, CNIC, etc.)</p>
                         <InfoField icon={CreditCard} label="CNIC" value={profileData.cnic} name="cnic" editable={false} />
                         <InfoField icon={GraduationCap} label="Qualification" value={profileData.qualification} name="qualification" editable={false} />
                         <InfoField icon={Briefcase} label="Specialization / Skills" value={profileData.specialization} name="specialization" editable={false} />
                         <InfoField icon={Briefcase} label="Experience" value={profileData.experience} name="experience" editable={false} />
-                        <InfoField icon={MapPin} label="City" value={profileData.city} name="city" />
+                        <InfoField icon={Briefcase} label="Experience" value={profileData.experience} name="experience" editable={false} />
+                        <InfoField icon={MapPin} label="City" value={profileData.city} name="city" editable={allowBioEditing} />
                     </div>
                 </motion.div>
 

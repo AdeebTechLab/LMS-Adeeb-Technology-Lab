@@ -33,11 +33,21 @@ const ChatWidget = () => {
     const socketRef = useRef();
     const scrollRef = useRef();
     const activeChatRef = useRef(activeChat);
+    const isOpenRef = useRef(isOpen);
+    const myIdRef = useRef((user.id || user._id || '').toString());
     const [incomingNotify, setIncomingNotify] = useState(null); // { senderName, text }
 
     useEffect(() => {
         activeChatRef.current = activeChat;
     }, [activeChat]);
+
+    useEffect(() => {
+        isOpenRef.current = isOpen;
+    }, [isOpen]);
+
+    useEffect(() => {
+        myIdRef.current = (user.id || user._id || '').toString();
+    }, [user.id, user._id]);
 
     // Show for all authenticated users
     const shouldShow = isAuthenticated;
@@ -54,7 +64,7 @@ const ChatWidget = () => {
         socketRef.current.emit('join_chat', myId);
 
         socketRef.current.on('new_global_message', (data) => {
-            const myIdStr = (user.id || user._id || '').toString();
+            const myIdStr = myIdRef.current;
             const senderIdRaw = data.senderId || data.sender?._id || data.sender;
             const recipientIdRaw = data.recipientId || data.recipient?._id || data.recipient;
 
@@ -66,11 +76,16 @@ const ChatWidget = () => {
             // The 'other side' of the conversation
             const otherSideId = senderId === myIdStr ? recipientId : senderId;
 
-            // Use ref to check active chat without re-binding listener
+            // Use refs to check state without re-binding listener
             const currentActive = activeChatRef.current;
+            const isCurrentlyOpen = isOpenRef.current;
 
-            if (isOpen && currentActive && currentActive.userId && currentActive.userId.toString() === otherSideId) {
-                setMessages(prev => [...prev, data]);
+            if (isCurrentlyOpen && currentActive && currentActive.userId && currentActive.userId.toString() === otherSideId) {
+                setMessages(prev => {
+                    // Prevent duplicates (e.g. if already added optimistically by sender)
+                    if (prev.some(m => m._id === data._id)) return prev;
+                    return [...prev, data];
+                });
                 // Mark as read immediately if chat is open
                 chatAPI.markAsRead(otherSideId)
                     .then(() => fetchUnreadCount())
@@ -265,15 +280,18 @@ const ChatWidget = () => {
             const res = await chatAPI.sendMessage(recipientId, text);
             const savedMsg = res.data.data;
 
-            // Emit via socket
-            socketRef.current.emit('send_global_message', {
-                recipientId: recipientId.toString(),
-                senderId: (user.id || user._id).toString(),
-                text,
-                senderName: user.name,
-                senderRole: user.role,
-                createdAt: savedMsg.createdAt
-            });
+            // Optimistic update: Add message to local state immediately
+            if (activeChat && activeChat.userId.toString() === recipientId.toString()) {
+                setMessages(prev => {
+                    if (prev.some(m => m._id === savedMsg._id)) return prev;
+                    return [...prev, savedMsg];
+                });
+            }
+
+            // Backend now handles socket emission to both parties
+            if (user?.role === 'admin') {
+                fetchConversations();
+            }
 
         } catch (e) {
             console.error('Error sending message:', e);

@@ -16,6 +16,7 @@ import {
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
 import { courseAPI, userAPI } from '../../services/api';
+import { getCourseIcon, getCourseColor } from '../../utils/courseIcons';
 
 const CourseManagement = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -315,8 +316,11 @@ const CourseManagement = () => {
                         className="bg-white rounded-2xl p-6 border border-gray-100 hover:shadow-lg transition-all duration-300"
                     >
                         <div className="flex items-start justify-between mb-4">
-                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center">
-                                <BookOpen className="w-6 h-6 text-white" />
+                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${getCourseColor(course.category, course.title).replace('text-', 'bg-').replace('bg-', 'text-white bg-gradient-to-br from-').replace('border-', '')}`}>
+                                {(() => {
+                                    const Icon = getCourseIcon(course.category, course.title);
+                                    return <Icon className="w-6 h-6 text-white" />;
+                                })()}
                             </div>
                             <div className="flex items-center gap-2">
                                 <Badge variant="info">

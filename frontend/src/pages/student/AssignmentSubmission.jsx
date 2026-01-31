@@ -748,9 +748,10 @@ const AssignmentSubmission = () => {
                         );
                     })()}
                 </div>
+
             )}
-        </div>
-    );
+            < /div>
+            );
 };
 
-export default AssignmentSubmission;
+            export default AssignmentSubmission;

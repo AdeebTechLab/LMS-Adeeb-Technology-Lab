@@ -1,196 +1,124 @@
-import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import {
     DollarSign,
     Users,
-    BookOpen,
     GraduationCap,
     TrendingUp,
     ArrowUpRight,
-    MoreHorizontal,
     Eye,
     CheckCircle,
     XCircle,
     Clock,
     Loader2,
+    Calendar,
+    ChevronRight,
+    Search,
+    Filter,
+    ArrowRight,
+    Download
 } from 'lucide-react';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 import StatCard from '../../components/ui/StatCard';
 import DataTable from '../../components/ui/DataTable';
 import Badge from '../../components/ui/Badge';
 import { BarChart, DoughnutChart } from '../../components/charts/Charts';
-import { courseAPI, feeAPI, userAPI } from '../../services/api';
+import { statsAPI } from '../../services/api';
 
 const AdminDashboard = () => {
     const navigate = useNavigate();
-    const [selectedPeriod, setSelectedPeriod] = useState('weekly');
     const [isLoading, setIsLoading] = useState(true);
-    const [stats, setStats] = useState([]);
-    const [recentFees, setRecentFees] = useState([]);
-    const [feeStats, setFeeStats] = useState({ verified: 0, pending: 0, rejected: 0 });
+    const [data, setData] = useState(null);
+    const [filters, setFilters] = useState({
+        month: new Date().toISOString().slice(0, 7), // YYYY-MM
+        startDate: '',
+        endDate: ''
+    });
+    const [showFullHistory, setShowFullHistory] = useState(false);
+    const [isDownloading, setIsDownloading] = useState(false);
+    const dashboardRef = useRef(null);
 
     useEffect(() => {
-        fetchDashboardData();
-    }, [selectedPeriod]); // Re-fetch or re-filter when period changes
+        fetchStats();
+    }, [filters.month, filters.startDate, filters.endDate]);
 
-    const fetchDashboardData = async () => {
+    const fetchStats = async () => {
         setIsLoading(true);
         try {
-            const [coursesRes, studentsRes, feesRes, pendingRes] = await Promise.all([
-                courseAPI.getAll().catch(() => ({ data: { data: [] } })),
-                userAPI.getByRole('student').catch(() => ({ data: { data: [] } })),
-                feeAPI.getAll().catch(() => ({ data: { data: [] } })),
-                userAPI.getPendingCounts().catch(() => ({ data: { data: {} } }))
-            ]);
+            const params = {};
+            if (filters.startDate && filters.endDate) {
+                params.startDate = filters.startDate;
+                params.endDate = filters.endDate;
+            } else if (filters.month) {
+                params.month = filters.month;
+            }
 
-            const totalCourses = coursesRes.data.data?.length || 0;
-            const totalStudents = studentsRes.data.data?.length || 0;
-            const fees = feesRes.data.data || [];
-            const pendingCounts = pendingRes.data.data || {};
-
-            // Calculate total pending users
-            const totalPendingUsers = Object.entries(pendingCounts)
-                .filter(([key]) => key !== 'fees') // Exclude fees count from user sum
-                .reduce((sum, [, count]) => sum + (count || 0), 0);
-
-            // Revenue calculation logic based on periods
-            const now = new Date();
-            const startOfWeek = new Date(now);
-            startOfWeek.setDate(now.getDate() - (now.getDay() === 0 ? 6 : now.getDay() - 1));
-            startOfWeek.setHours(0, 0, 0, 0);
-
-            const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-            const startOfYear = new Date(now.getFullYear(), 0, 1);
-
-            let totalRevenue = 0;
-            let pendingFees = 0;
-            let verifiedCount = 0;
-            let pendingCount = 0;
-            let rejectedCount = 0;
-            let feeSubmissions = [];
-
-            // Period-specific revenue
-            let weeklyRevenue = 0;
-            let monthlyRevenue = 0;
-            let yearlyRevenue = 0;
-
-            // Chart data arrays
-            const weeklyData = new Array(7).fill(0);
-            const monthlyData = new Array(4).fill(0);
-            const yearlyData = new Array(12).fill(0);
-
-            fees.forEach(fee => {
-                fee.installments?.forEach(inst => {
-                    // Critical priority: verifiedAt > paidAt > createdAt
-                    const revenueDate = inst.verifiedAt || inst.paidAt || fee.createdAt;
-                    const amount = inst.amount || 0;
-                    const dateObj = new Date(revenueDate);
-
-                    if (inst.status === 'verified') {
-                        totalRevenue += amount;
-                        verifiedCount++;
-
-                        // Aggregate by period for stats & charts
-                        if (dateObj >= startOfWeek) {
-                            weeklyRevenue += amount;
-                            const day = dateObj.getDay(); // 0 is Sun
-                            const idx = day === 0 ? 6 : day - 1;
-                            weeklyData[idx] += amount;
-                        }
-                        if (dateObj >= startOfMonth) {
-                            monthlyRevenue += amount;
-                            const weekIdx = Math.floor((dateObj.getDate() - 1) / 7);
-                            if (weekIdx < 4) monthlyData[weekIdx] += amount;
-                        }
-                        if (dateObj >= startOfYear) {
-                            yearlyRevenue += amount;
-                            yearlyData[dateObj.getMonth()] += amount;
-                        }
-                    } else if (inst.status === 'pending' || inst.status === 'submitted') {
-                        pendingFees += amount;
-                        pendingCount++;
-                    } else if (inst.status === 'rejected') {
-                        rejectedCount++;
-                    }
-
-                    // Collect submissions for the table (unverified/recent)
-                    if (inst.status === 'submitted' || inst.receiptUrl) {
-                        feeSubmissions.push({
-                            id: inst._id || `${fee._id}-${inst.installmentNumber}`,
-                            student: fee.user?.name || 'Unknown',
-                            course: fee.course?.title || 'Unknown Course',
-                            amount: `Rs ${amount.toLocaleString()}`,
-                            date: dateObj.toLocaleDateString('en-US', { day: '2-digit', month: 'short' }),
-                            status: inst.status === 'submitted' ? 'pending' : inst.status,
-                            paidAt: dateObj
-                        });
-                    }
-                });
-            });
-
-            // Sort submissions by date
-            feeSubmissions.sort((a, b) => b.paidAt - a.paidAt);
-
-            const displayRevenue = selectedPeriod === 'weekly' ? weeklyRevenue :
-                selectedPeriod === 'monthly' ? monthlyRevenue : yearlyRevenue;
-
-            setStats([
-                {
-                    title: 'User Approvals',
-                    value: totalPendingUsers.toString(),
-                    change: 'Pending Verification',
-                    changeType: totalPendingUsers > 0 ? 'negative' : 'neutral',
-                    icon: Users,
-                    iconBg: 'bg-indigo-100',
-                    iconColor: 'text-indigo-600',
-                },
-                {
-                    title: `${selectedPeriod.charAt(0).toUpperCase() + selectedPeriod.slice(1)} Revenue`,
-                    value: `Rs ${displayRevenue.toLocaleString()}`,
-                    change: 'Verified Only',
-                    changeType: 'positive',
-                    icon: DollarSign,
-                    iconBg: 'bg-orange-100',
-                    iconColor: 'text-[#ff8e01]',
-                },
-                {
-                    title: 'Global Income',
-                    value: `Rs ${totalRevenue.toLocaleString()}`,
-                    change: 'Total Revenue',
-                    changeType: 'positive',
-                    icon: TrendingUp,
-                    iconBg: 'bg-emerald-100',
-                    iconColor: 'text-emerald-600',
-                },
-                {
-                    title: 'Fee Verification',
-                    value: pendingCount.toString(),
-                    change: 'Pending Receipts',
-                    changeType: pendingCount > 0 ? 'negative' : 'neutral',
-                    icon: Clock,
-                    iconBg: 'bg-amber-100',
-                    iconColor: 'text-amber-600',
-                },
-            ]);
-
-            setRecentFees(feeSubmissions.slice(0, 5));
-            setFeeStats({
-                verified: verifiedCount,
-                pending: pendingCount,
-                rejected: rejectedCount,
-                weeklyData,
-                monthlyData,
-                yearlyData
-            });
-
+            const res = await statsAPI.getAdminDashboard(params);
+            if (res.data.success) {
+                setData(res.data.data);
+            }
         } catch (error) {
-            console.error('Error fetching dashboard data:', error);
+            console.error('Error fetching dashboard stats:', error);
         } finally {
             setIsLoading(false);
         }
     };
 
-    // Table columns
+    const handleDownloadPDF = async () => {
+        if (!dashboardRef.current) return;
+        setIsDownloading(true);
+        try {
+            // Show PDF-only header
+            const pdfHeader = dashboardRef.current.querySelector('.show-in-pdf');
+            if (pdfHeader) pdfHeader.style.display = 'block';
+
+            // Use visibility: hidden for interactive elements
+            const elementsToHide = dashboardRef.current.querySelectorAll('.no-pdf');
+            elementsToHide.forEach(el => el.style.visibility = 'hidden');
+
+            const canvas = await html2canvas(dashboardRef.current, {
+                scale: 2,
+                useCORS: true,
+                logging: false,
+                backgroundColor: '#ffffff',
+            });
+
+            // Restore
+            elementsToHide.forEach(el => el.style.visibility = 'visible');
+            if (pdfHeader) pdfHeader.style.display = 'none';
+
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+
+            const imgProps = pdf.getImageProperties(imgData);
+            const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+            // Handle multi-page if needed, but for dashboard usually one page scaled is fine
+            // or we just put it on one scrollable-like page in PDF
+            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, imgHeight, undefined, 'FAST');
+            pdf.save(`LMS-Dashboard-${filters.month || 'report'}.pdf`);
+        } catch (error) {
+            console.error('PDF generation failed:', error);
+        } finally {
+            setIsDownloading(false);
+        }
+    };
+
+    const handleFilterChange = (e) => {
+        const { name, value } = e.target;
+        setFilters(prev => ({
+            ...prev,
+            [name]: value,
+            // Clear other filter type if one is set
+            ...(name === 'month' ? { startDate: '', endDate: '' } : {}),
+            ...(name === 'startDate' || name === 'endDate' ? { month: '' } : {})
+        }));
+    };
+
     const columns = [
         {
             header: 'Status',
@@ -215,197 +143,250 @@ const AdminDashboard = () => {
             accessor: 'student',
             render: (row) => (
                 <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#394251] to-[#222d38] flex items-center justify-center text-white text-[10px] font-black border border-white/10 uppercase italic">
+                    <div className="w-8 h-8 rounded-full bg-[#ff8e01] flex items-center justify-center text-white text-[10px] font-black italic">
                         {row.student.charAt(0)}
                     </div>
-                    <span className="font-bold text-gray-900 text-sm uppercase italic tracking-tighter">{row.student}</span>
+                    <span className="font-bold text-gray-900 text-xs uppercase tracking-tighter">{row.student}</span>
                 </div>
             ),
         },
         {
             header: 'Course',
             accessor: 'course',
-            render: (row) => <span className="text-gray-600">{row.course}</span>,
+            render: (row) => <span className="text-[10px] text-gray-600 font-bold uppercase tracking-tight">{row.course}</span>,
         },
         {
             header: 'Amount',
             accessor: 'amount',
-            render: (row) => <span className="font-medium text-gray-900">{row.amount}</span>,
+            render: (row) => <span className="font-black text-gray-900">Rs {row.amount.toLocaleString()}</span>,
         },
         {
             header: 'Date',
             accessor: 'date',
-            render: (row) => <span className="text-gray-500">{row.date}</span>,
+            render: (row) => <span className="text-[10px] font-bold text-gray-500">{new Date(row.date).toLocaleDateString()}</span>,
         },
         {
             header: 'Action',
+            headerClassName: 'no-pdf',
+            className: 'no-pdf',
             render: (row) => (
                 <button
                     onClick={() => navigate('/admin/fee-verification')}
-                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                    className="p-2.5 bg-orange-50 hover:bg-[#ff8e01] rounded-xl transition-all group shadow-sm active:scale-90"
                 >
-                    <Eye className="w-4 h-4 text-gray-500" />
+                    <Eye className="w-5 h-5 text-[#ff8e01] group-hover:text-white" />
                 </button>
             ),
         },
     ];
 
-    // Dynamic bar chart data
-    const barChartData = {
-        labels: selectedPeriod === 'weekly' ? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] :
-            selectedPeriod === 'monthly' ? ['Week 1', 'Week 2', 'Week 3', 'Week 4'] :
-                ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-        datasets: [
-            {
-                data: selectedPeriod === 'weekly' ? feeStats.weeklyData :
-                    selectedPeriod === 'monthly' ? feeStats.monthlyData :
-                        feeStats.yearlyData,
-                backgroundColor: '#ff8e01', // Slate/Orange Theme
-                borderRadius: 6,
-                barThickness: 20,
-            },
-        ],
-    };
-
-    // Doughnut chart data for fee status
     const doughnutChartData = {
         labels: ['Verified', 'Pending', 'Rejected'],
         datasets: [
             {
-                data: [feeStats.verified || 1, feeStats.pending || 0, feeStats.rejected || 0],
-                backgroundColor: ['#ff8e01', '#394251', '#EF4444'], // Theme-aligned
+                data: data ? [data.feeStatus.verified, data.feeStatus.pending, data.feeStatus.rejected] : [1, 0, 0],
+                backgroundColor: ['#10B981', '#ff8e01', '#EF4444'],
                 borderWidth: 0,
             },
         ],
     };
 
-    if (isLoading) {
+    if (isLoading && !data) {
         return (
-            <div className="flex items-center justify-center h-64">
-                <Loader2 className="w-8 h-8 animate-spin text-[#ff8e01]" />
-                <span className="ml-2 text-gray-600">Loading dashboard...</span>
+            <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
+                <Loader2 className="w-12 h-12 animate-spin text-[#ff8e01]" />
+                <span className="text-gray-500 font-black uppercase tracking-widest text-xs animate-pulse">Syncing Portal Data...</span>
             </div>
         );
     }
 
     return (
-        <div className="space-y-6">
-            {/* Welcome Section */}
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-gradient-to-r from-[#222d38] to-[#394251] rounded-2xl p-6 text-white shadow-xl shadow-slate-900/10"
-            >
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div className="space-y-6 p-4 bg-slate-50 min-h-screen" ref={dashboardRef}>
+            {/* PDF-only Header (Visible only during capture or if we use specific CSS) */}
+            <div className="hidden show-in-pdf mb-8 border-b-4 border-[#ff8e01] pb-6">
+                <div className="flex justify-between items-end">
                     <div>
-                        <h2 className="text-2xl font-bold mb-2">Welcome back, Admin!</h2>
-                        <p className="text-white/70">
-                            Here's what's happening with your AdeebTechLab portal today.
-                        </p>
+                        <h1 className="text-4xl font-black text-gray-900 uppercase tracking-tighter">LMS Performance Report</h1>
+                        <p className="text-[#ff8e01] font-black uppercase tracking-[0.4em] text-sm mt-2">Adeeb Tech Lab • Management Portal</p>
                     </div>
-                    <div className="flex gap-3">
-                        <button className="px-6 py-3 bg-white/10 hover:bg-white/20 rounded-xl font-medium transition-all duration-300 flex items-center gap-2 backdrop-blur-sm border border-white/20">
-                            View Reports
-                            <ArrowUpRight className="w-4 h-4" />
-                        </button>
+                    <div className="text-right">
+                        <p className="text-xs font-black text-gray-400 uppercase tracking-widest">Report Generated</p>
+                        <p className="text-lg font-black text-gray-900 uppercase tracking-tighter">{new Date().toLocaleDateString()}</p>
                     </div>
                 </div>
-            </motion.div>
-
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {stats.map((stat, index) => (
-                    <motion.div
-                        key={stat.title}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.1 }}
-                    >
-                        <StatCard {...stat} />
-                    </motion.div>
-                ))}
             </div>
 
-            {/* Charts Section */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Revenue Chart */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3 }}
-                    className="lg:col-span-2 bg-white rounded-2xl p-6 border border-gray-100"
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-2xl font-black text-gray-900 uppercase tracking-tighter">Dashboard Analytics</h1>
+                    <p className="text-gray-500 text-xs font-bold uppercase tracking-widest">Real-time system overview</p>
+                </div>
+                <button
+                    onClick={handleDownloadPDF}
+                    disabled={isDownloading}
+                    className="flex items-center gap-3 bg-[#ff8e01] text-white px-6 py-3 rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg shadow-orange-200 hover:shadow-orange-300 transition-all active:scale-95 disabled:opacity-50 no-pdf"
                 >
-                    <div className="flex items-center justify-between mb-6">
-                        <div>
-                            <h3 className="text-lg font-bold text-gray-900">Revenue Overview</h3>
-                            <p className="text-sm text-gray-500">Monthly revenue from all courses</p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            {['weekly', 'monthly', 'yearly'].map((period) => (
-                                <button
-                                    key={period}
-                                    onClick={() => setSelectedPeriod(period)}
-                                    className={`px-3 py-1.5 text-sm font-black uppercase tracking-widest rounded-lg transition-all ${selectedPeriod === period
-                                        ? 'bg-[#ff8e01] text-white shadow-lg shadow-orange-900/20'
-                                        : 'text-gray-500 hover:bg-gray-100'
-                                        }`}
-                                >
-                                    {period.charAt(0).toUpperCase() + period.slice(1)}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-                    <BarChart data={barChartData} height={280} />
-                </motion.div>
+                    {isDownloading ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                        <Download className="w-4 h-4" />
+                    )}
+                    {isDownloading ? 'Generating PDF...' : 'Download Report'}
+                </button>
+            </div>
+            {/* Header & Main Stats */}
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                <div className="xl:col-span-2 space-y-6">
+                    {/* Revenue Section */}
+                    <div className="bg-white rounded-[2.5rem] p-8 border border-gray-100 shadow-sm relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-orange-50 rounded-full -mr-32 -mt-32 opacity-50 group-hover:scale-110 transition-transform duration-700"></div>
+                        <div className="relative z-10">
+                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+                                <div>
+                                    <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-orange-500 mb-1">Financial Intelligence</h2>
+                                    <h3 className="text-3xl font-black text-gray-900 uppercase tracking-tighter leading-none">Total Revenue</h3>
+                                </div>
+                                <div className="flex flex-wrap items-center gap-4">
+                                    <div className="flex items-center gap-2 bg-white p-2.5 rounded-2xl border-2 border-orange-100 shadow-sm hover:border-orange-300 transition-colors">
+                                        <Calendar className="w-5 h-5 text-orange-500 ml-2" />
+                                        <input
+                                            type="month"
+                                            name="month"
+                                            value={filters.month}
+                                            onChange={handleFilterChange}
+                                            className="bg-transparent border-none text-sm font-black uppercase tracking-widest focus:ring-0 cursor-pointer px-3"
+                                        />
+                                    </div>
+                                    <div className="flex items-center gap-3 bg-white p-2.5 rounded-2xl border-2 border-orange-100 shadow-sm hover:border-orange-300 transition-colors">
+                                        <span className="text-[10px] font-black text-orange-400 uppercase tracking-widest pl-2">Custom Range</span>
+                                        <input
+                                            type="date"
+                                            name="startDate"
+                                            value={filters.startDate}
+                                            onChange={handleFilterChange}
+                                            className="bg-transparent border-none text-xs font-black focus:ring-0 cursor-pointer w-32"
+                                        />
+                                        <ArrowRight className="w-4 h-4 text-orange-300" />
+                                        <input
+                                            type="date"
+                                            name="endDate"
+                                            value={filters.endDate}
+                                            onChange={handleFilterChange}
+                                            className="bg-transparent border-none text-xs font-black focus:ring-0 cursor-pointer w-32"
+                                        />
+                                    </div>
+                                    {isLoading && <Loader2 className="w-6 h-6 animate-spin text-[#ff8e01]" />}
+                                </div>
+                            </div>
 
-                {/* Fee Status Chart */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.4 }}
-                    className="bg-white rounded-2xl p-6 border border-gray-100"
-                >
-                    <div className="flex items-center justify-between mb-6">
-                        <div>
-                            <h3 className="text-lg font-bold text-gray-900">Fee Status</h3>
-                            <p className="text-sm text-gray-500">Payment verification status</p>
+                            <div className="flex items-baseline gap-6 mb-2">
+                                <span className="text-7xl font-black text-gray-900 tracking-tighter drop-shadow-sm">
+                                    Rs {data?.totalRevenue.toLocaleString()}
+                                </span>
+                                <div className="flex items-center gap-2 px-4 py-2 bg-emerald-100 text-emerald-700 rounded-2xl border-2 border-emerald-200 shadow-sm">
+                                    <TrendingUp className="w-5 h-5" />
+                                    <span className="text-xs font-black uppercase tracking-widest">Growth Plan Active</span>
+                                </div>
+                            </div>
+                            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-2 ml-1">
+                                Verified Installments from {filters.startDate ? `${filters.startDate} to ${filters.endDate}` : `Month: ${filters.month}`}
+                            </p>
                         </div>
-                        <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                            <MoreHorizontal className="w-5 h-5 text-gray-400" />
-                        </button>
                     </div>
-                    <DoughnutChart data={doughnutChartData} height={220} />
-                </motion.div>
+
+                    {/* Student Stats Section */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="bg-white rounded-[2rem] p-6 border border-gray-100 shadow-sm group hover:border-indigo-100 transition-colors">
+                            <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 mb-4 group-hover:scale-110 transition-transform">
+                                <Users className="w-6 h-6" />
+                            </div>
+                            <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1">Global Database</h4>
+                            <div className="text-3xl font-black text-gray-900 tracking-tighter">{data?.studentStats.total}</div>
+                            <p className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest mt-1">Total Students</p>
+                        </div>
+                        <div className="bg-white rounded-[2rem] p-6 border border-gray-100 shadow-sm group hover:border-emerald-100 transition-colors">
+                            <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600 mb-4 group-hover:scale-110 transition-transform">
+                                <CheckCircle className="w-6 h-6" />
+                            </div>
+                            <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1">Active Learning</h4>
+                            <div className="text-3xl font-black text-gray-900 tracking-tighter">{data?.studentStats.registered}</div>
+                            <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mt-1">Registered (Active)</p>
+                        </div>
+                        <div className="bg-white rounded-[2rem] p-6 border border-gray-100 shadow-sm group hover:border-orange-100 transition-colors">
+                            <div className="w-12 h-12 rounded-2xl bg-orange-50 flex items-center justify-center text-orange-600 mb-4 group-hover:scale-110 transition-transform">
+                                <GraduationCap className="w-6 h-6" />
+                            </div>
+                            <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1">Alumni Network</h4>
+                            <div className="text-3xl font-black text-gray-900 tracking-tighter">{data?.studentStats.passout}</div>
+                            <p className="text-[10px] font-bold text-orange-600 uppercase tracking-widest mt-1">Passout Graduates</p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Fee Status Graph (Sidebar-like) */}
+                <div className="bg-white rounded-[2.5rem] p-8 border border-gray-100 shadow-sm">
+                    <div className="flex items-center justify-between mb-8">
+                        <div>
+                            <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-orange-500 mb-1">Verification Helix</h2>
+                            <h3 className="text-xl font-black text-gray-900 uppercase tracking-tighter leading-none">Fee Distribution</h3>
+                        </div>
+                        <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center">
+                            <Filter className="w-4 h-4 text-slate-400" />
+                        </div>
+                    </div>
+                    <div className="relative h-64 mb-8">
+                        <DoughnutChart data={doughnutChartData} height={256} />
+                    </div>
+                    <div className="space-y-4">
+                        <div className="flex items-center justify-between p-4 bg-emerald-50 rounded-2xl border border-emerald-100/50">
+                            <span className="text-[10px] font-black text-emerald-700 uppercase tracking-widest">Verified</span>
+                            <span className="font-black text-emerald-800">{data?.feeStatus.verified}</span>
+                        </div>
+                        <div className="flex items-center justify-between p-4 bg-orange-50 rounded-2xl border border-orange-100/50">
+                            <span className="text-[10px] font-black text-orange-700 uppercase tracking-widest">Submissions</span>
+                            <span className="font-black text-orange-800">{data?.feeStatus.pending}</span>
+                        </div>
+                        <div className="flex items-center justify-between p-4 bg-red-50 rounded-2xl border border-red-100/50">
+                            <span className="text-[10px] font-black text-red-700 uppercase tracking-widest">Rejected</span>
+                            <span className="font-black text-red-800">{data?.feeStatus.rejected}</span>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             {/* Recent Fee Submissions Table */}
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5 }}
-            >
-                <div className="flex items-center justify-between mb-4">
+            <div className="space-y-4 pt-4">
+                <div className="flex items-end justify-between px-2">
                     <div>
-                        <h3 className="text-lg font-bold text-gray-900">Recent Fee Submissions</h3>
-                        <p className="text-sm text-gray-500">Latest payment receipts pending verification</p>
+                        <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-orange-500 mb-1">Financial Stream</h2>
+                        <h3 className="text-2xl font-black text-gray-900 uppercase tracking-tighter leading-none">Recent Fee Submissions</h3>
                     </div>
                     <button
-                        onClick={() => navigate('/admin/fee-verification')}
-                        className="text-[10px] font-black uppercase tracking-[0.2em] text-[#ff8e01] hover:text-[#e67e00] transition-colors"
+                        onClick={() => setShowFullHistory(!showFullHistory)}
+                        className="flex items-center gap-3 group cursor-pointer bg-white px-6 py-3 rounded-2xl border-2 border-gray-100 shadow-sm hover:border-[#ff8e01] transition-all active:scale-95 no-pdf"
                     >
-                        View All Portal →
+                        <span className="text-xs font-black uppercase tracking-[0.2em] text-gray-500 group-hover:text-[#ff8e01] transition-colors">
+                            {showFullHistory ? 'Collapse History' : 'Execute View All'}
+                        </span>
+                        <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center group-hover:bg-[#ff8e01] group-hover:text-white group-hover:rotate-45 transition-all duration-500">
+                            <ArrowUpRight className="w-6 h-6" />
+                        </div>
                     </button>
                 </div>
-                {recentFees.length === 0 ? (
-                    <div className="bg-white rounded-2xl p-12 border border-gray-100 text-center">
-                        <DollarSign className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                        <p className="text-gray-500">No fee submissions yet</p>
-                    </div>
-                ) : (
-                    <DataTable columns={columns} data={recentFees} />
-                )}
-            </motion.div>
-            {/* Announcements Popup - Only on Main Dashboard */}
+
+                <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden">
+                    <DataTable
+                        columns={columns}
+                        data={showFullHistory ? (data?.recentSubmissions || []) : (data?.recentSubmissions.slice(0, 5) || [])}
+                    />
+                    {data?.recentSubmissions.length === 0 && (
+                        <div className="p-20 text-center">
+                            <Clock className="w-12 h-12 text-gray-200 mx-auto mb-4" />
+                            <p className="text-gray-400 font-bold uppercase tracking-widest text-xs">No Recent Activity Detected</p>
+                        </div>
+                    )}
+                </div>
+            </div>
         </div>
     );
 };

@@ -42,7 +42,7 @@ const DataTable = ({
                             {columns.map((column, index) => (
                                 <th
                                     key={index}
-                                    className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider"
+                                    className={`px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider ${column.headerClassName || ''}`}
                                 >
                                     {column.header}
                                 </th>
@@ -61,7 +61,7 @@ const DataTable = ({
                                     }`}
                             >
                                 {columns.map((column, colIndex) => (
-                                    <td key={colIndex} className="px-6 py-4 whitespace-nowrap">
+                                    <td key={colIndex} className={`px-6 py-4 whitespace-nowrap ${column.className || ''}`}>
                                         {column.render ? column.render(row) : row[column.accessor]}
                                     </td>
                                 ))}

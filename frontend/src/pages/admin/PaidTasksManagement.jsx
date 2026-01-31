@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
-    Search, Calendar, CheckCircle, Loader2, Eye, Users, Briefcase, AlertCircle, Link, Trash2
+    Search, Calendar, CheckCircle, Loader2, Eye, Users, Briefcase, AlertCircle, Link, Trash2, PenSquare
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
@@ -16,6 +16,7 @@ const PaidTasksManagement = () => {
     const { user } = useSelector((state) => state.auth);
     const [isDeleting, setIsDeleting] = useState(false);
     const [selectedTask, setSelectedTask] = useState(null);
+    const [editingTask, setEditingTask] = useState(null);
     const [viewMode, setViewMode] = useState(null);
     const [viewingProfile, setViewingProfile] = useState(null);
     const [tasks, setTasks] = useState([]);
@@ -119,23 +120,48 @@ const PaidTasksManagement = () => {
         setError('');
 
         try {
-            await taskAPI.create({
-                title: formData.title,
-                description: formData.description,
-                budget: Number(formData.budget),
-                deadline: formData.deadline,
-                skills: formData.skills,
-                category: formData.category,
-            });
+            if (editingTask) {
+                await taskAPI.update(editingTask._id, {
+                    title: formData.title,
+                    description: formData.description,
+                    budget: Number(formData.budget),
+                    deadline: formData.deadline,
+                    skills: formData.skills,
+                    category: formData.category,
+                });
+            } else {
+                await taskAPI.create({
+                    title: formData.title,
+                    description: formData.description,
+                    budget: Number(formData.budget),
+                    deadline: formData.deadline,
+                    skills: formData.skills,
+                    category: formData.category,
+                });
+            }
             setIsModalOpen(false);
+            setEditingTask(null);
             setFormData({ title: '', description: '', budget: '', deadline: '', skills: '', category: 'web' });
             fetchTasks(); // Refresh list
         } catch (err) {
-            console.error('Error creating task:', err);
-            setError(err.response?.data?.message || 'Failed to create task');
+            console.error('Error saving task:', err);
+            setError(err.response?.data?.message || 'Failed to save task');
         } finally {
             setIsLoading(false);
         }
+    };
+
+    const handleEditClick = (task) => {
+        setEditingTask(task);
+        setFormData({
+            title: task.title,
+            description: task.description,
+            budget: task.budget,
+            deadline: task.deadline ? new Date(task.deadline).toISOString().split('T')[0] : '',
+            skills: task.skills,
+            category: task.category || 'web',
+        });
+        setIsModalOpen(true);
     };
 
     const handleAssignTask = async (taskId, applicantId) => {
@@ -197,7 +223,11 @@ const PaidTasksManagement = () => {
                 </div>
                 <div className="flex flex-wrap gap-4">
                     <button
-                        onClick={() => setIsModalOpen(true)}
+                        onClick={() => {
+                            setEditingTask(null);
+                            setFormData({ title: '', description: '', budget: '', deadline: '', skills: '', category: 'web' });
+                            setIsModalOpen(true);
+                        }}
                         className="flex items-center justify-center gap-2 px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl transition-all duration-300 font-medium"
                     >
                         <Briefcase className="w-5 h-5" />
@@ -263,6 +293,14 @@ const PaidTasksManagement = () => {
                                     >
                                         {isDeleting === task._id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
                                         Delete
+                                    </button>
+                                    <button
+                                        onClick={() => handleEditClick(task)}
+                                        className="px-3 py-1 bg-purple-50 text-purple-600 hover:bg-purple-600 hover:text-white rounded-lg transition-all flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider shadow-sm border border-purple-100"
+                                        title="Edit Task"
+                                    >
+                                        <PenSquare className="w-3 h-3" />
+                                        Edit
                                     </button>
                                 </div>
                             </div>
@@ -332,8 +370,8 @@ const PaidTasksManagement = () => {
                 })}
             </div>
 
-            {/* Create Task Modal */}
-            <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Create Paid Task" size="lg">
+            {/* Create/Edit Task Modal */}
+            <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingTask ? "Edit Paid Task" : "Create Paid Task"} size="lg">
                 <form onSubmit={handleCreateTask} className="space-y-5">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Task Title *</label>
@@ -428,7 +466,7 @@ const PaidTasksManagement = () => {
                             Cancel
                         </button>
                         <button type="submit" disabled={isLoading} className="flex-1 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-medium flex items-center justify-center gap-2">
-                            {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Create Task'}
+                            {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : (editingTask ? 'Update Task' : 'Create Task')}
                         </button>
                     </div>
                 </form>

@@ -18,6 +18,7 @@ import StatCard from '../../components/ui/StatCard';
 import Badge from '../../components/ui/Badge';
 import { enrollmentAPI, feeAPI, assignmentAPI } from '../../services/api';
 import Modal from '../../components/ui/Modal'; // Assuming Modal component exists
+import { getCourseIcon, getCourseColor } from '../../utils/courseIcons';
 
 
 const StudentDashboard = () => {
@@ -73,21 +74,23 @@ const StudentDashboard = () => {
             setEnrolledCourses(courses);
 
             // Fetch fees
-            let totalPending = 0;
+            let totalPendingAmount = 0;
+            let totalPendingInstallments = 0;
             try {
                 const feeRes = await feeAPI.getMy();
                 const fees = feeRes.data.data || [];
                 fees.forEach(f => {
                     f.installments?.forEach(inst => {
                         if (inst.status === 'pending' || inst.status === 'rejected') {
-                            totalPending += inst.amount || 0;
+                            totalPendingAmount += inst.amount || 0;
+                            totalPendingInstallments++;
                         }
                     });
                 });
             } catch (e) {
                 // Fees API might not exist for this user
             }
-            setPendingFees(totalPending);
+            setPendingFees(totalPendingAmount);
 
             // Fetch assignments
             let activeAssignments = [];
@@ -100,18 +103,27 @@ const StudentDashboard = () => {
                 activeAssignments = allAssignments.filter(a => {
                     const courseId = a.course?._id || a.course;
                     const courseEnroll = courses.find(c => c.id === courseId);
+
+                    // Allow if course is active OR completed (sometimes final assignments are post-completion)
+                    // But generally, restrict to verified first month
                     const isFirstMonthVerified = courseEnroll?.isFirstMonthVerified;
 
                     const mySub = a.submissions?.find(s => (s.user?._id || s.user) === (user?._id || user?.id));
                     const isSubmitted = !!mySub;
                     const isRejected = mySub?.status === 'rejected';
-                    const isDeadlinePassed = new Date(a.dueDate) < new Date();
 
-                    // Only count if course first month is verified
+                    // Check deadline
+                    // const isDeadlinePassed = new Date(a.dueDate) < new Date();
+
+                    // Requirement: "pending assignments from all registered cources"
+                    // So we want: Not Submitted OR Rejected.
+                    // We typically typically exclude deadline passed if it's strictly "pending actionable", 
+                    // but if they can still submit late, we include it.
+                    // Let's stick to "Not Submitted or Rejected"
+
                     if (!isFirstMonthVerified) return false;
 
-                    // Return true if (never submitted AND not expired) OR (Submitted but REJECTED)
-                    return (!isSubmitted && !isDeadlinePassed) || isRejected;
+                    return (!isSubmitted) || isRejected;
                 });
             } catch (e) {
                 console.error('Error fetching assignments:', e);
@@ -122,7 +134,7 @@ const StudentDashboard = () => {
             setStats([
                 {
                     title: 'Enrolled Courses',
-                    value: courses.length.toString(),
+                    value: courses.filter(c => !c.isCompleted).length.toString(),
                     icon: BookOpen,
                     iconBg: 'bg-emerald-100',
                     iconColor: 'text-emerald-600',
@@ -133,21 +145,23 @@ const StudentDashboard = () => {
                     icon: Clock,
                     iconBg: 'bg-amber-100',
                     iconColor: 'text-amber-600',
-                },
-                {
-                    title: 'Completed',
-                    value: courses.filter(c => c.isCompleted || c.progress === 100).length.toString(),
-                    icon: CheckCircle,
-                    iconBg: 'bg-blue-100',
-                    iconColor: 'text-blue-600',
                     onClick: () => navigate(`/${role}/assignments`)
                 },
                 {
+                    title: 'Certificates',
+                    value: courses.filter(c => c.isCompleted).length.toString(),
+                    icon: CheckCircle,
+                    iconBg: 'bg-blue-100',
+                    iconColor: 'text-blue-600',
+                },
+                {
                     title: 'Pending Fees',
-                    value: totalPending > 0 ? `Rs ${totalPending.toLocaleString()}` : 'Paid',
+                    value: totalPendingInstallments > 0 ? `${totalPendingInstallments} Pending` : 'All Clear',
+                    subValue: totalPendingAmount > 0 ? `(Rs ${totalPendingAmount.toLocaleString()})` : '',
                     icon: CreditCard,
-                    iconBg: totalPending > 0 ? 'bg-red-100' : 'bg-green-100',
-                    iconColor: totalPending > 0 ? 'text-red-600' : 'text-green-600',
+                    iconBg: totalPendingInstallments > 0 ? 'bg-red-100' : 'bg-green-100',
+                    iconColor: totalPendingInstallments > 0 ? 'text-red-600' : 'text-green-600',
+                    onClick: () => navigate(`/${role}/fees`)
                 },
             ]);
 
@@ -345,7 +359,10 @@ const StudentDashboard = () => {
                                     >
                                         <div className="flex items-start justify-between mb-4">
                                             <div className="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100 group-hover:bg-[#ff8e01] transition-colors shadow-inner">
-                                                <BookOpen className="w-6 h-6 text-slate-600 group-hover:text-white transition-colors" />
+                                                {(() => {
+                                                    const Icon = getCourseIcon(course.category, course.title);
+                                                    return <Icon className="w-6 h-6 text-slate-600 group-hover:text-white transition-colors" />;
+                                                })()}
                                             </div>
                                             <div className="flex gap-2">
                                                 {course.isCompleted ? (

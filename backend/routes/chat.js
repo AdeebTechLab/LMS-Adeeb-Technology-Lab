@@ -50,6 +50,19 @@ router.post('/messages', protect, async (req, res) => {
             .populate('sender', 'name role')
             .populate('recipient', 'name role');
 
+        // Emit via socket for real-time update
+        const io = req.app.get('io');
+        if (io) {
+            const socketData = {
+                ...populatedMessage.toObject(),
+                senderId: senderId,
+                recipientId: recipientId,
+                senderName: populatedMessage.sender.name
+            };
+            io.to(recipientId.toString()).emit('new_global_message', socketData);
+            io.to(senderId.toString()).emit('new_global_message', socketData);
+        }
+
         res.status(201).json({ success: true, data: populatedMessage });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
