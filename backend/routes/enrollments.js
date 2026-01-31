@@ -291,4 +291,47 @@ router.get('/all', protect, authorize('admin', 'teacher'), async (req, res) => {
     }
 });
 
+// @route   DELETE /api/enrollments/:id
+// @desc    Withdraw from a course (only if fee not verified)
+// @access  Private
+router.delete('/:id', protect, async (req, res) => {
+    try {
+        const enrollment = await Enrollment.findById(req.params.id);
+
+        if (!enrollment) {
+            return res.status(404).json({ success: false, message: 'Enrollment not found' });
+        }
+
+        // Ensure user owns this enrollment
+        if (enrollment.user.toString() !== req.user.id && req.user.role !== 'admin') {
+            return res.status(401).json({ success: false, message: 'Not authorized' });
+        }
+
+        // Check if fee is verified
+        // We check if ANY installment is verified
+        const isVerified = enrollment.installments.some(inst => inst.status === 'verified');
+
+        if (isVerified && req.user.role !== 'admin') {
+            return res.status(400).json({
+                success: false,
+                message: 'Cannot withdraw from a course after fee verification. Please contact admin.'
+            });
+        }
+
+        // Delete associated Fee record
+        await Fee.findOneAndDelete({
+            user: enrollment.user,
+            course: enrollment.course
+        });
+
+        // Delete the enrollment
+        await enrollment.deleteOne();
+
+        res.json({ success: true, message: 'Course withdrawal successful' });
+    } catch (error) {
+        console.error('Error withdrawing from course:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
 module.exports = router;

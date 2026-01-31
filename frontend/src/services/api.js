@@ -61,7 +61,10 @@ export const userAPI = {
     verify: (id) => api.put(`/users/${id}/verify`),
     unverify: (id) => api.put(`/users/${id}/unverify`),
     delete: (id) => api.delete(`/users/${id}`),
-    update: (id, data) => api.put(`/users/${id}`, data),
+    update: (id, data) => {
+        const config = data instanceof FormData ? { headers: { 'Content-Type': 'multipart/form-data' } } : {};
+        return api.put(`/users/${id}`, data, config);
+    },
 };
 
 // Course APIs
@@ -79,6 +82,7 @@ export const enrollmentAPI = {
     getMy: () => api.get('/enrollments/my'),
     enroll: (courseId) => api.post('/enrollments', { courseId }),
     complete: (id, data) => api.put(`/enrollments/${id}/complete`, data),
+    withdraw: (id) => api.delete(`/enrollments/${id}`),
     getAll: () => api.get('/enrollments/all')
 };
 
@@ -93,7 +97,8 @@ export const feeAPI = {
     verify: (feeId, installmentId) => api.put(`/fees/${feeId}/installments/${installmentId}/verify`),
     reject: (feeId, installmentId) => api.put(`/fees/${feeId}/installments/${installmentId}/reject`),
     setInstallments: (feeId, installments) => api.post(`/fees/${feeId}/installments`, { installments }),
-    deleteInstallment: (feeId, installmentId) => api.delete(`/fees/${feeId}/installments/${installmentId}`)
+    deleteInstallment: (feeId, installmentId) => api.delete(`/fees/${feeId}/installments/${installmentId}`),
+    delete: (id) => api.delete(`/fees/${id}`)
 };
 
 // Attendance APIs

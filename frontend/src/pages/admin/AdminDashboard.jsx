@@ -37,15 +37,22 @@ const AdminDashboard = () => {
     const fetchDashboardData = async () => {
         setIsLoading(true);
         try {
-            const [coursesRes, studentsRes, feesRes] = await Promise.all([
+            const [coursesRes, studentsRes, feesRes, pendingRes] = await Promise.all([
                 courseAPI.getAll().catch(() => ({ data: { data: [] } })),
                 userAPI.getByRole('student').catch(() => ({ data: { data: [] } })),
-                feeAPI.getAll().catch(() => ({ data: { data: [] } }))
+                feeAPI.getAll().catch(() => ({ data: { data: [] } })),
+                userAPI.getPendingCounts().catch(() => ({ data: { data: {} } }))
             ]);
 
             const totalCourses = coursesRes.data.data?.length || 0;
             const totalStudents = studentsRes.data.data?.length || 0;
             const fees = feesRes.data.data || [];
+            const pendingCounts = pendingRes.data.data || {};
+
+            // Calculate total pending users
+            const totalPendingUsers = Object.entries(pendingCounts)
+                .filter(([key]) => key !== 'fees') // Exclude fees count from user sum
+                .reduce((sum, [, count]) => sum + (count || 0), 0);
 
             // Revenue calculation logic based on periods
             const now = new Date();
@@ -130,6 +137,15 @@ const AdminDashboard = () => {
 
             setStats([
                 {
+                    title: 'User Approvals',
+                    value: totalPendingUsers.toString(),
+                    change: 'Pending Verification',
+                    changeType: totalPendingUsers > 0 ? 'negative' : 'neutral',
+                    icon: Users,
+                    iconBg: 'bg-indigo-100',
+                    iconColor: 'text-indigo-600',
+                },
+                {
                     title: `${selectedPeriod.charAt(0).toUpperCase() + selectedPeriod.slice(1)} Revenue`,
                     value: `Rs ${displayRevenue.toLocaleString()}`,
                     change: 'Verified Only',
@@ -139,31 +155,22 @@ const AdminDashboard = () => {
                     iconColor: 'text-[#ff8e01]',
                 },
                 {
-                    title: 'Lifetime Revenue',
+                    title: 'Global Income',
                     value: `Rs ${totalRevenue.toLocaleString()}`,
-                    change: 'Total Verified',
+                    change: 'Total Revenue',
                     changeType: 'positive',
                     icon: TrendingUp,
                     iconBg: 'bg-emerald-100',
                     iconColor: 'text-emerald-600',
                 },
                 {
-                    title: 'Verification Needed',
+                    title: 'Fee Verification',
                     value: pendingCount.toString(),
-                    change: 'Submitted Receipts',
-                    changeType: pendingCount > 0 ? 'negative' : 'positive',
+                    change: 'Pending Receipts',
+                    changeType: pendingCount > 0 ? 'negative' : 'neutral',
                     icon: Clock,
                     iconBg: 'bg-amber-100',
                     iconColor: 'text-amber-600',
-                },
-                {
-                    title: 'Total Students',
-                    value: totalStudents.toString(),
-                    change: 'Enrolled',
-                    changeType: 'positive',
-                    icon: Users,
-                    iconBg: 'bg-blue-100',
-                    iconColor: 'text-blue-600',
                 },
             ]);
 

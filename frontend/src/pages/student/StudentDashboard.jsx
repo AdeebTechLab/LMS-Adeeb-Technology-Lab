@@ -12,11 +12,13 @@ import {
     FileText,
     Bell,
     Loader2,
-    RefreshCw
+    RefreshCw,
+    Trash2
 } from 'lucide-react';
 import StatCard from '../../components/ui/StatCard';
 import Badge from '../../components/ui/Badge';
 import { enrollmentAPI, feeAPI, assignmentAPI } from '../../services/api';
+import Modal from '../../components/ui/Modal'; // Assuming Modal component exists
 
 
 const StudentDashboard = () => {
@@ -27,10 +29,27 @@ const StudentDashboard = () => {
     const [pendingFees, setPendingFees] = useState(0);
     const [stats, setStats] = useState([]);
     const [pendingAssignments, setPendingAssignments] = useState([]);
+    const [withdrawModal, setWithdrawModal] = useState({ open: false, enrollmentId: null, courseTitle: '' });
 
     useEffect(() => {
         fetchDashboardData();
     }, []);
+
+    const handleWithdrawClick = (e, course) => {
+        e.stopPropagation(); // Prevent navigation
+        setWithdrawModal({ open: true, enrollmentId: course.enrollmentId, courseTitle: course.title });
+    };
+
+    const confirmWithdraw = async () => {
+        try {
+            await enrollmentAPI.withdraw(withdrawModal.enrollmentId);
+            setWithdrawModal({ open: false, enrollmentId: null, courseTitle: '' });
+            fetchDashboardData(); // Refresh list
+        } catch (error) {
+            console.error('Withdrawal failed:', error);
+            alert(error.response?.data?.message || 'Failed to withdraw from course');
+        }
+    };
 
     const fetchDashboardData = async () => {
         setIsLoading(true);
@@ -41,6 +60,7 @@ const StudentDashboard = () => {
 
             const courses = enrollments.map(e => ({
                 id: e.course?._id || e._id,
+                enrollmentId: e._id,
                 title: e.course?.title || 'Unknown Course',
                 teacher: e.course?.teacher?.name || 'TBA',
                 progress: e.progress || 0,
@@ -355,7 +375,17 @@ const StudentDashboard = () => {
                                                 <Calendar className="w-3 h-3" />
                                                 {course.nextClass}
                                             </span>
-                                            <ArrowRight className="w-3 h-3 text-emerald-600 group-hover:translate-x-1 transition-transform" />
+
+                                            {/* Withdraw Option for Unverified Courses */}
+                                            {!course.isFirstMonthVerified && (
+                                                <button
+                                                    onClick={(e) => handleWithdrawClick(e, course)}
+                                                    className="flex items-center gap-1 text-red-500 hover:text-red-600 hover:bg-red-50 px-2 py-1 rounded transition-colors z-10"
+                                                >
+                                                    <Trash2 className="w-3 h-3" />
+                                                    Revoke
+                                                </button>
+                                            )}
                                         </div>
                                     </motion.div>
                                 ))}
@@ -364,6 +394,42 @@ const StudentDashboard = () => {
                     </motion.div>
                 </div>
             </div>
+
+            {/* Withdrawal Confirmation Modal */}
+            <Modal
+                isOpen={withdrawModal.open}
+                onClose={() => setWithdrawModal({ ...withdrawModal, open: false })}
+                title="Revoke Course Application"
+                size="sm"
+            >
+                <div className="space-y-4">
+                    <div className="bg-red-50 p-4 rounded-xl flex items-start gap-3">
+                        <Trash2 className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                        <div>
+                            <h4 className="font-bold text-red-700 text-sm">Are you sure?</h4>
+                            <p className="text-xs text-red-600 mt-1">
+                                You are about to withdraw from <strong>{withdrawModal.courseTitle}</strong>.
+                                This will remove the course and any pending fee records.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="flex justify-end gap-3 pt-2">
+                        <button
+                            onClick={() => setWithdrawModal({ ...withdrawModal, open: false })}
+                            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            onClick={confirmWithdraw}
+                            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium"
+                        >
+                            Confirm Revoke
+                        </button>
+                    </div>
+                </div>
+            </Modal>
         </>
     );
 };

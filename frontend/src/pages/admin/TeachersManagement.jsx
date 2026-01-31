@@ -19,6 +19,7 @@ const TeachersManagement = () => {
     const [confirmModal, setConfirmModal] = useState({ open: false, action: null, teacher: null });
     const [editModal, setEditModal] = useState({ open: false, user: null });
     const [editForm, setEditForm] = useState({});
+    const [selectedFile, setSelectedFile] = useState(null);
     const [isProcessing, setIsProcessing] = useState(false);
     const [showExportOptions, setShowExportOptions] = useState(false);
 
@@ -86,6 +87,7 @@ const TeachersManagement = () => {
 
     const handleEditClick = (teacher) => {
         setEditModal({ open: true, user: teacher });
+        setSelectedFile(null);
         setEditForm({
             name: teacher.name || '',
             email: teacher.email || '',
@@ -223,7 +225,20 @@ const TeachersManagement = () => {
         e.preventDefault();
         setIsProcessing(true);
         try {
-            const res = await userAPI.update(editModal.user._id, editForm);
+            let data = editForm;
+            // If file selected, use FormData
+            if (selectedFile) {
+                const formData = new FormData();
+                Object.keys(editForm).forEach(key => {
+                    if (editForm[key] !== undefined && editForm[key] !== null) {
+                        formData.append(key, editForm[key]);
+                    }
+                });
+                formData.append('photo', selectedFile);
+                data = formData;
+            }
+
+            const res = await userAPI.update(editModal.user._id, data);
             setTeachers(prev => prev.map(t => t._id === editModal.user._id ? res.data.data : t));
             setEditModal({ open: false, user: null });
         } catch (error) {
@@ -587,6 +602,36 @@ const TeachersManagement = () => {
                 <form onSubmit={handleUpdate} className="space-y-4">
                     {/* Personal Information */}
                     <h3 className="font-semibold text-gray-900 pb-2 border-b">Personal Information</h3>
+
+                    {/* Profile Picture Upload */}
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700">Profile Picture</label>
+                        <div className="flex items-center gap-4 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                            {/* Preview Current or Selected */}
+                            <div className="w-12 h-12 rounded-full overflow-hidden bg-white border border-gray-200 flex-shrink-0 flex items-center justify-center">
+                                {selectedFile ? (
+                                    <img src={URL.createObjectURL(selectedFile)} alt="Selected" className="w-full h-full object-cover" />
+                                ) : editModal.user?.photo ? (
+                                    <img src={editModal.user.photo} alt="Current" className="w-full h-full object-cover" />
+                                ) : (
+                                    <User className="w-6 h-6 text-gray-400" />
+                                )}
+                            </div>
+                            <input
+                                type="file"
+                                accept="image/*"
+                                onChange={(e) => setSelectedFile(e.target.files[0])}
+                                className="block w-full text-sm text-gray-500
+                                    file:mr-4 file:py-2 file:px-4
+                                    file:rounded-xl file:border-0
+                                    file:text-xs file:font-semibold
+                                    file:bg-emerald-600 file:text-white
+                                    hover:file:bg-emerald-700
+                                    cursor-pointer"
+                            />
+                        </div>
+                    </div>
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-700">Full Name *</label>

@@ -10,6 +10,7 @@ import {
     ChevronDown,
     Sun,
     Moon,
+    RefreshCw,
 } from 'lucide-react';
 import Sidebar from './Sidebar';
 import NotificationPopup from '../shared/NotificationPopup';
@@ -89,6 +90,15 @@ const DashboardLayout = () => {
                                     className="bg-transparent border-none outline-none text-sm text-gray-600 placeholder:text-gray-400 w-full"
                                 />
                             </div>
+
+                            {/* Refresh Button */}
+                            <button
+                                onClick={() => window.location.reload()}
+                                className="p-2.5 rounded-xl transition-all duration-200 bg-[#222d38] hover:bg-[#1a232c] text-white shadow-md hover:shadow-lg flex items-center justify-center"
+                                title="Refresh Page"
+                            >
+                                <RefreshCw className="w-5 h-5" />
+                            </button>
 
 
 

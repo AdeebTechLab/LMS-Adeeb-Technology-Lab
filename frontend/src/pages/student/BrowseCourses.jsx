@@ -2,19 +2,27 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useSelector } from 'react-redux';
+import Select from 'react-select';
 import {
-    Search, BookOpen, Users, Star, Clock, CheckCircle, Calendar, Award, Loader2, RefreshCw, AlertCircle, Upload
+    Search, BookOpen, Users, Star, Clock, CheckCircle, Calendar, Award, Loader2, RefreshCw, AlertCircle, Upload, Trash2, Filter
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
 import { courseAPI, enrollmentAPI, certificateAPI } from '../../services/api';
 
+const CITY_OPTIONS = [
+    { value: 'Bahawalpur', label: 'Bahawalpur' },
+    { value: 'Islamabad', label: 'Islamabad' }
+];
+
 const BrowseCourses = () => {
     const navigate = useNavigate();
     const { role, user } = useSelector((state) => state.auth);
     const [searchQuery, setSearchQuery] = useState('');
+    const [selectedCities, setSelectedCities] = useState([]);
     const [activeTab, setActiveTab] = useState('enrolled');
     const [isEnrollModalOpen, setIsEnrollModalOpen] = useState(false);
+    const [withdrawModal, setWithdrawModal] = useState({ open: false, enrollmentId: null, courseTitle: '' });
     const [selectedCourse, setSelectedCourse] = useState(null);
     const [isFetching, setIsFetching] = useState(true);
     const [isEnrolling, setIsEnrolling] = useState(false);
@@ -75,8 +83,12 @@ const BrowseCourses = () => {
     };
 
     const filteredCourses = getCurrentCourses().filter((course) => {
-        return course.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        const matchesSearch = course.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
             course.teachers?.some(t => t.name?.toLowerCase().includes(searchQuery.toLowerCase()));
+
+        const matchesCity = selectedCities.length === 0 || selectedCities.some(c => c.value === (course.city || course.location));
+
+        return matchesSearch && matchesCity;
     });
 
     const handleEnrollClick = (course) => {
@@ -103,6 +115,19 @@ const BrowseCourses = () => {
             setError(err.response?.data?.message || 'Failed to enroll. Please try again.');
         } finally {
             setIsEnrolling(false);
+        }
+    };
+
+
+
+    const confirmWithdraw = async () => {
+        try {
+            await enrollmentAPI.withdraw(withdrawModal.enrollmentId);
+            setWithdrawModal({ open: false, enrollmentId: null, courseTitle: '' });
+            fetchData(); // Refresh list to update UI
+        } catch (error) {
+            console.error('Withdrawal failed:', error);
+            alert(error.response?.data?.message || 'Failed to revoke course');
         }
     };
 
@@ -180,9 +205,9 @@ const BrowseCourses = () => {
                 </button>
             </div>
 
-            {/* Search */}
-            <div className="bg-white rounded-2xl p-4 border border-gray-100">
-                <div className="flex items-center bg-gray-50 rounded-xl px-4 py-3">
+            {/* Search and Filters */}
+            <div className="bg-white rounded-2xl p-4 border border-gray-100 flex flex-col md:flex-row gap-4 items-center z-50 relative">
+                <div className="flex-1 flex items-center bg-gray-50 rounded-xl px-4 py-2 border border-gray-100 focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-500/20 transition-all w-full">
                     <Search className="w-5 h-5 text-gray-400 mr-3" />
                     <input
                         type="text"
@@ -190,6 +215,30 @@ const BrowseCourses = () => {
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="bg-transparent border-none outline-none w-full text-gray-700 placeholder:text-gray-400"
+                    />
+                </div>
+                <div className="w-full md:w-64">
+                    <Select
+                        options={CITY_OPTIONS}
+                        isMulti
+                        value={selectedCities}
+                        onChange={setSelectedCities}
+                        placeholder="Filter by City"
+                        className="react-select-container"
+                        classNamePrefix="react-select"
+                        styles={{
+                            control: (base) => ({
+                                ...base,
+                                minHeight: '46px',
+                                borderRadius: '0.75rem',
+                                borderColor: '#e5e7eb',
+                                backgroundColor: '#f9fafb',
+                                boxShadow: 'none',
+                                '&:hover': {
+                                    borderColor: '#10b981'
+                                }
+                            })
+                        }}
                     />
                 </div>
             </div>
@@ -309,13 +358,24 @@ const BrowseCourses = () => {
                                         </button>
                                     )}
                                     {status === 'pending' && (
-                                        <button
-                                            onClick={() => navigate(`/${role === 'intern' ? 'intern' : 'student'}/fees`)}
-                                            className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-medium transition-all flex items-center gap-2"
-                                        >
-                                            <Upload className="w-4 h-4" />
-                                            Upload Receipt
-                                        </button>
+                                        <div className="flex gap-2 w-full">
+                                            {enrollment && (
+                                                <button
+                                                    onClick={() => setWithdrawModal({ open: true, enrollmentId: enrollment._id, courseTitle: course.title })}
+                                                    className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors border border-gray-200"
+                                                    title="Revoke Application"
+                                                >
+                                                    <Trash2 className="w-5 h-5" />
+                                                </button>
+                                            )}
+                                            <button
+                                                onClick={() => navigate(`/${role === 'intern' ? 'intern' : 'student'}/fees`)}
+                                                className="flex-1 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-medium transition-all flex items-center justify-center gap-2"
+                                            >
+                                                <Upload className="w-4 h-4" />
+                                                Upload Receipt
+                                            </button>
+                                        </div>
                                     )}
                                     {status === 'enrolled' && (
                                         <button
@@ -423,6 +483,42 @@ const BrowseCourses = () => {
                         </div>
                     </div>
                 )}
+            </Modal>
+
+            {/* Withdraw Modal */}
+            <Modal
+                isOpen={withdrawModal.open}
+                onClose={() => setWithdrawModal({ ...withdrawModal, open: false })}
+                title="Revoke Course Application"
+                size="sm"
+            >
+                <div className="space-y-4">
+                    <div className="bg-red-50 p-4 rounded-xl flex items-start gap-3">
+                        <Trash2 className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                        <div>
+                            <h4 className="font-bold text-red-700 text-sm">Are you sure?</h4>
+                            <p className="text-xs text-red-600 mt-1">
+                                You are about to withdraw from <strong>{withdrawModal.courseTitle}</strong>.
+                                This will remove the course and any pending fee records permanently.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="flex justify-end gap-3 pt-2">
+                        <button
+                            onClick={() => setWithdrawModal({ ...withdrawModal, open: false })}
+                            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            onClick={confirmWithdraw}
+                            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium"
+                        >
+                            Confirm Revoke
+                        </button>
+                    </div>
+                </div>
             </Modal>
         </div>
     );

@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ChevronLeft, FileText, ClipboardList, Clock, Loader2, BookOpen, Calendar, MapPin, CreditCard, AlertCircle } from 'lucide-react';
+import { ChevronLeft, FileText, ClipboardList, Clock, Loader2, BookOpen, Calendar, MapPin, CreditCard, AlertCircle, Trash2 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
+import Modal from '../../components/ui/Modal';
 import { courseAPI, enrollmentAPI } from '../../services/api';
 
 // Tabs
@@ -20,10 +21,23 @@ const StudentCourseView = () => {
     const [enrollment, setEnrollment] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('attendance'); // Default for students
+    const [withdrawModal, setWithdrawModal] = useState(false);
 
     useEffect(() => {
         fetchCourseAndEnrollment();
     }, [id]);
+
+    const confirmWithdraw = async () => {
+        try {
+            await enrollmentAPI.withdraw(enrollment._id); // Use enrollment ID, not course ID
+            // or if enrollment ID is not directly available in enrollment object, retrieve it.
+            // enrollment state has the object.
+            navigate('/student/dashboard');
+        } catch (error) {
+            console.error('Withdrawal failed:', error);
+            alert(error.response?.data?.message || 'Failed to withdraw');
+        }
+    };
 
     const fetchCourseAndEnrollment = async () => {
         setIsLoading(true);
@@ -163,6 +177,16 @@ const StudentCourseView = () => {
                             <CreditCard className="w-5 h-5" />
                             FEES PORTAL
                         </button>
+
+                        <div className="mt-4 pt-4 border-t border-dashed border-amber-200 w-full max-w-md mx-auto">
+                            <button
+                                onClick={() => setWithdrawModal(true)}
+                                className="px-4 py-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 mx-auto"
+                            >
+                                <Trash2 className="w-4 h-4" />
+                                I applied by mistake, revoke application
+                            </button>
+                        </div>
                     </motion.div>
                 ) : (
                     <>
@@ -225,6 +249,42 @@ const StudentCourseView = () => {
                     </>
                 )}
             </div>
+
+            {/* Withdrawal Confirmation Modal */}
+            <Modal
+                isOpen={withdrawModal}
+                onClose={() => setWithdrawModal(false)}
+                title="Revoke Course Application"
+                size="sm"
+            >
+                <div className="space-y-4">
+                    <div className="bg-red-50 p-4 rounded-xl flex items-start gap-3">
+                        <Trash2 className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                        <div>
+                            <h4 className="font-bold text-red-700 text-sm">Are you sure?</h4>
+                            <p className="text-xs text-red-600 mt-1">
+                                You are about to withdraw from <strong>{course.title}</strong>.
+                                This will remove the course and any pending fee records.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="flex justify-end gap-3 pt-2">
+                        <button
+                            onClick={() => setWithdrawModal(false)}
+                            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            onClick={confirmWithdraw}
+                            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium"
+                        >
+                            Confirm Revoke
+                        </button>
+                    </div>
+                </div>
+            </Modal>
         </div>
     );
 };

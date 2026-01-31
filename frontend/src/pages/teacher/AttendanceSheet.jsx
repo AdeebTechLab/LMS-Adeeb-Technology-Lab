@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useSelector } from 'react-redux';
+import Select from 'react-select'; // Added import
 import {
     BookOpen, Users, Calendar, ArrowRight, ChevronLeft,
-    FileText, ClipboardList, CheckCircle, Clock, Loader2, RefreshCw, User
+    FileText, ClipboardList, CheckCircle, Clock, Loader2, RefreshCw, User, Search, Filter // Added Search, Filter
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import { courseAPI, enrollmentAPI } from '../../services/api';
@@ -13,6 +14,16 @@ import { courseAPI, enrollmentAPI } from '../../services/api';
 import AttendanceTab from './components/AttendanceTab';
 import DailyTasksTab from './components/DailyTasksTab';
 import AssignmentsTab from './components/AssignmentsTab';
+
+const CITY_OPTIONS = [
+    { value: 'Bahawalpur', label: 'Bahawalpur' },
+    { value: 'Islamabad', label: 'Islamabad' }
+];
+
+const TYPE_OPTIONS = [
+    { value: 'students', label: 'Student' },
+    { value: 'interns', label: 'Intern' }
+];
 
 const AttendanceSheet = () => {
     const { id: routeCourseId } = useParams();
@@ -23,6 +34,12 @@ const AttendanceSheet = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [myCourses, setMyCourses] = useState([]);
     const [courseStudents, setCourseStudents] = useState([]);
+    const [filteredCourses, setFilteredCourses] = useState([]); // Filtered list
+
+    // Filter States
+    const [searchQuery, setSearchQuery] = useState('');
+    const [selectedCities, setSelectedCities] = useState([]);
+    const [selectedTypes, setSelectedTypes] = useState([]);
 
     useEffect(() => {
         fetchMyCourses();
@@ -37,6 +54,37 @@ const AttendanceSheet = () => {
             }
         }
     }, [routeCourseId, myCourses]);
+
+    // Effect to apply filters whenever courses or filter states change
+    useEffect(() => {
+        let result = myCourses;
+
+        // 1. Search Filter (Title)
+        if (searchQuery) {
+            const lowerQuery = searchQuery.toLowerCase();
+            result = result.filter(course =>
+                course.name.toLowerCase().includes(lowerQuery)
+            );
+        }
+
+        // 2. City Filter
+        if (selectedCities.length > 0) {
+            const cities = selectedCities.map(c => c.value);
+            result = result.filter(course =>
+                cities.includes(course.city || course.location)
+            );
+        }
+
+        // 3. Type Filter
+        if (selectedTypes.length > 0) {
+            const types = selectedTypes.map(t => t.value);
+            result = result.filter(course =>
+                types.includes(course.targetAudience)
+            );
+        }
+
+        setFilteredCourses(result);
+    }, [myCourses, searchQuery, selectedCities, selectedTypes]);
 
     const fetchMyCourses = async () => {
         setIsLoading(true);
@@ -93,6 +141,7 @@ const AttendanceSheet = () => {
                     endDate: course.endDate,
                     status: course.isActive !== false ? 'active' : 'inactive',
                     location: course.location,
+                    city: course.city,
                     duration: course.duration,
                     targetAudience: audience,
                     enrollments: courseEnrollments
@@ -158,7 +207,7 @@ const AttendanceSheet = () => {
             <div className="space-y-6">
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900">My Courses</h1>
+                        <h1 className="text-2xl font-bold text-gray-900">Attendance & Logs</h1>
                         <p className="text-gray-500">Manage your students, assignments and daily tasks</p>
                     </div>
                     <button onClick={fetchMyCourses} className="p-2.5 hover:bg-gray-100 rounded-xl transition-colors">
@@ -166,15 +215,78 @@ const AttendanceSheet = () => {
                     </button>
                 </div>
 
-                {myCourses.length === 0 ? (
+                {/* Filters and Search */}
+                <div className="bg-white rounded-2xl p-4 border border-gray-100 flex flex-col md:flex-row gap-4 items-center justify-between z-50 relative">
+                    <div className="flex-1 w-full relative">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                        <input
+                            type="text"
+                            placeholder="Search courses..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
+                        />
+                    </div>
+                    <div className="flex gap-4 w-full md:w-auto">
+                        <div className="w-full md:w-48">
+                            <Select
+                                options={CITY_OPTIONS}
+                                isMulti
+                                value={selectedCities}
+                                onChange={setSelectedCities}
+                                placeholder="Filter by City"
+                                className="react-select-container"
+                                classNamePrefix="react-select"
+                                styles={{
+                                    control: (base) => ({
+                                        ...base,
+                                        borderRadius: '0.75rem',
+                                        backgroundColor: '#f9fafb',
+                                        borderColor: '#e5e7eb',
+                                    })
+                                }}
+                            />
+                        </div>
+                        <div className="w-full md:w-48">
+                            <Select
+                                options={TYPE_OPTIONS}
+                                isMulti
+                                value={selectedTypes}
+                                onChange={setSelectedTypes}
+                                placeholder="Filter by Type"
+                                className="react-select-container"
+                                classNamePrefix="react-select"
+                                styles={{
+                                    control: (base) => ({
+                                        ...base,
+                                        borderRadius: '0.75rem',
+                                        backgroundColor: '#f9fafb',
+                                        borderColor: '#e5e7eb',
+                                    })
+                                }}
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                {filteredCourses.length === 0 ? (
                     <div className="bg-white rounded-2xl p-12 border border-gray-100 text-center">
                         <BookOpen className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                        <p className="text-gray-500 font-medium">No courses assigned to you</p>
-                        <p className="text-sm text-gray-400 mt-1">Please contact Admin to assign courses to your account.</p>
+                        <p className="text-gray-500 font-medium">No courses match your filters</p>
+                        {(searchQuery || selectedCities.length > 0 || selectedTypes.length > 0) ? (
+                            <button
+                                onClick={() => { setSearchQuery(''); setSelectedCities([]); setSelectedTypes([]); }}
+                                className="mt-2 text-emerald-600 hover:text-emerald-700 font-medium text-sm"
+                            >
+                                Clear all filters
+                            </button>
+                        ) : (
+                            <p className="text-sm text-gray-400 mt-1">Please contact Admin to assign courses to your account.</p>
+                        )}
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {myCourses.map((course, index) => (
+                        {filteredCourses.map((course, index) => (
                             <motion.div
                                 key={course.id}
                                 initial={{ opacity: 0, y: 20 }}
@@ -208,10 +320,10 @@ const AttendanceSheet = () => {
                                         <Users className="w-4 h-4 text-gray-400" />
                                         {course.internCount} Registered
                                     </span>
-                                    {course.location && (
+                                    {(course.city || course.location) && (
                                         <span className="flex items-center gap-1.5 uppercase">
                                             <Calendar className="w-4 h-4 text-gray-400" />
-                                            {course.location}
+                                            {course.city || course.location}
                                         </span>
                                     )}
                                 </div>

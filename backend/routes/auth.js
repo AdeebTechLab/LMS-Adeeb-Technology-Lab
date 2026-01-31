@@ -42,7 +42,7 @@ router.post('/register', uploadRegistration.fields([
             phone,
             role: role || 'student',
             location,
-            isVerified: true  // Auto-verify all new users
+            isVerified: false
         };
 
         // Add photo if uploaded
@@ -124,7 +124,7 @@ router.post('/register', uploadRegistration.fields([
 
                 const mailOptions = {
                     from: process.env.EMAIL_USER,
-                    to: 'adeebtechnologylab@gmail.com',
+                    to: 'info.AdeebTchLab@gmail.com',
                     subject: 'New User Registration Notification',
                     html: `
                         <div style="font-family: Arial, sans-serif; max-width: 600px; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
@@ -140,7 +140,7 @@ router.post('/register', uploadRegistration.fields([
                                     <p style="margin: 5px 0;"><strong>Phone:</strong> ${user.phone || 'N/A'}</p>
                                     <p style="margin: 5px 0;"><strong>Signup Date:</strong> ${new Date().toLocaleString()}</p>
                                 </div>
-                                <p>Please log in to the admin dashboard to view this user. The account has been automatically verified.</p>
+                                <p>Please log in to the admin dashboard to view and verify this user.</p>
                                 <a href="${process.env.CLIENT_URL || 'http://localhost:5173'}/login" style="display: inline-block; padding: 12px 24px; background-color: #0d2818; color: white; text-decoration: none; border-radius: 5px; font-weight: bold; margin-top: 10px;">Login to Admin Panel</a>
                             </div>
                             <div style="background-color: #f1f1f1; padding: 10px; text-align: center; font-size: 12px; color: #666666;">
@@ -159,8 +159,8 @@ router.post('/register', uploadRegistration.fields([
 
             return res.status(201).json({
                 success: true,
-                message: 'Registration successful! Your account has been verified. You can now login.',
-                isPending: false
+                message: 'Registration successful! Your account is pending admin verification. You will be able to login once verified.',
+                isPending: true
             });
         }
 
@@ -220,9 +220,7 @@ router.post('/login', async (req, res) => {
             return res.status(401).json({ success: false, message: 'Invalid credentials' });
         }
 
-        // Check verification status (skip for admins and job seekers)
-        // Disable verification check for now to allow immediate login
-        /*
+        // Check verification status (skip for admins)
         if (user.role !== 'admin' && !user.isVerified) {
             return res.status(403).json({
                 success: false,
@@ -230,7 +228,6 @@ router.post('/login', async (req, res) => {
                 isPending: true
             });
         }
-        */
 
         // Generate token
         const token = user.getSignedJwtToken();

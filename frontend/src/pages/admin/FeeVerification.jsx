@@ -25,6 +25,9 @@ const FeeVerification = () => {
     const [isProcessing, setIsProcessing] = useState(false);
     const [error, setError] = useState('');
 
+    // Delete Confirmation Modal
+    const [confirmDeleteModal, setConfirmDeleteModal] = useState({ open: false, feeId: null });
+
     // Installment Form State
     const [installmentPlan, setInstallmentPlan] = useState([{ amount: '', dueDate: '' }]);
 
@@ -134,9 +137,28 @@ const FeeVerification = () => {
                 }));
                 // Optionally show success toast/alert
             }
+            fetchAllFees();
         } catch (error) {
-            console.error('Reject error:', error);
-            setError(error.response?.data?.message || 'Failed to reject payment');
+            console.error('Error rejecting fee:', error);
+            alert('Failed to reject fee');
+        }
+    };
+
+    const handleDeleteClick = (feeId) => {
+        setConfirmDeleteModal({ open: true, feeId });
+    };
+
+    const confirmDelete = async () => {
+        if (!confirmDeleteModal.feeId) return;
+        setIsProcessing(true);
+        try {
+            await feeAPI.delete(confirmDeleteModal.feeId);
+            setAllFees(prev => prev.filter(f => f._id !== confirmDeleteModal.feeId));
+            setFees(prev => prev.filter(f => f._id !== confirmDeleteModal.feeId));
+            setConfirmDeleteModal({ open: false, feeId: null });
+        } catch (err) {
+            console.error('Error deleting fee:', err);
+            alert('Failed to delete fee record');
         } finally {
             setIsProcessing(false);
         }
@@ -455,12 +477,21 @@ const FeeVerification = () => {
                                                     </span>
                                                 </div>
                                             </div>
-                                            <button
-                                                onClick={() => handleManageInstallments(fee)}
-                                                className="px-4 py-2 border border-gray-200 hover:bg-gray-50 rounded-lg text-sm font-medium transition-colors"
-                                            >
-                                                Manage Months
-                                            </button>
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    onClick={() => handleDeleteClick(fee._id)}
+                                                    className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors border border-gray-200"
+                                                    title="Permanently remove fee & enrollment"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleManageInstallments(fee)}
+                                                    className="px-4 py-2 border border-gray-200 hover:bg-gray-50 rounded-lg text-sm font-medium transition-colors"
+                                                >
+                                                    Manage Months
+                                                </button>
+                                            </div>
                                         </div>
                                     ))}
                             </div>
@@ -570,6 +601,46 @@ const FeeVerification = () => {
                     </div>
                 </div>
             </Modal>
+
+            {/* Confirm Delete Modal */}
+            <Modal
+                isOpen={confirmDeleteModal.open}
+                onClose={() => setConfirmDeleteModal({ open: false, feeId: null })}
+                title="⚠ Risk Warning: Permanently Delete Fee"
+                size="sm"
+            >
+                <div className="space-y-4">
+                    <div className="bg-red-50 p-4 rounded-xl flex items-start gap-3 border border-red-100">
+                        <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                        <div>
+                            <h4 className="font-bold text-red-700 text-sm">Are you absolutely sure?</h4>
+                            <p className="text-sm text-red-600 mt-1 leading-relaxed">
+                                This action will <strong>permanently delete</strong> the fee record AND the student's enrollment for this course.
+                            </p>
+                            <p className="text-xs text-red-500 mt-2 font-medium">
+                                The student will lose their "Waiting for Verification" status and will need to <strong>re-register (apply again)</strong> from scratch.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="flex justify-end gap-3 pt-2">
+                        <button
+                            onClick={() => setConfirmDeleteModal({ open: false, feeId: null })}
+                            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            onClick={confirmDelete}
+                            disabled={isProcessing}
+                            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium flex items-center gap-2"
+                        >
+                            {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                            Confirm Delete
+                        </button>
+                    </div>
+                </div>
+            </Modal >
         </div >
     );
 };

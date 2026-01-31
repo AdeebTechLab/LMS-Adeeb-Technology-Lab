@@ -2,16 +2,17 @@ import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
-    CreditCard, Upload, Clock, CheckCircle, AlertCircle, FileText, Loader2, RefreshCw, FileImage
+    CreditCard, Upload, Clock, CheckCircle, AlertCircle, FileText, Loader2, RefreshCw, FileImage, Trash2
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
-import { feeAPI } from '../../services/api';
+import { feeAPI, enrollmentAPI } from '../../services/api';
 
 const FeeManagement = () => {
     const location = useLocation();
     const successMsg = location.state?.message;
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+    const [withdrawModal, setWithdrawModal] = useState({ open: false, enrollmentId: null, courseTitle: '' });
     const [selectedFee, setSelectedFee] = useState(null);
     const [selectedInstallment, setSelectedInstallment] = useState(null);
     const [uploadedFile, setUploadedFile] = useState(null);
@@ -30,8 +31,23 @@ const FeeManagement = () => {
         setIsFetching(true);
         setError('');
         try {
-            const response = await feeAPI.getMy();
-            setFees(response.data.data || []);
+            const [feeRes, enrollRes] = await Promise.all([
+                feeAPI.getMy(),
+                enrollmentAPI.getMy()
+            ]);
+
+            const fetchedFees = feeRes.data.data || [];
+            const enrollments = enrollRes.data.data || [];
+
+            // Merge enrollment ID into fees
+            const feesWithEnrollmentId = fetchedFees.map(fee => {
+                const enrollment = enrollments.find(e =>
+                    (e.course?._id || e.course) === (fee.course?._id || fee.course)
+                );
+                return { ...fee, enrollmentId: enrollment?._id };
+            });
+
+            setFees(feesWithEnrollmentId);
         } catch (err) {
             console.error('Error fetching fees:', err);
             setError('Failed to load fees. Please try again.');
@@ -89,6 +105,18 @@ const FeeManagement = () => {
             setError(err.response?.data?.message || 'Failed to submit payment');
         } finally {
             setIsSubmitting(false);
+        }
+    };
+
+    const confirmWithdraw = async () => {
+        try {
+            await enrollmentAPI.withdraw(withdrawModal.enrollmentId);
+            setWithdrawModal({ open: false, enrollmentId: null, courseTitle: '' });
+            fetchFees();
+            alert('Course revoked successfully. Pending fees removed.');
+        } catch (error) {
+            console.error('Withdrawal failed:', error);
+            alert(error.response?.data?.message || 'Failed to revoke course');
         }
     };
 
@@ -349,7 +377,10 @@ const FeeManagement = () => {
                                     <CreditCard className="w-6 h-6 text-white" />
                                 </div>
                                 <div className="flex-1">
-                                    <h3 className="font-semibold text-gray-900 text-lg">{fee.course?.title || 'Course'}</h3>
+                                    <h3 className="font-semibold text-gray-900 text-lg">
+                                        {fee.course?.title || 'Course'}
+                                        {fee.course?.city && <span className="text-sm font-normal text-gray-500 ml-2">({fee.course?.city})</span>}
+                                    </h3>
                                     <p className="text-sm text-gray-500">Total Fee: Rs {(fee.totalFee ?? fee.course?.fee ?? 0).toLocaleString()}</p>
                                 </div>
                             </div>
@@ -415,7 +446,10 @@ const FeeManagement = () => {
                     <div className="space-y-6">
                         <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
                             <div className="flex items-center justify-between mb-2">
-                                <p className="font-medium text-gray-900">{selectedFee.course?.title}</p>
+                                <p className="font-medium text-gray-900">
+                                    {selectedFee.course?.title}
+                                    {selectedFee.course?.city && <span className="text-gray-500 font-normal ml-1">({selectedFee.course?.city})</span>}
+                                </p>
                                 <p className="text-xl font-bold text-emerald-600">Rs {(selectedInstallment.amount || 0).toLocaleString()}</p>
                             </div>
                             <p className="text-sm text-gray-500">Monthly Course Fee</p>
@@ -473,6 +507,42 @@ const FeeManagement = () => {
                         </div>
                     </div>
                 )}
+            </Modal>
+
+            {/* Withdraw Modal */}
+            <Modal
+                isOpen={withdrawModal.open}
+                onClose={() => setWithdrawModal({ ...withdrawModal, open: false })}
+                title="Revoke Course Application"
+                size="sm"
+            >
+                <div className="space-y-4">
+                    <div className="bg-red-50 p-4 rounded-xl flex items-start gap-3">
+                        <Trash2 className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                        <div>
+                            <h4 className="font-bold text-red-700 text-sm">Are you sure?</h4>
+                            <p className="text-xs text-red-600 mt-1">
+                                You are about to withdraw from <strong>{withdrawModal.courseTitle}</strong>.
+                                This will remove the course and any pending fee records permanently.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="flex justify-end gap-3 pt-2">
+                        <button
+                            onClick={() => setWithdrawModal({ ...withdrawModal, open: false })}
+                            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            onClick={confirmWithdraw}
+                            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium"
+                        >
+                            Confirm Revoke
+                        </button>
+                    </div>
+                </div>
             </Modal>
         </div>
     );

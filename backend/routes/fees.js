@@ -400,34 +400,31 @@ router.delete('/:id', protect, authorize('admin'), async (req, res) => {
         const fee = await Fee.findById(req.params.id);
         if (!fee) return res.status(404).json({ success: false, message: 'Fee not found' });
 
-        // Cleanup images from Cloudinary
         if (fee.installments && fee.installments.length > 0) {
             console.log(`Deleting fee ${fee._id}. Checking ${fee.installments.length} installments for images...`);
 
             for (const inst of fee.installments) {
                 if (inst.receiptUrl) {
                     try {
-                        // Extract public_id from URL
-                        // Example: .../upload/v12345/lms/receipts/filename.jpg -> lms/receipts/filename
                         const matches = inst.receiptUrl.match(/\/upload\/(?:v\d+\/)?(.+?)\.[^.]+$/);
-
                         if (matches && matches[1]) {
                             const publicId = matches[1];
                             console.log(`Deleting Cloudinary Image: ${publicId}`);
                             await cloudinary.uploader.destroy(publicId);
-                        } else {
-                            console.warn(`Could not extract public_id from URL: ${inst.receiptUrl}`);
                         }
                     } catch (imgError) {
                         console.error(`Failed to delete image for installment ${inst._id}:`, imgError);
-                        // Continue deletion process even if image delete fails
                     }
                 }
             }
         }
 
+        // Delete associated enrollment
+        console.log(`[FEE DELETE] Deleting associated enrollment for User ${fee.user} and Course ${fee.course}`);
+        await Enrollment.findOneAndDelete({ user: fee.user, course: fee.course });
+
         await fee.deleteOne();
-        res.json({ success: true, message: 'Fee Record and associated images removed successfully' });
+        res.json({ success: true, message: 'Fee Record and Enrollment removed. Student can now re-register.' });
     } catch (error) {
         console.error('Delete fee error:', error);
         res.status(500).json({ success: false, message: error.message });
