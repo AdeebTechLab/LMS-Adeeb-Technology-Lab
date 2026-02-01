@@ -16,7 +16,7 @@ import {
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
 import { courseAPI, userAPI } from '../../services/api';
-import { getCourseIcon, getCourseColor } from '../../utils/courseIcons';
+import { getCourseIcon, getCourseColor, getCourseStyle } from '../../utils/courseIcons';
 
 const CourseManagement = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -30,11 +30,15 @@ const CourseManagement = () => {
     const [formData, setFormData] = useState({
         title: '',
         description: '',
+        title: '',
+        description: '',
         fee: '',
+        originalPrice: '',
         durationMonths: '',
         teachers: [],
         targetAudience: '',
         city: '',
+        category: '', // Added category
         bookLink: '',
     });
 
@@ -99,11 +103,14 @@ const CourseManagement = () => {
             setFormData({
                 title: course.title,
                 description: course.description,
+                description: course.description,
                 fee: course.fee?.toString() || '',
+                originalPrice: course.originalPrice?.toString() || '',
                 durationMonths: course.durationMonths?.toString() || '',
                 teachers: course.teachers?.map(t => t._id) || [],
                 targetAudience: course.targetAudience || 'students',
                 city: course.city || '',
+                category: course.category || '',
                 bookLink: course.bookLink || '',
             });
         } else {
@@ -111,11 +118,14 @@ const CourseManagement = () => {
             setFormData({
                 title: '',
                 description: '',
+                description: '',
                 fee: '',
+                originalPrice: '',
                 durationMonths: '',
                 teachers: [],
                 targetAudience: '',
                 city: '',
+                category: '',
                 bookLink: '',
             });
         }
@@ -136,11 +146,15 @@ const CourseManagement = () => {
             const courseData = {
                 title: formData.title,
                 description: formData.description,
-                fee: Number(formData.fee),
+                description: formData.description,
+                description: formData.description,
+                fee: formData.fee, // Send as string
+                originalPrice: formData.originalPrice, // Send as string
                 durationMonths: Number(formData.durationMonths),
                 teachers: formData.teachers,
                 targetAudience: formData.targetAudience,
                 location: formData.city.toLowerCase(),
+                category: formData.category, // Send category
                 city: formData.city,
                 bookLink: formData.bookLink,
             };
@@ -316,12 +330,15 @@ const CourseManagement = () => {
                         className="bg-white rounded-2xl p-6 border border-gray-100 hover:shadow-lg transition-all duration-300"
                     >
                         <div className="flex items-start justify-between mb-4">
-                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${getCourseColor(course.category, course.title).replace('text-', 'bg-').replace('bg-', 'text-white bg-gradient-to-br from-').replace('border-', '')}`}>
-                                {(() => {
-                                    const Icon = getCourseIcon(course.category, course.title);
-                                    return <Icon className="w-6 h-6 text-white" />;
-                                })()}
-                            </div>
+                            {(() => {
+                                const style = getCourseStyle(course.category, course.title);
+                                const Icon = style.icon;
+                                return (
+                                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-br ${style.gradient}`}>
+                                        <Icon className="w-6 h-6 text-white" />
+                                    </div>
+                                );
+                            })()}
                             <div className="flex items-center gap-2">
                                 <Badge variant="info">
                                     {course.city || 'N/A'}
@@ -369,8 +386,15 @@ const CourseManagement = () => {
                                 <Users className="w-4 h-4" />
                                 <span className="text-sm">{getEnrolledCount(course)} enrolled</span>
                             </div>
-                            <div className="flex items-center gap-1 text-emerald-600 font-semibold">
-                                <span>Rs {(course.fee || 0).toLocaleString()}</span>
+                            <div className="flex flex-col items-end">
+                                {course.originalPrice && !isNaN(parseFloat(course.originalPrice)) && parseFloat(course.originalPrice) > parseFloat(course.fee) && (
+                                    <span className="text-[10px] text-red-500 line-through font-medium">
+                                        Rs {Number(course.originalPrice).toLocaleString()}
+                                    </span>
+                                )}
+                                <div className="flex items-center gap-1 font-semibold text-emerald-600">
+                                    <span>{isNaN(Number(course.fee)) ? course.fee : `Rs ${Number(course.fee).toLocaleString()}`}</span>
+                                </div>
                             </div>
                         </div>
 
@@ -482,20 +506,29 @@ const CourseManagement = () => {
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Monthly Fee (Rs) <span className="text-red-500">*</span>
+                                Fee / Text <span className="text-red-500">*</span>
                             </label>
-                            <div className="relative">
-                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">Rs</span>
-                                <input
-                                    type="number"
-                                    min="0"
-                                    value={formData.fee}
-                                    onChange={(e) => setFormData({ ...formData, fee: e.target.value })}
-                                    placeholder="15000"
-                                    className="w-full px-4 py-3 pl-12 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
-                                    required
-                                />
-                            </div>
+                            <input
+                                type="text"
+                                value={formData.fee}
+                                onChange={(e) => setFormData({ ...formData, fee: e.target.value })}
+                                placeholder="15000 or Coming Soon"
+                                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all font-medium"
+                                required
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Original Price / Text <span className="text-xs text-gray-400 font-normal">(Optional)</span>
+                            </label>
+                            <input
+                                type="text"
+                                value={formData.originalPrice}
+                                onChange={(e) => setFormData({ ...formData, originalPrice: e.target.value })}
+                                placeholder="20000"
+                                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all bg-gray-50/50"
+                            />
                         </div>
 
                         <div>
@@ -554,6 +587,31 @@ const CourseManagement = () => {
                             <option value="">Select city</option>
                             <option value="Bahawalpur">Bahawalpur</option>
                             <option value="Islamabad">Islamabad</option>
+                        </select>
+                    </div>
+
+                    {/* Category */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Category <span className="text-red-500">*</span>
+                        </label>
+                        <select
+                            value={formData.category}
+                            onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all bg-white"
+                            required
+                        >
+                            <option value="">Select category</option>
+                            <option value="Web Development">Web Development</option>
+                            <option value="AI & Machine Learning">AI & Machine Learning</option>
+                            <option value="Graphic Design">Graphic Design</option>
+                            <option value="App Development">App Development</option>
+                            <option value="Cybersecurity">Cybersecurity</option>
+                            <option value="Cloud Computing">Cloud Computing</option>
+                            <option value="Digital Marketing">Digital Marketing</option>
+                            <option value="Video Editing">Video Editing</option>
+                            <option value="Finance & Accounting">Finance & Accounting</option>
+                            <option value="Office Productivity">Office Productivity</option>
                         </select>
                     </div>
 

@@ -63,7 +63,8 @@ const Login = () => {
             const response = await authAPI.login({
                 email: formData.email,
                 password: formData.password,
-                role: formData.role
+                role: formData.role,
+                rememberMe: formData.rememberMe
             });
 
             const { user, token } = response.data;
@@ -179,13 +180,7 @@ const Login = () => {
                     >
                         <h1 className="text-4xl font-bold text-gray-900 mb-2">Log in</h1>
                         <p className="text-gray-500">
-                            Don't have an account?{' '}
-                            <Link
-                                to="/register"
-                                className="inline-flex items-center px-3 py-1 bg-primary/10 text-primary rounded-lg font-bold hover:bg-primary/20 transition-all border border-primary/20 ml-1"
-                            >
-                                Sign Up
-                            </Link>
+                            Welcome back! Please enter your details.
                         </p>
                     </motion.div>
 
@@ -350,6 +345,24 @@ const Login = () => {
                                 <span>Log in</span>
                             )}
                         </motion.button>
+
+                        <div className="relative flex py-2 items-center">
+                            <div className="flex-grow border-t border-gray-200"></div>
+                            <span className="flex-shrink-0 mx-4 text-gray-400 text-xs font-bold uppercase tracking-widest">Or</span>
+                            <div className="flex-grow border-t border-gray-200"></div>
+                        </div>
+
+                        <Link to="/register">
+                            <motion.button
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.7 }}
+                                type="button"
+                                className="w-full py-4 bg-white text-gray-900 font-bold rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 border-2 border-gray-900 active:scale-95"
+                            >
+                                <span>Create an Account</span>
+                            </motion.button>
+                        </Link>
 
                         {/* Terms Checkbox */}
                         <motion.div

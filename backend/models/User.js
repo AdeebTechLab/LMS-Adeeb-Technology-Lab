@@ -121,9 +121,9 @@ userSchema.methods.matchPassword = async function (enteredPassword) {
 };
 
 // Generate JWT token
-userSchema.methods.getSignedJwtToken = function () {
+userSchema.methods.getSignedJwtToken = function (expiresIn) {
     return jwt.sign({ id: this._id }, process.env.JWT_SECRET, {
-        expiresIn: '30d'
+        expiresIn: expiresIn || process.env.JWT_EXPIRE || '30d'
     });
 };
 

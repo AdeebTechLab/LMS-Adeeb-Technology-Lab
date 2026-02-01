@@ -2,13 +2,13 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useSelector } from 'react-redux';
-import Select from 'react-select';
 import {
     Search, BookOpen, Users, Star, Clock, CheckCircle, Calendar, Award, Loader2, RefreshCw, AlertCircle, Upload, Trash2, Filter
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
 import { courseAPI, enrollmentAPI, certificateAPI } from '../../services/api';
+import { getCourseIcon, getCourseColor, getCourseStyle } from '../../utils/courseIcons';
 
 const CITY_OPTIONS = [
     { value: 'Bahawalpur', label: 'Bahawalpur' },
@@ -86,7 +86,7 @@ const BrowseCourses = () => {
         const matchesSearch = course.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
             course.teachers?.some(t => t.name?.toLowerCase().includes(searchQuery.toLowerCase()));
 
-        const matchesCity = selectedCities.length === 0 || selectedCities.some(c => c.value === (course.city || course.location));
+        const matchesCity = selectedCities.length === 0 || selectedCities.includes(course.city || course.location);
 
         return matchesSearch && matchesCity;
     });
@@ -181,24 +181,30 @@ const BrowseCourses = () => {
             )}
 
             {/* Tabs */}
-            <div className="flex bg-gray-100 p-1 rounded-xl mb-6 w-fit">
+            <div className="flex gap-2 mb-6">
                 <button
                     onClick={() => setActiveTab('available')}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === 'available' ? 'bg-white shadow text-emerald-600' : 'text-gray-500 hover:text-gray-700'
+                    className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${activeTab === 'available'
+                        ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-200'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                         }`}
                 >
                     All Courses ({courses.length})
                 </button>
                 <button
                     onClick={() => setActiveTab('enrolled')}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === 'enrolled' ? 'bg-white shadow text-emerald-600' : 'text-gray-500 hover:text-gray-700'
+                    className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${activeTab === 'enrolled'
+                        ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-200'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                         }`}
                 >
                     Enrolled ({enrolledCourses.length})
                 </button>
                 <button
                     onClick={() => setActiveTab('completed')}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === 'completed' ? 'bg-white shadow text-emerald-600' : 'text-gray-500 hover:text-gray-700'
+                    className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${activeTab === 'completed'
+                        ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-200'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                         }`}
                 >
                     Completed ({completedCourses.length})
@@ -217,29 +223,28 @@ const BrowseCourses = () => {
                         className="bg-transparent border-none outline-none w-full text-gray-700 placeholder:text-gray-400"
                     />
                 </div>
-                <div className="w-full md:w-64">
-                    <Select
-                        options={CITY_OPTIONS}
-                        isMulti
-                        value={selectedCities}
-                        onChange={setSelectedCities}
-                        placeholder="Filter by City"
-                        className="react-select-container"
-                        classNamePrefix="react-select"
-                        styles={{
-                            control: (base) => ({
-                                ...base,
-                                minHeight: '46px',
-                                borderRadius: '0.75rem',
-                                borderColor: '#e5e7eb',
-                                backgroundColor: '#f9fafb',
-                                boxShadow: 'none',
-                                '&:hover': {
-                                    borderColor: '#10b981'
-                                }
-                            })
-                        }}
-                    />
+                <div className="flex gap-2">
+                    {CITY_OPTIONS.map((city) => {
+                        const isSelected = selectedCities.includes(city.value);
+                        return (
+                            <button
+                                key={city.value}
+                                onClick={() => {
+                                    if (isSelected) {
+                                        setSelectedCities(prev => prev.filter(c => c !== city.value));
+                                    } else {
+                                        setSelectedCities(prev => [...prev, city.value]);
+                                    }
+                                }}
+                                className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${isSelected
+                                    ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-200'
+                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                    }`}
+                            >
+                                {city.label}
+                            </button>
+                        );
+                    })}
                 </div>
             </div>
 
@@ -259,43 +264,46 @@ const BrowseCourses = () => {
                             className="bg-white rounded-2xl overflow-hidden border border-gray-100 hover:shadow-lg transition-all duration-300"
                         >
                             {/* Course Image */}
-                            <div className={`h-40 relative ${status === 'completed'
-                                ? 'bg-gradient-to-br from-purple-400 to-indigo-600'
-                                : 'bg-gradient-to-br from-emerald-400 to-teal-600'
-                                }`}>
-                                <div className="absolute inset-0 flex items-center justify-center">
-                                    <BookOpen className="w-16 h-16 text-white/30" />
-                                </div>
-                                {course.city && (
-                                    <div className="absolute top-4 right-4">
-                                        <Badge variant="primary" size="sm">{course.city}</Badge>
+                            {(() => {
+                                const style = getCourseStyle(course.category, course.title);
+                                const Icon = style.icon;
+                                return (
+                                    <div className={`h-40 relative bg-gradient-to-br ${style.gradient}`}>
+                                        <div className="absolute inset-0 flex items-center justify-center">
+                                            <Icon className="w-16 h-16 text-white/30" />
+                                        </div>
+                                        {course.city && (
+                                            <div className="absolute top-4 right-4">
+                                                <Badge variant="primary" size="sm">{course.city}</Badge>
+                                            </div>
+                                        )}
+                                        {status === 'enrolled' && (
+                                            <div className="absolute top-4 left-4">
+                                                <Badge variant="success" size="sm">
+                                                    <CheckCircle className="w-3 h-3 mr-1" />
+                                                    Enrolled
+                                                </Badge>
+                                            </div>
+                                        )}
+                                        {status === 'pending' && (
+                                            <div className="absolute top-4 left-4">
+                                                <Badge variant="warning" size="sm">
+                                                    <Clock className="w-3 h-3 mr-1" />
+                                                    Waiting for Verification
+                                                </Badge>
+                                            </div>
+                                        )}
+                                        {status === 'completed' && (
+                                            <div className="absolute top-4 left-4">
+                                                <Badge variant="info" size="sm">
+                                                    <Award className="w-3 h-3 mr-1" />
+                                                    Completed
+                                                </Badge>
+                                            </div>
+                                        )}
                                     </div>
-                                )}
-                                {status === 'enrolled' && (
-                                    <div className="absolute top-4 left-4">
-                                        <Badge variant="success" size="sm">
-                                            <CheckCircle className="w-3 h-3 mr-1" />
-                                            Enrolled
-                                        </Badge>
-                                    </div>
-                                )}
-                                {status === 'pending' && (
-                                    <div className="absolute top-4 left-4">
-                                        <Badge variant="warning" size="sm">
-                                            <Clock className="w-3 h-3 mr-1" />
-                                            Waiting for Verification
-                                        </Badge>
-                                    </div>
-                                )}
-                                {status === 'completed' && (
-                                    <div className="absolute top-4 left-4">
-                                        <Badge variant="info" size="sm">
-                                            <Award className="w-3 h-3 mr-1" />
-                                            Completed
-                                        </Badge>
-                                    </div>
-                                )}
-                            </div>
+                                );
+                            })()}
 
                             {/* Course Content */}
                             <div className="p-5">
@@ -345,8 +353,15 @@ const BrowseCourses = () => {
 
                                 {/* Price and Action */}
                                 <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                                    <div className="flex items-center gap-1 text-emerald-600 font-bold text-lg">
-                                        Rs {(course.fee || 0).toLocaleString()}
+                                    <div className="flex flex-col">
+                                        {course.originalPrice && !isNaN(parseFloat(course.originalPrice)) && !isNaN(parseFloat(course.fee)) && parseFloat(course.originalPrice) > parseFloat(course.fee) && (
+                                            <span className="text-xs text-red-500 line-through font-medium">
+                                                Rs {Number(course.originalPrice).toLocaleString()}
+                                            </span>
+                                        )}
+                                        <div className={`flex items-center gap-1 font-bold text-lg ${course.originalPrice && !isNaN(parseFloat(course.originalPrice)) && parseFloat(course.originalPrice) > parseFloat(course.fee) ? 'text-emerald-600' : 'text-gray-900'}`}>
+                                            {isNaN(Number(course.fee)) ? course.fee : `Rs ${Number(course.fee).toLocaleString()}`}
+                                        </div>
                                     </div>
 
                                     {status === 'available' && (
@@ -450,9 +465,16 @@ const BrowseCourses = () => {
                         <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-100">
                             <div className="flex items-center justify-between mb-2">
                                 <span className="text-gray-600">Course Fee</span>
-                                <span className="text-2xl font-bold text-emerald-600">
-                                    Rs {(selectedCourse.fee || 0).toLocaleString()}
-                                </span>
+                                <div className="flex flex-col items-end">
+                                    {selectedCourse.originalPrice && !isNaN(parseFloat(selectedCourse.originalPrice)) && !isNaN(parseFloat(selectedCourse.fee)) && parseFloat(selectedCourse.originalPrice) > parseFloat(selectedCourse.fee) && (
+                                        <span className="text-sm text-red-500 line-through font-medium">
+                                            Rs {Number(selectedCourse.originalPrice).toLocaleString()}
+                                        </span>
+                                    )}
+                                    <span className="text-2xl font-bold text-emerald-600">
+                                        {isNaN(Number(selectedCourse.fee)) ? selectedCourse.fee : `Rs ${Number(selectedCourse.fee).toLocaleString()}`}
+                                    </span>
+                                </div>
                             </div>
                             <p className="text-xs text-gray-500">
                                 By enrolling, you agree to pay the course fee. You can upload your payment receipt in Fee Management.

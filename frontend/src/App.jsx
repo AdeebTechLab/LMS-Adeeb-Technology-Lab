@@ -51,6 +51,7 @@ import AttendanceView from './pages/student/AttendanceView';
 import StudentCourseView from './pages/student/StudentCourseView';
 
 // Public Pages
+import CertificateVerification from './pages/public/CertificateVerification';
 
 
 // Protected Route Component
@@ -131,8 +132,8 @@ const AppRoutes = () => {
         <Route path="settings" element={<div className="text-gray-500">Settings - Coming Soon</div>} />
       </Route>
 
-      {/* Public Verification Route - REDIRECT TO LOGIN (Page Moved) */}
-      <Route path="/verify" element={<Navigate to="/login" replace />} />
+      {/* Public Verification Route */}
+      <Route path="/verify" element={<CertificateVerification />} />
 
       {/* Teacher Routes - handles Students AND Interns */}
       <Route

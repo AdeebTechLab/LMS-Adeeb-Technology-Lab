@@ -258,7 +258,7 @@ const BrowseTasks = () => {
                                     {task.deadline && new Date(task.deadline).toLocaleDateString()}
                                 </span>
                                 <span className="font-bold text-purple-600">
-                                    Rs {(task.budget || 0).toLocaleString()}
+                                    Rs {isNaN(Number(task.budget)) ? task.budget : Number(task.budget).toLocaleString()}
                                 </span>
                             </div>
 
@@ -325,7 +325,7 @@ const BrowseTasks = () => {
                         <div className="p-4 bg-gray-50 rounded-xl">
                             <h3 className="font-semibold text-gray-900">{selectedTask.title}</h3>
                             <p className="text-sm text-purple-600 font-medium mt-1">
-                                Budget: Rs {(selectedTask.budget || 0).toLocaleString()}
+                                Budget: Rs {isNaN(Number(selectedTask.budget)) ? selectedTask.budget : Number(selectedTask.budget).toLocaleString()}
                             </p>
                         </div>
                         <div>

@@ -124,7 +124,9 @@ const PaidTasksManagement = () => {
                 await taskAPI.update(editingTask._id, {
                     title: formData.title,
                     description: formData.description,
-                    budget: Number(formData.budget),
+                    title: formData.title,
+                    description: formData.description,
+                    budget: formData.budget, // Send as string
                     deadline: formData.deadline,
                     skills: formData.skills,
                     category: formData.category,
@@ -133,7 +135,7 @@ const PaidTasksManagement = () => {
                 await taskAPI.create({
                     title: formData.title,
                     description: formData.description,
-                    budget: Number(formData.budget),
+                    budget: formData.budget, // Send as string
                     deadline: formData.deadline,
                     skills: formData.skills,
                     category: formData.category,
@@ -322,7 +324,7 @@ const PaidTasksManagement = () => {
                                     {task.deadline && new Date(task.deadline).toLocaleDateString()}
                                 </span>
                                 <span className="font-bold text-purple-600">
-                                    Rs {(task.budget || 0).toLocaleString()}
+                                    Rs {isNaN(Number(task.budget)) ? task.budget : Number(task.budget).toLocaleString()}
                                 </span>
                             </div>
 
@@ -398,10 +400,10 @@ const PaidTasksManagement = () => {
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">Budget (Rs) *</label>
                             <input
-                                type="number"
+                                type="text"
                                 value={formData.budget}
                                 onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
-                                placeholder="25000"
+                                placeholder="e.g., 25000 or 1500-2500"
                                 className="w-full px-4 py-3 border border-gray-200 rounded-xl"
                                 required
                             />
@@ -478,7 +480,7 @@ const PaidTasksManagement = () => {
                     <div className="space-y-4">
                         <div className="p-4 bg-gray-50 rounded-xl">
                             <h3 className="font-semibold text-gray-900">{selectedTask.title}</h3>
-                            <p className="text-sm text-gray-500">Budget: Rs {(selectedTask.budget || 0).toLocaleString()}</p>
+                            <p className="text-sm text-gray-500">Budget: Rs {isNaN(Number(selectedTask.budget)) ? selectedTask.budget : Number(selectedTask.budget).toLocaleString()}</p>
                         </div>
                         {(!selectedTask.applicants || selectedTask.applicants.length === 0) ? (
                             <p className="text-center text-gray-500 py-8">No applications yet</p>
@@ -599,7 +601,7 @@ const PaidTasksManagement = () => {
                                 <h3 className="font-semibold text-gray-900">{selectedTask.title}</h3>
                                 <span className="text-sm text-gray-500">By: {selectedTask.assignedTo?.name}</span>
                             </div>
-                            <p className="text-sm text-gray-500">Budget: Rs {(selectedTask.budget || 0).toLocaleString()}</p>
+                            <p className="text-sm text-gray-500">Budget: Rs {isNaN(Number(selectedTask.budget)) ? selectedTask.budget : Number(selectedTask.budget).toLocaleString()}</p>
                         </div>
 
                         <div className="p-4 bg-blue-50 rounded-xl">

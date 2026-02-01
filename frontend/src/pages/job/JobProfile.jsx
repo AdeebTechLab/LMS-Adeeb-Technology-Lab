@@ -311,7 +311,7 @@ const JobProfile = () => {
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <p className="font-medium text-gray-900">{task.title}</p>
-                                    <p className="text-sm text-gray-500">Budget: Rs. {task.budget?.toLocaleString() || 'N/A'}</p>
+                                    <p className="text-sm text-gray-500">Budget: Rs. {isNaN(Number(task.budget)) ? task.budget : Number(task.budget).toLocaleString()}</p>
                                     <p className="text-xs text-purple-600 mt-1 capitalize">{task.status || 'open'}</p>
                                 </div>
                             </div>

@@ -221,18 +221,27 @@ const AdminDashboard = () => {
                     <h1 className="text-2xl font-black text-gray-900 uppercase tracking-tighter">Dashboard Analytics</h1>
                     <p className="text-gray-500 text-xs font-bold uppercase tracking-widest">Real-time system overview</p>
                 </div>
-                <button
-                    onClick={handleDownloadPDF}
-                    disabled={isDownloading}
-                    className="flex items-center gap-3 bg-[#ff8e01] text-white px-6 py-3 rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg shadow-orange-200 hover:shadow-orange-300 transition-all active:scale-95 disabled:opacity-50 no-pdf"
-                >
-                    {isDownloading ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                        <Download className="w-4 h-4" />
-                    )}
-                    {isDownloading ? 'Generating PDF...' : 'Download Report'}
-                </button>
+                <div className="flex gap-4">
+                    <button
+                        onClick={() => window.open('/verify', '_blank')}
+                        className="flex items-center gap-3 bg-white text-gray-700 px-6 py-3 rounded-2xl font-black uppercase tracking-widest text-xs border border-gray-200 shadow-sm hover:border-[#ff8e01] hover:text-[#ff8e01] transition-all active:scale-95 no-pdf"
+                    >
+                        <CheckCircle className="w-4 h-4" />
+                        Verify Certificate
+                    </button>
+                    <button
+                        onClick={handleDownloadPDF}
+                        disabled={isDownloading}
+                        className="flex items-center gap-3 bg-[#ff8e01] text-white px-6 py-3 rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg shadow-orange-200 hover:shadow-orange-300 transition-all active:scale-95 disabled:opacity-50 no-pdf"
+                    >
+                        {isDownloading ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                            <Download className="w-4 h-4" />
+                        )}
+                        {isDownloading ? 'Generating PDF...' : 'Download Report'}
+                    </button>
+                </div>
             </div>
             {/* Header & Main Stats */}
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">

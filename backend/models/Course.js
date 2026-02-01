@@ -11,8 +11,12 @@ const courseSchema = new mongoose.Schema({
         required: [true, 'Description is required']
     },
     fee: {
-        type: Number,
+        type: String, // Changed to String to allow text (e.g., "Coming Soon")
         required: [true, 'Fee is required']
+    },
+    originalPrice: {
+        type: String, // Changed to String
+        default: ''
     },
     durationMonths: {
         type: Number,

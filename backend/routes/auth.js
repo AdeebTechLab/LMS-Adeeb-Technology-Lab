@@ -205,7 +205,7 @@ router.post('/register', uploadRegistration.fields([
 // @access  Public
 router.post('/login', async (req, res) => {
     try {
-        const { email, password, role } = req.body;
+        const { email, password, role, rememberMe } = req.body;
 
         // Validate
         if (!email || !password) {
@@ -245,7 +245,9 @@ router.post('/login', async (req, res) => {
         }
 
         // Generate token
-        const token = user.getSignedJwtToken();
+        // If rememberMe is true, expire in 30 days. Otherwise, expire in 2 hours.
+        const expiresIn = rememberMe ? '30d' : '2h';
+        const token = user.getSignedJwtToken(expiresIn);
 
         res.json({
             success: true,

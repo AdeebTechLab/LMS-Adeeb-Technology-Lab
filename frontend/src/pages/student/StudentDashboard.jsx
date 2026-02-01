@@ -18,7 +18,7 @@ import StatCard from '../../components/ui/StatCard';
 import Badge from '../../components/ui/Badge';
 import { enrollmentAPI, feeAPI, assignmentAPI } from '../../services/api';
 import Modal from '../../components/ui/Modal'; // Assuming Modal component exists
-import { getCourseIcon, getCourseColor } from '../../utils/courseIcons';
+import { getCourseIcon, getCourseColor, getCourseStyle } from '../../utils/courseIcons';
 
 
 const StudentDashboard = () => {
@@ -348,6 +348,7 @@ const StudentDashboard = () => {
                                     <motion.div
                                         key={course.id}
                                         whileHover={{ y: -4 }}
+                                        className="bg-white p-4 rounded-2xl border border-gray-100 flex items-center gap-4 hover:shadow-md transition-all cursor-pointer group"
                                         onClick={() => {
                                             if (course.isCompleted) {
                                                 navigate(`/${role}/assignments`);
@@ -355,16 +356,22 @@ const StudentDashboard = () => {
                                                 navigate(`../course/${course.id}`);
                                             }
                                         }}
-                                        className="bg-white rounded-3xl p-6 border border-gray-100 cursor-pointer hover:shadow-lg transition-all group"
                                     >
-                                        <div className="flex items-start justify-between mb-4">
-                                            <div className="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100 group-hover:bg-[#ff8e01] transition-colors shadow-inner">
-                                                {(() => {
-                                                    const Icon = getCourseIcon(course.category, course.title);
-                                                    return <Icon className="w-6 h-6 text-slate-600 group-hover:text-white transition-colors" />;
-                                                })()}
-                                            </div>
-                                            <div className="flex gap-2">
+                                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors shadow-sm ${(() => {
+                                            const style = getCourseStyle(course.category || '', course.title);
+                                            return `${style.bg}`;
+                                        })()}`}>
+                                            {(() => {
+                                                const style = getCourseStyle(course.category || '', course.title);
+                                                const Icon = style.icon;
+                                                return <Icon className={`w-6 h-6 ${style.text}`} />;
+                                            })()}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex justify-between items-start mb-1">
+                                                <h4 className="font-bold text-gray-900 truncate group-hover:text-emerald-600 transition-colors">
+                                                    {course.title}
+                                                </h4>
                                                 {course.isCompleted ? (
                                                     <Badge variant="success">Completed</Badge>
                                                 ) : !course.isFirstMonthVerified ? (
@@ -422,11 +429,11 @@ const StudentDashboard = () => {
                             </div>
                         )}
                     </motion.div>
-                </div>
-            </div>
+                </div >
+            </div >
 
             {/* Withdrawal Confirmation Modal */}
-            <Modal
+            < Modal
                 isOpen={withdrawModal.open}
                 onClose={() => setWithdrawModal({ ...withdrawModal, open: false })}
                 title="Revoke Course Application"
@@ -459,7 +466,7 @@ const StudentDashboard = () => {
                         </button>
                     </div>
                 </div>
-            </Modal>
+            </Modal >
         </>
     );
 };

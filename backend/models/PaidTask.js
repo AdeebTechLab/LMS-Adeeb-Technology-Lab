@@ -24,7 +24,7 @@ const paidTaskSchema = new mongoose.Schema({
         required: [true, 'Description is required']
     },
     budget: {
-        type: Number,
+        type: String, // Changed to String to allow ranges (e.g., "1500-2500")
         required: [true, 'Budget is required']
     },
     deadline: {
