@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import { courseAPI, enrollmentAPI } from '../../services/api';
+import { getCourseIcon, getCourseStyle } from '../../utils/courseIcons';
 
 // Tab Components
 import AttendanceTab from './components/AttendanceTab';
@@ -131,6 +132,7 @@ const AttendanceSheet = () => {
                     location: course.location,
                     city: course.city,
                     duration: course.duration,
+                    category: course.category,
                     targetAudience: audience,
                     enrollments: courseEnrollments
                 };
@@ -281,53 +283,55 @@ const AttendanceSheet = () => {
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {filteredCourses.map((course, index) => (
-                            <motion.div
-                                key={course.id}
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: index * 0.1 }}
-                                onClick={() => handleSelectCourse(course)}
-                                className="bg-white rounded-2xl p-6 border border-gray-100 cursor-pointer hover:shadow-lg hover:border-emerald-200 transition-all group"
-                            >
-                                <div className="flex items-start justify-between mb-4">
-                                    <div className={`w-14 h-14 rounded-xl flex items-center justify-center ${course.targetAudience === 'interns'
-                                        ? 'bg-gradient-to-br from-purple-500 to-indigo-600'
-                                        : 'bg-gradient-to-br from-emerald-400 to-teal-500'
-                                        }`}>
-                                        <BookOpen className="w-7 h-7 text-white" />
+                        {filteredCourses.map((course, index) => {
+                            const CourseIcon = getCourseIcon(course.category, course.name);
+                            const courseStyle = getCourseStyle(course.category, course.name);
+
+                            return (
+                                <motion.div
+                                    key={course.id}
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: index * 0.1 }}
+                                    onClick={() => handleSelectCourse(course)}
+                                    className="bg-white rounded-2xl p-6 border border-gray-100 cursor-pointer hover:shadow-lg hover:border-emerald-200 transition-all group"
+                                >
+                                    <div className="flex items-start justify-between mb-4">
+                                        <div className={`w-14 h-14 rounded-xl flex items-center justify-center bg-gradient-to-br ${courseStyle.gradient}`}>
+                                            <CourseIcon className="w-7 h-7 text-white" />
+                                        </div>
+                                        <div className="flex flex-col items-end gap-2">
+                                            <Badge variant={course.status === 'active' ? 'success' : 'warning'}>
+                                                {course.status}
+                                            </Badge>
+                                            <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider ${course.targetAudience === 'interns'
+                                                ? 'bg-purple-100 text-purple-700'
+                                                : 'bg-blue-100 text-blue-700'
+                                                }`}>
+                                                {course.targetAudience === 'interns' ? 'Internship' : 'Student'}
+                                            </span>
+                                        </div>
                                     </div>
-                                    <div className="flex flex-col items-end gap-2">
-                                        <Badge variant={course.status === 'active' ? 'success' : 'warning'}>
-                                            {course.status}
-                                        </Badge>
-                                        <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider ${course.targetAudience === 'interns'
-                                            ? 'bg-purple-100 text-purple-700'
-                                            : 'bg-blue-100 text-blue-700'
-                                            }`}>
-                                            {course.targetAudience === 'interns' ? 'Internship' : 'Student'}
+                                    <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-emerald-600 transition-colors uppercase">{course.name}</h3>
+                                    <div className="flex items-center gap-4 text-sm text-gray-500 mb-4 font-medium">
+                                        <span className="flex items-center gap-1.5">
+                                            <Users className="w-4 h-4 text-gray-400" />
+                                            {course.internCount} Registered
                                         </span>
+                                        {(course.city || course.location) && (
+                                            <span className="flex items-center gap-1.5 uppercase">
+                                                <Calendar className="w-4 h-4 text-gray-400" />
+                                                {course.city || course.location}
+                                            </span>
+                                        )}
                                     </div>
-                                </div>
-                                <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-emerald-600 transition-colors uppercase">{course.name}</h3>
-                                <div className="flex items-center gap-4 text-sm text-gray-500 mb-4 font-medium">
-                                    <span className="flex items-center gap-1.5">
-                                        <Users className="w-4 h-4 text-gray-400" />
-                                        {course.internCount} Registered
-                                    </span>
-                                    {(course.city || course.location) && (
-                                        <span className="flex items-center gap-1.5 uppercase">
-                                            <Calendar className="w-4 h-4 text-gray-400" />
-                                            {course.city || course.location}
-                                        </span>
-                                    )}
-                                </div>
-                                <div className="flex items-center text-emerald-600 font-bold text-sm">
-                                    <span>OPEN DASHBOARD</span>
-                                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                                </div>
-                            </motion.div>
-                        ))}
+                                    <div className="flex items-center text-emerald-600 font-bold text-sm">
+                                        <span>OPEN DASHBOARD</span>
+                                        <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                                    </div>
+                                </motion.div>
+                            );
+                        })}
                     </div>
                 )}
             </div>

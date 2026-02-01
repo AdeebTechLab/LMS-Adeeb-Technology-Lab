@@ -602,16 +602,28 @@ const CourseManagement = () => {
                             required
                         >
                             <option value="">Select category</option>
-                            <option value="Web Development">Web Development</option>
-                            <option value="AI & Machine Learning">AI & Machine Learning</option>
-                            <option value="Graphic Design">Graphic Design</option>
-                            <option value="App Development">App Development</option>
-                            <option value="Cybersecurity">Cybersecurity</option>
-                            <option value="Cloud Computing">Cloud Computing</option>
-                            <option value="Digital Marketing">Digital Marketing</option>
+                            <option value="Office Work [IT]">Office Work [IT]</option>
+                            <option value="Freelancing">Freelancing</option>
+                            <option value="Digital Marketing, Ads">Digital Marketing, Ads</option>
                             <option value="Video Editing">Video Editing</option>
-                            <option value="Finance & Accounting">Finance & Accounting</option>
-                            <option value="Office Productivity">Office Productivity</option>
+                            <option value="Graphic Designer">Graphic Designer</option>
+                            <option value="E-Commerce">E-Commerce</option>
+                            <option value="UX/UI Designing">UX/UI Designing</option>
+                            <option value="Youtuber Course">Youtuber Course</option>
+                            <option value="Home Architecture">Home Architecture</option>
+                            <option value="Web Development">Web Development</option>
+                            <option value="App Development">App Development</option>
+                            <option value="App Dev Without Coding">App Dev Without Coding</option>
+                            <option value="Web Dev Without Coding">Web Dev Without Coding</option>
+                            <option value="Cyber Security">Cyber Security</option>
+                            <option value="Machine learning">Machine learning</option>
+                            <option value="Internet of Thing [IOT]">Internet of Thing [IOT]</option>
+                            <option value="Programming">Programming</option>
+                            <option value="Taxation">Taxation</option>
+                            <option value="Trading">Trading</option>
+                            <option value="Truck Dispatching">Truck Dispatching</option>
+                            <option value="Software Development">Software Development</option>
+                            <option value="SEO">SEO</option>
                         </select>
                     </div>
 

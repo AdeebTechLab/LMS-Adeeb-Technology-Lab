@@ -70,8 +70,8 @@ const ChatWidget = () => {
 
             if (!senderIdRaw || !recipientIdRaw) return;
 
-            const senderId = senderIdRaw.toString();
-            const recipientId = recipientIdRaw.toString();
+            const senderId = String(senderIdRaw);
+            const recipientId = String(recipientIdRaw);
 
             // The 'other side' of the conversation
             const otherSideId = senderId === myIdStr ? recipientId : senderId;
@@ -79,31 +79,48 @@ const ChatWidget = () => {
             // Use refs to check state without re-binding listener
             const currentActive = activeChatRef.current;
             const isCurrentlyOpen = isOpenRef.current;
+            const currentActiveId = currentActive?.userId ? String(currentActive.userId) : null;
 
-            if (isCurrentlyOpen && currentActive && currentActive.userId && currentActive.userId.toString() === otherSideId) {
+            // Debug log (optional but helpful)
+            // console.log('Socket Message:', { senderId, otherSideId, currentActiveId, isCurrentlyOpen });
+
+            // If we are currently chatting with this user (Active Chat matches sender/recipient)
+            if (currentActiveId === otherSideId) {
                 setMessages(prev => {
-                    // Prevent duplicates (e.g. if already added optimistically by sender)
+                    // Prevent duplicates
                     if (prev.some(m => m._id === data._id)) return prev;
                     return [...prev, data];
                 });
-                // Mark as read immediately if chat is open
-                chatAPI.markAsRead(otherSideId)
-                    .then(() => fetchUnreadCount())
-                    .catch(console.error);
-            } else {
-                // If not in this chat, increment unread count immediately for badge
-                if (recipientId === myIdStr) {
-                    setUnreadCount(prev => prev + 1);
 
-                    // Show a temporary visual notification if widget is closed or on a different screen
+                // If the widget is ALSO open, mark as read immediately
+                if (isCurrentlyOpen) {
+                    chatAPI.markAsRead(otherSideId)
+                        .then(() => fetchUnreadCount())
+                        .catch(console.error);
+                } else {
+                    // If widget is closed but active chat is set (minimized?), show notification
+                    // But usually activeChat implies intention to see
+                    // We'll treat it as "Background" update if not open
                     setIncomingNotify({
                         senderName: data.senderName || 'New Message',
                         text: data.text
                     });
+                    setUnreadCount(prev => prev + 1);
+                }
+            } else {
+                // Not the active chat
+                if (recipientId === myIdStr) {
+                    setUnreadCount(prev => prev + 1);
+
+                    setIncomingNotify({
+                        senderName: data.senderName || 'New Message',
+                        text: data.text
+                    });
+                    // Clear notification after 5s
                     setTimeout(() => setIncomingNotify(null), 5000);
                 }
 
-                // Then sync with server and update lists (slight delay to ensure DB sync)
+                // Sync lists
                 setTimeout(() => {
                     fetchUnreadCount();
                     if (user?.role === 'admin') {

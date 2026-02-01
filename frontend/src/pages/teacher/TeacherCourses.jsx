@@ -9,6 +9,7 @@ import {
 import Badge from '../../components/ui/Badge';
 import { courseAPI, enrollmentAPI, assignmentAPI, attendanceAPI } from '../../services/api';
 import StatCard from '../../components/ui/StatCard';
+import { getCourseIcon, getCourseStyle } from '../../utils/courseIcons';
 
 // Tab Components
 import AttendanceTab from './components/AttendanceTab';
@@ -159,6 +160,7 @@ const TeacherCourses = () => {
                     status: course.isActive !== false ? 'active' : 'inactive',
                     location: course.location,
                     city: course.city,
+                    category: course.category,
                     targetAudience: course.targetAudience || 'students',
                     enrollments: courseEnrollments
                 };
@@ -361,81 +363,83 @@ const TeacherCourses = () => {
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {filteredCourses.map((course, index) => (
-                            <motion.div
-                                key={course.id}
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: index * 0.1 }}
-                                onClick={() => handleSelectCourse(course)}
-                                className="bg-white rounded-3xl p-6 border border-gray-100 cursor-pointer hover:shadow-xl hover:border-emerald-200 transition-all group overflow-hidden relative"
-                            >
-                                <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-50/50 rounded-full -mr-16 -mt-16 group-hover:bg-emerald-100/50 transition-colors" />
+                        {filteredCourses.map((course, index) => {
+                            const CourseIcon = getCourseIcon(course.category, course.name);
+                            const courseStyle = getCourseStyle(course.category, course.name);
 
-                                <div className="relative z-10">
-                                    <div className="flex items-start justify-between mb-6">
-                                        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${course.targetAudience === 'interns'
-                                            ? 'bg-gradient-to-br from-purple-500 to-indigo-600'
-                                            : 'bg-gradient-to-br from-emerald-400 to-teal-500'
-                                            } shadow-lg shadow-emerald-900/10`}>
-                                            <BookOpen className="w-7 h-7 text-white" />
+                            return (
+                                <motion.div
+                                    key={course.id}
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: index * 0.1 }}
+                                    onClick={() => handleSelectCourse(course)}
+                                    className="bg-white rounded-3xl p-6 border border-gray-100 cursor-pointer hover:shadow-xl hover:border-emerald-200 transition-all group overflow-hidden relative"
+                                >
+                                    <div className={`absolute top-0 right-0 w-32 h-32 opacity-10 rounded-full -mr-16 -mt-16 transition-colors ${courseStyle.bg}`} />
+
+                                    <div className="relative z-10">
+                                        <div className="flex items-start justify-between mb-6">
+                                            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center bg-gradient-to-br ${courseStyle.gradient} shadow-lg shadow-emerald-900/10`}>
+                                                <CourseIcon className="w-7 h-7 text-white" />
+                                            </div>
+                                            <div className="flex flex-col items-end gap-2">
+                                                <Badge variant={course.status === 'active' ? 'success' : 'warning'}>
+                                                    {course.status.toUpperCase()}
+                                                </Badge>
+                                                <span className={`text-[10px] px-2 py-1 rounded-lg font-black uppercase tracking-widest ${course.targetAudience === 'interns'
+                                                    ? 'bg-purple-100 text-purple-700'
+                                                    : 'bg-blue-100 text-blue-700'
+                                                    }`}>
+                                                    {course.targetAudience === 'interns' ? 'Internship' : 'Regular Course'}
+                                                </span>
+                                            </div>
                                         </div>
-                                        <div className="flex flex-col items-end gap-2">
-                                            <Badge variant={course.status === 'active' ? 'success' : 'warning'}>
-                                                {course.status.toUpperCase()}
-                                            </Badge>
-                                            <span className={`text-[10px] px-2 py-1 rounded-lg font-black uppercase tracking-widest ${course.targetAudience === 'interns'
-                                                ? 'bg-purple-100 text-purple-700'
-                                                : 'bg-blue-100 text-blue-700'
-                                                }`}>
-                                                {course.targetAudience === 'interns' ? 'Internship' : 'Regular Course'}
-                                            </span>
+
+                                        <h3 className="text-xl font-black text-gray-900 mb-2 uppercase tracking-tight group-hover:text-emerald-700 transition-colors line-clamp-1">{course.name}</h3>
+
+                                        <div className="grid grid-cols-2 gap-4 mb-6">
+                                            <div className="space-y-3">
+                                                <div className="flex items-center gap-2 text-sm text-gray-500 font-bold">
+                                                    <Users className="w-4 h-4 text-gray-400" />
+                                                    <span>{course.internCount} Total</span>
+                                                </div>
+                                                <div className="flex items-center gap-2 text-sm text-emerald-600 font-bold">
+                                                    <CheckCircle className="w-4 h-4" />
+                                                    <span>{course.activeStudents} Active</span>
+                                                </div>
+                                                <div className="flex items-center gap-2 text-sm text-amber-600 font-bold">
+                                                    <FileText className="w-4 h-4" />
+                                                    <span>{course.pendingAssignments} Pending Tasks</span>
+                                                </div>
+                                            </div>
+                                            <div className="bg-gray-50 rounded-2xl p-3 border border-gray-100">
+                                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 border-b border-gray-200 pb-1">Today's Attendance</p>
+                                                <div className="flex items-center justify-between mb-1.5">
+                                                    <span className="text-xs font-bold text-gray-500">Present</span>
+                                                    <span className="text-sm font-black text-emerald-600">{course.presentCount}</span>
+                                                </div>
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-xs font-bold text-gray-500">Absent</span>
+                                                    <span className="text-sm font-black text-red-500">{course.absentCount}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center justify-between pt-4 border-t border-gray-50">
+                                            <div className="flex items-center gap-2 text-xs text-gray-400 font-medium">
+                                                <Calendar className="w-3.5 h-3.5" />
+                                                {course.city || course.location}
+                                            </div>
+                                            <div className="flex items-center text-emerald-600 font-black text-xs uppercase tracking-widest group-hover:translate-x-1 transition-transform">
+                                                <span>Manage Portal</span>
+                                                <ArrowRight className="w-4 h-4 ml-2" />
+                                            </div>
                                         </div>
                                     </div>
-
-                                    <h3 className="text-xl font-black text-gray-900 mb-2 uppercase tracking-tight group-hover:text-emerald-700 transition-colors line-clamp-1">{course.name}</h3>
-
-                                    <div className="grid grid-cols-2 gap-4 mb-6">
-                                        <div className="space-y-3">
-                                            <div className="flex items-center gap-2 text-sm text-gray-500 font-bold">
-                                                <Users className="w-4 h-4 text-gray-400" />
-                                                <span>{course.internCount} Total</span>
-                                            </div>
-                                            <div className="flex items-center gap-2 text-sm text-emerald-600 font-bold">
-                                                <CheckCircle className="w-4 h-4" />
-                                                <span>{course.activeStudents} Active</span>
-                                            </div>
-                                            <div className="flex items-center gap-2 text-sm text-amber-600 font-bold">
-                                                <FileText className="w-4 h-4" />
-                                                <span>{course.pendingAssignments} Pending Tasks</span>
-                                            </div>
-                                        </div>
-                                        <div className="bg-gray-50 rounded-2xl p-3 border border-gray-100">
-                                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 border-b border-gray-200 pb-1">Today's Attendance</p>
-                                            <div className="flex items-center justify-between mb-1.5">
-                                                <span className="text-xs font-bold text-gray-500">Present</span>
-                                                <span className="text-sm font-black text-emerald-600">{course.presentCount}</span>
-                                            </div>
-                                            <div className="flex items-center justify-between">
-                                                <span className="text-xs font-bold text-gray-500">Absent</span>
-                                                <span className="text-sm font-black text-red-500">{course.absentCount}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center justify-between pt-4 border-t border-gray-50">
-                                        <div className="flex items-center gap-2 text-xs text-gray-400 font-medium">
-                                            <Calendar className="w-3.5 h-3.5" />
-                                            {course.city || course.location}
-                                        </div>
-                                        <div className="flex items-center text-emerald-600 font-black text-xs uppercase tracking-widest group-hover:translate-x-1 transition-transform">
-                                            <span>Manage Portal</span>
-                                            <ArrowRight className="w-4 h-4 ml-2" />
-                                        </div>
-                                    </div>
-                                </div>
-                            </motion.div>
-                        ))}
+                                </motion.div>
+                            );
+                        })}
                     </div>
                 )}
             </div>

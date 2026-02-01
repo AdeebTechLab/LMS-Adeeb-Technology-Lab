@@ -20,6 +20,7 @@ import StatCard from '../../components/ui/StatCard';
 import Badge from '../../components/ui/Badge';
 import { BarChart } from '../../components/charts/Charts';
 import { courseAPI, enrollmentAPI } from '../../services/api';
+import { getCourseIcon, getCourseStyle } from '../../utils/courseIcons';
 
 
 const TeacherDashboard = () => {
@@ -64,6 +65,7 @@ const TeacherDashboard = () => {
                     pendingSubmissions: 0,
                     status: course.isActive ? 'active' : 'inactive',
                     startDate: course.startDate,
+                    category: course.category,
                     duration: course.duration
                 };
             });
@@ -209,9 +211,15 @@ const TeacherDashboard = () => {
                                         className="p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors cursor-pointer border border-gray-100"
                                     >
                                         <div className="flex items-start justify-between mb-3">
-                                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center flex-shrink-0">
-                                                <BookOpen className="w-6 h-6 text-white" />
-                                            </div>
+                                            {(() => {
+                                                const CourseIcon = getCourseIcon(course.category, course.title);
+                                                const courseStyle = getCourseStyle(course.category, course.title);
+                                                return (
+                                                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 bg-gradient-to-br ${courseStyle.gradient}`}>
+                                                        <CourseIcon className="w-6 h-6 text-white" />
+                                                    </div>
+                                                );
+                                            })()}
                                             <Badge variant={course.status === 'active' ? 'success' : 'secondary'}>
                                                 {course.status}
                                             </Badge>

@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { authAPI, courseAPI, settingsAPI } from '../../services/api';
 import { updateUser } from '../../features/auth/authSlice';
+import { getCourseIcon } from '../../utils/courseIcons';
 
 const TeacherProfile = () => {
     const { user } = useSelector((state) => state.auth);
@@ -279,18 +280,21 @@ const TeacherProfile = () => {
                         </div>
                     ) : (
                         <div className="space-y-4">
-                            {myCourses.map((course) => (
-                                <div key={course._id} className="flex items-start gap-4 p-4 bg-gray-50 rounded-xl">
-                                    <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                                        <BookOpen className="w-5 h-5 text-orange-600" />
+                            {myCourses.map((course) => {
+                                const CourseIcon = getCourseIcon(course.category, course.title);
+                                return (
+                                    <div key={course._id} className="flex items-start gap-4 p-4 bg-gray-50 rounded-xl">
+                                        <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                            <CourseIcon className="w-5 h-5 text-orange-600" />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="font-medium text-gray-900">{course.title}</p>
+                                            <p className="text-sm text-gray-500">{course.enrolledCount || 0} students enrolled</p>
+                                            <p className="text-xs text-orange-600 mt-1 capitalize">{course.duration || 'Ongoing'}</p>
+                                        </div>
                                     </div>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="font-medium text-gray-900">{course.title}</p>
-                                        <p className="text-sm text-gray-500">{course.enrolledCount || 0} students enrolled</p>
-                                        <p className="text-xs text-orange-600 mt-1 capitalize">{course.duration || 'Ongoing'}</p>
-                                    </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     )}
                 </motion.div>
