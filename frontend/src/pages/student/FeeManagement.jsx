@@ -124,22 +124,25 @@ const FeeManagement = () => {
     // Calculate totals from installments
     const getTotals = () => {
         let pending = 0;
-        let underReview = 0;
-        let verified = 0;
+        let underReviewCount = 0;
+        let verifiedCount = 0;
+        let submittedAmount = 0; // total amount student has submitted/paid
 
         fees.forEach(fee => {
             (fee.installments || []).forEach(inst => {
                 if (inst.status === 'pending' || inst.status === 'rejected') {
                     pending += inst.amount || 0;
                 } else if (inst.status === 'submitted') {
-                    underReview++;
+                    underReviewCount++;
+                    submittedAmount += inst.amount || 0;
                 } else if (inst.status === 'verified') {
-                    verified++;
+                    verifiedCount++;
+                    submittedAmount += inst.amount || 0;
                 }
             });
         });
 
-        return { pending, underReview, verified };
+        return { pending, underReviewCount, verifiedCount, submittedAmount };
     };
 
     const totals = getTotals();
@@ -184,7 +187,7 @@ const FeeManagement = () => {
             )}
 
             {/* Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-2xl p-6 border border-gray-100">
                     <div className="flex items-center justify-between">
                         <div>
@@ -201,7 +204,7 @@ const FeeManagement = () => {
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-sm text-gray-500 mb-1">Under Review</p>
-                            <p className="text-2xl font-bold text-blue-600">{totals.underReview}</p>
+                            <p className="text-2xl font-bold text-blue-600">{totals.underReviewCount}</p>
                         </div>
                         <div className="p-3 bg-blue-100 rounded-xl">
                             <Clock className="w-6 h-6 text-blue-600" />
@@ -213,10 +216,22 @@ const FeeManagement = () => {
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-sm text-gray-500 mb-1">Verified</p>
-                            <p className="text-2xl font-bold text-emerald-600">{totals.verified}</p>
+                            <p className="text-2xl font-bold text-emerald-600">{totals.verifiedCount}</p>
                         </div>
                         <div className="p-3 bg-emerald-100 rounded-xl">
                             <CheckCircle className="w-6 h-6 text-emerald-600" />
+                        </div>
+                    </div>
+                </motion.div>
+
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="bg-white rounded-2xl p-6 border border-gray-100">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-sm text-gray-500 mb-1">Submitted Total</p>
+                            <p className="text-2xl font-bold text-indigo-600">Rs {totals.submittedAmount.toLocaleString()}</p>
+                        </div>
+                        <div className="p-3 bg-indigo-50 rounded-xl">
+                            <FileText className="w-6 h-6 text-indigo-600" />
                         </div>
                     </div>
                 </motion.div>
