@@ -87,7 +87,21 @@ const AssignmentSubmission = () => {
     const fetchDailyTasks = async (courseId) => {
         try {
             const res = await dailyTaskAPI.getMy(courseId);
-            setDailyTasks(res.data.data || []);
+            const serverTasks = res.data.data || [];
+
+            // Merge with any locally cached pending tasks to avoid vanishing entries
+            try {
+                const key = `dailyTasks_cache_${courseId}`;
+                const cached = JSON.parse(localStorage.getItem(key) || '[]');
+                // Keep cached tasks that are not present on server (by _id)
+                const merged = [
+                    ...serverTasks,
+                    ...cached.filter(ct => !serverTasks.find(st => String(st._id) === String(ct._id)))
+                ];
+                setDailyTasks(merged);
+            } catch (e) {
+                setDailyTasks(serverTasks);
+            }
         } catch (error) {
             console.error('Error fetching daily tasks:', error);
         }
@@ -97,6 +111,21 @@ const AssignmentSubmission = () => {
         setSelectedCourseId(courseId);
         fetchDailyTasks(courseId);
     };
+
+    // Cleanup cached items that exist on server after fetching
+    useEffect(() => {
+        if (!selectedCourseId) return;
+        try {
+            const key = `dailyTasks_cache_${selectedCourseId}`;
+            const cached = JSON.parse(localStorage.getItem(key) || '[]');
+            if (!cached.length) return;
+            // When dailyTasks updates from server, remove cached entries that now exist on server
+            const toKeep = cached.filter(c => !dailyTasks.find(s => String(s._id) === String(c._id)));
+            if (toKeep.length !== cached.length) {
+                localStorage.setItem(key, JSON.stringify(toKeep));
+            }
+        } catch (e) { }
+    }, [dailyTasks, selectedCourseId]);
 
     // Persist selected course and active tab to localStorage so view survives refresh
     useEffect(() => {
@@ -146,6 +175,16 @@ const AssignmentSubmission = () => {
 
             // Ensure server-sourced data is used on next reload
             try { await fetchDailyTasks(selectedCourseId); } catch (e) { }
+
+            // Cache the submitted task locally so it remains visible after refresh
+            try {
+                const key = `dailyTasks_cache_${selectedCourseId}`;
+                const cached = JSON.parse(localStorage.getItem(key) || '[]');
+                const newTask = res.data.data;
+                // Replace if exists or prepend
+                const updated = [newTask, ...cached.filter(t => String(t._id) !== String(newTask._id))];
+                localStorage.setItem(key, JSON.stringify(updated));
+            } catch (e) { console.error('Cache save failed', e); }
 
             setNewTaskContent('');
             setNewTaskLink('');
