@@ -31,13 +31,7 @@ const FeeManagement = () => {
         fetchFees();
     }, []);
 
-    // Periodically refresh fees so admin changes propagate to student view
-    useEffect(() => {
-        const iv = setInterval(() => {
-            fetchFees();
-        }, 15000); // every 15 seconds
-        return () => clearInterval(iv);
-    }, []);
+    // (No periodic polling — rely on existing refresh and submitted-payment polling)
 
     // Poll for updates while there are submitted payments awaiting verification
     useEffect(() => {
