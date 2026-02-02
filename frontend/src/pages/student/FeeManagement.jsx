@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -23,6 +24,8 @@ const FeeManagement = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState('');
     const [showSlipError, setShowSlipError] = useState(false);
+
+    const navigate = useNavigate();
 
     useEffect(() => {
         fetchFees();
@@ -57,7 +60,7 @@ const FeeManagement = () => {
                 const enrollment = enrollments.find(e =>
                     (e.course?._id || e.course) === (fee.course?._id || fee.course)
                 );
-                return { ...fee, enrollmentId: enrollment?._id };
+                return { ...fee, enrollmentId: enrollment?._id, enrollmentIsActive: enrollment?.isActive || false, courseId: fee.course?._id || fee.course };
             });
 
             // Detect newly verified installments compared to current state
@@ -69,10 +72,17 @@ const FeeManagement = () => {
                     (newFee.installments || []).forEach((inst, idx) => {
                         const oldInst = (oldFee.installments || [])[idx];
                         if (oldInst && oldInst.status !== 'verified' && inst.status === 'verified') {
-                            // Notify student and suggest opening course
+                            // If enrollment is active, navigate student to course page automatically
                             try {
-                                alert(`Payment verified for ${newFee.course?.title || 'your course'}. Course is now accessible.`);
-                            } catch (e) { }
+                                if (newFee.enrollmentIsActive && newFee.courseId) {
+                                    // small delay to allow UI to settle
+                                    setTimeout(() => {
+                                        navigate(`/student/course/${newFee.courseId}`);
+                                    }, 400);
+                                } else {
+                                    alert(`Payment verified for ${newFee.course?.title || 'your course'}. Course is now accessible.`);
+                                }
+                            } catch (e) { console.error(e); }
                         }
                     });
                 });
