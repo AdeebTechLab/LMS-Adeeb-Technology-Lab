@@ -348,7 +348,7 @@ const StudentDashboard = () => {
                                     <motion.div
                                         key={course.id}
                                         whileHover={{ y: -4 }}
-                                        className="bg-white p-4 rounded-2xl border border-gray-100 flex items-center gap-4 hover:shadow-md transition-all cursor-pointer group"
+                                        className="bg-white p-4 rounded-2xl border border-gray-100 flex gap-4 hover:shadow-md transition-all cursor-pointer group"
                                         onClick={() => {
                                             if (course.isCompleted) {
                                                 navigate(`/${role}/assignments`);
@@ -367,62 +367,68 @@ const StudentDashboard = () => {
                                                 return <Icon className={`w-6 h-6 ${style.text}`} />;
                                             })()}
                                         </div>
+
                                         <div className="flex-1 min-w-0">
-                                            <div className="flex justify-between items-start mb-1">
-                                                <h4 className="font-bold text-gray-900 truncate group-hover:text-emerald-600 transition-colors">
-                                                    {course.title}
-                                                </h4>
-                                                {course.isCompleted ? (
-                                                    <Badge variant="success">Completed</Badge>
-                                                ) : !course.isFirstMonthVerified ? (
-                                                    <Badge variant="warning">Verification Pending</Badge>
-                                                ) : !course.isActive ? (
-                                                    <Badge variant="danger">Restricted</Badge>
-                                                ) : (
-                                                    <Badge variant="success">Active</Badge>
-                                                )}
-                                                <Badge variant="info">{course.progress}%</Badge>
+                                            <div className="flex items-start justify-between mb-2">
+                                                <div className="min-w-0">
+                                                    <h4 className="font-bold text-gray-900 truncate group-hover:text-emerald-600 transition-colors">{course.title}</h4>
+                                                    <p className="text-xs text-gray-400 mt-1 truncate">{course.teacher}</p>
+                                                </div>
+
+                                                <div className="flex flex-col items-end ml-4 space-y-1">
+                                                    <div>
+                                                        {course.isCompleted ? (
+                                                            <Badge variant="success">Completed</Badge>
+                                                        ) : !course.isFirstMonthVerified ? (
+                                                            <Badge variant="warning">Verification Pending</Badge>
+                                                        ) : !course.isActive ? (
+                                                            <Badge variant="danger">Restricted</Badge>
+                                                        ) : (
+                                                            <Badge variant="success">Active</Badge>
+                                                        )}
+                                                    </div>
+                                                    <Badge variant="info">{course.progress}%</Badge>
+                                                </div>
                                             </div>
-                                        </div>
-                                        <h4 className="font-bold text-gray-900 mb-1 uppercase tracking-tight group-hover:text-emerald-600 transition-colors">{course.title}</h4>
-                                        <p className="text-xs text-gray-400 font-bold uppercase tracking-widest mb-4 italic">{course.teacher}</p>
 
-                                        <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden mb-4 p-0.5">
-                                            <div
-                                                className="h-full bg-gradient-to-r from-[#ff8e01] to-orange-400 rounded-full shadow-sm"
-                                                style={{ width: `${course.progress}%` }}
-                                            />
-                                        </div>
+                                            <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden mb-3">
+                                                <div
+                                                    className="h-full bg-gradient-to-r from-[#ff8e01] to-orange-400 rounded-full shadow-sm"
+                                                    style={{ width: `${course.progress}%` }}
+                                                />
+                                            </div>
 
-                                        <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-gray-400">
-                                            <span className="flex items-center gap-1">
-                                                <Calendar className="w-3 h-3" />
-                                                {course.nextClass}
-                                            </span>
+                                            <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-gray-400">
+                                                <span className="flex items-center gap-1 truncate">
+                                                    <Calendar className="w-3 h-3" />
+                                                    <span className="truncate">{course.nextClass}</span>
+                                                </span>
 
-                                            {course.bookLink && (
-                                                <a
-                                                    href={course.bookLink}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    onClick={(e) => e.stopPropagation()}
-                                                    className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl shadow-md shadow-indigo-200 hover:bg-indigo-700 hover:shadow-lg transition-all font-black text-[10px] uppercase tracking-widest active:scale-95"
-                                                >
-                                                    <BookOpen className="w-3.5 h-3.5" />
-                                                    COURSE BOOK
-                                                </a>
-                                            )}
+                                                <div className="flex items-center gap-2">
+                                                    {course.bookLink && (
+                                                        <a
+                                                            href={course.bookLink}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            onClick={(e) => e.stopPropagation()}
+                                                            className="flex items-center gap-2 px-3 py-1 bg-indigo-600 text-white rounded-xl shadow-md shadow-indigo-200 hover:bg-indigo-700 hover:shadow-lg transition-all font-black text-[10px] uppercase tracking-widest active:scale-95"
+                                                        >
+                                                            <BookOpen className="w-3.5 h-3.5" />
+                                                            COURSE BOOK
+                                                        </a>
+                                                    )}
 
-                                            {/* Withdraw Option for Unverified Courses */}
-                                            {!course.isFirstMonthVerified && (
-                                                <button
-                                                    onClick={(e) => handleWithdrawClick(e, course)}
-                                                    className="flex items-center gap-1 text-red-500 hover:text-red-600 hover:bg-red-50 px-2 py-1 rounded transition-colors z-10"
-                                                >
-                                                    <Trash2 className="w-3 h-3" />
-                                                    Revoke
-                                                </button>
-                                            )}
+                                                    {!course.isFirstMonthVerified && (
+                                                        <button
+                                                            onClick={(e) => handleWithdrawClick(e, course)}
+                                                            className="flex items-center gap-1 text-red-500 hover:text-red-600 hover:bg-red-50 px-2 py-1 rounded transition-colors z-10"
+                                                        >
+                                                            <Trash2 className="w-3 h-3" />
+                                                            Revoke
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </div>
                                         </div>
                                     </motion.div>
                                 ))}
