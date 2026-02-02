@@ -1,14 +1,17 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { FileText, CheckCircle, Clock, Search, Loader2, ExternalLink, Trash2 } from 'lucide-react';
+import { FileText, CheckCircle, Clock, Search, Loader2, ExternalLink, Trash2, Users, ChevronDown, Check, X } from 'lucide-react';
 import Badge from '../../../components/ui/Badge';
 import api from '../../../services/api';
 
-const DailyTasksTab = ({ course }) => {
+const DailyTasksTab = ({ course, students = [] }) => {
     const [tasks, setTasks] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [selectedStudentFilter, setSelectedStudentFilter] = useState('all');
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [studentSearchTerm, setStudentSearchTerm] = useState('');
 
     useEffect(() => {
         fetchTasks();
@@ -17,7 +20,7 @@ const DailyTasksTab = ({ course }) => {
     const fetchTasks = async () => {
         setIsLoading(true);
         try {
-            const res = await api.get(`/ daily - tasks / course / ${course._id} `);
+            const res = await api.get(`/api/daily-tasks/course/${course._id}`);
             setTasks(res.data.data || []);
         } catch (error) {
             console.error('Error fetching daily tasks:', error);
@@ -70,12 +73,20 @@ const DailyTasksTab = ({ course }) => {
 
     const filteredTasks = tasks.filter(task => {
         // Only show tasks from students passed in props (active & not completed)
-        const isStudentActive = students.some(s => String(s.id) === String(task.user?._id || task.user));
+        const isStudentActive = (students || []).some(s => String(s.id || s._id) === String(task.user?._id || task.user));
+
+        if (!isStudentActive) return false;
+
+        // If a specific student is selected, filter to that user only
+        if (selectedStudentFilter !== 'all') {
+            const userId = String(task.user?._id || task.user);
+            if (userId !== String(selectedStudentFilter)) return false;
+        }
 
         const matchesSearch = task.user?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
             task.content?.toLowerCase().includes(searchQuery.toLowerCase());
 
-        return isStudentActive && matchesSearch;
+        return matchesSearch;
     });
 
     return (
@@ -87,6 +98,84 @@ const DailyTasksTab = ({ course }) => {
                 <button onClick={fetchTasks} className="p-2 hover:bg-gray-100 rounded-lg text-gray-500">
                     <Loader2 className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} />
                 </button>
+            </div>
+
+            {/* Student Filter */}
+            <div className="relative">
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2 mb-2">
+                    <Users className="w-3 h-3" />
+                    Filter by Student
+                </p>
+
+                <div className="flex items-center gap-3">
+                    <div className="relative min-w-[260px]">
+                        <button
+                            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                            className={`w-full flex items-center justify-between px-4 py-3 bg-white border-2 rounded-xl transition-all ${isDropdownOpen ? 'border-emerald-500 ring-4 ring-emerald-500/10' : 'border-gray-100 hover:border-gray-200'}`}>
+                            <div className="flex items-center gap-2">
+                                <Users className="w-4 h-4 text-emerald-600" />
+                                <span className="text-sm font-bold text-gray-700">
+                                    {selectedStudentFilter === 'all' ? 'All Students' : (students.find(s => String(s.id || s._id) === String(selectedStudentFilter))?.name || 'Select Student')}
+                                </span>
+                            </div>
+                            <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                        </button>
+
+                        {isDropdownOpen && (
+                            <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-100 rounded-2xl shadow-2xl z-[60] overflow-hidden">
+                                <div className="p-3 border-b border-gray-50 bg-gray-50/50">
+                                    <div className="relative">
+                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                        <input
+                                            type="text"
+                                            placeholder="Search student name..."
+                                            value={studentSearchTerm}
+                                            onChange={(e) => setStudentSearchTerm(e.target.value)}
+                                            className="w-full pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm outline-none focus:border-emerald-500 transition-all font-medium"
+                                            onClick={(e) => e.stopPropagation()}
+                                            autoFocus
+                                        />
+                                    </div>
+                                </div>
+                                <div className="max-h-60 overflow-y-auto p-2 space-y-1 custom-scrollbar">
+                                    <button
+                                        onClick={() => { setSelectedStudentFilter('all'); setIsDropdownOpen(false); setStudentSearchTerm(''); }}
+                                        className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${selectedStudentFilter === 'all' ? 'bg-emerald-50 text-emerald-700' : 'text-gray-600 hover:bg-gray-50'}`}>
+                                        View All Students
+                                    </button>
+
+                                    <div className="h-px bg-gray-50 my-1" />
+
+                                    {(students || []).filter(s => s.name.toLowerCase().includes(studentSearchTerm.toLowerCase())).map(student => (
+                                        <button
+                                            key={student.id || student._id}
+                                            onClick={() => { setSelectedStudentFilter(student.id || student._id); setIsDropdownOpen(false); setStudentSearchTerm(''); }}
+                                            className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${String(selectedStudentFilter) === String(student.id || student._id) ? 'bg-emerald-50 text-emerald-700' : 'text-gray-600 hover:bg-gray-50'}`}>
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center text-[10px] text-emerald-700">{student.name.charAt(0)}</div>
+                                                {student.name}
+                                            </div>
+                                            {String(selectedStudentFilter) === String(student.id || student._id) && <Check className="w-4 h-4" />}
+                                        </button>
+                                    ))}
+
+                                    {(students || []).filter(s => s.name.toLowerCase().includes(studentSearchTerm.toLowerCase())).length === 0 && (
+                                        <div className="py-8 text-center text-xs text-gray-400 font-medium">No students found</div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {selectedStudentFilter !== 'all' && (
+                        <button onClick={() => setSelectedStudentFilter('all')} className="text-xs font-bold text-red-500 hover:text-red-600 uppercase tracking-wider flex items-center gap-1.5 px-3 py-2 bg-red-50 rounded-lg transition-colors">
+                            <X className="w-3 h-3" />
+                            Clear Filter
+                        </button>
+                    )}
+                </div>
+
+                {isDropdownOpen && <div className="fixed inset-0 z-[55]" onClick={() => setIsDropdownOpen(false)} />}
             </div>
 
             {/* Search */}
