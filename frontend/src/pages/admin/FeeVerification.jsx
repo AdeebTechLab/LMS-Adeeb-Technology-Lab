@@ -102,8 +102,17 @@ const FeeVerification = () => {
         setIsProcessing(true);
         setError('');
         try {
-            await feeAPI.setInstallments(selectedFee._id, installmentPlan);
+            const res = await feeAPI.setInstallments(selectedFee._id, installmentPlan);
+            const updatedFee = res.data.fee;
+
+            // Update local state immediately so reopened modal shows saved values
+            setFees(prev => prev.map(f => (f._id === updatedFee._id ? updatedFee : f)));
+            setAllFees(prev => prev.map(f => (f._id === updatedFee._id ? updatedFee : f)));
+            setSelectedFee(updatedFee);
+
             setIsInstallmentModalOpen(false);
+
+            // Still refresh lists in background for consistency
             if (activeTab === 'all') fetchAllFees();
             else fetchPendingFees();
         } catch (err) {
