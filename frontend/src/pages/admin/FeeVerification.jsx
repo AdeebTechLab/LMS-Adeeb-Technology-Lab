@@ -102,7 +102,14 @@ const FeeVerification = () => {
         setIsProcessing(true);
         setError('');
         try {
-            const res = await feeAPI.setInstallments(selectedFee._id, installmentPlan);
+            // Ensure amounts are numbers and statuses are set when sending
+            const payloadInstallments = installmentPlan.map(inst => ({
+                amount: inst.amount === '' || inst.amount === null ? 0 : Number(inst.amount),
+                dueDate: inst.dueDate || null,
+                status: inst.status || 'pending'
+            }));
+
+            const res = await feeAPI.setInstallments(selectedFee._id, payloadInstallments);
             const updatedFee = res.data.fee;
 
             // Update local state immediately so reopened modal shows saved values
