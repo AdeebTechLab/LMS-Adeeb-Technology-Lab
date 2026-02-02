@@ -18,7 +18,7 @@ export const getCourseIcon = (category, title = '') => {
 
     // Specific mapping for the new list
     if (term.includes('office')) return Briefcase;
-    if (term.includes('freelanc')) return Laptop; // Laptop not imported, using Monitor as fallback or import Laptop
+    if (term.includes('freelanc')) return Monitor; // Monitor used as fallback for freelance icon
     if (term.includes('marketing') || term.includes('ads') || term.includes('seo')) return TrendingUp;
     if (term.includes('video') || term.includes('youtub')) return Video;
     if (term.includes('graphic') || term.includes('design')) return Palette;
