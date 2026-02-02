@@ -279,10 +279,14 @@ router.post('/:id/installments', protect, authorize('admin'), async (req, res) =
                 // Preserve existing paid installment exactly as is
                 newInstallments.push(existing);
             } else {
-                // Create/Update installment - allow setting status to 'verified' (e.g. for cash payments)
+                // Ensure amount is a Number and dueDate exists to satisfy schema
+                const parsedAmount = Number(newInst.amount) || 0;
+                // Prefer provided dueDate, fall back to existing installment's dueDate, then to a reasonable default (i+1 weeks)
+                const parsedDueDate = newInst.dueDate ? new Date(newInst.dueDate) : (existing && existing.dueDate) ? existing.dueDate : new Date(Date.now() + (i + 1) * 7 * 24 * 60 * 60 * 1000);
+
                 newInstallments.push({
-                    amount: newInst.amount,
-                    dueDate: newInst.dueDate,
+                    amount: parsedAmount,
+                    dueDate: parsedDueDate,
                     status: newInst.status === 'verified' ? 'verified' : 'pending',
                     verifiedBy: newInst.status === 'verified' ? req.user.id : undefined,
                     verifiedAt: newInst.status === 'verified' ? new Date() : undefined
