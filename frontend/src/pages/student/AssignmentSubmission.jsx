@@ -31,9 +31,11 @@ const AssignmentSubmission = () => {
     const [resubmittingTaskId, setResubmittingTaskId] = useState(null);
 
     useEffect(() => {
-        if (location.state?.tab) {
-            setActiveTab(location.state.tab);
-        }
+        // Restore tab and selected course from location state or localStorage
+        const savedTab = location.state?.tab || localStorage.getItem('submission_activeTab');
+        const savedCourse = location.state?.courseId || localStorage.getItem('submission_selectedCourse');
+        if (savedTab) setActiveTab(savedTab);
+        if (savedCourse) setSelectedCourseId(savedCourse);
     }, [location.state]);
 
     useEffect(() => {
@@ -96,6 +98,14 @@ const AssignmentSubmission = () => {
         fetchDailyTasks(courseId);
     };
 
+    // Persist selected course and active tab to localStorage so view survives refresh
+    useEffect(() => {
+        try {
+            if (activeTab) localStorage.setItem('submission_activeTab', activeTab);
+            if (selectedCourseId) localStorage.setItem('submission_selectedCourse', selectedCourseId);
+        } catch (e) { }
+    }, [activeTab, selectedCourseId]);
+
     // New state for work link
     const [newTaskLink, setNewTaskLink] = useState('');
 
@@ -133,6 +143,9 @@ const AssignmentSubmission = () => {
             } else {
                 setDailyTasks([res.data.data, ...dailyTasks]);
             }
+
+            // Ensure server-sourced data is used on next reload
+            try { await fetchDailyTasks(selectedCourseId); } catch (e) { }
 
             setNewTaskContent('');
             setNewTaskLink('');
@@ -750,8 +763,8 @@ const AssignmentSubmission = () => {
                 </div>
 
             )}
-            < /div>
-            );
+            </div>
+        );
 };
 
-            export default AssignmentSubmission;
+export default AssignmentSubmission;
