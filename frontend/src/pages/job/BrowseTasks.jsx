@@ -2,12 +2,12 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useSelector } from 'react-redux';
 import {
-    Search, Calendar, Briefcase, CheckCircle, Send, Upload, CreditCard, Loader2, AlertCircle, Link, Trash2,
-    Globe, Cpu, Smartphone, Palette, Grid
+    Search, Calendar, Briefcase, CheckCircle, Send, Upload, CreditCard, Loader2, AlertCircle, Link, Trash2
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
 import { taskAPI } from '../../services/api';
+import { getCategoryIcon, getCategoryColor, getCategoryBg } from '../../utils/taskCategoryIcons';
 
 const BrowseTasks = () => {
     const { user } = useSelector((state) => state.auth);
@@ -58,19 +58,33 @@ const BrowseTasks = () => {
         return task.assignedTo?._id === user?.id || task.assignedTo === user?.id;
     };
 
-    // Get available tasks (open and not applied)
-    const availableTasks = tasks.filter(t => t.status === 'open' && !hasApplied(t));
+    // Check if task deadline has passed
+    const isExpired = (task) => {
+        if (!task.deadline) return false;
+        return new Date(task.deadline) < new Date() && !task.assignedTo;
+    };
+
+    // Get available tasks (open, not applied, not expired)
+    const availableTasks = tasks.filter(t => t.status === 'open' && !hasApplied(t) && !isExpired(t));
 
     // Get tasks I've applied to (from my tasks)
     const appliedTasks = myTasks.filter(t => hasApplied(t) && !isAssignedToMe(t) && t.status === 'open');
 
-    // Get tasks assigned to me
-    const assignedTasks = myTasks.filter(t => isAssignedToMe(t));
+    // Get tasks assigned to me (in progress - not yet submitted or pending payment)
+    const assignedTasks = myTasks.filter(t => isAssignedToMe(t) && (t.status === 'assigned' || (t.status === 'submitted' && !t.paymentSent)));
+
+    // Get completed tasks (payment received)
+    const completedTasks = myTasks.filter(t => isAssignedToMe(t) && t.paymentSent);
+
+    // Get expired tasks (deadline passed without assignment)
+    const expiredTasks = tasks.filter(t => t.status === 'open' && isExpired(t));
 
     const getCurrentTasks = () => {
         switch (activeTab) {
             case 'applied': return appliedTasks;
             case 'assigned': return assignedTasks;
+            case 'completed': return completedTasks;
+            case 'expired': return expiredTasks;
             default: return availableTasks;
         }
     };
@@ -79,14 +93,10 @@ const BrowseTasks = () => {
         t.title?.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-    const getCategoryIcon = (category) => {
-        switch (category) {
-            case 'web': return <Globe className="w-6 h-6 text-white" />;
-            case 'ai': return <Cpu className="w-6 h-6 text-white" />;
-            case 'mobile': return <Smartphone className="w-6 h-6 text-white" />;
-            case 'design': return <Palette className="w-6 h-6 text-white" />;
-            default: return <Grid className="w-6 h-6 text-white" />;
-        }
+    // Render category icon component
+    const renderCategoryIcon = (category) => {
+        const IconComponent = getCategoryIcon(category);
+        return <IconComponent className={`w-6 h-6 ${getCategoryColor(category)}`} />;
     };
 
     const handleApply = async () => {
@@ -195,6 +205,18 @@ const BrowseTasks = () => {
                 >
                     Assigned ({assignedTasks.length})
                 </button>
+                <button
+                    onClick={() => setActiveTab('completed')}
+                    className={`px-5 py-2.5 rounded-lg font-medium transition-all ${activeTab === 'completed' ? 'bg-white text-emerald-600 shadow-sm' : 'text-gray-600'}`}
+                >
+                    Completed ({completedTasks.length})
+                </button>
+                <button
+                    onClick={() => setActiveTab('expired')}
+                    className={`px-5 py-2.5 rounded-lg font-medium transition-all ${activeTab === 'expired' ? 'bg-white text-red-600 shadow-sm' : 'text-gray-600'}`}
+                >
+                    Expired ({expiredTasks.length})
+                </button>
             </div>
 
             {/* Search */}
@@ -227,18 +249,20 @@ const BrowseTasks = () => {
                             className={`bg-white rounded-2xl p-6 border border-gray-100 hover:shadow-lg transition-all ${hasSubmitted ? 'opacity-75' : ''}`}
                         >
                             <div className="flex items-start justify-between mb-4">
-                                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br flex items-center justify-center ${task.category === 'web' ? 'from-blue-400 to-indigo-500' :
-                                    task.category === 'ai' ? 'from-purple-400 to-pink-500' :
-                                        task.category === 'mobile' ? 'from-emerald-400 to-teal-500' :
-                                            task.category === 'design' ? 'from-amber-400 to-orange-500' :
-                                                'from-gray-400 to-slate-500'
-                                    }`}>
-                                    {getCategoryIcon(task.category)}
+                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${getCategoryBg(task.category)}`}>
+                                    {renderCategoryIcon(task.category)}
                                 </div>
-                                {hasApplied(task) && !assigned && <Badge variant="warning">Applied</Badge>}
-                                {assigned && !hasSubmitted && <Badge variant="info">Assigned</Badge>}
-                                {hasSubmitted && !isPaid && <Badge variant="warning">Pending Payment</Badge>}
-                                {isPaid && <Badge variant="success"><CheckCircle className="w-3 h-3 mr-1" />Paid</Badge>}
+                                <div className="flex items-center gap-2">
+                                    {task.applicants?.length > 0 && (
+                                        <span className="px-2.5 py-1 bg-yellow-400 text-yellow-900 text-xs font-extrabold rounded-lg shadow-sm">
+                                            {task.applicants.length} Applicant{task.applicants.length !== 1 ? 's' : ''}
+                                        </span>
+                                    )}
+                                    {hasApplied(task) && !assigned && <Badge variant="warning">Applied</Badge>}
+                                    {assigned && !hasSubmitted && <Badge variant="info">Assigned</Badge>}
+                                    {hasSubmitted && !isPaid && <Badge variant="warning">Pending Payment</Badge>}
+                                    {isPaid && <Badge variant="success"><CheckCircle className="w-3 h-3 mr-1" />Paid</Badge>}
+                                </div>
                             </div>
 
                             <h3 className="font-bold text-gray-900 mb-2">{task.title}</h3>

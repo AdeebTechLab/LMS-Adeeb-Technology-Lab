@@ -94,6 +94,7 @@ export const feeAPI = {
     getMy: () => api.get('/fees/my'),
     getPending: () => api.get('/fees/pending'),
     getAll: () => api.get('/fees/all'),
+    checkStatus: (courseId) => api.get(`/fees/check-status/${courseId}`),
     pay: (feeId, formData) => api.post(`/fees/${feeId}/pay`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
     }),
@@ -171,6 +172,15 @@ export const notificationAPI = {
     delete: (id) => api.delete(`/notifications/${id}`)
 };
 
+// User Notification APIs
+export const userNotificationAPI = {
+    getAll: () => api.get('/user-notifications'),
+    getUnreadCount: () => api.get('/user-notifications/unread-count'),
+    markAsRead: (id) => api.put(`/user-notifications/${id}/read`),
+    markAllAsRead: () => api.put('/user-notifications/mark-all-read'),
+    delete: (id) => api.delete(`/user-notifications/${id}`)
+};
+
 // Chat APIs
 export const chatAPI = {
     getMessages: (otherUserId) => api.get(`/chat/messages/${otherUserId}`),
@@ -181,7 +191,17 @@ export const chatAPI = {
     clearChatHistory: (userId) => {
         console.log(`[API] Requesting to CLEAR CHAT HISTORY for user ${userId} via POST /chat/action/clear-messages/`);
         return api.post(`/chat/action/clear-messages/${userId}`);
-    }
+    },
+    // Course-based chat APIs
+    getCourseMessages: (courseId, userId) => api.get(`/chat/course/${courseId}/messages/${userId}`),
+    sendCourseMessage: (courseId, recipientId, text) => api.post(`/chat/course/${courseId}/send`, { recipientId, text }),
+    getTeacherCourses: () => api.get('/chat/teacher/courses'),
+    getStudentCourses: () => api.get('/chat/student/courses'),
+    searchByEmail: (email, courseId = null) => {
+        const params = courseId ? `?email=${email}&courseId=${courseId}` : `?email=${email}`;
+        return api.get(`/chat/search${params}`);
+    },
+    markCourseAsRead: (courseId, senderId) => api.put(`/chat/course/${courseId}/read/${senderId}`)
 };
 
 // Stats APIs

@@ -394,6 +394,7 @@ const CourseManagement = () => {
                                 )}
                                 <div className="flex items-center gap-1 font-semibold text-emerald-600">
                                     <span>{isNaN(Number(course.fee)) ? course.fee : `Rs ${Number(course.fee).toLocaleString()}`}</span>
+                                    <span className="text-xs font-normal text-gray-500">/month</span>
                                 </div>
                             </div>
                         </div>

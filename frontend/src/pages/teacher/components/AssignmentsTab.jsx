@@ -338,8 +338,10 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                         </div>
                                         <div className="text-right">
                                             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Submissions</p>
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-xl font-black text-gray-900">{gradedCount}<span className="text-sm text-gray-400">/{submissionCount}</span></span>
+                                            <div className="flex items-center gap-1">
+                                                <span className="text-xl font-black text-emerald-600">{submissionCount}</span>
+                                                <span className="text-sm text-gray-400">/</span>
+                                                <span className="text-xl font-black text-red-500">{assignment.assignTo === 'all' ? (students?.length || '?') : (assignment.assignedUsers?.length || 0)}</span>
                                             </div>
                                         </div>
                                         <div className="flex gap-2">
@@ -668,7 +670,14 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                             {submission.user?.name?.charAt(0)}
                                         </div>
                                         <div>
-                                            <p className="font-semibold text-gray-900 text-sm">{submission.user?.name}</p>
+                                            <div className="flex items-center gap-2">
+                                                <p className="font-semibold text-gray-900 text-sm">{submission.user?.name}</p>
+                                                {submission.user?.rollNo && (
+                                                    <span className="text-xs font-bold text-red-500 bg-red-50 px-2 py-0.5 rounded-lg border border-red-100">
+                                                        {submission.user?.rollNo}
+                                                    </span>
+                                                )}
+                                            </div>
                                             <p className="text-xs text-gray-500">
                                                 {new Date(submission.submittedAt).toLocaleDateString()}
                                             </p>

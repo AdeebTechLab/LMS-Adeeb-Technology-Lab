@@ -56,7 +56,7 @@ router.post('/register', uploadRegistration.fields([
             phone,
             role: role || 'student',
             location,
-            isVerified: false,
+            isVerified: true, // Users are verified by default, admin can revoke
             rollNo: assignedRollNo
         };
 
@@ -235,12 +235,12 @@ router.post('/login', async (req, res) => {
             return res.status(401).json({ success: false, message: 'Invalid credentials' });
         }
 
-        // Check verification status (skip for admins)
+        // Check if account has been revoked by admin
         if (user.role !== 'admin' && !user.isVerified) {
             return res.status(403).json({
                 success: false,
-                message: 'Your account is pending admin verification. Please try again later or contact support.',
-                isPending: true
+                message: 'Your account has been suspended by admin. Please contact support.',
+                isRevoked: true
             });
         }
 
@@ -320,13 +320,19 @@ const SystemSetting = require('../models/SystemSetting'); // Import SystemSettin
 
 router.put('/profile', protect, uploadPhoto.single('photo'), async (req, res) => {
     try {
-        // Check Global Bio Editing Permission
+        // Check Global Bio Editing Permission based on user role
         if (req.user.role !== 'admin') { // Admin always allowed
-            const bioSetting = await SystemSetting.findOne({ key: 'allowBioEditing' });
+            // Use role-specific setting key
+            const settingKey = `allowBioEditing_${req.user.role}`;
+            const bioSetting = await SystemSetting.findOne({ key: settingKey });
             const isBioEditingAllowed = bioSetting ? bioSetting.value : false; // Default to false if not set
 
-            if (!isBioEditingAllowed) {
-                // If editing is disabled, allow ONLY photo updates
+            // Check if user has no data - allow editing to fill initial data
+            const user = await User.findById(req.user.id);
+            const hasNoData = !user.phone && !user.city && !user.address;
+
+            if (!isBioEditingAllowed && !hasNoData) {
+                // If editing is disabled and user has data, allow ONLY photo updates
                 if (!req.file) {
                     return res.status(403).json({
                         success: false,
@@ -345,13 +351,9 @@ router.put('/profile', protect, uploadPhoto.single('photo'), async (req, res) =>
             updates.photo = req.file.path;
         }
 
-        // Restrict core fields for non-admins
+        // Restrict only email and role for non-admins (these should never be changed by user)
         if (req.user.role !== 'admin') {
-            const restrictedFields = [
-                'name', 'email', 'rollNo', 'cnic', 'dob', 'gender',
-                'education', 'department', 'specialization', 'qualification',
-                'role', 'isVerified'
-            ];
+            const restrictedFields = ['email', 'role', 'isVerified', 'rollNo'];
             restrictedFields.forEach(field => delete updates[field]);
         }
 

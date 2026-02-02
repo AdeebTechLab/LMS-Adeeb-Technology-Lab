@@ -694,6 +694,15 @@ const FeeVerification = () => {
                         <p className="mt-1">Course Fee: <strong>Rs {(selectedFee?.totalFee || 0).toLocaleString()}</strong></p>
                     </div>
 
+                    {/* Auto-generation notice */}
+                    <div className="bg-red-50 p-4 rounded-xl text-sm text-red-700 border border-red-200">
+                        <p className="font-bold flex items-center gap-2">
+                            <AlertCircle className="w-4 h-4" />
+                            Next month's installment will be automatically created by the system.
+                        </p>
+                        <p className="mt-1 text-xs text-red-600">After the first installment is verified, new installments will be auto-generated monthly using the course fee. You can edit the amount after creation.</p>
+                    </div>
+
                     <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2">
                         {installmentPlan.map((inst, idx) => (
                             <div key={idx} className="flex flex-wrap md:flex-nowrap gap-3 items-end p-3 bg-gray-50/50 rounded-xl border border-gray-100">

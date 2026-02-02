@@ -64,6 +64,9 @@ const ChatWidget = () => {
         socketRef.current.emit('join_chat', myId);
 
         socketRef.current.on('new_global_message', (data) => {
+            // Skip course-based messages - they're handled by course chat tabs
+            if (data.course || data.courseId) return;
+
             const myIdStr = myIdRef.current;
             const senderIdRaw = data.senderId || data.sender?._id || data.sender;
             const recipientIdRaw = data.recipientId || data.recipient?._id || data.recipient;

@@ -5,16 +5,81 @@ const { uploadSubmission } = require('../config/cloudinary');
 const Assignment = require('../models/Assignment');
 const Enrollment = require('../models/Enrollment');
 const Course = require('../models/Course');
+const Fee = require('../models/Fee');
+
+// Helper function to check if student has overdue fees (more than 7 days past due)
+const hasOverdueFee = async (userId, courseId) => {
+    const fee = await Fee.findOne({ user: userId, course: courseId });
+    if (!fee || !fee.installments || fee.installments.length === 0) {
+        return false; // No fee record, allow submission
+    }
+
+    const now = new Date();
+    for (const inst of fee.installments) {
+        if (inst.status !== 'verified' && inst.status !== 'paid') {
+            const dueDate = new Date(inst.dueDate);
+            const daysPastDue = Math.floor((now - dueDate) / (1000 * 60 * 60 * 24));
+            if (daysPastDue > 7) {
+                return true; // Has overdue fee
+            }
+        }
+    }
+    return false;
+};
 
 // @route   GET /api/assignments/course/:courseId
 // @desc    Get assignments for a course
-// @access  Private (Teacher, Admin)
-router.get('/course/:courseId', protect, authorize('teacher', 'admin'), async (req, res) => {
+// @access  Private (Teacher, Admin, Student, Intern)
+router.get('/course/:courseId', protect, async (req, res) => {
     try {
-        const assignments = await Assignment.find({ course: req.params.courseId })
-            .populate('createdBy', 'name')
-            .populate('submissions.user', 'name email rollNo photo')
-            .sort('-createdAt');
+        const courseId = req.params.courseId;
+        const userRole = req.user.role;
+        const userId = req.user.id;
+
+        let assignments;
+
+        if (userRole === 'teacher' || userRole === 'admin') {
+            // Teachers/Admins see all assignments with all submissions
+            assignments = await Assignment.find({ course: courseId })
+                .populate('createdBy', 'name')
+                .populate('submissions.user', 'name email rollNo photo')
+                .sort('-createdAt');
+        } else {
+            // Students/Interns - check enrollment first
+            const enrollment = await Enrollment.findOne({ 
+                user: userId, 
+                course: courseId 
+            });
+
+            if (!enrollment) {
+                return res.status(403).json({ success: false, message: 'Not enrolled in this course' });
+            }
+
+            const userRegistrationDate = enrollment.registrationDate || new Date(0);
+
+            // Get assignments that are assigned to this user or to 'all' (created after registration)
+            assignments = await Assignment.find({
+                course: courseId,
+                $or: [
+                    { createdAt: { $gte: userRegistrationDate }, assignTo: 'all' },
+                    { assignedUsers: userId },
+                    { "submissions.user": userId }
+                ]
+            })
+                .populate('createdBy', 'name')
+                .sort('-createdAt');
+
+            // Filter submissions to only show current user's submission
+            assignments = assignments.map(assignment => {
+                const assignmentObj = assignment.toObject();
+                if (assignmentObj.submissions) {
+                    assignmentObj.submissions = assignmentObj.submissions.filter(
+                        s => s.user.toString() === userId
+                    );
+                }
+                return assignmentObj;
+            });
+        }
 
         res.json({ success: true, assignments });
     } catch (error) {
@@ -72,6 +137,16 @@ router.post('/:id/submit', protect, uploadSubmission.single('file'), async (req,
             return res.status(404).json({ success: false, message: 'Assignment not found' });
         }
 
+        // Check for overdue fee payment (more than 7 days past due)
+        const isOverdue = await hasOverdueFee(req.user.id, assignment.course);
+        if (isOverdue) {
+            return res.status(403).json({ 
+                success: false, 
+                message: 'You have an overdue fee payment. Please pay your installment to submit assignments.',
+                code: 'FEE_OVERDUE'
+            });
+        }
+
         // Check if user is assigned
         if (assignment.assignTo !== 'all' && !assignment.assignedUsers.includes(req.user.id)) {
             return res.status(403).json({ success: false, message: 'Not assigned to this assignment' });
@@ -101,6 +176,41 @@ router.post('/:id/submit', protect, uploadSubmission.single('file'), async (req,
         });
 
         await assignment.save();
+
+        // Emit socket event to notify teachers about new submission
+        const io = req.app.get('io');
+        if (io) {
+            // Get the course to find teachers
+            const course = await Course.findById(assignment.course).populate('teachers', '_id name');
+            if (course && course.teachers && course.teachers.length > 0) {
+                const submissionData = {
+                    type: 'assignment_submission',
+                    courseId: assignment.course.toString(),
+                    assignmentId: assignment._id.toString(),
+                    assignmentTitle: assignment.title,
+                    studentId: req.user.id,
+                    studentName: req.user.name
+                };
+                
+                console.log('📝 Assignment submitted, notifying teachers:', course.teachers.map(t => t._id.toString()));
+                
+                // Notify each teacher of the course
+                for (const teacher of course.teachers) {
+                    const teacherRoom = teacher._id.toString();
+                    console.log(`📤 Emitting new_submission to teacher room: ${teacherRoom}`);
+                    
+                    // Check if room has any sockets
+                    const room = io.sockets.adapter.rooms.get(teacherRoom);
+                    console.log(`   Room ${teacherRoom} has ${room ? room.size : 0} sockets`);
+                    
+                    io.to(teacherRoom).emit('new_submission', submissionData);
+                }
+            } else {
+                console.log('⚠️ No teachers found for course:', assignment.course);
+            }
+        } else {
+            console.log('⚠️ Socket.io not available');
+        }
 
         res.json({ success: true, message: 'Assignment submitted' });
     } catch (error) {

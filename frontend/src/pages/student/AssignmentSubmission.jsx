@@ -1,13 +1,22 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
     CheckCircle, Clock, Calendar, Search, Filter, AlertCircle, XCircle, ChevronLeft, ChevronRight,
-    BookOpen, GraduationCap, ArrowRight, ExternalLink, Send, FileText, ClipboardList, Plus, Loader2, Link as LinkIcon
+    BookOpen, GraduationCap, ArrowRight, ExternalLink, Send, FileText, ClipboardList, Plus, Loader2, Link as LinkIcon, MessageCircle
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
-import { assignmentAPI, courseAPI, dailyTaskAPI, enrollmentAPI } from '../../services/api';
+import { assignmentAPI, courseAPI, dailyTaskAPI, enrollmentAPI, chatAPI, feeAPI } from '../../services/api';
+import StudentChatTab from './components/StudentChatTab';
+import { io } from 'socket.io-client';
+
+const getSocketURL = () => {
+    const rawUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    return rawUrl.replace('/api', '');
+};
+
+const SOCKET_URL = getSocketURL();
 
 // Portal for submissions and work logs
 const AssignmentSubmission = () => {
@@ -29,6 +38,58 @@ const AssignmentSubmission = () => {
     const [dailyTasks, setDailyTasks] = useState([]);
     const [newTaskContent, setNewTaskContent] = useState('');
     const [resubmittingTaskId, setResubmittingTaskId] = useState(null);
+    const [chatUnreadCount, setChatUnreadCount] = useState(0);
+    const [feeOverdue, setFeeOverdue] = useState({ hasOverdue: false, overdueInstallment: null });
+    const socketRef = useRef();
+    const activeTabRef = useRef(activeTab);
+
+    // Keep ref in sync with activeTab
+    useEffect(() => {
+        activeTabRef.current = activeTab;
+        // Clear unread when switching to chat tab
+        if (activeTab === 'chat') {
+            setChatUnreadCount(0);
+        }
+    }, [activeTab]);
+
+    // Fetch initial unread count and setup socket
+    useEffect(() => {
+        const fetchUnreadCount = async () => {
+            try {
+                const res = await chatAPI.getStudentCourses();
+                const courses = res.data.data || [];
+                const totalUnread = courses.reduce((sum, c) => sum + (c.totalUnread || 0), 0);
+                setChatUnreadCount(totalUnread);
+            } catch (error) {
+                console.error('Error fetching unread count:', error);
+            }
+        };
+
+        fetchUnreadCount();
+
+        // Setup socket for real-time notifications
+        socketRef.current = io(SOCKET_URL, { withCredentials: true });
+        const myId = user?.id || user?._id;
+        if (myId) {
+            socketRef.current.emit('join_chat', myId);
+        }
+
+        socketRef.current.on('new_global_message', (data) => {
+            // Only count if it's a course message and we're not on chat tab
+            if (data.course || data.courseId) {
+                const senderId = String(data.senderId || data.sender?._id || data.sender);
+                const myIdStr = String(user?.id || user?._id);
+                // If message is from someone else (teacher sending to us)
+                if (senderId !== myIdStr && activeTabRef.current !== 'chat') {
+                    setChatUnreadCount(prev => prev + 1);
+                }
+            }
+        });
+
+        return () => {
+            if (socketRef.current) socketRef.current.disconnect();
+        };
+    }, [user]);
 
     useEffect(() => {
         // Restore tab and selected course from location state or localStorage
@@ -68,6 +129,7 @@ const AssignmentSubmission = () => {
             if (selectedCourseId) {
                 const enroll = myEnrollments.find(e => (e.course?._id || e.course) === selectedCourseId);
                 setSelectedEnrollment(enroll);
+                fetchDailyTasks(selectedCourseId);
             } else if (internCourses.length > 0) {
                 // Find first "active" or just first one
                 const firstAvailable = internCourses.find(c => c.isActive) || internCourses[0];
@@ -110,7 +172,30 @@ const AssignmentSubmission = () => {
     const handleCourseChange = (courseId) => {
         setSelectedCourseId(courseId);
         fetchDailyTasks(courseId);
+        checkFeeStatus(courseId);
     };
+
+    // Check fee status for selected course
+    const checkFeeStatus = async (courseId) => {
+        if (!courseId) return;
+        try {
+            const res = await feeAPI.checkStatus(courseId);
+            setFeeOverdue({
+                hasOverdue: res.data.hasOverdue || false,
+                overdueInstallment: res.data.overdueInstallment || null
+            });
+        } catch (error) {
+            console.error('Error checking fee status:', error);
+            setFeeOverdue({ hasOverdue: false, overdueInstallment: null });
+        }
+    };
+
+    // Check fee status when course is selected
+    useEffect(() => {
+        if (selectedCourseId) {
+            checkFeeStatus(selectedCourseId);
+        }
+    }, [selectedCourseId]);
 
     // Cleanup cached items that exist on server after fetching
     useEffect(() => {
@@ -142,17 +227,18 @@ const AssignmentSubmission = () => {
         e.preventDefault();
         if (!newTaskContent.trim() || !selectedCourseId) return;
 
-        // Check restriction
+        // Check restriction using fee status from API
+        if (feeOverdue.hasOverdue) {
+            alert(`You have an overdue fee payment (Installment #${feeOverdue.overdueInstallment?.installmentNumber || '?'}, ${feeOverdue.overdueInstallment?.daysPastDue || 0} days overdue). Please pay your installment to submit daily tasks.`);
+            return;
+        }
+
+        // Check first payment verification
         const enroll = enrollments.find(e => (e.course?._id || e.course) === selectedCourseId);
-        const isRestricted = enroll && !enroll.isActive && enroll.installments?.[0]?.status === 'verified';
         const isBlocked = enroll && enroll.installments?.[0]?.status !== 'verified';
 
         if (isBlocked) {
             alert('Access to this course is blocked until your first payment is verified.');
-            return;
-        }
-        if (isRestricted) {
-            alert('Your account is restricted due to overdue fees. Submissions are disabled.');
             return;
         }
 
@@ -333,9 +419,9 @@ const AssignmentSubmission = () => {
     };
 
     const handleSubmit = async (assignmentId) => {
-        const isRestricted = selectedEnrollment && !selectedEnrollment.isActive;
-        if (isRestricted) {
-            alert('Your account is restricted due to overdue fees. Submissions are disabled.');
+        // Check for overdue fee payment
+        if (feeOverdue.hasOverdue) {
+            alert(`You have an overdue fee payment (Installment #${feeOverdue.overdueInstallment?.installmentNumber || '?'}, ${feeOverdue.overdueInstallment?.daysPastDue || 0} days overdue). Please pay your installment to submit assignments.`);
             return;
         }
 
@@ -416,6 +502,20 @@ const AssignmentSubmission = () => {
                         >
                             <ClipboardList className="w-4 h-4 inline mr-2" />
                             {user?.role === 'intern' ? 'Daily Tasks' : 'Class Logs'}
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('chat')}
+                            className={`px-6 py-2 rounded-lg text-sm font-bold transition-all relative ${activeTab === 'chat'
+                                ? 'bg-white text-emerald-600 shadow-sm'
+                                : 'text-gray-500 hover:text-gray-700'}`}
+                        >
+                            <MessageCircle className="w-4 h-4 inline mr-2" />
+                            Chat
+                            {chatUnreadCount > 0 && activeTab !== 'chat' && (
+                                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center animate-pulse">
+                                    {chatUnreadCount > 9 ? '9+' : chatUnreadCount}
+                                </span>
+                            )}
                         </button>
                     </div>
                 </div>
@@ -537,18 +637,21 @@ const AssignmentSubmission = () => {
                             </div>
                         )}
 
-                        {/* Restricted Warning */}
-                        {selectedEnrollment && selectedEnrollment.status !== 'completed' && !selectedEnrollment.isActive && (
+                        {/* Fee Overdue Warning */}
+                        {feeOverdue.hasOverdue && (
                             <div className="bg-red-50 border border-red-100 px-4 py-2 rounded-xl flex items-center gap-3 text-red-600 animate-pulse">
                                 <AlertCircle className="w-5 h-5" />
-                                <span className="text-xs font-black uppercase tracking-widest">Payment Overdue - Submissions Disabled</span>
+                                <div className="flex flex-col">
+                                    <span className="text-xs font-black uppercase tracking-widest">Payment Overdue - Submissions Disabled</span>
+                                    <span className="text-[10px] font-medium">Installment #{feeOverdue.overdueInstallment?.installmentNumber} is {feeOverdue.overdueInstallment?.daysPastDue} days overdue. Please pay to unlock submissions.</span>
+                                </div>
                             </div>
                         )}
                     </div>
 
                     {(() => {
                         const isCompleted = selectedEnrollment && selectedEnrollment.status === 'completed';
-                        const isRestricted = selectedEnrollment && !selectedEnrollment.isActive && !isCompleted;
+                        const isRestricted = feeOverdue.hasOverdue;
 
                         return (
                             <>
@@ -682,7 +785,7 @@ const AssignmentSubmission = () => {
                                             </div>
                                         )}
                                     </div>
-                                ) : (
+                                ) : activeTab === 'daily_tasks' ? (
                                     /* DAILY LOGS VIEW */
                                     <div className="space-y-6">
                                         <div className="bg-white rounded-[2.5rem] p-10 border border-gray-100 shadow-sm">
@@ -794,6 +897,21 @@ const AssignmentSubmission = () => {
                                                     ))
                                             )}
                                         </div>
+                                    </div>
+                                ) : (
+                                    /* CHAT VIEW */
+                                    <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm min-h-[500px]">
+                                        {selectedCourseId && myCourses.find(c => c._id === selectedCourseId) ? (
+                                            <StudentChatTab 
+                                                course={myCourses.find(c => c._id === selectedCourseId)} 
+                                                isRestricted={isRestricted} 
+                                            />
+                                        ) : (
+                                            <div className="flex flex-col items-center justify-center h-full py-20 text-gray-400">
+                                                <MessageCircle className="w-16 h-16 mb-4 opacity-50" />
+                                                <p className="text-lg font-bold">Select a course to start chatting</p>
+                                            </div>
+                                        )}
                                     </div>
                                 )}
                             </>

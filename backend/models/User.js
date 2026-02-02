@@ -87,10 +87,10 @@ const userSchema = new mongoose.Schema({
     // Teacher specific
     specialization: String,
     qualification: String,
-    // Verification status
+    // Verification status (true by default, admin can revoke)
     isVerified: {
         type: Boolean,
-        default: false
+        default: true
     },
     verifiedAt: Date,
     verifiedBy: {

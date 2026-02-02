@@ -4,6 +4,7 @@ const { protect, authorize } = require('../middleware/auth');
 const { uploadSubmission } = require('../config/cloudinary');
 const PaidTask = require('../models/PaidTask');
 const User = require('../models/User');
+const UserNotification = require('../models/UserNotification');
 
 // @route   GET /api/tasks
 // @desc    Get all tasks
@@ -23,7 +24,7 @@ router.get('/', async (req, res) => {
 
         const tasks = await PaidTask.find(query)
             .populate('assignedTo', 'name email')
-            .populate('applicants.user', 'name email phone skills experience portfolio completedTasks rating')
+            .populate('applicants.user', 'name email phone skills experience portfolio completedTasks rating cvUrl photo education address city cnic')
             .sort('-createdAt');
 
         res.json({ success: true, data: tasks });
@@ -101,6 +102,20 @@ router.post('/:id/apply', protect, authorize('job'), async (req, res) => {
         });
 
         await task.save();
+
+        // Create notification for all admin users
+        const admins = await User.find({ role: 'admin' });
+        const notificationPromises = admins.map(admin =>
+            UserNotification.create({
+                user: admin._id,
+                title: 'New Job Application',
+                message: `${req.user.name} applied for "${task.title}"`,
+                type: 'task_application',
+                relatedTask: task._id,
+                relatedUser: req.user.id
+            })
+        );
+        await Promise.all(notificationPromises);
 
         res.json({ success: true, message: 'Application submitted' });
     } catch (error) {
@@ -205,11 +220,12 @@ router.get('/my', protect, authorize('job'), async (req, res) => {
                 { assignedTo: req.user.id }
             ]
         })
-            .populate('messages.sender', 'name role')
+            .populate('assignedTo', 'name email')
             .sort('-createdAt');
 
         res.json({ success: true, data: tasks });
     } catch (error) {
+        console.error('Error in /my route:', error);
         res.status(500).json({ success: false, message: error.message });
     }
 });

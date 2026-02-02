@@ -41,14 +41,20 @@ const TeacherProfile = () => {
 
     const [allowBioEditing, setAllowBioEditing] = useState(true);
 
+    // Check if user has bio data - if no data, allow editing regardless of setting
+    const hasNoData = !user?.phone && !user?.city && !user?.address;
+
     const fetchSettings = async () => {
         try {
             const res = await settingsAPI.getAll();
-            setAllowBioEditing(res.data.data.allowBioEditing ?? false);
+            setAllowBioEditing(res.data.data.allowBioEditing_teacher ?? false);
         } catch (error) {
             console.error('Error fetching settings:', error);
         }
     };
+
+    // Final check: allow editing if setting is on OR if user has no data
+    const canEditBio = allowBioEditing || hasNoData;
 
     const fetchMyCourses = async () => {
         try {
@@ -243,22 +249,19 @@ const TeacherProfile = () => {
                         Personal Information
                     </h2>
                     <div className="space-y-4">
-                        <InfoField icon={User} label="Full Name" value={profileData.fullName} name="fullName" editable={false} />
+                        <InfoField icon={User} label="Full Name" value={profileData.fullName} name="fullName" editable={canEditBio} />
                         <InfoField icon={Mail} label="Email" value={profileData.email} name="email" type="email" editable={false} />
-                        <InfoField icon={Mail} label="Email" value={profileData.email} name="email" type="email" editable={false} />
-                        <InfoField icon={Phone} label="Phone" value={profileData.phone} name="phone" editable={allowBioEditing} />
-                        {!allowBioEditing && isEditing && (
+                        <InfoField icon={Phone} label="Phone" value={profileData.phone} name="phone" editable={canEditBio} />
+                        {!canEditBio && isEditing && (
                             <p className="text-xs text-red-500 font-medium px-4">
                                 * Bio editing is currently disabled by administrator.
                             </p>
                         )}
-                        <p className="text-[10px] text-amber-600 font-bold uppercase tracking-widest px-4 italic">* Contact admin to change legal biodata (Name, CNIC, etc.)</p>
-                        <InfoField icon={CreditCard} label="CNIC" value={profileData.cnic} name="cnic" editable={false} />
-                        <InfoField icon={GraduationCap} label="Qualification" value={profileData.qualification} name="qualification" editable={false} />
-                        <InfoField icon={Briefcase} label="Specialization / Skills" value={profileData.specialization} name="specialization" editable={false} />
-                        <InfoField icon={Briefcase} label="Experience" value={profileData.experience} name="experience" editable={false} />
-                        <InfoField icon={Briefcase} label="Experience" value={profileData.experience} name="experience" editable={false} />
-                        <InfoField icon={MapPin} label="City" value={profileData.city} name="city" editable={allowBioEditing} />
+                        <InfoField icon={CreditCard} label="CNIC" value={profileData.cnic} name="cnic" editable={canEditBio} />
+                        <InfoField icon={GraduationCap} label="Qualification" value={profileData.qualification} name="qualification" editable={canEditBio} />
+                        <InfoField icon={Briefcase} label="Specialization / Skills" value={profileData.specialization} name="specialization" editable={canEditBio} />
+                        <InfoField icon={Briefcase} label="Experience" value={profileData.experience} name="experience" editable={canEditBio} />
+                        <InfoField icon={MapPin} label="City" value={profileData.city} name="city" editable={canEditBio} />
                     </div>
                 </motion.div>
 

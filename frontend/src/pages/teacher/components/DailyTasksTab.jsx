@@ -13,14 +13,13 @@ const DailyTasksTab = ({ course, students = [] }) => {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [studentSearchTerm, setStudentSearchTerm] = useState('');
 
-    useEffect(() => {
-        fetchTasks();
-    }, [course._id]);
-
     const fetchTasks = async () => {
+        const courseId = course?._id || course?.id;
+        if (!courseId) return;
+        
         setIsLoading(true);
         try {
-            const res = await api.get(`/api/daily-tasks/course/${course._id}`);
+            const res = await api.get(`/daily-tasks/course/${courseId}`);
             setTasks(res.data.data || []);
         } catch (error) {
             console.error('Error fetching daily tasks:', error);
@@ -28,6 +27,10 @@ const DailyTasksTab = ({ course, students = [] }) => {
             setIsLoading(false);
         }
     };
+
+    useEffect(() => {
+        fetchTasks();
+    }, [course?._id, course?.id]);
 
     const handleVerifyClick = (task) => {
         submitVerification(task._id, 'verified');
@@ -42,7 +45,7 @@ const DailyTasksTab = ({ course, students = [] }) => {
         if (!confirm('Are you sure you want to delete this log entry permanently?')) return;
         setIsSubmitting(true);
         try {
-            await api.delete(`/ daily - tasks / ${task._id} `);
+            await api.delete(`/daily-tasks/${task._id}`);
             setTasks(prev => prev.filter(t => t._id !== task._id));
             alert('Log entry deleted successfully');
         } catch (error) {
@@ -56,7 +59,7 @@ const DailyTasksTab = ({ course, students = [] }) => {
     const submitVerification = async (taskId, status) => {
         setIsSubmitting(true);
         try {
-            const res = await api.put(`/ daily - tasks / ${taskId}/grade`, {
+            const res = await api.put(`/daily-tasks/${taskId}/grade`, {
                 status
             });
 
@@ -219,6 +222,11 @@ const DailyTasksTab = ({ course, students = [] }) => {
                                                     {task.user?.role === 'intern' ? 'LOG' : 'CLASS'} #{logNumber}
                                                 </span>
                                                 <h4 className="font-bold text-gray-900">{task.user?.name}</h4>
+                                                {task.user?.rollNo && (
+                                                    <span className="text-[10px] font-black text-red-500 bg-red-50 px-2 py-0.5 rounded-lg border border-red-100">
+                                                        {task.user?.rollNo}
+                                                    </span>
+                                                )}
                                                 <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border ${task.user?.role === 'intern' ? 'bg-purple-50 text-purple-600 border-purple-100' : 'bg-blue-50 text-blue-600 border-blue-100'
                                                     }`}>
                                                     {task.user?.role || 'student'}

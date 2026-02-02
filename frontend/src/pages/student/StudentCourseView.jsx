@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ChevronLeft, FileText, ClipboardList, Clock, Loader2, BookOpen, Calendar, MapPin, CreditCard, AlertCircle, Trash2 } from 'lucide-react';
+import { ChevronLeft, FileText, ClipboardList, Clock, Loader2, BookOpen, Calendar, MapPin, CreditCard, AlertCircle, Trash2, MessageCircle } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
 import { courseAPI, enrollmentAPI } from '../../services/api';
@@ -10,6 +10,7 @@ import { courseAPI, enrollmentAPI } from '../../services/api';
 import StudentAttendanceTab from './components/StudentAttendanceTab';
 import StudentAssignmentsTab from './components/StudentAssignmentsTab';
 import StudentDailyTasksTab from './components/StudentDailyTasksTab';
+import StudentChatTab from './components/StudentChatTab';
 
 import { useSelector } from 'react-redux';
 
@@ -235,6 +236,16 @@ const StudentCourseView = () => {
                                 <Clock className="w-4 h-4 inline mr-2" />
                                 Attendance
                             </button>
+                            <button
+                                onClick={() => setActiveTab('chat')}
+                                className={`px-8 py-3 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${activeTab === 'chat'
+                                    ? 'bg-white text-emerald-600 shadow-sm border border-emerald-100'
+                                    : 'text-gray-500 hover:text-gray-900'
+                                    }`}
+                            >
+                                <MessageCircle className="w-4 h-4 inline mr-2" />
+                                Chat
+                            </button>
                         </div>
 
                         {/* Tab Content */}
@@ -247,6 +258,7 @@ const StudentCourseView = () => {
                             {activeTab === 'daily_tasks' && <StudentDailyTasksTab course={course} isRestricted={isSubmissionRestricted} />}
                             {activeTab === 'assignments' && <StudentAssignmentsTab course={course} isRestricted={isSubmissionRestricted} />}
                             {activeTab === 'attendance' && <StudentAttendanceTab course={course} />}
+                            {activeTab === 'chat' && <StudentChatTab course={course} />}
                         </motion.div>
                     </>
                 )}

@@ -397,6 +397,49 @@ router.delete('/:id/installments/:installmentId', protect, authorize('admin'), a
     }
 });
 
+// @route   GET /api/fees/check-status/:courseId
+// @desc    Check if current user has overdue fee for a course
+// @access  Private
+router.get('/check-status/:courseId', protect, async (req, res) => {
+    try {
+        const fee = await Fee.findOne({ user: req.user.id, course: req.params.courseId });
+        
+        if (!fee || !fee.installments || fee.installments.length === 0) {
+            return res.json({ success: true, hasOverdue: false, canSubmit: true });
+        }
+
+        const now = new Date();
+        let hasOverdue = false;
+        let overdueInstallment = null;
+
+        for (const inst of fee.installments) {
+            if (inst.status !== 'verified' && inst.status !== 'paid') {
+                const dueDate = new Date(inst.dueDate);
+                const daysPastDue = Math.floor((now - dueDate) / (1000 * 60 * 60 * 24));
+                if (daysPastDue > 7) {
+                    hasOverdue = true;
+                    overdueInstallment = {
+                        installmentNumber: fee.installments.indexOf(inst) + 1,
+                        amount: inst.amount,
+                        dueDate: inst.dueDate,
+                        daysPastDue: daysPastDue
+                    };
+                    break;
+                }
+            }
+        }
+
+        res.json({ 
+            success: true, 
+            hasOverdue, 
+            canSubmit: !hasOverdue,
+            overdueInstallment
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
 // @route   DELETE /api/fees/:id
 // @desc    Delete fee and cleanup associated Cloudinary images (admin)
 // @access  Private (Admin)

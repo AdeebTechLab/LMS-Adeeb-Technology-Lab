@@ -5,12 +5,14 @@ import {
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
-import { taskAPI } from '../../services/api';
+import { taskAPI, userNotificationAPI } from '../../services/api';
 import { useSelector } from 'react-redux';
+import { getCategoryIcon, getCategoryColor, getCategoryBg } from '../../utils/taskCategoryIcons';
 
 const PaidTasksManagement = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+    const [activeTab, setActiveTab] = useState('all');
     const [isLoading, setIsLoading] = useState(false);
     const [isFetching, setIsFetching] = useState(true);
     const { user } = useSelector((state) => state.auth);
@@ -100,7 +102,29 @@ const PaidTasksManagement = () => {
         }
     };
 
-    const filteredTasks = tasks.filter((task) =>
+    // Check if task deadline has passed without assignment
+    const isExpired = (task) => {
+        if (!task.deadline) return false;
+        return new Date(task.deadline) < new Date() && !task.assignedTo && task.status === 'open';
+    };
+
+    // Filter tasks by status category
+    const openTasks = tasks.filter(t => t.status === 'open' && !isExpired(t));
+    const assignedTasks = tasks.filter(t => t.status === 'assigned' || t.status === 'submitted');
+    const completedTasks = tasks.filter(t => t.status === 'completed');
+    const expiredTasks = tasks.filter(t => isExpired(t));
+
+    const getFilteredByTab = () => {
+        switch (activeTab) {
+            case 'open': return openTasks;
+            case 'assigned': return assignedTasks;
+            case 'completed': return completedTasks;
+            case 'expired': return expiredTasks;
+            default: return tasks;
+        }
+    };
+
+    const filteredTasks = getFilteredByTab().filter((task) =>
         task.title?.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
@@ -178,6 +202,26 @@ const PaidTasksManagement = () => {
         }
     };
 
+    const handleViewApplicants = async (task) => {
+        setSelectedTask(task);
+        setViewMode('applicants');
+
+        // Mark related notifications as read
+        try {
+            const notifRes = await userNotificationAPI.getAll();
+            const relatedNotifications = (notifRes.data.data || []).filter(
+                n => n.relatedTask?._id === task._id || n.relatedTask === task._id
+            );
+            for (const notif of relatedNotifications) {
+                if (!notif.isRead) {
+                    await userNotificationAPI.markAsRead(notif._id);
+                }
+            }
+        } catch (err) {
+            console.error('Error marking notifications as read:', err);
+        }
+    };
+
     const handleVerifyAndPay = async (taskId) => {
         try {
             await taskAPI.complete(taskId);
@@ -246,6 +290,40 @@ const PaidTasksManagement = () => {
                 </div>
             )}
 
+            {/* Tabs */}
+            <div className="flex gap-2 bg-gray-100 p-1 rounded-xl w-fit">
+                <button
+                    onClick={() => setActiveTab('all')}
+                    className={`px-5 py-2.5 rounded-lg font-medium transition-all ${activeTab === 'all' ? 'bg-white text-purple-600 shadow-sm' : 'text-gray-600'}`}
+                >
+                    All ({tasks.length})
+                </button>
+                <button
+                    onClick={() => setActiveTab('open')}
+                    className={`px-5 py-2.5 rounded-lg font-medium transition-all ${activeTab === 'open' ? 'bg-white text-purple-600 shadow-sm' : 'text-gray-600'}`}
+                >
+                    Open ({openTasks.length})
+                </button>
+                <button
+                    onClick={() => setActiveTab('assigned')}
+                    className={`px-5 py-2.5 rounded-lg font-medium transition-all ${activeTab === 'assigned' ? 'bg-white text-amber-600 shadow-sm' : 'text-gray-600'}`}
+                >
+                    Assigned ({assignedTasks.length})
+                </button>
+                <button
+                    onClick={() => setActiveTab('completed')}
+                    className={`px-5 py-2.5 rounded-lg font-medium transition-all ${activeTab === 'completed' ? 'bg-white text-emerald-600 shadow-sm' : 'text-gray-600'}`}
+                >
+                    Completed ({completedTasks.length})
+                </button>
+                <button
+                    onClick={() => setActiveTab('expired')}
+                    className={`px-5 py-2.5 rounded-lg font-medium transition-all ${activeTab === 'expired' ? 'bg-white text-red-600 shadow-sm' : 'text-gray-600'}`}
+                >
+                    Expired ({expiredTasks.length})
+                </button>
+            </div>
+
             {/* Search */}
             <div className="bg-white rounded-2xl p-4 border border-gray-100">
                 <div className="flex items-center bg-gray-50 rounded-xl px-4 py-3">
@@ -282,10 +360,20 @@ const PaidTasksManagement = () => {
                             className={`bg-white rounded-2xl p-6 border border-gray-100 ${task.status === 'assigned' ? 'opacity-75' : ''}`}
                         >
                             <div className="flex items-start justify-between mb-4">
-                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center">
-                                    <Briefcase className="w-6 h-6 text-white" />
-                                </div>
-                                <div className="flex gap-2">
+                                {(() => {
+                                    const IconComponent = getCategoryIcon(task.category);
+                                    return (
+                                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${getCategoryBg(task.category)}`}>
+                                            <IconComponent className={`w-6 h-6 ${getCategoryColor(task.category)}`} />
+                                        </div>
+                                    );
+                                })()}
+                                <div className="flex items-center gap-2">
+                                    {task.applicants?.length > 0 && (
+                                        <span className="px-2.5 py-1 bg-yellow-400 text-yellow-900 text-xs font-extrabold rounded-lg shadow-sm">
+                                            {task.applicants.length} Applicant{task.applicants.length !== 1 ? 's' : ''}
+                                        </span>
+                                    )}
                                     <Badge variant={statusConfig.variant}>{statusConfig.label}</Badge>
                                     <button
                                         onClick={() => handleDeleteTask(task._id)}
@@ -328,11 +416,19 @@ const PaidTasksManagement = () => {
                                 </span>
                             </div>
 
+                            {/* Assigned Person Info */}
+                            {task.assignedTo && (
+                                <div className="mb-4 p-3 bg-amber-50 rounded-xl border border-amber-100">
+                                    <p className="text-xs font-bold text-amber-700 uppercase tracking-wider mb-1">Assigned To</p>
+                                    <p className="text-sm font-semibold text-gray-900">{task.assignedTo?.name}</p>
+                                </div>
+                            )}
+
                             {/* Actions based on status */}
                             <div className="flex gap-2 pt-4 border-t border-gray-100">
                                 {task.status === 'open' && (
                                     <button
-                                        onClick={() => { setSelectedTask(task); setViewMode('applicants'); }}
+                                        onClick={() => handleViewApplicants(task)}
                                         className="flex-1 py-2 text-sm font-medium text-purple-600 bg-purple-50 hover:bg-purple-100 rounded-xl flex items-center justify-center gap-1"
                                     >
                                         <Users className="w-4 h-4" />
@@ -340,13 +436,8 @@ const PaidTasksManagement = () => {
                                     </button>
                                 )}
                                 {task.status === 'assigned' && (
-                                    <div className="flex gap-2 w-full">
-                                        <div className="flex-1 py-2 text-sm text-gray-500">
-                                            Assigned to: <strong>{task.assignedTo?.name}</strong>
-                                        </div>
-                                        <div className="flex-1 py-2 text-sm text-gray-500">
-                                            Assigned to: <strong>{task.assignedTo?.name}</strong>
-                                        </div>
+                                    <div className="flex-1 py-2 text-sm text-center text-amber-600 bg-amber-50 rounded-xl">
+                                        Work in Progress
                                     </div>
                                 )}
                                 {task.status === 'submitted' && (
@@ -356,7 +447,7 @@ const PaidTasksManagement = () => {
                                             className="flex-1 py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-xl flex items-center justify-center gap-1"
                                         >
                                             <Eye className="w-4 h-4" />
-                                            Review
+                                            Review Submission
                                         </button>
                                     </div>
                                 )}
@@ -535,20 +626,28 @@ const PaidTasksManagement = () => {
             </Modal>
 
             {/* View Profile Modal */}
-            <Modal isOpen={viewingProfile !== null} onClose={() => setViewingProfile(null)} title="Applicant Profile" size="md">
+            <Modal isOpen={viewingProfile !== null} onClose={() => setViewingProfile(null)} title="Applicant Profile" size="lg">
                 {viewingProfile && (
                     <div className="space-y-4">
                         <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl">
-                            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center text-white font-bold text-2xl">
-                                {viewingProfile.name?.charAt(0)}
-                            </div>
+                            {viewingProfile.photo ? (
+                                <img
+                                    src={viewingProfile.photo}
+                                    alt={viewingProfile.name}
+                                    className="w-20 h-20 rounded-full object-cover border-4 border-white shadow-lg"
+                                />
+                            ) : (
+                                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center text-white font-bold text-3xl border-4 border-white shadow-lg">
+                                    {viewingProfile.name?.charAt(0)}
+                                </div>
+                            )}
                             <div>
                                 <h3 className="text-xl font-bold text-gray-900">{viewingProfile.name}</h3>
                                 <p className="text-gray-500">{viewingProfile.email}</p>
-                                {viewingProfile.rating && (
+                                {(viewingProfile.rating > 0 || viewingProfile.completedTasks > 0) && (
                                     <div className="flex items-center gap-2 mt-1">
-                                        <span className="text-amber-500 text-lg">★ {viewingProfile.rating}</span>
-                                        <span className="text-sm text-gray-400">({viewingProfile.completedTasks || 0} tasks)</span>
+                                        <span className="text-amber-500 text-lg">★ {viewingProfile.rating || 0}</span>
+                                        <span className="text-sm text-gray-400">({viewingProfile.completedTasks || 0} tasks completed)</span>
                                     </div>
                                 )}
                             </div>
@@ -563,12 +662,29 @@ const PaidTasksManagement = () => {
                                 <p className="text-xs text-gray-400 mb-1">Experience</p>
                                 <p className="text-sm font-medium text-gray-900">{viewingProfile.experience || 'Not specified'}</p>
                             </div>
+                            <div className="p-3 bg-gray-50 rounded-xl">
+                                <p className="text-xs text-gray-400 mb-1">Education</p>
+                                <p className="text-sm font-medium text-gray-900">{viewingProfile.education || 'Not provided'}</p>
+                            </div>
+                            <div className="p-3 bg-gray-50 rounded-xl">
+                                <p className="text-xs text-gray-400 mb-1">CNIC</p>
+                                <p className="text-sm font-medium text-gray-900">{viewingProfile.cnic || 'Not provided'}</p>
+                            </div>
                         </div>
+
+                        {(viewingProfile.city || viewingProfile.address) && (
+                            <div className="p-4 bg-gray-50 rounded-xl">
+                                <p className="text-xs text-gray-400 mb-2">Address</p>
+                                <p className="text-sm font-medium text-gray-900">
+                                    {[viewingProfile.address, viewingProfile.city].filter(Boolean).join(', ') || 'Not provided'}
+                                </p>
+                            </div>
+                        )}
 
                         <div className="p-4 bg-gray-50 rounded-xl">
                             <p className="text-xs text-gray-400 mb-2">Skills</p>
                             <div className="flex flex-wrap gap-2">
-                                {(viewingProfile.skills || '').split(',').map((skill, i) => (
+                                {(viewingProfile.skills || 'No skills listed').split(',').map((skill, i) => (
                                     <span key={i} className="px-3 py-1 bg-purple-100 text-purple-700 text-sm rounded-lg">
                                         {skill.trim()}
                                     </span>
@@ -576,14 +692,30 @@ const PaidTasksManagement = () => {
                             </div>
                         </div>
 
-                        {viewingProfile.portfolio && (
-                            <div className="p-4 bg-blue-50 rounded-xl">
-                                <p className="text-xs text-gray-400 mb-1">Portfolio</p>
-                                <a href={viewingProfile.portfolio} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline font-medium">
-                                    {viewingProfile.portfolio}
+                        <div className="grid grid-cols-2 gap-4">
+                            {viewingProfile.portfolio && (
+                                <a
+                                    href={viewingProfile.portfolio}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="p-4 bg-blue-50 rounded-xl hover:bg-blue-100 transition-colors"
+                                >
+                                    <p className="text-xs text-gray-400 mb-1">Portfolio</p>
+                                    <p className="text-blue-600 font-medium text-sm truncate">{viewingProfile.portfolio}</p>
                                 </a>
-                            </div>
-                        )}
+                            )}
+                            {viewingProfile.cvUrl && (
+                                <a
+                                    href={viewingProfile.cvUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="p-4 bg-green-50 rounded-xl hover:bg-green-100 transition-colors"
+                                >
+                                    <p className="text-xs text-gray-400 mb-1">CV/Resume</p>
+                                    <p className="text-green-600 font-medium text-sm">View CV →</p>
+                                </a>
+                            )}
+                        </div>
 
                         <button onClick={() => setViewingProfile(null)} className="w-full py-3 text-gray-600 hover:bg-gray-100 rounded-xl font-medium">
                             Close

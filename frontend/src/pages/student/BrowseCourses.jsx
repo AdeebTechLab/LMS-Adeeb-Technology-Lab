@@ -361,6 +361,7 @@ const BrowseCourses = () => {
                                         )}
                                         <div className={`flex items-center gap-1 font-bold text-lg ${course.originalPrice && !isNaN(parseFloat(course.originalPrice)) && parseFloat(course.originalPrice) > parseFloat(course.fee) ? 'text-emerald-600' : 'text-gray-900'}`}>
                                             {isNaN(Number(course.fee)) ? course.fee : `Rs ${Number(course.fee).toLocaleString()}`}
+                                            <span className="text-xs font-normal text-gray-500">/month</span>
                                         </div>
                                     </div>
 

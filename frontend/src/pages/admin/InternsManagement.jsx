@@ -32,7 +32,7 @@ const InternsManagement = () => {
     const fetchSettings = async () => {
         try {
             const res = await settingsAPI.getAll();
-            setAllowBioEditing(res.data.data.allowBioEditing ?? false);
+            setAllowBioEditing(res.data.data.allowBioEditing_intern ?? false);
         } catch (error) {
             console.error('Error fetching settings:', error);
         }
@@ -43,7 +43,7 @@ const InternsManagement = () => {
     const toggleBioEditing = async () => {
         try {
             const newValue = !allowBioEditing;
-            await settingsAPI.update('allowBioEditing', newValue);
+            await settingsAPI.update('allowBioEditing_intern', newValue);
             setAllowBioEditing(newValue);
         } catch (error) {
             console.error('Error updating setting:', error);

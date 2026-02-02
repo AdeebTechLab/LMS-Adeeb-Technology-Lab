@@ -35,7 +35,7 @@ const StudentsManagement = () => {
     const fetchSettings = async () => {
         try {
             const res = await settingsAPI.getAll();
-            setAllowBioEditing(res.data.data.allowBioEditing ?? false);
+            setAllowBioEditing(res.data.data.allowBioEditing_student ?? false);
         } catch (error) {
             console.error('Error fetching settings:', error);
         }
@@ -46,7 +46,7 @@ const StudentsManagement = () => {
     const toggleBioEditing = async () => {
         try {
             const newValue = !allowBioEditing;
-            await settingsAPI.update('allowBioEditing', newValue);
+            await settingsAPI.update('allowBioEditing_student', newValue);
             setAllowBioEditing(newValue);
         } catch (error) {
             console.error('Error updating setting:', error);

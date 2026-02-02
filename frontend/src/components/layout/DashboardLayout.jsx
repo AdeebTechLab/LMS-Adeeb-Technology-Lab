@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { motion } from 'framer-motion';
 import {
@@ -15,13 +15,64 @@ import {
 import Sidebar from './Sidebar';
 import NotificationPopup from '../shared/NotificationPopup';
 import ChatWidget from '../shared/ChatWidget';
+import { userNotificationAPI } from '../../services/api';
 
 const DashboardLayout = () => {
     const [sidebarOpen, setSidebarOpen] = useState(true);
     const [showNotifications, setShowNotifications] = useState(false);
     const [showUserMenu, setShowUserMenu] = useState(false);
+    const [notifications, setNotifications] = useState([]);
+    const [unreadCount, setUnreadCount] = useState(0);
     const { user, role } = useSelector((state) => state.auth);
     const location = useLocation();
+    const navigate = useNavigate();
+
+    // Fetch notifications
+    useEffect(() => {
+        fetchNotifications();
+        const interval = setInterval(fetchNotifications, 30000); // Poll every 30 seconds
+        return () => clearInterval(interval);
+    }, []);
+
+    const fetchNotifications = async () => {
+        try {
+            const [notifRes, countRes] = await Promise.all([
+                userNotificationAPI.getAll(),
+                userNotificationAPI.getUnreadCount()
+            ]);
+            setNotifications(notifRes.data.data || []);
+            setUnreadCount(countRes.data.count || 0);
+        } catch (error) {
+            console.error('Error fetching notifications:', error);
+        }
+    };
+
+    const handleNotificationClick = async (notification) => {
+        try {
+            // Mark as read
+            if (!notification.isRead) {
+                await userNotificationAPI.markAsRead(notification._id);
+                await fetchNotifications();
+            }
+
+            // Navigate to related task if exists
+            if (notification.relatedTask) {
+                setShowNotifications(false);
+                navigate(`/${role}/paid-tasks`);
+            }
+        } catch (error) {
+            console.error('Error handling notification:', error);
+        }
+    };
+
+    const handleMarkAllRead = async () => {
+        try {
+            await userNotificationAPI.markAllAsRead();
+            await fetchNotifications();
+        } catch (error) {
+            console.error('Error marking all as read:', error);
+        }
+    };
 
     // Get current page title from path
     const getPageTitle = () => {
@@ -43,14 +94,20 @@ const DashboardLayout = () => {
         return lastSegment.charAt(0).toUpperCase() + lastSegment.slice(1).replace(/-/g, ' ');
     };
 
-    // Mock notifications
-    const notifications = [
-        { id: 1, title: 'New assignment posted', time: '5 min ago', unread: true },
-        { id: 2, title: 'Fee payment verified', time: '1 hour ago', unread: true },
-        { id: 3, title: 'New message from teacher', time: '2 hours ago', unread: false },
-    ];
+    const formatNotificationTime = (date) => {
+        const now = new Date();
+        const notifDate = new Date(date);
+        const diffMs = now - notifDate;
+        const diffMins = Math.floor(diffMs / 60000);
+        const diffHours = Math.floor(diffMs / 3600000);
+        const diffDays = Math.floor(diffMs / 86400000);
 
-    const unreadCount = notifications.filter((n) => n.unread).length;
+        if (diffMins < 1) return 'Just now';
+        if (diffMins < 60) return `${diffMins} min ago`;
+        if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+        if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+        return notifDate.toLocaleDateString();
+    };
 
     return (
         <div className="h-screen bg-[#F8FAFC] flex overflow-hidden">
@@ -127,34 +184,48 @@ const DashboardLayout = () => {
                                         <div className="p-4 border-b border-gray-100">
                                             <div className="flex items-center justify-between">
                                                 <h3 className="font-semibold text-gray-900">Notifications</h3>
-                                                <button className="text-sm text-[#ff8e01] hover:text-[#ffab40]">
+                                                <button 
+                                                    onClick={handleMarkAllRead}
+                                                    className="text-sm text-[#ff8e01] hover:text-[#ffab40]"
+                                                >
                                                     Mark all read
                                                 </button>
                                             </div>
                                         </div>
                                         <div className="max-h-80 overflow-y-auto">
-                                            {notifications.map((notification) => (
-                                                <div
-                                                    key={notification.id}
-                                                    className={`p-4 border-b border-gray-50 hover:bg-gray-50 cursor-pointer transition-colors ${notification.unread ? 'bg-[#ff8e01]/5' : ''
-                                                        }`}
-                                                >
-                                                    <div className="flex items-start gap-3">
-                                                        <div
-                                                            className={`w-2 h-2 rounded-full mt-2 ${notification.unread ? 'bg-[#ff8e01]' : 'bg-gray-300'
-                                                                }`}
-                                                        />
-                                                        <div>
-                                                            <p className="text-sm font-medium text-gray-900">
-                                                                {notification.title}
-                                                            </p>
-                                                            <p className="text-xs text-gray-500 mt-1">
-                                                                {notification.time}
-                                                            </p>
+                                            {notifications.length === 0 ? (
+                                                <div className="p-8 text-center text-gray-500">
+                                                    <Bell className="w-12 h-12 mx-auto mb-2 opacity-30" />
+                                                    <p className="text-sm">No notifications</p>
+                                                </div>
+                                            ) : (
+                                                notifications.map((notification) => (
+                                                    <div
+                                                        key={notification._id}
+                                                        onClick={() => handleNotificationClick(notification)}
+                                                        className={`p-4 border-b border-gray-50 hover:bg-gray-50 cursor-pointer transition-colors ${!notification.isRead ? 'bg-[#ff8e01]/5' : ''
+                                                            }`}
+                                                    >
+                                                        <div className="flex items-start gap-3">
+                                                            <div
+                                                                className={`w-2 h-2 rounded-full mt-2 ${!notification.isRead ? 'bg-[#ff8e01]' : 'bg-gray-300'
+                                                                    }`}
+                                                            />
+                                                            <div className="flex-1">
+                                                                <p className="text-sm font-medium text-gray-900">
+                                                                    {notification.title}
+                                                                </p>
+                                                                <p className="text-xs text-gray-600 mt-1">
+                                                                    {notification.message}
+                                                                </p>
+                                                                <p className="text-xs text-gray-400 mt-1">
+                                                                    {formatNotificationTime(notification.createdAt)}
+                                                                </p>
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                            ))}
+                                                ))
+                                            )}
                                         </div>
                                         <div className="p-3 bg-gray-50">
                                             <button className="w-full text-center text-sm text-gray-600 hover:text-gray-900 font-medium">

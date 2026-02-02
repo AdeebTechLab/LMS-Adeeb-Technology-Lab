@@ -1,19 +1,28 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useSelector } from 'react-redux';
+import { io } from 'socket.io-client';
 import {
     BookOpen, Users, Calendar, ArrowRight, ChevronLeft,
-    FileText, ClipboardList, CheckCircle, Clock, Loader2, User, Search, Filter
+    FileText, ClipboardList, CheckCircle, Clock, Loader2, User, Search, Filter, MessageCircle
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
-import { courseAPI, enrollmentAPI } from '../../services/api';
+import { courseAPI, enrollmentAPI, chatAPI } from '../../services/api';
+
+const getSocketURL = () => {
+    const rawUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    return rawUrl.replace('/api', '');
+};
+
+const SOCKET_URL = getSocketURL();
 import { getCourseIcon, getCourseStyle } from '../../utils/courseIcons';
 
 // Tab Components
 import AttendanceTab from './components/AttendanceTab';
 import DailyTasksTab from './components/DailyTasksTab';
 import AssignmentsTab from './components/AssignmentsTab';
+import TeacherChatTab from './components/TeacherChatTab';
 
 const AttendanceSheet = () => {
     const { id: routeCourseId } = useParams();
@@ -31,6 +40,99 @@ const AttendanceSheet = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCities, setSelectedCities] = useState([]); // Array of strings
     const [selectedTypes, setSelectedTypes] = useState([]);   // Array of strings
+    const [chatUnreadCount, setChatUnreadCount] = useState(0);
+    // Load submission notifications from localStorage
+    const [submissionNotifications, setSubmissionNotifications] = useState(() => {
+        try {
+            const saved = localStorage.getItem('teacher_submission_notifications');
+            return saved ? JSON.parse(saved) : {};
+        } catch {
+            return {};
+        }
+    });
+    const socketRef = useRef();
+    const activeTabRef = useRef(activeTab);
+
+    // Keep ref in sync with activeTab
+    useEffect(() => {
+        activeTabRef.current = activeTab;
+        if (activeTab === 'chat') {
+            setChatUnreadCount(0);
+        }
+    }, [activeTab]);
+
+    // Persist submission notifications to localStorage
+    useEffect(() => {
+        try {
+            localStorage.setItem('teacher_submission_notifications', JSON.stringify(submissionNotifications));
+        } catch (e) {
+            console.error('Failed to save notifications:', e);
+        }
+    }, [submissionNotifications]);
+
+    // Fetch unread count and setup socket
+    useEffect(() => {
+        const fetchUnreadCount = async () => {
+            try {
+                const res = await chatAPI.getTeacherCourses();
+                const courses = res.data.data || [];
+                const totalUnread = courses.reduce((sum, c) => sum + (c.totalUnread || 0), 0);
+                setChatUnreadCount(totalUnread);
+            } catch (error) {
+                console.error('Error fetching unread count:', error);
+            }
+        };
+
+        fetchUnreadCount();
+
+        socketRef.current = io(SOCKET_URL, { withCredentials: true });
+        const myId = user?.id || user?._id;
+        if (myId) {
+            const roomId = String(myId);
+            socketRef.current.emit('join_chat', roomId);
+            console.log('🔌 Teacher joined socket room:', roomId);
+        }
+
+        socketRef.current.on('connect', () => {
+            console.log('✅ Socket connected, ID:', socketRef.current.id);
+            // Re-join room on reconnect
+            const myId = user?.id || user?._id;
+            if (myId) {
+                socketRef.current.emit('join_chat', String(myId));
+            }
+        });
+
+        socketRef.current.on('new_global_message', (data) => {
+            if (data.course || data.courseId) {
+                const senderId = String(data.senderId || data.sender?._id || data.sender);
+                const myIdStr = String(user?.id || user?._id);
+                if (senderId !== myIdStr && activeTabRef.current !== 'chat') {
+                    setChatUnreadCount(prev => prev + 1);
+                }
+            }
+        });
+
+        // Listen for new assignment submissions
+        socketRef.current.on('new_submission', (data) => {
+            console.log('📥 Received new_submission event:', data);
+            if (data.courseId) {
+                const courseIdStr = String(data.courseId);
+                console.log('📌 Adding notification for course:', courseIdStr);
+                setSubmissionNotifications(prev => {
+                    const updated = {
+                        ...prev,
+                        [courseIdStr]: (prev[courseIdStr] || 0) + 1
+                    };
+                    console.log('📊 Updated notifications:', updated);
+                    return updated;
+                });
+            }
+        });
+
+        return () => {
+            if (socketRef.current) socketRef.current.disconnect();
+        };
+    }, [user]);
 
     useEffect(() => {
         fetchMyCourses();
@@ -83,8 +185,8 @@ const AttendanceSheet = () => {
             const allCourses = coursesRes.data.data || [];
 
             // Filter courses where this teacher is assigned
-            // Robust check: check both ._id and .id, convert to string for safe comparison
-            const teacherId = (user?._id || user?.id)?.toString();
+            // Robust check: user object from login has 'id' not '_id'
+            const teacherId = (user?.id || user?._id)?.toString();
             console.log('Logged in Teacher ID:', teacherId);
 
             const teacherCourses = allCourses.filter(c => {
@@ -166,6 +268,14 @@ const AttendanceSheet = () => {
         console.log('Selected course eligible students:', studentsList);
         setCourseStudents(studentsList);
         setSelectedCourse(course);
+
+        // Clear submission notifications for this course (use string for consistent matching)
+        const courseId = String(course.id || course._id);
+        setSubmissionNotifications(prev => {
+            const updated = { ...prev };
+            delete updated[courseId];
+            return updated;
+        });
 
         // Update URL if not already there
         if (!skipNavigation) {
@@ -286,6 +396,9 @@ const AttendanceSheet = () => {
                         {filteredCourses.map((course, index) => {
                             const CourseIcon = getCourseIcon(course.category, course.name);
                             const courseStyle = getCourseStyle(course.category, course.name);
+                            // Ensure courseId is a string for consistent matching with socket events
+                            const courseId = String(course.id || course._id);
+                            const notificationCount = submissionNotifications[courseId] || 0;
 
                             return (
                                 <motion.div
@@ -294,8 +407,14 @@ const AttendanceSheet = () => {
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: index * 0.1 }}
                                     onClick={() => handleSelectCourse(course)}
-                                    className="bg-white rounded-2xl p-6 border border-gray-100 cursor-pointer hover:shadow-lg hover:border-emerald-200 transition-all group"
+                                    className="bg-white rounded-2xl p-6 border border-gray-100 cursor-pointer hover:shadow-lg hover:border-emerald-200 transition-all group relative"
                                 >
+                                    {/* Notification Badge */}
+                                    {notificationCount > 0 && (
+                                        <div className="absolute -top-2 -right-2 w-7 h-7 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center animate-pulse shadow-lg">
+                                            {notificationCount > 9 ? '9+' : notificationCount}
+                                        </div>
+                                    )}
                                     <div className="flex items-start justify-between mb-4">
                                         <div className={`w-14 h-14 rounded-xl flex items-center justify-center bg-gradient-to-br ${courseStyle.gradient}`}>
                                             <CourseIcon className="w-7 h-7 text-white" />
@@ -400,6 +519,21 @@ const AttendanceSheet = () => {
                         <Clock className="w-4 h-4" />
                         Attendance
                     </button>
+                    <button
+                        onClick={() => setActiveTab('chat')}
+                        className={`px-8 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 relative ${activeTab === 'chat'
+                            ? 'bg-white text-emerald-600 shadow-sm border border-emerald-100'
+                            : 'text-gray-500 hover:bg-gray-200 hover:text-gray-900'
+                            }`}
+                    >
+                        <MessageCircle className="w-4 h-4" />
+                        Chat
+                        {chatUnreadCount > 0 && activeTab !== 'chat' && (
+                            <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center animate-pulse">
+                                {chatUnreadCount > 9 ? '9+' : chatUnreadCount}
+                            </span>
+                        )}
+                    </button>
                 </div>
 
                 {/* Tab Content */}
@@ -412,6 +546,9 @@ const AttendanceSheet = () => {
                     )}
                     {activeTab === 'attendance' && (
                         <AttendanceTab course={selectedCourse} students={courseStudents} />
+                    )}
+                    {activeTab === 'chat' && (
+                        <TeacherChatTab course={selectedCourse} students={courseStudents} />
                     )}
                 </div>
             </div>

@@ -10,14 +10,13 @@ const StudentDailyTasksTab = ({ course, isRestricted }) => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
 
-    useEffect(() => {
-        fetchMyTasks();
-    }, [course]);
-
     const fetchMyTasks = async () => {
+        const courseId = course?._id || course?.id;
+        if (!courseId) return;
+        
         setIsLoading(true);
         try {
-            const res = await api.get(`/daily-tasks/my/${course._id}`);
+            const res = await api.get(`/daily-tasks/my/${courseId}`);
             setTasks(res.data.data || []);
         } catch (error) {
             console.error('Error fetching tasks:', error);
@@ -26,14 +25,21 @@ const StudentDailyTasksTab = ({ course, isRestricted }) => {
         }
     };
 
+    useEffect(() => {
+        fetchMyTasks();
+    }, [course?._id, course?.id]);
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!newTask.trim() || isRestricted) return;
 
+        const courseId = course?._id || course?.id;
+        if (!courseId) return;
+
         setIsSubmitting(true);
         try {
             const res = await api.post('/daily-tasks', {
-                courseId: course._id,
+                courseId: courseId,
                 content: newTask,
                 workLink
             });

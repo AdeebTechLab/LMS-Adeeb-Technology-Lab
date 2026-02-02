@@ -35,12 +35,14 @@ const authSlice = createSlice({
             storage.setItem('token', action.payload.token);
             storage.setItem('user', JSON.stringify(action.payload.user));
             storage.setItem('loginTime', loginTime.toString());
+            storage.setItem('rememberMe', rememberMe ? 'true' : 'false');
 
             // Clear other storage to avoid conflict
             const otherStorage = rememberMe ? sessionStorage : localStorage;
             otherStorage.removeItem('token');
             otherStorage.removeItem('user');
             otherStorage.removeItem('loginTime');
+            otherStorage.removeItem('rememberMe');
         },
         loginFailure: (state, action) => {
             state.isLoading = false;
@@ -56,8 +58,10 @@ const authSlice = createSlice({
             localStorage.removeItem('token');
             localStorage.removeItem('user');
             localStorage.removeItem('loginTime');
+            localStorage.removeItem('rememberMe');
             sessionStorage.removeItem('token');
             sessionStorage.removeItem('user');
+            sessionStorage.removeItem('rememberMe');
         },
         clearError: (state) => {
             state.error = null;

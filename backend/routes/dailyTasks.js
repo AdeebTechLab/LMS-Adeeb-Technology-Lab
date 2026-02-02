@@ -3,6 +3,27 @@ const router = express.Router();
 const { protect, authorize } = require('../middleware/auth');
 const DailyTask = require('../models/DailyTask');
 const Course = require('../models/Course');
+const Fee = require('../models/Fee');
+
+// Helper function to check if student has overdue fees (more than 7 days past due)
+const hasOverdueFee = async (userId, courseId) => {
+    const fee = await Fee.findOne({ user: userId, course: courseId });
+    if (!fee || !fee.installments || fee.installments.length === 0) {
+        return false; // No fee record, allow submission
+    }
+
+    const now = new Date();
+    for (const inst of fee.installments) {
+        if (inst.status !== 'verified' && inst.status !== 'paid') {
+            const dueDate = new Date(inst.dueDate);
+            const daysPastDue = Math.floor((now - dueDate) / (1000 * 60 * 60 * 24));
+            if (daysPastDue > 7) {
+                return true; // Has overdue fee
+            }
+        }
+    }
+    return false;
+};
 
 // @route   POST /api/daily-tasks
 // @desc    Submit a daily task (Intern / Student)
@@ -15,6 +36,16 @@ router.post('/', protect, authorize('intern', 'student'), async (req, res) => {
         const course = await Course.findById(courseId);
         if (!course) {
             return res.status(404).json({ success: false, message: 'Course not found' });
+        }
+
+        // Check for overdue fee payment (more than 7 days past due)
+        const isOverdue = await hasOverdueFee(req.user.id, courseId);
+        if (isOverdue) {
+            return res.status(403).json({ 
+                success: false, 
+                message: 'You have an overdue fee payment. Please pay your installment to submit daily tasks.',
+                code: 'FEE_OVERDUE'
+            });
         }
 
         let task;

@@ -19,7 +19,7 @@ import {
 import StatCard from '../../components/ui/StatCard';
 import Badge from '../../components/ui/Badge';
 import { BarChart } from '../../components/charts/Charts';
-import { courseAPI, enrollmentAPI } from '../../services/api';
+import { courseAPI, enrollmentAPI, assignmentAPI, dailyTaskAPI } from '../../services/api';
 import { getCourseIcon, getCourseStyle } from '../../utils/courseIcons';
 
 
@@ -43,44 +43,106 @@ const TeacherDashboard = () => {
             const allCourses = coursesRes.data.data || [];
 
             // Filter courses where this teacher is assigned (check teachers array)
-            const teacherCourses = allCourses.filter(c =>
-                c.teachers?.some(t => String(t._id || t) === String(user?._id))
-            );
+            // User object from login has 'id' not '_id'
+            const teacherId = (user?.id || user?._id)?.toString();
+            console.log('Dashboard - Logged in Teacher ID:', teacherId);
+
+            const teacherCourses = allCourses.filter(c => {
+                const isMatch = c.teachers?.some(t => {
+                    const tId = (t._id || t)?.toString();
+                    return tId === teacherId;
+                });
+                return isMatch;
+            });
+
+            console.log('Dashboard - Teacher courses found:', teacherCourses.length, teacherCourses.map(c => c.title));
 
             // Get enrollments to count students per course
             let enrollments = [];
             try {
                 const enrollmentsRes = await enrollmentAPI.getAll();
                 enrollments = enrollmentsRes.data.data || [];
-            } catch (e) { }
+                console.log('Dashboard - Total enrollments fetched:', enrollments.length);
+            } catch (e) { 
+                console.error('Error fetching enrollments:', e);
+            }
 
             // Map courses with student counts
             const coursesWithData = teacherCourses.map(course => {
-                const courseEnrollments = enrollments.filter(e => e.course?._id === course._id);
+                // Compare course IDs as strings for proper matching
+                const courseIdStr = course._id.toString();
+                const courseEnrollments = enrollments.filter(e => {
+                    const enrollCourseId = (e.course?._id || e.course)?.toString();
+                    return enrollCourseId === courseIdStr;
+                });
+                
+                console.log(`Dashboard - Course "${course.title}": ${courseEnrollments.length} enrollments`);
+                
                 return {
                     id: course._id,
                     title: course.title,
                     students: courseEnrollments.length,
                     assignments: 0,
                     pendingSubmissions: 0,
-                    status: course.isActive ? 'active' : 'inactive',
+                    status: course.isActive !== false ? 'active' : 'inactive',
                     startDate: course.startDate,
                     category: course.category,
                     duration: course.duration
                 };
             });
 
-            setMyCourses(coursesWithData);
+            // Fetch assignments and daily tasks for each course
+            let totalPendingReviews = 0;
+            const coursesWithFullData = await Promise.all(coursesWithData.map(async (courseData) => {
+                try {
+                    // Fetch assignments for this course
+                    const assignmentsRes = await assignmentAPI.getByCourse(courseData.id);
+                    const assignments = assignmentsRes.data.assignments || [];
+                    
+                    // Count pending submissions (submitted but not graded)
+                    let pendingAssignments = 0;
+                    assignments.forEach(a => {
+                        const pendingCount = a.submissions?.filter(s => 
+                            s.status === 'submitted' || (!s.marks && s.marks !== 0)
+                        ).length || 0;
+                        pendingAssignments += pendingCount;
+                    });
+
+                    // Fetch daily tasks for this course
+                    let pendingTasks = 0;
+                    try {
+                        const tasksRes = await dailyTaskAPI.getByCourse(courseData.id);
+                        const tasks = tasksRes.data.data || [];
+                        pendingTasks = tasks.filter(t => t.status === 'submitted').length;
+                    } catch (e) {
+                        // Daily tasks might not be available for all courses
+                    }
+
+                    const totalPending = pendingAssignments + pendingTasks;
+                    totalPendingReviews += totalPending;
+
+                    return {
+                        ...courseData,
+                        assignments: assignments.length,
+                        pendingSubmissions: totalPending
+                    };
+                } catch (e) {
+                    console.error(`Error fetching data for course ${courseData.title}:`, e);
+                    return courseData;
+                }
+            }));
+
+            setMyCourses(coursesWithFullData);
 
             // Calculate total students
-            const total = coursesWithData.reduce((sum, c) => sum + c.students, 0);
+            const total = coursesWithFullData.reduce((sum, c) => sum + c.students, 0);
             setTotalStudents(total);
 
             // Build stats
             setStats([
                 {
                     title: 'My Courses',
-                    value: coursesWithData.length.toString(),
+                    value: coursesWithFullData.length.toString(),
                     icon: BookOpen,
                     iconBg: 'bg-emerald-100',
                     iconColor: 'text-emerald-600',
@@ -94,14 +156,14 @@ const TeacherDashboard = () => {
                 },
                 {
                     title: 'Pending Reviews',
-                    value: '0',
+                    value: totalPendingReviews.toString(),
                     icon: ClipboardList,
                     iconBg: 'bg-amber-100',
                     iconColor: 'text-amber-600',
                 },
                 {
                     title: 'Active Courses',
-                    value: coursesWithData.filter(c => c.status === 'active').length.toString(),
+                    value: coursesWithFullData.filter(c => c.status === 'active').length.toString(),
                     icon: CheckCircle,
                     iconBg: 'bg-purple-100',
                     iconColor: 'text-purple-600',

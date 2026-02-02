@@ -26,12 +26,16 @@ const certificateRoutes = require('./routes/certificates');
 const taskRoutes = require('./routes/tasks');
 const dailyTasksRoutes = require('./routes/dailyTasks');
 const notificationRoutes = require('./routes/notifications');
+const userNotificationRoutes = require('./routes/userNotifications');
 const chatRoutes = require('./routes/chat');
 const statsRoutes = require('./routes/stats');
 const settingsRoutes = require('./routes/settings');
 
 // Import attendance lock function
 const { lockTodayAttendance } = require('./controllers/attendanceController');
+
+// Import installment generation functions
+const { runInstallmentJob } = require('./scripts/generateInstallments');
 
 const app = express();
 const server = http.createServer(app);
@@ -113,6 +117,7 @@ app.use('/api/certificates', certificateRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/daily-tasks', dailyTasksRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/user-notifications', userNotificationRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/stats', statsRoutes);
 app.use('/api/settings', settingsRoutes);
@@ -131,6 +136,28 @@ cron.schedule('0 0 * * *', async () => {
         console.error('❌ Attendance lock failed:', error);
     }
 });
+
+// Installment generation cron job - Runs daily at 1:00 AM
+cron.schedule('0 1 * * *', async () => {
+    try {
+        console.log('🔄 Running daily installment job...');
+        await runInstallmentJob();
+        console.log('✅ Daily installment job completed');
+    } catch (error) {
+        console.error('❌ Installment job failed:', error);
+    }
+});
+
+// Run installment job once on server startup (after 5 seconds delay)
+setTimeout(async () => {
+    try {
+        console.log('🔄 Running startup installment check...');
+        await runInstallmentJob();
+        console.log('✅ Startup installment check completed');
+    } catch (error) {
+        console.error('❌ Startup installment check failed:', error);
+    }
+}, 5000);
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {

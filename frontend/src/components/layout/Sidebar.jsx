@@ -109,6 +109,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 { id: 'courses', label: 'Courses', icon: BookOpen, path: '/student/courses' },
                 { id: 'fees', label: 'Fee Payment', icon: CreditCard, path: '/student/fees' },
                 { id: 'assignments', label: 'Assignments', icon: ClipboardList, path: '/student/assignments' },
+                { id: 'class-logs', label: 'Class Logs', icon: Calendar, path: '/student/assignments', state: { tab: 'daily_tasks' } },
                 { id: 'marks', label: 'Marks Sheet', icon: FileText, path: '/student/marks' },
                 { id: 'attendance', label: 'My Attendance', icon: Calendar, path: '/student/attendance' },
             ],
