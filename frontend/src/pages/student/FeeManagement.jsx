@@ -28,6 +28,18 @@ const FeeManagement = () => {
         fetchFees();
     }, []);
 
+    // Poll for updates while there are submitted payments awaiting verification
+    useEffect(() => {
+        let interval = null;
+        const hasSubmitted = fees.some(fee => (fee.installments || []).some(i => i.status === 'submitted'));
+        if (hasSubmitted) {
+            interval = setInterval(() => {
+                fetchFees();
+            }, 8000);
+        }
+        return () => clearInterval(interval);
+    }, [fees]);
+
     const fetchFees = async () => {
         setIsFetching(true);
         setError('');
@@ -47,6 +59,24 @@ const FeeManagement = () => {
                 );
                 return { ...fee, enrollmentId: enrollment?._id };
             });
+
+            // Detect newly verified installments compared to current state
+            try {
+                const prev = fees || [];
+                feesWithEnrollmentId.forEach(newFee => {
+                    const oldFee = prev.find(f => String(f._id) === String(newFee._id));
+                    if (!oldFee) return;
+                    (newFee.installments || []).forEach((inst, idx) => {
+                        const oldInst = (oldFee.installments || [])[idx];
+                        if (oldInst && oldInst.status !== 'verified' && inst.status === 'verified') {
+                            // Notify student and suggest opening course
+                            try {
+                                alert(`Payment verified for ${newFee.course?.title || 'your course'}. Course is now accessible.`);
+                            } catch (e) { }
+                        }
+                    });
+                });
+            } catch (e) { console.error('Diff check error', e); }
 
             setFees(feesWithEnrollmentId);
         } catch (err) {
