@@ -291,6 +291,13 @@ router.post('/:id/installments', protect, authorize('admin'), async (req, res) =
         }
 
         fee.installments = newInstallments;
+        // Update totalFee to match sum of installments so student/admin views stay consistent
+        try {
+            const total = newInstallments.reduce((sum, itm) => sum + (Number(itm.amount) || 0), 0);
+            fee.totalFee = total;
+        } catch (e) {
+            // ignore if calculation fails
+        }
         await fee.save();
 
         // Sync with Enrollment model if it exists
