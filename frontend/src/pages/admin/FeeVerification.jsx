@@ -492,9 +492,9 @@ const FeeVerification = () => {
                                                     <span className="ml-3 text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded">Pending</span>
                                                 </div>
                                                 <button
-                                                    onClick={() => handleDeleteInstallment(fee._id, inst._id)}
+                                                    onClick={() => handleDeleteClick(fee._id)}
                                                     className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
-                                                    title="Delete Month"
+                                                    title="Un-enroll student & delete fee"
                                                 >
                                                     <Trash2 className="w-4 h-4" />
                                                 </button>
