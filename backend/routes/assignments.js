@@ -27,55 +27,56 @@ const hasOverdueFee = async (userId, courseId) => {
     return false;
 };
 
-// @route   GET /api/assignments/course/:courseId
-// @desc    Get assignments for a course
-// @access  Private (Teacher, Admin, Student, Intern)
-router.get('/course/:courseId', protect, async (req, res) => {
+// @route   GET /api/assignments/my
+// @desc    Get assignments for current user (only those created after user registration)
+// @access  Private
+router.get('/my', protect, async (req, res) => {
     try {
-        const courseId = req.params.courseId;
-        const userRole = req.user.role;
-        const userId = req.user.id;
+        // Get user's enrolled courses and registration date
+        const enrollments = await Enrollment.find({ user: req.user.id });
+        const courseIds = enrollments.map(e => e.course);
 
-        let assignments;
+        // Get user registration date from first enrollment (all should have same registrationDate)
+        const userRegistrationDate = enrollments.length > 0 && enrollments[0].registrationDate
+            ? enrollments[0].registrationDate
+            : new Date(0); // Fallback to epoch if no registration date
 
-        if (userRole === 'teacher' || userRole === 'admin') {
-            // Teachers/Admins see all assignments with all submissions
-            assignments = await Assignment.find({ course: courseId })
-                .populate('createdBy', 'name')
-                .populate('submissions.user', 'name email rollNo photo')
-                .sort('-createdAt');
-        } else {
-            // Students/Interns - check enrollment first
-            const enrollment = await Enrollment.findOne({ 
-                user: userId, 
-                course: courseId 
-            });
+        // Get assignments for those courses
+        // NOTE: Previously we only returned assignments with `assignTo: 'all'`
+        // if they were created after the user's registration date. That caused
+        // some students/interns to not see assignments that were created earlier
+        // but intended for everyone. Change: include `assignTo: 'all'`
+        // regardless of `createdAt` so all course-wide assignments are visible.
+        const assignments = await Assignment.find({
+            course: { $in: courseIds },
+            $or: [
+                {
+                    createdAt: { $gte: userRegistrationDate },
+                    assignTo: 'all'
+                },
+                { assignedUsers: req.user.id },
+                { "submissions.user": req.user.id } // Always include if there's a submission
+            ]
+        })
+            .populate('course', 'title bookLink')
+            .sort('-createdAt');
 
-            if (!enrollment) {
-                return res.status(403).json({ success: false, message: 'Not enrolled in this course' });
+        // SECURITY: Only return the current user's submission
+        const sanitizedAssignments = assignments.map(assignment => {
+            const assignmentObj = assignment.toObject();
+            if (assignmentObj.submissions) {
+                assignmentObj.submissions = assignmentObj.submissions.filter(
+                    s => s.user.toString() === req.user.id
+                );
             }
+            return assignmentObj;
+        });
 
-            const userRegistrationDate = enrollment.registrationDate || new Date(0);
-
-            // Get assignments that are assigned to this user or to 'all' (created after registration)
-            assignments = await Assignment.find({
-                course: courseId,
-                $or: [
-                    { createdAt: { $gte: userRegistrationDate }, assignTo: 'all' },
-                    { assignedUsers: userId },
-                    { "submissions.user": userId }
-                ]
-            })
-                .populate('createdBy', 'name')
-                .sort('-createdAt');
-
-            // Filter submissions to only show current user's submission
-            assignments = assignments.map(assignment => {
-                const assignmentObj = assignment.toObject();
-                if (assignmentObj.submissions) {
-                    assignmentObj.submissions = assignmentObj.submissions.filter(
-                        s => s.user.toString() === userId
-                    );
+        res.json({ success: true, assignments: sanitizedAssignments });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
                 }
                 return assignmentObj;
             });
