@@ -264,13 +264,15 @@ router.get('/my', protect, async (req, res) => {
             : new Date(0); // Fallback to epoch if no registration date
 
         // Get assignments for those courses
+        // NOTE: Previously we only returned assignments with `assignTo: 'all'`
+        // if they were created after the user's registration date. That caused
+        // some students/interns to not see assignments that were created earlier
+        // but intended for everyone. Change: include `assignTo: 'all'`
+        // regardless of `createdAt` so all course-wide assignments are visible.
         const assignments = await Assignment.find({
             course: { $in: courseIds },
             $or: [
-                {
-                    createdAt: { $gte: userRegistrationDate },
-                    assignTo: 'all'
-                },
+                { assignTo: 'all' },
                 { assignedUsers: req.user.id },
                 { "submissions.user": req.user.id } // Always include if there's a submission
             ]
