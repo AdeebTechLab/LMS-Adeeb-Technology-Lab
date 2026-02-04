@@ -63,4 +63,9 @@ const assignmentSchema = new mongoose.Schema({
     timestamps: true
 });
 
+// Indexes for faster queries
+assignmentSchema.index({ course: 1 });
+assignmentSchema.index({ course: 1, createdAt: -1 });
+assignmentSchema.index({ createdBy: 1 });
+
 module.exports = mongoose.model('Assignment', assignmentSchema);

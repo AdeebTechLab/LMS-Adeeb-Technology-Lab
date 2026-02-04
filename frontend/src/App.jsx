@@ -33,6 +33,7 @@ import StudentsManagement from './pages/admin/StudentsManagement';
 import InternsManagement from './pages/admin/InternsManagement';
 import JobsManagement from './pages/admin/JobsManagement';
 import NotificationManagement from './pages/admin/NotificationManagement';
+import StudentDirectory from './pages/admin/StudentDirectory';
 
 // Teacher Pages (handles both Students and Interns)
 import TeacherProfile from './pages/teacher/TeacherProfile';
@@ -129,6 +130,7 @@ const AppRoutes = () => {
         <Route path="jobs" element={<JobsManagement />} />
         <Route path="fees" element={<FeeVerification />} />
         <Route path="notifications" element={<NotificationManagement />} />
+        <Route path="directory" element={<StudentDirectory />} />
         <Route path="settings" element={<div className="text-gray-500">Settings - Coming Soon</div>} />
       </Route>
 

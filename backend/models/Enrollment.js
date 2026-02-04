@@ -73,6 +73,10 @@ const enrollmentSchema = new mongoose.Schema({
 
 // Compound index to prevent duplicate enrollments
 enrollmentSchema.index({ user: 1, course: 1 }, { unique: true });
+// Additional indexes for faster lookups
+enrollmentSchema.index({ course: 1 });
+enrollmentSchema.index({ user: 1 });
+enrollmentSchema.index({ status: 1 });
 
 // Method to check if enrollment should be active
 enrollmentSchema.methods.updateActiveStatus = function () {

@@ -21,6 +21,7 @@ import {
     Briefcase,
     Award,
     Bell,
+    FolderOpen,
 } from 'lucide-react';
 import { logout } from '../../features/auth/authSlice';
 import { userAPI } from '../../services/api';
@@ -88,6 +89,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         const baseItems = {
             admin: [
                 { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/admin/dashboard' },
+                { id: 'directory', label: 'Directory', icon: FolderOpen, path: '/admin/directory' },
                 { id: 'courses', label: 'Courses', icon: BookOpen, path: '/admin/courses' },
                 { id: 'paid-tasks', label: 'Paid Tasks', icon: Briefcase, path: '/admin/paid-tasks' },
                 { id: 'certificates', label: 'Certificates', icon: Award, path: '/admin/certificates' },

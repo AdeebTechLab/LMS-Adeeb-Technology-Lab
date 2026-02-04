@@ -27,56 +27,55 @@ const hasOverdueFee = async (userId, courseId) => {
     return false;
 };
 
-// @route   GET /api/assignments/my
-// @desc    Get assignments for current user (only those created after user registration)
-// @access  Private
-router.get('/my', protect, async (req, res) => {
+// @route   GET /api/assignments/course/:courseId
+// @desc    Get assignments for a course
+// @access  Private (Teacher, Admin, Student, Intern)
+router.get('/course/:courseId', protect, async (req, res) => {
     try {
-        // Get user's enrolled courses and registration date
-        const enrollments = await Enrollment.find({ user: req.user.id });
-        const courseIds = enrollments.map(e => e.course);
+        const courseId = req.params.courseId;
+        const userRole = req.user.role;
+        const userId = req.user.id;
 
-        // Get user registration date from first enrollment (all should have same registrationDate)
-        const userRegistrationDate = enrollments.length > 0 && enrollments[0].registrationDate
-            ? enrollments[0].registrationDate
-            : new Date(0); // Fallback to epoch if no registration date
+        let assignments;
 
-        // Get assignments for those courses
-        // NOTE: Previously we only returned assignments with `assignTo: 'all'`
-        // if they were created after the user's registration date. That caused
-        // some students/interns to not see assignments that were created earlier
-        // but intended for everyone. Change: include `assignTo: 'all'`
-        // regardless of `createdAt` so all course-wide assignments are visible.
-        const assignments = await Assignment.find({
-            course: { $in: courseIds },
-            $or: [
-                {
-                    createdAt: { $gte: userRegistrationDate },
-                    assignTo: 'all'
-                },
-                { assignedUsers: req.user.id },
-                { "submissions.user": req.user.id } // Always include if there's a submission
-            ]
-        })
-            .populate('course', 'title bookLink')
-            .sort('-createdAt');
+        if (userRole === 'teacher' || userRole === 'admin') {
+            // Teachers/Admins see all assignments with all submissions
+            assignments = await Assignment.find({ course: courseId })
+                .populate('createdBy', 'name')
+                .populate('submissions.user', 'name email rollNo photo')
+                .sort('-createdAt');
+        } else {
+            // Students/Interns - check enrollment first
+            const enrollment = await Enrollment.findOne({ 
+                user: userId, 
+                course: courseId 
+            });
 
-        // SECURITY: Only return the current user's submission
-        const sanitizedAssignments = assignments.map(assignment => {
-            const assignmentObj = assignment.toObject();
-            if (assignmentObj.submissions) {
-                assignmentObj.submissions = assignmentObj.submissions.filter(
-                    s => s.user.toString() === req.user.id
-                );
+            if (!enrollment) {
+                return res.status(403).json({ success: false, message: 'Not enrolled in this course' });
             }
-            return assignmentObj;
-        });
 
-        res.json({ success: true, assignments: sanitizedAssignments });
-    } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
-    }
-});
+            const userRegistrationDate = enrollment.registrationDate || new Date(0);
+
+            // Get assignments that are assigned to this user or to 'all' (created after registration)
+            assignments = await Assignment.find({
+                course: courseId,
+                $or: [
+                    { createdAt: { $gte: userRegistrationDate }, assignTo: 'all' },
+                    { assignedUsers: userId },
+                    { "submissions.user": userId }
+                ]
+            })
+                .populate('createdBy', 'name')
+                .sort('-createdAt');
+
+            // Filter submissions to only show current user's submission
+            assignments = assignments.map(assignment => {
+                const assignmentObj = assignment.toObject();
+                if (assignmentObj.submissions) {
+                    assignmentObj.submissions = assignmentObj.submissions.filter(
+                        s => s.user.toString() === userId
+                    );
                 }
                 return assignmentObj;
             });
@@ -95,7 +94,12 @@ router.post('/', protect, authorize('teacher', 'admin'), async (req, res) => {
     try {
         const { courseId, title, description, dueDate, totalMarks, assignTo, assignedUsers: selectedUsers, selectedUsers: altSelectedUsers } = req.body;
 
-        const course = await Course.findById(courseId);
+        // Validate required fields early
+        if (!courseId || !title) {
+            return res.status(400).json({ success: false, message: 'Course ID and title are required' });
+        }
+
+        const course = await Course.findById(courseId).maxTimeMS(10000);
         if (!course) {
             return res.status(404).json({ success: false, message: 'Course not found' });
         }
@@ -103,7 +107,7 @@ router.post('/', protect, authorize('teacher', 'admin'), async (req, res) => {
         let assignedUsers = [];
         if (assignTo === 'all') {
             // Get all enrolled users (including pending so they see it immediately)
-            const enrollments = await Enrollment.find({ course: courseId });
+            const enrollments = await Enrollment.find({ course: courseId }).maxTimeMS(10000);
             assignedUsers = enrollments.map(e => e.user);
         } else {
             assignedUsers = selectedUsers || altSelectedUsers || [];
@@ -122,6 +126,17 @@ router.post('/', protect, authorize('teacher', 'admin'), async (req, res) => {
 
         res.status(201).json({ success: true, assignment });
     } catch (error) {
+        console.error('Assignment creation error:', error);
+        
+        // Handle timeout errors specifically
+        if (error.name === 'MongooseError' || error.message?.includes('timeout')) {
+            return res.status(503).json({ 
+                success: false, 
+                message: 'Server is busy. Please try again in a moment.',
+                retryable: true
+            });
+        }
+        
         res.status(500).json({ success: false, message: error.message });
     }
 });
@@ -265,15 +280,13 @@ router.get('/my', protect, async (req, res) => {
             : new Date(0); // Fallback to epoch if no registration date
 
         // Get assignments for those courses
-        // NOTE: Previously we only returned assignments with `assignTo: 'all'`
-        // if they were created after the user's registration date. That caused
-        // some students/interns to not see assignments that were created earlier
-        // but intended for everyone. Change: include `assignTo: 'all'`
-        // regardless of `createdAt` so all course-wide assignments are visible.
         const assignments = await Assignment.find({
             course: { $in: courseIds },
             $or: [
-                { assignTo: 'all' },
+                {
+                    createdAt: { $gte: userRegistrationDate },
+                    assignTo: 'all'
+                },
                 { assignedUsers: req.user.id },
                 { "submissions.user": req.user.id } // Always include if there's a submission
             ]

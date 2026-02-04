@@ -192,6 +192,17 @@ const ChatWidget = () => {
         }
     }, [messages, activeChat, isOpen]);
 
+    // Mark messages as read when widget is opened with an active chat
+    useEffect(() => {
+        if (isOpen && activeChat?.userId) {
+            chatAPI.markAsRead(activeChat.userId)
+                .then(() => {
+                    fetchUnreadCount();
+                })
+                .catch(console.error);
+        }
+    }, [isOpen, activeChat?.userId]);
+
     const fetchUnreadCount = async () => {
         try {
             const res = await chatAPI.getUnread();

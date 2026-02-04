@@ -159,13 +159,15 @@ router.put('/read/:senderId', protect, async (req, res) => {
 });
 
 // @route   GET /api/chat/unread
-// @desc    Get total unread count for current user
+// @desc    Get total unread count for current user (admin chat only, not course chat)
 // @access  Private
 router.get('/unread', protect, async (req, res) => {
     try {
+        // Only count messages where course is null (admin chat, not course-based chat)
         const count = await GlobalMessage.countDocuments({
             recipient: req.user.id,
-            isRead: false
+            isRead: false,
+            course: null
         });
         res.json({ success: true, count });
     } catch (error) {

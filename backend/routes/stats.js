@@ -65,9 +65,9 @@ router.get('/admin-dashboard', protect, authorize('admin'), async (req, res) => 
             });
         });
 
-        // 2. Student Statistics
+        // 2. Student Statistics (including interns)
         const [allStudents, allEnrollments] = await Promise.all([
-            User.find({ role: 'student' }),
+            User.find({ role: { $in: ['student', 'intern'] } }),
             Enrollment.find().populate('user')
         ]);
 
@@ -77,15 +77,19 @@ router.get('/admin-dashboard', protect, authorize('admin'), async (req, res) => 
         // Group enrollments by user
         const userEnrollments = {};
         allEnrollments.forEach(e => {
-            if (!userEnrollments[e.user._id]) userEnrollments[e.user._id] = [];
-            userEnrollments[e.user._id].push(e);
+            // Skip if no user populated
+            if (!e.user || !e.user._id) return;
+            const userId = e.user._id.toString();
+            if (!userEnrollments[userId]) userEnrollments[userId] = [];
+            userEnrollments[userId].push(e);
         });
 
         let registeredCount = 0;
         let passoutCount = 0;
 
         allStudents.forEach(student => {
-            const enrollments = userEnrollments[student._id] || [];
+            const studentId = student._id.toString();
+            const enrollments = userEnrollments[studentId] || [];
             const activeEnrollments = enrollments.filter(e => e.status === 'enrolled' || e.status === 'pending');
             const completedEnrollments = enrollments.filter(e => e.status === 'completed');
 

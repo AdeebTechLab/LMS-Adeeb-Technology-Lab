@@ -215,4 +215,19 @@ export const settingsAPI = {
     update: (key, value) => api.put(`/settings/${key}`, { value })
 };
 
+// Live Class API
+export const liveClassAPI = {
+    create: (data) => api.post('/live-class', data),
+    getAll: () => api.get('/live-class'),
+    getActive: () => api.get('/live-class/active'),
+    update: (id, data) => api.put(`/live-class/${id}`, data),
+    end: (id) => api.put(`/live-class/${id}/end`),
+    delete: (id) => api.delete(`/live-class/${id}`)
+};
+
+// Directory API
+export const directoryAPI = {
+    getAll: (filter) => api.get('/directory', { params: { filter } })
+};
+
 export default api;

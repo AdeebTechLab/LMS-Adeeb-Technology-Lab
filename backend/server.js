@@ -30,6 +30,8 @@ const userNotificationRoutes = require('./routes/userNotifications');
 const chatRoutes = require('./routes/chat');
 const statsRoutes = require('./routes/stats');
 const settingsRoutes = require('./routes/settings');
+const liveClassRoutes = require('./routes/liveClass');
+const directoryRoutes = require('./routes/directory');
 
 // Import attendance lock function
 const { lockTodayAttendance } = require('./controllers/attendanceController');
@@ -100,10 +102,38 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Connect to MongoDB
-mongoose.connect(process.env.MONGODB_URI)
+// Request timeout middleware (30 seconds)
+app.use((req, res, next) => {
+    req.setTimeout(30000);
+    res.setTimeout(30000);
+    next();
+});
+
+// Connect to MongoDB with optimized settings for serverless/deployment
+mongoose.connect(process.env.MONGODB_URI, {
+    maxPoolSize: 10,
+    minPoolSize: 2,
+    serverSelectionTimeoutMS: 10000,
+    socketTimeoutMS: 45000,
+    connectTimeoutMS: 10000,
+    retryWrites: true,
+    retryReads: true
+})
     .then(() => console.log('✅ MongoDB connected'))
     .catch((err) => console.error('❌ MongoDB error:', err.message));
+
+// Keep MongoDB connection alive
+mongoose.connection.on('disconnected', () => {
+    console.log('⚠️ MongoDB disconnected. Reconnecting...');
+});
+
+mongoose.connection.on('error', (err) => {
+    console.error('❌ MongoDB connection error:', err);
+});
+
+mongoose.connection.on('reconnected', () => {
+    console.log('✅ MongoDB reconnected');
+});
 
 // API Routes
 app.use('/api/auth', authRoutes);
@@ -121,6 +151,8 @@ app.use('/api/user-notifications', userNotificationRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/stats', statsRoutes);
 app.use('/api/settings', settingsRoutes);
+app.use('/api/live-class', liveClassRoutes);
+app.use('/api/directory', directoryRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

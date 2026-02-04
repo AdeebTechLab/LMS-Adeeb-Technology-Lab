@@ -14,12 +14,16 @@ import {
     FileText,
     TrendingUp,
     Loader2,
-    Calendar
+    Calendar,
+    Video,
+    X,
+    ExternalLink,
+    StopCircle
 } from 'lucide-react';
 import StatCard from '../../components/ui/StatCard';
 import Badge from '../../components/ui/Badge';
 import { BarChart } from '../../components/charts/Charts';
-import { courseAPI, enrollmentAPI, assignmentAPI, dailyTaskAPI } from '../../services/api';
+import { courseAPI, enrollmentAPI, assignmentAPI, dailyTaskAPI, liveClassAPI } from '../../services/api';
 import { getCourseIcon, getCourseStyle } from '../../utils/courseIcons';
 
 
@@ -30,10 +34,61 @@ const TeacherDashboard = () => {
     const [myCourses, setMyCourses] = useState([]);
     const [totalStudents, setTotalStudents] = useState(0);
     const [stats, setStats] = useState([]);
+    
+    // Live Class States
+    const [showLiveClassModal, setShowLiveClassModal] = useState(false);
+    const [liveClassForm, setLiveClassForm] = useState({
+        title: '',
+        link: '',
+        description: '',
+        visibility: 'all'
+    });
+    const [activeLiveClasses, setActiveLiveClasses] = useState([]);
+    const [isCreatingLiveClass, setIsCreatingLiveClass] = useState(false);
 
     useEffect(() => {
-        fetchDashboardData();
-    }, []);
+        if (user?.id || user?._id) {
+            fetchDashboardData();
+            fetchActiveLiveClasses();
+        }
+    }, [user]);
+
+    const fetchActiveLiveClasses = async () => {
+        try {
+            const res = await liveClassAPI.getAll();
+            setActiveLiveClasses((res.data.data || []).filter(lc => lc.isActive));
+        } catch (error) {
+            console.error('Error fetching live classes:', error);
+        }
+    };
+
+    const handleCreateLiveClass = async (e) => {
+        e.preventDefault();
+        if (!liveClassForm.title || !liveClassForm.link) return;
+
+        setIsCreatingLiveClass(true);
+        try {
+            await liveClassAPI.create(liveClassForm);
+            setShowLiveClassModal(false);
+            setLiveClassForm({ title: '', link: '', description: '', visibility: 'all' });
+            fetchActiveLiveClasses();
+        } catch (error) {
+            console.error('Error creating live class:', error);
+            alert('Failed to create live class');
+        } finally {
+            setIsCreatingLiveClass(false);
+        }
+    };
+
+    const handleEndLiveClass = async (id) => {
+        if (!window.confirm('Are you sure you want to end this live class?')) return;
+        try {
+            await liveClassAPI.end(id);
+            fetchActiveLiveClasses();
+        } catch (error) {
+            console.error('Error ending live class:', error);
+        }
+    };
 
     const fetchDashboardData = async () => {
         setIsLoading(true);
@@ -217,6 +272,13 @@ const TeacherDashboard = () => {
                         </div>
                         <div className="flex gap-3">
                             <button
+                                onClick={() => setShowLiveClassModal(true)}
+                                className="px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl font-medium transition-all duration-300 flex items-center gap-2"
+                            >
+                                <Video className="w-4 h-4" />
+                                Start Live Class
+                            </button>
+                            <button
                                 onClick={() => navigate('/teacher/attendance')}
                                 className="px-5 py-2.5 bg-white hover:bg-white/90 text-[#0D2818] rounded-xl font-medium transition-all duration-300"
                             >
@@ -372,7 +434,172 @@ const TeacherDashboard = () => {
                         </button>
                     </div>
                 </motion.div>
+
+                {/* Active Live Classes */}
+                {activeLiveClasses.length > 0 && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="bg-white rounded-2xl p-6 border border-gray-100"
+                    >
+                        <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                            <Video className="w-5 h-5 text-red-500" />
+                            Your Active Live Classes
+                        </h3>
+                        <div className="space-y-3">
+                            {activeLiveClasses.map((lc) => (
+                                <div 
+                                    key={lc._id} 
+                                    className="flex items-center justify-between p-4 bg-red-50 border border-red-200 rounded-xl"
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                                        <div>
+                                            <p className="font-semibold text-gray-900">{lc.title}</p>
+                                            <p className="text-sm text-gray-500">
+                                                Visible to: {lc.visibility === 'all' ? 'All Students & Interns' : lc.visibility === 'student' ? 'Students Only' : 'Interns Only'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <a
+                                            href={lc.link}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors flex items-center gap-2"
+                                        >
+                                            <ExternalLink className="w-4 h-4" />
+                                            Open
+                                        </a>
+                                        <button
+                                            onClick={() => handleEndLiveClass(lc._id)}
+                                            className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center gap-2"
+                                        >
+                                            <StopCircle className="w-4 h-4" />
+                                            End Class
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </motion.div>
+                )}
             </div>
+
+            {/* Live Class Creation Modal */}
+            {showLiveClassModal && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="bg-white rounded-2xl p-6 w-full max-w-md"
+                    >
+                        <div className="flex items-center justify-between mb-6">
+                            <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                                <Video className="w-6 h-6 text-red-500" />
+                                Start Live Class
+                            </h3>
+                            <button
+                                onClick={() => setShowLiveClassModal(false)}
+                                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleCreateLiveClass} className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Class Title *
+                                </label>
+                                <input
+                                    type="text"
+                                    value={liveClassForm.title}
+                                    onChange={(e) => setLiveClassForm({ ...liveClassForm, title: e.target.value })}
+                                    placeholder="e.g., Web Development Live Session"
+                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                    required
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Live Class Link *
+                                </label>
+                                <input
+                                    type="url"
+                                    value={liveClassForm.link}
+                                    onChange={(e) => setLiveClassForm({ ...liveClassForm, link: e.target.value })}
+                                    placeholder="https://meet.google.com/... or Zoom link"
+                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                    required
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Description (Optional)
+                                </label>
+                                <textarea
+                                    value={liveClassForm.description}
+                                    onChange={(e) => setLiveClassForm({ ...liveClassForm, description: e.target.value })}
+                                    placeholder="Brief description about the class..."
+                                    rows={2}
+                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Show to *
+                                </label>
+                                <div className="grid grid-cols-3 gap-2">
+                                    {[
+                                        { value: 'all', label: 'All' },
+                                        { value: 'student', label: 'Students Only' },
+                                        { value: 'intern', label: 'Interns Only' }
+                                    ].map((opt) => (
+                                        <button
+                                            key={opt.value}
+                                            type="button"
+                                            onClick={() => setLiveClassForm({ ...liveClassForm, visibility: opt.value })}
+                                            className={`px-4 py-3 rounded-xl font-medium transition-all ${
+                                                liveClassForm.visibility === opt.value
+                                                    ? 'bg-emerald-500 text-white'
+                                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                            }`}
+                                        >
+                                            {opt.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="flex gap-3 pt-4">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowLiveClassModal(false)}
+                                    className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={isCreatingLiveClass}
+                                    className="flex-1 px-4 py-3 bg-red-500 text-white rounded-xl font-medium hover:bg-red-600 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                                >
+                                    {isCreatingLiveClass ? (
+                                        <Loader2 className="w-5 h-5 animate-spin" />
+                                    ) : (
+                                        <Video className="w-5 h-5" />
+                                    )}
+                                    {isCreatingLiveClass ? 'Starting...' : 'Start Live Class'}
+                                </button>
+                            </div>
+                        </form>
+                    </motion.div>
+                </div>
+            )}
         </>
     );
 };

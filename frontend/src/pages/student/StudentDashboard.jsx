@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
+import { io } from 'socket.io-client';
 import {
     BookOpen,
     Clock,
@@ -12,13 +13,22 @@ import {
     FileText,
     Bell,
     Loader2,
-    Trash2
+    Trash2,
+    Video,
+    ExternalLink
 } from 'lucide-react';
 import StatCard from '../../components/ui/StatCard';
 import Badge from '../../components/ui/Badge';
-import { enrollmentAPI, feeAPI, assignmentAPI } from '../../services/api';
+import { enrollmentAPI, feeAPI, assignmentAPI, liveClassAPI } from '../../services/api';
 import Modal from '../../components/ui/Modal'; // Assuming Modal component exists
 import { getCourseIcon, getCourseColor, getCourseStyle } from '../../utils/courseIcons';
+
+const getSocketURL = () => {
+    const rawUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    return rawUrl.replace('/api', '');
+};
+
+const SOCKET_URL = getSocketURL();
 
 
 const StudentDashboard = () => {
@@ -30,10 +40,39 @@ const StudentDashboard = () => {
     const [stats, setStats] = useState([]);
     const [pendingAssignments, setPendingAssignments] = useState([]);
     const [withdrawModal, setWithdrawModal] = useState({ open: false, enrollmentId: null, courseTitle: '' });
+    const [activeLiveClasses, setActiveLiveClasses] = useState([]);
+    const socketRef = useRef(null);
 
     useEffect(() => {
         fetchDashboardData();
+        fetchActiveLiveClasses();
+
+        // Socket connection for live class updates
+        socketRef.current = io(SOCKET_URL, { withCredentials: true });
+        
+        socketRef.current.on('live_class_started', () => {
+            fetchActiveLiveClasses();
+        });
+
+        socketRef.current.on('live_class_ended', () => {
+            fetchActiveLiveClasses();
+        });
+
+        return () => {
+            if (socketRef.current) {
+                socketRef.current.disconnect();
+            }
+        };
     }, []);
+
+    const fetchActiveLiveClasses = async () => {
+        try {
+            const res = await liveClassAPI.getActive();
+            setActiveLiveClasses(res.data.data || []);
+        } catch (error) {
+            console.error('Error fetching live classes:', error);
+        }
+    };
 
     const handleWithdrawClick = (e, course) => {
         e.stopPropagation(); // Prevent navigation
@@ -202,6 +241,73 @@ const StudentDashboard = () => {
     return (
         <>
             <div className="space-y-6">
+                {/* Live Class Banner - Big and Prominent */}
+                <AnimatePresence>
+                    {activeLiveClasses.length > 0 && (
+                        <motion.div
+                            initial={{ opacity: 0, y: -20, scale: 0.95 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                            className="relative overflow-hidden"
+                        >
+                            {activeLiveClasses.map((liveClass) => (
+                                <div
+                                    key={liveClass._id}
+                                    className="bg-gradient-to-r from-red-600 via-red-500 to-orange-500 rounded-3xl p-6 md:p-8 text-white shadow-2xl shadow-red-200 border-4 border-red-400"
+                                >
+                                    {/* Animated Background Pulses */}
+                                    <div className="absolute top-0 left-0 w-full h-full overflow-hidden rounded-3xl">
+                                        <div className="absolute top-1/2 left-1/4 w-64 h-64 bg-white/10 rounded-full blur-3xl animate-pulse"></div>
+                                        <div className="absolute top-1/2 right-1/4 w-48 h-48 bg-yellow-400/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '0.5s' }}></div>
+                                    </div>
+
+                                    <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                        <div className="flex items-start gap-4">
+                                            {/* Animated Live Indicator */}
+                                            <div className="flex-shrink-0">
+                                                <div className="relative">
+                                                    <div className="w-16 h-16 md:w-20 md:h-20 bg-white/20 backdrop-blur rounded-2xl flex items-center justify-center">
+                                                        <Video className="w-8 h-8 md:w-10 md:h-10" />
+                                                    </div>
+                                                    <div className="absolute -top-2 -right-2 flex items-center gap-1 bg-white text-red-600 px-2 py-1 rounded-full text-xs font-black uppercase">
+                                                        <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                                                        LIVE
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <span className="text-xs font-bold uppercase tracking-widest text-white/80">🔴 Live Class in Progress</span>
+                                                </div>
+                                                <h2 className="text-2xl md:text-3xl font-black uppercase tracking-tight">
+                                                    {liveClass.title}
+                                                </h2>
+                                                {liveClass.description && (
+                                                    <p className="text-white/80 mt-1 text-sm md:text-base">{liveClass.description}</p>
+                                                )}
+                                                <p className="text-white/70 text-sm mt-2">
+                                                    by {liveClass.createdBy?.name || 'Teacher'}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <a
+                                            href={liveClass.link}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex-shrink-0 px-8 py-4 md:px-10 md:py-5 bg-white text-red-600 rounded-2xl font-black uppercase tracking-widest text-sm md:text-base hover:bg-gray-100 transition-all shadow-lg flex items-center gap-3 group"
+                                        >
+                                            <ExternalLink className="w-5 h-5 md:w-6 md:h-6 group-hover:rotate-12 transition-transform" />
+                                            Join Now
+                                        </a>
+                                    </div>
+                                </div>
+                            ))}
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
                 {/* High Priority Highlight */}
                 {pendingAssignments.length > 0 && (
                     <motion.div

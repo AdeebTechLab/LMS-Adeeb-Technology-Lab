@@ -17,7 +17,8 @@ import {
     Search,
     Filter,
     ArrowRight,
-    Download
+    Download,
+    BookOpen
 } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
@@ -222,6 +223,13 @@ const AdminDashboard = () => {
                     <p className="text-gray-500 text-xs font-bold uppercase tracking-widest">Real-time system overview</p>
                 </div>
                 <div className="flex gap-4">
+                    <button
+                        onClick={() => navigate('/admin/directory')}
+                        className="flex items-center gap-3 bg-white text-gray-700 px-6 py-3 rounded-2xl font-black uppercase tracking-widest text-xs border border-gray-200 shadow-sm hover:border-[#ff8e01] hover:text-[#ff8e01] transition-all active:scale-95 no-pdf"
+                    >
+                        <BookOpen className="w-4 h-4" />
+                        Student Directory
+                    </button>
                     <button
                         onClick={() => window.open('/verify', '_blank')}
                         className="flex items-center gap-3 bg-white text-gray-700 px-6 py-3 rounded-2xl font-black uppercase tracking-widest text-xs border border-gray-200 shadow-sm hover:border-[#ff8e01] hover:text-[#ff8e01] transition-all active:scale-95 no-pdf"
