@@ -4,7 +4,7 @@ import { useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
     CheckCircle, Clock, Calendar, Search, Filter, AlertCircle, XCircle, ChevronLeft, ChevronRight,
-    BookOpen, GraduationCap, ArrowRight, ExternalLink, Send, FileText, ClipboardList, Plus, Loader2, Link as LinkIcon, MessageCircle
+    BookOpen, GraduationCap, ArrowRight, ExternalLink, Send, FileText, ClipboardList, Plus, Loader2, Link as LinkIcon, MessageCircle, CalendarCheck
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import { assignmentAPI, courseAPI, dailyTaskAPI, enrollmentAPI, chatAPI, feeAPI } from '../../services/api';
@@ -126,16 +126,28 @@ const AssignmentSubmission = () => {
 
             setMyCourses(internCourses);
 
+            // Validate selectedCourseId against enrolled courses
+            let validCourseId = selectedCourseId;
             if (selectedCourseId) {
-                const enroll = myEnrollments.find(e => (e.course?._id || e.course) === selectedCourseId);
+                // Check if the selected course is in the user's enrolled courses
+                const isValidCourse = internCourses.some(c => c._id === selectedCourseId);
+                if (!isValidCourse) {
+                    console.log('Selected course not found in enrollments, resetting...');
+                    validCourseId = null;
+                    localStorage.removeItem('submission_selectedCourse');
+                }
+            }
+
+            if (validCourseId) {
+                const enroll = myEnrollments.find(e => (e.course?._id || e.course) === validCourseId);
                 setSelectedEnrollment(enroll);
-                fetchDailyTasks(selectedCourseId);
+                fetchDailyTasks(validCourseId);
             } else if (internCourses.length > 0) {
                 // Find first "active" or just first one
                 const firstAvailable = internCourses.find(c => c.isActive) || internCourses[0];
+                setSelectedCourseId(firstAvailable._id);
+                setSelectedEnrollment(firstAvailable.enrollment);
                 if (firstAvailable.isActive) {
-                    setSelectedCourseId(firstAvailable._id);
-                    setSelectedEnrollment(firstAvailable.enrollment);
                     fetchDailyTasks(firstAvailable._id);
                 }
             }
@@ -227,6 +239,14 @@ const AssignmentSubmission = () => {
         e.preventDefault();
         if (!newTaskContent.trim() || !selectedCourseId) return;
 
+        // Validate that the selected course is in user's enrollments
+        const enroll = enrollments.find(e => (e.course?._id || e.course) === selectedCourseId);
+        if (!enroll) {
+            alert('Invalid course selected. Please refresh the page and try again.');
+            localStorage.removeItem('submission_selectedCourse');
+            return;
+        }
+
         // Check restriction using fee status from API
         if (feeOverdue.hasOverdue) {
             alert(`You have an overdue fee payment (Installment #${feeOverdue.overdueInstallment?.installmentNumber || '?'}, ${feeOverdue.overdueInstallment?.daysPastDue || 0} days overdue). Please pay your installment to submit daily tasks.`);
@@ -234,8 +254,7 @@ const AssignmentSubmission = () => {
         }
 
         // Check first payment verification
-        const enroll = enrollments.find(e => (e.course?._id || e.course) === selectedCourseId);
-        const isBlocked = enroll && enroll.installments?.[0]?.status !== 'verified';
+        const isBlocked = enroll.installments?.[0]?.status !== 'verified';
 
         if (isBlocked) {
             alert('Access to this course is blocked until your first payment is verified.');
@@ -333,17 +352,29 @@ const AssignmentSubmission = () => {
             const enrollRes = await enrollmentAPI.getMy();
             const myEnrollments = enrollRes.data.data || [];
             setEnrollments(myEnrollments);
-            setMyCourses(myEnrollments.map(e => ({
+            
+            const enrolledCourses = myEnrollments.map(e => ({
                 ...e.course,
                 isActive: e.isActive,
                 isFirstMonthVerified: e.installments?.[0]?.status === 'verified',
                 isCompleted: e.status === 'completed',
                 enrollment: e
-            })).filter(c => !!c));
+            })).filter(c => !!c && !!c._id);
+            
+            setMyCourses(enrolledCourses);
 
+            // Validate selectedCourseId - if it doesn't match any enrolled course, reset it
             if (selectedCourseId) {
-                const enroll = myEnrollments.find(e => (e.course?._id || e.course) === selectedCourseId);
-                setSelectedEnrollment(enroll);
+                const isValidCourse = enrolledCourses.some(c => c._id === selectedCourseId);
+                if (isValidCourse) {
+                    const enroll = myEnrollments.find(e => (e.course?._id || e.course) === selectedCourseId);
+                    setSelectedEnrollment(enroll);
+                } else {
+                    // Invalid course ID, clear it
+                    console.log('Invalid selectedCourseId in assignments, clearing...');
+                    setSelectedCourseId('');
+                    localStorage.removeItem('submission_selectedCourse');
+                }
             }
 
         } catch (error) {
@@ -475,41 +506,183 @@ const AssignmentSubmission = () => {
 
     return (
         <div className="space-y-6">
-            {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Submission Portal</h1>
-                    <p className="text-gray-500">Submit your work and view teacher feedback</p>
-                </div>
+            {/* Course Selection View - shows when no course is selected */}
+            {!selectedCourseId ? (
+                <>
+                    {/* Header for Course Selection */}
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div>
+                            <h1 className="text-2xl font-bold text-gray-900">Submission Portal</h1>
+                            <p className="text-gray-500">Submit your work and view teacher feedback</p>
+                        </div>
+                    </div>
 
-                <div className="flex items-center gap-3">
-                    {/* Tab Switcher for Interns */}
-                    <div className="flex bg-gray-100 p-1 rounded-xl">
-                        <button
-                            onClick={() => setActiveTab('assignments')}
-                            className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'assignments'
-                                ? 'bg-white text-emerald-600 shadow-sm'
-                                : 'text-gray-500 hover:text-gray-700'}`}
-                        >
-                            <FileText className="w-4 h-4 inline mr-2" />
-                            Assignments
-                        </button>
+                    {/* COURSE DISCOVERY VIEW */}
+                    <div className="space-y-6">
+                        <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm text-center mb-8">
+                            <GraduationCap className="w-12 h-12 text-emerald-600 mx-auto mb-4" />
+                            <h2 className="text-2xl font-black text-gray-900 uppercase tracking-tight">Your Registered Courses</h2>
+                            <p className="text-gray-500 font-medium max-w-md mx-auto">Select a course to view its specific assignments, daily work logs and track your progress.</p>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {myCourses.map((course, idx) => {
+                                const isRestricted = !course.isActive;
+                                const isFirstPaid = course.enrollment?.installments?.[0]?.status === 'verified' || course.isFirstMonthVerified;
+                                const isBlocked = !isFirstPaid;
+
+                                return (
+                                    <motion.div
+                                        key={course._id}
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: idx * 0.1 }}
+                                        onClick={() => handleCourseSelect(course._id)}
+                                        className="bg-white rounded-[2rem] p-6 border border-gray-100 shadow-sm hover:shadow-2xl hover:border-emerald-200 transition-all cursor-pointer group relative overflow-hidden flex flex-col h-full"
+                                    >
+                                        <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-50 rounded-full -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                        <div className="flex items-start justify-between mb-4 relative z-10">
+                                            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-white shadow-lg shadow-emerald-200 group-hover:scale-110 transition-transform">
+                                                <BookOpen className="w-7 h-7" />
+                                            </div>
+                                            <div className="flex flex-col items-end gap-2">
+                                                {course.isCompleted ? (
+                                                    <Badge variant="success">Completed</Badge>
+                                                ) : isBlocked ? (
+                                                    <Badge variant="warning">Verification Pending</Badge>
+                                                ) : isRestricted ? (
+                                                    <Badge variant="danger">Restricted</Badge>
+                                                ) : (
+                                                    <Badge variant="success">Active</Badge>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <div className="flex-1 relative z-10">
+                                            <h3 className="text-xl font-black text-gray-900 uppercase tracking-tighter group-hover:text-emerald-600 transition-colors leading-tight mb-2">{course.title}</h3>
+                                            <div className="flex items-center gap-4 text-xs text-gray-500 font-bold uppercase tracking-widest">
+                                                <span className="flex items-center gap-1">
+                                                    <Calendar className="w-3.5 h-3.5" />
+                                                    {new Date(course.startDate).toLocaleDateString()}
+                                                </span>
+                                                {course.bookLink && (
+                                                    <a
+                                                        href={course.bookLink}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        onClick={(e) => e.stopPropagation()}
+                                                        className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl shadow-md shadow-indigo-200 hover:bg-indigo-700 hover:shadow-lg transition-all font-black text-[10px] uppercase tracking-widest mt-2 w-fit group-hover:scale-105"
+                                                    >
+                                                        <BookOpen className="w-3.5 h-3.5" />
+                                                        OPEN COURSE BOOK
+                                                    </a>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <div className="mt-8 pt-4 border-t border-gray-50 flex items-center justify-between relative z-10">
+                                            <div className="flex items-center gap-2 text-emerald-600 font-black text-xs tracking-widest uppercase">
+                                                ENTER DASHBOARD
+                                                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                            </div>
+                                        </div>
+                                    </motion.div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </>
+            ) : (
+                /* SELECTED COURSE VIEW - Teacher Portal Style */
+                <div className="space-y-6">
+                    {/* Course Header - Teacher Portal Style */}
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div>
+                            <button
+                                onClick={() => setSelectedCourseId('')}
+                                className="flex items-center gap-2 text-emerald-600 hover:text-emerald-700 mb-2 font-bold text-sm tracking-wide"
+                            >
+                                <ChevronLeft className="w-4 h-4" />
+                                BACK TO ALL COURSES
+                            </button>
+                            <h1 className="text-3xl font-black text-gray-900 uppercase tracking-tight">{myCourses.find(c => c._id === selectedCourseId)?.title || 'Course Dashboard'}</h1>
+                            <div className="flex items-center gap-3 mt-1">
+                                <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${user?.role === 'intern'
+                                    ? 'bg-purple-600 text-white'
+                                    : 'bg-emerald-600 text-white'
+                                    }`}>
+                                    {user?.role === 'intern' ? 'Interns Portal' : 'Students Portal'}
+                                </span>
+                                {selectedEnrollment && selectedEnrollment.status === 'completed' && (
+                                    <span className="text-emerald-500 text-sm font-semibold italic flex items-center gap-1">
+                                        <CheckCircle className="w-4 h-4" /> Course Completed
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+                        {/* Course Book Button */}
+                        {myCourses.find(c => c._id === selectedCourseId)?.bookLink && (
+                            <a
+                                href={myCourses.find(c => c._id === selectedCourseId).bookLink}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-xl shadow-lg shadow-indigo-200 hover:bg-indigo-700 hover:shadow-xl transition-all font-bold text-sm uppercase tracking-wide active:scale-95"
+                            >
+                                <BookOpen className="w-5 h-5" />
+                                Course Book
+                            </a>
+                        )}
+                    </div>
+
+                    {/* Fee Overdue Warning */}
+                    {feeOverdue.hasOverdue && (
+                        <div className="bg-red-50 border border-red-200 px-4 py-3 rounded-xl flex items-center gap-3 text-red-600">
+                            <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                            <div className="flex flex-col">
+                                <span className="text-sm font-bold">Payment Overdue - Submissions Disabled</span>
+                                <span className="text-xs font-medium">Installment #{feeOverdue.overdueInstallment?.installmentNumber} is {feeOverdue.overdueInstallment?.daysPastDue} days overdue. Please pay to unlock submissions.</span>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Tab Navigation - Teacher Portal Style */}
+                    <div className="flex gap-2 bg-gray-100/80 p-1.5 rounded-2xl w-fit border border-gray-200">
                         <button
                             onClick={() => setActiveTab('daily_tasks')}
-                            className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'daily_tasks'
-                                ? 'bg-white text-emerald-600 shadow-sm'
-                                : 'text-gray-500 hover:text-gray-700'}`}
+                            className={`px-8 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 ${activeTab === 'daily_tasks'
+                                ? 'bg-white text-emerald-600 shadow-sm border border-emerald-100'
+                                : 'text-gray-500 hover:bg-gray-200 hover:text-gray-900'
+                                }`}
                         >
-                            <ClipboardList className="w-4 h-4 inline mr-2" />
+                            <ClipboardList className="w-4 h-4" />
                             {user?.role === 'intern' ? 'Daily Tasks' : 'Class Logs'}
                         </button>
                         <button
-                            onClick={() => setActiveTab('chat')}
-                            className={`px-6 py-2 rounded-lg text-sm font-bold transition-all relative ${activeTab === 'chat'
-                                ? 'bg-white text-emerald-600 shadow-sm'
-                                : 'text-gray-500 hover:text-gray-700'}`}
+                            onClick={() => setActiveTab('assignments')}
+                            className={`px-8 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 ${activeTab === 'assignments'
+                                ? 'bg-white text-emerald-600 shadow-sm border border-emerald-100'
+                                : 'text-gray-500 hover:bg-gray-200 hover:text-gray-900'
+                                }`}
                         >
-                            <MessageCircle className="w-4 h-4 inline mr-2" />
+                            <FileText className="w-4 h-4" />
+                            Assignments
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('attendance')}
+                            className={`px-8 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 ${activeTab === 'attendance'
+                                ? 'bg-white text-emerald-600 shadow-sm border border-emerald-100'
+                                : 'text-gray-500 hover:bg-gray-200 hover:text-gray-900'
+                                }`}
+                        >
+                            <CalendarCheck className="w-4 h-4" />
+                            Attendance
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('chat')}
+                            className={`px-8 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 relative ${activeTab === 'chat'
+                                ? 'bg-white text-emerald-600 shadow-sm border border-emerald-100'
+                                : 'text-gray-500 hover:bg-gray-200 hover:text-gray-900'
+                                }`}
+                        >
+                            <MessageCircle className="w-4 h-4" />
                             Chat
                             {chatUnreadCount > 0 && activeTab !== 'chat' && (
                                 <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center animate-pulse">
@@ -518,144 +691,29 @@ const AssignmentSubmission = () => {
                             )}
                         </button>
                     </div>
-                </div>
-            </div>
 
-            {/* Main Content Area */}
-            {!selectedCourseId ? (
-                /* COURSE DISCOVERY VIEW */
-                <div className="space-y-6">
-                    <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm text-center mb-8">
-                        <GraduationCap className="w-12 h-12 text-emerald-600 mx-auto mb-4" />
-                        <h2 className="text-2xl font-black text-gray-900 uppercase tracking-tight">Your Registered Courses</h2>
-                        <p className="text-gray-500 font-medium max-w-md mx-auto">Select a course to view its specific assignments, daily work logs and track your progress.</p>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {myCourses.map((course, idx) => {
-                            const isRestricted = !course.isActive;
-                            const isFirstPaid = course.enrollment?.installments?.[0]?.status === 'verified' || course.isFirstMonthVerified;
-                            const isBlocked = !isFirstPaid;
-
-                            return (
-                                <motion.div
-                                    key={course._id}
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: idx * 0.1 }}
-                                    onClick={() => handleCourseSelect(course._id)}
-                                    className="bg-white rounded-[2rem] p-6 border border-gray-100 shadow-sm hover:shadow-2xl hover:border-emerald-200 transition-all cursor-pointer group relative overflow-hidden flex flex-col h-full"
-                                >
-                                    <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-50 rounded-full -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                                    <div className="flex items-start justify-between mb-4 relative z-10">
-                                        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-white shadow-lg shadow-emerald-200 group-hover:scale-110 transition-transform">
-                                            <BookOpen className="w-7 h-7" />
-                                        </div>
-                                        <div className="flex flex-col items-end gap-2">
-                                            {course.isCompleted ? (
-                                                <Badge variant="success">Completed</Badge>
-                                            ) : isBlocked ? (
-                                                <Badge variant="warning">Verification Pending</Badge>
-                                            ) : isRestricted ? (
-                                                <Badge variant="danger">Restricted</Badge>
-                                            ) : (
-                                                <Badge variant="success">Active</Badge>
-                                            )}
-                                        </div>
-                                    </div>
-                                    <div className="flex-1 relative z-10">
-                                        <h3 className="text-xl font-black text-gray-900 uppercase tracking-tighter group-hover:text-emerald-600 transition-colors leading-tight mb-2">{course.title}</h3>
-                                        <div className="flex items-center gap-4 text-xs text-gray-500 font-bold uppercase tracking-widest">
-                                            <span className="flex items-center gap-1">
-                                                <Calendar className="w-3.5 h-3.5" />
-                                                {new Date(course.startDate).toLocaleDateString()}
-                                            </span>
-                                            {course.bookLink && (
-                                                <a
-                                                    href={course.bookLink}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    onClick={(e) => e.stopPropagation()}
-                                                    className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl shadow-md shadow-indigo-200 hover:bg-indigo-700 hover:shadow-lg transition-all font-black text-[10px] uppercase tracking-widest mt-2 w-fit group-hover:scale-105"
-                                                >
-                                                    <BookOpen className="w-3.5 h-3.5" />
-                                                    OPEN COURSE BOOK
-                                                </a>
-                                            )}
-                                        </div>
-                                    </div>
-                                    <div className="mt-8 pt-4 border-t border-gray-50 flex items-center justify-between relative z-10">
-                                        <div className="flex items-center gap-2 text-emerald-600 font-black text-xs tracking-widest uppercase">
-                                            ENTER DASHBOARD
-                                            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                                        </div>
-                                    </div>
-                                </motion.div>
-                            );
-                        })}
-                    </div>
-                </div>
-            ) : (
-                /* SELECTED COURSE VIEW */
-                <div className="space-y-6">
-                    {/* Selected Course Header */}
-                    <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
-                        <div className="flex items-center gap-4">
-                            <button
-                                onClick={() => setSelectedCourseId('')}
-                                className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-900 transition-all border border-gray-100"
-                            >
-                                <ChevronLeft className="w-5 h-5" />
-                            </button>
-                            <div>
-                                <h2 className="text-2xl font-black text-gray-900 uppercase tracking-tighter leading-none">{myCourses.find(c => c._id === selectedCourseId)?.title}</h2>
-                                <div className="flex items-center gap-4 mt-1">
-                                    <div className="flex items-center gap-2">
-                                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                                        <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Workspace Active</span>
-                                    </div>
-                                    {myCourses.find(c => c._id === selectedCourseId)?.bookLink && (
-                                        <a
-                                            href={myCourses.find(c => c._id === selectedCourseId).bookLink}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-xl shadow-lg shadow-indigo-100 text-xs font-black uppercase tracking-widest hover:bg-indigo-700 hover:scale-105 transition-all outline-none focus:ring-4 focus:ring-indigo-500/20"
-                                        >
-                                            <BookOpen className="w-4 h-4" />
-                                            ACCESS COURSE BOOK
-                                        </a>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Completed Warning */}
-                        {selectedEnrollment && selectedEnrollment.status === 'completed' && (
-                            <div className="bg-emerald-50 border border-emerald-100 px-4 py-2 rounded-xl flex items-center gap-3 text-emerald-600">
-                                <CheckCircle className="w-5 h-5" />
-                                <span className="text-xs font-black uppercase tracking-widest">Course Completed - Certification Archive</span>
-                            </div>
-                        )}
-
-                        {/* Fee Overdue Warning */}
-                        {feeOverdue.hasOverdue && (
-                            <div className="bg-red-50 border border-red-100 px-4 py-2 rounded-xl flex items-center gap-3 text-red-600 animate-pulse">
-                                <AlertCircle className="w-5 h-5" />
-                                <div className="flex flex-col">
-                                    <span className="text-xs font-black uppercase tracking-widest">Payment Overdue - Submissions Disabled</span>
-                                    <span className="text-[10px] font-medium">Installment #{feeOverdue.overdueInstallment?.installmentNumber} is {feeOverdue.overdueInstallment?.daysPastDue} days overdue. Please pay to unlock submissions.</span>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-
+                    {/* Tab Content */}
                     {(() => {
                         const isCompleted = selectedEnrollment && selectedEnrollment.status === 'completed';
                         const isRestricted = feeOverdue.hasOverdue;
 
                         return (
                             <>
-                                {activeTab === 'assignments' ? (
+                                {activeTab === 'attendance' ? (
+                                    /* ATTENDANCE VIEW */
+                                    <div className="bg-white rounded-2xl p-8 border border-gray-100 text-center">
+                                        <CalendarCheck className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                                        <h3 className="text-xl font-semibold text-gray-900 mb-2">My Attendance</h3>
+                                        <p className="text-gray-500 mb-4">View your attendance records from the dedicated attendance page.</p>
+                                        <a
+                                            href={`/${user?.role}/attendance`}
+                                            className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition-all"
+                                        >
+                                            <CalendarCheck className="w-5 h-5" />
+                                            View Full Attendance
+                                        </a>
+                                    </div>
+                                ) : activeTab === 'assignments' ? (
                                     /* ASSIGNMENTS LIST */
                                     <div className="space-y-6">
                                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -874,7 +932,7 @@ const AssignmentSubmission = () => {
                                                                     <button onClick={() => { setResubmittingTaskId(task._id); setNewTaskContent(task.content); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="text-[10px] font-black text-emerald-600 underline uppercase tracking-widest">Edit & Re-commit</button>
                                                                 )}
                                                             </div>
-                                                            <div className="bg-gray-50/50 p-5 rounded-2xl border border-gray-100 text-sm italic text-gray-600 font-medium leading-relaxed mb-4">"{task.content}"</div>
+                                                            <div className="bg-gray-50/50 p-5 rounded-2xl border border-gray-100 text-sm italic text-gray-600 font-medium leading-relaxed mb-4 whitespace-pre-wrap">"{task.content}"</div>
                                                             {task.workLink && (
                                                                 <a href={task.workLink} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[10px] font-black text-emerald-600 uppercase hover:bg-emerald-50 w-fit px-3 py-1.5 rounded-lg border border-emerald-100 transition-all">
                                                                     <ExternalLink className="w-3.5 h-3.5" />

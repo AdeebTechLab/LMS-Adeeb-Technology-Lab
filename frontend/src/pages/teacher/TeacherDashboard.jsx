@@ -156,12 +156,29 @@ const TeacherDashboard = () => {
                     
                     // Count pending submissions (submitted but not graded)
                     let pendingAssignments = 0;
+                    let totalSubmissions = 0;
+                    let gradedSubmissions = 0;
+                    let totalMarks = 0;
+                    let totalPossibleMarks = 0;
+                    
                     assignments.forEach(a => {
-                        const pendingCount = a.submissions?.filter(s => 
-                            s.status === 'submitted' || (!s.marks && s.marks !== 0)
-                        ).length || 0;
-                        pendingAssignments += pendingCount;
+                        const submissions = a.submissions || [];
+                        totalSubmissions += submissions.length;
+                        
+                        submissions.forEach(s => {
+                            if (s.marks !== undefined && s.marks !== null) {
+                                gradedSubmissions++;
+                                totalMarks += s.marks;
+                                totalPossibleMarks += (a.totalMarks || 100);
+                            } else {
+                                pendingAssignments++;
+                            }
+                        });
                     });
+                    
+                    const avgPercentage = totalPossibleMarks > 0 
+                        ? Math.round((totalMarks / totalPossibleMarks) * 100) 
+                        : 0;
 
                     // Fetch daily tasks for this course
                     let pendingTasks = 0;
@@ -176,16 +193,36 @@ const TeacherDashboard = () => {
                     const totalPending = pendingAssignments + pendingTasks;
                     totalPendingReviews += totalPending;
 
+                    console.log(`Dashboard - Course "${courseData.title}" assignment stats:`, {
+                        totalSubmissions,
+                        gradedSubmissions,
+                        pendingGrading: pendingAssignments
+                    });
+                    
                     return {
                         ...courseData,
                         assignments: assignments.length,
-                        pendingSubmissions: totalPending
+                        pendingSubmissions: totalPending,
+                        assignmentStats: {
+                            totalSubmissions,
+                            gradedSubmissions,
+                            avgPercentage,
+                            pendingGrading: pendingAssignments
+                        }
                     };
                 } catch (e) {
                     console.error(`Error fetching data for course ${courseData.title}:`, e);
-                    return courseData;
+                    return {
+                        ...courseData,
+                        assignmentStats: { totalSubmissions: 0, gradedSubmissions: 0, avgPercentage: 0, pendingGrading: 0 }
+                    };
                 }
             }));
+
+            console.log('Dashboard - Courses with full data:', coursesWithFullData.map(c => ({
+                title: c.title,
+                assignmentStats: c.assignmentStats
+            })));
 
             setMyCourses(coursesWithFullData);
 
@@ -309,7 +346,7 @@ const TeacherDashboard = () => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.3 }}
-                        className="lg:col-span-2 bg-white rounded-2xl p-6 border border-gray-100"
+                        className="lg:col-span-2 bg-white rounded-2xl p-6 border border-gray-100 overflow-visible"
                     >
                         <div className="flex items-center justify-between mb-6">
                             <div>
@@ -325,15 +362,21 @@ const TeacherDashboard = () => {
                                 <p className="text-sm text-gray-400 mt-1">Contact admin to get courses assigned to you</p>
                             </div>
                         ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 overflow-visible pt-2 pr-2">
                                 {myCourses.map((course, index) => (
                                     <motion.div
                                         key={course.id}
                                         initial={{ opacity: 0, x: -20 }}
                                         animate={{ opacity: 1, x: 0 }}
                                         transition={{ delay: 0.4 + index * 0.1 }}
-                                        className="p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors cursor-pointer border border-gray-100"
+                                        className="p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors cursor-pointer border border-gray-100 relative"
                                     >
+                                        {/* Pending (ungraded) Submission Count Badge */}
+                                        {course.assignmentStats?.pendingGrading > 0 && (
+                                            <div className="absolute -top-2 -right-2 w-7 h-7 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center shadow-lg">
+                                                {course.assignmentStats.pendingGrading > 99 ? '99+' : course.assignmentStats.pendingGrading}
+                                            </div>
+                                        )}
                                         <div className="flex items-start justify-between mb-3">
                                             {(() => {
                                                 const CourseIcon = getCourseIcon(course.category, course.title);
@@ -349,7 +392,7 @@ const TeacherDashboard = () => {
                                             </Badge>
                                         </div>
                                         <h4 className="font-semibold text-gray-900 mb-2">{course.title}</h4>
-                                        <div className="flex items-center gap-4 text-sm text-gray-500 mb-3">
+                                        <div className="flex items-center gap-4 text-sm text-gray-500 mb-2">
                                             <span className="flex items-center gap-1">
                                                 <Users className="w-4 h-4" /> {course.students} students
                                             </span>
@@ -359,6 +402,33 @@ const TeacherDashboard = () => {
                                                 </span>
                                             )}
                                         </div>
+                                        
+                                        {/* Assignment Stats */}
+                                        {course.assignmentStats && course.assignments > 0 && (
+                                            <div className="bg-gradient-to-r from-emerald-50/80 to-blue-50/80 rounded-lg p-2 mb-3 border border-emerald-100/50">
+                                                <div className="flex items-center justify-between text-xs">
+                                                    <span className="flex items-center gap-1 text-gray-600 font-medium">
+                                                        <FileText className="w-3.5 h-3.5 text-emerald-600" />
+                                                        {course.assignments} Assignment{course.assignments > 1 ? 's' : ''}
+                                                    </span>
+                                                    <div className="flex items-center gap-2">
+                                                        {course.assignmentStats.gradedSubmissions > 0 && (
+                                                            <span className="flex items-center gap-1 text-emerald-600 font-bold">
+                                                                <CheckCircle className="w-3 h-3" />
+                                                                Avg: {course.assignmentStats.avgPercentage}%
+                                                            </span>
+                                                        )}
+                                                        {course.assignmentStats.pendingGrading > 0 && (
+                                                            <span className="flex items-center gap-1 text-amber-600 font-bold">
+                                                                <Clock className="w-3 h-3" />
+                                                                {course.assignmentStats.pendingGrading} pending
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+                                        
                                         <button
                                             onClick={() => navigate('/teacher/attendance')}
                                             className="flex items-center gap-1 text-sm font-medium text-emerald-600 hover:text-emerald-700"

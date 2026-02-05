@@ -5,6 +5,12 @@ const DailyTask = require('../models/DailyTask');
 const Course = require('../models/Course');
 const Fee = require('../models/Fee');
 
+// Debug middleware to log all requests to this router
+router.use((req, res, next) => {
+    console.log(`📥 Daily Tasks Router - ${req.method} ${req.originalUrl}`);
+    next();
+});
+
 // Helper function to check if student has overdue fees (more than 7 days past due)
 const hasOverdueFee = async (userId, courseId) => {
     const fee = await Fee.findOne({ user: userId, course: courseId });
@@ -31,16 +37,24 @@ const hasOverdueFee = async (userId, courseId) => {
 router.post('/', protect, authorize('intern', 'student'), async (req, res) => {
     try {
         const { courseId, content, workLink, taskId } = req.body;
+        console.log(`✏️ Daily task submission request:`);
+        console.log(`   User: ${req.user.id} (${req.user.name}, role: ${req.user.role})`);
+        console.log(`   Course: ${courseId}`);
+        console.log(`   TaskId: ${taskId || 'new submission'}`);
+        console.log(`   Content length: ${content?.length || 0} chars`);
 
         // Verify enrollment/course exists
         const course = await Course.findById(courseId);
         if (!course) {
+            console.log(`❌ Course not found: ${courseId}`);
             return res.status(404).json({ success: false, message: 'Course not found' });
         }
+        console.log(`✅ Course found: ${course.title}`);
 
         // Check for overdue fee payment (more than 7 days past due)
         const isOverdue = await hasOverdueFee(req.user.id, courseId);
         if (isOverdue) {
+            console.log(`❌ User has overdue fee`);
             return res.status(403).json({ 
                 success: false, 
                 message: 'You have an overdue fee payment. Please pay your installment to submit daily tasks.',
@@ -73,6 +87,7 @@ router.post('/', protect, authorize('intern', 'student'), async (req, res) => {
                 content,
                 workLink
             });
+            console.log(`✅ New daily task created with ID: ${task._id}`);
         }
 
         res.status(taskId ? 200 : 201).json({
@@ -80,6 +95,7 @@ router.post('/', protect, authorize('intern', 'student'), async (req, res) => {
             data: task
         });
     } catch (error) {
+        console.error(`❌ Error submitting daily task:`, error);
         res.status(500).json({ success: false, message: error.message });
     }
 });
@@ -108,10 +124,12 @@ router.get('/course/:courseId', protect, authorize('teacher', 'admin'), async (r
 // @access  Private (Intern, Student)
 router.get('/my/:courseId', protect, authorize('intern', 'student'), async (req, res) => {
     try {
+        console.log(`📝 Fetching daily tasks for user: ${req.user.id}, course: ${req.params.courseId}`);
         const tasks = await DailyTask.find({
             course: req.params.courseId,
             user: req.user.id
         }).sort({ createdAt: -1 });
+        console.log(`📊 Found ${tasks.length} daily tasks`);
 
         res.json({
             success: true,
@@ -119,6 +137,7 @@ router.get('/my/:courseId', protect, authorize('intern', 'student'), async (req,
             data: tasks
         });
     } catch (error) {
+        console.error(`❌ Error fetching daily tasks for user:`, error);
         res.status(500).json({ success: false, message: error.message });
     }
 });

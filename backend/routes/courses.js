@@ -3,6 +3,123 @@ const router = express.Router();
 const { protect, authorize } = require('../middleware/auth');
 const Course = require('../models/Course');
 const Enrollment = require('../models/Enrollment');
+const Assignment = require('../models/Assignment');
+const Attendance = require('../models/Attendance');
+
+// @route   GET /api/courses/teacher/dashboard
+// @desc    Get all teacher's courses with stats in ONE query (optimized)
+// @access  Private (Teacher only)
+router.get('/teacher/dashboard', protect, authorize('teacher', 'admin'), async (req, res) => {
+    try {
+        const teacherId = req.user._id.toString();
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        // 1. Get all courses where this teacher is assigned
+        const allCourses = await Course.find({ teachers: teacherId })
+            .select('title category targetAudience location city isActive startDate durationMonths bookLink')
+            .lean();
+
+        if (allCourses.length === 0) {
+            return res.json({ success: true, data: [] });
+        }
+
+        const courseIds = allCourses.map(c => c._id);
+
+        // 2. Get all enrollments for these courses in ONE query
+        const enrollments = await Enrollment.find({ course: { $in: courseIds } })
+            .select('course user isActive status')
+            .lean();
+
+        // 3. Get all assignments for these courses in ONE query
+        const assignments = await Assignment.find({ course: { $in: courseIds } })
+            .select('course submissions.marks')
+            .lean();
+
+        // 4. Get today's attendance for all courses in ONE query
+        const todayAttendance = await Attendance.find({ 
+            course: { $in: courseIds },
+            date: { $gte: today, $lt: new Date(today.getTime() + 24 * 60 * 60 * 1000) }
+        }).select('course records.status').lean();
+
+        // Build lookup maps for O(1) access
+        const enrollmentMap = {};
+        const assignmentMap = {};
+        const attendanceMap = {};
+
+        courseIds.forEach(id => {
+            const idStr = id.toString();
+            enrollmentMap[idStr] = [];
+            assignmentMap[idStr] = { pending: 0 };
+            attendanceMap[idStr] = { present: 0, absent: 0 };
+        });
+
+        // Populate enrollment counts
+        enrollments.forEach(e => {
+            const courseId = (e.course?._id || e.course).toString();
+            if (enrollmentMap[courseId]) {
+                enrollmentMap[courseId].push(e);
+            }
+        });
+
+        // Populate assignment pending counts
+        assignments.forEach(a => {
+            const courseId = (a.course?._id || a.course).toString();
+            if (assignmentMap[courseId]) {
+                (a.submissions || []).forEach(s => {
+                    const isUngraded = s.marks === undefined || s.marks === null || (typeof s.marks !== 'number');
+                    if (isUngraded) {
+                        assignmentMap[courseId].pending++;
+                    }
+                });
+            }
+        });
+
+        // Populate attendance counts
+        todayAttendance.forEach(att => {
+            const courseId = (att.course?._id || att.course).toString();
+            if (attendanceMap[courseId]) {
+                (att.records || []).forEach(r => {
+                    if (r.status === 'present') attendanceMap[courseId].present++;
+                    else if (r.status === 'absent') attendanceMap[courseId].absent++;
+                });
+            }
+        });
+
+        // 5. Build final response
+        const coursesWithData = allCourses.map(course => {
+            const courseId = course._id.toString();
+            const courseEnrollments = enrollmentMap[courseId] || [];
+            const totalStudents = courseEnrollments.length;
+            const activeStudents = courseEnrollments.filter(e => e.isActive && e.status !== 'completed').length;
+
+            return {
+                id: course._id,
+                _id: course._id,
+                name: course.title,
+                category: course.category,
+                targetAudience: course.targetAudience || 'students',
+                location: course.location,
+                city: course.city,
+                status: course.isActive !== false ? 'active' : 'inactive',
+                startDate: course.startDate,
+                durationMonths: course.durationMonths,
+                bookLink: course.bookLink || '',
+                internCount: totalStudents,
+                activeStudents,
+                pendingAssignments: assignmentMap[courseId]?.pending || 0,
+                presentCount: attendanceMap[courseId]?.present || 0,
+                absentCount: attendanceMap[courseId]?.absent || 0,
+                enrollments: courseEnrollments
+            };
+        });
+
+        res.json({ success: true, data: coursesWithData });
+    } catch (error) {
+        console.error('Teacher dashboard error:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
 
 // @route   GET /api/courses
 // @desc    Get all courses (with filters)

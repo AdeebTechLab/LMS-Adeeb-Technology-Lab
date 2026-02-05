@@ -1,7 +1,7 @@
 import { useSelector, useDispatch } from 'react-redux';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { assignmentAPI } from '../../services/api';
+import { assignmentAPI, courseAPI, dailyTaskAPI } from '../../services/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     LayoutDashboard,
@@ -32,6 +32,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     const { user, role } = useSelector((state) => state.auth);
     const [pendingCount, setPendingCount] = useState(0);
     const [adminPendingCounts, setAdminPendingCounts] = useState({});
+    const [teacherSubmissionCount, setTeacherSubmissionCount] = useState(0);
 
     useEffect(() => {
         if (role === 'student' || role === 'intern') {
@@ -42,8 +43,56 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             fetchAdminPendingCounts();
             const interval = setInterval(fetchAdminPendingCounts, 2 * 60 * 1000); // Admin refresh more frequent
             return () => clearInterval(interval);
+        } else if (role === 'teacher') {
+            fetchTeacherSubmissionCount();
+            const interval = setInterval(fetchTeacherSubmissionCount, 5 * 60 * 1000);
+            return () => clearInterval(interval);
         }
-    }, [role]);
+    }, [role, user]);
+
+    const fetchTeacherSubmissionCount = async () => {
+        try {
+            const teacherId = (user?.id || user?._id)?.toString();
+            if (!teacherId) return;
+
+            // Get all courses
+            const coursesRes = await courseAPI.getAll();
+            const allCourses = coursesRes.data.data || [];
+            
+            // Filter teacher's courses (same logic as TeacherCourses.jsx)
+            const teacherCourses = allCourses.filter(c => {
+                if (!c.teachers || c.teachers.length === 0) return false;
+                return c.teachers.some(t => {
+                    const tId = String(t._id || t.id || t);
+                    return tId === teacherId;
+                });
+            });
+
+            // Count pending (ungraded) submissions across all teacher's courses
+            let pendingSubmissions = 0;
+            for (const course of teacherCourses) {
+                try {
+                    const assignmentsRes = await assignmentAPI.getByCourse(course._id);
+                    const assignments = assignmentsRes.data.assignments || [];
+                    assignments.forEach(a => {
+                        (a.submissions || []).forEach(s => {
+                            // Count ungraded: marks is null, undefined, or not a number
+                            const isUngraded = s.marks === undefined || s.marks === null || (typeof s.marks !== 'number');
+                            if (isUngraded) {
+                                pendingSubmissions++;
+                            }
+                        });
+                    });
+                } catch (e) {
+                    // Skip courses with no assignments
+                }
+            }
+            
+            setTeacherSubmissionCount(pendingSubmissions);
+        } catch (error) {
+            console.error('Error fetching teacher submission count:', error);
+        }
+    };
 
     const fetchAdminPendingCounts = async () => {
         try {
@@ -103,7 +152,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             teacher: [
                 { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/teacher/dashboard' },
                 { id: 'profile', label: 'My Profile', icon: User, path: '/teacher/profile' },
-                { id: 'attendance', label: 'My Courses', icon: BookOpen, path: '/teacher/attendance' },
+                { id: 'attendance', label: 'My Courses', icon: BookOpen, path: '/teacher/attendance', submissionBadge: teacherSubmissionCount },
             ],
             student: [
                 { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/student/dashboard' },
@@ -277,6 +326,17 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                                             title="Not Registered in Any Course"
                                         >
                                             {item.badgeAlt}
+                                        </motion.span>
+                                    )}
+                                    {/* Badge for teacher pending (ungraded) submissions (red) */}
+                                    {item.submissionBadge > 0 && (
+                                        <motion.span
+                                            initial={{ scale: 0 }}
+                                            animate={{ scale: 1 }}
+                                            className="bg-red-500 text-white text-[10px] font-black min-w-5 h-5 px-1 rounded-full flex items-center justify-center shadow-lg shadow-red-500/20"
+                                            title="Pending Submissions to Grade"
+                                        >
+                                            {item.submissionBadge > 99 ? '99+' : item.submissionBadge}
                                         </motion.span>
                                     )}
                                 </NavLink>

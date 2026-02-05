@@ -15,13 +15,16 @@ const useAutoLogout = () => {
 
         const checkSession = () => {
             // Check if "Remember Me" was selected - if so, skip auto-logout
-            const rememberMe = localStorage.getItem('rememberMe') || sessionStorage.getItem('rememberMe');
-            if (rememberMe === 'true') {
-                // User selected "Remember Me" - don't auto-logout
+            const rememberMeLocal = localStorage.getItem('rememberMe');
+            const rememberMeSession = sessionStorage.getItem('rememberMe');
+            
+            // If rememberMe is 'true' in localStorage, user selected remember me - don't auto-logout
+            if (rememberMeLocal === 'true') {
                 return;
             }
-
-            const loginTime = localStorage.getItem('loginTime') || sessionStorage.getItem('loginTime');
+            
+            // If using sessionStorage (rememberMe was false), apply 2-hour timeout
+            const loginTime = sessionStorage.getItem('loginTime') || localStorage.getItem('loginTime');
             if (!loginTime) {
                 // No login time stored, logout for safety
                 dispatch(logout());

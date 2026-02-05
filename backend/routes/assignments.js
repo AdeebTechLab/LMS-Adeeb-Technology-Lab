@@ -55,13 +55,12 @@ router.get('/course/:courseId', protect, async (req, res) => {
                 return res.status(403).json({ success: false, message: 'Not enrolled in this course' });
             }
 
-            const userRegistrationDate = enrollment.registrationDate || new Date(0);
-
-            // Get assignments that are assigned to this user or to 'all' (created after registration)
+            // Get assignments that are assigned to this user or to 'all'
+            // Simplified: Show all 'all' assignments regardless of date, or specifically assigned ones
             assignments = await Assignment.find({
                 course: courseId,
                 $or: [
-                    { createdAt: { $gte: userRegistrationDate }, assignTo: 'all' },
+                    { assignTo: 'all' },
                     { assignedUsers: userId },
                     { "submissions.user": userId }
                 ]
@@ -270,29 +269,52 @@ router.put('/:assignmentId/grade/:submissionId', protect, authorize('teacher', '
 // @access  Private
 router.get('/my', protect, async (req, res) => {
     try {
+        console.log(`📚 Fetching assignments for user: ${req.user.id} (role: ${req.user.role})`);
         // Get user's enrolled courses and registration date
         const enrollments = await Enrollment.find({ user: req.user.id });
+        console.log(`📋 User has ${enrollments.length} enrollments`);
+        
+        if (enrollments.length === 0) {
+            console.log(`⚠️ User has no enrollments, returning empty assignments`);
+            return res.json({ success: true, assignments: [] });
+        }
+        
         const courseIds = enrollments.map(e => e.course);
+        console.log(`📚 Enrolled course IDs: ${courseIds.join(', ')}`);
 
         // Get user registration date from first enrollment (all should have same registrationDate)
         const userRegistrationDate = enrollments.length > 0 && enrollments[0].registrationDate
             ? enrollments[0].registrationDate
             : new Date(0); // Fallback to epoch if no registration date
 
+        console.log(`📅 User registration date: ${userRegistrationDate}`);
+
+        // First, let's check how many total assignments exist for these courses
+        const totalAssignments = await Assignment.countDocuments({ course: { $in: courseIds } });
+        console.log(`📊 Total assignments in enrolled courses: ${totalAssignments}`);
+
         // Get assignments for those courses
+        // Show assignment if:
+        // 1. assignTo is 'all' (meant for everyone in the course)
+        // 2. OR user is specifically in assignedUsers
+        // 3. OR user has already made a submission
         const assignments = await Assignment.find({
             course: { $in: courseIds },
             $or: [
-                {
-                    createdAt: { $gte: userRegistrationDate },
-                    assignTo: 'all'
-                },
+                { assignTo: 'all' },
                 { assignedUsers: req.user.id },
-                { "submissions.user": req.user.id } // Always include if there's a submission
+                { "submissions.user": req.user.id }
             ]
         })
             .populate('course', 'title bookLink')
             .sort('-createdAt');
+
+        console.log(`✅ Found ${assignments.length} assignments matching criteria`);
+        
+        // Debug: Log each assignment's details
+        assignments.forEach((a, i) => {
+            console.log(`  ${i+1}. "${a.title}" - assignTo: ${a.assignTo}, createdAt: ${a.createdAt}, userInAssignedUsers: ${a.assignedUsers?.some(u => u.toString() === req.user.id)}`);
+        });
 
         // SECURITY: Only return the current user's submission
         const sanitizedAssignments = assignments.map(assignment => {
@@ -305,8 +327,10 @@ router.get('/my', protect, async (req, res) => {
             return assignmentObj;
         });
 
+        console.log(`📤 Returning ${sanitizedAssignments.length} sanitized assignments`);
         res.json({ success: true, assignments: sanitizedAssignments });
     } catch (error) {
+        console.error('❌ Error fetching user assignments:', error);
         res.status(500).json({ success: false, message: error.message });
     }
 });

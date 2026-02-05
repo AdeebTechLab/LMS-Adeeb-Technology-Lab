@@ -14,7 +14,7 @@ const getSocketURL = () => {
 
 const SOCKET_URL = getSocketURL();
 
-const TeacherChatTab = ({ course, students }) => {
+const TeacherChatTab = ({ course, students, onUnreadCountChange }) => {
     const { user } = useSelector((state) => state.auth);
     const [studentsWithUnread, setStudentsWithUnread] = useState([]);
     const [activeStudent, setActiveStudent] = useState(null);
@@ -58,7 +58,12 @@ const TeacherChatTab = ({ course, students }) => {
                     return [...prev, data];
                 });
                 // Mark as read
-                chatAPI.markCourseAsRead(currentCourseId, senderId).catch(console.error);
+                chatAPI.markCourseAsRead(currentCourseId, senderId).then(() => {
+                    // Notify parent to refresh unread count
+                    if (onUnreadCountChange) {
+                        onUnreadCountChange();
+                    }
+                }).catch(console.error);
             }
 
             // Refresh students to update unread counts
@@ -114,6 +119,10 @@ const TeacherChatTab = ({ course, students }) => {
             // Mark as read
             await chatAPI.markCourseAsRead(courseId, student._id);
             fetchStudentsWithUnread();
+            // Notify parent to refresh unread count in tab badge
+            if (onUnreadCountChange) {
+                onUnreadCountChange();
+            }
         } catch (error) {
             console.error('Error fetching messages:', error);
         }

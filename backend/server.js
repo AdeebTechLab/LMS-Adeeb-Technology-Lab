@@ -161,13 +161,15 @@ app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', socket: !!io });
 });
 
-// Attendance lock cron job - Runs daily at 12:00 AM
+// Attendance auto-save & lock cron job - Runs daily at 12:00 AM (midnight)
+// This saves and locks the PREVIOUS day's attendance, marking any unmarked students as absent
 cron.schedule('0 0 * * *', async () => {
+    console.log('🕛 Midnight cron triggered - Auto-saving attendance...');
     try {
-        await lockTodayAttendance();
-        console.log('✅ Daily Attendance locking completed');
+        const result = await lockTodayAttendance();
+        console.log(`✅ Daily attendance auto-save completed: ${result.processedCount} courses processed, ${result.createdCount} new records`);
     } catch (error) {
-        console.error('❌ Attendance lock failed:', error);
+        console.error('❌ Attendance auto-save failed:', error);
     }
 });
 
@@ -180,6 +182,21 @@ cron.schedule('0 1 * * *', async () => {
     } catch (error) {
         console.error('❌ Installment job failed:', error);
     }
+});
+
+// 404 handler for unmatched routes
+app.use('/api/*', (req, res) => {
+    console.log(`⚠️ 404 Not Found: ${req.method} ${req.originalUrl}`);
+    console.log(`   Headers:`, JSON.stringify(req.headers, null, 2).substring(0, 500));
+    res.status(404).json({ 
+        success: false, 
+        message: `Route ${req.method} ${req.originalUrl} not found`,
+        debug: {
+            method: req.method,
+            path: req.path,
+            originalUrl: req.originalUrl
+        }
+    });
 });
 
 // Run installment job once on server startup (after 5 seconds delay)

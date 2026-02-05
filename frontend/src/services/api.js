@@ -77,7 +77,8 @@ export const courseAPI = {
     create: (data) => api.post('/courses', data),
     update: (id, data) => api.put(`/courses/${id}`, data),
     delete: (id) => api.delete(`/courses/${id}`),
-    getStudents: (id) => api.get(`/courses/${id}/students`)
+    getStudents: (id) => api.get(`/courses/${id}/students`),
+    getTeacherDashboard: () => api.get('/courses/teacher/dashboard')
 };
 
 // Enrollment APIs

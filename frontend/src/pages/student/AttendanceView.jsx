@@ -9,6 +9,7 @@ import {
     Loader2,
     XCircle,
     ChevronLeft,
+    ChevronRight,
     AlertCircle,
     GraduationCap
 } from 'lucide-react';
@@ -19,6 +20,7 @@ const AttendanceView = () => {
     const [selectedCourse, setSelectedCourse] = useState(null);
     const [enrolledCourses, setEnrolledCourses] = useState([]);
     const [attendanceData, setAttendanceData] = useState([]);
+    const [currentMonth, setCurrentMonth] = useState(new Date());
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
 
@@ -75,6 +77,25 @@ const AttendanceView = () => {
             case 'late': return { bg: 'bg-amber-100', text: 'text-amber-600', icon: Clock, label: 'Late' };
             default: return { bg: 'bg-gray-100', text: 'text-gray-400', icon: Calendar, label: '-' };
         }
+    };
+
+    const getAttendanceForDate = (date) => {
+        if (!attendanceData.length) return null;
+        const dateStr = date.toISOString().split('T')[0];
+        const record = attendanceData.find(a => a.date?.split('T')[0] === dateStr);
+        return record?.status || null;
+    };
+
+    const generateCalendarDays = () => {
+        const year = currentMonth.getFullYear();
+        const month = currentMonth.getMonth();
+        const firstDay = new Date(year, month, 1);
+        const lastDay = new Date(year, month + 1, 0);
+        const days = [];
+
+        for (let i = 0; i < firstDay.getDay(); i++) days.push(null);
+        for (let d = 1; d <= lastDay.getDate(); d++) days.push(new Date(year, month, d));
+        return days;
     };
 
     if (isLoading) {
@@ -193,55 +214,87 @@ const AttendanceView = () => {
                         </motion.div>
                     </div>
 
-                    {/* Detailed History Log (NO CALENDAR) */}
-                    <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm min-h-[400px]">
-                        <div className="flex items-center justify-between mb-8">
-                            <h3 className="text-xl font-black text-gray-900 uppercase italic">Detailed History</h3>
-                            <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest italic">
-                                Listed Chronologically (Lastest First)
+                    {/* Attendance Calendar */}
+                    <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm">
+                        <div className="flex items-center justify-between mb-6">
+                            <h3 className="text-xl font-black text-gray-900 uppercase italic">Attendance Calendar</h3>
+                            <div className="flex items-center gap-4">
+                                <button 
+                                    onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1))} 
+                                    className="p-2 hover:bg-gray-100 rounded-xl transition-colors"
+                                >
+                                    <ChevronLeft className="w-5 h-5 text-gray-600" />
+                                </button>
+                                <span className="font-bold text-gray-900 min-w-[160px] text-center text-lg">
+                                    {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                                </span>
+                                <button 
+                                    onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1))} 
+                                    className="p-2 hover:bg-gray-100 rounded-xl transition-colors"
+                                >
+                                    <ChevronRight className="w-5 h-5 text-gray-600" />
+                                </button>
                             </div>
                         </div>
 
-                        {attendanceData.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center py-20 bg-gray-50/50 rounded-3xl border border-dashed border-gray-200">
-                                <Calendar className="w-12 h-12 text-gray-200 mb-4" />
-                                <p className="text-gray-400 font-bold uppercase text-[10px] tracking-widest">No attendance records found yet</p>
+                        {/* Day Headers */}
+                        <div className="grid grid-cols-7 gap-2 mb-2">
+                            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                                <div key={day} className="text-center text-xs font-bold text-gray-500 uppercase tracking-wider py-2">
+                                    {day}
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Calendar Grid */}
+                        <div className="grid grid-cols-7 gap-2">
+                            {generateCalendarDays().map((date, index) => {
+                                if (!date) return <div key={`empty-${index}`} className="h-16" />;
+                                
+                                const status = getAttendanceForDate(date);
+                                const config = status ? getStatusConfig(status) : null;
+                                const isToday = date.toDateString() === new Date().toDateString();
+
+                                return (
+                                    <motion.div
+                                        key={date.toISOString()}
+                                        initial={{ opacity: 0, scale: 0.9 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        transition={{ delay: index * 0.01 }}
+                                        className={`h-16 rounded-xl flex flex-col items-center justify-center relative transition-all ${
+                                            config ? config.bg : 'bg-gray-50'
+                                        } ${isToday ? 'ring-2 ring-emerald-500 ring-offset-2' : ''}`}
+                                    >
+                                        <span className={`text-sm font-bold ${config ? config.text : 'text-gray-400'}`}>
+                                            {date.getDate()}
+                                        </span>
+                                        {config && (
+                                            <config.icon className={`w-4 h-4 mt-1 ${config.text}`} />
+                                        )}
+                                    </motion.div>
+                                );
+                            })}
+                        </div>
+
+                        {/* Legend */}
+                        <div className="flex items-center justify-center gap-6 mt-6 pt-4 border-t border-gray-100">
+                            <div className="flex items-center gap-2">
+                                <div className="w-4 h-4 rounded bg-emerald-100 border border-emerald-200"></div>
+                                <span className="text-xs text-gray-600 font-medium">Present</span>
                             </div>
-                        ) : (
-                            <div className="grid grid-cols-1 gap-3">
-                                {[...attendanceData].reverse().map((record, index) => {
-                                    const config = getStatusConfig(record.status);
-                                    const date = new Date(record.date);
-                                    return (
-                                        <motion.div
-                                            key={index}
-                                            initial={{ opacity: 0, x: -10 }}
-                                            animate={{ opacity: 1, x: 0 }}
-                                            transition={{ delay: index * 0.05 }}
-                                            className={`flex items-center justify-between p-5 rounded-3xl border transition-all hover:shadow-md ${config.bg} ${config.text.replace('text', 'border')}/20`}
-                                        >
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center shadow-sm">
-                                                    <config.icon className={`w-6 h-6 ${config.text}`} />
-                                                </div>
-                                                <div>
-                                                    <p className="text-lg font-black text-gray-900 leading-none">
-                                                        {date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                                                    </p>
-                                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">
-                                                        {date.toLocaleDateString('en-US', { weekday: 'long' })}
-                                                        {record.markedAt && ` • ${new Date(record.markedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <Badge variant={record.status === 'present' ? 'success' : record.status === 'absent' ? 'error' : 'warning'}>
-                                                {record.status.toUpperCase()}
-                                            </Badge>
-                                        </motion.div>
-                                    );
-                                })}
+                            <div className="flex items-center gap-2">
+                                <div className="w-4 h-4 rounded bg-red-100 border border-red-200"></div>
+                                <span className="text-xs text-gray-600 font-medium">Absent</span>
                             </div>
-                        )}
+                            <div className="flex items-center gap-2">
+                                <div className="w-4 h-4 rounded bg-amber-100 border border-amber-200"></div>
+                                <span className="text-xs text-gray-600 font-medium">Late</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <div className="w-4 h-4 rounded bg-gray-50 border border-gray-200"></div>
+                                <span className="text-xs text-gray-600 font-medium">No Record</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}

@@ -8,7 +8,7 @@ import {
     Video, ExternalLink, StopCircle
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
-import { courseAPI, enrollmentAPI, assignmentAPI, attendanceAPI, liveClassAPI } from '../../services/api';
+import { courseAPI, liveClassAPI } from '../../services/api';
 import StatCard from '../../components/ui/StatCard';
 import { getCourseIcon, getCourseStyle } from '../../utils/courseIcons';
 
@@ -137,135 +137,41 @@ const TeacherCourses = () => {
     const fetchMyCourses = async () => {
         setIsLoading(true);
         try {
-            // Fetch all courses
-            const coursesRes = await courseAPI.getAll();
-            const allCourses = coursesRes.data.data || [];
+            // Use optimized single-query endpoint
+            const res = await courseAPI.getTeacherDashboard();
+            const coursesWithData = res.data.data || [];
 
-            // Get current user ID - check both id and _id since backend returns 'id'
-            const currentUserId = String(user?.id || user?._id || '');
-            
-            console.log('[TeacherDashboard] Current user ID:', currentUserId, 'Name:', user?.name);
-            console.log('[TeacherDashboard] Total courses in system:', allCourses.length);
-
-            // Filter courses where this teacher is assigned (check teachers array)
-            const teacherCourses = allCourses.filter(c => {
-                if (!c.teachers || c.teachers.length === 0) return false;
-                
-                const isAssigned = c.teachers.some(t => {
-                    // Teacher could be populated object or just ID string
-                    const teacherId = String(t._id || t.id || t);
-                    return teacherId === currentUserId;
-                });
-                
-                if (isAssigned) {
-                    console.log('[TeacherDashboard] ✓ Matched course:', c.title);
-                }
-                return isAssigned;
-            });
-
-            console.log('[TeacherDashboard] Teacher\'s courses:', teacherCourses.length);
-
-            // Get enrollments once
-            let enrollments = [];
-            try {
-                const enrollmentsRes = await enrollmentAPI.getAll();
-                enrollments = enrollmentsRes.data.data || [];
-            } catch (e) { }
-
-            const today = new Date().toISOString().split('T')[0];
-
-            // Fetch extra data for each course in parallel
-            const coursesWithData = await Promise.all(teacherCourses.map(async (course) => {
-                const courseEnrollments = enrollments.filter(e => String(e.course?._id || e.course) === String(course._id));
-
-                // Calculate student stats
-                const totalStudents = courseEnrollments.length;
-                const activeStudents = courseEnrollments.filter(e => e.isActive && e.status !== 'completed').length;
-
-                // Fetch assignments to count pending grading
-                let pendingAssignments = 0;
-                try {
-                    const assignRes = await assignmentAPI.getByCourse(course._id);
-                    const assignments = assignRes.data.assignments || [];
-                    pendingAssignments = assignments.reduce((acc, a) =>
-                        acc + (a.submissions?.filter(s => s.status === 'submitted' || !s.marks).length || 0), 0
-                    );
-                } catch (e) { }
-
-                // Fetch today's attendance (check local storage first for "unsaved" marked today)
-                let presentCount = 0;
-                let absentCount = 0;
-
-                const cacheKey = `attendance_${course._id}_${today}`;
-                const cached = localStorage.getItem(cacheKey);
-
-                if (cached) {
-                    const localMarks = JSON.parse(cached);
-                    Object.values(localMarks).forEach(record => {
-                        if (record.status === 'present') presentCount++;
-                        else if (record.status === 'absent') absentCount++;
-                    });
-                } else {
-                    try {
-                        const attRes = await attendanceAPI.get(course._id, today);
-                        const records = attRes.data.attendance?.records || attRes.data.data?.records || [];
-                        records.forEach(r => {
-                            if (r.status === 'present') presentCount++;
-                            else if (r.status === 'absent') absentCount++;
-                        });
-                    } catch (e) { }
-                }
-
-                return {
-                    id: course._id,
-                    _id: course._id,
-                    name: course.title,
-                    internCount: totalStudents,
-                    activeStudents,
-                    pendingAssignments,
-                    presentCount,
-                    absentCount,
-                    durationMonths: course.durationMonths,
-                    status: course.isActive !== false ? 'active' : 'inactive',
-                    location: course.location,
-                    city: course.city,
-                    category: course.category,
-                    targetAudience: course.targetAudience || 'students',
-                    enrollments: courseEnrollments
-                };
-            }));
+            console.log('[TeacherDashboard] Loaded', coursesWithData.length, 'courses via optimized API');
 
             setMyCourses(coursesWithData);
 
             // Calculate overall summary
-            // 1. Unique Students
             const uniqueStudentIds = new Set();
             coursesWithData.forEach(c => {
-                c.enrollments.forEach(e => {
+                (c.enrollments || []).forEach(e => {
                     const uid = e.user?._id || e.student?._id || e.user || e.student;
                     if (uid) uniqueStudentIds.add(String(uid));
                 });
             });
 
-            const totalActive = coursesWithData.reduce((acc, c) => acc + c.activeStudents, 0);
-            const totalPending = coursesWithData.reduce((acc, c) => acc + c.pendingAssignments, 0);
-            const todayPresent = coursesWithData.reduce((acc, c) => acc + c.presentCount, 0);
-            const todayAbsent = coursesWithData.reduce((acc, c) => acc + c.absentCount, 0);
+            const totalActive = coursesWithData.reduce((acc, c) => acc + (c.activeStudents || 0), 0);
+            const totalPending = coursesWithData.reduce((acc, c) => acc + (c.pendingAssignments || 0), 0);
+            const todayPresent = coursesWithData.reduce((acc, c) => acc + (c.presentCount || 0), 0);
+            const todayAbsent = coursesWithData.reduce((acc, c) => acc + (c.absentCount || 0), 0);
 
-            console.log('[TeacherDashboard] Stats Calculated:', {
+            console.log('[TeacherDashboard] Stats:', {
                 courses: coursesWithData.length,
                 uniqueStudents: uniqueStudentIds.size,
-                active: totalActive,
                 pending: totalPending
             });
 
             setSummaryStats({
                 totalCourses: coursesWithData.length,
-                totalStudents: uniqueStudentIds.size, // Use Unique Count
+                totalStudents: uniqueStudentIds.size,
                 activeStudents: totalActive,
                 pendingAssignments: totalPending,
-                todayPresent: todayPresent,
-                todayAbsent: todayAbsent,
+                todayPresent,
+                todayAbsent,
             });
         } catch (error) {
             console.error('Error fetching courses:', error);
@@ -473,7 +379,7 @@ const TeacherCourses = () => {
                         )}
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-3 pr-3">
                         {filteredCourses.map((course, index) => {
                             const CourseIcon = getCourseIcon(course.category, course.name);
                             const courseStyle = getCourseStyle(course.category, course.name);
@@ -485,8 +391,14 @@ const TeacherCourses = () => {
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: index * 0.1 }}
                                     onClick={() => handleSelectCourse(course)}
-                                    className="bg-white rounded-3xl p-6 border border-gray-100 cursor-pointer hover:shadow-xl hover:border-emerald-200 transition-all group overflow-hidden relative"
+                                    className="bg-white rounded-3xl p-6 border border-gray-100 cursor-pointer hover:shadow-xl hover:border-emerald-200 transition-all group relative"
                                 >
+                                    {/* Pending (ungraded) Submission Count Badge */}
+                                    {course.pendingAssignments > 0 && (
+                                        <div className="absolute -top-2 -right-2 w-7 h-7 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center shadow-lg z-20">
+                                            {course.pendingAssignments > 99 ? '99+' : course.pendingAssignments}
+                                        </div>
+                                    )}
                                     <div className={`absolute top-0 right-0 w-32 h-32 opacity-10 rounded-full -mr-16 -mt-16 transition-colors ${courseStyle.bg}`} />
 
                                     <div className="relative z-10">
@@ -538,9 +450,23 @@ const TeacherCourses = () => {
                                         </div>
 
                                         <div className="flex items-center justify-between pt-4 border-t border-gray-50">
-                                            <div className="flex items-center gap-2 text-xs text-gray-400 font-medium">
-                                                <Calendar className="w-3.5 h-3.5" />
-                                                {course.city || course.location}
+                                            <div className="flex items-center gap-3">
+                                                <div className="flex items-center gap-2 text-xs text-gray-400 font-medium">
+                                                    <Calendar className="w-3.5 h-3.5" />
+                                                    {course.city || course.location}
+                                                </div>
+                                                {course.bookLink && (
+                                                    <a
+                                                        href={course.bookLink}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        onClick={(e) => e.stopPropagation()}
+                                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 text-white rounded-xl shadow-md shadow-indigo-200 hover:bg-indigo-700 hover:shadow-lg transition-all font-black text-[10px] uppercase tracking-widest active:scale-95"
+                                                    >
+                                                        <BookOpen className="w-3.5 h-3.5" />
+                                                        Book
+                                                    </a>
+                                                )}
                                             </div>
                                             <div className="flex items-center text-emerald-600 font-black text-xs uppercase tracking-widest group-hover:translate-x-1 transition-transform">
                                                 <span>Manage Portal</span>
@@ -696,6 +622,18 @@ const TeacherCourses = () => {
                         <span className="text-gray-500 text-sm">{courseStudents.length} students enrolled</span>
                     </div>
                 </div>
+                {/* Book Button */}
+                {selectedCourse.bookLink && (
+                    <a
+                        href={selectedCourse.bookLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-xl shadow-lg shadow-indigo-200 hover:bg-indigo-700 hover:shadow-xl transition-all font-bold text-sm uppercase tracking-wide active:scale-95"
+                    >
+                        <BookOpen className="w-5 h-5" />
+                        Course Book
+                    </a>
+                )}
             </div>
 
             {/* Tab Navigation (Unified for both Students and Interns) */}

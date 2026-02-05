@@ -8,7 +8,7 @@ import {
     FileText, ClipboardList, CheckCircle, Clock, Loader2, User, Search, Filter, MessageCircle
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
-import { courseAPI, enrollmentAPI, chatAPI } from '../../services/api';
+import { courseAPI, enrollmentAPI, chatAPI, assignmentAPI } from '../../services/api';
 
 const getSocketURL = () => {
     const rawUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -56,8 +56,11 @@ const AttendanceSheet = () => {
     // Keep ref in sync with activeTab
     useEffect(() => {
         activeTabRef.current = activeTab;
+        // When entering chat tab, refresh unread count after a short delay
+        // to allow messages to be marked as read
         if (activeTab === 'chat') {
-            setChatUnreadCount(0);
+            // Don't immediately set to 0, let the chat component mark messages as read
+            // and then refresh the count
         }
     }, [activeTab]);
 
@@ -70,20 +73,21 @@ const AttendanceSheet = () => {
         }
     }, [submissionNotifications]);
 
+    // Fetch chat unread count function
+    const fetchChatUnreadCount = async () => {
+        try {
+            const res = await chatAPI.getTeacherCourses();
+            const courses = res.data.data || [];
+            const totalUnread = courses.reduce((sum, c) => sum + (c.totalUnread || 0), 0);
+            setChatUnreadCount(totalUnread);
+        } catch (error) {
+            console.error('Error fetching unread count:', error);
+        }
+    };
+
     // Fetch unread count and setup socket
     useEffect(() => {
-        const fetchUnreadCount = async () => {
-            try {
-                const res = await chatAPI.getTeacherCourses();
-                const courses = res.data.data || [];
-                const totalUnread = courses.reduce((sum, c) => sum + (c.totalUnread || 0), 0);
-                setChatUnreadCount(totalUnread);
-            } catch (error) {
-                console.error('Error fetching unread count:', error);
-            }
-        };
-
-        fetchUnreadCount();
+        fetchChatUnreadCount();
 
         socketRef.current = io(SOCKET_URL, { withCredentials: true });
         const myId = user?.id || user?._id;
@@ -236,12 +240,56 @@ const AttendanceSheet = () => {
                     duration: course.duration,
                     category: course.category,
                     targetAudience: audience,
-                    enrollments: courseEnrollments
+                    enrollments: courseEnrollments,
+                    bookLink: course.bookLink || '' // Add book link
                 };
             });
 
-            console.log('Courses loaded:', coursesWithData);
-            setMyCourses(coursesWithData);
+            // Fetch assignment data for each course to get marks
+            const coursesWithAssignmentData = await Promise.all(coursesWithData.map(async (courseData) => {
+                try {
+                    const assignmentsRes = await assignmentAPI.getByCourse(courseData.id);
+                    const assignments = assignmentsRes.data.assignments || [];
+                    
+                    // Calculate assignment stats
+                    let totalSubmissions = 0;
+                    let gradedSubmissions = 0;
+                    let totalMarks = 0;
+                    let totalPossibleMarks = 0;
+                    
+                    assignments.forEach(a => {
+                        const submissions = a.submissions || [];
+                        totalSubmissions += submissions.length;
+                        submissions.forEach(s => {
+                            if (s.marks !== undefined && s.marks !== null) {
+                                gradedSubmissions++;
+                                totalMarks += s.marks;
+                                totalPossibleMarks += (a.totalMarks || 100);
+                            }
+                        });
+                    });
+                    
+                    const avgPercentage = totalPossibleMarks > 0 
+                        ? Math.round((totalMarks / totalPossibleMarks) * 100) 
+                        : 0;
+                    
+                    return {
+                        ...courseData,
+                        assignmentStats: {
+                            totalAssignments: assignments.length,
+                            totalSubmissions,
+                            gradedSubmissions,
+                            avgPercentage,
+                            pendingGrading: totalSubmissions - gradedSubmissions
+                        }
+                    };
+                } catch (e) {
+                    return { ...courseData, assignmentStats: null };
+                }
+            }));
+
+            console.log('Courses loaded:', coursesWithAssignmentData);
+            setMyCourses(coursesWithAssignmentData);
         } catch (error) {
             console.error('Error fetching courses:', error);
         } finally {
@@ -409,10 +457,10 @@ const AttendanceSheet = () => {
                                     onClick={() => handleSelectCourse(course)}
                                     className="bg-white rounded-2xl p-6 border border-gray-100 cursor-pointer hover:shadow-lg hover:border-emerald-200 transition-all group relative"
                                 >
-                                    {/* Notification Badge */}
-                                    {notificationCount > 0 && (
-                                        <div className="absolute -top-2 -right-2 w-7 h-7 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center animate-pulse shadow-lg">
-                                            {notificationCount > 9 ? '9+' : notificationCount}
+                                    {/* Pending (ungraded) Submission Count Badge */}
+                                    {course.assignmentStats?.pendingGrading > 0 && (
+                                        <div className="absolute -top-2 -right-2 w-7 h-7 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center shadow-lg">
+                                            {course.assignmentStats.pendingGrading > 99 ? '99+' : course.assignmentStats.pendingGrading}
                                         </div>
                                     )}
                                     <div className="flex items-start justify-between mb-4">
@@ -432,7 +480,7 @@ const AttendanceSheet = () => {
                                         </div>
                                     </div>
                                     <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-emerald-600 transition-colors uppercase">{course.name}</h3>
-                                    <div className="flex items-center gap-4 text-sm text-gray-500 mb-4 font-medium">
+                                    <div className="flex items-center gap-4 text-sm text-gray-500 mb-3 font-medium">
                                         <span className="flex items-center gap-1.5">
                                             <Users className="w-4 h-4 text-gray-400" />
                                             {course.internCount} Registered
@@ -444,6 +492,42 @@ const AttendanceSheet = () => {
                                             </span>
                                         )}
                                     </div>
+                                    
+                                    {/* Assignment Stats */}
+                                    {course.assignmentStats && course.assignmentStats.totalAssignments > 0 && (
+                                        <div className="bg-gradient-to-r from-emerald-50 to-blue-50 rounded-xl p-3 mb-4 border border-emerald-100/50">
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-2">
+                                                    <FileText className="w-4 h-4 text-emerald-600" />
+                                                    <span className="text-xs font-bold text-gray-700">
+                                                        {course.assignmentStats.totalAssignments} Assignment{course.assignmentStats.totalAssignments > 1 ? 's' : ''}
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center gap-3">
+                                                    {course.assignmentStats.gradedSubmissions > 0 && (
+                                                        <div className="flex items-center gap-1">
+                                                            <CheckCircle className="w-3.5 h-3.5 text-emerald-500" />
+                                                            <span className="text-xs font-bold text-emerald-600">
+                                                                Avg: {course.assignmentStats.avgPercentage}%
+                                                            </span>
+                                                        </div>
+                                                    )}
+                                                    {course.assignmentStats.pendingGrading > 0 && (
+                                                        <div className="flex items-center gap-1">
+                                                            <Clock className="w-3.5 h-3.5 text-amber-500" />
+                                                            <span className="text-xs font-bold text-amber-600">
+                                                                {course.assignmentStats.pendingGrading} to grade
+                                                            </span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            <div className="mt-2 text-[10px] text-gray-500 font-medium">
+                                                {course.assignmentStats.totalSubmissions} submission{course.assignmentStats.totalSubmissions !== 1 ? 's' : ''} • {course.assignmentStats.gradedSubmissions} graded
+                                            </div>
+                                        </div>
+                                    )}
+                                    
                                     <div className="flex items-center text-emerald-600 font-bold text-sm">
                                         <span>OPEN DASHBOARD</span>
                                         <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
@@ -483,6 +567,18 @@ const AttendanceSheet = () => {
                         <span className="text-gray-500 text-sm font-semibold italic">{courseStudents.length} Students Active</span>
                     </div>
                 </div>
+                {/* Book Button */}
+                {selectedCourse.bookLink && (
+                    <a
+                        href={selectedCourse.bookLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-xl shadow-lg shadow-indigo-200 hover:bg-indigo-700 hover:shadow-xl transition-all font-bold text-sm uppercase tracking-wide active:scale-95"
+                    >
+                        <BookOpen className="w-5 h-5" />
+                        Course Book
+                    </a>
+                )}
             </div>
 
             {/* Course Content: Multi-Tab */}
@@ -548,7 +644,7 @@ const AttendanceSheet = () => {
                         <AttendanceTab course={selectedCourse} students={courseStudents} />
                     )}
                     {activeTab === 'chat' && (
-                        <TeacherChatTab course={selectedCourse} students={courseStudents} />
+                        <TeacherChatTab course={selectedCourse} students={courseStudents} onUnreadCountChange={fetchChatUnreadCount} />
                     )}
                 </div>
             </div>

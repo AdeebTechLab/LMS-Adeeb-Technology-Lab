@@ -61,6 +61,7 @@ const authSlice = createSlice({
             localStorage.removeItem('rememberMe');
             sessionStorage.removeItem('token');
             sessionStorage.removeItem('user');
+            sessionStorage.removeItem('loginTime');
             sessionStorage.removeItem('rememberMe');
         },
         clearError: (state) => {
