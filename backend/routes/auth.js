@@ -28,15 +28,21 @@ router.post('/register', uploadRegistration.fields([
             teachingExperience, experienceDetails, preferredCity, preferredMode
         } = req.body;
 
-        // Check if user exists for this specific role
-        const existingUser = await User.findOne({ email, role: role || 'student' });
+        // CRITICAL: Use read preference 'primary' to avoid stale reads from replicas
+        // This ensures we read from the same node we'll write to
+        const existingUser = await User.findOne({ email, role: role || 'student' })
+            .read('primary')
+            .maxTimeMS(10000);
+        
         if (existingUser) {
             return res.status(400).json({ success: false, message: `Account already exists for this email as a ${role || 'student'}` });
         }
 
         // Check if any user with this email already has a roll number
         let assignedRollNo = null;
-        const otherUserWithSameEmail = await User.findOne({ email, rollNo: { $exists: true, $ne: null } });
+        const otherUserWithSameEmail = await User.findOne({ email, rollNo: { $exists: true, $ne: null } })
+            .read('primary')
+            .maxTimeMS(10000);
 
         if (otherUserWithSameEmail) {
             assignedRollNo = otherUserWithSameEmail.rollNo;
@@ -123,7 +129,20 @@ router.post('/register', uploadRegistration.fields([
             }
         }
 
-        const user = await User.create(userData);
+        let user;
+        try {
+            user = await User.create(userData);
+        } catch (createError) {
+            // Handle duplicate key error (E11000) - user was created by another request
+            if (createError.code === 11000) {
+                console.log(`⚠️ Duplicate key error for ${email} - user may already exist`);
+                return res.status(400).json({ 
+                    success: false, 
+                    message: `Account already exists for this email as a ${role || 'student'}. If you just registered, please try logging in.` 
+                });
+            }
+            throw createError; // Re-throw other errors
+        }
 
         // For non-admins, return success message but no token
         if (user.role !== 'admin') {
@@ -213,7 +232,11 @@ router.post('/login', async (req, res) => {
         }
 
         // 1. Try to find an admin user with this email first
-        let user = await User.findOne({ email, role: 'admin' }).select('+password');
+        // Use primary read to ensure we get the latest data
+        let user = await User.findOne({ email, role: 'admin' })
+            .select('+password')
+            .read('primary')
+            .maxTimeMS(10000);
 
         // 2. If no admin or password doesn't match, check for the specific role
         if (!user) {
@@ -222,7 +245,10 @@ router.post('/login', async (req, res) => {
             if (role) {
                 query.role = role;
             }
-            user = await User.findOne(query).select('+password');
+            user = await User.findOne(query)
+                .select('+password')
+                .read('primary')
+                .maxTimeMS(10000);
         }
 
         if (!user) {
@@ -254,6 +280,7 @@ router.post('/login', async (req, res) => {
             token,
             user: {
                 id: user._id,
+                _id: user._id, // Include both for compatibility
                 name: user.name,
                 email: user.email,
                 role: user.role,

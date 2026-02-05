@@ -3,6 +3,7 @@ const router = express.Router();
 const { protect, authorize } = require('../middleware/auth');
 const User = require('../models/User');
 const Fee = require('../models/Fee');
+const Enrollment = require('../models/Enrollment');
 const { uploadPhoto } = require('../config/cloudinary');
 
 // @route   GET /api/users
@@ -42,6 +43,27 @@ router.get('/pending-counts', protect, authorize('admin'), async (req, res) => {
 
         // Add to result (default to 0 if no results)
         result.fees = feeCounts.length > 0 ? feeCounts[0].count : 0;
+
+        // Count students/interns who signed up but have NO enrollments
+        // Get all enrolled user IDs
+        const enrolledUserIds = await Enrollment.distinct('user');
+        
+        // Count students with no enrollments
+        const studentsNotRegistered = await User.countDocuments({
+            role: 'student',
+            isVerified: true,
+            _id: { $nin: enrolledUserIds }
+        });
+        
+        // Count interns with no enrollments
+        const internsNotRegistered = await User.countDocuments({
+            role: 'intern',
+            isVerified: true,
+            _id: { $nin: enrolledUserIds }
+        });
+
+        result.studentNotRegistered = studentsNotRegistered;
+        result.internNotRegistered = internsNotRegistered;
 
         res.json({ success: true, data: result });
     } catch (error) {

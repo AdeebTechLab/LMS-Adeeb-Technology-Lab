@@ -141,10 +141,29 @@ const TeacherCourses = () => {
             const coursesRes = await courseAPI.getAll();
             const allCourses = coursesRes.data.data || [];
 
+            // Get current user ID - check both id and _id since backend returns 'id'
+            const currentUserId = String(user?.id || user?._id || '');
+            
+            console.log('[TeacherDashboard] Current user ID:', currentUserId, 'Name:', user?.name);
+            console.log('[TeacherDashboard] Total courses in system:', allCourses.length);
+
             // Filter courses where this teacher is assigned (check teachers array)
-            const teacherCourses = allCourses.filter(c =>
-                c.teachers?.some(t => String(t._id || t) === String(user?._id))
-            );
+            const teacherCourses = allCourses.filter(c => {
+                if (!c.teachers || c.teachers.length === 0) return false;
+                
+                const isAssigned = c.teachers.some(t => {
+                    // Teacher could be populated object or just ID string
+                    const teacherId = String(t._id || t.id || t);
+                    return teacherId === currentUserId;
+                });
+                
+                if (isAssigned) {
+                    console.log('[TeacherDashboard] ✓ Matched course:', c.title);
+                }
+                return isAssigned;
+            });
+
+            console.log('[TeacherDashboard] Teacher\'s courses:', teacherCourses.length);
 
             // Get enrollments once
             let enrollments = [];

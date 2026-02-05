@@ -117,7 +117,9 @@ mongoose.connect(process.env.MONGODB_URI, {
     socketTimeoutMS: 45000,
     connectTimeoutMS: 10000,
     retryWrites: true,
-    retryReads: true
+    retryReads: true,
+    readPreference: 'primaryPreferred', // Prefer primary to avoid stale reads
+    w: 'majority' // Write concern for data consistency
 })
     .then(() => console.log('✅ MongoDB connected'))
     .catch((err) => console.error('❌ MongoDB error:', err.message));
