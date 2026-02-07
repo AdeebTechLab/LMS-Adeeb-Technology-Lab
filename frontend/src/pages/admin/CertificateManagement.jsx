@@ -49,24 +49,47 @@ const CertificateManagement = () => {
                 certificateAPI.getCourses()
             ]);
 
-            setRequests(requestsRes.data.requests || []);
+            console.log('Requests Response:', requestsRes);
+            console.log('Courses Response:', coursesRes);
 
-            const formattedCourses = (coursesRes.data.courses || []).map(course => ({
-                id: course._id,
-                name: course.title,
-                location: course.location || course.city || 'Unknown',
-                city: course.city || course.location || 'Unknown',
-                targetAudience: course.targetAudience || 'students',
-                duration: course.duration || '12 weeks',
-                students: (course.students || []).map(s => ({
-                    ...s,
-                    id: s._id,
+            setRequests(requestsRes.data.requests || requestsRes.data || []);
+
+            // Handle both direct array and nested structure
+            const coursesData = Array.isArray(coursesRes.data) 
+                ? coursesRes.data 
+                : (coursesRes.data.courses || []);
+
+            const formattedCourses = coursesData.map(course => {
+                const students = (course.students || []).map(s => ({
+                    _id: s._id || s.id,
+                    id: s._id || s.id,
+                    name: s.name,
+                    rollNo: s.rollNo,
+                    photo: s.photo,
+                    role: s.role,
+                    cnic: s.cnic,
                     type: s.role === 'intern' ? 'intern' : 'student',
-                }))
-            }));
+                    enrollmentStatus: s.enrollmentStatus,
+                    certificateIssued: s.certificateIssued || false,
+                    certificate: s.certificate || null
+                }));
+
+                return {
+                    id: course._id,
+                    name: course.title,
+                    location: course.location || course.city || 'Unknown',
+                    city: course.city || course.location || 'Unknown',
+                    targetAudience: course.targetAudience || 'students',
+                    duration: course.duration || '12 weeks',
+                    students: students
+                };
+            });
+
+            console.log('Formatted Courses:', formattedCourses);
             setCourses(formattedCourses);
         } catch (error) {
             console.error('Error fetching data:', error);
+            alert('Error loading certificate data. Check console for details.');
         } finally {
             setIsLoading(false);
         }
@@ -422,7 +445,16 @@ const CertificateManagement = () => {
                     <BookOpen className="w-5 h-5 text-emerald-600" />
                     Courses & Certificates
                 </h2>
-                {filteredCourses.map((course) => (
+                
+                {courses.length === 0 ? (
+                    <div className="bg-white rounded-2xl p-12 border border-gray-100 text-center">
+                        <BookOpen className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                        <p className="text-gray-500 font-medium">No courses found</p>
+                        <p className="text-xs text-gray-400 mt-1">Create some courses first to manage certificates</p>
+                    </div>
+                ) : (
+                    <>
+                        {filteredCourses.map((course) => (
                     <motion.div
                         key={course.id}
                         className="bg-white rounded-2xl border border-gray-100 overflow-hidden"
@@ -559,6 +591,8 @@ const CertificateManagement = () => {
                             </button>
                         )}
                     </div>
+                )}
+                    </>
                 )}
             </div>
 

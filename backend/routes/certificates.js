@@ -158,13 +158,17 @@ router.put('/requests/:id/reject', protect, authorize('admin'), async (req, res)
 // @access  Private (Admin)
 router.get('/courses', protect, authorize('admin'), async (req, res) => {
     try {
+        console.log('📚 [CERTIFICATES] Fetching courses for certificate management');
         const courses = await Course.find().sort('-createdAt');
+        console.log(`📚 [CERTIFICATES] Found ${courses.length} courses`);
 
         const coursesWithStudents = await Promise.all(courses.map(async (course) => {
             // Get all enrollments for this course (removed status filter)
             const enrollments = await Enrollment.find({
                 course: course._id
             }).populate('user', 'name email phone photo rollNo role cnic');
+
+            console.log(`  └─ Course "${course.title}": ${enrollments.length} enrollments`);
 
             // Get existing certificates as a map for quick lookup
             const certificates = await Certificate.find({ course: course._id });
@@ -195,8 +199,10 @@ router.get('/courses', protect, authorize('admin'), async (req, res) => {
             };
         }));
 
+        console.log(`✅ [CERTIFICATES] Returning ${coursesWithStudents.length} courses with students`);
         res.json({ success: true, courses: coursesWithStudents });
     } catch (error) {
+        console.error('❌ [CERTIFICATES] Error fetching courses:', error.message);
         res.status(500).json({ success: false, message: error.message });
     }
 });
