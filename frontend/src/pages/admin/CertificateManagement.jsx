@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useSelector } from 'react-redux';
 import {
     Search, Award, BookOpen, Users, CheckCircle, ChevronDown, ChevronRight, User, Loader2, XCircle, FileText, ClipboardList, Calendar, Edit2, Trash2, Filter, X
 } from 'lucide-react';
@@ -9,7 +8,6 @@ import Modal from '../../components/ui/Modal';
 import { courseAPI, enrollmentAPI, certificateAPI } from '../../services/api';
 
 const CertificateManagement = () => {
-    const { user } = useSelector((state) => state.auth);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCities, setSelectedCities] = useState([]); // Array of strings
     const [selectedTypes, setSelectedTypes] = useState([]);  // Array of strings
@@ -46,72 +44,29 @@ const CertificateManagement = () => {
     const fetchAllData = async () => {
         setIsLoading(true);
         try {
-            console.log('🔄 [CERT] Starting to fetch data...');
-            console.log('👤 [CERT] User:', user);
-            console.log('🔐 [CERT] User Role:', user?.role);
-            
             const [requestsRes, coursesRes] = await Promise.all([
                 certificateAPI.getRequests(),
                 certificateAPI.getCourses()
             ]);
 
-            console.log('✅ [CERT] Requests Response:', requestsRes);
-            console.log('✅ [CERT] Courses Response:', coursesRes);
+            setRequests(requestsRes.data.requests || []);
 
-            const requestsData = requestsRes.data.requests || requestsRes.data || [];
-            console.log('📋 [CERT] Requests Data:', requestsData);
-            setRequests(requestsData);
-
-            // Handle both direct array and nested structure
-            const coursesData = Array.isArray(coursesRes.data) 
-                ? coursesRes.data 
-                : (coursesRes.data.courses || []);
-
-            console.log('📚 [CERT] Courses Data:', coursesData);
-
-            const formattedCourses = coursesData.map(course => {
-                const students = (course.students || []).map(s => ({
-                    _id: s._id || s.id,
-                    id: s._id || s.id,
-                    name: s.name,
-                    rollNo: s.rollNo,
-                    photo: s.photo,
-                    role: s.role,
-                    cnic: s.cnic,
+            const formattedCourses = (coursesRes.data.courses || []).map(course => ({
+                id: course._id,
+                name: course.title,
+                location: course.location || course.city || 'Unknown',
+                city: course.city || course.location || 'Unknown',
+                targetAudience: course.targetAudience || 'students',
+                duration: course.duration || '12 weeks',
+                students: (course.students || []).map(s => ({
+                    ...s,
+                    id: s._id,
                     type: s.role === 'intern' ? 'intern' : 'student',
-                    enrollmentStatus: s.enrollmentStatus,
-                    certificateIssued: s.certificateIssued || false,
-                    certificate: s.certificate || null
-                }));
-
-                return {
-                    id: course._id,
-                    name: course.title,
-                    location: course.location || course.city || 'Unknown',
-                    city: course.city || course.location || 'Unknown',
-                    targetAudience: course.targetAudience || 'students',
-                    duration: course.duration || '12 weeks',
-                    students: students
-                };
-            });
-
-            console.log('✅ [CERT] Formatted Courses:', formattedCourses);
+                }))
+            }));
             setCourses(formattedCourses);
         } catch (error) {
-            console.error('❌ [CERT] Error fetching data:', error);
-            console.error('❌ [CERT] Error Status:', error.response?.status);
-            console.error('❌ [CERT] Error Message:', error.response?.data?.message);
-            console.error('❌ [CERT] Error Data:', error.response?.data);
-            console.error('❌ [CERT] Full Error:', error);
-            
-            // More specific error messages
-            if (error.response?.status === 401) {
-                alert('Unauthorized: Your session has expired. Please login again.');
-            } else if (error.response?.status === 403) {
-                alert('Forbidden: You do not have permission to access this page. Only admins can manage certificates.');
-            } else {
-                alert(`Error loading certificate data: ${error.response?.data?.message || error.message || 'Unknown error'}`);
-            }
+            console.error('Error fetching data:', error);
         } finally {
             setIsLoading(false);
         }
@@ -467,16 +422,7 @@ const CertificateManagement = () => {
                     <BookOpen className="w-5 h-5 text-emerald-600" />
                     Courses & Certificates
                 </h2>
-                
-                {courses.length === 0 ? (
-                    <div className="bg-white rounded-2xl p-12 border border-gray-100 text-center">
-                        <BookOpen className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                        <p className="text-gray-500 font-medium">No courses found</p>
-                        <p className="text-xs text-gray-400 mt-1">Create some courses first to manage certificates</p>
-                    </div>
-                ) : (
-                    <>
-                        {filteredCourses.map((course) => (
+                {filteredCourses.map((course) => (
                     <motion.div
                         key={course.id}
                         className="bg-white rounded-2xl border border-gray-100 overflow-hidden"
@@ -613,8 +559,6 @@ const CertificateManagement = () => {
                             </button>
                         )}
                     </div>
-                )}
-                    </>
                 )}
             </div>
 
