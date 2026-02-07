@@ -49,15 +49,15 @@ const RoleSelection = () => {
     ];
 
     return (
-        <div className="min-h-screen flex">
+        <div className="h-screen flex overflow-hidden">
             {/* Left Side - Role Selection Form */}
             <motion.div
                 initial={{ opacity: 0, x: -50 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.6 }}
-                className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-white"
+                className="w-full lg:w-1/2 flex items-center justify-center p-6 bg-white overflow-y-auto"
             >
-                <div className="w-full max-w-xl">
+                <div className="w-full max-w-xl py-4">
                     {/* Back Button */}
                     <motion.div
                         initial={{ opacity: 0 }}
@@ -156,16 +156,16 @@ const RoleSelection = () => {
                 </div>
 
                 {/* Content */}
-                <div className="relative z-10 flex flex-col items-center justify-center w-full p-12">
+                <div className="relative z-10 flex flex-col items-center justify-center w-full h-full p-8">
                     {/* Logo & Branding */}
                     {/* Centered Logo Square */}
                     <motion.div
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: 0.4, duration: 0.6 }}
-                        className="relative w-full h-full flex items-center justify-center p-12"
+                        className="relative flex flex-col items-center justify-center gap-8"
                     >
-                        <div className="relative w-64 h-64 group">
+                        <div className="relative w-56 h-56 group flex-shrink-0">
                             {/* Outer Glow */}
                             <div className="absolute -inset-4 bg-orange-500/20 rounded-3xl blur-2xl group-hover:bg-orange-500/30 transition-all duration-500"></div>
 
@@ -191,10 +191,10 @@ const RoleSelection = () => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.5, duration: 0.5 }}
-                        className="mb-8 flex flex-col items-center -mt-85 relative z-20"
+                        className="flex flex-col items-center text-center relative z-20"
                     >
-                        <h2 className="text-white text-3xl font-bold tracking-tight mb-2 text-center">Adeeb Technology Lab</h2>
-                        <p className="text-white/60 text-base text-center">Digital tech expert software house LMS</p>
+                        <h2 className="text-white text-3xl font-bold tracking-tight mb-2">Adeeb Technology Lab</h2>
+                        <p className="text-white/60 text-base">Digital tech expert software house LMS</p>
                     </motion.div>
 
                     {/* Decorative Lines */}

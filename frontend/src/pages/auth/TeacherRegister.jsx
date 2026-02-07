@@ -213,7 +213,7 @@ const TeacherRegister = () => {
     };
 
     return (
-        <div className="min-h-screen flex">
+        <div className="h-screen flex overflow-hidden">
             {/* Left Side - Decorative - Fixed */}
             <motion.div
                 initial={{ opacity: 0, x: -50 }}
@@ -230,14 +230,14 @@ const TeacherRegister = () => {
                 </div>
 
                 {/* Content */}
-                <div className="relative z-10 flex flex-col items-center justify-center w-full p-12">
+                <div className="relative z-10 flex flex-col items-center justify-center w-full h-full p-8">
                     <motion.div
                         initial={{ opacity: 0, y: -20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.3, duration: 0.5 }}
-                        className="mb-8 flex flex-col items-center"
+                        className="flex flex-col items-center gap-3"
                     >
-                        <div className="w-20 h-20 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 overflow-hidden mb-4 shadow-xl">
+                        <div className="w-20 h-20 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 overflow-hidden shadow-xl">
                             <img
                                 src="/logo.png"
                                 alt="AdeebTechLab Logo"
@@ -302,7 +302,7 @@ const TeacherRegister = () => {
                 initial={{ opacity: 0, x: 50 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.6 }}
-                className="w-full lg:w-1/2 h-screen overflow-y-auto p-8 bg-white"
+                className="w-full lg:w-1/2 h-screen overflow-y-auto p-6 bg-white"
             >
                 <div className="w-full max-w-md py-8">
                     {/* Back Button and Branding */}

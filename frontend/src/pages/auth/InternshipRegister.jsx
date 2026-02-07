@@ -267,13 +267,13 @@ const InternshipRegister = () => {
     const requirementOptions = ['Home WiFi', 'Personal Laptop', 'No Laptop', 'No WiFi'];
 
     return (
-        <div className="min-h-screen flex">
+        <div className="h-screen flex overflow-hidden">
             {/* Left Side - Registration Form - Scrollable */}
             <motion.div
                 initial={{ opacity: 0, x: -50 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.6 }}
-                className="w-full lg:w-1/2 h-screen overflow-y-auto p-8 bg-gradient-to-br from-blue-50 to-indigo-50"
+                className="w-full lg:w-1/2 h-screen overflow-y-auto p-6 bg-gradient-to-br from-blue-50 to-indigo-50"
             >
                 <div className="w-full max-w-2xl mx-auto py-8">
                     {/* Header */}
@@ -568,15 +568,15 @@ const InternshipRegister = () => {
                 </div>
 
                 {/* Content */}
-                <div className="relative z-10 flex flex-col items-center justify-center w-full h-full p-12">
+                <div className="relative z-10 flex flex-col items-center justify-center w-full h-full p-8">
                     {/* Logo & Branding - Centered */}
                     <motion.div
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: 0.3, duration: 0.5 }}
-                        className="flex flex-col items-center"
+                        className="flex flex-col items-center justify-center gap-6"
                     >
-                        <div className="w-32 h-32 bg-white/10 backdrop-blur-md rounded-3xl flex items-center justify-center border border-white/20 overflow-hidden mb-6 shadow-2xl">
+                        <div className="w-32 h-32 bg-white/10 backdrop-blur-md rounded-3xl flex items-center justify-center border border-white/20 overflow-hidden shadow-2xl">
                             <img
                                 src="/logo.png"
                                 alt="AdeebTechLab Logo"
@@ -588,7 +588,7 @@ const InternshipRegister = () => {
                             />
                             <GraduationCap className="w-16 h-16 text-white hidden" />
                         </div>
-                        <h1 className="text-white text-4xl font-bold tracking-tight mb-2">AdeebTechLab</h1>
+                        <h1 className="text-white text-4xl font-bold tracking-tight">AdeebTechLab</h1>
                         <p className="text-white/70 text-lg">Empowering Your Tech Journey</p>
                     </motion.div>
                 </div>
