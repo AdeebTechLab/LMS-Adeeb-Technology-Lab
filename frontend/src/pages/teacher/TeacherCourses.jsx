@@ -622,18 +622,6 @@ const TeacherCourses = () => {
                         <span className="text-gray-500 text-sm">{courseStudents.length} students enrolled</span>
                     </div>
                 </div>
-                {/* Book Button */}
-                {selectedCourse.bookLink && (
-                    <a
-                        href={selectedCourse.bookLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-xl shadow-lg shadow-indigo-200 hover:bg-indigo-700 hover:shadow-xl transition-all font-bold text-sm uppercase tracking-wide active:scale-95"
-                    >
-                        <BookOpen className="w-5 h-5" />
-                        Course Book
-                    </a>
-                )}
             </div>
 
             {/* Tab Navigation (Unified for both Students and Interns) */}
@@ -690,6 +678,19 @@ const TeacherCourses = () => {
                 </div>
             </div>
         </div>
+
+        {/* Fixed Book Button in Top Right */}
+        {selectedCourse?.bookLink && (
+            <a
+                href={selectedCourse.bookLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="fixed top-6 right-6 flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-2xl shadow-2xl shadow-indigo-300 hover:bg-indigo-700 hover:scale-105 transition-all font-black text-sm uppercase tracking-[0.1em] active:scale-95 z-40"
+            >
+                <BookOpen className="w-5 h-5" />
+                OPEN BOOK
+            </a>
+        )}
     );
 };
 

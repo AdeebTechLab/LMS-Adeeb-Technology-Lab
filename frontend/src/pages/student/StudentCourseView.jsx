@@ -130,17 +130,6 @@ const StudentCourseView = () => {
                         </div>
                         <div className="flex flex-col items-end gap-2">
                             <div className="flex items-center gap-2">
-                                {course.bookLink && (
-                                    <a
-                                        href={course.bookLink}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="flex items-center gap-2 px-8 py-3 bg-indigo-600 text-white rounded-2xl shadow-2xl shadow-indigo-300 hover:bg-indigo-700 hover:scale-105 transition-all font-black text-sm uppercase tracking-[0.1em] active:scale-95 animate-pulse-subtle"
-                                    >
-                                        <BookOpen className="w-5 h-5" />
-                                        OPEN COURSE BOOK
-                                    </a>
-                                )}
                                 {course.status && (
                                     <Badge variant={course.status === 'active' ? 'success' : 'warning'}>
                                         {course.status.toUpperCase()}
@@ -299,6 +288,19 @@ const StudentCourseView = () => {
                     </div>
                 </div>
             </Modal>
+
+            {/* Fixed Book Button in Top Right */}
+            {course?.bookLink && (
+                <a
+                    href={course.bookLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="fixed top-6 right-6 flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-2xl shadow-2xl shadow-indigo-300 hover:bg-indigo-700 hover:scale-105 transition-all font-black text-sm uppercase tracking-[0.1em] active:scale-95 z-40"
+                >
+                    <BookOpen className="w-5 h-5" />
+                    OPEN BOOK
+                </a>
+            )}
         </div>
     );
 };
