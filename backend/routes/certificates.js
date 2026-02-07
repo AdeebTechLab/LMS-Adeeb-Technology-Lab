@@ -34,8 +34,11 @@ router.get('/requests', protect, authorize('admin'), async (req, res) => {
             .populate('teacher', 'name email')
             .sort('-createdAt');
 
-        console.log(`✅ [ROUTES] Found ${requests.length} certificate requests`);
-        res.json({ success: true, requests });
+        // Filter out requests with null references
+        const validRequests = requests.filter(r => r.user && r.course);
+
+        console.log(`✅ [ROUTES] Found ${validRequests.length} certificate requests (${requests.length} total)`);
+        res.json({ success: true, requests: validRequests });
     } catch (error) {
         console.error('❌ [ROUTES] Error fetching requests:', error.message);
         res.status(500).json({ success: false, message: error.message });
@@ -189,12 +192,15 @@ router.get('/courses', protect, authorize('admin'), async (req, res) => {
             });
 
             // Add certificate status and data to each student
-            const students = enrollments.map(e => ({
-                ...e.user.toObject(),
-                enrollmentStatus: e.status,
-                certificateIssued: !!certMap[e.user._id.toString()],
-                certificate: certMap[e.user._id.toString()] || null
-            }));
+            // Filter out enrollments with null users (deleted users)
+            const students = enrollments
+                .filter(e => e.user) // Only include enrollments with valid users
+                .map(e => ({
+                    ...e.user.toObject(),
+                    enrollmentStatus: e.status,
+                    certificateIssued: !!certMap[e.user._id.toString()],
+                    certificate: certMap[e.user._id.toString()] || null
+                }));
 
             return {
                 ...course.toObject(),
@@ -329,20 +335,22 @@ router.get('/verify/:rollNo', async (req, res) => {
             });
         }
 
-        // Format response
-        const result = certificates.map(cert => ({
-            rollNo: cert.user.rollNo,
-            name: cert.user.name,
-            photo: cert.user.photo,
-            position: cert.user.role === 'student' ? 'Student' : 'Intern',
-            course: cert.course.title,
-            skills: cert.skills,
-            duration: cert.duration,
-            passoutDate: cert.passoutDate,
-            certificateLink: cert.certificateLink,
-            location: cert.course.location,
-            issuedAt: cert.issuedAt
-        }));
+        // Format response - filter out certificates with null references
+        const result = certificates
+            .filter(cert => cert.user && cert.course) // Only valid certificates
+            .map(cert => ({
+                rollNo: cert.user.rollNo,
+                name: cert.user.name,
+                photo: cert.user.photo,
+                position: cert.user.role === 'student' ? 'Student' : 'Intern',
+                course: cert.course.title,
+                skills: cert.skills,
+                duration: cert.duration,
+                passoutDate: cert.passoutDate,
+                certificateLink: cert.certificateLink,
+                location: cert.course.location,
+                issuedAt: cert.issuedAt
+            }));
 
         res.json({ success: true, certificates: result });
     } catch (error) {
