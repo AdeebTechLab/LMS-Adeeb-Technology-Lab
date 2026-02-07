@@ -88,7 +88,7 @@ const Login = () => {
     };
 
     return (
-        <div className="min-h-screen flex">
+        <div className="h-screen flex overflow-hidden">
             {/* Left Side - Decorative */}
             <motion.div
                 initial={{ opacity: 0, x: -50 }}
@@ -105,7 +105,7 @@ const Login = () => {
                 </div>
 
                 {/* Content */}
-                <div className="relative z-10 flex flex-col items-center justify-center w-full h-full p-12">
+                <div className="relative z-10 flex flex-col items-center justify-center w-full h-full p-8">
                     {/* Logo & Branding */}
                     {/* Centered Logo Square */}
                     <motion.div
@@ -114,7 +114,7 @@ const Login = () => {
                         transition={{ delay: 0.4, duration: 0.6 }}
                         className="relative flex flex-col items-center justify-center gap-8"
                     >
-                        <div className="relative w-64 h-64 group flex-shrink-0">
+                        <div className="relative w-56 h-56 group flex-shrink-0">
                             {/* Outer Glow */}
                             <div className="absolute -inset-4 bg-emerald-500/20 rounded-3xl blur-2xl group-hover:bg-emerald-500/30 transition-all duration-500"></div>
 
@@ -156,9 +156,9 @@ const Login = () => {
                 initial={{ opacity: 0, x: 50 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.6 }}
-                className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-white"
+                className="w-full lg:w-1/2 flex items-center justify-center p-6 bg-white overflow-y-auto"
             >
-                <div className="w-full max-w-md">
+                <div className="w-full max-w-md py-4">
                     {/* Back Button */}
                     <motion.button
                         initial={{ opacity: 0 }}
