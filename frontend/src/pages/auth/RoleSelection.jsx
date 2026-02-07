@@ -163,7 +163,7 @@ const RoleSelection = () => {
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: 0.4, duration: 0.6 }}
-                        className="relative flex flex-col items-center justify-center gap-8"
+                        className="flex flex-col items-center justify-center gap-3 h-full"
                     >
                         <div className="relative w-56 h-56 group flex-shrink-0">
                             {/* Outer Glow */}
@@ -191,9 +191,9 @@ const RoleSelection = () => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.5, duration: 0.5 }}
-                        className="flex flex-col items-center text-center relative z-20"
+                        className="flex flex-col items-center text-center z-20"
                     >
-                        <h2 className="text-white text-3xl font-bold tracking-tight mb-2">Adeeb Technology Lab</h2>
+                        <h2 className="text-white text-3xl font-bold tracking-tight mb-0">Adeeb Technology Lab</h2>
                         <p className="text-white/60 text-base">Digital tech expert software house LMS</p>
                     </motion.div>
 
