@@ -8,6 +8,8 @@ if (import.meta.env.VITE_API_URL && !import.meta.env.VITE_API_URL.endsWith('/api
     API_URL = `${import.meta.env.VITE_API_URL}/api`;
 }
 
+console.log('🔌 [API] Base URL:', API_URL);
+
 // Create axios instance
 const api = axios.create({
     baseURL: API_URL,
@@ -22,15 +24,27 @@ api.interceptors.request.use((config) => {
     const token = localStorage.getItem('token') || sessionStorage.getItem('token');
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;
+        console.log(`🔐 [API] Request: ${config.method.toUpperCase()} ${config.url} with token`);
+    } else {
+        console.warn(`⚠️ [API] Request: ${config.method.toUpperCase()} ${config.url} WITHOUT token`);
     }
     return config;
 });
 
 // Handle response errors
 api.interceptors.response.use(
-    (response) => response,
+    (response) => {
+        console.log(`✅ [API] Response: ${response.config.method.toUpperCase()} ${response.config.url} - Status: ${response.status}`);
+        return response;
+    },
     (error) => {
+        console.error(`❌ [API] Error: ${error.config?.method?.toUpperCase()} ${error.config?.url}`);
+        console.error(`❌ [API] Status: ${error.response?.status}`);
+        console.error(`❌ [API] Message: ${error.response?.data?.message || error.message}`);
+        console.error(`❌ [API] Full Error:`, error.response?.data || error);
+        
         if (error.response?.status === 401) {
+            console.warn('🚪 [API] 401 Unauthorized - Clearing session and redirecting to login');
             localStorage.removeItem('token');
             localStorage.removeItem('user');
             sessionStorage.removeItem('token');

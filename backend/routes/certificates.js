@@ -27,14 +27,17 @@ router.get('/my', protect, async (req, res) => {
 // @access  Private (Admin)
 router.get('/requests', protect, authorize('admin'), async (req, res) => {
     try {
+        console.log('📋 [ROUTES] Fetching certificate requests for user:', req.user.name);
         const requests = await CertificateRequest.find()
             .populate('user', 'name email rollNo photo role cnic')
             .populate('course', 'title description location')
             .populate('teacher', 'name email')
             .sort('-createdAt');
 
+        console.log(`✅ [ROUTES] Found ${requests.length} certificate requests`);
         res.json({ success: true, requests });
     } catch (error) {
+        console.error('❌ [ROUTES] Error fetching requests:', error.message);
         res.status(500).json({ success: false, message: error.message });
     }
 });
