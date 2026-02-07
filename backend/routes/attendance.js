@@ -41,8 +41,9 @@ router.get('/my/:courseId', protect, async (req, res) => {
 router.get('/:courseId/:date', protect, authorize('teacher', 'admin'), async (req, res) => {
     try {
         const { courseId, date } = req.params;
-        const attendanceDate = new Date(date);
-        attendanceDate.setHours(0, 0, 0, 0);
+        // Parse the date string (YYYY-MM-DD) without timezone interpretation
+        const [year, month, day] = date.split('-').map(Number);
+        const attendanceDate = new Date(year, month - 1, day, 0, 0, 0, 0);
 
         let attendance = await Attendance.findOne({
             course: courseId,
@@ -75,8 +76,9 @@ router.get('/:courseId/:date', protect, authorize('teacher', 'admin'), async (re
 router.post('/', protect, authorize('teacher', 'admin'), async (req, res) => {
     try {
         const { courseId, date, records } = req.body;
-        const attendanceDate = new Date(date);
-        attendanceDate.setHours(0, 0, 0, 0);
+        // Parse the date string (YYYY-MM-DD) without timezone interpretation
+        const [year, month, day] = date.split('-').map(Number);
+        const attendanceDate = new Date(year, month - 1, day, 0, 0, 0, 0);
 
         // Find or create attendance record
         let attendance = await Attendance.findOne({

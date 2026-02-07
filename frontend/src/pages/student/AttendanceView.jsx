@@ -81,8 +81,20 @@ const AttendanceView = () => {
 
     const getAttendanceForDate = (date) => {
         if (!attendanceData.length) return null;
-        const dateStr = date.toISOString().split('T')[0];
-        const record = attendanceData.find(a => a.date?.split('T')[0] === dateStr);
+        // Use local date string to avoid timezone shifts
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const dateStr = `${year}-${month}-${day}`;
+        const record = attendanceData.find(a => {
+            // Also convert server date to local YYYY-MM-DD format to avoid timezone issues
+            const serverDate = new Date(a.date);
+            const serverYear = serverDate.getFullYear();
+            const serverMonth = String(serverDate.getMonth() + 1).padStart(2, '0');
+            const serverDay = String(serverDate.getDate()).padStart(2, '0');
+            const serverDateStr = `${serverYear}-${serverMonth}-${serverDay}`;
+            return serverDateStr === dateStr;
+        });
         return record?.status || null;
     };
 

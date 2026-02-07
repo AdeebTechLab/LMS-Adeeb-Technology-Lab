@@ -4,8 +4,16 @@ import { Clock, Search, Lock, AlertCircle, Save, Loader2, Download, Calendar } f
 import Badge from '../../../components/ui/Badge'; // Adjusted path
 import { attendanceAPI } from '../../../services/api';
 
+// Utility function to get local date string in YYYY-MM-DD format
+const getLocalDateString = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+};
+
 const AttendanceTab = ({ course, students }) => {
-    const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+    const [selectedDate, setSelectedDate] = useState(getLocalDateString(new Date()));
     const [attendanceMarks, setAttendanceMarks] = useState({});
     const [isSaving, setIsSaving] = useState(false);
     const [lastSaved, setLastSaved] = useState(null);
@@ -19,10 +27,10 @@ const AttendanceTab = ({ course, students }) => {
 
     const checkLockStatus = () => {
         const now = new Date();
-        const today = now.toISOString().split('T')[0];
+        const today = getLocalDateString(now);
 
-        const courseStart = course.startDate ? new Date(course.startDate).toISOString().split('T')[0] : null;
-        const courseEnd = course.endDate ? new Date(course.endDate).toISOString().split('T')[0] : null;
+        const courseStart = course.startDate ? getLocalDateString(new Date(course.startDate)) : null;
+        const courseEnd = course.endDate ? getLocalDateString(new Date(course.endDate)) : null;
 
         let locked = false;
 
@@ -152,7 +160,7 @@ const AttendanceTab = ({ course, students }) => {
                     <div>
                         <h3 className="text-lg font-black text-gray-900 uppercase italic">Attendance Sheet</h3>
                         <div className="flex items-center gap-2">
-                            <p className="text-sm text-gray-500 font-medium">{selectedDate === new Date().toISOString().split('T')[0] ? "Current Session" : "Historical Record"}</p>
+                            <p className="text-sm text-gray-500 font-medium">{selectedDate === getLocalDateString(new Date()) ? "Current Session" : "Historical Record"}</p>
                             {lastSaved && (
                                 <span className="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded font-bold uppercase animate-pulse">
                                     Auto-saved {lastSaved.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
