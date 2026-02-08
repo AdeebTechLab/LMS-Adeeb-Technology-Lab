@@ -316,9 +316,13 @@ const BrowseCourses = () => {
                                         <div className="flex flex-wrap gap-1.5">
                                             {course.teachers.slice(0, 2).map((teacher, idx) => (
                                                 <div key={idx} className="flex items-center gap-1.5 bg-gray-50 px-2 py-1 rounded-lg">
-                                                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-xs font-medium">
-                                                        {teacher?.name?.charAt(0) || 'T'}
-                                                    </div>
+                                                    {teacher?.photo ? (
+                                                        <img src={teacher.photo} alt={teacher.name} className="w-6 h-6 rounded-full object-cover" />
+                                                    ) : (
+                                                        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-xs font-medium">
+                                                            {teacher?.name?.charAt(0) || 'T'}
+                                                        </div>
+                                                    )}
                                                     <span className="text-xs text-gray-600">{teacher?.name || 'Teacher'}</span>
                                                 </div>
                                             ))}

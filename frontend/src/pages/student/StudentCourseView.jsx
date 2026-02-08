@@ -126,6 +126,27 @@ const StudentCourseView = () => {
                                         {course.location}
                                     </span>
                                 </div>
+                                {/* Teachers List */}
+                                <div className="flex items-center gap-2 mt-3">
+                                    <div className="flex -space-x-2">
+                                        {course.teachers?.map((teacher, idx) => (
+                                            <div key={idx} className="relative group cursor-pointer" title={`${teacher.name} (${teacher.specialization || 'Teacher'})`}>
+                                                {teacher.photo ? (
+                                                    <img
+                                                        src={teacher.photo}
+                                                        alt={teacher.name}
+                                                        className="w-8 h-8 rounded-full border-2 border-white object-cover shadow-sm hover:scale-110 transition-transform"
+                                                    />
+                                                ) : (
+                                                    <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-xs font-bold text-emerald-700 border-2 border-white shadow-sm hover:scale-110 transition-transform">
+                                                        {teacher.name?.charAt(0)}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                    {course.teachers?.length > 0 && <span className="text-xs text-gray-500 font-medium">Instru.</span>}
+                                </div>
                             </div>
                         </div>
                         <div className="flex items-center gap-2">

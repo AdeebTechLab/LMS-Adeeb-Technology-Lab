@@ -269,9 +269,13 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                                     }`}
                                             >
                                                 <div className="flex items-center gap-3">
-                                                    <div className="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center text-[10px] text-emerald-700">
-                                                        {student.name.charAt(0)}
-                                                    </div>
+                                                    {student.photo ? (
+                                                        <img src={student.photo} alt={student.name} className="w-6 h-6 rounded-full object-cover" />
+                                                    ) : (
+                                                        <div className="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center text-[10px] text-emerald-700">
+                                                            {student.name.charAt(0)}
+                                                        </div>
+                                                    )}
                                                     {student.name}
                                                 </div>
                                                 {selectedStudentFilter === student.id && <Check className="w-4 h-4" />}
@@ -545,9 +549,13 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                             />
                                             <div className="flex-1 flex items-center justify-between">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-xs font-bold">
-                                                        {student.name?.charAt(0)}
-                                                    </div>
+                                                    {student.photo ? (
+                                                        <img src={student.photo} alt={student.name} className="w-8 h-8 rounded-full object-cover" />
+                                                    ) : (
+                                                        <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-xs font-bold">
+                                                            {student.name?.charAt(0)}
+                                                        </div>
+                                                    )}
                                                     <div>
                                                         <p className="text-sm font-medium text-gray-900">{student.name}</p>
                                                         <p className="text-xs text-gray-400">{student.rollNo}</p>
@@ -679,9 +687,13 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                             <div key={submission._id} className="bg-gray-50 p-4 rounded-xl border border-gray-100">
                                 <div className="flex justify-between items-start mb-2">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-xs font-bold text-emerald-700">
-                                            {submission.user?.name?.charAt(0)}
-                                        </div>
+                                        {submission.user?.photo ? (
+                                            <img src={submission.user.photo} alt={submission.user?.name} className="w-8 h-8 rounded-full object-cover" />
+                                        ) : (
+                                            <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-xs font-bold text-emerald-700">
+                                                {submission.user?.name?.charAt(0)}
+                                            </div>
+                                        )}
                                         <div>
                                             <div className="flex items-center gap-2">
                                                 <p className="font-semibold text-gray-900 text-sm">{submission.user?.name}</p>

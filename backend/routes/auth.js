@@ -33,7 +33,7 @@ router.post('/register', uploadRegistration.fields([
         const existingUser = await User.findOne({ email, role: role || 'student' })
             .read('primary')
             .maxTimeMS(10000);
-        
+
         if (existingUser) {
             return res.status(400).json({ success: false, message: `Account already exists for this email as a ${role || 'student'}` });
         }
@@ -136,9 +136,9 @@ router.post('/register', uploadRegistration.fields([
             // Handle duplicate key error (E11000) - user was created by another request
             if (createError.code === 11000) {
                 console.log(`⚠️ Duplicate key error for ${email} - user may already exist`);
-                return res.status(400).json({ 
-                    success: false, 
-                    message: `Account already exists for this email as a ${role || 'student'}. If you just registered, please try logging in.` 
+                return res.status(400).json({
+                    success: false,
+                    message: `Account already exists for this email as a ${role || 'student'}. If you just registered, please try logging in.`
                 });
             }
             throw createError; // Re-throw other errors
@@ -147,20 +147,19 @@ router.post('/register', uploadRegistration.fields([
         // For non-admins, return success message but no token
         if (user.role !== 'admin') {
             // Send Email Notification to Admin
-            try {
-                const transporter = nodemailer.createTransport({
-                    service: 'gmail',
-                    auth: {
-                        user: process.env.EMAIL_USER,
-                        pass: process.env.EMAIL_PASS
-                    }
-                });
+            const transporter = nodemailer.createTransport({
+                service: 'gmail',
+                auth: {
+                    user: process.env.EMAIL_USER,
+                    pass: process.env.EMAIL_PASS
+                }
+            });
 
-                const mailOptions = {
-                    from: process.env.EMAIL_USER,
-                    to: 'info.AdeebTchLab@gmail.com',
-                    subject: 'New User Registration Notification',
-                    html: `
+            const mailOptions = {
+                from: process.env.EMAIL_USER,
+                to: 'info.AdeebTchLab@gmail.com',
+                subject: 'New User Registration Notification',
+                html: `
                         <div style="font-family: Arial, sans-serif; max-width: 600px; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
                             <div style="background-color: #0d2818; padding: 20px; text-align: center;">
                                 <h1 style="color: #ffffff; margin: 0;">New Signup</h1>
@@ -182,14 +181,12 @@ router.post('/register', uploadRegistration.fields([
                             </div>
                         </div>
                     `
-                };
+            };
 
-                await transporter.sendMail(mailOptions);
-                console.log('✅ Admin notification email sent for new user:', user.email);
-            } catch (emailError) {
-                console.error('❌ Error sending admin notification email:', emailError);
-                // We don't block registration if email fails
-            }
+            // Send email asynchronously without awaiting
+            transporter.sendMail(mailOptions)
+                .then(() => console.log('✅ Admin notification email sent for new user:', user.email))
+                .catch(emailError => console.error('❌ Error sending admin notification email:', emailError));
 
             return res.status(201).json({
                 success: true,

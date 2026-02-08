@@ -16,7 +16,7 @@ const DailyTasksTab = ({ course, students = [] }) => {
     const fetchTasks = async () => {
         const courseId = course?._id || course?.id;
         if (!courseId) return;
-        
+
         setIsLoading(true);
         try {
             const res = await api.get(`/daily-tasks/course/${courseId}`);
@@ -155,7 +155,11 @@ const DailyTasksTab = ({ course, students = [] }) => {
                                             onClick={() => { setSelectedStudentFilter(student.id || student._id); setIsDropdownOpen(false); setStudentSearchTerm(''); }}
                                             className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${String(selectedStudentFilter) === String(student.id || student._id) ? 'bg-emerald-50 text-emerald-700' : 'text-gray-600 hover:bg-gray-50'}`}>
                                             <div className="flex items-center gap-3">
-                                                <div className="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center text-[10px] text-emerald-700">{student.name.charAt(0)}</div>
+                                                {student.photo ? (
+                                                    <img src={student.photo} alt={student.name} className="w-6 h-6 rounded-full object-cover" />
+                                                ) : (
+                                                    <div className="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center text-[10px] text-emerald-700">{student.name.charAt(0)}</div>
+                                                )}
                                                 {student.name}
                                             </div>
                                             {String(selectedStudentFilter) === String(student.id || student._id) && <Check className="w-4 h-4" />}
@@ -213,9 +217,13 @@ const DailyTasksTab = ({ course, students = [] }) => {
                             >
                                 <div className="flex items-start justify-between gap-4">
                                     <div className="flex items-start gap-4 flex-1">
-                                        <div className="w-12 h-12 rounded-full bg-emerald-50 flex items-center justify-center text-base font-bold text-emerald-600 border border-emerald-100">
-                                            {task.user?.name?.charAt(0)}
-                                        </div>
+                                        {task.user?.photo ? (
+                                            <img src={task.user.photo} alt={task.user.name} className="w-12 h-12 rounded-full object-cover border border-emerald-100" />
+                                        ) : (
+                                            <div className="w-12 h-12 rounded-full bg-emerald-50 flex items-center justify-center text-base font-bold text-emerald-600 border border-emerald-100">
+                                                {task.user?.name?.charAt(0)}
+                                            </div>
+                                        )}
                                         <div className="flex-1">
                                             <div className="flex items-center gap-2 mb-1">
                                                 <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-100 uppercase tracking-tight">

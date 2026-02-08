@@ -310,30 +310,14 @@ const TeacherRegister = () => {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.2 }}
-                        className="flex items-center justify-between mb-8"
+                        className="mb-8"
                     >
                         <Link
                             to="/register"
-                            className="inline-flex items-center text-gray-600 hover:text-orange-600 transition-colors font-medium group"
+                            className="inline-flex items-center text-gray-600 hover:text-orange-600 transition-colors font-medium"
                         >
-                            <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
-                            <span>Back</span>
+                            ← Back
                         </Link>
-                        <div className="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-2xl border border-gray-100">
-                            <div className="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center overflow-hidden">
-                                <img
-                                    src="/logo.png"
-                                    alt="Logo"
-                                    className="w-full h-full object-cover"
-                                    onError={(e) => {
-                                        e.target.style.display = 'none';
-                                        e.target.nextSibling.style.display = 'block';
-                                    }}
-                                />
-                                <GraduationCap className="w-6 h-6 text-orange-600 hidden" />
-                            </div>
-                            <span className="font-bold text-gray-900">AdeebTechLab</span>
-                        </div>
                     </motion.div>
 
                     {/* Header */}

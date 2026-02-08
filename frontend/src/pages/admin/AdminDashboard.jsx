@@ -18,7 +18,8 @@ import {
     Filter,
     ArrowRight,
     Download,
-    BookOpen
+    BookOpen,
+    Trash2
 } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
@@ -26,7 +27,7 @@ import StatCard from '../../components/ui/StatCard';
 import DataTable from '../../components/ui/DataTable';
 import Badge from '../../components/ui/Badge';
 import { BarChart, DoughnutChart } from '../../components/charts/Charts';
-import { statsAPI } from '../../services/api';
+import { statsAPI, feeAPI } from '../../services/api';
 import HolidaySettings from './components/HolidaySettings';
 
 const AdminDashboard = () => {
@@ -121,6 +122,23 @@ const AdminDashboard = () => {
         }));
     };
 
+    const handleDeleteSubmission = async (row) => {
+        if (!window.confirm(`Are you sure you want to delete this submission for ${row.student}? This involves money and cannot be undone.`)) {
+            return;
+        }
+
+        try {
+            // Optimistic update (optional, but let's stick to refetch for accuracy on totals)
+            // But we can show loading state if needed.
+            await feeAPI.deleteInstallment(row.feeId, row.id);
+            // Refetch to update list and total revenue
+            fetchStats();
+        } catch (error) {
+            console.error('Failed to delete submission:', error);
+            alert('Failed to delete submission');
+        }
+    };
+
     const columns = [
         {
             header: 'Status',
@@ -172,12 +190,22 @@ const AdminDashboard = () => {
             headerClassName: 'no-pdf',
             className: 'no-pdf',
             render: (row) => (
-                <button
-                    onClick={() => navigate('/admin/fee-verification')}
-                    className="p-2.5 bg-orange-50 hover:bg-[#ff8e01] rounded-xl transition-all group shadow-sm active:scale-90"
-                >
-                    <Eye className="w-5 h-5 text-[#ff8e01] group-hover:text-white" />
-                </button>
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={() => navigate('/admin/fee-verification')}
+                        className="p-2.5 bg-orange-50 hover:bg-[#ff8e01] rounded-xl transition-all group shadow-sm active:scale-90"
+                        title="View Details"
+                    >
+                        <Eye className="w-5 h-5 text-[#ff8e01] group-hover:text-white" />
+                    </button>
+                    <button
+                        onClick={() => handleDeleteSubmission(row)}
+                        className="p-2.5 bg-red-50 hover:bg-red-500 rounded-xl transition-all group shadow-sm active:scale-90"
+                        title="Delete Submission"
+                    >
+                        <Trash2 className="w-5 h-5 text-red-500 group-hover:text-white" />
+                    </button>
+                </div>
             ),
         },
     ];

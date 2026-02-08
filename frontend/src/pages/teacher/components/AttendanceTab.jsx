@@ -204,8 +204,8 @@ const AttendanceTab = ({ course, students }) => {
                                 <span
                                     key={day}
                                     className={`px-3 py-1.5 rounded-lg text-xs font-bold ${holidayDays.includes(index)
-                                            ? 'bg-yellow-400 text-yellow-900'
-                                            : 'bg-gray-100 text-gray-400'
+                                        ? 'bg-yellow-400 text-yellow-900'
+                                        : 'bg-gray-100 text-gray-400'
                                         }`}
                                 >
                                     {day}
@@ -323,14 +323,22 @@ const AttendanceTab = ({ course, students }) => {
                                 <tr key={student.id} className={`hover:bg-gray-50 transition-colors ${getRowBgColor(student.id)}`}>
                                     <td className="px-4 py-3">
                                         <div className="flex items-center gap-3">
-                                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${attendanceMarks[student.id]?.status === 'present'
+                                            {student.photo ? (
+                                                <img
+                                                    src={student.photo}
+                                                    alt={student.name}
+                                                    className="w-8 h-8 rounded-full object-cover"
+                                                />
+                                            ) : (
+                                                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${attendanceMarks[student.id]?.status === 'present'
                                                     ? 'bg-emerald-200 text-emerald-700'
                                                     : attendanceMarks[student.id]?.status === 'absent'
                                                         ? 'bg-red-200 text-red-700'
                                                         : 'bg-gray-100 text-gray-500'
-                                                }`}>
-                                                {student.name.charAt(0)}
-                                            </div>
+                                                    }`}>
+                                                    {student.name.charAt(0)}
+                                                </div>
+                                            )}
                                             <div className="text-sm font-medium text-gray-900">{student.name}</div>
                                         </div>
                                     </td>

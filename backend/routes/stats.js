@@ -55,6 +55,7 @@ router.get('/admin-dashboard', protect, authorize('admin'), async (req, res) => 
                 if (inst.receiptUrl) {
                     recentSubmissions.push({
                         id: inst._id,
+                        feeId: fee._id,
                         student: fee.user?.name || 'Unknown',
                         course: fee.course?.title || 'Unknown Course',
                         amount: inst.amount,
@@ -123,7 +124,7 @@ router.get('/admin-dashboard', protect, authorize('admin'), async (req, res) => 
                     registered: registeredCount,
                     passout: passoutCount
                 },
-                recentSubmissions: recentSubmissions.sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 50),
+                recentSubmissions: recentSubmissions.sort((a, b) => new Date(b.date) - new Date(a.date)),
                 feeStatus: {
                     verified: verifiedCount,
                     pending: pendingCount,

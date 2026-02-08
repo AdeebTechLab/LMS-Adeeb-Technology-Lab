@@ -48,7 +48,7 @@ const CertificateManagement = () => {
         try {
             console.log('🔄 [CERT] Starting to fetch data...');
             console.log('👤 [CERT] User:', user);
-            
+
             const [requestsRes, coursesRes] = await Promise.all([
                 certificateAPI.getRequests(),
                 certificateAPI.getCourses()
@@ -62,8 +62,8 @@ const CertificateManagement = () => {
             setRequests(requestsData);
 
             // Handle both direct array and nested structure
-            const coursesData = Array.isArray(coursesRes.data) 
-                ? coursesRes.data 
+            const coursesData = Array.isArray(coursesRes.data)
+                ? coursesRes.data
                 : (coursesRes.data.courses || []);
 
             console.log('📚 [CERT] Courses Data:', coursesData);
@@ -101,7 +101,7 @@ const CertificateManagement = () => {
             console.error('❌ [CERT] Error Status:', error.response?.status);
             console.error('❌ [CERT] Error Message:', error.response?.data?.message);
             console.error('❌ [CERT] Error Data:', error.response?.data);
-            
+
             // More specific error messages
             if (error.response?.status === 401) {
                 alert('Unauthorized: Your session has expired. Please login again.');
@@ -465,7 +465,7 @@ const CertificateManagement = () => {
                     <BookOpen className="w-5 h-5 text-emerald-600" />
                     Courses & Certificates
                 </h2>
-                
+
                 {courses.length === 0 ? (
                     <div className="bg-white rounded-2xl p-12 border border-gray-100 text-center">
                         <BookOpen className="w-12 h-12 text-gray-300 mx-auto mb-4" />
@@ -475,143 +475,143 @@ const CertificateManagement = () => {
                 ) : (
                     <>
                         {filteredCourses.map((course) => (
-                    <motion.div
-                        key={course.id}
-                        className="bg-white rounded-2xl border border-gray-100 overflow-hidden"
-                    >
-                        <div
-                            onClick={() => setExpandedCourse(expandedCourse === course.id ? null : course.id)}
-                            className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50 transition-colors"
-                        >
-                            <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center">
-                                    <BookOpen className="w-6 h-6 text-emerald-600" />
-                                </div>
-                                <div>
-                                    <h3 className="font-bold text-gray-900 line-clamp-1">{course.name}</h3>
-                                    <div className="flex items-center gap-2 mt-1">
-                                        <Badge variant="info" size="sm">
-                                            {course.city}
-                                        </Badge>
-                                        <Badge variant={course.targetAudience === 'interns' ? 'purple' : 'success'} size="sm">
-                                            {course.targetAudience === 'interns' ? 'Intern' : 'Student'}
-                                        </Badge>
-                                    </div>
-                                </div>
-                            </div>
-                            <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform ${expandedCourse === course.id ? 'rotate-180' : ''}`} />
-                        </div>
-
-                        {expandedCourse === course.id && (
-                            <div className="border-t border-gray-100 overflow-x-auto">
-                                <table className="w-full">
-                                    <thead className="bg-gray-50/50">
-                                        <tr>
-                                            <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Student</th>
-                                            <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Roll No</th>
-                                            <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Status</th>
-                                            <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Passout Date</th>
-                                            <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-gray-50">
-                                        {course.students.map((student) => (
-                                            <tr key={student.id} className="hover:bg-gray-50/50 transition-colors">
-                                                <td className="px-6 py-4">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="w-10 h-10 rounded-full bg-gray-100 border border-gray-100 overflow-hidden shrink-0">
-                                                            {student.photo ? (
-                                                                <img src={student.photo} alt="" className="w-full h-full object-cover" />
-                                                            ) : (
-                                                                <div className="w-full h-full flex items-center justify-center">
-                                                                    <User className="w-5 h-5 text-gray-300" />
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                        <div>
-                                                            <p className="font-bold text-gray-900 text-sm">{student.name}</p>
-                                                            <Badge variant={student.type === 'intern' ? 'purple' : 'success'} className="text-[10px] py-0">
-                                                                {student.type === 'intern' ? 'Intern' : 'Student'}
-                                                            </Badge>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4 font-mono text-xs font-bold text-gray-500">{student.rollNo}</td>
-                                                <td className="px-6 py-4 text-xs font-medium">
-                                                    {student.certificateIssued ? (
-                                                        <div className="flex items-center gap-1 text-emerald-600">
-                                                            <CheckCircle className="w-4 h-4" />
-                                                            Certified
-                                                        </div>
-                                                    ) : (
-                                                        <div className="text-gray-400">Not Issued</div>
-                                                    )}
-                                                </td>
-                                                <td className="px-6 py-4 text-xs text-gray-600">
-                                                    {student.certificate?.passoutDate || '-'}
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <div className="flex items-center gap-2">
-                                                        {student.certificateIssued ? (
-                                                            <>
-                                                                <button
-                                                                    onClick={() => handleOpenEditCertModal(student, course)}
-                                                                    className="p-2 hover:bg-blue-50 text-blue-600 rounded-lg transition-all"
-                                                                    title="Edit Certificate"
-                                                                >
-                                                                    <Edit2 className="w-5 h-5" />
-                                                                </button>
-                                                                <button
-                                                                    onClick={() => handleDeleteCertificate(student.certificate._id)}
-                                                                    className="p-2 hover:bg-red-50 text-red-600 rounded-lg transition-all"
-                                                                    title="Delete Certificate"
-                                                                >
-                                                                    <Trash2 className="w-5 h-5" />
-                                                                </button>
-                                                            </>
-                                                        ) : (
-                                                            <button
-                                                                onClick={() => {
-                                                                    setConfirmModal({ open: true, student, course });
-                                                                    setEditData({
-                                                                        rollNo: student.rollNo || '',
-                                                                        skills: course.name || '',
-                                                                        duration: course.duration || '',
-                                                                        passoutDate: new Date().toISOString().split('T')[0],
-                                                                        certificateLink: ''
-                                                                    });
-                                                                }}
-                                                                className="p-2 hover:bg-emerald-50 text-emerald-600 rounded-lg transition-all"
-                                                                title="Issue Certificate"
-                                                            >
-                                                                <Award className="w-5 h-5" />
-                                                            </button>
-                                                        )}
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        )}
-                    </motion.div>
-                ))}
-
-                {filteredCourses.length === 0 && (
-                    <div className="bg-white rounded-2xl p-12 border border-gray-100 text-center">
-                        <BookOpen className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                        <p className="text-gray-500">No courses match your filters</p>
-                        {(searchQuery || selectedCities.length > 0 || selectedTypes.length > 0) && (
-                            <button
-                                onClick={() => { setSearchQuery(''); setSelectedCities([]); setSelectedTypes([]); }}
-                                className="mt-2 text-emerald-600 hover:text-emerald-700 font-medium text-sm"
+                            <motion.div
+                                key={course.id}
+                                className="bg-white rounded-2xl border border-gray-100 overflow-hidden"
                             >
-                                Clear all filters
-                            </button>
+                                <div
+                                    onClick={() => setExpandedCourse(expandedCourse === course.id ? null : course.id)}
+                                    className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50 transition-colors"
+                                >
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center">
+                                            <BookOpen className="w-6 h-6 text-emerald-600" />
+                                        </div>
+                                        <div>
+                                            <h3 className="font-bold text-gray-900 line-clamp-1">{course.name}</h3>
+                                            <div className="flex items-center gap-2 mt-1">
+                                                <Badge variant="info" size="sm">
+                                                    {course.city}
+                                                </Badge>
+                                                <Badge variant={course.targetAudience === 'interns' ? 'purple' : 'success'} size="sm">
+                                                    {course.targetAudience === 'interns' ? 'Intern' : 'Student'}
+                                                </Badge>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform ${expandedCourse === course.id ? 'rotate-180' : ''}`} />
+                                </div>
+
+                                {expandedCourse === course.id && (
+                                    <div className="border-t border-gray-100 overflow-x-auto">
+                                        <table className="w-full">
+                                            <thead className="bg-gray-50/50">
+                                                <tr>
+                                                    <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Student</th>
+                                                    <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Roll No</th>
+                                                    <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Status</th>
+                                                    <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Passout Date</th>
+                                                    <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-gray-50">
+                                                {course.students.map((student) => (
+                                                    <tr key={student.id} className="hover:bg-gray-50/50 transition-colors">
+                                                        <td className="px-6 py-4">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="w-10 h-10 rounded-full bg-gray-100 border border-gray-100 overflow-hidden shrink-0">
+                                                                    {student.photo ? (
+                                                                        <img src={student.photo} alt="" className="w-full h-full object-cover" />
+                                                                    ) : (
+                                                                        <div className="w-full h-full flex items-center justify-center">
+                                                                            <User className="w-5 h-5 text-gray-300" />
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                                <div>
+                                                                    <p className="font-bold text-gray-900 text-sm">{student.name}</p>
+                                                                    <Badge variant={student.type === 'intern' ? 'purple' : 'success'} className="text-[10px] py-0">
+                                                                        {student.type === 'intern' ? 'Intern' : 'Student'}
+                                                                    </Badge>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-6 py-4 font-mono text-xs font-bold text-gray-500">{student.rollNo}</td>
+                                                        <td className="px-6 py-4 text-xs font-medium">
+                                                            {student.certificateIssued ? (
+                                                                <div className="flex items-center gap-1 text-emerald-600">
+                                                                    <CheckCircle className="w-4 h-4" />
+                                                                    Certified
+                                                                </div>
+                                                            ) : (
+                                                                <div className="text-gray-400">Not Issued</div>
+                                                            )}
+                                                        </td>
+                                                        <td className="px-6 py-4 text-xs text-gray-600">
+                                                            {student.certificate?.passoutDate || '-'}
+                                                        </td>
+                                                        <td className="px-6 py-4">
+                                                            <div className="flex items-center gap-2">
+                                                                {student.certificateIssued ? (
+                                                                    <>
+                                                                        <button
+                                                                            onClick={() => handleOpenEditCertModal(student, course)}
+                                                                            className="p-2 hover:bg-blue-50 text-blue-600 rounded-lg transition-all"
+                                                                            title="Edit Certificate"
+                                                                        >
+                                                                            <Edit2 className="w-5 h-5" />
+                                                                        </button>
+                                                                        <button
+                                                                            onClick={() => handleDeleteCertificate(student.certificate._id)}
+                                                                            className="p-2 hover:bg-red-50 text-red-600 rounded-lg transition-all"
+                                                                            title="Delete Certificate"
+                                                                        >
+                                                                            <Trash2 className="w-5 h-5" />
+                                                                        </button>
+                                                                    </>
+                                                                ) : (
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            setConfirmModal({ open: true, student, course });
+                                                                            setEditData({
+                                                                                rollNo: student.rollNo || '',
+                                                                                skills: course.name || '',
+                                                                                duration: course.duration || '',
+                                                                                passoutDate: new Date().toISOString().split('T')[0],
+                                                                                certificateLink: ''
+                                                                            });
+                                                                        }}
+                                                                        className="p-2 hover:bg-emerald-50 text-emerald-600 rounded-lg transition-all"
+                                                                        title="Issue Certificate"
+                                                                    >
+                                                                        <Award className="w-5 h-5" />
+                                                                    </button>
+                                                                )}
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                )}
+                            </motion.div>
+                        ))}
+
+                        {filteredCourses.length === 0 && (
+                            <div className="bg-white rounded-2xl p-12 border border-gray-100 text-center">
+                                <BookOpen className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                                <p className="text-gray-500">No courses match your filters</p>
+                                {(searchQuery || selectedCities.length > 0 || selectedTypes.length > 0) && (
+                                    <button
+                                        onClick={() => { setSearchQuery(''); setSelectedCities([]); setSelectedTypes([]); }}
+                                        className="mt-2 text-emerald-600 hover:text-emerald-700 font-medium text-sm"
+                                    >
+                                        Clear all filters
+                                    </button>
+                                )}
+                            </div>
                         )}
-                    </div>
-                )}
                     </>
                 )}
             </div>

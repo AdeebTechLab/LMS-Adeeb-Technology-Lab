@@ -255,37 +255,29 @@ const StudentRegister = () => {
                 initial={{ opacity: 0, x: -50 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.6 }}
-                className="w-full lg:w-1/2 h-screen overflow-y-auto p-6 bg-gradient-to-br from-emerald-50 to-teal-50"
+                className="w-full lg:w-1/2 h-screen overflow-y-auto p-6 bg-white"
             >
                 <div className="w-full max-w-2xl mx-auto py-8">
                     {/* Header */}
                     <div className="mb-8">
-                        <div className="flex items-center justify-between mb-6">
+                        <div className="mb-6">
                             <Link
                                 to="/register"
-                                className="inline-flex items-center text-gray-600 hover:text-emerald-600 transition-colors font-medium group"
+                                className="inline-flex items-center text-gray-600 hover:text-emerald-600 transition-colors font-medium"
                             >
-                                <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
-                                <span>Back</span>
+                                ← Back
                             </Link>
-                            <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-2xl shadow-sm border border-gray-100">
-                                <div className="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center overflow-hidden">
-                                    <img
-                                        src="/logo.png"
-                                        alt="Logo"
-                                        className="w-full h-full object-cover"
-                                        onError={(e) => {
-                                            e.target.style.display = 'none';
-                                            e.target.nextSibling.style.display = 'block';
-                                        }}
-                                    />
-                                    <GraduationCap className="w-6 h-6 text-emerald-600 hidden" />
-                                </div>
-                                <span className="font-bold text-gray-900">AdeebTechLab</span>
-                            </div>
                         </div>
                         <h1 className="text-3xl font-bold text-gray-900 mb-2">Student Registration</h1>
-                        <p className="text-gray-500">Fill in your details to enroll in our technical courses</p>
+                        <p className="text-gray-500">
+                            Already have an account?{' '}
+                            <Link
+                                to="/login"
+                                className="text-emerald-600 font-semibold underline hover:text-emerald-700 transition-colors"
+                            >
+                                Log in
+                            </Link>
+                        </p>
                     </div>
 
                     {/* Form */}

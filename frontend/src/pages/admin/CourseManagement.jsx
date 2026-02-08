@@ -352,9 +352,13 @@ const CourseManagement = () => {
                                 <div className="flex flex-wrap gap-1.5">
                                     {course.teachers.map((teacher, idx) => (
                                         <div key={idx} className="flex items-center gap-1.5 bg-gray-50 px-2 py-1 rounded-lg">
-                                            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-xs font-medium">
-                                                {teacher?.name?.charAt(0) || 'T'}
-                                            </div>
+                                            {teacher?.photo ? (
+                                                <img src={teacher.photo} alt={teacher.name} className="w-6 h-6 rounded-full object-cover" />
+                                            ) : (
+                                                <div className="w-6 h-6 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-xs font-medium">
+                                                    {teacher?.name?.charAt(0) || 'T'}
+                                                </div>
+                                            )}
                                             <span className="text-xs text-gray-600">{teacher?.name || 'Teacher'}</span>
                                         </div>
                                     ))}
@@ -483,6 +487,13 @@ const CourseManagement = () => {
                                                 }}
                                                 className="w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500"
                                             />
+                                            {teacher.photo ? (
+                                                <img src={teacher.photo} alt={teacher.name} className="w-8 h-8 rounded-full object-cover mr-2" />
+                                            ) : (
+                                                <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 text-xs font-bold mr-2">
+                                                    {teacher.name.charAt(0)}
+                                                </div>
+                                            )}
                                             <div className="flex-1">
                                                 <span className="text-sm font-medium text-gray-700">{teacher.name}</span>
                                                 <span className="text-xs text-gray-500 ml-2">({teacher.specialization || teacher.email})</span>

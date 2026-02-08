@@ -36,7 +36,6 @@ const AttendanceSheet = () => {
     const [filteredCourses, setFilteredCourses] = useState([]); // Filtered list
 
     // Filter States
-    // Filter States
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCities, setSelectedCities] = useState([]); // Array of strings
     const [selectedTypes, setSelectedTypes] = useState([]);   // Array of strings
@@ -250,13 +249,13 @@ const AttendanceSheet = () => {
                 try {
                     const assignmentsRes = await assignmentAPI.getByCourse(courseData.id);
                     const assignments = assignmentsRes.data.assignments || [];
-                    
+
                     // Calculate assignment stats
                     let totalSubmissions = 0;
                     let gradedSubmissions = 0;
                     let totalMarks = 0;
                     let totalPossibleMarks = 0;
-                    
+
                     assignments.forEach(a => {
                         const submissions = a.submissions || [];
                         totalSubmissions += submissions.length;
@@ -268,11 +267,11 @@ const AttendanceSheet = () => {
                             }
                         });
                     });
-                    
-                    const avgPercentage = totalPossibleMarks > 0 
-                        ? Math.round((totalMarks / totalPossibleMarks) * 100) 
+
+                    const avgPercentage = totalPossibleMarks > 0
+                        ? Math.round((totalMarks / totalPossibleMarks) * 100)
                         : 0;
-                    
+
                     return {
                         ...courseData,
                         assignmentStats: {
@@ -360,7 +359,6 @@ const AttendanceSheet = () => {
                     </div>
                 </div>
 
-                {/* Filters and Search */}
                 {/* Filters and Search */}
                 <div className="bg-white rounded-2xl p-4 border border-gray-100 flex flex-col xl:flex-row gap-4">
                     <div className="flex-1 flex items-center bg-gray-50 rounded-xl px-4 py-3">
@@ -492,7 +490,7 @@ const AttendanceSheet = () => {
                                             </span>
                                         )}
                                     </div>
-                                    
+
                                     {/* Assignment Stats */}
                                     {course.assignmentStats && course.assignmentStats.totalAssignments > 0 && (
                                         <div className="bg-gradient-to-r from-emerald-50 to-blue-50 rounded-xl p-3 mb-4 border border-emerald-100/50">
@@ -527,7 +525,7 @@ const AttendanceSheet = () => {
                                             </div>
                                         </div>
                                     )}
-                                    
+
                                     <div className="flex items-center text-emerald-600 font-bold text-sm">
                                         <span>OPEN DASHBOARD</span>
                                         <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
