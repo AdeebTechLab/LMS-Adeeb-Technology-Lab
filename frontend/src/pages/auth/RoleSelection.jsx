@@ -21,7 +21,7 @@ const RoleSelection = () => {
             title: 'Join as Intern',
             description: 'Apply for internship programs and gain hands-on experience',
             icon: Users,
-            path: '/register/intern',
+            path: '/register/interns',
             color: 'from-blue-500 to-indigo-600',
             bgColor: 'bg-blue-50',
             iconColor: 'text-blue-600'
