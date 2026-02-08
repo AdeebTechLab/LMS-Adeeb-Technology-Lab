@@ -217,7 +217,7 @@ const Login = () => {
                             Select Role
                         </label>
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                            {['student', 'teacher', 'Internship', 'job'].map((role) => (
+                            {['student', 'teacher', 'intern', 'job'].map((role) => (
                                 <button
                                     key={role}
                                     type="button"

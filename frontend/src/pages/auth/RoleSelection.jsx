@@ -18,7 +18,7 @@ const RoleSelection = () => {
         },
         {
             id: 'internship',
-            title: 'Join as Internship',
+            title: 'Join as Intern',
             description: 'Apply for internship programs and gain hands-on experience',
             icon: Users,
             path: '/register/internship',
