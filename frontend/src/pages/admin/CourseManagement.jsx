@@ -30,8 +30,6 @@ const CourseManagement = () => {
     const [formData, setFormData] = useState({
         title: '',
         description: '',
-        title: '',
-        description: '',
         fee: '',
         originalPrice: '',
         durationMonths: '',
@@ -103,7 +101,6 @@ const CourseManagement = () => {
             setFormData({
                 title: course.title,
                 description: course.description,
-                description: course.description,
                 fee: course.fee?.toString() || '',
                 originalPrice: course.originalPrice?.toString() || '',
                 durationMonths: course.durationMonths?.toString() || '',
@@ -117,7 +114,6 @@ const CourseManagement = () => {
             setEditingCourse(null);
             setFormData({
                 title: '',
-                description: '',
                 description: '',
                 fee: '',
                 originalPrice: '',
@@ -145,8 +141,6 @@ const CourseManagement = () => {
         try {
             const courseData = {
                 title: formData.title,
-                description: formData.description,
-                description: formData.description,
                 description: formData.description,
                 fee: formData.fee, // Send as string
                 originalPrice: formData.originalPrice, // Send as string

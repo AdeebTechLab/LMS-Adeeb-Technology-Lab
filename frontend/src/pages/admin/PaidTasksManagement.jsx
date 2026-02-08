@@ -148,8 +148,6 @@ const PaidTasksManagement = () => {
                 await taskAPI.update(editingTask._id, {
                     title: formData.title,
                     description: formData.description,
-                    title: formData.title,
-                    description: formData.description,
                     budget: formData.budget, // Send as string
                     deadline: formData.deadline,
                     skills: formData.skills,
