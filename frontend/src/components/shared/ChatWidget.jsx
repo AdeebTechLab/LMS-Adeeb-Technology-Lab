@@ -375,6 +375,12 @@ const ChatWidget = () => {
         setIsOpen(false); // Fully close the widget
     };
 
+    // Go back to conversation list without closing the widget
+    const goBack = () => {
+        setActiveChat(null);
+        setMessages([]);
+    };
+
     if (!shouldShow) return null;
 
     return (
@@ -392,7 +398,7 @@ const ChatWidget = () => {
                             <div className="flex items-center gap-4">
                                 {activeChat ? (
                                     <button
-                                        onClick={closeChat}
+                                        onClick={goBack}
                                         className="flex items-center gap-2 px-3 py-2 bg-white/10 hover:bg-white/20 rounded-2xl transition-all active:scale-95 group"
                                     >
                                         <ChevronLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />

@@ -137,4 +137,115 @@ router.get('/report/:courseId', protect, authorize('teacher', 'admin'), async (r
     }
 });
 
+// Import SystemSetting for global holidays
+const SystemSetting = require('../models/SystemSetting');
+
+// @route   GET /api/attendance/global-holidays
+// @desc    Get global holiday days (applies to all courses)
+// @access  Private
+router.get('/global-holidays', protect, async (req, res) => {
+    try {
+        const holidaySetting = await SystemSetting.findOne({ key: 'globalHolidayDays' });
+        res.json({ success: true, holidayDays: holidaySetting?.value || [] });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// @route   PUT /api/attendance/global-holidays
+// @desc    Update global holiday days (Admin only)
+// @access  Private (Admin)
+router.put('/global-holidays', protect, authorize('admin'), async (req, res) => {
+    try {
+        const { holidayDays } = req.body;
+
+        // Validate holidayDays array
+        if (!Array.isArray(holidayDays) || !holidayDays.every(d => d >= 0 && d <= 6)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid holiday days. Must be array of numbers 0-6 (Sunday-Saturday)'
+            });
+        }
+
+        const setting = await SystemSetting.findOneAndUpdate(
+            { key: 'globalHolidayDays' },
+            {
+                value: holidayDays,
+                description: 'Weekly off days for attendance (0=Sunday, 5=Friday, 6=Saturday)',
+                updatedBy: req.user.id
+            },
+            { new: true, upsert: true }
+        );
+
+        res.json({ success: true, holidayDays: setting.value });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// @route   GET /api/attendance/stats/:courseId
+// @desc    Get attendance statistics for a course (excluding holidays)
+// @access  Private (Teacher, Admin)
+router.get('/stats/:courseId', protect, authorize('teacher', 'admin'), async (req, res) => {
+    try {
+        const courseId = req.params.courseId;
+        const course = await Course.findById(courseId);
+        if (!course) {
+            return res.status(404).json({ success: false, message: 'Course not found' });
+        }
+
+        // Get global holiday settings
+        const holidaySetting = await SystemSetting.findOne({ key: 'globalHolidayDays' });
+        const globalHolidayDays = holidaySetting?.value || [];
+
+        // Get all attendance records (excluding holidays)
+        const attendances = await Attendance.find({
+            course: courseId,
+            isHoliday: { $ne: true }
+        }).populate('records.user', 'name rollNo');
+
+        // Calculate stats
+        const totalDays = attendances.length;
+        const stats = {};
+
+        attendances.forEach(att => {
+            att.records.forEach(record => {
+                const userId = record.user?._id?.toString() || record.user?.toString();
+                if (!userId) return;
+
+                if (!stats[userId]) {
+                    stats[userId] = {
+                        name: record.user?.name || 'Unknown',
+                        rollNo: record.user?.rollNo || '',
+                        present: 0,
+                        absent: 0,
+                        totalDays: 0
+                    };
+                }
+                stats[userId].totalDays++;
+                if (record.status === 'present') {
+                    stats[userId].present++;
+                } else {
+                    stats[userId].absent++;
+                }
+            });
+        });
+
+        // Calculate percentages
+        Object.values(stats).forEach(s => {
+            s.percentage = s.totalDays > 0 ? Math.round((s.present / s.totalDays) * 100) : 0;
+        });
+
+        res.json({
+            success: true,
+            totalDays,
+            holidayDays: globalHolidayDays,
+            studentStats: Object.values(stats)
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
 module.exports = router;
+

@@ -159,23 +159,11 @@ const Login = () => {
                 className="w-full lg:w-1/2 flex items-center justify-center p-6 bg-white overflow-y-auto"
             >
                 <div className="w-full max-w-md py-4">
-                    {/* Back Button */}
-                    <motion.button
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.2 }}
-                        onClick={() => navigate('/')}
-                        className="flex items-center px-4 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition-all duration-300 font-medium mb-8 border border-gray-200 shadow-sm group w-fit"
-                    >
-                        <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
-                        <span>Back</span>
-                    </motion.button>
-
                     {/* Header */}
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.3 }}
+                        transition={{ delay: 0.2 }}
                         className="mb-8"
                     >
                         <h1 className="text-4xl font-bold text-gray-900 mb-2">Log in</h1>
@@ -214,8 +202,11 @@ const Login = () => {
                         className="mb-5"
                     >
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Select Role
+                            Select Your Role
                         </label>
+                        <p className="text-xs text-gray-500 mb-3">
+                            <strong>Student:</strong> Enrolled learners • <strong>Teacher:</strong> Course instructors • <strong>Intern:</strong> Internship program • <strong>Job:</strong> Remote employees
+                        </p>
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                             {['student', 'teacher', 'intern', 'job'].map((role) => (
                                 <button

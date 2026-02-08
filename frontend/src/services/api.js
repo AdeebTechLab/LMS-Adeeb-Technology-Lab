@@ -42,7 +42,7 @@ api.interceptors.response.use(
         console.error(`❌ [API] Status: ${error.response?.status}`);
         console.error(`❌ [API] Message: ${error.response?.data?.message || error.message}`);
         console.error(`❌ [API] Full Error:`, error.response?.data || error);
-        
+
         if (error.response?.status === 401) {
             console.warn('🚪 [API] 401 Unauthorized - Clearing session and redirecting to login');
             localStorage.removeItem('token');
@@ -125,7 +125,11 @@ export const attendanceAPI = {
     get: (courseId, date) => api.get(`/attendance/${courseId}/${date}`),
     mark: (data) => api.post('/attendance', data),
     getReport: (courseId) => api.get(`/attendance/report/${courseId}`),
-    getMy: (courseId) => api.get(`/attendance/my/${courseId}`)
+    getMy: (courseId) => api.get(`/attendance/my/${courseId}`),
+    // Global holiday management (admin only for updates)
+    getGlobalHolidays: () => api.get('/attendance/global-holidays'),
+    updateGlobalHolidays: (holidayDays) => api.put('/attendance/global-holidays', { holidayDays }),
+    getStats: (courseId) => api.get(`/attendance/stats/${courseId}`)
 };
 
 // Assignment APIs

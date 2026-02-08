@@ -128,21 +128,30 @@ const StudentCourseView = () => {
                                 </div>
                             </div>
                         </div>
-                        <div className="flex flex-col items-end gap-2">
-                            <div className="flex items-center gap-2">
-                                {course.status && (
-                                    <Badge variant={course.status === 'active' ? 'success' : 'warning'}>
-                                        {course.status.toUpperCase()}
-                                    </Badge>
-                                )}
-                            </div>
-                            {(isAccessBlocked || isSubmissionRestricted) && (
-                                <div className="flex items-center gap-1.5 px-3 py-1 bg-red-50 text-red-600 rounded-lg border border-red-100 text-[10px] font-black uppercase tracking-widest">
-                                    <AlertCircle className="w-3.5 h-3.5" />
-                                    Account Restricted
-                                </div>
+                        <div className="flex items-center gap-2">
+                            {course.status && (
+                                <Badge variant={course.status === 'active' ? 'success' : 'warning'}>
+                                    {course.status.toUpperCase()}
+                                </Badge>
+                            )}
+                            {course?.bookLink && (
+                                <a
+                                    href={course.bookLink}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl shadow-md shadow-indigo-200 hover:bg-indigo-700 hover:shadow-lg transition-all font-black text-xs uppercase tracking-widest active:scale-95"
+                                >
+                                    <BookOpen className="w-4 h-4" />
+                                    OPEN BOOK
+                                </a>
                             )}
                         </div>
+                        {(isAccessBlocked || isSubmissionRestricted) && (
+                            <div className="flex items-center gap-1.5 px-3 py-1 bg-red-50 text-red-600 rounded-lg border border-red-100 text-[10px] font-black uppercase tracking-widest">
+                                <AlertCircle className="w-3.5 h-3.5" />
+                                Account Restricted
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
@@ -289,18 +298,6 @@ const StudentCourseView = () => {
                 </div>
             </Modal>
 
-            {/* Fixed Book Button in Top Right */}
-            {course?.bookLink && (
-                <a
-                    href={course.bookLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="fixed top-6 right-6 flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-2xl shadow-2xl shadow-indigo-300 hover:bg-indigo-700 hover:scale-105 transition-all font-black text-sm uppercase tracking-[0.1em] active:scale-95 z-40"
-                >
-                    <BookOpen className="w-5 h-5" />
-                    OPEN BOOK
-                </a>
-            )}
         </div>
     );
 };

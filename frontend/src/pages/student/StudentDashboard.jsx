@@ -49,7 +49,7 @@ const StudentDashboard = () => {
 
         // Socket connection for live class updates
         socketRef.current = io(SOCKET_URL, { withCredentials: true });
-        
+
         socketRef.current.on('live_class_started', () => {
             fetchActiveLiveClasses();
         });
@@ -511,19 +511,6 @@ const StudentDashboard = () => {
                                                 </span>
 
                                                 <div className="flex items-center gap-2">
-                                                    {course.bookLink && (
-                                                        <a
-                                                            href={course.bookLink}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                            onClick={(e) => e.stopPropagation()}
-                                                            className="flex items-center gap-2 px-3 py-1 bg-indigo-600 text-white rounded-xl shadow-md shadow-indigo-200 hover:bg-indigo-700 hover:shadow-lg transition-all font-black text-[10px] uppercase tracking-widest active:scale-95"
-                                                        >
-                                                            <BookOpen className="w-3.5 h-3.5" />
-                                                            COURSE BOOK
-                                                        </a>
-                                                    )}
-
                                                     {!course.isFirstMonthVerified && (
                                                         <button
                                                             onClick={(e) => handleWithdrawClick(e, course)}

@@ -257,16 +257,16 @@ const StudentRegister = () => {
                 transition={{ duration: 0.6 }}
                 className="w-full lg:w-1/2 h-screen overflow-y-auto p-6 bg-gradient-to-br from-emerald-50 to-teal-50"
             >
-                <div className="w-full max-w-2xl py-8">
+                <div className="w-full max-w-2xl mx-auto py-8">
                     {/* Header */}
                     <div className="mb-8">
                         <div className="flex items-center justify-between mb-6">
                             <Link
                                 to="/register"
-                                className="inline-flex items-center px-4 py-2 text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-all duration-300 font-medium shadow-sm group"
+                                className="inline-flex items-center text-gray-600 hover:text-emerald-600 transition-colors font-medium group"
                             >
                                 <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
-                                <span>Back to Roles</span>
+                                <span>Back</span>
                             </Link>
                             <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-2xl shadow-sm border border-gray-100">
                                 <div className="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center overflow-hidden">

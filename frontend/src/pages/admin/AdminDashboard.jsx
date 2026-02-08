@@ -27,6 +27,7 @@ import DataTable from '../../components/ui/DataTable';
 import Badge from '../../components/ui/Badge';
 import { BarChart, DoughnutChart } from '../../components/charts/Charts';
 import { statsAPI } from '../../services/api';
+import HolidaySettings from './components/HolidaySettings';
 
 const AdminDashboard = () => {
     const navigate = useNavigate();
@@ -338,6 +339,9 @@ const AdminDashboard = () => {
                             <p className="text-[10px] font-bold text-orange-600 uppercase tracking-widest mt-1">Passout Graduates</p>
                         </div>
                     </div>
+
+                    {/* Weekly Off Days Settings */}
+                    <HolidaySettings />
                 </div>
 
                 {/* Fee Status Graph (Sidebar-like) */}

@@ -426,19 +426,11 @@ const FeeVerification = () => {
                                             </div>
                                             <div className="flex items-center gap-3">
                                                 {inst.receiptUrl && (
-                                                    <button onClick={() => handleViewScreenshot({ ...inst, feeId: fee._id, student: fee.user?.name, course: fee.course?.title })} className="flex items-center gap-2 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium">
+                                                    <button onClick={() => handleViewScreenshot({ ...inst, feeId: fee._id, student: fee.user?.name, course: fee.course?.title })} className="flex items-center gap-2 px-4 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-medium">
                                                         <Eye className="w-4 h-4" />
-                                                        Receipt
+                                                        View Receipt
                                                     </button>
                                                 )}
-                                                <button
-                                                    onClick={() => handleVerify(fee._id, inst._id)}
-                                                    disabled={isProcessing}
-                                                    className="flex items-center gap-2 px-4 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-medium disabled:opacity-50"
-                                                >
-                                                    {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
-                                                    Verify
-                                                </button>
                                                 <button
                                                     onClick={() => handleReject(fee._id, inst._id)}
                                                     disabled={isProcessing}

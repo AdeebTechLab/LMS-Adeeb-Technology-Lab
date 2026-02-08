@@ -17,7 +17,7 @@ const StudentAttendanceTab = ({ course }) => {
         setIsLoading(true);
         try {
             const response = await attendanceAPI.getMy(course._id);
-            setAttendanceData(response.data.data || []);
+            setAttendanceData(response.data.attendances || response.data.data || []);
         } catch (err) {
             console.error('Error fetching attendance:', err);
         } finally {

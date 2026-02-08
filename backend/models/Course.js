@@ -70,6 +70,17 @@ const courseSchema = new mongoose.Schema({
     bookLink: {
         type: String,
         default: ''
+    },
+    // Holiday settings: array of day numbers (0=Sunday, 1=Monday... 5=Friday, 6=Saturday)
+    holidayDays: {
+        type: [Number],
+        default: [],
+        validate: {
+            validator: function (arr) {
+                return arr.every(d => d >= 0 && d <= 6);
+            },
+            message: 'Holiday days must be between 0 (Sunday) and 6 (Saturday)'
+        }
     }
 }, {
     timestamps: true

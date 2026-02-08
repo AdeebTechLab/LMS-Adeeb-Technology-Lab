@@ -1,6 +1,7 @@
 const Attendance = require('../models/Attendance');
 const Enrollment = require('../models/Enrollment');
 const Course = require('../models/Course');
+const SystemSetting = require('../models/SystemSetting');
 
 // Called by cron job at 12:00 AM (midnight) to auto-save and lock yesterday's attendance
 const lockTodayAttendance = async () => {
@@ -9,7 +10,16 @@ const lockTodayAttendance = async () => {
     yesterday.setDate(yesterday.getDate() - 1);
     yesterday.setHours(0, 0, 0, 0);
 
-    console.log(`🔒 Auto-saving attendance for ${yesterday.toISOString().split('T')[0]}...`);
+    const yesterdayDayOfWeek = yesterday.getDay(); // 0=Sunday, 1=Monday, ..., 6=Saturday
+
+    console.log(`🔒 Auto-saving attendance for ${yesterday.toISOString().split('T')[0]} (Day: ${yesterdayDayOfWeek})...`);
+
+    // Get global holiday settings
+    const holidaySetting = await SystemSetting.findOne({ key: 'globalHolidayDays' });
+    const globalHolidayDays = holidaySetting?.value || [];
+    const isGlobalHoliday = globalHolidayDays.includes(yesterdayDayOfWeek);
+
+    console.log(`📅 Global holidays: ${globalHolidayDays.join(', ') || 'None'}, Yesterday is holiday: ${isGlobalHoliday}`);
 
     // 1. Get all active courses
     const activeCourses = await Course.find({ isActive: true });
@@ -18,10 +28,40 @@ const lockTodayAttendance = async () => {
 
     let processedCount = 0;
     let createdCount = 0;
+    let holidayCount = 0;
 
     for (const course of activeCourses) {
         try {
-            // 2. Find or Create attendance record for yesterday
+            // Check if yesterday is a global holiday
+            if (isGlobalHoliday) {
+                // Create or update attendance record as holiday
+                let attendance = await Attendance.findOne({
+                    course: course._id,
+                    date: yesterday
+                });
+
+                if (!attendance) {
+                    attendance = new Attendance({
+                        course: course._id,
+                        date: yesterday,
+                        records: [],
+                        isHoliday: true,
+                        isLocked: true,
+                        lockedAt: new Date()
+                    });
+                } else {
+                    attendance.isHoliday = true;
+                    attendance.isLocked = true;
+                    attendance.lockedAt = new Date();
+                }
+
+                await attendance.save();
+                holidayCount++;
+                console.log(`📅 Marked ${course.title} as HOLIDAY for ${yesterday.toISOString().split('T')[0]}`);
+                continue; // Skip to next course
+            }
+
+            // 2. Find or Create attendance record for yesterday (non-holiday)
             let attendance = await Attendance.findOne({
                 course: course._id,
                 date: yesterday
@@ -33,7 +73,8 @@ const lockTodayAttendance = async () => {
                     course: course._id,
                     date: yesterday,
                     records: [],
-                    isLocked: false
+                    isLocked: false,
+                    isHoliday: false
                 });
                 createdCount++;
             }
@@ -76,8 +117,8 @@ const lockTodayAttendance = async () => {
         }
     }
 
-    console.log(`✅ Auto-saved & locked ${processedCount} attendance records (${createdCount} new) at 12:00 AM`);
-    return { processedCount, createdCount };
+    console.log(`✅ Auto-saved & locked ${processedCount} attendance records (${createdCount} new, ${holidayCount} holidays) at 12:00 AM`);
+    return { processedCount, createdCount, holidayCount };
 };
 
 module.exports = { lockTodayAttendance };

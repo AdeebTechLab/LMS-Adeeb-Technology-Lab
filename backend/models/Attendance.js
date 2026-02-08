@@ -33,6 +33,10 @@ const attendanceSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
+    isHoliday: {
+        type: Boolean,
+        default: false
+    },
     lockedAt: Date
 }, {
     timestamps: true

@@ -170,7 +170,19 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
             <div className="flex items-center justify-between">
                 <h3 className="font-bold text-gray-900 text-lg">Assignments</h3>
                 <button
-                    onClick={() => setIsCreateModalOpen(true)}
+                    onClick={() => {
+                        // Reset form state when opening modal to prevent focus issues
+                        setNewAssignment({
+                            title: '',
+                            description: '',
+                            dueDate: '',
+                            totalMarks: 100,
+                            assignTo: 'all',
+                            assignedUsers: []
+                        });
+                        setAssignSearchTerm('');
+                        setIsCreateModalOpen(true);
+                    }}
                     className="px-4 py-2 bg-[#0D2818] hover:bg-[#1A5D3A] text-white rounded-xl font-medium transition-all flex items-center gap-2"
                 >
                     <Plus className="w-4 h-4" />
@@ -396,6 +408,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
 
             {/* Create Assignment Modal */}
             <Modal
+                key={isCreateModalOpen ? 'create-modal-open' : 'create-modal-closed'}
                 isOpen={isCreateModalOpen}
                 onClose={() => setIsCreateModalOpen(false)}
                 title="Create New Assignment"
