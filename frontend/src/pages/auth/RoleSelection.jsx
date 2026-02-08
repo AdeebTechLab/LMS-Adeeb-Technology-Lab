@@ -17,11 +17,11 @@ const RoleSelection = () => {
             iconColor: 'text-emerald-600'
         },
         {
-            id: 'internship',
-            title: 'Join as Internship',
+            id: 'intern',
+            title: 'Join as Intern',
             description: 'Apply for internship programs and gain hands-on experience',
             icon: Users,
-            path: '/register/internship',
+            path: '/register/intern',
             color: 'from-blue-500 to-indigo-600',
             bgColor: 'bg-blue-50',
             iconColor: 'text-blue-600'
