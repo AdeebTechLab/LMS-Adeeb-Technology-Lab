@@ -18,7 +18,7 @@ const RoleSelection = () => {
         },
         {
             id: 'internship',
-            title: 'Join as Intern',
+            title: 'Join as Internship',
             description: 'Apply for internship programs and gain hands-on experience',
             icon: Users,
             path: '/register/internship',
@@ -140,67 +140,93 @@ const RoleSelection = () => {
                 </div>
             </motion.div>
 
-            {/* Right Side - Decorative Panel with Image */}
+
+
+
+
+
+
             <motion.div
-                initial={{ opacity: 0, x: 50 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6 }}
-                className="hidden lg:flex lg:w-1/2 relative overflow-hidden"
-            >
-                {/* Gradient Background */}
-                <div className="absolute inset-0 bg-gradient-to-br from-[#1a1a2e] via-[#16213e] to-[#0f0f23]">
-                    {/* Animated Background Elements */}
-                    <div className="absolute top-20 left-20 w-72 h-72 bg-purple-500/20 rounded-full blur-3xl animate-pulse-slow"></div>
-                    <div className="absolute bottom-20 right-20 w-96 h-96 bg-orange-500/20 rounded-full blur-3xl animate-pulse-slow delay-300"></div>
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-pink-500/10 rounded-full blur-3xl animate-float"></div>
-                </div>
+  initial={{ opacity: 0, x: 50 }}
+  animate={{ opacity: 1, x: 0 }}
+  transition={{ duration: 0.6 }}
+  className="hidden lg:flex lg:w-1/2 relative overflow-hidden"
+>
+  {/* Gradient Background */}
+  <div className="absolute inset-0 bg-gradient-to-br from-[#1a1a2e] via-[#16213e] to-[#0f0f23]">
+    <div className="absolute top-20 left-20 w-72 h-72 bg-purple-500/20 rounded-full blur-3xl animate-pulse-slow"></div>
+    <div className="absolute bottom-20 right-20 w-96 h-96 bg-orange-500/20 rounded-full blur-3xl animate-pulse-slow delay-300"></div>
+    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-pink-500/10 rounded-full blur-3xl animate-float"></div>
+  </div>
 
-                {/* Content */}
-                <div className="relative z-10 flex flex-col items-center justify-center w-full h-full p-8">
-                    {/* Logo & Branding */}
-                    {/* Centered Logo Square */}
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 0.4, duration: 0.6 }}
-                        className="flex flex-col items-center justify-center gap-3 h-full"
-                    >
-                        <div className="relative w-56 h-56 group flex-shrink-0">
-                            {/* Outer Glow */}
-                            <div className="absolute -inset-4 bg-orange-500/20 rounded-3xl blur-2xl group-hover:bg-orange-500/30 transition-all duration-500"></div>
+  {/* Center Content */}
+  <div className="relative z-10 flex items-center justify-center w-full h-full p-8">
+    <div className="flex flex-col items-center justify-center gap-4">
 
-                            {/* Square Glass Container */}
-                            <div className="absolute inset-0 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 shadow-2xl overflow-hidden flex items-center justify-center p-6">
-                                <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
-                                <img
-                                    src="/logo.png"
-                                    alt="AdeebTechLab Logo"
-                                    className="w-full h-full object-contain transform group-hover:scale-105 transition-transform duration-500 relation z-10"
-                                    onError={(e) => {
-                                        e.target.style.display = 'none';
-                                        e.target.nextSibling.style.display = 'block';
-                                    }}
-                                />
-                                <GraduationCap className="w-20 h-20 text-white hidden" />
-                            </div>
-                        </div>
-                    </motion.div>
+      {/* Logo */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.4, duration: 0.6 }}
+        className="relative w-56 h-56 group"
+      >
+        {/* Glow */}
+        <div className="absolute -inset-4 bg-orange-500/20 rounded-3xl blur-2xl group-hover:bg-orange-500/30 transition-all duration-500"></div>
 
-                    {/* Branding Text - Moved Below Logo */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.5, duration: 0.5 }}
-                        className="flex flex-col items-center text-center z-20"
-                    >
-                        <h2 className="text-white text-3xl font-bold tracking-tight mb-0">Adeeb Technology Lab</h2>
-                        <p className="text-white/60 text-base">Digital tech expert software house LMS</p>
-                    </motion.div>
+        {/* Glass Box */}
+        <div className="absolute inset-0 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 shadow-2xl overflow-hidden flex items-center justify-center p-6">
+          <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
+          <img
+            src="/logo.png"
+            alt="Adeeb Technology Lab Logo"
+            className="w-full h-full object-contain z-10"
+            onError={(e) => {
+              e.target.style.display = "none";
+              e.target.nextSibling.style.display = "block";
+            }}
+          />
+          <GraduationCap className="w-20 h-20 text-white hidden" />
+        </div>
+      </motion.div>
 
-                    {/* Decorative Lines */}
-                    <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-orange-500/10 to-transparent"></div>
-                </div>
-            </motion.div>
+      {/* Text under logo */}
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.55, duration: 0.4 }}
+        className="text-center"
+      >
+        <h2 className="text-white text-3xl font-bold leading-tight">
+          Adeeb Technology Lab
+        </h2>
+        <p className="text-white/60 text-sm mt-1">
+          Digital Tech Expert • Software House • LMS
+        </p>
+      </motion.div>
+
+    </div>
+  </div>
+
+  {/* Bottom Gradient */}
+  <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-orange-500/10 to-transparent"></div>
+</motion.div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         </div>
     );
 };
