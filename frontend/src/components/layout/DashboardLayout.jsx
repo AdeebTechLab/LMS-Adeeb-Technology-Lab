@@ -16,8 +16,12 @@ import Sidebar from './Sidebar';
 import NotificationPopup from '../shared/NotificationPopup';
 import ChatWidget from '../shared/ChatWidget';
 import { userNotificationAPI } from '../../services/api';
+import useAutoLogout from '../../hooks/useAutoLogout';
 
 const DashboardLayout = () => {
+    // Enable auto-logout
+    useAutoLogout();
+
     const [sidebarOpen, setSidebarOpen] = useState(true);
     const [showNotifications, setShowNotifications] = useState(false);
     const [showUserMenu, setShowUserMenu] = useState(false);
@@ -184,7 +188,7 @@ const DashboardLayout = () => {
                                         <div className="p-4 border-b border-gray-100">
                                             <div className="flex items-center justify-between">
                                                 <h3 className="font-semibold text-gray-900">Notifications</h3>
-                                                <button 
+                                                <button
                                                     onClick={handleMarkAllRead}
                                                     className="text-sm text-[#ff8e01] hover:text-[#ffab40]"
                                                 >

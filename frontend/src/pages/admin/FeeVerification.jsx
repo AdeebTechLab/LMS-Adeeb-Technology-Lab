@@ -402,9 +402,17 @@ const FeeVerification = () => {
                                     (fee.installments || []).filter(i => i.status === 'submitted').map(inst => (
                                         <motion.div key={`${fee._id}-${inst._id}`} layout className="bg-white p-6 rounded-2xl border border-amber-200 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                                             <div className="flex items-center gap-4">
-                                                <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center text-amber-600 font-bold">
-                                                    {fee.user?.name?.charAt(0)}
-                                                </div>
+                                                {fee.user?.photo ? (
+                                                    <img
+                                                        src={fee.user.photo}
+                                                        alt={fee.user.name}
+                                                        className="w-12 h-12 rounded-full object-cover border-2 border-amber-100"
+                                                    />
+                                                ) : (
+                                                    <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center text-amber-600 font-bold text-lg">
+                                                        {fee.user?.name?.charAt(0)}
+                                                    </div>
+                                                )}
                                                 <div>
                                                     <h3 className="font-semibold text-gray-900">{fee.user?.name || 'Unknown Student'}</h3>
                                                     <p className="text-sm text-gray-500">
@@ -472,9 +480,17 @@ const FeeVerification = () => {
                                     (fee.installments || []).filter(i => i.status === 'pending').map(inst => (
                                         <div key={`${fee._id}-${inst._id}`} className="bg-gray-50 p-4 rounded-xl border border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4 opacity-75 hover:opacity-100 transition-opacity">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center text-gray-500 font-bold text-sm">
-                                                    {fee.user?.name?.charAt(0)}
-                                                </div>
+                                                {fee.user?.photo ? (
+                                                    <img
+                                                        src={fee.user.photo}
+                                                        alt={fee.user.name}
+                                                        className="w-10 h-10 rounded-full object-cover border border-gray-200"
+                                                    />
+                                                ) : (
+                                                    <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center text-gray-500 font-bold text-sm">
+                                                        {fee.user?.name?.charAt(0)}
+                                                    </div>
+                                                )}
                                                 <div>
                                                     <h3 className="font-medium text-gray-700">{fee.user?.name || 'Unknown Student'}</h3>
                                                     <p className="text-xs text-gray-500">
@@ -605,22 +621,35 @@ const FeeVerification = () => {
                                     .filter(fee => String(fee.course?._id) === String(selectedCourse))
                                     .map(fee => (
                                         <div key={fee._id} className="bg-white p-6 rounded-2xl border border-gray-100 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                                            <div>
-                                                <h3 className="font-semibold text-gray-900">{fee.user?.name || 'Unknown Student'}</h3>
-                                                <p className="text-sm text-gray-500">
-                                                    {fee.course?.title || 'Unknown Course'}
-                                                    <span className={`ml-2 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest ${fee.course?.targetAudience === 'students' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-purple-50 text-purple-600 border border-purple-100'}`}>
-                                                        {fee.course?.targetAudience}
-                                                    </span>
-                                                </p>
-                                                <div className="flex flex-wrap gap-3 mt-2">
-                                                    <Badge variant={fee.status === 'verified' ? 'success' : 'warning'}>{fee.status}</Badge>
-                                                    <span className="text-xs bg-gray-100 px-2 py-1 rounded text-gray-600 flex items-center gap-1">
-                                                        <DollarSign className="w-3 h-3" /> Total: Rs {(fee.totalFee || 0).toLocaleString()}
-                                                    </span>
-                                                    <span className="text-xs bg-gray-100 px-2 py-1 rounded text-gray-600 flex items-center gap-1">
-                                                        <CheckCircle className="w-3 h-3" /> Paid: Rs {(fee.paidAmount || 0).toLocaleString()}
-                                                    </span>
+                                            <div className="flex items-center gap-4">
+                                                {fee.user?.photo ? (
+                                                    <img
+                                                        src={fee.user.photo}
+                                                        alt={fee.user.name}
+                                                        className="w-12 h-12 rounded-full object-cover border border-gray-100"
+                                                    />
+                                                ) : (
+                                                    <div className="w-12 h-12 bg-indigo-50 rounded-full flex items-center justify-center text-indigo-600 font-bold text-lg">
+                                                        {fee.user?.name?.charAt(0)}
+                                                    </div>
+                                                )}
+                                                <div>
+                                                    <h3 className="font-semibold text-gray-900">{fee.user?.name || 'Unknown Student'}</h3>
+                                                    <p className="text-sm text-gray-500">
+                                                        {fee.course?.title || 'Unknown Course'}
+                                                        <span className={`ml-2 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest ${fee.course?.targetAudience === 'students' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-purple-50 text-purple-600 border border-purple-100'}`}>
+                                                            {fee.course?.targetAudience}
+                                                        </span>
+                                                    </p>
+                                                    <div className="flex flex-wrap gap-3 mt-2">
+                                                        <Badge variant={fee.status === 'verified' ? 'success' : 'warning'}>{fee.status}</Badge>
+                                                        <span className="text-xs bg-gray-100 px-2 py-1 rounded text-gray-600 flex items-center gap-1">
+                                                            <DollarSign className="w-3 h-3" /> Total: Rs {(fee.totalFee || 0).toLocaleString()}
+                                                        </span>
+                                                        <span className="text-xs bg-gray-100 px-2 py-1 rounded text-gray-600 flex items-center gap-1">
+                                                            <CheckCircle className="w-3 h-3" /> Paid: Rs {(fee.paidAmount || 0).toLocaleString()}
+                                                        </span>
+                                                    </div>
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-2">

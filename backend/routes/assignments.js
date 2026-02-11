@@ -46,9 +46,9 @@ router.get('/course/:courseId', protect, async (req, res) => {
                 .sort('-createdAt');
         } else {
             // Students/Interns - check enrollment first
-            const enrollment = await Enrollment.findOne({ 
-                user: userId, 
-                course: courseId 
+            const enrollment = await Enrollment.findOne({
+                user: userId,
+                course: courseId
             });
 
             if (!enrollment) {
@@ -86,6 +86,48 @@ router.get('/course/:courseId', protect, async (req, res) => {
     }
 });
 
+// @route   GET /api/assignments/user/:userId
+// @desc    Get assignments for a specific user
+// @access  Private (Admin, Teacher)
+router.get('/user/:userId', protect, authorize('admin', 'teacher'), async (req, res) => {
+    try {
+        const userId = req.params.userId;
+        const enrollments = await Enrollment.find({ user: userId });
+
+        if (enrollments.length === 0) {
+            return res.json({ success: true, assignments: [] });
+        }
+
+        const courseIds = enrollments.map(e => e.course);
+
+        const assignments = await Assignment.find({
+            course: { $in: courseIds },
+            $or: [
+                { assignTo: 'all' },
+                { assignedUsers: userId },
+                { "submissions.user": userId }
+            ]
+        })
+            .populate('course', 'title')
+            .sort('-createdAt');
+
+        // Filter submissions to only show the target user's submission
+        const sanitizedAssignments = assignments.map(assignment => {
+            const assignmentObj = assignment.toObject();
+            if (assignmentObj.submissions) {
+                assignmentObj.submissions = assignmentObj.submissions.filter(
+                    s => s.user.toString() === userId
+                );
+            }
+            return assignmentObj;
+        });
+
+        res.json({ success: true, assignments: sanitizedAssignments });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
 // @route   POST /api/assignments
 // @desc    Create assignment
 // @access  Private (Teacher, Admin)
@@ -112,11 +154,21 @@ router.post('/', protect, authorize('teacher', 'admin'), async (req, res) => {
             assignedUsers = selectedUsers || altSelectedUsers || [];
         }
 
+        // Parse and set due date to end of day UTC (23:59:59.999)
+        let assignmentDueDate = dueDate;
+        if (dueDate) {
+            const dateObj = new Date(dueDate);
+            if (!isNaN(dateObj.getTime())) {
+                dateObj.setUTCHours(23, 59, 59, 999);
+                assignmentDueDate = dateObj;
+            }
+        }
+
         const assignment = await Assignment.create({
             course: courseId,
             title,
             description,
-            dueDate,
+            dueDate: assignmentDueDate,
             totalMarks: totalMarks || 100,
             assignTo,
             assignedUsers,
@@ -126,16 +178,16 @@ router.post('/', protect, authorize('teacher', 'admin'), async (req, res) => {
         res.status(201).json({ success: true, assignment });
     } catch (error) {
         console.error('Assignment creation error:', error);
-        
+
         // Handle timeout errors specifically
         if (error.name === 'MongooseError' || error.message?.includes('timeout')) {
-            return res.status(503).json({ 
-                success: false, 
+            return res.status(503).json({
+                success: false,
                 message: 'Server is busy. Please try again in a moment.',
                 retryable: true
             });
         }
-        
+
         res.status(500).json({ success: false, message: error.message });
     }
 });
@@ -155,8 +207,8 @@ router.post('/:id/submit', protect, uploadSubmission.single('file'), async (req,
         // Check for overdue fee payment (more than 7 days past due)
         const isOverdue = await hasOverdueFee(req.user.id, assignment.course);
         if (isOverdue) {
-            return res.status(403).json({ 
-                success: false, 
+            return res.status(403).json({
+                success: false,
                 message: 'You have an overdue fee payment. Please pay your installment to submit assignments.',
                 code: 'FEE_OVERDUE'
             });
@@ -206,18 +258,18 @@ router.post('/:id/submit', protect, uploadSubmission.single('file'), async (req,
                     studentId: req.user.id,
                     studentName: req.user.name
                 };
-                
+
                 console.log('📝 Assignment submitted, notifying teachers:', course.teachers.map(t => t._id.toString()));
-                
+
                 // Notify each teacher of the course
                 for (const teacher of course.teachers) {
                     const teacherRoom = teacher._id.toString();
                     console.log(`📤 Emitting new_submission to teacher room: ${teacherRoom}`);
-                    
+
                     // Check if room has any sockets
                     const room = io.sockets.adapter.rooms.get(teacherRoom);
                     console.log(`   Room ${teacherRoom} has ${room ? room.size : 0} sockets`);
-                    
+
                     io.to(teacherRoom).emit('new_submission', submissionData);
                 }
             } else {
@@ -273,12 +325,12 @@ router.get('/my', protect, async (req, res) => {
         // Get user's enrolled courses and registration date
         const enrollments = await Enrollment.find({ user: req.user.id });
         console.log(`📋 User has ${enrollments.length} enrollments`);
-        
+
         if (enrollments.length === 0) {
             console.log(`⚠️ User has no enrollments, returning empty assignments`);
             return res.json({ success: true, assignments: [] });
         }
-        
+
         const courseIds = enrollments.map(e => e.course);
         console.log(`📚 Enrolled course IDs: ${courseIds.join(', ')}`);
 
@@ -310,10 +362,10 @@ router.get('/my', protect, async (req, res) => {
             .sort('-createdAt');
 
         console.log(`✅ Found ${assignments.length} assignments matching criteria`);
-        
+
         // Debug: Log each assignment's details
         assignments.forEach((a, i) => {
-            console.log(`  ${i+1}. "${a.title}" - assignTo: ${a.assignTo}, createdAt: ${a.createdAt}, userInAssignedUsers: ${a.assignedUsers?.some(u => u.toString() === req.user.id)}`);
+            console.log(`  ${i + 1}. "${a.title}" - assignTo: ${a.assignTo}, createdAt: ${a.createdAt}, userInAssignedUsers: ${a.assignedUsers?.some(u => u.toString() === req.user.id)}`);
         });
 
         // SECURITY: Only return the current user's submission
@@ -340,9 +392,21 @@ router.get('/my', protect, async (req, res) => {
 // @access  Private (Teacher, Admin)
 router.put('/:id', protect, authorize('teacher', 'admin'), async (req, res) => {
     try {
+        // properties to update
+        const updateData = { ...req.body };
+
+        // If dueDate is provided, set it to end of day UTC
+        if (updateData.dueDate) {
+            const dateObj = new Date(updateData.dueDate);
+            if (!isNaN(dateObj.getTime())) {
+                dateObj.setUTCHours(23, 59, 59, 999);
+                updateData.dueDate = dateObj;
+            }
+        }
+
         const assignment = await Assignment.findByIdAndUpdate(
             req.params.id,
-            req.body,
+            updateData,
             { new: true, runValidators: true }
         );
 

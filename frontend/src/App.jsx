@@ -2,7 +2,6 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { Provider } from 'react-redux';
 import { useSelector } from 'react-redux';
 import store from './store/store';
-import useAutoLogout from './hooks/useAutoLogout';
 
 // Auth Pages
 import Login from './pages/auth/Login';
@@ -77,9 +76,6 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
 // App Routes Component
 const AppRoutes = () => {
   const { isAuthenticated, role } = useSelector((state) => state.auth);
-
-  // Enable auto-logout after 2 hours
-  useAutoLogout();
 
   const getDefaultPage = () => {
     switch (role) {

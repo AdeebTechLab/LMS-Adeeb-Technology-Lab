@@ -55,13 +55,28 @@ const BrowseTasks = () => {
 
     // Check if task is assigned to current user
     const isAssignedToMe = (task) => {
-        return task.assignedTo?._id === user?.id || task.assignedTo === user?.id;
+        if (!task.assignedTo) return false;
+        if (Array.isArray(task.assignedTo)) {
+            return task.assignedTo.some(u => {
+                const uId = u._id || u; // Handle populated object or ID string
+                return String(uId) === String(user?.id) || String(uId) === String(user?._id);
+            });
+        }
+        const tId = task.assignedTo._id || task.assignedTo;
+        return String(tId) === String(user?.id) || String(tId) === String(user?._id);
+    };
+
+    // Check if I have submitted
+    const hasSubmitted = (task) => {
+        if (!task.submissions || !Array.isArray(task.submissions)) return false;
+        return task.submissions.some(s => s.user === user?.id || s.user?._id === user?.id);
     };
 
     // Check if task deadline has passed
     const isExpired = (task) => {
         if (!task.deadline) return false;
-        return new Date(task.deadline) < new Date() && !task.assignedTo;
+        // Expired if not assigned to ANYONE and status is open
+        return new Date(task.deadline) < new Date() && (!task.assignedTo || task.assignedTo.length === 0) && task.status === 'open';
     };
 
     // Get available tasks (open, not applied, not expired)
@@ -237,8 +252,8 @@ const BrowseTasks = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredTasks.map((task, index) => {
                     const assigned = isAssignedToMe(task);
-                    const hasSubmitted = task.submission?.notes;
-                    const isPaid = task.paymentSent;
+                    const submitted = hasSubmitted(task);
+                    const isPaid = task.paymentSent && task.status === 'completed';
 
                     return (
                         <motion.div
@@ -259,8 +274,8 @@ const BrowseTasks = () => {
                                         </span>
                                     )}
                                     {hasApplied(task) && !assigned && <Badge variant="warning">Applied</Badge>}
-                                    {assigned && !hasSubmitted && <Badge variant="info">Assigned</Badge>}
-                                    {hasSubmitted && !isPaid && <Badge variant="warning">Pending Payment</Badge>}
+                                    {assigned && !submitted && <Badge variant="info">Assigned</Badge>}
+                                    {submitted && !isPaid && <Badge variant="warning">Pending Payment</Badge>}
                                     {isPaid && <Badge variant="success"><CheckCircle className="w-3 h-3 mr-1" />Paid</Badge>}
                                 </div>
                             </div>
@@ -300,7 +315,7 @@ const BrowseTasks = () => {
                                 {hasApplied(task) && !assigned && (
                                     <div className="text-center text-sm text-gray-500 py-2">Application under review</div>
                                 )}
-                                {assigned && !hasSubmitted && (
+                                {assigned && !submitted && (
                                     <div className="flex gap-2">
                                         <button
                                             onClick={() => { setSelectedTask(task); setSubmitModalOpen(true); }}
@@ -320,7 +335,7 @@ const BrowseTasks = () => {
                                         </button>
                                     </div>
                                 )}
-                                {hasSubmitted && !isPaid && (
+                                {submitted && !isPaid && (
                                     <div className="text-center text-sm text-amber-600 py-2">Awaiting verification & payment</div>
                                 )}
                                 {isPaid && (

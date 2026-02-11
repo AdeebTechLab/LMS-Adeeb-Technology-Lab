@@ -105,11 +105,13 @@ const PaidTasksManagement = () => {
     // Check if task deadline has passed without assignment
     const isExpired = (task) => {
         if (!task.deadline) return false;
-        return new Date(task.deadline) < new Date() && !task.assignedTo && task.status === 'open';
+        // Expired if not assigned to ANYONE and status is open
+        return new Date(task.deadline) < new Date() && (!task.assignedTo || task.assignedTo.length === 0) && task.status === 'open';
     };
 
     // Filter tasks by status category
     const openTasks = tasks.filter(t => t.status === 'open' && !isExpired(t));
+    // Assigned or submitted means "in progress" effectively
     const assignedTasks = tasks.filter(t => t.status === 'assigned' || t.status === 'submitted');
     const completedTasks = tasks.filter(t => t.status === 'completed');
     const expiredTasks = tasks.filter(t => isExpired(t));
@@ -188,12 +190,36 @@ const PaidTasksManagement = () => {
         setIsModalOpen(true);
     };
 
+    const handleUnassignTask = async (taskId, userId) => {
+        if (!window.confirm("Are you sure you want to remove this user from the task?")) return;
+        try {
+            await taskAPI.unassign(taskId, userId);
+            // Update local state without full reload if possible, or just fetchTasks
+            fetchTasks();
+            // Update selectedTask if in view mode
+            if (selectedTask && selectedTask._id === taskId) {
+                const updatedTaskRes = await taskAPI.getAll();
+                const updatedTask = updatedTaskRes.data.data.find(t => t._id === taskId);
+                setSelectedTask(updatedTask);
+            }
+            alert('User unassigned successfully!');
+        } catch (err) {
+            console.error('Error unassigning task:', err);
+            alert(err.response?.data?.message || 'Failed to unassign task');
+        }
+    };
+
     const handleAssignTask = async (taskId, applicantId) => {
         try {
             await taskAPI.assign(taskId, applicantId);
-            setViewMode(null);
-            setSelectedTask(null);
-            fetchTasks(); // Refresh list
+            // Don't close modal or clear view mode immediately, so they can assign more if they want
+            // Just refresh data
+            fetchTasks();
+            // We need to update selectedTask too if we are viewing applicants
+            const updatedTaskRes = await taskAPI.getAll();
+            const updatedTask = updatedTaskRes.data.data.find(t => t._id === taskId);
+            setSelectedTask(updatedTask);
+            alert('User assigned successfully!');
         } catch (err) {
             console.error('Error assigning task:', err);
             alert(err.response?.data?.message || 'Failed to assign task');
@@ -221,6 +247,8 @@ const PaidTasksManagement = () => {
     };
 
     const handleVerifyAndPay = async (taskId) => {
+        if (!window.confirm("Are you sure you want to mark this task as COMPLETED for ALL users? This indicates payment has been sent to everyone.")) return;
+
         try {
             await taskAPI.complete(taskId);
             setViewMode(null);
@@ -246,6 +274,14 @@ const PaidTasksManagement = () => {
         } finally {
             setIsDeleting(false);
         }
+    };
+
+    const isAssignedTo = (task, userId) => {
+        if (!task.assignedTo || !Array.isArray(task.assignedTo)) return false;
+        return task.assignedTo.some(u => {
+            const uId = u._id || u;
+            return String(uId) === String(userId);
+        });
     };
 
     if (isFetching) {
@@ -415,10 +451,23 @@ const PaidTasksManagement = () => {
                             </div>
 
                             {/* Assigned Person Info */}
-                            {task.assignedTo && (
+                            {task.assignedTo && task.assignedTo.length > 0 && (
                                 <div className="mb-4 p-3 bg-amber-50 rounded-xl border border-amber-100">
-                                    <p className="text-xs font-bold text-amber-700 uppercase tracking-wider mb-1">Assigned To</p>
-                                    <p className="text-sm font-semibold text-gray-900">{task.assignedTo?.name}</p>
+                                    <p className="text-xs font-bold text-amber-700 uppercase tracking-wider mb-1">Assigned To ({task.assignedTo.length})</p>
+                                    <div className="flex flex-wrap gap-1">
+                                        {task.assignedTo.map((u, i) => (
+                                            <Badge key={i} variant="warning" className="flex items-center gap-1">
+                                                {u.name}
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); handleUnassignTask(task._id, u._id); }}
+                                                    className="ml-1 hover:text-red-600 focus:outline-none"
+                                                    title="Remove User"
+                                                >
+                                                    &times;
+                                                </button>
+                                            </Badge>
+                                        ))}
+                                    </div>
                                 </div>
                             )}
 
@@ -435,7 +484,7 @@ const PaidTasksManagement = () => {
                                 )}
                                 {task.status === 'assigned' && (
                                     <div className="flex-1 py-2 text-sm text-center text-amber-600 bg-amber-50 rounded-xl">
-                                        Work in Progress
+                                        Assigned to {task.assignedTo?.length || 0} Users
                                     </div>
                                 )}
                                 {task.status === 'submitted' && (
@@ -445,7 +494,15 @@ const PaidTasksManagement = () => {
                                             className="flex-1 py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-xl flex items-center justify-center gap-1"
                                         >
                                             <Eye className="w-4 h-4" />
-                                            Review Submission
+                                            Review {task.submissions?.length || 0} Submissions
+                                        </button>
+                                        <button
+                                            onClick={() => handleVerifyAndPay(task._id)}
+                                            className="px-4 py-2 text-sm font-medium text-emerald-600 bg-emerald-50 hover:bg-emerald-100 rounded-xl flex items-center justify-center gap-1"
+                                            title="Mark as Completed"
+                                        >
+                                            <CheckCircle className="w-4 h-4" />
+                                            Finish
                                         </button>
                                     </div>
                                 )}
@@ -575,48 +632,63 @@ const PaidTasksManagement = () => {
                             <p className="text-center text-gray-500 py-8">No applications yet</p>
                         ) : (
                             <div className="space-y-3">
-                                {selectedTask.applicants.map((applicant) => (
-                                    <div key={applicant.user?._id || applicant._id} className="p-4 bg-gray-50 rounded-xl">
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-semibold text-lg">
-                                                    {applicant.user?.name?.charAt(0) || '?'}
+                                {selectedTask.applicants.map((applicant) => {
+                                    const isAssigned = isAssignedTo(selectedTask, applicant.user?._id);
+                                    return (
+                                        <div key={applicant.user?._id || applicant._id} className={`p-4 rounded-xl border ${isAssigned ? 'bg-amber-50 border-amber-200' : 'bg-gray-50 border-gray-100'}`}>
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-semibold text-lg">
+                                                        {applicant.user?.name?.charAt(0) || '?'}
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-medium text-gray-900">
+                                                            {applicant.user?.name}
+                                                            {isAssigned && <span className="ml-2 text-xs bg-amber-200 text-amber-800 px-2 py-0.5 rounded-full font-bold">ASSIGNED</span>}
+                                                        </p>
+                                                        <p className="text-sm text-gray-500">{applicant.user?.email}</p>
+                                                        {applicant.user?.rating && (
+                                                            <div className="flex items-center gap-1 mt-1">
+                                                                <span className="text-amber-500">★</span>
+                                                                <span className="text-xs text-gray-500">{applicant.user.rating} • {applicant.user.completedTasks || 0} tasks</span>
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 </div>
-                                                <div>
-                                                    <p className="font-medium text-gray-900">{applicant.user?.name}</p>
-                                                    <p className="text-sm text-gray-500">{applicant.user?.email}</p>
-                                                    {applicant.user?.rating && (
-                                                        <div className="flex items-center gap-1 mt-1">
-                                                            <span className="text-amber-500">★</span>
-                                                            <span className="text-xs text-gray-500">{applicant.user.rating} • {applicant.user.completedTasks || 0} tasks</span>
-                                                        </div>
+                                                <div className="flex gap-2">
+                                                    <button
+                                                        onClick={() => setViewingProfile(applicant.user)}
+                                                        className="px-3 py-2 text-purple-600 bg-white border border-purple-200 hover:bg-purple-50 text-sm rounded-xl font-medium flex items-center gap-1"
+                                                    >
+                                                        <Eye className="w-4 h-4" />
+                                                        Profile
+                                                    </button>
+                                                    {isAssigned ? (
+                                                        <button
+                                                            onClick={() => handleUnassignTask(selectedTask._id, applicant.user?._id)}
+                                                            className="px-4 py-2 bg-red-100 hover:bg-red-200 text-red-700 text-sm rounded-xl font-medium"
+                                                        >
+                                                            Unassign
+                                                        </button>
+                                                    ) : (
+                                                        <button
+                                                            onClick={() => handleAssignTask(selectedTask._id, applicant.user?._id)}
+                                                            className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded-xl font-medium"
+                                                        >
+                                                            Assign
+                                                        </button>
                                                     )}
                                                 </div>
                                             </div>
-                                            <div className="flex gap-2">
-                                                <button
-                                                    onClick={() => setViewingProfile(applicant.user)}
-                                                    className="px-3 py-2 text-purple-600 bg-white border border-purple-200 hover:bg-purple-50 text-sm rounded-xl font-medium flex items-center gap-1"
-                                                >
-                                                    <Eye className="w-4 h-4" />
-                                                    Profile
-                                                </button>
-                                                <button
-                                                    onClick={() => handleAssignTask(selectedTask._id, applicant.user?._id)}
-                                                    className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded-xl font-medium"
-                                                >
-                                                    Assign
-                                                </button>
-                                            </div>
+                                            {applicant.message && (
+                                                <div className="mt-3 p-3 bg-white rounded-lg border border-gray-100">
+                                                    <p className="text-xs text-gray-400 mb-1">Application Message:</p>
+                                                    <p className="text-sm text-gray-600">{applicant.message}</p>
+                                                </div>
+                                            )}
                                         </div>
-                                        {applicant.message && (
-                                            <div className="mt-3 p-3 bg-white rounded-lg border border-gray-100">
-                                                <p className="text-xs text-gray-400 mb-1">Application Message:</p>
-                                                <p className="text-sm text-gray-600">{applicant.message}</p>
-                                            </div>
-                                        )}
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         )}
                     </div>
@@ -723,45 +795,53 @@ const PaidTasksManagement = () => {
             </Modal>
 
             {/* View Submission Modal */}
-            <Modal isOpen={viewMode === 'submission' && selectedTask} onClose={() => { setViewMode(null); setSelectedTask(null); }} title="Review Submission" size="lg">
-                {selectedTask?.submission && (
-                    <div className="space-y-4">
+            <Modal isOpen={viewMode === 'submission' && selectedTask} onClose={() => { setViewMode(null); setSelectedTask(null); }} title={`Review Submissions (${selectedTask?.submissions?.length || 0})`} size="lg">
+                {selectedTask?.submissions && selectedTask.submissions.length > 0 ? (
+                    <div className="space-y-6">
                         <div className="p-4 bg-gray-50 rounded-xl">
-                            <div className="flex items-center justify-between mb-2">
-                                <h3 className="font-semibold text-gray-900">{selectedTask.title}</h3>
-                                <span className="text-sm text-gray-500">By: {selectedTask.assignedTo?.name}</span>
-                            </div>
+                            <h3 className="font-semibold text-gray-900">{selectedTask.title}</h3>
                             <p className="text-sm text-gray-500">Budget: Rs {isNaN(Number(selectedTask.budget)) ? selectedTask.budget : Number(selectedTask.budget).toLocaleString()}</p>
                         </div>
 
-                        <div className="p-4 bg-blue-50 rounded-xl">
-                            <h4 className="font-medium text-gray-900 mb-2">Submission Details</h4>
-                            <p className="text-sm text-gray-600 mb-2">{selectedTask.submission.notes}</p>
-
-                            {selectedTask.submission.projectLink && (
-                                <div className="mt-3 mb-3">
-                                    <p className="text-xs text-gray-400 mb-1">Project Link:</p>
-                                    <a
-                                        href={selectedTask.submission.projectLink}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="text-blue-600 hover:underline font-medium flex items-center gap-1 text-sm"
-                                    >
-                                        <Link className="w-4 h-4" />
-                                        {selectedTask.submission.projectLink}
-                                    </a>
+                        {selectedTask.submissions.map((sub, idx) => (
+                            <div key={idx} className="p-4 border rounded-xl bg-white shadow-sm">
+                                <div className="flex items-center justify-between mb-3 pb-3 border-b">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
+                                            {sub.user?.name?.charAt(0) || 'U'}
+                                        </div>
+                                        <div>
+                                            <p className="font-semibold text-gray-900">{sub.user?.name || 'Unknown User'}</p>
+                                            <p className="text-xs text-gray-500">{sub.user?.email}</p>
+                                        </div>
+                                    </div>
+                                    <span className="text-xs text-gray-400">{new Date(sub.submittedAt).toLocaleString()}</span>
                                 </div>
-                            )}
 
-                            <p className="text-xs text-gray-500">Submitted: {selectedTask.submission.submittedAt && new Date(selectedTask.submission.submittedAt).toLocaleDateString()}</p>
-                        </div>
+                                <div className="space-y-3">
+                                    <div className="bg-blue-50 p-3 rounded-lg">
+                                        <p className="text-xs font-bold text-blue-700 uppercase tracking-wider mb-1">Notes</p>
+                                        <p className="text-sm text-gray-700 whitespace-pre-wrap">{sub.notes}</p>
+                                    </div>
 
-                        <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-100">
-                            <h4 className="font-medium text-gray-900 mb-2">Payment Details</h4>
-                            <p className="text-sm text-emerald-700 font-mono">{selectedTask.submission.accountDetails}</p>
-                        </div>
+                                    {sub.projectLink && (
+                                        <div className="bg-gray-50 p-3 rounded-lg">
+                                            <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Project Link</p>
+                                            <a href={sub.projectLink} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline flex items-center gap-1 text-sm font-medium">
+                                                <Link className="w-3 h-3" /> {sub.projectLink}
+                                            </a>
+                                        </div>
+                                    )}
 
-                        <div className="flex gap-3 pt-4 border-t">
+                                    <div className="bg-emerald-50 p-3 rounded-lg">
+                                        <p className="text-xs font-bold text-emerald-700 uppercase tracking-wider mb-1">Payment Details</p>
+                                        <p className="text-sm font-mono text-emerald-800">{sub.accountDetails}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+
+                        <div className="flex gap-3 pt-4 border-t sticky bottom-0 bg-white">
                             <button onClick={() => { setViewMode(null); setSelectedTask(null); }} className="flex-1 py-3 text-gray-600 hover:bg-gray-100 rounded-xl font-medium">
                                 Close
                             </button>
@@ -770,9 +850,13 @@ const PaidTasksManagement = () => {
                                 className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-medium flex items-center justify-center gap-2"
                             >
                                 <CheckCircle className="w-5 h-5" />
-                                Verify & Send Payment
+                                Verify & Finish Task
                             </button>
                         </div>
+                    </div>
+                ) : (
+                    <div className="py-12 text-center text-gray-500">
+                        No submissions found for this task yet.
                     </div>
                 )}
             </Modal>

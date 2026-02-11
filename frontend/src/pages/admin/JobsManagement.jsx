@@ -218,16 +218,26 @@ const JobsManagement = () => {
                     />
                 </div>
                 <div className="flex gap-2">
-                    {['all', 'verified', 'pending'].map((status) => (
+                    {[
+                        { id: 'all', label: 'All', count: jobUsers.length },
+                        { id: 'verified', label: 'Verified', count: verifiedCount },
+                        { id: 'pending', label: 'Pending', count: pendingCount }
+                    ].map((tab) => (
                         <button
-                            key={status}
-                            onClick={() => setFilterStatus(status)}
-                            className={`px-4 py-2 rounded-xl font-medium capitalize transition-all ${filterStatus === status
-                                ? 'bg-purple-600 text-white'
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                            key={tab.id}
+                            onClick={() => setFilterStatus(tab.id)}
+                            className={`px-4 py-2 rounded-xl font-medium capitalize transition-all flex items-center gap-2 ${filterStatus === tab.id
+                                    ? 'bg-purple-600 text-white'
+                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                                 }`}
                         >
-                            {status}
+                            {tab.label}
+                            <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${filterStatus === tab.id
+                                    ? 'bg-white/20 text-white'
+                                    : 'bg-white text-gray-500'
+                                }`}>
+                                {tab.count}
+                            </span>
                         </button>
                     ))}
                 </div>

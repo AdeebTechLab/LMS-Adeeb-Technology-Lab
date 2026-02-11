@@ -8,7 +8,8 @@ import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
-import { userAPI, settingsAPI } from '../../services/api';
+import { userAPI, settingsAPI, enrollmentAPI, assignmentAPI, feeAPI } from '../../services/api';
+import { generateComprehensiveReport } from '../../utils/reportGenerator';
 
 const InternsManagement = () => {
     const [searchQuery, setSearchQuery] = useState('');
@@ -130,6 +131,11 @@ const InternsManagement = () => {
         setEditModal({ open: true, user: intern });
         setSelectedFile(null);
         setPhotoPreview(intern.photo || null);
+        let normalizedAttendType = intern.attendType || '';
+        if (normalizedAttendType === 'Physical') normalizedAttendType = 'OnSite';
+        if (normalizedAttendType === 'Online') normalizedAttendType = 'Remote';
+        if (normalizedAttendType === 'On-Site') normalizedAttendType = 'OnSite';
+
         setEditForm({
             name: intern.name || '',
             email: intern.email || '',
@@ -152,7 +158,7 @@ const InternsManagement = () => {
             rollNumber: intern.rollNumber || '',
             cgpa: intern.cgpa || '',
             majorSubjects: intern.majorSubjects || '',
-            attendType: intern.attendType || '',
+            attendType: normalizedAttendType,
             heardAbout: intern.heardAbout || ''
         });
     };
@@ -285,6 +291,20 @@ const InternsManagement = () => {
         });
 
         doc.save(`Intern_${i.name?.replace(/\s+/g, '_')}.pdf`);
+    };
+
+    const handleDownloadCompleteReport = async (intern) => {
+        try {
+            const [enrollmentsRes, assignmentsRes, feesRes] = await Promise.all([
+                enrollmentAPI.getUserEnrollments(intern._id),
+                assignmentAPI.getUserAssignments(intern._id),
+                feeAPI.getUserFees(intern._id)
+            ]);
+            await generateComprehensiveReport(intern, enrollmentsRes.data.data, assignmentsRes.data.assignments, feesRes.data.data);
+        } catch (error) {
+            console.error('Error generating report:', error);
+            alert('Failed to generate report. Please try again.');
+        }
     };
 
     const handleUpdate = async (e) => {
@@ -456,22 +476,48 @@ const InternsManagement = () => {
                 </div>
                 <div className="flex gap-2">
                     {[
-                        { id: 'all', label: 'All' },
-                        { id: 'registered', label: 'Registered (New)' },
-                        { id: 'enrolled', label: 'Enrolled (Active)' },
-                        { id: 'completed', label: 'Completed' },
-                        { id: 'verified', label: 'Verified' },
-                        { id: 'pending', label: 'Pending' }
+                        { id: 'all', label: 'All', count: interns.length },
+                        {
+                            id: 'registered',
+                            label: 'Registered (New)',
+                            count: interns.filter(i => (i.totalEnrollments || 0) === 0).length
+                        },
+                        {
+                            id: 'enrolled',
+                            label: 'Enrolled (Active)',
+                            count: interns.filter(i => {
+                                const total = i.totalEnrollments || 0;
+                                const completed = i.completedEnrollments || 0;
+                                return total > 0 && completed < total;
+                            }).length
+                        },
+                        {
+                            id: 'completed',
+                            label: 'Completed',
+                            count: interns.filter(i => {
+                                const total = i.totalEnrollments || 0;
+                                const completed = i.completedEnrollments || 0;
+                                return total > 0 && total === completed;
+                            }).length
+                        },
+                        { id: 'verified', label: 'Verified', count: verifiedCount },
+                        { id: 'pending', label: 'Pending', count: pendingCount }
                     ].map((tab) => (
                         <button
                             key={tab.id}
                             onClick={() => setFilterStatus(tab.id)}
-                            className={`px-4 py-2 rounded-xl font-medium text-sm transition-all whitespace-nowrap ${filterStatus === tab.id
+                            className={`px-4 py-2 rounded-xl font-medium text-sm transition-all whitespace-nowrap flex items-center gap-2 ${filterStatus === tab.id
                                 ? 'bg-blue-600 text-white shadow-lg shadow-blue-200'
                                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                                 }`}
                         >
                             {tab.label}
+                            <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${filterStatus === tab.id
+                                ? 'bg-white/20 text-white'
+                                : 'bg-white text-gray-500'
+                                }`}>
+                                {tab.count}
+                            </span>
                         </button>
                     ))}
                 </div>
@@ -560,9 +606,16 @@ const InternsManagement = () => {
                                         <button
                                             onClick={() => downloadInternPDF(intern)}
                                             className="p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl"
-                                            title="Download PDF"
+                                            title="Download Profile"
                                         >
                                             <Download className="w-5 h-5" />
+                                        </button>
+                                        <button
+                                            onClick={() => handleDownloadCompleteReport(intern)}
+                                            className="p-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 rounded-xl"
+                                            title="Download Complete Report (Academic)"
+                                        >
+                                            <FileText className="w-5 h-5" />
                                         </button>
                                         {!intern.isVerified ? (
                                             <button
@@ -960,8 +1013,8 @@ const InternsManagement = () => {
                                 className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none font-medium"
                             >
                                 <option value="">Select Type</option>
-                                <option value="Physical">Physical</option>
-                                <option value="Online">Online</option>
+                                <option value="OnSite">Onsite</option>
+                                <option value="Remote">Remote</option>
                             </select>
                         </div>
                         <div className="space-y-2">

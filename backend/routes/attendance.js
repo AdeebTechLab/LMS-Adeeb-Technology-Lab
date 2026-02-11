@@ -41,9 +41,10 @@ router.get('/my/:courseId', protect, async (req, res) => {
 router.get('/:courseId/:date', protect, authorize('teacher', 'admin'), async (req, res) => {
     try {
         const { courseId, date } = req.params;
-        // Parse the date string (YYYY-MM-DD) without timezone interpretation
+
+        // Parse date string securely to UTC midnight
         const [year, month, day] = date.split('-').map(Number);
-        const attendanceDate = new Date(year, month - 1, day, 0, 0, 0, 0);
+        const attendanceDate = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
 
         let attendance = await Attendance.findOne({
             course: courseId,
@@ -76,9 +77,10 @@ router.get('/:courseId/:date', protect, authorize('teacher', 'admin'), async (re
 router.post('/', protect, authorize('teacher', 'admin'), async (req, res) => {
     try {
         const { courseId, date, records } = req.body;
-        // Parse the date string (YYYY-MM-DD) without timezone interpretation
+
+        // Parse date string securely to UTC midnight
         const [year, month, day] = date.split('-').map(Number);
-        const attendanceDate = new Date(year, month - 1, day, 0, 0, 0, 0);
+        const attendanceDate = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
 
         // Find or create attendance record
         let attendance = await Attendance.findOne({
@@ -96,15 +98,20 @@ router.post('/', protect, authorize('teacher', 'admin'), async (req, res) => {
 
         // Update records
         for (const record of records) {
+            const userIdStr = record.userId.toString();
+
+            // Find existing record index
             const existingIndex = attendance.records.findIndex(
-                r => r.user.toString() === record.userId
+                r => (r.user?._id || r.user)?.toString() === userIdStr
             );
 
             if (existingIndex >= 0) {
+                // Update existing record
                 attendance.records[existingIndex].status = record.status;
                 attendance.records[existingIndex].markedBy = req.user.id;
                 attendance.records[existingIndex].markedAt = new Date();
             } else {
+                // Add new record
                 attendance.records.push({
                     user: record.userId,
                     status: record.status,

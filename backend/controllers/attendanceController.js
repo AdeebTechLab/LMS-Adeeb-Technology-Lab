@@ -6,9 +6,9 @@ const SystemSetting = require('../models/SystemSetting');
 // Called by cron job at 12:00 AM (midnight) to auto-save and lock yesterday's attendance
 const lockTodayAttendance = async () => {
     // We're locking YESTERDAY's attendance (since it's now 12 AM of the new day)
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    yesterday.setHours(0, 0, 0, 0);
+    // We're locking YESTERDAY's attendance (using local date components to create UTC midnight)
+    const now = new Date();
+    const yesterday = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate() - 1, 0, 0, 0, 0));
 
     const yesterdayDayOfWeek = yesterday.getDay(); // 0=Sunday, 1=Monday, ..., 6=Saturday
 

@@ -52,18 +52,22 @@ const paidTaskSchema = new mongoose.Schema({
         default: 'open'
     },
     applicants: [applicantSchema],
-    assignedTo: {
+    assignedTo: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
-    },
+    }],
     assignedAt: Date,
-    submission: {
+    submissions: [{
+        user: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User'
+        },
         notes: String,
         projectLink: String,
         fileUrl: String,
         accountDetails: String,
         submittedAt: Date
-    },
+    }],
     paymentSent: {
         type: Boolean,
         default: false

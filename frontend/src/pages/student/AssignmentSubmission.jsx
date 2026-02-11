@@ -352,7 +352,7 @@ const AssignmentSubmission = () => {
             const enrollRes = await enrollmentAPI.getMy();
             const myEnrollments = enrollRes.data.data || [];
             setEnrollments(myEnrollments);
-            
+
             const enrolledCourses = myEnrollments.map(e => ({
                 ...e.course,
                 isActive: e.isActive,
@@ -360,7 +360,7 @@ const AssignmentSubmission = () => {
                 isCompleted: e.status === 'completed',
                 enrollment: e
             })).filter(c => !!c && !!c._id);
-            
+
             setMyCourses(enrolledCourses);
 
             // Validate selectedCourseId - if it doesn't match any enrolled course, reset it
@@ -756,7 +756,7 @@ const AssignmentSubmission = () => {
                                                                         <h3 className="font-bold text-gray-900 text-lg uppercase tracking-tight">{assignment.title}</h3>
                                                                         <Badge variant={statusConfig.variant}>{statusConfig.label.toUpperCase()}</Badge>
                                                                     </div>
-                                                                    <p className="text-sm text-gray-500 font-medium leading-relaxed mb-4">{assignment.description}</p>
+                                                                    <p className="text-sm text-gray-500 font-medium leading-relaxed mb-4 whitespace-pre-wrap">{assignment.description}</p>
                                                                     <div className="flex flex-wrap items-center gap-4">
                                                                         <div className="flex items-center gap-1.5 px-3 py-1 bg-gray-50 rounded-lg border border-gray-100 text-xs font-bold text-gray-500 uppercase">
                                                                             <Calendar className="w-4 h-4" />
@@ -772,9 +772,25 @@ const AssignmentSubmission = () => {
 
                                                                 <div className="flex flex-col gap-3 min-w-[200px]">
                                                                     {assignment.status === 'graded' && (
-                                                                        <div className="bg-emerald-50 p-4 rounded-2xl border border-emerald-100 text-center">
-                                                                            <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-1">Final Result</p>
-                                                                            <p className="text-3xl font-black text-emerald-700">{assignment.grade}<span className="text-lg text-emerald-400">/{assignment.totalMarks}</span></p>
+                                                                        <div className="space-y-3">
+                                                                            <div className="bg-emerald-50 p-4 rounded-2xl border border-emerald-100 text-center">
+                                                                                <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-1">Final Result</p>
+                                                                                <p className="text-3xl font-black text-emerald-700">{assignment.grade}<span className="text-lg text-emerald-400">/{assignment.totalMarks}</span></p>
+                                                                            </div>
+                                                                            {assignment.feedback && (
+                                                                                <div className="bg-gradient-to-r from-amber-50 to-orange-50 p-5 rounded-2xl border-2 border-amber-200 shadow-sm relative overflow-hidden">
+                                                                                    {/* Decorative background icon */}
+                                                                                    <MessageCircle className="absolute -right-4 -bottom-4 w-24 h-24 text-amber-100/50 transform rotate-12" />
+
+                                                                                    <p className="text-xs font-black text-amber-600 uppercase tracking-widest mb-3 flex items-center gap-2 relative z-10">
+                                                                                        <MessageCircle className="w-4 h-4" />
+                                                                                        Teacher's Feedback
+                                                                                    </p>
+                                                                                    <div className="bg-white/60 p-3 rounded-xl border border-amber-100/50 relative z-10">
+                                                                                        <p className="text-sm text-gray-800 italic leading-relaxed whitespace-pre-wrap">"{assignment.feedback}"</p>
+                                                                                    </div>
+                                                                                </div>
+                                                                            )}
                                                                         </div>
                                                                     )}
 
@@ -960,9 +976,9 @@ const AssignmentSubmission = () => {
                                     /* CHAT VIEW */
                                     <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm min-h-[500px]">
                                         {selectedCourseId && myCourses.find(c => c._id === selectedCourseId) ? (
-                                            <StudentChatTab 
-                                                course={myCourses.find(c => c._id === selectedCourseId)} 
-                                                isRestricted={isRestricted} 
+                                            <StudentChatTab
+                                                course={myCourses.find(c => c._id === selectedCourseId)}
+                                                isRestricted={isRestricted}
                                             />
                                         ) : (
                                             <div className="flex flex-col items-center justify-center h-full py-20 text-gray-400">
@@ -978,8 +994,8 @@ const AssignmentSubmission = () => {
                 </div>
 
             )}
-            </div>
-        );
+        </div>
+    );
 };
 
 export default AssignmentSubmission;

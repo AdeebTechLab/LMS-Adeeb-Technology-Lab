@@ -101,7 +101,8 @@ export const enrollmentAPI = {
     enroll: (courseId) => api.post('/enrollments', { courseId }),
     complete: (id, data) => api.put(`/enrollments/${id}/complete`, data),
     withdraw: (id) => api.delete(`/enrollments/${id}`),
-    getAll: () => api.get('/enrollments/all')
+    getAll: () => api.get('/enrollments/all'),
+    getUserEnrollments: (userId) => api.get(`/enrollments/user/${userId}`)
 };
 
 // Fee APIs
@@ -109,6 +110,7 @@ export const feeAPI = {
     getMy: () => api.get('/fees/my'),
     getPending: () => api.get('/fees/pending'),
     getAll: () => api.get('/fees/all'),
+    getUserFees: (userId) => api.get(`/fees/user/${userId}`),
     checkStatus: (courseId) => api.get(`/fees/check-status/${courseId}`),
     pay: (feeId, formData) => api.post(`/fees/${feeId}/pay`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
@@ -135,6 +137,7 @@ export const attendanceAPI = {
 // Assignment APIs
 export const assignmentAPI = {
     getByCourse: (courseId) => api.get(`/assignments/course/${courseId}`),
+    getUserAssignments: (userId) => api.get(`/assignments/user/${userId}`),
     getMy: () => api.get('/assignments/my'),
     create: (data) => api.post('/assignments', data),
     submit: (id, formData) => api.post(`/assignments/${id}/submit`, formData, {
@@ -168,6 +171,7 @@ export const taskAPI = {
     update: (id, data) => api.put(`/tasks/${id}`, data),
     apply: (id, message) => api.post(`/tasks/${id}/apply`, { message }),
     assign: (id, userId) => api.put(`/tasks/${id}/assign`, { userId }),
+    unassign: (id, userId) => api.put(`/tasks/${id}/unassign`, { userId }),
     submit: (id, formData) => api.post(`/tasks/${id}/submit`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
     }),

@@ -350,7 +350,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                                     {isFullyGraded && <Badge variant="success">ALL GRADED</Badge>}
                                                 </div>
                                             </div>
-                                            <p className="text-sm text-gray-500 font-medium">{assignment.description}</p>
+                                            <p className="text-sm text-gray-500 font-medium whitespace-pre-wrap">{assignment.description}</p>
                                         </div>
                                         <div className="text-right">
                                             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Submissions</p>

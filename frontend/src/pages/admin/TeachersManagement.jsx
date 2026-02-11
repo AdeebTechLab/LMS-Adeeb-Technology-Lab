@@ -313,8 +313,8 @@ const TeachersManagement = () => {
                         <button
                             onClick={toggleBioEditing}
                             className={`p-2.5 border rounded-xl transition-colors flex items-center gap-2 text-sm font-bold shadow-sm ${allowBioEditing
-                                    ? 'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100'
-                                    : 'bg-red-50 border-red-200 text-red-700 hover:bg-red-100'
+                                ? 'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100'
+                                : 'bg-red-50 border-red-200 text-red-700 hover:bg-red-100'
                                 }`}
                             title={allowBioEditing ? "Bio Editing is Enabled for Users" : "Bio Editing is Disabled for Users"}
                         >
@@ -392,16 +392,26 @@ const TeachersManagement = () => {
                     />
                 </div>
                 <div className="flex gap-2">
-                    {['all', 'verified', 'pending'].map((status) => (
+                    {[
+                        { id: 'all', label: 'All', count: teachers.length },
+                        { id: 'verified', label: 'Verified', count: verifiedCount },
+                        { id: 'pending', label: 'Pending', count: pendingCount }
+                    ].map((tab) => (
                         <button
-                            key={status}
-                            onClick={() => setFilterStatus(status)}
-                            className={`px-4 py-2 rounded-xl font-medium capitalize transition-all ${filterStatus === status
-                                ? 'bg-emerald-600 text-white'
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                            key={tab.id}
+                            onClick={() => setFilterStatus(tab.id)}
+                            className={`px-4 py-2 rounded-xl font-medium capitalize transition-all flex items-center gap-2 ${filterStatus === tab.id
+                                    ? 'bg-emerald-600 text-white'
+                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                                 }`}
                         >
-                            {status}
+                            {tab.label}
+                            <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${filterStatus === tab.id
+                                    ? 'bg-white/20 text-white'
+                                    : 'bg-white text-gray-500'
+                                }`}>
+                                {tab.count}
+                            </span>
                         </button>
                     ))}
                 </div>

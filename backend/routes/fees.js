@@ -357,6 +357,21 @@ router.get('/all', protect, authorize('admin'), async (req, res) => {
     }
 });
 
+// @route   GET /api/fees/user/:userId
+// @desc    Get all fees for a specific user (Admin)
+// @access  Private (Admin)
+router.get('/user/:userId', protect, authorize('admin'), async (req, res) => {
+    try {
+        const fees = await Fee.find({ user: req.params.userId })
+            .populate('course', 'title fee city location targetAudience')
+            .sort('-createdAt');
+
+        res.json({ success: true, data: fees });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
 // @route   DELETE /api/fees/:id/installments/:installmentId
 // @desc    Delete a specific installment (admin)
 // @access  Private (Admin)
@@ -403,7 +418,7 @@ router.delete('/:id/installments/:installmentId', protect, authorize('admin'), a
 router.get('/check-status/:courseId', protect, async (req, res) => {
     try {
         const fee = await Fee.findOne({ user: req.user.id, course: req.params.courseId });
-        
+
         if (!fee || !fee.installments || fee.installments.length === 0) {
             return res.json({ success: true, hasOverdue: false, canSubmit: true });
         }
@@ -429,9 +444,9 @@ router.get('/check-status/:courseId', protect, async (req, res) => {
             }
         }
 
-        res.json({ 
-            success: true, 
-            hasOverdue, 
+        res.json({
+            success: true,
+            hasOverdue,
             canSubmit: !hasOverdue,
             overdueInstallment
         });

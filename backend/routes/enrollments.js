@@ -56,6 +56,63 @@ router.get('/my', protect, async (req, res) => {
     }
 });
 
+// @route   GET /api/enrollments/user/:userId
+// @desc    Get enrollments for a specific user (Admin only)
+// @access  Private (Admin)
+router.get('/user/:userId', protect, authorize('admin'), async (req, res) => {
+    try {
+        const enrollments = await Enrollment.find({ user: req.params.userId })
+            .populate({
+                path: 'course',
+                populate: { path: 'teachers', select: 'name email specialization photo' }
+            })
+            .sort('-createdAt');
+
+        // Calculate attendance stats for each enrollment
+        const data = await Promise.all(enrollments.map(async (e) => {
+            const eObj = e.toObject();
+            const courseId = e.course?._id;
+
+            if (courseId) {
+                // Normalize enrollment date to start of day for accurate comparison
+                const enrollmentDate = new Date(e.createdAt);
+                enrollmentDate.setHours(0, 0, 0, 0);
+
+                const attendanceRecords = await Attendance.find({
+                    course: courseId,
+                    date: { $gte: enrollmentDate }
+                }).sort('date');
+
+                const detailedAttendance = attendanceRecords.map(record => {
+                    const userRecord = record.records.find(r => r.user.toString() === req.params.userId);
+                    return {
+                        date: record.date,
+                        status: userRecord ? userRecord.status : 'absent' // Default to absent if no record found for this user
+                    };
+                });
+
+                const totalClasses = attendanceRecords.length;
+                const attendedClasses = detailedAttendance.filter(r => r.status === 'present').length;
+
+                eObj.totalClasses = totalClasses;
+                eObj.attendedClasses = attendedClasses;
+                eObj.attendanceDetails = detailedAttendance;
+                eObj.progress = totalClasses > 0 ? Math.round((attendedClasses / totalClasses) * 100) : 0;
+            } else {
+                eObj.totalClasses = 0;
+                eObj.attendedClasses = 0;
+                eObj.progress = 0;
+            }
+
+            return eObj;
+        }));
+
+        res.json({ success: true, data });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
 // @route   POST /api/enrollments
 // @desc    Enroll in a course (creates pending enrollment with installments)
 // @access  Private

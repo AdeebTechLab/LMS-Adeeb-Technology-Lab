@@ -9,7 +9,8 @@ import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
-import { userAPI, settingsAPI } from '../../services/api';
+import { userAPI, settingsAPI, enrollmentAPI, assignmentAPI, feeAPI } from '../../services/api';
+import { generateComprehensiveReport } from '../../utils/reportGenerator';
 
 const StudentsManagement = () => {
     const [searchQuery, setSearchQuery] = useState('');
@@ -115,6 +116,12 @@ const StudentsManagement = () => {
         setEditModal({ open: true, user: student });
         setSelectedFile(null);
         setPhotoPreview(student.photo || null);
+
+        let normalizedAttendType = student.attendType || '';
+        if (normalizedAttendType === 'Physical') normalizedAttendType = 'OnSite';
+        if (normalizedAttendType === 'Online') normalizedAttendType = 'Remote';
+        if (normalizedAttendType === 'On-Site') normalizedAttendType = 'OnSite';
+
         setEditForm({
             name: student.name || '',
             email: student.email || '',
@@ -133,7 +140,7 @@ const StudentsManagement = () => {
             address: student.address || '',
             city: student.city || '',
             country: student.country || '',
-            attendType: student.attendType || '',
+            attendType: normalizedAttendType,
             heardAbout: student.heardAbout || ''
         });
     };
@@ -319,6 +326,20 @@ const StudentsManagement = () => {
         doc.save(`Student_${s.name?.replace(/\s+/g, '_')}_${s.rollNo || ''}.pdf`);
     };
 
+    const handleDownloadCompleteReport = async (student) => {
+        try {
+            const [enrollmentsRes, assignmentsRes, feesRes] = await Promise.all([
+                enrollmentAPI.getUserEnrollments(student._id),
+                assignmentAPI.getUserAssignments(student._id),
+                feeAPI.getUserFees(student._id)
+            ]);
+            await generateComprehensiveReport(student, enrollmentsRes.data.data, assignmentsRes.data.assignments, feesRes.data.data);
+        } catch (error) {
+            console.error('Error generating report:', error);
+            alert('Failed to generate report. Please try again.');
+        }
+    };
+
     const filteredStudents = students.filter(s => {
         const matchesSearch = s.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
             s.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -383,8 +404,8 @@ const StudentsManagement = () => {
                         <button
                             onClick={toggleBioEditing}
                             className={`p-2.5 border rounded-xl transition-colors flex items-center gap-2 text-sm font-bold shadow-sm ${allowBioEditing
-                                    ? 'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100'
-                                    : 'bg-red-50 border-red-200 text-red-700 hover:bg-red-100'
+                                ? 'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100'
+                                : 'bg-red-50 border-red-200 text-red-700 hover:bg-red-100'
                                 }`}
                             title={allowBioEditing ? "Bio Editing is Enabled for Users" : "Bio Editing is Disabled for Users"}
                         >
@@ -469,22 +490,48 @@ const StudentsManagement = () => {
                 </div>
                 <div className="flex gap-2">
                     {[
-                        { id: 'all', label: 'All' },
-                        { id: 'registered', label: 'Registered (New)' },
-                        { id: 'enrolled', label: 'Enrolled (Active)' },
-                        { id: 'completed', label: 'Completed' },
-                        { id: 'verified', label: 'Verified' },
-                        { id: 'pending', label: 'Pending' }
+                        { id: 'all', label: 'All', count: students.length },
+                        {
+                            id: 'registered',
+                            label: 'Registered (New)',
+                            count: students.filter(s => (s.totalEnrollments || 0) === 0).length
+                        },
+                        {
+                            id: 'enrolled',
+                            label: 'Enrolled (Active)',
+                            count: students.filter(s => {
+                                const total = s.totalEnrollments || 0;
+                                const completed = s.completedEnrollments || 0;
+                                return total > 0 && completed < total;
+                            }).length
+                        },
+                        {
+                            id: 'completed',
+                            label: 'Completed',
+                            count: students.filter(s => {
+                                const total = s.totalEnrollments || 0;
+                                const completed = s.completedEnrollments || 0;
+                                return total > 0 && total === completed;
+                            }).length
+                        },
+                        { id: 'verified', label: 'Verified', count: verifiedCount },
+                        { id: 'pending', label: 'Pending', count: pendingCount }
                     ].map((tab) => (
                         <button
                             key={tab.id}
                             onClick={() => setFilterStatus(tab.id)}
-                            className={`px-4 py-2 rounded-xl font-medium text-sm transition-all whitespace-nowrap ${filterStatus === tab.id
+                            className={`px-4 py-2 rounded-xl font-medium text-sm transition-all whitespace-nowrap flex items-center gap-2 ${filterStatus === tab.id
                                 ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-200'
                                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                                 }`}
                         >
                             {tab.label}
+                            <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${filterStatus === tab.id
+                                ? 'bg-white/20 text-white'
+                                : 'bg-white text-gray-500'
+                                }`}>
+                                {tab.count}
+                            </span>
                         </button>
                     ))}
                 </div>
@@ -572,9 +619,16 @@ const StudentsManagement = () => {
                                         <button
                                             onClick={() => downloadStudentPDF(student)}
                                             className="p-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 rounded-xl"
-                                            title="Download PDF"
+                                            title="Download Profile"
                                         >
                                             <Download className="w-5 h-5" />
+                                        </button>
+                                        <button
+                                            onClick={() => handleDownloadCompleteReport(student)}
+                                            className="p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl"
+                                            title="Download Complete Report (Academic)"
+                                        >
+                                            <FileText className="w-5 h-5" />
                                         </button>
                                         {!student.isVerified ? (
                                             <button
@@ -931,8 +985,8 @@ const StudentsManagement = () => {
                                 className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none"
                             >
                                 <option value="">Select Type</option>
-                                <option value="On-Site">On-Site</option>
-                                <option value="Online">Online</option>
+                                <option value="OnSite">Onsite</option>
+                                <option value="Remote">Remote</option>
                             </select>
                         </div>
                         <div className="space-y-2">
