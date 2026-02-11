@@ -43,7 +43,8 @@ const app = express();
 const server = http.createServer(app);
 
 // Socket.io Setup
-const origins = [
+// Socket.io Setup
+const allowedOrigins = [
     'http://localhost:5173',
     'http://localhost:3000',
     'https://lms-adeeb-technology-lab.vercel.app',
@@ -52,15 +53,28 @@ const origins = [
 
 if (process.env.CLIENT_URL) {
     const envOrigins = process.env.CLIENT_URL.split(',');
-    origins.push(...envOrigins);
+    allowedOrigins.push(...envOrigins);
 }
 
+const corsOptions = {
+    origin: function (origin, callback) {
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+
+        if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
+            callback(null, true);
+        } else {
+            console.log('Blocked by CORS:', origin);
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+};
+
 const io = require('socket.io')(server, {
-    cors: {
-        origin: origins,
-        methods: ["GET", "POST"],
-        credentials: true
-    }
+    cors: corsOptions
 });
 
 app.set('io', io);
@@ -105,10 +119,7 @@ io.on('connection', (socket) => {
 });
 
 // Middleware
-app.use(cors({
-    origin: origins,
-    credentials: true
-}));
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
