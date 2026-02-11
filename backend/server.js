@@ -43,7 +43,17 @@ const app = express();
 const server = http.createServer(app);
 
 // Socket.io Setup
-const origins = process.env.CLIENT_URL ? process.env.CLIENT_URL.split(',') : ['http://localhost:5173', 'http://localhost:3000'];
+const origins = [
+    'http://localhost:5173',
+    'http://localhost:3000',
+    'https://lms-adeeb-technology-lab.vercel.app',
+    'https://lms-adeeb-technology-lab.onrender.com'
+];
+
+if (process.env.CLIENT_URL) {
+    const envOrigins = process.env.CLIENT_URL.split(',');
+    origins.push(...envOrigins);
+}
 
 const io = require('socket.io')(server, {
     cors: {
@@ -188,8 +198,8 @@ cron.schedule('0 1 * * *', async () => {
 app.use('/api/*', (req, res) => {
     console.log(`⚠️ 404 Not Found: ${req.method} ${req.originalUrl}`);
     console.log(`   Headers:`, JSON.stringify(req.headers, null, 2).substring(0, 500));
-    res.status(404).json({ 
-        success: false, 
+    res.status(404).json({
+        success: false,
         message: `Route ${req.method} ${req.originalUrl} not found`,
         debug: {
             method: req.method,
