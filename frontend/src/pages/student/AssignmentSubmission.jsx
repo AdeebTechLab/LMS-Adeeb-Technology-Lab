@@ -341,7 +341,8 @@ const AssignmentSubmission = () => {
                     submissionLink: mySubmission?.fileUrl || null,
                     grade: mySubmission?.marks ?? null, // Use ?? to allow 0
                     totalMarks: assignment.totalMarks || 100,
-                    feedback: mySubmission?.feedback || null
+                    feedback: mySubmission?.feedback || null,
+                    notes: mySubmission?.notes || null
                 };
             });
 
@@ -665,16 +666,7 @@ const AssignmentSubmission = () => {
                             <FileText className="w-4 h-4" />
                             Assignments
                         </button>
-                        <button
-                            onClick={() => setActiveTab('attendance')}
-                            className={`px-8 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 ${activeTab === 'attendance'
-                                ? 'bg-white text-emerald-600 shadow-sm border border-emerald-100'
-                                : 'text-gray-500 hover:bg-gray-200 hover:text-gray-900'
-                                }`}
-                        >
-                            <CalendarCheck className="w-4 h-4" />
-                            Attendance
-                        </button>
+
                         <button
                             onClick={() => setActiveTab('chat')}
                             className={`px-8 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 relative ${activeTab === 'chat'
@@ -699,21 +691,8 @@ const AssignmentSubmission = () => {
 
                         return (
                             <>
-                                {activeTab === 'attendance' ? (
-                                    /* ATTENDANCE VIEW */
-                                    <div className="bg-white rounded-2xl p-8 border border-gray-100 text-center">
-                                        <CalendarCheck className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                                        <h3 className="text-xl font-semibold text-gray-900 mb-2">My Attendance</h3>
-                                        <p className="text-gray-500 mb-4">View your attendance records from the dedicated attendance page.</p>
-                                        <a
-                                            href={`/${user?.role}/attendance`}
-                                            className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition-all"
-                                        >
-                                            <CalendarCheck className="w-5 h-5" />
-                                            View Full Attendance
-                                        </a>
-                                    </div>
-                                ) : activeTab === 'assignments' ? (
+
+                                {activeTab === 'assignments' ? (
                                     /* ASSIGNMENTS LIST */
                                     <div className="space-y-6">
                                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -794,12 +773,25 @@ const AssignmentSubmission = () => {
                                                                         </div>
                                                                     )}
 
+                                                                    {assignment.status === 'rejected' && assignment.feedback && (
+                                                                        <div className="bg-gradient-to-r from-red-50 to-rose-50 p-5 rounded-2xl border-2 border-red-200 shadow-sm relative overflow-hidden mb-3">
+                                                                            <MessageCircle className="absolute -right-4 -bottom-4 w-24 h-24 text-red-100/50 transform rotate-12" />
+                                                                            <p className="text-xs font-black text-red-600 uppercase tracking-widest mb-3 flex items-center gap-2 relative z-10">
+                                                                                <MessageCircle className="w-4 h-4" />
+                                                                                Rejection Reason
+                                                                            </p>
+                                                                            <div className="bg-white/60 p-3 rounded-xl border border-red-100/50 relative z-10">
+                                                                                <p className="text-sm text-gray-800 italic leading-relaxed whitespace-pre-wrap">"{assignment.feedback}"</p>
+                                                                            </div>
+                                                                        </div>
+                                                                    )}
+
                                                                     {(canSubmit || assignment.status === 'rejected') && (
                                                                         <button
                                                                             onClick={() => {
                                                                                 setSelectedAssignment(assignment);
-                                                                                setSubmissionUrl('');
-                                                                                setSubmissionText('');
+                                                                                setSubmissionUrl(assignment.status === 'rejected' ? (assignment.submissionLink || '') : '');
+                                                                                setSubmissionText(assignment.status === 'rejected' ? (assignment.notes || '') : '');
                                                                             }}
                                                                             disabled={isRestricted}
                                                                             className={`w-full py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all text-white shadow-xl ${assignment.status === 'rejected' ? 'bg-red-600 hover:bg-red-700' : 'bg-[#0D2818] hover:bg-emerald-900'} disabled:bg-gray-300 disabled:shadow-none`}
@@ -837,7 +829,8 @@ const AssignmentSubmission = () => {
                                                                                 rows="3"
                                                                                 value={submissionText}
                                                                                 onChange={(e) => setSubmissionText(e.target.value)}
-                                                                                className="w-full px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 font-medium transition-all resize-none"
+                                                                                onInput={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }}
+                                                                                className="w-full px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 font-medium transition-all resize-none overflow-hidden"
                                                                             />
                                                                         </div>
                                                                         <div className="flex gap-3">
@@ -900,10 +893,11 @@ const AssignmentSubmission = () => {
                                                     <textarea
                                                         value={newTaskContent}
                                                         onChange={(e) => setNewTaskContent(e.target.value)}
+                                                        onInput={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }}
                                                         disabled={isRestricted || isCompleted}
                                                         placeholder="Describe your achievements and challenges today..."
                                                         rows="4"
-                                                        className="w-full px-7 py-5 bg-gray-50 border border-gray-100 rounded-3xl outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 font-medium transition-all resize-none shadow-inner disabled:opacity-50"
+                                                        className="w-full px-7 py-5 bg-gray-50 border border-gray-100 rounded-3xl outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 font-medium transition-all resize-none overflow-hidden shadow-inner disabled:opacity-50"
                                                     />
                                                 </div>
 

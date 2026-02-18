@@ -301,6 +301,17 @@ const TeachersManagement = () => {
                     <p className="text-gray-500">Verify and manage teacher accounts</p>
                 </div>
                 <div className="flex flex-wrap gap-4">
+                    <button
+                        onClick={toggleBioEditing}
+                        className={`p-2.5 border rounded-xl transition-colors flex items-center gap-2 text-sm font-bold shadow-sm ${allowBioEditing
+                            ? 'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100'
+                            : 'bg-red-50 border-red-200 text-red-700 hover:bg-red-100'
+                            }`}
+                        title={allowBioEditing ? "Bio Editing is Enabled for Users" : "Bio Editing is Disabled for Users"}
+                    >
+                        {allowBioEditing ? <Edit2 className="w-5 h-5" /> : <Shield className="w-5 h-5" />}
+                        {allowBioEditing ? 'EDITS ON' : 'EDITS OFF'}
+                    </button>
                     <div className="relative">
                         <button
                             onClick={() => setShowExportOptions(!showExportOptions)}
@@ -308,18 +319,6 @@ const TeachersManagement = () => {
                         >
                             <Download className="w-5 h-5 text-emerald-600" />
                             EXPORT DATA
-                        </button>
-
-                        <button
-                            onClick={toggleBioEditing}
-                            className={`p-2.5 border rounded-xl transition-colors flex items-center gap-2 text-sm font-bold shadow-sm ${allowBioEditing
-                                ? 'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100'
-                                : 'bg-red-50 border-red-200 text-red-700 hover:bg-red-100'
-                                }`}
-                            title={allowBioEditing ? "Bio Editing is Enabled for Users" : "Bio Editing is Disabled for Users"}
-                        >
-                            {allowBioEditing ? <Edit2 className="w-5 h-5" /> : <Shield className="w-5 h-5" />}
-                            {allowBioEditing ? 'EDITS ON' : 'EDITS OFF'}
                         </button>
 
                         {showExportOptions && (
@@ -401,14 +400,14 @@ const TeachersManagement = () => {
                             key={tab.id}
                             onClick={() => setFilterStatus(tab.id)}
                             className={`px-4 py-2 rounded-xl font-medium capitalize transition-all flex items-center gap-2 ${filterStatus === tab.id
-                                    ? 'bg-emerald-600 text-white'
-                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                ? 'bg-emerald-600 text-white'
+                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                                 }`}
                         >
                             {tab.label}
                             <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${filterStatus === tab.id
-                                    ? 'bg-white/20 text-white'
-                                    : 'bg-white text-gray-500'
+                                ? 'bg-white/20 text-white'
+                                : 'bg-white text-gray-500'
                                 }`}>
                                 {tab.count}
                             </span>

@@ -154,12 +154,12 @@ router.post('/', protect, authorize('teacher', 'admin'), async (req, res) => {
             assignedUsers = selectedUsers || altSelectedUsers || [];
         }
 
-        // Parse and set due date to end of day UTC (23:59:59.999)
+        // Parse and set due date to end of day in Pakistan time (23:59:59 PKT = 18:59:59 UTC)
         let assignmentDueDate = dueDate;
         if (dueDate) {
             const dateObj = new Date(dueDate);
             if (!isNaN(dateObj.getTime())) {
-                dateObj.setUTCHours(23, 59, 59, 999);
+                dateObj.setUTCHours(18, 59, 59, 999);
                 assignmentDueDate = dateObj;
             }
         }
@@ -230,8 +230,36 @@ router.post('/:id/submit', protect, uploadSubmission.single('file'), async (req,
             if (existingSubmission.status !== 'rejected') {
                 return res.status(400).json({ success: false, message: 'Already submitted and not rejected' });
             }
-            // Remove the old submission to allow adding a new one (or just overwrite it)
-            assignment.submissions.splice(existingSubmissionIndex, 1);
+            // Update the existing submission in-place (preserve history)
+            existingSubmission.notes = notes || req.body.notes || existingSubmission.notes;
+            existingSubmission.fileUrl = req.file ? req.file.path : (req.body.fileUrl || existingSubmission.fileUrl);
+            existingSubmission.submittedAt = new Date();
+            existingSubmission.status = 'submitted';
+            existingSubmission.marks = undefined;
+            // Keep the old feedback so student can still reference it
+
+            await assignment.save();
+
+            // Emit socket event to notify teachers about resubmission
+            const io = req.app.get('io');
+            if (io) {
+                const course = await Course.findById(assignment.course).populate('teachers', '_id name');
+                if (course && course.teachers && course.teachers.length > 0) {
+                    const submissionData = {
+                        type: 'assignment_submission',
+                        courseId: assignment.course.toString(),
+                        assignmentId: assignment._id.toString(),
+                        assignmentTitle: assignment.title,
+                        studentId: req.user.id,
+                        studentName: req.user.name
+                    };
+                    for (const teacher of course.teachers) {
+                        io.to(teacher._id.toString()).emit('new_submission', submissionData);
+                    }
+                }
+            }
+
+            return res.json({ success: true, message: 'Assignment resubmitted' });
         }
 
         // Add submission
@@ -300,6 +328,11 @@ router.put('/:assignmentId/grade/:submissionId', protect, authorize('teacher', '
         const submission = assignment.submissions.id(req.params.submissionId);
         if (!submission) {
             return res.status(404).json({ success: false, message: 'Submission not found' });
+        }
+
+        // Require feedback when rejecting
+        if (status === 'rejected' && (!feedback || !feedback.trim())) {
+            return res.status(400).json({ success: false, message: 'Feedback is required when rejecting a submission' });
         }
 
         submission.marks = marks !== undefined ? marks : submission.marks;
@@ -395,11 +428,11 @@ router.put('/:id', protect, authorize('teacher', 'admin'), async (req, res) => {
         // properties to update
         const updateData = { ...req.body };
 
-        // If dueDate is provided, set it to end of day UTC
+        // If dueDate is provided, set it to end of day in Pakistan time (23:59:59 PKT = 18:59:59 UTC)
         if (updateData.dueDate) {
             const dateObj = new Date(updateData.dueDate);
             if (!isNaN(dateObj.getTime())) {
-                dateObj.setUTCHours(23, 59, 59, 999);
+                dateObj.setUTCHours(18, 59, 59, 999);
                 updateData.dueDate = dateObj;
             }
         }

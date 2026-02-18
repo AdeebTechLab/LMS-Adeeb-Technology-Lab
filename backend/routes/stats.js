@@ -60,7 +60,8 @@ router.get('/admin-dashboard', protect, authorize('admin'), async (req, res) => 
                         course: fee.course?.title || 'Unknown Course',
                         amount: inst.amount,
                         date: inst.paidAt || fee.createdAt,
-                        status: inst.status === 'submitted' ? 'pending' : inst.status
+                        status: inst.status === 'submitted' ? 'pending' : inst.status,
+                        receiptUrl: inst.receiptUrl || null
                     });
                 }
             });

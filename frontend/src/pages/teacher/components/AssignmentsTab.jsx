@@ -35,6 +35,10 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
     const [gradeFeedback, setGradeFeedback] = useState('');
     const [isGrading, setIsGrading] = useState(false);
 
+    // Rejection State
+    const [rejectingSubmissionId, setRejectingSubmissionId] = useState(null);
+    const [rejectFeedback, setRejectFeedback] = useState('');
+
     useEffect(() => {
         fetchAssignments();
     }, [course._id]);
@@ -127,8 +131,52 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
     };
 
     const handleRejectSubmission = async (submission = null) => {
+        const targetSub = submission || selectedSubmission;
+        if (!targetSub) return;
+
+        // If rejection UI isn't shown yet, show it
+        if (rejectingSubmissionId !== targetSub._id) {
+            setRejectingSubmissionId(targetSub._id);
+            setRejectFeedback('');
+            return;
+        }
+
+        // Validate feedback
+        if (!rejectFeedback.trim()) {
+            alert('Please provide feedback explaining why the submission is being rejected.');
+            return;
+        }
+
         if (!confirm('Are you sure you want to reject this submission? The student will be notified to resubmit.')) return;
-        submitAssignmentGrading('rejected', submission);
+
+        // Send rejection with feedback
+        setIsGrading(true);
+        try {
+            const res = await assignmentAPI.grade(
+                selectedAssignment._id,
+                targetSub._id,
+                0,
+                rejectFeedback,
+                'rejected'
+            );
+
+            const updatedAssignments = assignments.map(a =>
+                a._id === selectedAssignment._id ? res.data.assignment : a
+            );
+            setAssignments(updatedAssignments);
+            setSelectedAssignment(res.data.assignment);
+            setSelectedSubmission(null);
+            setRejectingSubmissionId(null);
+            setRejectFeedback('');
+            setGradeMarks('');
+            setGradeFeedback('');
+            alert('Submission rejected with feedback.');
+        } catch (error) {
+            console.error('Error rejecting:', error);
+            alert(error.response?.data?.message || 'Failed to reject submission');
+        } finally {
+            setIsGrading(false);
+        }
     };
 
     const submitAssignmentGrading = async (status, submissionOverride = null) => {
@@ -723,7 +771,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                 <div className="space-y-3 mb-4">
                                     <div className="text-sm text-gray-700 bg-white p-3 rounded-lg border border-gray-100">
                                         <p className="font-black text-gray-400 text-[10px] uppercase mb-1 tracking-widest">Student Notes</p>
-                                        <p className="italic font-medium text-gray-700">{submission.notes || 'No notes provided'}</p>
+                                        <p className="italic font-medium text-gray-700 whitespace-pre-wrap">{submission.notes || 'No notes provided'}</p>
                                     </div>
 
                                     {submission.fileUrl && (
@@ -796,6 +844,8 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                                     type="button"
                                                     onClick={() => {
                                                         setSelectedSubmission(null);
+                                                        setRejectingSubmissionId(null);
+                                                        setRejectFeedback('');
                                                         setGradeMarks('');
                                                         setGradeFeedback('');
                                                     }}
@@ -804,29 +854,89 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                                     <X className="w-4 h-4" />
                                                 </button>
                                             </div>
+                                            {rejectingSubmissionId === selectedSubmission?._id && (
+                                                <div className="mt-3 p-3 bg-red-50 rounded-xl border border-red-200 space-y-2">
+                                                    <label className="block text-[10px] font-black text-red-500 uppercase tracking-widest ml-1">Rejection Reason (Required)</label>
+                                                    <textarea
+                                                        placeholder="Explain why this submission is being rejected..."
+                                                        value={rejectFeedback}
+                                                        onChange={(e) => setRejectFeedback(e.target.value)}
+                                                        className="w-full px-4 py-2 text-sm border border-red-200 rounded-xl outline-none focus:ring-2 focus:ring-red-500/20 resize-none font-medium bg-white"
+                                                        rows="2"
+                                                        autoFocus
+                                                    />
+                                                    <div className="flex gap-2">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleRejectSubmission()}
+                                                            disabled={isGrading || !rejectFeedback.trim()}
+                                                            className="flex-1 py-2 bg-red-600 text-white text-xs font-black uppercase tracking-widest rounded-xl hover:bg-red-700 transition-all disabled:opacity-50"
+                                                        >
+                                                            {isGrading ? 'REJECTING...' : 'CONFIRM REJECT'}
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => { setRejectingSubmissionId(null); setRejectFeedback(''); }}
+                                                            className="px-4 py-2 text-gray-500 hover:bg-gray-100 rounded-xl text-xs font-bold transition-all"
+                                                        >
+                                                            Cancel
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            )}
                                         </form>
                                     ) : (
-                                        <div className="flex gap-2">
-                                            <button
-                                                onClick={() => {
-                                                    setSelectedSubmission(submission);
-                                                    setGradeMarks(submission.marks || '');
-                                                    setGradeFeedback(submission.feedback || '');
-                                                }}
-                                                className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-emerald-200 active:scale-95"
-                                            >
-                                                {submission.marks ? 'EDIT GRADE' : 'GRADE SUBMISSION'}
-                                            </button>
-                                            {(submission.status === 'submitted' || !submission.status) && (
+                                        <>
+                                            <div className="flex gap-2">
                                                 <button
-                                                    onClick={() => handleRejectSubmission(submission)}
-                                                    disabled={isGrading}
-                                                    className="px-6 py-2.5 bg-red-100 text-red-600 hover:bg-red-200 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 disabled:opacity-50"
+                                                    onClick={() => {
+                                                        setSelectedSubmission(submission);
+                                                        setGradeMarks(submission.marks || '');
+                                                        setGradeFeedback(submission.feedback || '');
+                                                    }}
+                                                    className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-emerald-200 active:scale-95"
                                                 >
-                                                    REJECT
+                                                    {submission.marks ? 'EDIT GRADE' : 'GRADE SUBMISSION'}
                                                 </button>
+                                                {(submission.status === 'submitted' || !submission.status) && (
+                                                    <button
+                                                        onClick={() => handleRejectSubmission(submission)}
+                                                        disabled={isGrading}
+                                                        className="px-6 py-2.5 bg-red-100 text-red-600 hover:bg-red-200 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 disabled:opacity-50"
+                                                    >
+                                                        REJECT
+                                                    </button>
+                                                )}
+                                            </div>
+                                            {rejectingSubmissionId === submission._id && !selectedSubmission && (
+                                                <div className="mt-3 p-3 bg-red-50 rounded-xl border border-red-200 space-y-2">
+                                                    <label className="block text-[10px] font-black text-red-500 uppercase tracking-widest ml-1">Rejection Reason (Required)</label>
+                                                    <textarea
+                                                        placeholder="Explain why this submission is being rejected..."
+                                                        value={rejectFeedback}
+                                                        onChange={(e) => setRejectFeedback(e.target.value)}
+                                                        className="w-full px-4 py-2 text-sm border border-red-200 rounded-xl outline-none focus:ring-2 focus:ring-red-500/20 resize-none font-medium bg-white"
+                                                        rows="2"
+                                                        autoFocus
+                                                    />
+                                                    <div className="flex gap-2">
+                                                        <button
+                                                            onClick={() => handleRejectSubmission(submission)}
+                                                            disabled={isGrading || !rejectFeedback.trim()}
+                                                            className="flex-1 py-2 bg-red-600 text-white text-xs font-black uppercase tracking-widest rounded-xl hover:bg-red-700 transition-all disabled:opacity-50"
+                                                        >
+                                                            {isGrading ? 'REJECTING...' : 'CONFIRM REJECT'}
+                                                        </button>
+                                                        <button
+                                                            onClick={() => { setRejectingSubmissionId(null); setRejectFeedback(''); }}
+                                                            className="px-4 py-2 text-gray-500 hover:bg-gray-100 rounded-xl text-xs font-bold transition-all"
+                                                        >
+                                                            Cancel
+                                                        </button>
+                                                    </div>
+                                                </div>
                                             )}
-                                        </div>
+                                        </>
                                     )}
                                 </div>
                             </div>

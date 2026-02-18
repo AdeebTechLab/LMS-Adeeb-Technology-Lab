@@ -394,6 +394,46 @@ router.put('/profile', protect, uploadPhoto.single('photo'), async (req, res) =>
 
 // ==================== FORGOT PASSWORD ====================
 
+// @route   GET /api/auth/test-email
+// @desc    Debug route to test email sending
+// @access  Public (should optionally be protected in final prod)
+router.get('/test-email', async (req, res) => {
+    try {
+        console.log('Testing Email Configuration...');
+        const user = process.env.EMAIL_USER;
+        const pass = process.env.EMAIL_PASS;
+
+        if (!user || !pass) {
+            return res.status(500).json({ success: false, message: 'EMAIL_USER or EMAIL_PASS not set' });
+        }
+
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: { user, pass }
+        });
+
+        await transporter.verify();
+        console.log('✅ SMTP Connection verified');
+
+        const info = await transporter.sendMail({
+            from: user,
+            to: user, // Send to self
+            subject: 'LMS Production Email Test',
+            text: 'If you received this, email sending is working on Render!'
+        });
+
+        res.json({ success: true, message: 'Email passed verification and sent', info });
+    } catch (error) {
+        console.error('❌ Email Test Failed:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Email test failed',
+            error: error.message,
+            stack: error.stack
+        });
+    }
+});
+
 // @route   POST /api/auth/forgot-password
 // @desc    Request password reset via email
 // @access  Public
@@ -431,9 +471,7 @@ router.post('/forgot-password', async (req, res) => {
 
         // Send email
         const transporter = nodemailer.createTransport({
-            host: 'smtp.gmail.com',
-            port: 465,
-            secure: true, // use SSL
+            service: 'gmail', // Use service 'gmail' for auto-configuration (Port 465/587 auto-handled)
             auth: {
                 user: process.env.EMAIL_USER,
                 pass: process.env.EMAIL_PASS

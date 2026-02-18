@@ -84,7 +84,7 @@ router.post('/:id/apply', protect, authorize('job'), async (req, res) => {
             return res.status(404).json({ success: false, message: 'Task not found' });
         }
 
-        if (task.status !== 'open') {
+        if (task.status !== 'open' && task.status !== 'assigned') {
             return res.status(400).json({ success: false, message: 'Task is not open for applications' });
         }
 

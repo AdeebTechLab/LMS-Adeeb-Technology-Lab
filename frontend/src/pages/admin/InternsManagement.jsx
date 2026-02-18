@@ -155,6 +155,7 @@ const InternsManagement = () => {
             university: university,
             department: intern.department || '',
             semester: intern.semester || '',
+            rollNo: intern.rollNo || '',
             rollNumber: intern.rollNumber || '',
             cgpa: intern.cgpa || '',
             majorSubjects: intern.majorSubjects || '',
@@ -205,7 +206,7 @@ const InternsManagement = () => {
                 i.city || 'N/A'
             ]);
         } else {
-            headers = [['Roll No', 'Name', 'Email', 'Phone', 'CNIC', 'DOB', 'Degree', 'University', 'CGPA', 'Duration', 'Type', 'Status']];
+            headers = [['Roll No', 'Name', 'Email', 'Phone', 'CNIC', 'DOB', 'Degree', 'University', 'CGPA', 'Location', 'Mode', 'Status']];
             body = filteredInterns.map(i => [
                 i.rollNumber || 'N/A',
                 i.name || 'N/A',
@@ -216,8 +217,8 @@ const InternsManagement = () => {
                 i.degree || 'N/A',
                 i.university || 'N/A',
                 i.cgpa || 'N/A',
-                i.duration || 'N/A',
-                i.internType || 'N/A',
+                i.location ? (i.location.charAt(0).toUpperCase() + i.location.slice(1)) : 'N/A',
+                (i.attendType === 'Physical' || i.attendType === 'On-Site') ? 'Onsite' : (i.attendType === 'Online' ? 'Remote' : (i.attendType || 'N/A')),
                 i.isVerified ? 'Verified' : 'Pending'
             ]);
         }
@@ -384,6 +385,17 @@ const InternsManagement = () => {
                     <p className="text-gray-500">View and manage registered interns</p>
                 </div>
                 <div className="flex flex-wrap gap-4">
+                    <button
+                        onClick={toggleBioEditing}
+                        className={`p-2.5 border rounded-xl transition-colors flex items-center gap-2 text-sm font-bold shadow-sm ${allowBioEditing
+                            ? 'bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100'
+                            : 'bg-red-50 border-red-200 text-red-700 hover:bg-red-100'
+                            }`}
+                        title={allowBioEditing ? "Bio Editing is Enabled for Users" : "Bio Editing is Disabled for Users"}
+                    >
+                        {allowBioEditing ? <Edit2 className="w-5 h-5" /> : <Shield className="w-5 h-5" />}
+                        {allowBioEditing ? 'EDITS ON' : 'EDITS OFF'}
+                    </button>
                     <div className="relative">
                         <button
                             onClick={() => setShowExportOptions(!showExportOptions)}
@@ -391,18 +403,6 @@ const InternsManagement = () => {
                         >
                             <Download className="w-5 h-5 text-blue-600" />
                             EXPORT DATA
-                        </button>
-
-                        <button
-                            onClick={toggleBioEditing}
-                            className={`p-2.5 border rounded-xl transition-colors flex items-center gap-2 text-sm font-bold shadow-sm ${allowBioEditing
-                                ? 'bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100'
-                                : 'bg-red-50 border-red-200 text-red-700 hover:bg-red-100'
-                                }`}
-                            title={allowBioEditing ? "Bio Editing is Enabled for Users" : "Bio Editing is Disabled for Users"}
-                        >
-                            {allowBioEditing ? <Edit2 className="w-5 h-5" /> : <Shield className="w-5 h-5" />}
-                            {allowBioEditing ? 'EDITS ON' : 'EDITS OFF'}
                         </button>
 
                         {showExportOptions && (
@@ -450,14 +450,6 @@ const InternsManagement = () => {
                                 </div>
                             </>
                         )}
-                    </div>
-                    <div className="px-4 py-2 bg-blue-50 rounded-xl text-center">
-                        <p className="text-2xl font-bold text-blue-600">{verifiedCount}</p>
-                        <p className="text-xs text-gray-500">Verified</p>
-                    </div>
-                    <div className="px-4 py-2 bg-amber-50 rounded-xl text-center">
-                        <p className="text-2xl font-bold text-amber-600">{pendingCount}</p>
-                        <p className="text-xs text-gray-500">Pending</p>
                     </div>
                 </div>
             </div>
@@ -868,7 +860,16 @@ const InternsManagement = () => {
                             </select>
                         </div>
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">Roll Number</label>
+                            <label className="text-sm font-medium text-gray-700">Roll No <span className="text-xs text-gray-400">(System / Directory)</span></label>
+                            <input
+                                type="text"
+                                value={editForm.rollNo}
+                                onChange={(e) => setEditForm({ ...editForm, rollNo: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">Roll Number <span className="text-xs text-gray-400">(University)</span></label>
                             <input
                                 type="text"
                                 value={editForm.rollNumber}

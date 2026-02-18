@@ -128,21 +128,8 @@ router.put('/:feeId/installments/:installmentId/verify', protect, authorize('adm
         installment.verifiedBy = req.user.id;
         installment.verifiedAt = new Date();
 
-        // ---------------------------------------------------------
-        // CLEANUP: Delete receipt from Cloudinary to save space
-        // ---------------------------------------------------------
-        if (installment.receiptUrl) {
-            try {
-                const matches = installment.receiptUrl.match(/\/upload\/(?:v\d+\/)?(.+?)\.[^.]+$/);
-                if (matches && matches[1]) {
-                    console.log(`Verification cleanup: Deleting image ${matches[1]}`);
-                    await cloudinary.uploader.destroy(matches[1]);
-                }
-            } catch (cleanupError) {
-                console.error('Failed to cleanup verified image:', cleanupError);
-                // Non-blocking error
-            }
-        }
+        // NOTE: Receipt image is intentionally kept on Cloudinary
+        // so admin can view the uploaded slip later from the dashboard.
 
         // Update fee status
         fee.updateStatus();

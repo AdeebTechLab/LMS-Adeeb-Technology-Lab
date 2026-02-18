@@ -19,8 +19,10 @@ import {
     ArrowRight,
     Download,
     BookOpen,
-    Trash2
+    Trash2,
+    ImageIcon
 } from 'lucide-react';
+import Modal from '../../components/ui/Modal';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import StatCard from '../../components/ui/StatCard';
@@ -41,6 +43,7 @@ const AdminDashboard = () => {
     });
     const [showFullHistory, setShowFullHistory] = useState(false);
     const [isDownloading, setIsDownloading] = useState(false);
+    const [slipModal, setSlipModal] = useState({ open: false, url: null, student: '' });
     const dashboardRef = useRef(null);
 
     useEffect(() => {
@@ -191,6 +194,15 @@ const AdminDashboard = () => {
             className: 'no-pdf',
             render: (row) => (
                 <div className="flex items-center gap-2">
+                    {row.receiptUrl && (
+                        <button
+                            onClick={() => setSlipModal({ open: true, url: row.receiptUrl, student: row.student })}
+                            className="p-2.5 bg-blue-50 hover:bg-blue-500 rounded-xl transition-all group shadow-sm active:scale-90"
+                            title="View Uploaded Slip"
+                        >
+                            <ImageIcon className="w-5 h-5 text-blue-500 group-hover:text-white" />
+                        </button>
+                    )}
                     <button
                         onClick={() => navigate('/admin/fee-verification')}
                         className="p-2.5 bg-orange-50 hover:bg-[#ff8e01] rounded-xl transition-all group shadow-sm active:scale-90"
@@ -436,6 +448,26 @@ const AdminDashboard = () => {
                     )}
                 </div>
             </div>
+
+            {/* Slip Image Modal */}
+            <Modal isOpen={slipModal.open} onClose={() => setSlipModal({ open: false, url: null, student: '' })} title={`Payment Slip — ${slipModal.student}`}>
+                <div className="space-y-4">
+                    {slipModal.url ? (
+                        <div className="rounded-lg overflow-hidden border border-gray-200">
+                            <img
+                                src={slipModal.url}
+                                alt="Payment Slip"
+                                className="w-full h-auto"
+                            />
+                        </div>
+                    ) : (
+                        <p className="text-gray-500 text-center py-8">No slip image available.</p>
+                    )}
+                    <div className="flex justify-end">
+                        <button onClick={() => setSlipModal({ open: false, url: null, student: '' })} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg font-medium">Close</button>
+                    </div>
+                </div>
+            </Modal>
         </div>
     );
 };

@@ -483,9 +483,13 @@ const PaidTasksManagement = () => {
                                     </button>
                                 )}
                                 {task.status === 'assigned' && (
-                                    <div className="flex-1 py-2 text-sm text-center text-amber-600 bg-amber-50 rounded-xl">
-                                        Assigned to {task.assignedTo?.length || 0} Users
-                                    </div>
+                                    <button
+                                        onClick={() => handleViewApplicants(task)}
+                                        className="flex-1 py-2 text-sm font-medium text-amber-600 bg-amber-50 hover:bg-amber-100 rounded-xl flex items-center justify-center gap-1"
+                                    >
+                                        <Users className="w-4 h-4" />
+                                        Assigned ({task.assignedTo?.length || 0}) • View {task.applicants?.length || 0} Applicants
+                                    </button>
                                 )}
                                 {task.status === 'submitted' && (
                                     <div className="flex gap-2 w-full">
@@ -495,6 +499,14 @@ const PaidTasksManagement = () => {
                                         >
                                             <Eye className="w-4 h-4" />
                                             Review {task.submissions?.length || 0} Submissions
+                                        </button>
+                                        <button
+                                            onClick={() => handleViewApplicants(task)}
+                                            className="px-4 py-2 text-sm font-medium text-purple-600 bg-purple-50 hover:bg-purple-100 rounded-xl flex items-center justify-center gap-1"
+                                            title="View Applicants & Assign More"
+                                        >
+                                            <Users className="w-4 h-4" />
+                                            Applicants
                                         </button>
                                         <button
                                             onClick={() => handleVerifyAndPay(task._id)}

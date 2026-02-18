@@ -417,7 +417,7 @@ export const generateComprehensiveReport = async (user, enrollments, assignments
             if (f.installments && f.installments.length > 0) {
                 f.installments.forEach(inst => {
                     // Determine month/date
-                    const dateObj = new Date(inst.paidAt || inst.dueDate);
+                    const dateObj = new Date(inst.dueDate || inst.paidAt);
                     const monthStr = !isNaN(dateObj.getTime()) ? format(dateObj, 'MMMM yyyy') : 'N/A';
                     const status = inst.status ? inst.status.charAt(0).toUpperCase() + inst.status.slice(1) : 'Pending';
 

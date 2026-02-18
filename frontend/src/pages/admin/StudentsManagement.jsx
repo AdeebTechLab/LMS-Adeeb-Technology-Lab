@@ -228,7 +228,7 @@ const StudentsManagement = () => {
             ]);
         } else {
             // Full Report
-            headers = [['Roll No', 'Name', 'Email', 'Phone', 'CNIC', 'DOB', 'Age', 'Gender', 'Course', 'Attendance', 'Guardian', 'Guardian Ph', 'Address', 'Status']];
+            headers = [['Roll No', 'Name', 'Email', 'Phone', 'CNIC', 'DOB', 'Age', 'Gender', 'Location', 'Mode', 'Guardian', 'Guardian Ph', 'Address', 'Status']];
             body = filteredStudents.map(s => [
                 s.rollNo || 'N/A',
                 s.name || 'N/A',
@@ -238,8 +238,8 @@ const StudentsManagement = () => {
                 s.dob ? new Date(s.dob).toLocaleDateString() : 'N/A',
                 s.age || 'N/A',
                 s.gender || 'N/A',
-                s.course || 'N/A',
-                s.cityToAttend || 'N/A',
+                s.location ? (s.location.charAt(0).toUpperCase() + s.location.slice(1)) : 'N/A',
+                (s.attendType === 'Physical' || s.attendType === 'On-Site') ? 'Onsite' : (s.attendType === 'Online' ? 'Remote' : (s.attendType || 'N/A')),
                 s.guardianName || 'N/A',
                 s.guardianPhone || 'N/A',
                 s.address || 'N/A',
@@ -392,6 +392,17 @@ const StudentsManagement = () => {
                     <p className="text-gray-500">View and manage registered students</p>
                 </div>
                 <div className="flex flex-wrap gap-4">
+                    <button
+                        onClick={toggleBioEditing}
+                        className={`p-2.5 border rounded-xl transition-colors flex items-center gap-2 text-sm font-bold shadow-sm ${allowBioEditing
+                            ? 'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100'
+                            : 'bg-red-50 border-red-200 text-red-700 hover:bg-red-100'
+                            }`}
+                        title={allowBioEditing ? "Bio Editing is Enabled for Users" : "Bio Editing is Disabled for Users"}
+                    >
+                        {allowBioEditing ? <Edit2 className="w-5 h-5" /> : <Shield className="w-5 h-5" />}
+                        {allowBioEditing ? 'EDITS ON' : 'EDITS OFF'}
+                    </button>
                     <div className="relative">
                         <button
                             onClick={() => setShowExportOptions(!showExportOptions)}
@@ -399,18 +410,6 @@ const StudentsManagement = () => {
                         >
                             <Download className="w-5 h-5 text-emerald-600" />
                             EXPORT DATA
-                        </button>
-
-                        <button
-                            onClick={toggleBioEditing}
-                            className={`p-2.5 border rounded-xl transition-colors flex items-center gap-2 text-sm font-bold shadow-sm ${allowBioEditing
-                                ? 'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100'
-                                : 'bg-red-50 border-red-200 text-red-700 hover:bg-red-100'
-                                }`}
-                            title={allowBioEditing ? "Bio Editing is Enabled for Users" : "Bio Editing is Disabled for Users"}
-                        >
-                            {allowBioEditing ? <Edit2 className="w-5 h-5" /> : <Shield className="w-5 h-5" />}
-                            {allowBioEditing ? 'EDITS ON' : 'EDITS OFF'}
                         </button>
 
                         {showExportOptions && (
@@ -465,14 +464,6 @@ const StudentsManagement = () => {
                                 </div>
                             </>
                         )}
-                    </div>
-                    <div className="px-4 py-2 bg-emerald-50 rounded-xl text-center">
-                        <p className="text-2xl font-bold text-emerald-600">{verifiedCount}</p>
-                        <p className="text-xs text-gray-500">Verified</p>
-                    </div>
-                    <div className="px-4 py-2 bg-amber-50 rounded-xl text-center">
-                        <p className="text-2xl font-bold text-amber-600">{pendingCount}</p>
-                        <p className="text-xs text-gray-500">Pending</p>
                     </div>
                 </div>
             </div>
