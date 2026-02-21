@@ -255,6 +255,85 @@ router.post('/:id/submit', protect, uploadSubmission.single('file'), async (req,
     }
 });
 
+// @route   PUT /api/tasks/:id/admin-complete
+// @desc    Admin directly completes & pays a task (the ONLY way to move to completed)
+// @access  Private (Admin)
+router.put('/:id/admin-complete', protect, authorize('admin'), async (req, res) => {
+    try {
+        const task = await PaidTask.findById(req.params.id);
+
+        if (!task) {
+            return res.status(404).json({ success: false, message: 'Task not found' });
+        }
+
+        if (task.status === 'completed') {
+            return res.status(400).json({ success: false, message: 'Task is already completed' });
+        }
+
+        task.status = 'completed';
+        task.paymentSent = true;
+        task.paymentSentAt = new Date();
+
+        await task.save();
+
+        // Update ALL assigned users' completed tasks count
+        if (task.assignedTo && task.assignedTo.length > 0) {
+            await User.updateMany(
+                { _id: { $in: task.assignedTo } },
+                { $inc: { completedTasks: 1 } }
+            );
+        }
+
+        res.json({ success: true, task });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// @route   POST /api/tasks/:id/feedback
+// @desc    Add feedback after task is completed and paid
+// @access  Private (Job role - assigned users only)
+router.post('/:id/feedback', protect, authorize('job'), async (req, res) => {
+    try {
+        const { text, rating } = req.body;
+        const task = await PaidTask.findById(req.params.id);
+
+        if (!task) {
+            return res.status(404).json({ success: false, message: 'Task not found' });
+        }
+
+        if (task.status !== 'completed' || !task.paymentSent) {
+            return res.status(400).json({ success: false, message: 'Feedback can only be added after task is completed and payment is confirmed' });
+        }
+
+        // Check if user was assigned to this task
+        const wasAssigned = task.assignedTo.some(id => id.toString() === req.user.id || (id._id && id._id.toString() === req.user.id));
+        if (!wasAssigned) {
+            return res.status(403).json({ success: false, message: 'Only assigned users can leave feedback' });
+        }
+
+        // Check if already left feedback
+        if (!task.feedback) task.feedback = [];
+        const alreadyFeedback = task.feedback.some(f => f.user.toString() === req.user.id);
+        if (alreadyFeedback) {
+            return res.status(400).json({ success: false, message: 'You have already submitted feedback for this task' });
+        }
+
+        task.feedback.push({
+            user: req.user.id,
+            text,
+            rating: rating || 5,
+            createdAt: new Date()
+        });
+
+        await task.save();
+
+        res.json({ success: true, message: 'Feedback submitted successfully' });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
 // @route   PUT /api/tasks/:id/complete
 // @desc    Verify and mark payment sent (Closes task for everyone)
 // @access  Private (Admin)
@@ -281,6 +360,23 @@ router.put('/:id/complete', protect, authorize('admin'), async (req, res) => {
         }
 
         res.json({ success: true, task });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// @route   GET /api/tasks/completed-showcase
+// @desc    Get all completed tasks with feedback for public showcase
+// @access  Private (any authenticated user)
+router.get('/completed-showcase', protect, async (req, res) => {
+    try {
+        const tasks = await PaidTask.find({ status: 'completed' })
+            .populate('assignedTo', 'name email photo')
+            .populate('feedback.user', 'name photo')
+            .select('title description budget skills category status assignedTo feedback completedAt paymentSentAt createdAt')
+            .sort('-paymentSentAt');
+
+        res.json({ success: true, data: tasks });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }

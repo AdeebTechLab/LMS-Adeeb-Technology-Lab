@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useSelector } from 'react-redux';
 import {
-    Search, Calendar, Briefcase, CheckCircle, Send, Upload, CreditCard, Loader2, AlertCircle, Link, Trash2
+    Search, Calendar, Briefcase, CheckCircle, Send, Upload, CreditCard, Loader2, AlertCircle, Link, Trash2, MessageSquare
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
@@ -24,6 +24,9 @@ const BrowseTasks = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState('');
     const [isDeleting, setIsDeleting] = useState(false);
+    const [completedShowcase, setCompletedShowcase] = useState([]);
+    const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
+    const [feedbackData, setFeedbackData] = useState({ rating: 5, text: '' });
 
     // Fetch tasks on component mount
     useEffect(() => {
@@ -34,12 +37,14 @@ const BrowseTasks = () => {
         setIsFetching(true);
         setError('');
         try {
-            const [allTasksRes, myTasksRes] = await Promise.all([
-                taskAPI.getAll({ status: 'open' }),
-                taskAPI.getMy()
+            const [allTasksRes, myTasksRes, showcaseRes] = await Promise.all([
+                taskAPI.getAll({}), // Fetch all statuses
+                taskAPI.getMy(),
+                taskAPI.getCompletedShowcase()
             ]);
             setTasks(allTasksRes.data.data || []);
             setMyTasks(myTasksRes.data.data || []);
+            setCompletedShowcase(showcaseRes.data.data || []);
         } catch (err) {
             console.error('Error fetching tasks:', err);
             setError('Failed to load tasks. Please try again.');
@@ -79,8 +84,8 @@ const BrowseTasks = () => {
         return new Date(task.deadline) < new Date() && (!task.assignedTo || task.assignedTo.length === 0) && task.status === 'open';
     };
 
-    // Get available tasks (open, not applied, not expired)
-    const availableTasks = tasks.filter(t => t.status === 'open' && !hasApplied(t) && !isExpired(t));
+    // Get available tasks (open, assigned, or submitted - basically any not completed)
+    const availableTasks = tasks.filter(t => t.status !== 'completed' && !hasApplied(t));
 
     // Get tasks I've applied to (from my tasks)
     const appliedTasks = myTasks.filter(t => hasApplied(t) && !isAssignedToMe(t) && t.status === 'open');
@@ -100,6 +105,7 @@ const BrowseTasks = () => {
             case 'assigned': return assignedTasks;
             case 'completed': return completedTasks;
             case 'expired': return expiredTasks;
+            case 'showcase': return completedShowcase;
             default: return availableTasks;
         }
     };
@@ -157,6 +163,25 @@ const BrowseTasks = () => {
         }
     };
 
+    const handleFeedbackSubmit = async () => {
+        if (!feedbackData.text.trim() || !selectedTask) return;
+        setIsSubmitting(true);
+        setError('');
+        try {
+            await taskAPI.addFeedback(selectedTask._id, feedbackData);
+            setFeedbackModalOpen(false);
+            setFeedbackData({ rating: 5, text: '' });
+            setSelectedTask(null);
+            fetchTasks();
+            alert('Feedback submitted successfully!');
+        } catch (err) {
+            console.error('Error submitting feedback:', err);
+            setError(err.response?.data?.message || 'Failed to submit feedback. Please try again.');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
     const handleDeleteTask = async (taskId) => {
         if (!window.confirm('Are you sure you want to PERMANENTLY delete this project from the database? This action cannot be undone.')) return;
 
@@ -201,37 +226,50 @@ const BrowseTasks = () => {
             )}
 
             {/* Tabs */}
-            <div className="flex gap-2 bg-gray-100 p-1 rounded-xl w-fit">
-                <button
-                    onClick={() => setActiveTab('available')}
-                    className={`px-5 py-2.5 rounded-lg font-medium transition-all ${activeTab === 'available' ? 'bg-white text-purple-600 shadow-sm' : 'text-gray-600'}`}
-                >
-                    Available ({availableTasks.length})
-                </button>
-                <button
-                    onClick={() => setActiveTab('applied')}
-                    className={`px-5 py-2.5 rounded-lg font-medium transition-all ${activeTab === 'applied' ? 'bg-white text-purple-600 shadow-sm' : 'text-gray-600'}`}
-                >
-                    My Applications ({appliedTasks.length})
-                </button>
-                <button
-                    onClick={() => setActiveTab('assigned')}
-                    className={`px-5 py-2.5 rounded-lg font-medium transition-all ${activeTab === 'assigned' ? 'bg-white text-purple-600 shadow-sm' : 'text-gray-600'}`}
-                >
-                    Assigned ({assignedTasks.length})
-                </button>
-                <button
-                    onClick={() => setActiveTab('completed')}
-                    className={`px-5 py-2.5 rounded-lg font-medium transition-all ${activeTab === 'completed' ? 'bg-white text-emerald-600 shadow-sm' : 'text-gray-600'}`}
-                >
-                    Completed ({completedTasks.length})
-                </button>
-                <button
-                    onClick={() => setActiveTab('expired')}
-                    className={`px-5 py-2.5 rounded-lg font-medium transition-all ${activeTab === 'expired' ? 'bg-white text-red-600 shadow-sm' : 'text-gray-600'}`}
-                >
-                    Expired ({expiredTasks.length})
-                </button>
+            <div className="flex flex-wrap items-center justify-between gap-4">
+                <div className="flex gap-2 bg-gray-100 p-1 rounded-xl w-fit">
+                    <button
+                        onClick={() => setActiveTab('available')}
+                        className={`px-5 py-2.5 rounded-lg font-medium transition-all ${activeTab === 'available' ? 'bg-white text-purple-600 shadow-sm' : 'text-gray-600'}`}
+                    >
+                        Available ({availableTasks.length})
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('applied')}
+                        className={`px-5 py-2.5 rounded-lg font-medium transition-all ${activeTab === 'applied' ? 'bg-white text-purple-600 shadow-sm' : 'text-gray-600'}`}
+                    >
+                        My Applications ({appliedTasks.length})
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('assigned')}
+                        className={`px-5 py-2.5 rounded-lg font-medium transition-all ${activeTab === 'assigned' ? 'bg-white text-purple-600 shadow-sm' : 'text-gray-600'}`}
+                    >
+                        Assigned ({assignedTasks.length})
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('completed')}
+                        className={`px-5 py-2.5 rounded-lg font-medium transition-all ${activeTab === 'completed' ? 'bg-white text-emerald-600 shadow-sm' : 'text-gray-600'}`}
+                    >
+                        Completed ({completedTasks.length})
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('expired')}
+                        className={`px-5 py-2.5 rounded-lg font-medium transition-all ${activeTab === 'expired' ? 'bg-white text-red-600 shadow-sm' : 'text-gray-600'}`}
+                    >
+                        Expired ({expiredTasks.length})
+                    </button>
+                </div>
+
+                <div className="bg-emerald-50 p-1 rounded-xl border border-emerald-100">
+                    <button
+                        onClick={() => setActiveTab('showcase')}
+                        className={`px-5 py-2.5 rounded-lg font-medium transition-all flex items-center justify-center gap-2 ${activeTab === 'showcase' ? 'bg-emerald-600 text-white shadow-md' : 'text-emerald-700 hover:bg-emerald-100/50'}`}
+                        title="View tasks completed by our jobbers with feedback"
+                    >
+                        <MessageSquare className="w-4 h-4" />
+                        Work Feedback ({completedShowcase.length})
+                    </button>
+                </div>
             </div>
 
             {/* Search */}
@@ -254,6 +292,8 @@ const BrowseTasks = () => {
                     const assigned = isAssignedToMe(task);
                     const submitted = hasSubmitted(task);
                     const isPaid = task.paymentSent && task.status === 'completed';
+                    const expired = isExpired(task);
+                    const hasUserFeedback = task.feedback?.some(f => f.user?._id === user?.id || f.user === user?.id);
 
                     return (
                         <motion.div
@@ -261,14 +301,15 @@ const BrowseTasks = () => {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: index * 0.1 }}
-                            className={`bg-white rounded-2xl p-6 border border-gray-100 hover:shadow-lg transition-all ${hasSubmitted ? 'opacity-75' : ''}`}
+                            className={`bg-white rounded-2xl p-6 border border-gray-100 hover:shadow-lg transition-all ${submitted && !isPaid ? 'opacity-75' : ''}`}
                         >
                             <div className="flex items-start justify-between mb-4">
                                 <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${getCategoryBg(task.category)}`}>
                                     {renderCategoryIcon(task.category)}
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    {task.applicants?.length > 0 && (
+                                    {expired && <Badge variant="danger">Deadline Over</Badge>}
+                                    {task.applicants?.length > 0 && !expired && (
                                         <span className="px-2.5 py-1 bg-yellow-400 text-yellow-900 text-xs font-extrabold rounded-lg shadow-sm">
                                             {task.applicants.length} Applicant{task.applicants.length !== 1 ? 's' : ''}
                                         </span>
@@ -282,6 +323,25 @@ const BrowseTasks = () => {
 
                             <h3 className="font-bold text-gray-900 mb-2">{task.title}</h3>
                             <p className="text-sm text-gray-500 mb-4 line-clamp-2">{task.description}</p>
+
+                            {activeTab === 'showcase' && task.feedback && task.feedback.length > 0 && (
+                                <div className="mb-4 space-y-3 bg-indigo-50/50 p-4 rounded-xl border border-indigo-100">
+                                    <p className="text-xs font-bold text-indigo-700 uppercase tracking-widest">Jobber Feedback</p>
+                                    {task.feedback.map((f, i) => (
+                                        <div key={i} className="border-t border-indigo-100 pt-2 first:border-0 first:pt-0">
+                                            <div className="flex items-center justify-between mb-1">
+                                                <span className="text-sm font-semibold text-indigo-900">{f.user?.name || 'Anonymous'}</span>
+                                                <div className="flex text-amber-500 text-xs">
+                                                    {[...Array(5)].map((_, i) => (
+                                                        <span key={i}>{i < f.rating ? '★' : '☆'}</span>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                            <p className="text-sm text-indigo-800 italic">"{f.text}"</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
 
                             <div className="flex flex-wrap gap-1 mb-4">
                                 {(task.skills || '').split(',').map((skill, i) => (
@@ -303,7 +363,13 @@ const BrowseTasks = () => {
 
                             {/* Actions */}
                             <div className="pt-4 border-t border-gray-100">
-                                {!hasApplied(task) && !assigned && (
+                                {expired && activeTab !== 'showcase' && (
+                                    <div className="w-full py-2.5 bg-gray-100 text-gray-400 rounded-xl font-medium text-center flex items-center justify-center gap-2 cursor-not-allowed">
+                                        <AlertCircle className="w-4 h-4" />
+                                        Deadline Over
+                                    </div>
+                                )}
+                                {!expired && !hasApplied(task) && !assigned && activeTab !== 'showcase' && (
                                     <button
                                         onClick={() => { setSelectedTask(task); setApplyModalOpen(true); }}
                                         className="w-full py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-medium flex items-center justify-center gap-2"
@@ -339,9 +405,31 @@ const BrowseTasks = () => {
                                     <div className="text-center text-sm text-amber-600 py-2">Awaiting verification & payment</div>
                                 )}
                                 {isPaid && (
-                                    <div className="text-center text-sm text-emerald-600 py-2 flex items-center justify-center gap-1">
-                                        <CheckCircle className="w-4 h-4" />
-                                        Payment Received
+                                    <div className="flex flex-col gap-2">
+                                        <div className="text-center text-sm text-emerald-600 py-1 flex items-center justify-center gap-1">
+                                            <CheckCircle className="w-4 h-4" />
+                                            Payment Received
+                                        </div>
+                                        {activeTab !== 'showcase' && !hasUserFeedback && (
+                                            <button
+                                                onClick={() => { setSelectedTask(task); setFeedbackModalOpen(true); }}
+                                                className="w-full py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                                            >
+                                                <span>★</span> Leave Feedback
+                                            </button>
+                                        )}
+                                    </div>
+                                )}
+                                {activeTab === 'showcase' && (
+                                    <div className="mt-2 pt-2 border-t border-gray-50 flex items-center justify-between overflow-hidden">
+                                        <span className="text-xs text-gray-400">Completed By:</span>
+                                        <div className="flex -space-x-2">
+                                            {(task.assignedTo || []).map((u, i) => (
+                                                <div key={i} title={u.name} className="w-7 h-7 rounded-full border-2 border-white bg-purple-100 flex items-center justify-center text-[10px] font-bold text-purple-600">
+                                                    {u.photo ? <img src={u.photo} alt="" className="w-full h-full rounded-full object-cover" /> : u.name?.charAt(0)}
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
                                 )}
                             </div>
@@ -356,6 +444,57 @@ const BrowseTasks = () => {
                     <p className="text-gray-500">No tasks found</p>
                 </div>
             )}
+
+            {/* Leave Feedback Modal */}
+            <Modal isOpen={feedbackModalOpen} onClose={() => setFeedbackModalOpen(false)} title="Share Your Experience" size="md">
+                {selectedTask && (
+                    <div className="space-y-4">
+                        <div className="p-4 bg-indigo-50 rounded-xl">
+                            <h3 className="font-semibold text-indigo-900">{selectedTask.title}</h3>
+                            <p className="text-sm text-indigo-600 mt-1">Submit feedback for this completed task</p>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2 text-center">Your Rating</label>
+                            <div className="flex justify-center gap-2 text-3xl">
+                                {[1, 2, 3, 4, 5].map((star) => (
+                                    <button
+                                        key={star}
+                                        onClick={() => setFeedbackData({ ...feedbackData, rating: star })}
+                                        className={`transition-colors ${feedbackData.rating >= star ? 'text-amber-500' : 'text-gray-300'}`}
+                                    >
+                                        ★
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Write your feedback *</label>
+                            <textarea
+                                value={feedbackData.text}
+                                onChange={(e) => setFeedbackData({ ...feedbackData, text: e.target.value })}
+                                placeholder="How was your experience working on this task?"
+                                rows={4}
+                                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none"
+                            />
+                        </div>
+
+                        <div className="flex gap-3 pt-4 border-t">
+                            <button onClick={() => setFeedbackModalOpen(false)} className="flex-1 py-3 text-gray-600 hover:bg-gray-100 rounded-xl font-medium">
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleFeedbackSubmit}
+                                disabled={isSubmitting || !feedbackData.text.trim()}
+                                className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium flex items-center justify-center gap-2 disabled:opacity-50"
+                            >
+                                {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Submit Feedback'}
+                            </button>
+                        </div>
+                    </div>
+                )}
+            </Modal>
 
             {/* Apply Modal */}
             <Modal isOpen={applyModalOpen} onClose={() => setApplyModalOpen(false)} title="Apply for Task" size="md">

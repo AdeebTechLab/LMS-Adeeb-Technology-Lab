@@ -247,12 +247,13 @@ const PaidTasksManagement = () => {
     };
 
     const handleVerifyAndPay = async (taskId) => {
-        if (!window.confirm("Are you sure you want to mark this task as COMPLETED for ALL users? This indicates payment has been sent to everyone.")) return;
+        if (!window.confirm("ARE YOU SURE? Only proceed if payment is clear. This will mark the task as COMPLETED and signify payment has been sent.")) return;
 
         try {
-            await taskAPI.complete(taskId);
+            await taskAPI.adminComplete(taskId);
             setViewMode(null);
             setSelectedTask(null);
+            setActiveTab('completed'); // Switch to completed tab
             fetchTasks(); // Refresh list
         } catch (err) {
             console.error('Error completing task:', err);
@@ -483,13 +484,23 @@ const PaidTasksManagement = () => {
                                     </button>
                                 )}
                                 {task.status === 'assigned' && (
-                                    <button
-                                        onClick={() => handleViewApplicants(task)}
-                                        className="flex-1 py-2 text-sm font-medium text-amber-600 bg-amber-50 hover:bg-amber-100 rounded-xl flex items-center justify-center gap-1"
-                                    >
-                                        <Users className="w-4 h-4" />
-                                        Assigned ({task.assignedTo?.length || 0}) • View {task.applicants?.length || 0} Applicants
-                                    </button>
+                                    <div className="flex gap-2 w-full">
+                                        <button
+                                            onClick={() => handleViewApplicants(task)}
+                                            className="flex-1 py-2 text-sm font-medium text-amber-600 bg-amber-50 hover:bg-amber-100 rounded-xl flex items-center justify-center gap-1"
+                                        >
+                                            <Users className="w-4 h-4" />
+                                            Assigned ({task.assignedTo?.length || 0})
+                                        </button>
+                                        <button
+                                            onClick={() => handleVerifyAndPay(task._id)}
+                                            className="px-4 py-2 text-sm font-medium text-emerald-600 bg-emerald-50 hover:bg-emerald-100 rounded-xl flex items-center justify-center gap-1"
+                                            title="Complete & Pay Task"
+                                        >
+                                            <CheckCircle className="w-4 h-4" />
+                                            Complete & Pay
+                                        </button>
+                                    </div>
                                 )}
                                 {task.status === 'submitted' && (
                                     <div className="flex gap-2 w-full">
@@ -511,10 +522,10 @@ const PaidTasksManagement = () => {
                                         <button
                                             onClick={() => handleVerifyAndPay(task._id)}
                                             className="px-4 py-2 text-sm font-medium text-emerald-600 bg-emerald-50 hover:bg-emerald-100 rounded-xl flex items-center justify-center gap-1"
-                                            title="Mark as Completed"
+                                            title="Complete & Pay Task"
                                         >
                                             <CheckCircle className="w-4 h-4" />
-                                            Finish
+                                            Complete & Pay
                                         </button>
                                     </div>
                                 )}
@@ -862,7 +873,7 @@ const PaidTasksManagement = () => {
                                 className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-medium flex items-center justify-center gap-2"
                             >
                                 <CheckCircle className="w-5 h-5" />
-                                Verify & Finish Task
+                                Complete & Pay Task
                             </button>
                         </div>
                     </div>

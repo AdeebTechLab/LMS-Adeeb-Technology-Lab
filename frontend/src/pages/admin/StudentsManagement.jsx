@@ -175,7 +175,26 @@ const StudentsManagement = () => {
         }
     };
 
-    const downloadPDF = (type = 'full') => {
+    const downloadPDF = async (type = 'full') => {
+        // Fetch enrollments to build userId -> courses map
+        let userCoursesMap = {};
+        try {
+            const enrollRes = await enrollmentAPI.getAll();
+            const enrollments = enrollRes.data.data || [];
+            enrollments.forEach(e => {
+                const userId = e.user?._id;
+                const courseName = e.course?.title;
+                if (userId && courseName) {
+                    if (!userCoursesMap[userId]) userCoursesMap[userId] = [];
+                    if (!userCoursesMap[userId].includes(courseName)) {
+                        userCoursesMap[userId].push(courseName);
+                    }
+                }
+            });
+        } catch (error) {
+            console.error('Error fetching enrollments for export:', error);
+        }
+
         const doc = new jsPDF('l', 'mm', 'a4'); // Use landscape for wide tables
         const title = type === 'phone' ? 'AdeebTechLab - Students Phone Directory' :
             type === 'email' ? 'AdeebTechLab - Students Email List' :
@@ -209,12 +228,13 @@ const StudentsManagement = () => {
                 s.guardianOccupation || 'N/A'
             ]);
         } else if (type === 'academic') {
-            headers = [['Roll No', 'Name', 'Course', 'Education', 'Status']];
+            headers = [['Roll No', 'Name', 'Course', 'Education', 'Registered Courses', 'Status']];
             body = filteredStudents.map(s => [
                 s.rollNo || 'N/A',
                 s.name || 'N/A',
                 s.course || 'N/A',
                 s.education || 'N/A',
+                (userCoursesMap[s._id] && userCoursesMap[s._id].length > 0) ? userCoursesMap[s._id].join(', ') : 'N/A',
                 s.isVerified ? 'Verified' : 'Pending'
             ]);
         } else if (type === 'address') {
@@ -228,7 +248,7 @@ const StudentsManagement = () => {
             ]);
         } else {
             // Full Report
-            headers = [['Roll No', 'Name', 'Email', 'Phone', 'CNIC', 'DOB', 'Age', 'Gender', 'Location', 'Mode', 'Guardian', 'Guardian Ph', 'Address', 'Status']];
+            headers = [['Roll No', 'Name', 'Email', 'Phone', 'CNIC', 'DOB', 'Age', 'Gender', 'Location', 'Mode', 'Guardian', 'Guardian Ph', 'Address', 'Registered Courses', 'Status']];
             body = filteredStudents.map(s => [
                 s.rollNo || 'N/A',
                 s.name || 'N/A',
@@ -243,6 +263,7 @@ const StudentsManagement = () => {
                 s.guardianName || 'N/A',
                 s.guardianPhone || 'N/A',
                 s.address || 'N/A',
+                (userCoursesMap[s._id] && userCoursesMap[s._id].length > 0) ? userCoursesMap[s._id].join(', ') : 'N/A',
                 s.isVerified ? 'Verified' : 'Pending'
             ]);
         }
@@ -253,10 +274,10 @@ const StudentsManagement = () => {
             body: body,
             theme: 'grid',
             headStyles: { fillColor: [13, 40, 24] },
-            styles: { fontSize: 7, overflow: 'linebreak' },
+            styles: { fontSize: 6, overflow: 'linebreak', cellPadding: 2 },
             columnStyles: {
-                // Adjust styles for long text if needed
-                12: { cellWidth: 30 } // Address column in full report
+                12: { cellWidth: 25 }, // Address column in full report
+                13: { cellWidth: 30 }  // Registered Courses column in full report
             }
         });
 

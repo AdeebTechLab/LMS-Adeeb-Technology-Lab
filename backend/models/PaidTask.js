@@ -73,6 +73,22 @@ const paidTaskSchema = new mongoose.Schema({
         default: false
     },
     paymentSentAt: Date,
+    feedback: [{
+        user: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User'
+        },
+        text: String,
+        rating: {
+            type: Number,
+            min: 1,
+            max: 5
+        },
+        createdAt: {
+            type: Date,
+            default: Date.now
+        }
+    }],
     createdBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'

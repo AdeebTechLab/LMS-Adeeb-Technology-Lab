@@ -52,6 +52,36 @@ const ChatWidget = () => {
     // Show for all authenticated users
     const shouldShow = isAuthenticated;
 
+    // Request browser notification permission on mount
+    useEffect(() => {
+        if (!shouldShow) return;
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
+    }, [shouldShow]);
+
+    // Helper to show a browser notification
+    const showBrowserNotification = (senderName, messageText) => {
+        if (!('Notification' in window)) return;
+        if (Notification.permission !== 'granted') return;
+
+        const notification = new Notification(`New message from ${senderName}`, {
+            body: messageText.length > 100 ? messageText.substring(0, 100) + '...' : messageText,
+            icon: '/favicon.ico',
+            tag: 'chat-message', // Replaces previous notification instead of stacking
+            silent: false
+        });
+
+        notification.onclick = () => {
+            window.focus();
+            setIsOpen(true);
+            notification.close();
+        };
+
+        // Auto close after 6 seconds
+        setTimeout(() => notification.close(), 6000);
+    };
+
     useEffect(() => {
         if (!shouldShow) return;
 
@@ -109,6 +139,10 @@ const ChatWidget = () => {
                         text: data.text
                     });
                     setUnreadCount(prev => prev + 1);
+                    // Show browser notification when widget is closed
+                    if (document.hidden) {
+                        showBrowserNotification(data.senderName || 'New Message', data.text);
+                    }
                 }
             } else {
                 // Not the active chat
@@ -121,6 +155,11 @@ const ChatWidget = () => {
                     });
                     // Clear notification after 5s
                     setTimeout(() => setIncomingNotify(null), 5000);
+
+                    // Show browser notification for background messages
+                    if (document.hidden || !isOpenRef.current) {
+                        showBrowserNotification(data.senderName || 'New Message', data.text);
+                    }
                 }
 
                 // Sync lists

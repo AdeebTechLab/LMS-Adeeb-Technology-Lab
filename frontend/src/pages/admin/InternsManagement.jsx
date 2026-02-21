@@ -164,7 +164,26 @@ const InternsManagement = () => {
         });
     };
 
-    const downloadPDF = (type = 'full') => {
+    const downloadPDF = async (type = 'full') => {
+        // Fetch enrollments to build userId -> courses map
+        let userCoursesMap = {};
+        try {
+            const enrollRes = await enrollmentAPI.getAll();
+            const enrollments = enrollRes.data.data || [];
+            enrollments.forEach(e => {
+                const userId = e.user?._id;
+                const courseName = e.course?.title;
+                if (userId && courseName) {
+                    if (!userCoursesMap[userId]) userCoursesMap[userId] = [];
+                    if (!userCoursesMap[userId].includes(courseName)) {
+                        userCoursesMap[userId].push(courseName);
+                    }
+                }
+            });
+        } catch (error) {
+            console.error('Error fetching enrollments for export:', error);
+        }
+
         const doc = new jsPDF('l', 'mm', 'a4');
         const title = type === 'phone' ? 'AdeebTechLab - Interns Phone Directory' :
             type === 'email' ? 'AdeebTechLab - Interns Email List' :
@@ -188,14 +207,15 @@ const InternsManagement = () => {
             headers = [['Name', 'Email', 'Identity']];
             body = filteredInterns.map(i => [i.name || 'N/A', i.email || 'N/A', 'Intern']);
         } else if (type === 'academic') {
-            headers = [['Roll No', 'Name', 'Degree', 'University', 'CGPA', 'Semester']];
+            headers = [['Roll No', 'Name', 'Degree', 'University', 'CGPA', 'Semester', 'Registered Courses']];
             body = filteredInterns.map(i => [
                 i.rollNumber || 'N/A',
                 i.name || 'N/A',
                 i.degree || 'N/A',
                 i.university || 'N/A',
                 i.cgpa || 'N/A',
-                i.semester || 'N/A'
+                i.semester || 'N/A',
+                (userCoursesMap[i._id] && userCoursesMap[i._id].length > 0) ? userCoursesMap[i._id].join(', ') : 'N/A'
             ]);
         } else if (type === 'address') {
             headers = [['Roll No', 'Name', 'Address', 'City']];
@@ -206,7 +226,7 @@ const InternsManagement = () => {
                 i.city || 'N/A'
             ]);
         } else {
-            headers = [['Roll No', 'Name', 'Email', 'Phone', 'CNIC', 'DOB', 'Degree', 'University', 'CGPA', 'Location', 'Mode', 'Status']];
+            headers = [['Roll No', 'Name', 'Email', 'Phone', 'CNIC', 'DOB', 'Degree', 'University', 'CGPA', 'Location', 'Mode', 'Registered Courses', 'Status']];
             body = filteredInterns.map(i => [
                 i.rollNumber || 'N/A',
                 i.name || 'N/A',
@@ -219,6 +239,7 @@ const InternsManagement = () => {
                 i.cgpa || 'N/A',
                 i.location ? (i.location.charAt(0).toUpperCase() + i.location.slice(1)) : 'N/A',
                 (i.attendType === 'Physical' || i.attendType === 'On-Site') ? 'Onsite' : (i.attendType === 'Online' ? 'Remote' : (i.attendType || 'N/A')),
+                (userCoursesMap[i._id] && userCoursesMap[i._id].length > 0) ? userCoursesMap[i._id].join(', ') : 'N/A',
                 i.isVerified ? 'Verified' : 'Pending'
             ]);
         }
@@ -229,7 +250,10 @@ const InternsManagement = () => {
             body: body,
             theme: 'grid',
             headStyles: { fillColor: [13, 40, 24] },
-            styles: { fontSize: 8, overflow: 'linebreak' }
+            styles: { fontSize: 6, overflow: 'linebreak', cellPadding: 2 },
+            columnStyles: {
+                11: { cellWidth: 30 }  // Registered Courses column in full report
+            }
         });
 
         const fileName = `Interns_${type.charAt(0).toUpperCase() + type.slice(1)}_${new Date().toISOString().split('T')[0]}.pdf`;

@@ -167,6 +167,7 @@ export const certificateAPI = {
 export const taskAPI = {
     getAll: (params) => api.get('/tasks', { params }),
     getMy: () => api.get('/tasks/my'),
+    getCompletedShowcase: () => api.get('/tasks/completed-showcase'),
     create: (data) => api.post('/tasks', data),
     update: (id, data) => api.put(`/tasks/${id}`, data),
     apply: (id, message) => api.post(`/tasks/${id}/apply`, { message }),
@@ -176,6 +177,8 @@ export const taskAPI = {
         headers: { 'Content-Type': 'multipart/form-data' }
     }),
     complete: (id) => api.put(`/tasks/${id}/complete`),
+    adminComplete: (id) => api.put(`/tasks/${id}/admin-complete`),
+    addFeedback: (id, data) => api.post(`/tasks/${id}/feedback`, data),
     delete: (id) => api.delete(`/tasks/${id}`)
 };
 
