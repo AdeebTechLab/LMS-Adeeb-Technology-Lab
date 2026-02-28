@@ -58,7 +58,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             // Get all courses
             const coursesRes = await courseAPI.getAll();
             const allCourses = coursesRes.data.data || [];
-            
+
             // Filter teacher's courses (same logic as TeacherCourses.jsx)
             const teacherCourses = allCourses.filter(c => {
                 if (!c.teachers || c.teachers.length === 0) return false;
@@ -87,7 +87,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                     // Skip courses with no assignments
                 }
             }
-            
+
             setTeacherSubmissionCount(pendingSubmissions);
         } catch (error) {
             console.error('Error fetching teacher submission count:', error);
@@ -153,6 +153,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/teacher/dashboard' },
                 { id: 'profile', label: 'My Profile', icon: User, path: '/teacher/profile' },
                 { id: 'attendance', label: 'My Courses', icon: BookOpen, path: '/teacher/attendance', submissionBadge: teacherSubmissionCount },
+                { id: 'certificates', label: 'Certificates', icon: Award, path: '/teacher/certificates' },
             ],
             student: [
                 { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/student/dashboard' },

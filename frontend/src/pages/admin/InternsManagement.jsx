@@ -587,6 +587,9 @@ const InternsManagement = () => {
                                             <p className="text-sm text-gray-500 flex items-center gap-1">
                                                 <Mail className="w-4 h-4" /> {intern.email}
                                             </p>
+                                            <p className="text-xs text-blue-600 font-mono font-bold mt-0.5">
+                                                Roll# {intern.rollNo || intern.rollNumber || 'N/A'}
+                                            </p>
                                         </div>
                                     </div>
 

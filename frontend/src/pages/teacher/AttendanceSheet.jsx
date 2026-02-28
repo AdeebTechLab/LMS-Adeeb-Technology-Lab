@@ -5,7 +5,7 @@ import { useSelector } from 'react-redux';
 import { io } from 'socket.io-client';
 import {
     BookOpen, Users, Calendar, ArrowRight, ChevronLeft,
-    FileText, ClipboardList, CheckCircle, Clock, Loader2, User, Search, Filter, MessageCircle
+    FileText, ClipboardList, CheckCircle, Clock, Loader2, User, Search, Filter, MessageCircle, UserCheck
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import { courseAPI, enrollmentAPI, chatAPI, assignmentAPI } from '../../services/api';
@@ -23,6 +23,7 @@ import AttendanceTab from './components/AttendanceTab';
 import DailyTasksTab from './components/DailyTasksTab';
 import AssignmentsTab from './components/AssignmentsTab';
 import TeacherChatTab from './components/TeacherChatTab';
+import StudentsTab from './components/StudentsTab';
 
 const AttendanceSheet = () => {
     const { id: routeCourseId } = useParams();
@@ -299,7 +300,8 @@ const AttendanceSheet = () => {
     const handleSelectCourse = (course, skipNavigation = false) => {
         // Filter out students who are inactive (unverified first payment or overdue installments)
         // ALSO filter out students who have completed the course (assigned certificate)
-        const activeEnrollments = course.enrollments.filter(e => e.isActive && e.status !== 'completed');
+        // ALSO filter out students who are currently paused
+        const activeEnrollments = course.enrollments.filter(e => e.isActive && e.status !== 'completed' && !e.isPaused);
 
         const studentsList = activeEnrollments.map((e, idx) => ({
             id: e.user?._id || e.user, // IMPORTANT: Repair script used 'user' field
@@ -614,6 +616,16 @@ const AttendanceSheet = () => {
                         Attendance
                     </button>
                     <button
+                        onClick={() => setActiveTab('students')}
+                        className={`px-8 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 ${activeTab === 'students'
+                            ? 'bg-white text-emerald-600 shadow-sm border border-emerald-100'
+                            : 'text-gray-500 hover:bg-gray-200 hover:text-gray-900'
+                            }`}
+                    >
+                        <UserCheck className="w-4 h-4" />
+                        Students
+                    </button>
+                    <button
                         onClick={() => setActiveTab('chat')}
                         className={`px-8 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 relative ${activeTab === 'chat'
                             ? 'bg-white text-emerald-600 shadow-sm border border-emerald-100'
@@ -640,6 +652,9 @@ const AttendanceSheet = () => {
                     )}
                     {activeTab === 'attendance' && (
                         <AttendanceTab course={selectedCourse} students={courseStudents} />
+                    )}
+                    {activeTab === 'students' && (
+                        <StudentsTab course={selectedCourse} />
                     )}
                     {activeTab === 'chat' && (
                         <TeacherChatTab course={selectedCourse} students={courseStudents} onUnreadCountChange={fetchChatUnreadCount} />

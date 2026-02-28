@@ -55,10 +55,21 @@ router.post('/', protect, authorize('intern', 'student'), async (req, res) => {
         const isOverdue = await hasOverdueFee(req.user.id, courseId);
         if (isOverdue) {
             console.log(`❌ User has overdue fee`);
-            return res.status(403).json({ 
-                success: false, 
+            return res.status(403).json({
+                success: false,
                 message: 'You have an overdue fee payment. Please pay your installment to submit daily tasks.',
                 code: 'FEE_OVERDUE'
+            });
+        }
+
+        // Check if student is paused in this course
+        const enrollment = await require('../models/Enrollment').findOne({ user: req.user.id, course: courseId });
+        if (enrollment && enrollment.isPaused) {
+            console.log(`❌ User is paused in this course`);
+            return res.status(403).json({
+                success: false,
+                message: 'Your access to this course has been temporarily paused by your teacher.',
+                code: 'PAUSED'
             });
         }
 

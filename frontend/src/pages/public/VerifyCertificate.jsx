@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Search, User, XCircle, Loader2, Award, CheckCircle, ShieldCheck, Download, FileText, BookOpen, Calendar, MapPin, Briefcase, GraduationCap } from 'lucide-react';
+import { Search, User, XCircle, Loader2, Award, CheckCircle, ShieldCheck, Download, FileText, BookOpen, Calendar, MapPin, Briefcase, GraduationCap, ExternalLink } from 'lucide-react';
 import { certificateAPI } from '../../services/api';
 
 const VerifyCertificate = () => {
@@ -186,7 +186,7 @@ const VerifyCertificate = () => {
                                     <div className="w-10 h-10 rounded-xl bg-emerald-600 flex items-center justify-center text-white shadow-lg shadow-emerald-600/20">
                                         <Award className="w-6 h-6" />
                                     </div>
-                                    STUDENT RECORDS VALIDATED
+                                    {certificateGroups[0]?.position === 'Teacher' ? 'TEACHER RECORDS VALIDATED' : 'STUDENT RECORDS VALIDATED'}
                                 </h2>
                                 <div className="px-4 py-2 bg-emerald-50 rounded-full border border-emerald-100 text-emerald-700 text-xs font-bold uppercase tracking-wider">
                                     {certificates.length} {certificates.length === 1 ? 'Certificate' : 'Certificates'} Found
@@ -283,12 +283,12 @@ const VerifyCertificate = () => {
                                                                             <p className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
                                                                                 <MapPin className="w-3.5 h-3.5 text-emerald-500" /> Certified At
                                                                             </p>
-                                                                            <p className="text-lg font-bold text-slate-700">{group.location || 'Official Center'}</p>
+                                                                            <p className="text-lg font-bold text-slate-700">{courseData.location || group.location || 'Adeeb Technology Lab'}</p>
                                                                         </div>
                                                                         <div className="md:col-span-2 space-y-4">
-                                                                            <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Mastery & Specialization</p>
+                                                                            <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Mastery &amp; Specialization</p>
                                                                             <div className="flex flex-wrap gap-2.5">
-                                                                                {(courseData.skills || '').split(',').map((skill, i) => (
+                                                                                {(courseData.skills || '').split(',').filter(s => s.trim()).map((skill, i) => (
                                                                                     <span key={i} className="px-4 py-2 bg-emerald-50/50 text-emerald-800 rounded-xl text-sm font-bold border border-emerald-100 flex items-center gap-2 hover:bg-emerald-100 transition-colors">
                                                                                         <CheckCircle className="w-3.5 h-3.5 text-emerald-500" />
                                                                                         {skill.trim()}
@@ -296,6 +296,19 @@ const VerifyCertificate = () => {
                                                                                 ))}
                                                                             </div>
                                                                         </div>
+                                                                        {courseData.certificateLink && (
+                                                                            <div className="md:col-span-2">
+                                                                                <a
+                                                                                    href={courseData.certificateLink}
+                                                                                    target="_blank"
+                                                                                    rel="noopener noreferrer"
+                                                                                    className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-all shadow-md shadow-emerald-900/10"
+                                                                                >
+                                                                                    <ExternalLink className="w-4 h-4" />
+                                                                                    Open Certificate
+                                                                                </a>
+                                                                            </div>
+                                                                        )}
                                                                     </div>
                                                                 </div>
                                                             ))}

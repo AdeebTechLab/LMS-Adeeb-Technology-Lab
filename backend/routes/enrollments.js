@@ -391,4 +391,54 @@ router.delete('/:id', protect, async (req, res) => {
     }
 });
 
+// @route   PUT /api/enrollments/:id/pause
+// @desc    Pause a student enrollment (Teacher, Admin)
+// @access  Private (Teacher, Admin)
+router.put('/:id/pause', protect, authorize('teacher', 'admin'), async (req, res) => {
+    try {
+        const enrollment = await Enrollment.findById(req.params.id);
+        if (!enrollment) {
+            return res.status(404).json({ success: false, message: 'Enrollment not found' });
+        }
+
+        const now = new Date();
+        enrollment.isPaused = true;
+        enrollment.pausedAt = now;
+        // Push a new open pause period (to: null means still paused)
+        enrollment.pausedPeriods.push({ from: now, to: null });
+        await enrollment.save();
+
+        res.json({ success: true, enrollment, message: 'Student has been paused successfully' });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// @route   PUT /api/enrollments/:id/resume
+// @desc    Resume a paused student enrollment (Teacher, Admin)
+// @access  Private (Teacher, Admin)
+router.put('/:id/resume', protect, authorize('teacher', 'admin'), async (req, res) => {
+    try {
+        const enrollment = await Enrollment.findById(req.params.id);
+        if (!enrollment) {
+            return res.status(404).json({ success: false, message: 'Enrollment not found' });
+        }
+
+        const now = new Date();
+        enrollment.isPaused = false;
+        enrollment.pausedAt = undefined;
+        // Close the last open pause period
+        const lastPeriod = enrollment.pausedPeriods[enrollment.pausedPeriods.length - 1];
+        if (lastPeriod && !lastPeriod.to) {
+            lastPeriod.to = now;
+            enrollment.markModified('pausedPeriods');
+        }
+        await enrollment.save();
+
+        res.json({ success: true, enrollment, message: 'Student has been resumed successfully' });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
 module.exports = router;

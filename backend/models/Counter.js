@@ -23,4 +23,14 @@ counterSchema.statics.getNextRollNo = async function () {
     return String(counter.value).padStart(4, '0');
 };
 
+// Get next teacher ID (t0001, t0002, etc.)
+counterSchema.statics.getNextTeacherId = async function () {
+    const counter = await this.findOneAndUpdate(
+        { name: 'teacherId' },
+        { $inc: { value: 1 } },
+        { new: true, upsert: true }
+    );
+    return 't' + String(counter.value).padStart(4, '0');
+};
+
 module.exports = mongoose.model('Counter', counterSchema);

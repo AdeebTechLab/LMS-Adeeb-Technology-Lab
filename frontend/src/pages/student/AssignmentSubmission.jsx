@@ -644,6 +644,25 @@ const AssignmentSubmission = () => {
                         </div>
                     )}
 
+                    {/* Paused Warning */}
+                    {(() => {
+                        const currentEnrollment = enrollments.find(e => (e.course?._id || e.course) === selectedCourseId);
+                        if (!currentEnrollment?.isPaused) return null;
+                        return (
+                            <div className="bg-amber-50 border-2 border-amber-300 px-5 py-4 rounded-2xl flex items-start gap-4">
+                                <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <AlertCircle className="w-5 h-5 text-amber-600" />
+                                </div>
+                                <div>
+                                    <p className="text-sm font-black text-amber-800 uppercase tracking-wide">Account Temporarily Paused</p>
+                                    <p className="text-xs text-amber-700 font-medium mt-1 leading-relaxed">
+                                        Your access to this course has been paused by your teacher. Assignments, daily task submissions, and fee installments are blocked until your teacher resumes your access. Please contact your teacher for more information.
+                                    </p>
+                                </div>
+                            </div>
+                        );
+                    })()}
+
                     {/* Tab Navigation - Teacher Portal Style */}
                     <div className="flex gap-2 bg-gray-100/80 p-1.5 rounded-2xl w-fit border border-gray-200">
                         <button
@@ -687,7 +706,8 @@ const AssignmentSubmission = () => {
                     {/* Tab Content */}
                     {(() => {
                         const isCompleted = selectedEnrollment && selectedEnrollment.status === 'completed';
-                        const isRestricted = feeOverdue.hasOverdue;
+                        const currentEnrollment = enrollments.find(e => (e.course?._id || e.course) === selectedCourseId);
+                        const isRestricted = feeOverdue.hasOverdue || !!currentEnrollment?.isPaused;
 
                         return (
                             <>

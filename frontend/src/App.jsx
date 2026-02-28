@@ -49,6 +49,7 @@ import BrowseCourses from './pages/student/BrowseCourses';
 import FeeManagement from './pages/student/FeeManagement';
 import AttendanceView from './pages/student/AttendanceView';
 import StudentCourseView from './pages/student/StudentCourseView';
+import TeacherCertificates from './pages/teacher/TeacherCertificates';
 
 // Public Pages
 import CertificateVerification from './pages/public/CertificateVerification';
@@ -143,6 +144,7 @@ const AppRoutes = () => {
         <Route path="profile" element={<TeacherProfile />} />
         <Route path="attendance" element={<AttendanceSheet />} />
         <Route path="course/:id" element={<AttendanceSheet />} />
+        <Route path="certificates" element={<TeacherCertificates />} />
         <Route path="settings" element={<div className="text-gray-500">Settings - Coming Soon</div>} />
       </Route>
 

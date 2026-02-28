@@ -17,9 +17,14 @@ const CertificateManagement = () => {
     const [confirmModal, setConfirmModal] = useState({ open: false, student: null, course: null, request: null });
     const [editCertModal, setEditCertModal] = useState({ open: false, certificate: null, student: null });
     const [courses, setCourses] = useState([]);
+    const [teachers, setTeachers] = useState([]);
     const [requests, setRequests] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isIssuing, setIsIssuing] = useState(false);
+    const [activeSection, setActiveSection] = useState('courses'); // 'courses' | 'teachers'
+    const [teacherCertModal, setTeacherCertModal] = useState({ open: false, teacher: null });
+    const [teacherCertData, setTeacherCertData] = useState({ rollNo: '', skills: '', duration: '', passoutDate: new Date().toISOString().split('T')[0], certificateLink: '', selectedCourses: [] });
+    const [isBackfilling, setIsBackfilling] = useState(false);
 
     // Modal Edit State
     const [editData, setEditData] = useState({
@@ -49,9 +54,10 @@ const CertificateManagement = () => {
             console.log('🔄 [CERT] Starting to fetch data...');
             console.log('👤 [CERT] User:', user);
 
-            const [requestsRes, coursesRes] = await Promise.all([
+            const [requestsRes, coursesRes, teachersRes] = await Promise.all([
                 certificateAPI.getRequests(),
-                certificateAPI.getCourses()
+                certificateAPI.getCourses(),
+                certificateAPI.getTeachers()
             ]);
 
             console.log('✅ [CERT] Requests Response:', requestsRes);
@@ -96,6 +102,7 @@ const CertificateManagement = () => {
 
             console.log('✅ [CERT] Formatted Courses:', formattedCourses);
             setCourses(formattedCourses);
+            setTeachers(teachersRes.data.teachers || []);
         } catch (error) {
             console.error('❌ [CERT] Error fetching data:', error);
             console.error('❌ [CERT] Error Status:', error.response?.status);
@@ -225,6 +232,59 @@ const CertificateManagement = () => {
         }
     };
 
+    const handleOpenTeacherCertModal = (teacher) => {
+        setTeacherCertModal({ open: true, teacher });
+        // Pre-select all assigned courses by default
+        const allCourseNames = (teacher.assignedCourses || []).map(c => c.title);
+        setTeacherCertData({
+            rollNo: teacher.rollNo || '',
+            skills: teacher.specialization || 'Teaching',
+            duration: '',
+            passoutDate: new Date().toISOString().split('T')[0],
+            certificateLink: '',
+            selectedCourses: allCourseNames
+        });
+    };
+
+    const handleIssueTeacherCert = async () => {
+        if (!teacherCertModal.teacher) return;
+        if (!window.confirm(`Issue achievement certificate to ${teacherCertModal.teacher.name}?`)) return;
+        setIsIssuing(true);
+        try {
+            await certificateAPI.issueTeacher({
+                userId: teacherCertModal.teacher._id,
+                rollNo: teacherCertData.rollNo,
+                skills: teacherCertData.skills,
+                duration: teacherCertData.duration,
+                passoutDate: teacherCertData.passoutDate,
+                certificateLink: teacherCertData.certificateLink,
+                selectedCourses: teacherCertData.selectedCourses
+            });
+            alert('Teacher certificate issued successfully!');
+            fetchAllData();
+            setTeacherCertModal({ open: false, teacher: null });
+        } catch (error) {
+            console.error('Error issuing teacher certificate:', error);
+            alert(error.response?.data?.message || 'Failed to issue certificate');
+        } finally {
+            setIsIssuing(false);
+        }
+    };
+
+    const handleBackfillTeacherIds = async () => {
+        if (!window.confirm('This will assign unique t0001... IDs to all existing teachers that do not have one. Continue?')) return;
+        setIsBackfilling(true);
+        try {
+            const res = await certificateAPI.backfillTeacherIds();
+            alert(res.data.message);
+            fetchAllData();
+        } catch (error) {
+            alert(error.response?.data?.message || 'Failed to backfill teacher IDs');
+        } finally {
+            setIsBackfilling(false);
+        }
+    };
+
     const toggleFilter = (type, value) => {
         if (type === 'type') {
             setSelectedTypes(prev =>
@@ -270,6 +330,7 @@ const CertificateManagement = () => {
 
     const totalStudents = courses.reduce((acc, c) => acc + c.students.length, 0);
     const totalCertified = courses.reduce((acc, c) => acc + c.students.filter(s => s.certificateIssued).length, 0);
+    const teachersCertified = teachers.filter(t => t.certificateIssued).length;
 
     if (isLoading) {
         return (
@@ -286,7 +347,7 @@ const CertificateManagement = () => {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Certificate Management</h1>
-                    <p className="text-gray-500">Issue and manage student certificates</p>
+                    <p className="text-gray-500">Issue and manage student & teacher certificates</p>
                 </div>
                 <div className="flex gap-4">
                     <div className="px-4 py-2 bg-amber-50 rounded-xl text-center">
@@ -295,327 +356,478 @@ const CertificateManagement = () => {
                     </div>
                     <div className="px-4 py-2 bg-emerald-50 rounded-xl text-center">
                         <p className="text-2xl font-bold text-emerald-600">{totalCertified}</p>
-                        <p className="text-xs text-gray-500">Certified</p>
+                        <p className="text-xs text-gray-500">Students</p>
+                    </div>
+                    <div className="px-4 py-2 bg-blue-50 rounded-xl text-center">
+                        <p className="text-2xl font-bold text-blue-600">{teachersCertified}</p>
+                        <p className="text-xs text-gray-500">Teachers</p>
                     </div>
                 </div>
             </div>
 
-            {/* Filters and Search */}
-            <div className="bg-white rounded-2xl p-6 border border-gray-100 space-y-4">
-                <div className="flex flex-col md:flex-row gap-4">
-                    {/* Search */}
-                    <div className="flex-1 flex items-center bg-gray-50 rounded-xl px-4 py-3 border border-transparent focus-within:border-emerald-500/20 focus-within:bg-white transition-all">
-                        <Search className="w-5 h-5 text-gray-400 mr-3" />
-                        <input
-                            type="text"
-                            placeholder="Search by course, student, roll no, CNIC..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="bg-transparent border-none outline-none w-full text-gray-700 placeholder:text-gray-400"
-                        />
-                    </div>
-
-                    {/* Clear Button */}
-                    {(selectedTypes.length > 0 || selectedCities.length > 0 || searchQuery) && (
-                        <button
-                            onClick={clearFilters}
-                            className="flex items-center justify-center gap-2 px-4 py-2 text-rose-500 hover:bg-rose-50 rounded-xl transition-all text-sm font-medium"
-                        >
-                            <X className="w-4 h-4" />
-                            Clear Filters
-                        </button>
-                    )}
-                </div>
-
-                <div className="flex flex-wrap items-center gap-6 pt-2">
-                    {/* Audience Filters */}
-                    <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Audience:</span>
-                        <div className="flex bg-gray-100 p-1 rounded-lg">
-                            <button
-                                onClick={() => toggleFilter('type', 'students')}
-                                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${selectedTypes.includes('students')
-                                    ? 'bg-white text-emerald-600 shadow-sm'
-                                    : 'text-gray-500 hover:text-gray-700'
-                                    }`}
-                            >
-                                Students
-                            </button>
-                            <button
-                                onClick={() => toggleFilter('type', 'interns')}
-                                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${selectedTypes.includes('interns')
-                                    ? 'bg-white text-emerald-600 shadow-sm'
-                                    : 'text-gray-500 hover:text-gray-700'
-                                    }`}
-                            >
-                                Interns
-                            </button>
-                        </div>
-                    </div>
-
-                    <div className="h-6 w-px bg-gray-200 hidden sm:block" />
-
-                    {/* City Filters */}
-                    <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Location:</span>
-                        <div className="flex bg-gray-100 p-1 rounded-lg">
-                            <button
-                                onClick={() => toggleFilter('city', 'Islamabad')}
-                                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${selectedCities.includes('Islamabad')
-                                    ? 'bg-white text-emerald-600 shadow-sm'
-                                    : 'text-gray-500 hover:text-gray-700'
-                                    }`}
-                            >
-                                Islamabad
-                            </button>
-                            <button
-                                onClick={() => toggleFilter('city', 'Bahawalpur')}
-                                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${selectedCities.includes('Bahawalpur')
-                                    ? 'bg-white text-emerald-600 shadow-sm'
-                                    : 'text-gray-500 hover:text-gray-700'
-                                    }`}
-                            >
-                                Bahawalpur
-                            </button>
-                        </div>
-                    </div>
-                </div>
+            {/* Section Toggle */}
+            <div className="flex gap-2 bg-gray-100 p-1.5 rounded-2xl w-fit">
+                <button
+                    onClick={() => setActiveSection('courses')}
+                    className={`px-5 py-2 rounded-xl font-bold text-sm transition-all ${activeSection === 'courses' ? 'bg-white text-emerald-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                >
+                    Students & Interns
+                </button>
+                <button
+                    onClick={() => setActiveSection('teachers')}
+                    className={`px-5 py-2 rounded-xl font-bold text-sm transition-all flex items-center gap-2 ${activeSection === 'teachers' ? 'bg-white text-blue-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                >
+                    Teachers
+                    {teachers.length > 0 && <span className="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full font-black">{teachers.length}</span>}
+                </button>
             </div>
 
-            {/* Pending Requests Section */}
-            {filteredRequests.length > 0 && (
-                <div className="space-y-4">
-                    <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                        <ClipboardList className="w-5 h-5 text-amber-600" />
-                        Pending Requests ({filteredRequests.length})
-                    </h2>
-                    {filteredRequests.map((request) => (
-                        <motion.div
-                            key={request._id}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="bg-white rounded-2xl p-6 border border-amber-100 flex flex-col md:flex-row items-center justify-between gap-6"
-                        >
-                            <div className="flex items-center gap-4 flex-1">
-                                <div className="w-16 h-16 rounded-xl bg-gray-100 border border-gray-200 overflow-hidden shrink-0">
-                                    {request.user?.photo ? (
-                                        <img src={request.user.photo} alt="" className="w-full h-full object-cover" />
-                                    ) : (
-                                        <div className="w-full h-full flex items-center justify-center">
-                                            <User className="w-8 h-8 text-gray-300" />
-                                        </div>
-                                    )}
-                                </div>
-                                <div>
-                                    <div className="flex items-center gap-2 mb-1">
-                                        <h3 className="text-lg font-bold text-gray-900">{request.user?.name}</h3>
-                                        <Badge variant={request.user?.role === 'intern' ? 'warning' : 'info'}>
-                                            {request.user?.role}
-                                        </Badge>
-                                    </div>
-                                    <p className="text-sm text-emerald-600 font-medium">{request.course?.title}</p>
-                                    <div className="flex items-center gap-2 mt-1">
-                                        <Badge variant="info">
-                                            {request.course?.city || request.course?.location || 'Unknown'}
-                                        </Badge>
-                                        <Badge variant={(request.course?.targetAudience || (request.user?.role === 'intern' ? 'interns' : 'students')) === 'interns' ? 'purple' : 'success'}>
-                                            {(request.course?.targetAudience || (request.user?.role === 'intern' ? 'interns' : 'students')) === 'interns' ? 'Intern' : 'Student'}
-                                        </Badge>
-                                    </div>
-                                    <p className="text-xs text-gray-500 mt-1">Recommended by: {request.teacher?.name}</p>
-                                </div>
-                            </div>
+            {/* ── STUDENTS & INTERNS SECTION ── */}
+            {activeSection === 'courses' && (<>
+                <div className="bg-white rounded-2xl p-6 border border-gray-100 space-y-4">
+                    <div className="flex flex-col md:flex-row gap-4">
+                        {/* Search */}
+                        <div className="flex-1 flex items-center bg-gray-50 rounded-xl px-4 py-3 border border-transparent focus-within:border-emerald-500/20 focus-within:bg-white transition-all">
+                            <Search className="w-5 h-5 text-gray-400 mr-3" />
+                            <input
+                                type="text"
+                                placeholder="Search by course, student, roll no, CNIC..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="bg-transparent border-none outline-none w-full text-gray-700 placeholder:text-gray-400"
+                            />
+                        </div>
 
-                            <div className="flex flex-col items-end gap-2 text-right">
-                                <div className="text-xs text-gray-500 italic mb-2">
-                                    "{request.notes || 'No teacher notes provided'}"
-                                </div>
-                                <div className="flex gap-2">
-                                    <button
-                                        onClick={() => handleRejectRequest(request._id)}
-                                        className="px-4 py-2 text-red-600 hover:bg-red-50 rounded-xl font-bold transition-all flex items-center gap-2"
-                                    >
-                                        <XCircle className="w-4 h-4" />
-                                        Reject
-                                    </button>
-                                    <button
-                                        onClick={() => handleOpenApproveModal(request)}
-                                        className="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-emerald-900/10 flex items-center gap-2"
-                                    >
-                                        <Award className="w-4 h-4" />
-                                        Approve & Issue
-                                    </button>
-                                </div>
-                            </div>
-                        </motion.div>
-                    ))}
-                </div>
-            )}
-
-            {requests.length > 0 && filteredRequests.length === 0 && (
-                <div className="bg-white rounded-2xl p-8 border border-gray-100 text-center">
-                    <Filter className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-                    <p className="text-gray-500">No pending requests match your filters</p>
-                </div>
-            )}
-
-            {/* Courses with Students */}
-            <div className="space-y-4">
-                <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                    <BookOpen className="w-5 h-5 text-emerald-600" />
-                    Courses & Certificates
-                </h2>
-
-                {courses.length === 0 ? (
-                    <div className="bg-white rounded-2xl p-12 border border-gray-100 text-center">
-                        <BookOpen className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                        <p className="text-gray-500 font-medium">No courses found</p>
-                        <p className="text-xs text-gray-400 mt-1">Create some courses first to manage certificates</p>
-                    </div>
-                ) : (
-                    <>
-                        {filteredCourses.map((course) => (
-                            <motion.div
-                                key={course.id}
-                                className="bg-white rounded-2xl border border-gray-100 overflow-hidden"
+                        {/* Clear Button */}
+                        {(selectedTypes.length > 0 || selectedCities.length > 0 || searchQuery) && (
+                            <button
+                                onClick={clearFilters}
+                                className="flex items-center justify-center gap-2 px-4 py-2 text-rose-500 hover:bg-rose-50 rounded-xl transition-all text-sm font-medium"
                             >
-                                <div
-                                    onClick={() => setExpandedCourse(expandedCourse === course.id ? null : course.id)}
-                                    className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50 transition-colors"
+                                <X className="w-4 h-4" />
+                                Clear Filters
+                            </button>
+                        )}
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-6 pt-2">
+                        {/* Audience Filters */}
+                        <div className="flex items-center gap-2">
+                            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Audience:</span>
+                            <div className="flex bg-gray-100 p-1 rounded-lg">
+                                <button
+                                    onClick={() => toggleFilter('type', 'students')}
+                                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${selectedTypes.includes('students')
+                                        ? 'bg-white text-emerald-600 shadow-sm'
+                                        : 'text-gray-500 hover:text-gray-700'
+                                        }`}
                                 >
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center">
-                                            <BookOpen className="w-6 h-6 text-emerald-600" />
-                                        </div>
-                                        <div>
-                                            <h3 className="font-bold text-gray-900 line-clamp-1">{course.name}</h3>
-                                            <div className="flex items-center gap-2 mt-1">
-                                                <Badge variant="info" size="sm">
-                                                    {course.city}
-                                                </Badge>
-                                                <Badge variant={course.targetAudience === 'interns' ? 'purple' : 'success'} size="sm">
-                                                    {course.targetAudience === 'interns' ? 'Intern' : 'Student'}
-                                                </Badge>
+                                    Students
+                                </button>
+                                <button
+                                    onClick={() => toggleFilter('type', 'interns')}
+                                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${selectedTypes.includes('interns')
+                                        ? 'bg-white text-emerald-600 shadow-sm'
+                                        : 'text-gray-500 hover:text-gray-700'
+                                        }`}
+                                >
+                                    Interns
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="h-6 w-px bg-gray-200 hidden sm:block" />
+
+                        {/* City Filters */}
+                        <div className="flex items-center gap-2">
+                            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Location:</span>
+                            <div className="flex bg-gray-100 p-1 rounded-lg">
+                                <button
+                                    onClick={() => toggleFilter('city', 'Islamabad')}
+                                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${selectedCities.includes('Islamabad')
+                                        ? 'bg-white text-emerald-600 shadow-sm'
+                                        : 'text-gray-500 hover:text-gray-700'
+                                        }`}
+                                >
+                                    Islamabad
+                                </button>
+                                <button
+                                    onClick={() => toggleFilter('city', 'Bahawalpur')}
+                                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${selectedCities.includes('Bahawalpur')
+                                        ? 'bg-white text-emerald-600 shadow-sm'
+                                        : 'text-gray-500 hover:text-gray-700'
+                                        }`}
+                                >
+                                    Bahawalpur
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Pending Requests Section */}
+                {filteredRequests.length > 0 && (
+                    <div className="space-y-4">
+                        <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                            <ClipboardList className="w-5 h-5 text-amber-600" />
+                            Pending Requests ({filteredRequests.length})
+                        </h2>
+                        {filteredRequests.map((request) => (
+                            <motion.div
+                                key={request._id}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="bg-white rounded-2xl p-6 border border-amber-100 flex flex-col md:flex-row items-center justify-between gap-6"
+                            >
+                                <div className="flex items-center gap-4 flex-1">
+                                    <div className="w-16 h-16 rounded-xl bg-gray-100 border border-gray-200 overflow-hidden shrink-0">
+                                        {request.user?.photo ? (
+                                            <img src={request.user.photo} alt="" className="w-full h-full object-cover" />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center">
+                                                <User className="w-8 h-8 text-gray-300" />
                                             </div>
-                                        </div>
+                                        )}
                                     </div>
-                                    <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform ${expandedCourse === course.id ? 'rotate-180' : ''}`} />
+                                    <div>
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <h3 className="text-lg font-bold text-gray-900">{request.user?.name}</h3>
+                                            <Badge variant={request.user?.role === 'intern' ? 'warning' : 'info'}>
+                                                {request.user?.role}
+                                            </Badge>
+                                        </div>
+                                        <p className="text-sm text-emerald-600 font-medium">{request.course?.title}</p>
+                                        <div className="flex items-center gap-2 mt-1">
+                                            <Badge variant="info">
+                                                {request.course?.city || request.course?.location || 'Unknown'}
+                                            </Badge>
+                                            <Badge variant={(request.course?.targetAudience || (request.user?.role === 'intern' ? 'interns' : 'students')) === 'interns' ? 'purple' : 'success'}>
+                                                {(request.course?.targetAudience || (request.user?.role === 'intern' ? 'interns' : 'students')) === 'interns' ? 'Intern' : 'Student'}
+                                            </Badge>
+                                        </div>
+                                        <p className="text-xs text-gray-500 mt-1">Recommended by: {request.teacher?.name}</p>
+                                    </div>
                                 </div>
 
-                                {expandedCourse === course.id && (
-                                    <div className="border-t border-gray-100 overflow-x-auto">
-                                        <table className="w-full">
-                                            <thead className="bg-gray-50/50">
-                                                <tr>
-                                                    <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Student</th>
-                                                    <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Roll No</th>
-                                                    <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Status</th>
-                                                    <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Passout Date</th>
-                                                    <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Action</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className="divide-y divide-gray-50">
-                                                {course.students.map((student) => (
-                                                    <tr key={student.id} className="hover:bg-gray-50/50 transition-colors">
-                                                        <td className="px-6 py-4">
-                                                            <div className="flex items-center gap-3">
-                                                                <div className="w-10 h-10 rounded-full bg-gray-100 border border-gray-100 overflow-hidden shrink-0">
-                                                                    {student.photo ? (
-                                                                        <img src={student.photo} alt="" className="w-full h-full object-cover" />
-                                                                    ) : (
-                                                                        <div className="w-full h-full flex items-center justify-center">
-                                                                            <User className="w-5 h-5 text-gray-300" />
-                                                                        </div>
-                                                                    )}
-                                                                </div>
-                                                                <div>
-                                                                    <p className="font-bold text-gray-900 text-sm">{student.name}</p>
-                                                                    <Badge variant={student.type === 'intern' ? 'purple' : 'success'} className="text-[10px] py-0">
-                                                                        {student.type === 'intern' ? 'Intern' : 'Student'}
-                                                                    </Badge>
-                                                                </div>
-                                                            </div>
-                                                        </td>
-                                                        <td className="px-6 py-4 font-mono text-xs font-bold text-gray-500">{student.rollNo}</td>
-                                                        <td className="px-6 py-4 text-xs font-medium">
-                                                            {student.certificateIssued ? (
-                                                                <div className="flex items-center gap-1 text-emerald-600">
-                                                                    <CheckCircle className="w-4 h-4" />
-                                                                    Certified
-                                                                </div>
-                                                            ) : (
-                                                                <div className="text-gray-400">Not Issued</div>
-                                                            )}
-                                                        </td>
-                                                        <td className="px-6 py-4 text-xs text-gray-600">
-                                                            {student.certificate?.passoutDate || '-'}
-                                                        </td>
-                                                        <td className="px-6 py-4">
-                                                            <div className="flex items-center gap-2">
-                                                                {student.certificateIssued ? (
-                                                                    <>
-                                                                        <button
-                                                                            onClick={() => handleOpenEditCertModal(student, course)}
-                                                                            className="p-2 hover:bg-blue-50 text-blue-600 rounded-lg transition-all"
-                                                                            title="Edit Certificate"
-                                                                        >
-                                                                            <Edit2 className="w-5 h-5" />
-                                                                        </button>
-                                                                        <button
-                                                                            onClick={() => handleDeleteCertificate(student.certificate._id)}
-                                                                            className="p-2 hover:bg-red-50 text-red-600 rounded-lg transition-all"
-                                                                            title="Delete Certificate"
-                                                                        >
-                                                                            <Trash2 className="w-5 h-5" />
-                                                                        </button>
-                                                                    </>
-                                                                ) : (
-                                                                    <button
-                                                                        onClick={() => {
-                                                                            setConfirmModal({ open: true, student, course });
-                                                                            setEditData({
-                                                                                rollNo: student.rollNo || '',
-                                                                                skills: course.name || '',
-                                                                                duration: course.duration || '',
-                                                                                passoutDate: new Date().toISOString().split('T')[0],
-                                                                                certificateLink: ''
-                                                                            });
-                                                                        }}
-                                                                        className="p-2 hover:bg-emerald-50 text-emerald-600 rounded-lg transition-all"
-                                                                        title="Issue Certificate"
-                                                                    >
-                                                                        <Award className="w-5 h-5" />
-                                                                    </button>
-                                                                )}
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
+                                <div className="flex flex-col items-end gap-2 text-right">
+                                    <div className="text-xs text-gray-500 italic mb-2">
+                                        "{request.notes || 'No teacher notes provided'}"
                                     </div>
-                                )}
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => handleRejectRequest(request._id)}
+                                            className="px-4 py-2 text-red-600 hover:bg-red-50 rounded-xl font-bold transition-all flex items-center gap-2"
+                                        >
+                                            <XCircle className="w-4 h-4" />
+                                            Reject
+                                        </button>
+                                        <button
+                                            onClick={() => handleOpenApproveModal(request)}
+                                            className="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-emerald-900/10 flex items-center gap-2"
+                                        >
+                                            <Award className="w-4 h-4" />
+                                            Approve & Issue
+                                        </button>
+                                    </div>
+                                </div>
                             </motion.div>
                         ))}
-
-                        {filteredCourses.length === 0 && (
-                            <div className="bg-white rounded-2xl p-12 border border-gray-100 text-center">
-                                <BookOpen className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                                <p className="text-gray-500">No courses match your filters</p>
-                                {(searchQuery || selectedCities.length > 0 || selectedTypes.length > 0) && (
-                                    <button
-                                        onClick={() => { setSearchQuery(''); setSelectedCities([]); setSelectedTypes([]); }}
-                                        className="mt-2 text-emerald-600 hover:text-emerald-700 font-medium text-sm"
-                                    >
-                                        Clear all filters
-                                    </button>
-                                )}
-                            </div>
-                        )}
-                    </>
+                    </div>
                 )}
-            </div>
 
+                {requests.length > 0 && filteredRequests.length === 0 && (
+                    <div className="bg-white rounded-2xl p-8 border border-gray-100 text-center">
+                        <Filter className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+                        <p className="text-gray-500">No pending requests match your filters</p>
+                    </div>
+                )}
+
+                {/* Courses with Students */}
+                <div className="space-y-4">
+                    <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                        <BookOpen className="w-5 h-5 text-emerald-600" />
+                        Courses & Certificates
+                    </h2>
+
+                    {courses.length === 0 ? (
+                        <div className="bg-white rounded-2xl p-12 border border-gray-100 text-center">
+                            <BookOpen className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                            <p className="text-gray-500 font-medium">No courses found</p>
+                            <p className="text-xs text-gray-400 mt-1">Create some courses first to manage certificates</p>
+                        </div>
+                    ) : (
+                        <>
+                            {filteredCourses.map((course) => (
+                                <motion.div
+                                    key={course.id}
+                                    className="bg-white rounded-2xl border border-gray-100 overflow-hidden"
+                                >
+                                    <div
+                                        onClick={() => setExpandedCourse(expandedCourse === course.id ? null : course.id)}
+                                        className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50 transition-colors"
+                                    >
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center">
+                                                <BookOpen className="w-6 h-6 text-emerald-600" />
+                                            </div>
+                                            <div>
+                                                <h3 className="font-bold text-gray-900 line-clamp-1">{course.name}</h3>
+                                                <div className="flex items-center gap-2 mt-1">
+                                                    <Badge variant="info" size="sm">
+                                                        {course.city}
+                                                    </Badge>
+                                                    <Badge variant={course.targetAudience === 'interns' ? 'purple' : 'success'} size="sm">
+                                                        {course.targetAudience === 'interns' ? 'Intern' : 'Student'}
+                                                    </Badge>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform ${expandedCourse === course.id ? 'rotate-180' : ''}`} />
+                                    </div>
+
+                                    {expandedCourse === course.id && (
+                                        <div className="border-t border-gray-100 overflow-x-auto">
+                                            <table className="w-full">
+                                                <thead className="bg-gray-50/50">
+                                                    <tr>
+                                                        <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Student</th>
+                                                        <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Roll No</th>
+                                                        <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Status</th>
+                                                        <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Passout Date</th>
+                                                        <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Action</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-gray-50">
+                                                    {course.students.map((student) => (
+                                                        <tr key={student.id} className="hover:bg-gray-50/50 transition-colors">
+                                                            <td className="px-6 py-4">
+                                                                <div className="flex items-center gap-3">
+                                                                    <div className="w-10 h-10 rounded-full bg-gray-100 border border-gray-100 overflow-hidden shrink-0">
+                                                                        {student.photo ? (
+                                                                            <img src={student.photo} alt="" className="w-full h-full object-cover" />
+                                                                        ) : (
+                                                                            <div className="w-full h-full flex items-center justify-center">
+                                                                                <User className="w-5 h-5 text-gray-300" />
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                    <div>
+                                                                        <p className="font-bold text-gray-900 text-sm">{student.name}</p>
+                                                                        <Badge variant={student.type === 'intern' ? 'purple' : 'success'} className="text-[10px] py-0">
+                                                                            {student.type === 'intern' ? 'Intern' : 'Student'}
+                                                                        </Badge>
+                                                                    </div>
+                                                                </div>
+                                                            </td>
+                                                            <td className="px-6 py-4 font-mono text-xs font-bold text-gray-500">{student.rollNo}</td>
+                                                            <td className="px-6 py-4 text-xs font-medium">
+                                                                {student.certificateIssued ? (
+                                                                    <div className="flex items-center gap-1 text-emerald-600">
+                                                                        <CheckCircle className="w-4 h-4" />
+                                                                        Certified
+                                                                    </div>
+                                                                ) : (
+                                                                    <div className="text-gray-400">Not Issued</div>
+                                                                )}
+                                                            </td>
+                                                            <td className="px-6 py-4 text-xs text-gray-600">
+                                                                {student.certificate?.passoutDate || '-'}
+                                                            </td>
+                                                            <td className="px-6 py-4">
+                                                                <div className="flex items-center gap-2">
+                                                                    {student.certificateIssued ? (
+                                                                        <>
+                                                                            <button
+                                                                                onClick={() => handleOpenEditCertModal(student, course)}
+                                                                                className="p-2 hover:bg-blue-50 text-blue-600 rounded-lg transition-all"
+                                                                                title="Edit Certificate"
+                                                                            >
+                                                                                <Edit2 className="w-5 h-5" />
+                                                                            </button>
+                                                                            <button
+                                                                                onClick={() => handleDeleteCertificate(student.certificate._id)}
+                                                                                className="p-2 hover:bg-red-50 text-red-600 rounded-lg transition-all"
+                                                                                title="Delete Certificate"
+                                                                            >
+                                                                                <Trash2 className="w-5 h-5" />
+                                                                            </button>
+                                                                        </>
+                                                                    ) : (
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                setConfirmModal({ open: true, student, course });
+                                                                                setEditData({
+                                                                                    rollNo: student.rollNo || '',
+                                                                                    skills: course.name || '',
+                                                                                    duration: course.duration || '',
+                                                                                    passoutDate: new Date().toISOString().split('T')[0],
+                                                                                    certificateLink: ''
+                                                                                });
+                                                                            }}
+                                                                            className="p-2 hover:bg-emerald-50 text-emerald-600 rounded-lg transition-all"
+                                                                            title="Issue Certificate"
+                                                                        >
+                                                                            <Award className="w-5 h-5" />
+                                                                        </button>
+                                                                    )}
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    )}
+                                </motion.div>
+                            ))}
+
+                            {filteredCourses.length === 0 && (
+                                <div className="bg-white rounded-2xl p-12 border border-gray-100 text-center">
+                                    <BookOpen className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                                    <p className="text-gray-500">No courses match your filters</p>
+                                    {(searchQuery || selectedCities.length > 0 || selectedTypes.length > 0) && (
+                                        <button
+                                            onClick={() => { setSearchQuery(''); setSelectedCities([]); setSelectedTypes([]); }}
+                                            className="mt-2 text-emerald-600 hover:text-emerald-700 font-medium text-sm"
+                                        >
+                                            Clear all filters
+                                        </button>
+                                    )}
+                                </div>
+                            )}
+                        </>
+                    )}
+                </div>
+            </>)}
+
+            {/* ── TEACHERS SECTION ── */}
+            {activeSection === 'teachers' && (
+                <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                        <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                            <Users className="w-5 h-5 text-blue-600" />
+                            Teachers & Certificates
+                        </h2>
+                        <button
+                            onClick={handleBackfillTeacherIds}
+                            disabled={isBackfilling}
+                            className="px-4 py-2 text-xs bg-amber-50 border border-amber-200 text-amber-700 font-bold rounded-xl hover:bg-amber-100 transition-all flex items-center gap-2"
+                            title="Assign t0001... IDs to existing teachers that don't have one yet"
+                        >
+                            {isBackfilling ? <Loader2 className="w-4 h-4 animate-spin" /> : <Award className="w-4 h-4" />}
+                            Backfill Teacher IDs
+                        </button>
+                    </div>
+
+                    {teachers.length === 0 ? (
+                        <div className="bg-white rounded-2xl p-12 border border-gray-100 text-center">
+                            <User className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                            <p className="text-gray-500 font-medium">No teachers registered yet</p>
+                        </div>
+                    ) : (
+                        <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+                            <div className="overflow-x-auto">
+                                <table className="w-full">
+                                    <thead className="bg-gray-50/50">
+                                        <tr>
+                                            <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Teacher</th>
+                                            <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Teacher ID</th>
+                                            <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Specialization</th>
+                                            <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Status</th>
+                                            <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Passout Date</th>
+                                            <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-50">
+                                        {teachers
+                                            .filter(t =>
+                                                !searchQuery ||
+                                                t.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                                                t.rollNo?.includes(searchQuery)
+                                            )
+                                            .map((teacher) => (
+                                                <tr key={teacher._id} className="hover:bg-gray-50/50 transition-colors">
+                                                    <td className="px-6 py-4">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center overflow-hidden shrink-0">
+                                                                {teacher.photo ? (
+                                                                    <img src={teacher.photo} alt="" className="w-full h-full object-cover" />
+                                                                ) : (
+                                                                    <span className="text-white text-sm font-bold">{teacher.name?.charAt(0)}</span>
+                                                                )}
+                                                            </div>
+                                                            <div>
+                                                                <p className="font-bold text-gray-900 text-sm">{teacher.name}</p>
+                                                                <p className="text-xs text-gray-400">{teacher.email}</p>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4 font-mono text-xs font-bold text-blue-600">
+                                                        {teacher.rollNo || <span className="text-gray-300">—</span>}
+                                                    </td>
+                                                    <td className="px-6 py-4 text-xs text-gray-500">{teacher.specialization || '—'}</td>
+                                                    <td className="px-6 py-4 text-xs font-medium">
+                                                        {teacher.certificateIssued ? (
+                                                            <div className="flex items-center gap-1 text-emerald-600">
+                                                                <CheckCircle className="w-4 h-4" />
+                                                                Certified
+                                                            </div>
+                                                        ) : (
+                                                            <div className="text-gray-400">Not Issued</div>
+                                                        )}
+                                                    </td>
+                                                    <td className="px-6 py-4 text-xs text-gray-600">
+                                                        {teacher.certificate?.passoutDate ? new Date(teacher.certificate.passoutDate).toLocaleDateString() : '—'}
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <div className="flex items-center gap-2">
+                                                            {teacher.certificateIssued ? (
+                                                                <>
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            setEditCertModal({ open: true, certificate: teacher.certificate, student: teacher });
+                                                                            setEditCertData({
+                                                                                rollNo: teacher.certificate?.rollNo || teacher.rollNo || '',
+                                                                                skills: teacher.certificate?.skills || teacher.specialization || '',
+                                                                                duration: teacher.certificate?.duration || '',
+                                                                                passoutDate: teacher.certificate?.passoutDate ? new Date(teacher.certificate.passoutDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+                                                                                certificateLink: teacher.certificate?.certificateLink || ''
+                                                                            });
+                                                                        }}
+                                                                        className="p-2 hover:bg-blue-50 text-blue-600 rounded-lg transition-all"
+                                                                        title="Edit Certificate"
+                                                                    >
+                                                                        <Edit2 className="w-5 h-5" />
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={() => handleDeleteCertificate(teacher.certificate._id)}
+                                                                        className="p-2 hover:bg-red-50 text-red-600 rounded-lg transition-all"
+                                                                        title="Delete Certificate"
+                                                                    >
+                                                                        <Trash2 className="w-5 h-5" />
+                                                                    </button>
+                                                                </>
+                                                            ) : (
+                                                                <button
+                                                                    onClick={() => handleOpenTeacherCertModal(teacher)}
+                                                                    className="p-2 hover:bg-blue-50 text-blue-600 rounded-lg transition-all"
+                                                                    title="Issue Certificate"
+                                                                >
+                                                                    <Award className="w-5 h-5" />
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ))
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
             {/* Approve/Issue Modal */}
             <Modal
                 isOpen={confirmModal.open}
@@ -785,6 +997,136 @@ const CertificateManagement = () => {
                             >
                                 {isIssuing ? <Loader2 className="w-5 h-5 animate-spin" /> : <Calendar className="w-5 h-5" />}
                                 Update Certificate
+                            </button>
+                        </div>
+                    </div>
+                )}
+            </Modal>
+
+            {/* Issue Teacher Certificate Modal */}
+            <Modal
+                isOpen={teacherCertModal.open}
+                onClose={() => setTeacherCertModal({ open: false, teacher: null })}
+                title="Issue Teacher Certificate"
+                size="md"
+            >
+                {teacherCertModal.teacher && (
+                    <div className="space-y-6">
+                        <div className="p-4 bg-blue-50 rounded-2xl border border-blue-100">
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center overflow-hidden">
+                                    {teacherCertModal.teacher.photo ? (
+                                        <img src={teacherCertModal.teacher.photo} alt="" className="w-full h-full object-cover" />
+                                    ) : (
+                                        <span className="text-white text-lg font-bold">{teacherCertModal.teacher.name?.charAt(0)}</span>
+                                    )}
+                                </div>
+                                <div>
+                                    <p className="font-bold text-blue-900">{teacherCertModal.teacher.name}</p>
+                                    <p className="text-xs text-blue-600 font-mono">{teacherCertModal.teacher.rollNo || 'No ID assigned'}</p>
+                                </div>
+                            </div>
+                            {/* Assigned courses checkboxes */}
+                            {teacherCertModal.teacher.assignedCourses?.length > 0 && (
+                                <div className="mt-3 pt-3 border-t border-blue-100">
+                                    <p className="text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-2">Courses to Include on Certificate</p>
+                                    <div className="space-y-1.5 max-h-36 overflow-y-auto">
+                                        {teacherCertModal.teacher.assignedCourses.map(c => {
+                                            const isChecked = teacherCertData.selectedCourses.includes(c.title);
+                                            return (
+                                                <label key={c._id} className="flex items-center gap-2.5 cursor-pointer group">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={isChecked}
+                                                        onChange={() => {
+                                                            setTeacherCertData(prev => ({
+                                                                ...prev,
+                                                                selectedCourses: isChecked
+                                                                    ? prev.selectedCourses.filter(t => t !== c.title)
+                                                                    : [...prev.selectedCourses, c.title]
+                                                            }));
+                                                        }}
+                                                        className="w-4 h-4 rounded accent-blue-600"
+                                                    />
+                                                    <span className="text-sm font-medium text-blue-800 group-hover:text-blue-600 transition-colors">{c.title}</span>
+                                                </label>
+                                            );
+                                        })}
+                                    </div>
+                                    {teacherCertData.selectedCourses.length === 0 && (
+                                        <p className="text-xs text-amber-500 mt-1">⚠ No courses selected — certificate will show skills only</p>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+
+
+                        <div className="grid grid-cols-1 gap-4">
+                            <div>
+                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Teacher ID</label>
+                                <input
+                                    type="text"
+                                    value={teacherCertData.rollNo}
+                                    onChange={(e) => setTeacherCertData({ ...teacherCertData, rollNo: e.target.value })}
+                                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 outline-none font-mono font-bold"
+                                    placeholder="e.g. t0001"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Skills / Course Title</label>
+                                <input
+                                    type="text"
+                                    value={teacherCertData.skills}
+                                    onChange={(e) => setTeacherCertData({ ...teacherCertData, skills: e.target.value })}
+                                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 outline-none font-bold"
+                                    placeholder="e.g. Teaching Web Development"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Duration</label>
+                                <input
+                                    type="text"
+                                    value={teacherCertData.duration}
+                                    onChange={(e) => setTeacherCertData({ ...teacherCertData, duration: e.target.value })}
+                                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 outline-none font-bold"
+                                    placeholder="e.g. Jan 2024 - Dec 2024"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Passout / Issue Date</label>
+                                <input
+                                    type="date"
+                                    value={teacherCertData.passoutDate}
+                                    onChange={(e) => setTeacherCertData({ ...teacherCertData, passoutDate: e.target.value })}
+                                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 outline-none font-bold"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Certificate Link (Cloudinary/Drive)</label>
+                                <input
+                                    type="text"
+                                    placeholder="https://..."
+                                    value={teacherCertData.certificateLink}
+                                    onChange={(e) => setTeacherCertData({ ...teacherCertData, certificateLink: e.target.value })}
+                                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 outline-none font-medium"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="flex gap-3 pt-2">
+                            <button
+                                onClick={() => setTeacherCertModal({ open: false, teacher: null })}
+                                className="flex-1 py-3 text-gray-500 font-bold hover:bg-gray-100 rounded-xl transition-all"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleIssueTeacherCert}
+                                disabled={isIssuing || !teacherCertData.rollNo}
+                                className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-blue-900/10 flex items-center justify-center gap-2 disabled:opacity-50"
+                            >
+                                {isIssuing ? <Loader2 className="w-5 h-5 animate-spin" /> : <Award className="w-5 h-5" />}
+                                Issue Certificate
                             </button>
                         </div>
                     </div>

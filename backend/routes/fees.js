@@ -134,7 +134,7 @@ router.put('/:feeId/installments/:installmentId/verify', protect, authorize('adm
         // Update fee status
         fee.updateStatus();
 
-        // Assign roll number fallback if missing (for older accounts) and activate enrollment
+        // Assign roll number + activate enrollment on first-ever verification
         if (!fee.rollNoAssigned) {
             const user = await User.findById(fee.user);
             if (!user.rollNo) {
@@ -143,31 +143,26 @@ router.put('/:feeId/installments/:installmentId/verify', protect, authorize('adm
                 await user.save();
                 console.log(`Fallback: Assigned roll number ${user.rollNo} to user ${user.email} during fee verification`);
             }
-
-            // Update enrollment to 'enrolled' and activate it
-            await Enrollment.findOneAndUpdate(
-                { user: fee.user, course: fee.course },
-                {
-                    status: 'enrolled',
-                    isActive: true,
-                    enrollmentDate: new Date()
-                }
-            );
-
             fee.rollNoAssigned = true;
         }
 
-        // Also sync this specific installment verification with Enrollment
+        // ALWAYS ensure enrollment is active when any installment is verified
+        // This runs unconditionally so it works even if rollNoAssigned was already true
         await Enrollment.findOneAndUpdate(
-            { user: fee.user, course: fee.course, "installments.installmentNumber": installment.installmentNumber || 1 },
+            { user: fee.user, course: fee.course },
             {
-                $set: {
-                    "installments.$.status": "verified",
-                    "installments.$.paidDate": new Date(),
-                    "installments.$.verifiedBy": req.user.id,
-                    "installments.$.verifiedAt": new Date()
-                }
-            }
+                status: 'enrolled',
+                isActive: true,
+                feeStatus: fee.status === 'verified' ? 'verified' : 'partial',
+                $setOnInsert: { enrollmentDate: new Date() }
+            },
+            { upsert: false }
+        );
+
+        // Also set enrollmentDate if not already set
+        await Enrollment.findOneAndUpdate(
+            { user: fee.user, course: fee.course, enrollmentDate: { $exists: false } },
+            { enrollmentDate: new Date() }
         );
 
         await fee.save();
@@ -240,6 +235,15 @@ router.post('/:id/installments', protect, authorize('admin'), async (req, res) =
 
         if (!fee) {
             return res.status(404).json({ success: false, message: 'Fee not found' });
+        }
+
+        // Block installment creation if student is paused
+        const pausedEnrollment = await Enrollment.findOne({ user: fee.user, course: fee.course, isPaused: true });
+        if (pausedEnrollment) {
+            return res.status(400).json({
+                success: false,
+                message: 'Student is currently paused. Resume the student before generating new installments.'
+            });
         }
 
         // Create new installments array ensuring we don't reset verified/submitted ones

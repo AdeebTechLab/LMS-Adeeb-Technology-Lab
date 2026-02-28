@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
     Menu,
     Bell,
     Search,
-    Plus,
     ChevronDown,
     Sun,
     Moon,
@@ -17,6 +16,7 @@ import NotificationPopup from '../shared/NotificationPopup';
 import ChatWidget from '../shared/ChatWidget';
 import { userNotificationAPI } from '../../services/api';
 import useAutoLogout from '../../hooks/useAutoLogout';
+import { useTheme } from '../../context/ThemeContext';
 
 const DashboardLayout = () => {
     // Enable auto-logout
@@ -30,6 +30,7 @@ const DashboardLayout = () => {
     const { user, role } = useSelector((state) => state.auth);
     const location = useLocation();
     const navigate = useNavigate();
+    const { isDark, toggleTheme } = useTheme();
 
     // Fetch notifications
     useEffect(() => {
@@ -114,7 +115,7 @@ const DashboardLayout = () => {
     };
 
     return (
-        <div className="h-screen bg-[#F8FAFC] flex overflow-hidden">
+        <div className={`h-screen flex overflow-hidden transition-colors duration-300 ${isDark ? 'bg-[#0f1117]' : 'bg-[#F8FAFC]'}`}>
             {/* Sidebar - Fixed */}
             <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
 
@@ -124,7 +125,7 @@ const DashboardLayout = () => {
             {/* Main Content - Scrollable */}
             <div className="flex-1 flex flex-col h-screen overflow-hidden">
                 {/* Header */}
-                <header className="bg-white border-b border-gray-100 sticky top-0 z-30">
+                <header className={`border-b sticky top-0 z-30 transition-colors duration-300 ${isDark ? 'bg-[#1a1f2e] border-white/10' : 'bg-white border-gray-100'}`}>
                     <div className="flex items-center justify-between px-6 py-4">
                         {/* Left Side */}
                         <div className="flex items-center gap-4">
@@ -136,19 +137,19 @@ const DashboardLayout = () => {
                             </button>
 
                             <div>
-                                <h1 className="text-2xl font-bold text-gray-900">{getPageTitle()}</h1>
+                                <h1 className={`text-2xl font-bold transition-colors duration-300 ${isDark ? 'text-white' : 'text-gray-900'}`}>{getPageTitle()}</h1>
                             </div>
                         </div>
 
                         {/* Right Side */}
                         <div className="flex items-center gap-3">
                             {/* Search */}
-                            <div className="hidden md:flex items-center bg-gray-50 rounded-xl px-4 py-2.5 w-64">
-                                <Search className="w-4 h-4 text-gray-400 mr-2" />
+                            <div className={`hidden md:flex items-center rounded-xl px-4 py-2.5 w-64 transition-colors duration-300 ${isDark ? 'bg-white/5' : 'bg-gray-50'}`}>
+                                <Search className={`w-4 h-4 mr-2 ${isDark ? 'text-white/40' : 'text-gray-400'}`} />
                                 <input
                                     type="text"
                                     placeholder="Search..."
-                                    className="bg-transparent border-none outline-none text-sm text-gray-600 placeholder:text-gray-400 w-full"
+                                    className={`bg-transparent border-none outline-none text-sm w-full ${isDark ? 'text-white/80 placeholder:text-white/30' : 'text-gray-600 placeholder:text-gray-400'}`}
                                 />
                             </div>
 
@@ -161,15 +162,50 @@ const DashboardLayout = () => {
                                 <RefreshCw className="w-5 h-5" />
                             </button>
 
+                            {/* Dark / Light Mode Toggle */}
+                            <button
+                                onClick={toggleTheme}
+                                title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+                                className={`relative p-2.5 rounded-xl transition-all duration-300 shadow-md hover:shadow-lg flex items-center justify-center overflow-hidden ${isDark
+                                    ? 'bg-[#ffab40] hover:bg-[#ff8e01] text-white'
+                                    : 'bg-[#222d38] hover:bg-[#1a232c] text-white'
+                                    }`}
+                            >
+                                <AnimatePresence mode="wait" initial={false}>
+                                    {isDark ? (
+                                        <motion.span
+                                            key="sun"
+                                            initial={{ rotate: -90, opacity: 0, scale: 0.5 }}
+                                            animate={{ rotate: 0, opacity: 1, scale: 1 }}
+                                            exit={{ rotate: 90, opacity: 0, scale: 0.5 }}
+                                            transition={{ duration: 0.25 }}
+                                            className="flex items-center justify-center"
+                                        >
+                                            <Sun className="w-5 h-5" />
+                                        </motion.span>
+                                    ) : (
+                                        <motion.span
+                                            key="moon"
+                                            initial={{ rotate: 90, opacity: 0, scale: 0.5 }}
+                                            animate={{ rotate: 0, opacity: 1, scale: 1 }}
+                                            exit={{ rotate: -90, opacity: 0, scale: 0.5 }}
+                                            transition={{ duration: 0.25 }}
+                                            className="flex items-center justify-center"
+                                        >
+                                            <Moon className="w-5 h-5" />
+                                        </motion.span>
+                                    )}
+                                </AnimatePresence>
+                            </button>
 
 
                             {/* Notifications */}
                             <div className="relative">
                                 <button
                                     onClick={() => setShowNotifications(!showNotifications)}
-                                    className="relative p-2.5 hover:bg-gray-100 rounded-xl transition-colors"
+                                    className={`relative p-2.5 rounded-xl transition-colors ${isDark ? 'hover:bg-white/10 text-white/70' : 'hover:bg-gray-100 text-gray-600'}`}
                                 >
-                                    <Bell className="w-5 h-5 text-gray-600" />
+                                    <Bell className="w-5 h-5" />
                                     {unreadCount > 0 && (
                                         <span className="absolute top-1.5 right-1.5 w-5 h-5 bg-[#ff8e01] text-white text-xs rounded-full flex items-center justify-center font-medium">
                                             {unreadCount}
@@ -183,11 +219,11 @@ const DashboardLayout = () => {
                                         initial={{ opacity: 0, y: 10 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         exit={{ opacity: 0, y: 10 }}
-                                        className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-50"
+                                        className={`absolute right-0 mt-2 w-80 rounded-2xl shadow-xl border overflow-hidden z-50 transition-colors duration-200 ${isDark ? 'bg-[#1a1f2e] border-white/10' : 'bg-white border-gray-100'}`}
                                     >
-                                        <div className="p-4 border-b border-gray-100">
+                                        <div className={`p-4 border-b ${isDark ? 'border-white/10' : 'border-gray-100'}`}>
                                             <div className="flex items-center justify-between">
-                                                <h3 className="font-semibold text-gray-900">Notifications</h3>
+                                                <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Notifications</h3>
                                                 <button
                                                     onClick={handleMarkAllRead}
                                                     className="text-sm text-[#ff8e01] hover:text-[#ffab40]"
@@ -198,7 +234,7 @@ const DashboardLayout = () => {
                                         </div>
                                         <div className="max-h-80 overflow-y-auto">
                                             {notifications.length === 0 ? (
-                                                <div className="p-8 text-center text-gray-500">
+                                                <div className={`p-8 text-center ${isDark ? 'text-white/40' : 'text-gray-500'}`}>
                                                     <Bell className="w-12 h-12 mx-auto mb-2 opacity-30" />
                                                     <p className="text-sm">No notifications</p>
                                                 </div>
@@ -207,22 +243,23 @@ const DashboardLayout = () => {
                                                     <div
                                                         key={notification._id}
                                                         onClick={() => handleNotificationClick(notification)}
-                                                        className={`p-4 border-b border-gray-50 hover:bg-gray-50 cursor-pointer transition-colors ${!notification.isRead ? 'bg-[#ff8e01]/5' : ''
+                                                        className={`p-4 border-b cursor-pointer transition-colors ${isDark
+                                                                ? `border-white/5 hover:bg-white/5 ${!notification.isRead ? 'bg-[#ff8e01]/10' : ''}`
+                                                                : `border-gray-50 hover:bg-gray-50 ${!notification.isRead ? 'bg-[#ff8e01]/5' : ''}`
                                                             }`}
                                                     >
                                                         <div className="flex items-start gap-3">
                                                             <div
-                                                                className={`w-2 h-2 rounded-full mt-2 ${!notification.isRead ? 'bg-[#ff8e01]' : 'bg-gray-300'
-                                                                    }`}
+                                                                className={`w-2 h-2 rounded-full mt-2 ${!notification.isRead ? 'bg-[#ff8e01]' : isDark ? 'bg-white/20' : 'bg-gray-300'}`}
                                                             />
                                                             <div className="flex-1">
-                                                                <p className="text-sm font-medium text-gray-900">
+                                                                <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
                                                                     {notification.title}
                                                                 </p>
-                                                                <p className="text-xs text-gray-600 mt-1">
+                                                                <p className={`text-xs mt-1 ${isDark ? 'text-white/50' : 'text-gray-600'}`}>
                                                                     {notification.message}
                                                                 </p>
-                                                                <p className="text-xs text-gray-400 mt-1">
+                                                                <p className={`text-xs mt-1 ${isDark ? 'text-white/30' : 'text-gray-400'}`}>
                                                                     {formatNotificationTime(notification.createdAt)}
                                                                 </p>
                                                             </div>
@@ -231,8 +268,8 @@ const DashboardLayout = () => {
                                                 ))
                                             )}
                                         </div>
-                                        <div className="p-3 bg-gray-50">
-                                            <button className="w-full text-center text-sm text-gray-600 hover:text-gray-900 font-medium">
+                                        <div className={`p-3 ${isDark ? 'bg-white/5' : 'bg-gray-50'}`}>
+                                            <button className={`w-full text-center text-sm font-medium ${isDark ? 'text-white/50 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}>
                                                 View all notifications
                                             </button>
                                         </div>
@@ -244,18 +281,18 @@ const DashboardLayout = () => {
                             <div className="relative">
                                 <button
                                     onClick={() => setShowUserMenu(!showUserMenu)}
-                                    className="flex items-center gap-3 p-1.5 hover:bg-gray-100 rounded-xl transition-colors"
+                                    className={`flex items-center gap-3 p-1.5 rounded-xl transition-colors ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`}
                                 >
                                     <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#ff8e01] to-[#ffab40] flex items-center justify-center text-white font-semibold text-sm">
                                         {user?.name?.charAt(0) || 'U'}
                                     </div>
                                     <div className="hidden md:block text-left">
-                                        <p className="text-sm font-medium text-gray-900">
+                                        <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
                                             {user?.name || 'User'}
                                         </p>
-                                        <p className="text-xs text-gray-500 capitalize">{role}</p>
+                                        <p className={`text-xs capitalize ${isDark ? 'text-white/40' : 'text-gray-500'}`}>{role}</p>
                                     </div>
-                                    <ChevronDown className="w-4 h-4 text-gray-400 hidden md:block" />
+                                    <ChevronDown className={`w-4 h-4 hidden md:block ${isDark ? 'text-white/30' : 'text-gray-400'}`} />
                                 </button>
 
                                 {/* User Dropdown */}
@@ -263,18 +300,18 @@ const DashboardLayout = () => {
                                     <motion.div
                                         initial={{ opacity: 0, y: 10 }}
                                         animate={{ opacity: 1, y: 0 }}
-                                        className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-50"
+                                        className={`absolute right-0 mt-2 w-56 rounded-2xl shadow-xl border overflow-hidden z-50 transition-colors duration-200 ${isDark ? 'bg-[#1a1f2e] border-white/10' : 'bg-white border-gray-100'}`}
                                     >
-                                        <div className="p-4 border-b border-gray-100">
-                                            <p className="font-medium text-gray-900">{user?.name}</p>
-                                            <p className="text-sm text-gray-500">{user?.email}</p>
+                                        <div className={`p-4 border-b ${isDark ? 'border-white/10' : 'border-gray-100'}`}>
+                                            <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{user?.name}</p>
+                                            <p className={`text-sm ${isDark ? 'text-white/40' : 'text-gray-500'}`}>{user?.email}</p>
                                         </div>
                                         <div className="p-2">
-                                            <button className="w-full flex items-center gap-3 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
+                                            <button className={`w-full flex items-center gap-3 px-3 py-2 text-sm rounded-lg ${isDark ? 'text-white/60 hover:bg-white/5 hover:text-white' : 'text-gray-600 hover:bg-gray-50'}`}>
                                                 Profile Settings
                                             </button>
-                                            <button className="w-full flex items-center gap-3 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
-                                                Help & Support
+                                            <button className={`w-full flex items-center gap-3 px-3 py-2 text-sm rounded-lg ${isDark ? 'text-white/60 hover:bg-white/5 hover:text-white' : 'text-gray-600 hover:bg-gray-50'}`}>
+                                                Help &amp; Support
                                             </button>
                                         </div>
                                     </motion.div>
@@ -285,7 +322,7 @@ const DashboardLayout = () => {
                 </header>
 
                 {/* Page Content */}
-                <main className="flex-1 p-6 overflow-y-auto">
+                <main className={`flex-1 p-6 overflow-y-auto transition-colors duration-300 ${isDark ? 'bg-[#0f1117]' : 'bg-[#F8FAFC]'}`}>
                     <motion.div
                         key={location.pathname}
                         initial={{ opacity: 0, y: 20 }}

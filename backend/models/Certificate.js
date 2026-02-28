@@ -9,7 +9,7 @@ const certificateSchema = new mongoose.Schema({
     course: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Course',
-        required: true
+        default: null   // null for teacher certificates (not tied to a course)
     },
     rollNo: {
         type: String,
@@ -19,6 +19,8 @@ const certificateSchema = new mongoose.Schema({
     duration: String,
     passoutDate: String,
     certificateLink: String,
+    // For teacher certificates: admin-selected courses to display on the verify page
+    selectedCourses: [{ type: String }],
     issuedAt: {
         type: Date,
         default: Date.now
@@ -31,7 +33,8 @@ const certificateSchema = new mongoose.Schema({
     timestamps: true
 });
 
-// Compound index for user + course
-certificateSchema.index({ user: 1, course: 1 }, { unique: true });
+// Compound index: unique per user+course combination.
+// sparse:true so multiple null-course teacher certs don't conflict among different users.
+certificateSchema.index({ user: 1, course: 1 }, { unique: true, sparse: true });
 
 module.exports = mongoose.model('Certificate', certificateSchema);

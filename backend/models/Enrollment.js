@@ -66,7 +66,20 @@ const enrollmentSchema = new mongoose.Schema({
         type: Date,
         default: Date.now
     },
-    completedAt: Date
+    completedAt: Date,
+    isPaused: {
+        type: Boolean,
+        default: false
+    },
+    pausedAt: {
+        type: Date
+    },
+    pausedPeriods: [
+        {
+            from: { type: Date },
+            to: { type: Date }  // null means still paused
+        }
+    ]
 }, {
     timestamps: true
 });

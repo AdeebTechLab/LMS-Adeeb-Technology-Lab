@@ -273,7 +273,8 @@ const TeachersManagement = () => {
     const filteredTeachers = teachers.filter(t => {
         const matchesSearch = t.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
             t.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            t.cnic?.includes(searchQuery);
+            t.cnic?.includes(searchQuery) ||
+            t.rollNo?.toLowerCase().includes(searchQuery.toLowerCase());
 
         if (filterStatus === 'verified') return matchesSearch && t.isVerified;
         if (filterStatus === 'pending') return matchesSearch && !t.isVerified;
@@ -465,6 +466,10 @@ const TeachersManagement = () => {
 
                                 {/* Details */}
                                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 text-sm flex-[2]">
+                                    <div>
+                                        <p className="text-gray-400">Teacher ID</p>
+                                        <p className="font-bold text-blue-600 font-mono">{teacher.rollNo || <span className="text-gray-300 font-normal">Not assigned</span>}</p>
+                                    </div>
                                     <div>
                                         <p className="text-gray-400">Phone</p>
                                         <p className="font-medium text-gray-700">{teacher.phone || 'N/A'}</p>

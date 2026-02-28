@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Award, Calendar, CheckCircle, AlertCircle, Loader2, ArrowRight } from 'lucide-react';
+import { Search, Award, Calendar, CheckCircle, AlertCircle, Loader2, ArrowRight, ExternalLink, BookOpen } from 'lucide-react';
 import { certificateAPI } from '../../services/api';
 
 const CertificateVerification = () => {
@@ -155,46 +155,94 @@ const CertificateVerification = () => {
                                                             <span>{cert.position}</span>
                                                         </div>
                                                     </div>
-                                                    {cert.certificateLink && (
-                                                        <a
-                                                            href={cert.certificateLink}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                            className="inline-flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white rounded-xl hover:bg-gray-800 transition-colors text-sm font-medium"
-                                                        >
-                                                            <FileTextWrapper className="w-4 h-4" />
-                                                            View Document
-                                                        </a>
-                                                    )}
                                                 </div>
 
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-gray-50 rounded-2xl border border-gray-100">
-                                                    <div>
-                                                        <p className="text-sm text-gray-400 mb-1 uppercase tracking-wider font-semibold">Course / Program</p>
-                                                        <p className="font-bold text-gray-900 text-lg">{cert.course}</p>
-                                                    </div>
-                                                    <div>
-                                                        <p className="text-sm text-gray-400 mb-1 uppercase tracking-wider font-semibold">Skills Verified</p>
-                                                        <p className="font-medium text-gray-700">{cert.skills}</p>
-                                                    </div>
-                                                    <div>
-                                                        <p className="text-sm text-gray-400 mb-1 uppercase tracking-wider font-semibold">Duration</p>
-                                                        <div className="flex items-center gap-2 text-gray-700 font-medium">
-                                                            <Calendar className="w-4 h-4 text-emerald-500" />
-                                                            {cert.duration}
+                                                {/* For teacher certs with multiple courses: show as a list */}
+                                                {cert.selectedCourses && cert.selectedCourses.length > 0 ? (
+                                                    <div className="space-y-4">
+                                                        <div className="bg-emerald-50/50 p-5 rounded-3xl border border-emerald-100">
+                                                            <p className="text-[11px] text-emerald-600 mb-3 text-sm font-black uppercase tracking-widest flex items-center gap-2">
+                                                                <BookOpen className="w-4 h-4" /> Courses Taught
+                                                            </p>
+                                                            <div className="flex flex-wrap gap-2.5">
+                                                                {cert.selectedCourses.map((course, ci) => (
+                                                                    <span key={ci} className="px-5 py-2.5 bg-emerald-600 text-white rounded-xl text-sm font-bold shadow-md shadow-emerald-600/20 flex items-center gap-2">
+                                                                        <CheckCircle className="w-4 h-4 text-white/80" />
+                                                                        {course}
+                                                                    </span>
+                                                                ))}
+                                                            </div>
                                                         </div>
+                                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                                                            <div>
+                                                                <p className="text-sm text-gray-400 mb-1 uppercase tracking-wider font-semibold">Skills Verified</p>
+                                                                <p className="font-medium text-gray-700">{cert.skills}</p>
+                                                            </div>
+                                                            <div>
+                                                                <p className="text-sm text-gray-400 mb-1 uppercase tracking-wider font-semibold">Duration</p>
+                                                                <div className="flex items-center gap-2 text-gray-700 font-medium">
+                                                                    <Calendar className="w-4 h-4 text-emerald-500" />
+                                                                    {cert.duration || '—'}
+                                                                </div>
+                                                            </div>
+                                                            <div>
+                                                                <p className="text-sm text-gray-400 mb-1 uppercase tracking-wider font-semibold">Issued On</p>
+                                                                <p className="font-medium text-gray-700">
+                                                                    {new Date(cert.issuedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                        {cert.certificateLink && (
+                                                            <a
+                                                                href={cert.certificateLink}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-all shadow-md"
+                                                            >
+                                                                <ExternalLink className="w-4 h-4" />
+                                                                Open Certificate
+                                                            </a>
+                                                        )}
                                                     </div>
-                                                    <div>
-                                                        <p className="text-sm text-gray-400 mb-1 uppercase tracking-wider font-semibold">Issued On</p>
-                                                        <p className="font-medium text-gray-700">
-                                                            {new Date(cert.issuedAt).toLocaleDateString('en-US', {
-                                                                year: 'numeric',
-                                                                month: 'long',
-                                                                day: 'numeric'
-                                                            })}
-                                                        </p>
+                                                ) : (
+                                                    /* Standard single-course display (student/intern) */
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-gray-50 rounded-2xl border border-gray-100">
+                                                        <div>
+                                                            <p className="text-sm text-gray-400 mb-1 uppercase tracking-wider font-semibold">Course / Program</p>
+                                                            <p className="font-bold text-gray-900 text-lg">{cert.course}</p>
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-sm text-gray-400 mb-1 uppercase tracking-wider font-semibold">Skills Verified</p>
+                                                            <p className="font-medium text-gray-700">{cert.skills}</p>
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-sm text-gray-400 mb-1 uppercase tracking-wider font-semibold">Duration</p>
+                                                            <div className="flex items-center gap-2 text-gray-700 font-medium">
+                                                                <Calendar className="w-4 h-4 text-emerald-500" />
+                                                                {cert.duration}
+                                                            </div>
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-sm text-gray-400 mb-1 uppercase tracking-wider font-semibold">Issued On</p>
+                                                            <p className="font-medium text-gray-700">
+                                                                {new Date(cert.issuedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                                                            </p>
+                                                        </div>
+                                                        {cert.certificateLink && (
+                                                            <div className="md:col-span-2">
+                                                                <a
+                                                                    href={cert.certificateLink}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-all shadow-md"
+                                                                >
+                                                                    <ExternalLink className="w-4 h-4" />
+                                                                    Open Certificate
+                                                                </a>
+                                                            </div>
+                                                        )}
                                                     </div>
-                                                </div>
+                                                )}
                                             </div>
                                         </div>
                                     </motion.div>
@@ -213,15 +261,6 @@ const CertificateVerification = () => {
     );
 };
 
-// Helper component for the icon to avoid import issues if not available in lucide-react used above
-const FileTextWrapper = ({ className }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-        <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
-        <polyline points="14 2 14 8 20 8" />
-        <line x1="16" x2="8" y1="13" y2="13" />
-        <line x1="16" x2="8" y1="17" y2="17" />
-        <line x1="10" x2="8" y1="9" y2="9" />
-    </svg>
-);
+
 
 export default CertificateVerification;

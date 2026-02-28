@@ -102,7 +102,9 @@ export const enrollmentAPI = {
     complete: (id, data) => api.put(`/enrollments/${id}/complete`, data),
     withdraw: (id) => api.delete(`/enrollments/${id}`),
     getAll: () => api.get('/enrollments/all'),
-    getUserEnrollments: (userId) => api.get(`/enrollments/user/${userId}`)
+    getUserEnrollments: (userId) => api.get(`/enrollments/user/${userId}`),
+    pause: (enrollmentId) => api.put(`/enrollments/${enrollmentId}/pause`),
+    resume: (enrollmentId) => api.put(`/enrollments/${enrollmentId}/resume`)
 };
 
 // Fee APIs
@@ -160,7 +162,11 @@ export const certificateAPI = {
     approveRequest: (id, data) => api.put(`/certificates/requests/${id}/approve`, data),
     rejectRequest: (id) => api.put(`/certificates/requests/${id}/reject`),
     delete: (id) => api.delete(`/certificates/${id}`),
-    verify: (rollNo) => api.get(`/certificates/verify/${rollNo}`)
+    verify: (rollNo) => api.get(`/certificates/verify/${rollNo}`),
+    // Teacher certificate methods
+    getTeachers: () => api.get('/certificates/teachers'),
+    issueTeacher: (data) => api.post('/certificates/issue-teacher', data),
+    backfillTeacherIds: () => api.post('/certificates/backfill-teacher-ids')
 };
 
 // Paid Tasks APIs

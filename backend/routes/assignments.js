@@ -55,8 +55,15 @@ router.get('/course/:courseId', protect, async (req, res) => {
                 return res.status(403).json({ success: false, message: 'Not enrolled in this course' });
             }
 
+            // Block paused students — return empty list with a paused indicator
+            if (enrollment.isPaused) {
+                return res.json({ success: true, assignments: [], paused: true });
+            }
+
+            // Build list of date ranges during which the student was paused
+            const pausedPeriods = enrollment.pausedPeriods || [];
+
             // Get assignments that are assigned to this user or to 'all'
-            // Simplified: Show all 'all' assignments regardless of date, or specifically assigned ones
             assignments = await Assignment.find({
                 course: courseId,
                 $or: [
@@ -67,6 +74,23 @@ router.get('/course/:courseId', protect, async (req, res) => {
             })
                 .populate('createdBy', 'name')
                 .sort('-createdAt');
+
+            // Filter out assignments created while the student was paused (unless they submitted)
+            if (pausedPeriods.length > 0) {
+                assignments = assignments.filter(a => {
+                    const created = new Date(a.createdAt);
+                    // Keep if student already submitted (regardless of when assignment was created)
+                    const hasSubmission = a.submissions?.some(s => s.user?.toString() === userId || s.user === userId);
+                    if (hasSubmission) return true;
+                    // Block if assignment was created during any pause window
+                    const createdDuringPause = pausedPeriods.some(p => {
+                        const from = new Date(p.from);
+                        const to = p.to ? new Date(p.to) : new Date(); // open period = still paused
+                        return created >= from && created <= to;
+                    });
+                    return !createdDuringPause;
+                });
+            }
 
             // Filter submissions to only show current user's submission
             assignments = assignments.map(assignment => {
@@ -211,6 +235,16 @@ router.post('/:id/submit', protect, uploadSubmission.single('file'), async (req,
                 success: false,
                 message: 'You have an overdue fee payment. Please pay your installment to submit assignments.',
                 code: 'FEE_OVERDUE'
+            });
+        }
+
+        // Check if student is paused in this course
+        const enrollmentForPause = await Enrollment.findOne({ user: req.user.id, course: assignment.course });
+        if (enrollmentForPause && enrollmentForPause.isPaused) {
+            return res.status(403).json({
+                success: false,
+                message: 'Your access to this course has been temporarily paused by your teacher.',
+                code: 'PAUSED'
             });
         }
 
@@ -374,6 +408,16 @@ router.get('/my', protect, async (req, res) => {
 
         console.log(`📅 User registration date: ${userRegistrationDate}`);
 
+        // Exclude paused course enrollments from assignment feed
+        const pausedCourseIds = new Set(
+            enrollments.filter(e => e.isPaused).map(e => e.course.toString())
+        );
+        const activeCourseIds = courseIds.filter(id => !pausedCourseIds.has(id.toString()));
+
+        if (activeCourseIds.length === 0) {
+            return res.json({ success: true, assignments: [] });
+        }
+
         // First, let's check how many total assignments exist for these courses
         const totalAssignments = await Assignment.countDocuments({ course: { $in: courseIds } });
         console.log(`📊 Total assignments in enrolled courses: ${totalAssignments}`);
@@ -384,7 +428,7 @@ router.get('/my', protect, async (req, res) => {
         // 2. OR user is specifically in assignedUsers
         // 3. OR user has already made a submission
         const assignments = await Assignment.find({
-            course: { $in: courseIds },
+            course: { $in: activeCourseIds },
             $or: [
                 { assignTo: 'all' },
                 { assignedUsers: req.user.id },
@@ -402,15 +446,40 @@ router.get('/my', protect, async (req, res) => {
         });
 
         // SECURITY: Only return the current user's submission
-        const sanitizedAssignments = assignments.map(assignment => {
-            const assignmentObj = assignment.toObject();
-            if (assignmentObj.submissions) {
-                assignmentObj.submissions = assignmentObj.submissions.filter(
-                    s => s.user.toString() === req.user.id
+        // ALSO filter out assignments created during any historical pause period for that course
+        const sanitizedAssignments = assignments
+            .filter(assignment => {
+                const courseIdStr = (assignment.course?._id || assignment.course)?.toString();
+                const enrollment = enrollments.find(e => e.course?.toString() === courseIdStr || e.course === courseIdStr);
+                if (!enrollment) return true;
+
+                const periods = enrollment.pausedPeriods || [];
+                if (periods.length === 0) return true;
+
+                const created = new Date(assignment.createdAt);
+                // Keep if user submitted (regardless of when created)
+                const hasSubmission = assignment.submissions?.some(
+                    s => s.user?.toString() === req.user.id
                 );
-            }
-            return assignmentObj;
-        });
+                if (hasSubmission) return true;
+
+                // Block if created during a pause window
+                const createdDuringPause = periods.some(p => {
+                    const from = new Date(p.from);
+                    const to = p.to ? new Date(p.to) : new Date();
+                    return created >= from && created <= to;
+                });
+                return !createdDuringPause;
+            })
+            .map(assignment => {
+                const assignmentObj = assignment.toObject();
+                if (assignmentObj.submissions) {
+                    assignmentObj.submissions = assignmentObj.submissions.filter(
+                        s => s.user.toString() === req.user.id
+                    );
+                }
+                return assignmentObj;
+            });
 
         console.log(`📤 Returning ${sanitizedAssignments.length} sanitized assignments`);
         res.json({ success: true, assignments: sanitizedAssignments });

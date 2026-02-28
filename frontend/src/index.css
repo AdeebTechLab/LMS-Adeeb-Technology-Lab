@@ -56,6 +56,8 @@
 
 html {
   scroll-behavior: smooth;
+  font-size: 14px;
+  /* Base scale = 14px → prevents zoomed-in appearance on laptops */
 }
 
 body {
@@ -84,13 +86,494 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #ff8e01;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #ffab40;
 }
+
+/* Dark Mode Scrollbar */
+.dark ::-webkit-scrollbar-track {
+  background: #1a1f2e;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #ff8e01;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #ffab40;
+}
+
+/* Dark mode body */
+.dark body {
+  background-color: #0f1117;
+  color: #e2e8f0;
+}
+
+/* ============================================================
+   DARK MODE — Global Tailwind Overrides
+   These override the hardcoded Tailwind classes used across
+   every page so dark mode works everywhere automatically.
+   ============================================================ */
+
+/* === Backgrounds === */
+.dark .bg-white {
+  background-color: #1a1f2e !important;
+}
+
+.dark .bg-gray-50 {
+  background-color: #1e2435 !important;
+}
+
+.dark .bg-gray-100 {
+  background-color: #252b3b !important;
+}
+
+.dark .bg-gray-200 {
+  background-color: #2d3548 !important;
+}
+
+/* === Text === */
+.dark .text-gray-900 {
+  color: #f1f5f9 !important;
+}
+
+.dark .text-gray-800 {
+  color: #e2e8f0 !important;
+}
+
+.dark .text-gray-700 {
+  color: #cbd5e1 !important;
+}
+
+.dark .text-gray-600 {
+  color: #94a3b8 !important;
+}
+
+.dark .text-gray-500 {
+  color: #64748b !important;
+}
+
+.dark .text-gray-400 {
+  color: #475569 !important;
+}
+
+/* === Borders === */
+.dark .border-gray-100 {
+  border-color: #252b3b !important;
+}
+
+.dark .border-gray-200 {
+  border-color: #2d3548 !important;
+}
+
+.dark .border-gray-300 {
+  border-color: #374151 !important;
+}
+
+/* === Hover backgrounds === */
+.dark .hover\:bg-gray-50:hover {
+  background-color: #252b3b !important;
+}
+
+.dark .hover\:bg-gray-100:hover {
+  background-color: #2d3548 !important;
+}
+
+.dark .hover\:bg-gray-200:hover {
+  background-color: #374151 !important;
+}
+
+/* === Inputs, Textareas, Selects === */
+.dark input:not([type="checkbox"]):not([type="radio"]),
+.dark textarea,
+.dark select {
+  background-color: #252b3b !important;
+  border-color: #2d3548 !important;
+  color: #f1f5f9 !important;
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #475569 !important;
+}
+
+.dark input:focus,
+.dark textarea:focus,
+.dark select:focus {
+  border-color: #ff8e01 !important;
+  box-shadow: 0 0 0 3px rgba(255, 142, 1, 0.15) !important;
+}
+
+/* === Cards / White containers === */
+.dark .rounded-2xl.bg-white,
+.dark .rounded-xl.bg-white,
+.dark .rounded-lg.bg-white {
+  background-color: #1a1f2e !important;
+  border-color: #252b3b !important;
+}
+
+/* === Stat cards / light bg variations === */
+.dark .bg-emerald-100 {
+  background-color: rgba(16, 185, 129, 0.15) !important;
+}
+
+.dark .bg-blue-100 {
+  background-color: rgba(59, 130, 246, 0.15) !important;
+}
+
+.dark .bg-amber-100 {
+  background-color: rgba(245, 158, 11, 0.15) !important;
+}
+
+.dark .bg-purple-100 {
+  background-color: rgba(168, 85, 247, 0.15) !important;
+}
+
+.dark .bg-red-100 {
+  background-color: rgba(239, 68, 68, 0.15) !important;
+}
+
+.dark .bg-orange-100 {
+  background-color: rgba(249, 115, 22, 0.15) !important;
+}
+
+.dark .bg-indigo-100 {
+  background-color: rgba(99, 102, 241, 0.15) !important;
+}
+
+.dark .bg-pink-100 {
+  background-color: rgba(236, 72, 153, 0.15) !important;
+}
+
+/* Quick-action card hover zones */
+.dark .bg-emerald-50 {
+  background-color: rgba(16, 185, 129, 0.1) !important;
+}
+
+.dark .bg-blue-50 {
+  background-color: rgba(59, 130, 246, 0.1) !important;
+}
+
+.dark .bg-amber-50 {
+  background-color: rgba(245, 158, 11, 0.1) !important;
+}
+
+.dark .bg-purple-50 {
+  background-color: rgba(168, 85, 247, 0.1) !important;
+}
+
+.dark .bg-red-50 {
+  background-color: rgba(239, 68, 68, 0.1) !important;
+}
+
+.dark .bg-orange-50 {
+  background-color: rgba(249, 115, 22, 0.1) !important;
+}
+
+.dark .bg-indigo-50 {
+  background-color: rgba(99, 102, 241, 0.1) !important;
+}
+
+.dark .bg-pink-50 {
+  background-color: rgba(236, 72, 153, 0.1) !important;
+}
+
+.dark .bg-yellow-50 {
+  background-color: rgba(234, 179, 8, 0.1) !important;
+}
+
+.dark .bg-green-50 {
+  background-color: rgba(34, 197, 94, 0.1) !important;
+}
+
+/* Hover variants for light-colored quick-action tiles */
+.dark .hover\:bg-emerald-100:hover {
+  background-color: rgba(16, 185, 129, 0.2) !important;
+}
+
+.dark .hover\:bg-blue-100:hover {
+  background-color: rgba(59, 130, 246, 0.2) !important;
+}
+
+.dark .hover\:bg-purple-100:hover {
+  background-color: rgba(168, 85, 247, 0.2) !important;
+}
+
+.dark .hover\:bg-red-100:hover {
+  background-color: rgba(239, 68, 68, 0.2) !important;
+}
+
+.dark .hover\:bg-amber-100:hover {
+  background-color: rgba(245, 158, 11, 0.2) !important;
+}
+
+/* === Tables === */
+.dark table {
+  background-color: #1a1f2e !important;
+  color: #e2e8f0 !important;
+}
+
+.dark thead,
+.dark th {
+  background-color: #252b3b !important;
+  color: #94a3b8 !important;
+  border-color: #2d3548 !important;
+}
+
+.dark td {
+  border-color: #252b3b !important;
+  color: #e2e8f0 !important;
+}
+
+.dark tbody tr:hover {
+  background-color: #252b3b !important;
+}
+
+/* === Modals / Popups === */
+.dark .fixed .bg-white,
+.dark .fixed .rounded-2xl {
+  background-color: #1a1f2e !important;
+}
+
+/* === Dividers === */
+.dark .divide-gray-100>*+*,
+.dark .divide-gray-200>*+* {
+  border-color: #252b3b !important;
+}
+
+/* === Shadows (soften in dark) === */
+.dark .shadow-sm,
+.dark .shadow,
+.dark .shadow-md,
+.dark .shadow-lg,
+.dark .shadow-xl {
+  --tw-shadow-color: rgba(0, 0, 0, 0.4) !important;
+}
+
+/* === Badge / Pill borders === */
+.dark .border-emerald-200 {
+  border-color: rgba(16, 185, 129, 0.3) !important;
+}
+
+.dark .border-blue-200 {
+  border-color: rgba(59, 130, 246, 0.3) !important;
+}
+
+.dark .border-amber-200 {
+  border-color: rgba(245, 158, 11, 0.3) !important;
+}
+
+.dark .border-red-200 {
+  border-color: rgba(239, 68, 68, 0.3) !important;
+}
+
+.dark .border-purple-200 {
+  border-color: rgba(168, 85, 247, 0.3) !important;
+}
+
+/* Mini gradient insight strips inside cards */
+.dark .bg-gradient-to-r.from-emerald-50\/80 {
+  background: linear-gradient(to right, rgba(16, 185, 129, 0.08), rgba(59, 130, 246, 0.08)) !important;
+  border-color: rgba(16, 185, 129, 0.15) !important;
+}
+
+/* ============================================================
+   DARK MODE — Slate color scale (widely used in pages)
+   ============================================================ */
+
+/* Slate text */
+.dark .text-slate-900 {
+  color: #f1f5f9 !important;
+}
+
+.dark .text-slate-800 {
+  color: #e2e8f0 !important;
+}
+
+.dark .text-slate-700 {
+  color: #cbd5e1 !important;
+}
+
+.dark .text-slate-600 {
+  color: #94a3b8 !important;
+}
+
+.dark .text-slate-500 {
+  color: #64748b !important;
+}
+
+.dark .text-slate-400 {
+  color: #475569 !important;
+}
+
+.dark .text-slate-300 {
+  color: #374151 !important;
+}
+
+/* Slate backgrounds */
+.dark .bg-slate-50 {
+  background-color: #1e2435 !important;
+}
+
+.dark .bg-slate-100 {
+  background-color: #252b3b !important;
+}
+
+.dark .bg-slate-200 {
+  background-color: #2d3548 !important;
+}
+
+.dark .bg-slate-900 {
+  background-color: #0f1117 !important;
+}
+
+/* Slate borders */
+.dark .border-slate-100 {
+  border-color: #252b3b !important;
+}
+
+.dark .border-slate-200 {
+  border-color: #2d3548 !important;
+}
+
+/* Slate hover */
+.dark .hover\:bg-slate-100:hover {
+  background-color: #252b3b !important;
+}
+
+.dark .hover\:text-slate-900:hover {
+  color: #f1f5f9 !important;
+}
+
+/* ============================================================
+   DARK MODE — Generic element overrides (text-black, labels, etc.)
+   ============================================================ */
+
+/* text-black and text-white forced corrections */
+.dark .text-black {
+  color: #f1f5f9 !important;
+}
+
+/* Labels — forms often use raw label with no explicit color */
+.dark label {
+  color: #cbd5e1 !important;
+}
+
+/* Headings without explicit Tailwind color classes */
+.dark h1:not([class*="text-white"]):not([class*="text-"]),
+.dark h2:not([class*="text-white"]):not([class*="text-"]),
+.dark h3:not([class*="text-white"]):not([class*="text-"]),
+.dark h4:not([class*="text-white"]):not([class*="text-"]),
+.dark h5:not([class*="text-white"]):not([class*="text-"]),
+.dark h6:not([class*="text-white"]):not([class*="text-"]) {
+  color: #f1f5f9;
+}
+
+/* Paragraphs and spans without explicit color */
+.dark p:not([class*="text-"]),
+.dark span:not([class*="text-"]) {
+  color: inherit;
+}
+
+/* ============================================================
+   DARK MODE — More specific element fixes
+   ============================================================ */
+
+/* Select option text in dark mode */
+.dark option {
+  background-color: #1a1f2e;
+  color: #f1f5f9;
+}
+
+/* Notification/announcement popup white card background */
+.dark .bg-white.rounded-3xl,
+.dark .rounded-3xl.bg-white {
+  background-color: #1a1f2e !important;
+}
+
+/* Any element with bg-white\/... semi-transparent patterns - keep as-is for gradients */
+
+/* Admin & page stat strips */
+.dark .bg-slate-50.min-h-screen {
+  background-color: #0f1117 !important;
+}
+
+/* Horizontal rules */
+.dark hr {
+  border-color: #252b3b !important;
+}
+
+/* Dropdown menus in forms */
+.dark [role="listbox"],
+.dark [role="option"] {
+  background-color: #1a1f2e !important;
+  color: #f1f5f9 !important;
+}
+
+/* DataTable / table head text */
+.dark .text-xs.font-semibold.text-gray-500,
+.dark .text-xs.font-medium.text-gray-500 {
+  color: #64748b !important;
+}
+
+/* ============================================================
+   DARK MODE — Chat / floating widget backgrounds
+   ============================================================ */
+.dark .bg-white.shadow-2xl,
+.dark .shadow-2xl.bg-white {
+  background-color: #1a1f2e !important;
+}
+
+/* ============================================================
+   DARK MODE — Marks Page & Chart specific fixes
+   ============================================================ */
+
+/* Course selector banner (hardcoded bg-[#f8fafc]) */
+.dark [class*="bg-\[#f8fafc\]"],
+.dark [class*="bg-\[#F8FAFC\]"] {
+  background-color: #1e2435 !important;
+}
+
+/* Card header gradient strip (from-gray-50 to-white) */
+.dark .bg-gradient-to-r.from-gray-50 {
+  background: linear-gradient(to right, #1e2435, #1a1f2e) !important;
+  border-color: #252b3b !important;
+}
+
+/* Table row dividers (divide-gray-50) */
+.dark .divide-y.divide-gray-50>*+* {
+  border-color: #252b3b !important;
+}
+
+/* Table row hover (hover:bg-gray-50\/50) */
+.dark .hover\:bg-gray-50\/50:hover {
+  background-color: rgba(37, 43, 59, 0.5) !important;
+}
+
+/* Semi-transparent gray-50 thead row */
+.dark .bg-gray-50\/50 {
+  background-color: rgba(30, 36, 53, 0.8) !important;
+}
+
+/* Chart.js canvas — ensure transparent background in dark */
+.dark canvas {
+  background: transparent !important;
+}
+
+/* Score bar text inside table cells — keep readable */
+.dark td span {
+  color: inherit;
+}
+
+/* Dashed empty-state border boxes */
+.dark .border-dashed {
+  border-color: #394251 !important;
+}
+
 
 /* Custom Animations */
 @keyframes fadeIn {

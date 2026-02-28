@@ -52,7 +52,27 @@ router.post('/register', uploadRegistration.fields([
             const Counter = require('../models/Counter');
             assignedRollNo = await Counter.getNextRollNo();
             console.log(`Generated new roll number ${assignedRollNo} for email ${email}`);
+        } else if (role === 'teacher') {
+            // Generate unique teacher ID (t0001, t0002, ...)
+            const Counter = require('../models/Counter');
+            // Initialize counter based on existing teachers so numbers don't clash
+            const existingTeachers = await User.countDocuments({ role: 'teacher', rollNo: { $regex: /^t\d+$/ } });
+            if (existingTeachers > 0) {
+                // Make sure counter is at least as high as the current max teacher count
+                const Counter_ = require('../models/Counter');
+                const counterDoc = await Counter_.findOne({ name: 'teacherId' });
+                if (!counterDoc || counterDoc.value < existingTeachers) {
+                    await Counter_.findOneAndUpdate(
+                        { name: 'teacherId' },
+                        { $set: { value: existingTeachers } },
+                        { upsert: true }
+                    );
+                }
+            }
+            assignedRollNo = await Counter.getNextTeacherId();
+            console.log(`Generated teacher ID ${assignedRollNo} for email ${email}`);
         }
+
 
         // Create user
         const userData = {

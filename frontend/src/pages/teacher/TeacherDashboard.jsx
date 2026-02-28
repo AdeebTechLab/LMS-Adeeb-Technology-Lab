@@ -18,12 +18,13 @@ import {
     Video,
     X,
     ExternalLink,
-    StopCircle
+    StopCircle,
+    Award
 } from 'lucide-react';
 import StatCard from '../../components/ui/StatCard';
 import Badge from '../../components/ui/Badge';
 import { BarChart } from '../../components/charts/Charts';
-import { courseAPI, enrollmentAPI, assignmentAPI, dailyTaskAPI, liveClassAPI } from '../../services/api';
+import { courseAPI, enrollmentAPI, assignmentAPI, dailyTaskAPI, liveClassAPI, certificateAPI } from '../../services/api';
 import { getCourseIcon, getCourseStyle } from '../../utils/courseIcons';
 
 
@@ -34,7 +35,8 @@ const TeacherDashboard = () => {
     const [myCourses, setMyCourses] = useState([]);
     const [totalStudents, setTotalStudents] = useState(0);
     const [stats, setStats] = useState([]);
-    
+    const [myCertificate, setMyCertificate] = useState(null);
+
     // Live Class States
     const [showLiveClassModal, setShowLiveClassModal] = useState(false);
     const [liveClassForm, setLiveClassForm] = useState({
@@ -50,8 +52,23 @@ const TeacherDashboard = () => {
         if (user?.id || user?._id) {
             fetchDashboardData();
             fetchActiveLiveClasses();
+            fetchMyCertificate();
         }
     }, [user]);
+
+    const fetchMyCertificate = async () => {
+        try {
+            const res = await certificateAPI.getMy();
+            const certs = res.data.certificates || [];
+            // Teacher certificate: one with no course (null or undefined)
+            // Also check by rollNo starting with 't' as a safety fallback
+            const teacherCert = certs.find(c => !c.course || c.course === null);
+            console.log('Teacher dashboard - My certs:', certs.length, 'Teacher cert:', teacherCert);
+            setMyCertificate(teacherCert || null);
+        } catch (e) {
+            console.error('Could not fetch teacher certificate:', e);
+        }
+    };
 
     const fetchActiveLiveClasses = async () => {
         try {
@@ -118,7 +135,7 @@ const TeacherDashboard = () => {
                 const enrollmentsRes = await enrollmentAPI.getAll();
                 enrollments = enrollmentsRes.data.data || [];
                 console.log('Dashboard - Total enrollments fetched:', enrollments.length);
-            } catch (e) { 
+            } catch (e) {
                 console.error('Error fetching enrollments:', e);
             }
 
@@ -130,9 +147,9 @@ const TeacherDashboard = () => {
                     const enrollCourseId = (e.course?._id || e.course)?.toString();
                     return enrollCourseId === courseIdStr;
                 });
-                
+
                 console.log(`Dashboard - Course "${course.title}": ${courseEnrollments.length} enrollments`);
-                
+
                 return {
                     id: course._id,
                     title: course.title,
@@ -153,18 +170,18 @@ const TeacherDashboard = () => {
                     // Fetch assignments for this course
                     const assignmentsRes = await assignmentAPI.getByCourse(courseData.id);
                     const assignments = assignmentsRes.data.assignments || [];
-                    
+
                     // Count pending submissions (submitted but not graded)
                     let pendingAssignments = 0;
                     let totalSubmissions = 0;
                     let gradedSubmissions = 0;
                     let totalMarks = 0;
                     let totalPossibleMarks = 0;
-                    
+
                     assignments.forEach(a => {
                         const submissions = a.submissions || [];
                         totalSubmissions += submissions.length;
-                        
+
                         submissions.forEach(s => {
                             if (s.marks !== undefined && s.marks !== null) {
                                 gradedSubmissions++;
@@ -175,9 +192,9 @@ const TeacherDashboard = () => {
                             }
                         });
                     });
-                    
-                    const avgPercentage = totalPossibleMarks > 0 
-                        ? Math.round((totalMarks / totalPossibleMarks) * 100) 
+
+                    const avgPercentage = totalPossibleMarks > 0
+                        ? Math.round((totalMarks / totalPossibleMarks) * 100)
                         : 0;
 
                     // Fetch daily tasks for this course
@@ -198,7 +215,7 @@ const TeacherDashboard = () => {
                         gradedSubmissions,
                         pendingGrading: pendingAssignments
                     });
-                    
+
                     return {
                         ...courseData,
                         assignments: assignments.length,
@@ -402,7 +419,7 @@ const TeacherDashboard = () => {
                                                 </span>
                                             )}
                                         </div>
-                                        
+
                                         {/* Assignment Stats */}
                                         {course.assignmentStats && course.assignments > 0 && (
                                             <div className="bg-gradient-to-r from-emerald-50/80 to-blue-50/80 rounded-lg p-2 mb-3 border border-emerald-100/50">
@@ -428,7 +445,7 @@ const TeacherDashboard = () => {
                                                 </div>
                                             </div>
                                         )}
-                                        
+
                                         <button
                                             onClick={() => navigate('/teacher/attendance')}
                                             className="flex items-center gap-1 text-sm font-medium text-emerald-600 hover:text-emerald-700"
@@ -505,6 +522,54 @@ const TeacherDashboard = () => {
                     </div>
                 </motion.div>
 
+                {/* My Certificate */}
+                {myCertificate && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.55 }}
+                        className="bg-gradient-to-r from-[#0D2818] to-[#1A5D3A] rounded-2xl p-6 border border-emerald-800 text-white"
+                    >
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                            <div className="flex items-center gap-4">
+                                <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center shrink-0">
+                                    <Award className="w-7 h-7 text-amber-400" />
+                                </div>
+                                <div>
+                                    <p className="text-xs text-white/60 uppercase tracking-widest font-bold mb-0.5">Your Certificate</p>
+                                    <h3 className="text-lg font-bold text-white">{myCertificate.skills || 'Teaching Certificate'}</h3>
+                                    <div className="flex items-center gap-3 mt-1 flex-wrap">
+                                        {myCertificate.rollNo && (
+                                            <span className="text-xs bg-white/10 text-amber-300 px-2 py-0.5 rounded-full font-mono font-bold">
+                                                {myCertificate.rollNo}
+                                            </span>
+                                        )}
+                                        {myCertificate.duration && (
+                                            <span className="text-xs text-white/60">{myCertificate.duration}</span>
+                                        )}
+                                        {myCertificate.passoutDate && (
+                                            <span className="text-xs text-white/60">
+                                                Issued: {new Date(myCertificate.passoutDate).toLocaleDateString()}
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                            {myCertificate.certificateLink && (
+                                <a
+                                    href={myCertificate.certificateLink}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center gap-2 px-5 py-2.5 bg-amber-400 hover:bg-amber-300 text-[#0D2818] font-bold rounded-xl transition-all shrink-0 self-start sm:self-auto"
+                                >
+                                    <ExternalLink className="w-4 h-4" />
+                                    Open Certificate
+                                </a>
+                            )}
+                        </div>
+                    </motion.div>
+                )}
+
                 {/* Active Live Classes */}
                 {activeLiveClasses.length > 0 && (
                     <motion.div
@@ -518,8 +583,8 @@ const TeacherDashboard = () => {
                         </h3>
                         <div className="space-y-3">
                             {activeLiveClasses.map((lc) => (
-                                <div 
-                                    key={lc._id} 
+                                <div
+                                    key={lc._id}
                                     className="flex items-center justify-between p-4 bg-red-50 border border-red-200 rounded-xl"
                                 >
                                     <div className="flex items-center gap-3">
@@ -633,11 +698,10 @@ const TeacherDashboard = () => {
                                             key={opt.value}
                                             type="button"
                                             onClick={() => setLiveClassForm({ ...liveClassForm, visibility: opt.value })}
-                                            className={`px-4 py-3 rounded-xl font-medium transition-all ${
-                                                liveClassForm.visibility === opt.value
-                                                    ? 'bg-emerald-500 text-white'
-                                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                            }`}
+                                            className={`px-4 py-3 rounded-xl font-medium transition-all ${liveClassForm.visibility === opt.value
+                                                ? 'bg-emerald-500 text-white'
+                                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                                }`}
                                         >
                                             {opt.label}
                                         </button>

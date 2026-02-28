@@ -167,10 +167,10 @@ app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', socket: !!io });
 });
 
-// Attendance auto-save & lock cron job - Runs daily at 12:00 AM (midnight)
+// Attendance auto-save & lock cron job - Runs daily at 12:00 AM Pakistan Time (19:00 UTC = UTC+5)
 // This saves and locks the PREVIOUS day's attendance, marking any unmarked students as absent
-cron.schedule('0 0 * * *', async () => {
-    console.log('🕛 Midnight cron triggered - Auto-saving attendance...');
+cron.schedule('0 19 * * *', async () => {
+    console.log('🕛 Midnight PKT cron triggered (19:00 UTC = 00:00 PKT) - Auto-saving attendance...');
     try {
         const result = await lockTodayAttendance();
         console.log(`✅ Daily attendance auto-save completed: ${result.processedCount} courses processed, ${result.createdCount} new records`);
