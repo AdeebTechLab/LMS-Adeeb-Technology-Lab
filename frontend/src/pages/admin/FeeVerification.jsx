@@ -421,14 +421,7 @@ const FeeVerification = () => {
                                                     </div>
                                                 )}
                                                 <div>
-                                                    <h3 className="font-semibold text-gray-900">
-                                                        {fee.user?.name || 'Unknown Student'}
-                                                        {fee.user?.phone && (
-                                                            <span className="ml-2 text-sm text-gray-500 font-normal">
-                                                                {fee.user.phone}
-                                                            </span>
-                                                        )}
-                                                    </h3>
+                                                    <h3 className="font-semibold text-gray-900">{fee.user?.name || 'Unknown Student'}</h3>
                                                     <p className="text-sm text-gray-500">
                                                         {fee.course?.title || 'Unknown Course'} ({fee.course?.city || 'N/A'})
                                                         <span className={`ml-2 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest ${fee.course?.targetAudience === 'students' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-purple-50 text-purple-600 border border-purple-100'}`}>
@@ -506,14 +499,7 @@ const FeeVerification = () => {
                                                     </div>
                                                 )}
                                                 <div>
-                                                    <h3 className="font-medium text-gray-700">
-                                                        {fee.user?.name || 'Unknown Student'}
-                                                        {fee.user?.phone && (
-                                                            <span className="ml-2 text-xs text-gray-400 font-normal">
-                                                                {fee.user.phone}
-                                                            </span>
-                                                        )}
-                                                    </h3>
+                                                    <h3 className="font-medium text-gray-700">{fee.user?.name || 'Unknown Student'}</h3>
                                                     <p className="text-xs text-gray-500">
                                                         {fee.course?.title} ({fee.course?.city}) • Due: {formatDate(inst.dueDate)}
                                                         <span className={`ml-2 px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest ${fee.course?.targetAudience === 'students' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-purple-50 text-purple-600 border border-purple-100'}`}>
