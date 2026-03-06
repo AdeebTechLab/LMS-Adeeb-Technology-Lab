@@ -3,13 +3,13 @@ import { motion } from 'framer-motion';
 import {
     Search, UserCheck, UserX, Trash2, User, Mail, Phone, MapPin,
     Calendar, GraduationCap, Loader2, CheckCircle, XCircle, Clock, Shield, Edit2, Save, Download,
-    FileText, Users
+    FileText, Users, PauseCircle, PlayCircle, BookOpen
 } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
-import { userAPI, settingsAPI } from '../../services/api';
+import { userAPI, settingsAPI, courseAPI } from '../../services/api';
 
 const TeachersManagement = () => {
     const [searchQuery, setSearchQuery] = useState('');
@@ -22,6 +22,11 @@ const TeachersManagement = () => {
     const [selectedFile, setSelectedFile] = useState(null);
     const [isProcessing, setIsProcessing] = useState(false);
     const [showExportOptions, setShowExportOptions] = useState(false);
+    // Pause from Course state
+    const [pauseModal, setPauseModal] = useState({ open: false, teacher: null });
+    const [teacherCourses, setTeacherCourses] = useState([]);
+    const [loadingCourses, setLoadingCourses] = useState(false);
+    const [pausingCourseId, setPausingCourseId] = useState(null);
 
     useEffect(() => {
         fetchTeachers();
@@ -111,6 +116,7 @@ const TeachersManagement = () => {
         setEditModal({ open: true, user: teacher });
         setSelectedFile(null);
         setEditForm({
+            rollNo: teacher.rollNo || '',
             name: teacher.name || '',
             email: teacher.email || '',
             phone: teacher.phone || '',
@@ -267,6 +273,56 @@ const TeachersManagement = () => {
             console.error('Error updating teacher:', error);
         } finally {
             setIsProcessing(false);
+        }
+    };
+
+    const openPauseModal = async (teacher) => {
+        setPauseModal({ open: true, teacher });
+        setLoadingCourses(true);
+        try {
+            const res = await courseAPI.getAll();
+            const allCourses = (res.data.data || []).filter(c =>
+                c.teachers?.some(t => (t._id || t) === teacher._id || (t._id || t).toString() === teacher._id.toString())
+            );
+            setTeacherCourses(allCourses);
+        } catch (e) {
+            console.error('Error fetching courses:', e);
+        } finally {
+            setLoadingCourses(false);
+        }
+    };
+
+    const handlePauseTeacher = async (courseId) => {
+        if (!pauseModal.teacher) return;
+        setPausingCourseId(courseId);
+        try {
+            await courseAPI.pauseTeacher(courseId, pauseModal.teacher._id);
+            setTeacherCourses(prev => prev.map(c =>
+                c._id === courseId
+                    ? { ...c, pausedTeachers: [...(c.pausedTeachers || []), pauseModal.teacher._id] }
+                    : c
+            ));
+        } catch (e) {
+            console.error('Error pausing teacher:', e);
+        } finally {
+            setPausingCourseId(null);
+        }
+    };
+
+    const handleResumeTeacher = async (courseId) => {
+        if (!pauseModal.teacher) return;
+        setPausingCourseId(courseId);
+        try {
+            await courseAPI.resumeTeacher(courseId, pauseModal.teacher._id);
+            setTeacherCourses(prev => prev.map(c =>
+                c._id === courseId
+                    ? { ...c, pausedTeachers: (c.pausedTeachers || []).filter(t => (t._id || t).toString() !== pauseModal.teacher._id.toString()) }
+                    : c
+            ));
+        } catch (e) {
+            console.error('Error resuming teacher:', e);
+        } finally {
+            setPausingCourseId(null);
         }
     };
 
@@ -497,7 +553,7 @@ const TeachersManagement = () => {
                                 </div>
 
                                 {/* Actions */}
-                                <div className="flex gap-2">
+                                <div className="flex gap-2 flex-wrap">
                                     <button
                                         onClick={() => downloadTeacherPDF(teacher)}
                                         className="p-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 rounded-xl"
@@ -522,6 +578,13 @@ const TeachersManagement = () => {
                                             Revoke
                                         </button>
                                     )}
+                                    <button
+                                        onClick={() => openPauseModal(teacher)}
+                                        className="p-2 bg-orange-50 hover:bg-orange-100 text-orange-600 rounded-xl"
+                                        title="Pause from Course"
+                                    >
+                                        <PauseCircle className="w-5 h-5" />
+                                    </button>
                                     <button
                                         onClick={() => handleEditClick(teacher)}
                                         className="p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl"
@@ -637,6 +700,86 @@ const TeachersManagement = () => {
                 )}
             </Modal>
 
+            {/* Pause from Course Modal */}
+            <Modal
+                isOpen={pauseModal.open}
+                onClose={() => { setPauseModal({ open: false, teacher: null }); setTeacherCourses([]); }}
+                title={`Pause "${pauseModal.teacher?.name || ''}" from Course`}
+                size="md"
+            >
+                <div className="space-y-4">
+                    <p className="text-sm text-gray-500">Select a course to pause or resume this teacher's access.</p>
+                    {loadingCourses ? (
+                        <div className="flex items-center justify-center py-10">
+                            <Loader2 className="w-6 h-6 animate-spin text-emerald-600" />
+                            <span className="ml-2 text-gray-500">Loading courses...</span>
+                        </div>
+                    ) : teacherCourses.length === 0 ? (
+                        <div className="text-center py-10">
+                            <BookOpen className="w-10 h-10 text-gray-200 mx-auto mb-2" />
+                            <p className="text-gray-400 font-medium">This teacher is not assigned to any courses.</p>
+                        </div>
+                    ) : (
+                        <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
+                            {teacherCourses.map(course => {
+                                const teacherId = pauseModal.teacher?._id;
+                                const isPaused = (course.pausedTeachers || []).some(
+                                    t => (t._id || t).toString() === (teacherId || '').toString()
+                                );
+                                const isBusy = pausingCourseId === course._id;
+                                return (
+                                    <div
+                                        key={course._id}
+                                        className={`flex items-center justify-between p-3 rounded-xl border transition-all ${isPaused
+                                            ? 'bg-orange-50 border-orange-200'
+                                            : 'bg-gray-50 border-gray-100'
+                                            }`}
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isPaused ? 'bg-orange-100' : 'bg-emerald-100'
+                                                }`}>
+                                                <BookOpen className={`w-4 h-4 ${isPaused ? 'text-orange-600' : 'text-emerald-600'
+                                                    }`} />
+                                            </div>
+                                            <div>
+                                                <p className="font-bold text-sm text-gray-900 truncate max-w-[180px]">{course.title}</p>
+                                                <p className="text-[10px] text-gray-400 uppercase font-black tracking-wider">
+                                                    {course.targetAudience} • {course.city}
+                                                    {isPaused && <span className="ml-2 text-orange-600">⏸ PAUSED</span>}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <button
+                                            onClick={() => isPaused ? handleResumeTeacher(course._id) : handlePauseTeacher(course._id)}
+                                            disabled={isBusy}
+                                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold text-xs uppercase tracking-wide transition-all disabled:opacity-50 ${isPaused
+                                                ? 'bg-emerald-500 hover:bg-emerald-600 text-white'
+                                                : 'bg-orange-500 hover:bg-orange-600 text-white'
+                                                }`}
+                                        >
+                                            {isBusy ? (
+                                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                            ) : isPaused ? (
+                                                <PlayCircle className="w-3.5 h-3.5" />
+                                            ) : (
+                                                <PauseCircle className="w-3.5 h-3.5" />
+                                            )}
+                                            {isBusy ? '...' : isPaused ? 'Resume' : 'Pause'}
+                                        </button>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+                    <button
+                        onClick={() => { setPauseModal({ open: false, teacher: null }); setTeacherCourses([]); }}
+                        className="w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium transition-colors"
+                    >
+                        Close
+                    </button>
+                </div>
+            </Modal>
+
             {/* Edit Modal */}
             <Modal
                 isOpen={editModal.open}
@@ -678,6 +821,16 @@ const TeachersManagement = () => {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2 md:col-span-2">
+                            <label className="text-sm font-medium text-gray-700">Teacher Unique ID</label>
+                            <input
+                                type="text"
+                                value={editForm.rollNo}
+                                onChange={(e) => setEditForm({ ...editForm, rollNo: e.target.value })}
+                                placeholder="e.g. TCH-2024-001"
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none font-mono"
+                            />
+                        </div>
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-700">Full Name *</label>
                             <input

@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import {
     Search, UserCheck, UserX, Trash2, User, Mail, Phone, MapPin,
     Calendar, GraduationCap, Loader2, CheckCircle, XCircle, Clock, Edit2, Save, Download,
-    FileText, Users, BookOpen, Shield, Receipt, Camera, Upload, Plus
+    FileText, Users, BookOpen, Shield, Receipt, Camera, Upload, Plus, PauseCircle, PlayCircle, AlertCircle
 } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -27,6 +27,11 @@ const StudentsManagement = () => {
     const [viewFeeModal, setViewFeeModal] = useState({ open: false, url: null });
     const [selectedFile, setSelectedFile] = useState(null);
     const [photoPreview, setPhotoPreview] = useState(null);
+    const [enrollModal, setEnrollModal] = useState({ open: false, user: null });
+    const [userEnrollments, setUserEnrollments] = useState([]);
+    const [enrollFetching, setEnrollFetching] = useState(false);
+    const [enrollLoadingId, setEnrollLoadingId] = useState(null);
+    const [enrollToast, setEnrollToast] = useState(null);
 
     useEffect(() => {
         fetchStudents();
@@ -63,6 +68,16 @@ const StudentsManagement = () => {
             console.error('Error fetching students:', error);
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const handleMoveToOld = async (student) => {
+        try {
+            const newVal = !student.registeredOld;
+            await userAPI.update(student._id, { registeredOld: newVal });
+            setStudents(prev => prev.map(s => s._id === student._id ? { ...s, registeredOld: newVal } : s));
+        } catch (error) {
+            console.error('Error updating registeredOld:', error);
         }
     };
 
@@ -361,6 +376,49 @@ const StudentsManagement = () => {
         }
     };
 
+    const showEnrollToast = (message, type = 'success') => {
+        setEnrollToast({ message, type });
+        setTimeout(() => setEnrollToast(null), 3000);
+    };
+
+    const handleOpenEnrollModal = async (student) => {
+        setEnrollModal({ open: true, user: student });
+        setUserEnrollments([]);
+        setEnrollFetching(true);
+        try {
+            const res = await enrollmentAPI.getUserEnrollments(student._id);
+            const all = res.data.data || [];
+            // Show active and paused enrollments (exclude completed/pending/withdrawn)
+            const active = all.filter(e => e.status === 'enrolled' || e.isPaused);
+            setUserEnrollments(active);
+        } catch (err) {
+            showEnrollToast('Failed to load enrollments.', 'error');
+        } finally {
+            setEnrollFetching(false);
+        }
+    };
+
+    const handleToggleStudentPause = async (enrollment) => {
+        setEnrollLoadingId(enrollment._id);
+        try {
+            if (enrollment.isPaused) {
+                await enrollmentAPI.resume(enrollment._id);
+                showEnrollToast(`${enrollModal.user?.name} has been resumed in ${enrollment.course?.title}.`, 'success');
+            } else {
+                await enrollmentAPI.pause(enrollment._id);
+                showEnrollToast(`${enrollModal.user?.name} has been paused in ${enrollment.course?.title}.`, 'warning');
+            }
+            // Refresh enrollment list
+            const res = await enrollmentAPI.getUserEnrollments(enrollModal.user._id);
+            const all = res.data.data || [];
+            setUserEnrollments(all.filter(e => e.status === 'enrolled' || e.isPaused));
+        } catch (err) {
+            showEnrollToast(err.response?.data?.message || 'Action failed.', 'error');
+        } finally {
+            setEnrollLoadingId(null);
+        }
+    };
+
     const filteredStudents = students.filter(s => {
         const matchesSearch = s.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
             s.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -369,11 +427,13 @@ const StudentsManagement = () => {
 
         if (!matchesSearch) return false;
 
-        // "Registered" = No enrollments (totalEnrollments === 0)
-        if (filterStatus === 'registered') return (s.totalEnrollments || 0) === 0;
+        // "Registered New" = No enrollments AND not marked as old
+        if (filterStatus === 'registered') return (s.totalEnrollments || 0) === 0 && !s.registeredOld;
+
+        // "Registered Old" = No enrollments AND marked as old by admin
+        if (filterStatus === 'registeredOld') return (s.totalEnrollments || 0) === 0 && s.registeredOld;
 
         // "Enrolled" (Active) = Has enrollments AND not all completed
-        // (totalEnrollments > 0 AND (activeEnrollments > 0 OR completed < total))
         if (filterStatus === 'enrolled') {
             const total = s.totalEnrollments || 0;
             const completed = s.completedEnrollments || 0;
@@ -506,7 +566,12 @@ const StudentsManagement = () => {
                         {
                             id: 'registered',
                             label: 'Registered (New)',
-                            count: students.filter(s => (s.totalEnrollments || 0) === 0).length
+                            count: students.filter(s => (s.totalEnrollments || 0) === 0 && !s.registeredOld).length
+                        },
+                        {
+                            id: 'registeredOld',
+                            label: 'Registered (Old)',
+                            count: students.filter(s => (s.totalEnrollments || 0) === 0 && s.registeredOld).length
                         },
                         {
                             id: 'enrolled',
@@ -621,6 +686,19 @@ const StudentsManagement = () => {
                                     </div>
 
                                     <div className="flex gap-2">
+                                        {/* Move to Old / Move to New button — only for non-enrolled students */}
+                                        {(student.totalEnrollments || 0) === 0 && (
+                                            <button
+                                                onClick={() => handleMoveToOld(student)}
+                                                className={`px-3 py-2 rounded-xl font-bold text-xs flex items-center gap-1 transition-all ${student.registeredOld
+                                                    ? 'bg-purple-100 hover:bg-purple-200 text-purple-700'
+                                                    : 'bg-gray-100 hover:bg-purple-100 text-gray-500 hover:text-purple-700'
+                                                    }`}
+                                                title={student.registeredOld ? 'Move back to Registered New' : 'Move to Registered Old'}
+                                            >
+                                                {student.registeredOld ? '← New' : 'Old →'}
+                                            </button>
+                                        )}
                                         <button
                                             onClick={() => setViewFeeModal({ open: true, url: student.feeScreenshot })}
                                             className="p-2 bg-purple-50 hover:bg-purple-100 text-purple-600 rounded-xl"
@@ -660,6 +738,13 @@ const StudentsManagement = () => {
                                             </button>
                                         )}
                                         <button
+                                            onClick={() => handleOpenEnrollModal(student)}
+                                            className="p-2 bg-amber-50 hover:bg-amber-100 text-amber-600 rounded-xl"
+                                            title="Manage Course Enrollments (Pause/Resume)"
+                                        >
+                                            <BookOpen className="w-5 h-5" />
+                                        </button>
+                                        <button
                                             onClick={() => handleEditClick(student)}
                                             className="p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl"
                                             title="Edit Bio"
@@ -679,6 +764,103 @@ const StudentsManagement = () => {
                     </div>
                 </div>
             )}
+
+            {/* Enrollment Pause/Resume Modal */}
+            <Modal
+                isOpen={enrollModal.open}
+                onClose={() => setEnrollModal({ open: false, user: null })}
+                title={`Manage Enrollments — ${enrollModal.user?.name || ''}`}
+                size="md"
+            >
+                <div className="space-y-4">
+                    {/* Toast */}
+                    {enrollToast && (
+                        <div className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold ${enrollToast.type === 'success' ? 'bg-emerald-500 text-white' :
+                            enrollToast.type === 'warning' ? 'bg-amber-500 text-white' : 'bg-red-500 text-white'
+                            }`}>
+                            <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                            {enrollToast.message}
+                        </div>
+                    )}
+
+                    {/* Info banner */}
+                    <div className="p-3 bg-amber-50 border border-amber-100 rounded-xl text-xs text-amber-700 font-medium">
+                        Pausing a student blocks their assignments, daily task submissions, and fee installment generation for that course.
+                    </div>
+
+                    {enrollFetching ? (
+                        <div className="flex items-center justify-center py-10">
+                            <Loader2 className="w-6 h-6 animate-spin text-emerald-500" />
+                            <span className="ml-2 text-gray-500">Loading enrollments...</span>
+                        </div>
+                    ) : userEnrollments.length === 0 ? (
+                        <div className="text-center py-10">
+                            <BookOpen className="w-10 h-10 text-gray-200 mx-auto mb-2" />
+                            <p className="text-gray-400 font-medium">No active enrollments found.</p>
+                        </div>
+                    ) : (
+                        <div className="space-y-3">
+                            {userEnrollments.map((enrollment) => {
+                                const isPaused = enrollment.isPaused;
+                                const isBusy = enrollLoadingId === enrollment._id;
+                                return (
+                                    <div
+                                        key={enrollment._id}
+                                        className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${isPaused ? 'bg-amber-50 border-amber-200' : 'bg-gray-50 border-gray-100'
+                                            }`}
+                                    >
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center gap-2 flex-wrap">
+                                                <p className={`font-bold text-sm truncate ${isPaused ? 'text-amber-800' : 'text-gray-900'
+                                                    }`}>
+                                                    {enrollment.course?.title || 'Unknown Course'}
+                                                </p>
+                                                {isPaused && (
+                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-200 text-amber-800 text-[10px] font-black uppercase rounded-full tracking-wider">
+                                                        <PauseCircle className="w-2.5 h-2.5" />
+                                                        Paused
+                                                    </span>
+                                                )}
+                                            </div>
+                                            {isPaused && enrollment.pausedAt && (
+                                                <p className="text-[10px] text-amber-600 font-medium mt-0.5">
+                                                    Paused on {new Date(enrollment.pausedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+                                                </p>
+                                            )}
+                                        </div>
+                                        <button
+                                            onClick={() => handleToggleStudentPause(enrollment)}
+                                            disabled={isBusy}
+                                            className={`flex items-center gap-2 px-3 py-1.5 rounded-xl font-bold text-xs uppercase tracking-wide transition-all disabled:opacity-50 ${isPaused
+                                                ? 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm shadow-emerald-200'
+                                                : 'bg-amber-500 hover:bg-amber-600 text-white shadow-sm shadow-amber-200'
+                                                }`}
+                                        >
+                                            {isBusy ? (
+                                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                            ) : isPaused ? (
+                                                <PlayCircle className="w-3.5 h-3.5" />
+                                            ) : (
+                                                <PauseCircle className="w-3.5 h-3.5" />
+                                            )}
+                                            {isBusy ? '...' : isPaused ? 'Resume' : 'Pause'}
+                                        </button>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+
+                    <div className="flex justify-end pt-2">
+                        <button
+                            onClick={() => setEnrollModal({ open: false, user: null })}
+                            className="px-5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium text-sm"
+                        >
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </Modal>
 
             <Modal
                 isOpen={confirmModal.open}

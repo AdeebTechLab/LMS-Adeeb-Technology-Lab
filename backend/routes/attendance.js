@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { protect, authorize } = require('../middleware/auth');
+const moment = require('moment-timezone');
 const Attendance = require('../models/Attendance');
 const Enrollment = require('../models/Enrollment');
 const Course = require('../models/Course');
@@ -42,9 +43,8 @@ router.get('/:courseId/:date', protect, authorize('teacher', 'admin'), async (re
     try {
         const { courseId, date } = req.params;
 
-        // Parse date string securely to UTC midnight
-        const [year, month, day] = date.split('-').map(Number);
-        const attendanceDate = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
+        // Parse date string securely to Asia/Karachi midnight
+        const attendanceDate = moment.tz(date, 'YYYY-MM-DD', 'Asia/Karachi').startOf('day').toDate();
 
         let attendance = await Attendance.findOne({
             course: courseId,
@@ -78,9 +78,8 @@ router.post('/', protect, authorize('teacher', 'admin'), async (req, res) => {
     try {
         const { courseId, date, records } = req.body;
 
-        // Parse date string securely to UTC midnight
-        const [year, month, day] = date.split('-').map(Number);
-        const attendanceDate = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
+        // Parse date string securely to Asia/Karachi midnight
+        const attendanceDate = moment.tz(date, 'YYYY-MM-DD', 'Asia/Karachi').startOf('day').toDate();
 
         // Find or create attendance record
         let attendance = await Attendance.findOne({
@@ -109,14 +108,14 @@ router.post('/', protect, authorize('teacher', 'admin'), async (req, res) => {
                 // Update existing record
                 attendance.records[existingIndex].status = record.status;
                 attendance.records[existingIndex].markedBy = req.user.id;
-                attendance.records[existingIndex].markedAt = new Date();
+                attendance.records[existingIndex].markedAt = moment().tz('Asia/Karachi').toDate();
             } else {
                 // Add new record
                 attendance.records.push({
                     user: record.userId,
                     status: record.status,
                     markedBy: req.user.id,
-                    markedAt: new Date()
+                    markedAt: moment().tz('Asia/Karachi').toDate()
                 });
             }
         }

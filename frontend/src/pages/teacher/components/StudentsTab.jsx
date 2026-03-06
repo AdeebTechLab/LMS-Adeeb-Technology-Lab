@@ -1,13 +1,11 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Users, PauseCircle, PlayCircle, Loader2, AlertCircle, UserCheck } from 'lucide-react';
+import { Users, PauseCircle, Loader2, UserCheck } from 'lucide-react';
 import { enrollmentAPI } from '../../../services/api';
 
 const StudentsTab = ({ course }) => {
     const [enrollments, setEnrollments] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [loadingId, setLoadingId] = useState(null); // enrollment id currently toggling
-    const [toast, setToast] = useState(null);
 
     useEffect(() => {
         fetchEnrollments();
@@ -19,7 +17,6 @@ const StudentsTab = ({ course }) => {
             const res = await enrollmentAPI.getAll();
             const all = res.data.data || [];
             const courseId = String(course.id || course._id);
-            // Filter to this course, only active/enrolled/paused students (not completed/pending)
             const courseEnrollments = all.filter(e => {
                 const eCourseId = String(e.course?._id || e.course);
                 return eCourseId === courseId && (e.status === 'enrolled' || e.isPaused);
@@ -29,30 +26,6 @@ const StudentsTab = ({ course }) => {
             console.error('Error loading enrollments:', err);
         } finally {
             setIsLoading(false);
-        }
-    };
-
-    const showToast = (message, type = 'success') => {
-        setToast({ message, type });
-        setTimeout(() => setToast(null), 3000);
-    };
-
-    const handleTogglePause = async (enrollment) => {
-        const enrollmentId = enrollment._id;
-        setLoadingId(enrollmentId);
-        try {
-            if (enrollment.isPaused) {
-                await enrollmentAPI.resume(enrollmentId);
-                showToast(`${enrollment.user?.name || 'Student'} has been resumed successfully.`, 'success');
-            } else {
-                await enrollmentAPI.pause(enrollmentId);
-                showToast(`${enrollment.user?.name || 'Student'} has been paused. All access is blocked.`, 'warning');
-            }
-            await fetchEnrollments();
-        } catch (err) {
-            showToast(err.response?.data?.message || 'Action failed. Please try again.', 'error');
-        } finally {
-            setLoadingId(null);
         }
     };
 
@@ -70,22 +43,6 @@ const StudentsTab = ({ course }) => {
 
     return (
         <div className="space-y-6">
-            {/* Toast */}
-            {toast && (
-                <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0 }}
-                    className={`flex items-center gap-3 px-5 py-3 rounded-xl text-sm font-semibold shadow-lg ${toast.type === 'success' ? 'bg-emerald-500 text-white' :
-                            toast.type === 'warning' ? 'bg-amber-500 text-white' :
-                                'bg-red-500 text-white'
-                        }`}
-                >
-                    <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                    {toast.message}
-                </motion.div>
-            )}
-
             {/* Header stats */}
             <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-700 rounded-xl border border-emerald-100">
@@ -99,7 +56,7 @@ const StudentsTab = ({ course }) => {
                     </div>
                 )}
                 <p className="text-xs text-gray-400 font-medium ml-auto">
-                    Pausing a student hides assignments, blocks daily task submissions, and stops fee installment generation.
+                    Pause/Resume is managed by the admin.
                 </p>
             </div>
 
@@ -113,7 +70,6 @@ const StudentsTab = ({ course }) => {
                     {enrollments.map((enrollment, index) => {
                         const student = enrollment.user || {};
                         const isPaused = enrollment.isPaused;
-                        const isBusy = loadingId === enrollment._id;
 
                         return (
                             <motion.div
@@ -122,8 +78,8 @@ const StudentsTab = ({ course }) => {
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: index * 0.04 }}
                                 className={`flex items-center gap-4 p-4 rounded-2xl border transition-all ${isPaused
-                                        ? 'bg-amber-50 border-amber-200'
-                                        : 'bg-gray-50 border-gray-100 hover:border-gray-200'
+                                    ? 'bg-amber-50 border-amber-200'
+                                    : 'bg-gray-50 border-gray-100'
                                     }`}
                             >
                                 {/* Avatar */}
@@ -159,25 +115,6 @@ const StudentsTab = ({ course }) => {
                                         </p>
                                     )}
                                 </div>
-
-                                {/* Toggle Button */}
-                                <button
-                                    onClick={() => handleTogglePause(enrollment)}
-                                    disabled={isBusy}
-                                    className={`flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-xs uppercase tracking-wide transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 ${isPaused
-                                            ? 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-md shadow-emerald-200'
-                                            : 'bg-amber-500 hover:bg-amber-600 text-white shadow-md shadow-amber-200'
-                                        }`}
-                                >
-                                    {isBusy ? (
-                                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                    ) : isPaused ? (
-                                        <PlayCircle className="w-3.5 h-3.5" />
-                                    ) : (
-                                        <PauseCircle className="w-3.5 h-3.5" />
-                                    )}
-                                    {isBusy ? 'Processing...' : isPaused ? 'Resume' : 'Pause'}
-                                </button>
                             </motion.div>
                         );
                     })}

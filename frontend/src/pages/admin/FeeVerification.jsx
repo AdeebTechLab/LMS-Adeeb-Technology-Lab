@@ -202,15 +202,22 @@ const FeeVerification = () => {
     };
 
     const handleDeleteInstallment = async (feeId, installmentId) => {
-        if (!window.confirm('Are you sure you want to delete this installment? This will remove it from the student\'s plan.')) return;
+        if (!window.confirm('Are you sure you want to delete this fee challan?')) return;
 
         setIsProcessing(true);
         setError('');
         try {
-            await feeAPI.deleteInstallment(feeId, installmentId);
-            // Refresh counts/list
-            if (activeTab === 'pending') fetchPendingFees();
-            else fetchAllFees();
+            const res = await feeAPI.deleteInstallment(feeId, installmentId);
+
+            if (res.data.fullyDeleted) {
+                // Entire fee record was deleted (student never paid) — remove from local state
+                setFees(prev => prev.filter(f => f._id !== feeId));
+                setAllFees(prev => prev.filter(f => f._id !== feeId));
+            } else {
+                // Only the installment was removed — refresh list
+                if (activeTab === 'pending') fetchPendingFees();
+                else fetchAllFees();
+            }
         } catch (err) {
             console.error('Error deleting installment:', err);
             setError(err.response?.data?.message || 'Failed to delete installment');
@@ -507,9 +514,9 @@ const FeeVerification = () => {
                                                     <span className="ml-3 text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded">Pending</span>
                                                 </div>
                                                 <button
-                                                    onClick={() => handleDeleteClick(fee._id)}
+                                                    onClick={() => handleDeleteInstallment(fee._id, inst._id)}
                                                     className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
-                                                    title="Un-enroll student & delete fee"
+                                                    title="Delete this fee challan only"
                                                 >
                                                     <Trash2 className="w-4 h-4" />
                                                 </button>

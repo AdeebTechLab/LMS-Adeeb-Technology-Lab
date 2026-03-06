@@ -15,8 +15,12 @@ router.get('/teacher/dashboard', protect, authorize('teacher', 'admin'), async (
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
-        // 1. Get all courses where this teacher is assigned
-        const allCourses = await Course.find({ teachers: teacherId })
+        // 1. Get all courses where this teacher is assigned AND not paused
+        const mongoose = require('mongoose');
+        const allCourses = await Course.find({
+            teachers: teacherId,
+            pausedTeachers: { $nin: [new mongoose.Types.ObjectId(teacherId)] }
+        })
             .select('title category targetAudience location city isActive startDate durationMonths bookLink')
             .lean();
 
@@ -38,7 +42,7 @@ router.get('/teacher/dashboard', protect, authorize('teacher', 'admin'), async (
             .lean();
 
         // 4. Get today's attendance for all courses in ONE query
-        const todayAttendance = await Attendance.find({ 
+        const todayAttendance = await Attendance.find({
             course: { $in: courseIds },
             date: { $gte: today, $lt: new Date(today.getTime() + 24 * 60 * 60 * 1000) }
         }).select('course records.status').lean();
@@ -232,6 +236,50 @@ router.get('/:id/students', protect, authorize('admin', 'teacher'), async (req, 
 
         const students = enrollments.map(e => e.user);
         res.json({ success: true, count: students.length, students });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// @route   PUT /api/courses/:courseId/pause-teacher/:teacherId
+// @desc    Admin pauses a teacher from a specific course
+// @access  Private (Admin)
+router.put('/:courseId/pause-teacher/:teacherId', protect, authorize('admin'), async (req, res) => {
+    try {
+        const course = await Course.findById(req.params.courseId);
+        if (!course) return res.status(404).json({ success: false, message: 'Course not found' });
+
+        const teacherId = req.params.teacherId;
+        // Ensure teacher is actually assigned to this course
+        const isAssigned = course.teachers.some(t => t.toString() === teacherId);
+        if (!isAssigned) return res.status(400).json({ success: false, message: 'Teacher is not assigned to this course' });
+
+        // Add to pausedTeachers if not already there
+        const alreadyPaused = course.pausedTeachers.some(t => t.toString() === teacherId);
+        if (!alreadyPaused) {
+            course.pausedTeachers.push(teacherId);
+            await course.save();
+        }
+
+        res.json({ success: true, message: 'Teacher paused from this course', course });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// @route   PUT /api/courses/:courseId/resume-teacher/:teacherId
+// @desc    Admin resumes a teacher for a specific course
+// @access  Private (Admin)
+router.put('/:courseId/resume-teacher/:teacherId', protect, authorize('admin'), async (req, res) => {
+    try {
+        const course = await Course.findById(req.params.courseId);
+        if (!course) return res.status(404).json({ success: false, message: 'Course not found' });
+
+        const teacherId = req.params.teacherId;
+        course.pausedTeachers = course.pausedTeachers.filter(t => t.toString() !== teacherId);
+        await course.save();
+
+        res.json({ success: true, message: 'Teacher resumed for this course', course });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }

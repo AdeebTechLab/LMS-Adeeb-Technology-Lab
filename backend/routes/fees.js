@@ -289,17 +289,24 @@ router.post('/:id/installments', protect, authorize('admin'), async (req, res) =
         await fee.save();
 
         // Sync with Enrollment model if it exists
+        // If any installment is verified, ensure enrollment is marked as active+enrolled
+        const hasVerifiedInstallment = newInstallments.some(i => i.status === 'verified');
+        const enrollmentUpdate = {
+            installments: newInstallments.map((inst, index) => ({
+                installmentNumber: index + 1,
+                amount: inst.amount,
+                dueDate: inst.dueDate,
+                status: inst.status === 'verified' ? 'verified' : 'pending',
+                paymentProof: inst.receiptUrl
+            }))
+        };
+        if (hasVerifiedInstallment) {
+            enrollmentUpdate.isActive = true;
+            enrollmentUpdate.status = 'enrolled';
+        }
         await Enrollment.findOneAndUpdate(
             { user: fee.user, course: fee.course },
-            {
-                installments: newInstallments.map((inst, index) => ({
-                    installmentNumber: index + 1,
-                    amount: inst.amount,
-                    dueDate: inst.dueDate,
-                    status: inst.status === 'verified' ? 'verified' : 'pending',
-                    paymentProof: inst.receiptUrl
-                }))
-            }
+            enrollmentUpdate
         );
 
         res.json({ success: true, fee });
@@ -379,11 +386,26 @@ router.delete('/:id/installments/:installmentId', protect, authorize('admin'), a
             return res.status(404).json({ success: false, message: 'Installment not found' });
         }
 
-        // Update fee status
+        // Check if no installments remain AND student never had a verified payment.
+        // In this case (e.g. student registered but never paid), delete the entire fee
+        // record so the auto-repair in GET /api/fees/my cannot recreate a pending installment.
+        const hadVerifiedPayment = fee.installments.some(inst => inst.status === 'verified');
+        if (fee.installments.length === 0 && !hadVerifiedPayment) {
+            console.log(`[FEE] No installments remain and student never paid. Deleting Fee ${fee._id} and enrollment.`);
+            await Enrollment.findOneAndDelete({ user: fee.user, course: fee.course });
+            await fee.deleteOne();
+            return res.json({
+                success: true,
+                message: 'Fee challan deleted. Student can re-register for the course.',
+                fullyDeleted: true
+            });
+        }
+
+        // Otherwise just save the updated installments list
         fee.updateStatus();
         await fee.save();
 
-        // Sync with Enrollment model
+        // Sync remaining installments with Enrollment model
         await Enrollment.findOneAndUpdate(
             { user: fee.user, course: fee.course },
             {

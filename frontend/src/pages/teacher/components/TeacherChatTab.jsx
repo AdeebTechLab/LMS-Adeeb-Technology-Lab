@@ -198,8 +198,8 @@ const TeacherChatTab = ({ course, students, onUnreadCountChange }) => {
     }, {});
 
     // Filter students based on search
-    const displayStudents = searchQuery && searchResults.length > 0 
-        ? searchResults 
+    const displayStudents = searchQuery && searchResults.length > 0
+        ? searchResults
         : studentsWithUnread;
 
     if (isLoading) {
@@ -251,11 +251,10 @@ const TeacherChatTab = ({ course, students, onUnreadCountChange }) => {
                         <button
                             key={student._id}
                             onClick={() => openChat(student)}
-                            className={`w-full flex items-center gap-3 p-3 rounded-lg transition-all ${
-                                activeStudent?._id === student._id
+                            className={`w-full flex items-center gap-3 p-3 rounded-lg transition-all ${activeStudent?._id === student._id
                                     ? 'bg-emerald-100 text-emerald-700'
                                     : 'hover:bg-gray-100'
-                            }`}
+                                }`}
                         >
                             <div className="relative">
                                 {student.photo ? (
@@ -322,11 +321,10 @@ const TeacherChatTab = ({ course, students, onUnreadCountChange }) => {
                                                 animate={{ opacity: 1, y: 0 }}
                                                 className={`flex ${isMe ? 'justify-end' : 'justify-start'} mb-2`}
                                             >
-                                                <div className={`max-w-[70%] px-4 py-2 rounded-2xl ${
-                                                    isMe
+                                                <div className={`max-w-[70%] px-4 py-2 rounded-2xl ${isMe
                                                         ? 'bg-emerald-600 text-white rounded-br-md'
                                                         : 'bg-white border border-gray-200 text-gray-800 rounded-bl-md'
-                                                }`}>
+                                                    }`}>
                                                     <p className="text-sm whitespace-pre-wrap">{msg.text}</p>
                                                     <p className={`text-[10px] mt-1 ${isMe ? 'text-emerald-200' : 'text-gray-400'}`}>
                                                         {formatTime(msg.createdAt)}

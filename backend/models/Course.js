@@ -71,6 +71,11 @@ const courseSchema = new mongoose.Schema({
         type: String,
         default: ''
     },
+    // Teachers temporarily paused from this course by admin
+    pausedTeachers: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    }],
     // Holiday settings: array of day numbers (0=Sunday, 1=Monday... 5=Friday, 6=Saturday)
     holidayDays: {
         type: [Number],

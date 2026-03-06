@@ -167,19 +167,21 @@ app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', socket: !!io });
 });
 
-// Attendance auto-save & lock cron job - Runs daily at 12:00 AM Pakistan Time (19:00 UTC = UTC+5)
+// Attendance auto-save & lock cron job - Runs daily at 12:00 AM Pakistan Time (PKT)
 // This saves and locks the PREVIOUS day's attendance, marking any unmarked students as absent
-cron.schedule('0 19 * * *', async () => {
-    console.log('🕛 Midnight PKT cron triggered (19:00 UTC = 00:00 PKT) - Auto-saving attendance...');
+cron.schedule('0 0 * * *', async () => {
+    console.log('🕛 Midnight PKT cron triggered - Auto-saving attendance...');
     try {
         const result = await lockTodayAttendance();
         console.log(`✅ Daily attendance auto-save completed: ${result.processedCount} courses processed, ${result.createdCount} new records`);
     } catch (error) {
         console.error('❌ Attendance auto-save failed:', error);
     }
+}, {
+    timezone: "Asia/Karachi"
 });
 
-// Installment generation cron job - Runs daily at 1:00 AM
+// Installment generation cron job - Runs daily at 1:00 AM PKT
 cron.schedule('0 1 * * *', async () => {
     try {
         console.log('🔄 Running daily installment job...');
@@ -188,6 +190,8 @@ cron.schedule('0 1 * * *', async () => {
     } catch (error) {
         console.error('❌ Installment job failed:', error);
     }
+}, {
+    timezone: "Asia/Karachi"
 });
 
 // 404 handler for unmatched routes

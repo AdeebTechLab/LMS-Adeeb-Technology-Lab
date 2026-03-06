@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
     ArrowLeft, Loader2, User, Mail, Phone, CreditCard, Calendar,
-    MapPin, BookOpen, Users, Camera, Receipt, ChevronDown, GraduationCap, Eye, EyeOff
+    MapPin, BookOpen, Users, Camera, Receipt, ChevronDown, GraduationCap, Eye, EyeOff, X
 } from 'lucide-react';
 import { authAPI } from '../../services/api';
 
@@ -69,7 +69,7 @@ const StudentRegister = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [errors, setErrors] = useState({});
     const [photoFile, setPhotoFile] = useState(null);
-    const [feeFile, setFeeFile] = useState(null);
+    const [photoPreview, setPhotoPreview] = useState(null);
     const [apiError, setApiError] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -138,14 +138,17 @@ const StudentRegister = () => {
     };
 
     const handlePhotoChange = (e) => {
-        if (e.target.files[0]) {
-            setPhotoFile(e.target.files[0]);
-        }
-    };
-
-    const handleFeeChange = (e) => {
-        if (e.target.files[0]) {
-            setFeeFile(e.target.files[0]);
+        const file = e.target.files[0];
+        if (file) {
+            if (file.size > 2 * 1024 * 1024) {
+                setErrors(prev => ({ ...prev, photo: 'Image size should be less than 2MB' }));
+                return;
+            }
+            setPhotoFile(file);
+            const reader = new FileReader();
+            reader.onloadend = () => setPhotoPreview(reader.result);
+            reader.readAsDataURL(file);
+            if (errors.photo) setErrors(prev => ({ ...prev, photo: '' }));
         }
     };
 
@@ -229,9 +232,6 @@ const StudentRegister = () => {
             if (photoFile) {
                 submitData.append('photo', photoFile);
             }
-            if (feeFile) {
-                submitData.append('feeScreenshot', feeFile);
-            }
 
             await authAPI.register(submitData);
             navigate('/login', {
@@ -250,9 +250,92 @@ const StudentRegister = () => {
 
     return (
         <div className="h-screen flex overflow-hidden">
-            {/* Left Side - Registration Form - Scrollable */}
+            {/* Left Side - Decorative - Fixed */}
             <motion.div
                 initial={{ opacity: 0, x: -50 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6 }}
+                className="hidden lg:flex lg:w-1/2 h-screen sticky top-0 relative overflow-hidden"
+            >
+                {/* Gradient Background */}
+                <div className="absolute inset-0 bg-gradient-to-br from-emerald-600 via-teal-500 to-emerald-800">
+                    {/* Animated Background Elements */}
+                    <div className="absolute top-20 left-20 w-72 h-72 bg-emerald-400/20 rounded-full blur-3xl animate-pulse-slow"></div>
+                    <div className="absolute bottom-20 right-20 w-96 h-96 bg-teal-300/20 rounded-full blur-3xl animate-pulse-slow delay-300"></div>
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-green-400/10 rounded-full blur-3xl animate-float"></div>
+                </div>
+
+                {/* Content */}
+                <div className="relative z-10 flex flex-col items-center justify-center w-full h-full p-8">
+                    <motion.div
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3, duration: 0.5 }}
+                        className="flex flex-col items-center gap-3"
+                    >
+                        <div className="w-20 h-20 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 overflow-hidden shadow-xl">
+                            <img
+                                src="/logo.png"
+                                alt="AdeebTechLab Logo"
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                    e.target.style.display = 'none';
+                                    e.target.nextSibling.style.display = 'block';
+                                }}
+                            />
+                            <GraduationCap className="w-12 h-12 text-white hidden" />
+                        </div>
+                        <h2 className="text-white text-2xl font-bold tracking-tight">AdeebTechLab</h2>
+                    </motion.div>
+
+                    {/* Text Content */}
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.4, duration: 0.6 }}
+                        className="text-center text-white"
+                    >
+                        <h2 className="text-4xl font-bold mb-4">Join as Student</h2>
+                        <p className="text-white/70 text-lg max-w-sm">
+                            Unlock your potential with industry-leading courses and expert guidance
+                        </p>
+                    </motion.div>
+
+                    {/* Features List */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 30 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.6, duration: 0.5 }}
+                        className="mt-12 space-y-4"
+                    >
+                        {[
+                            'Access premium courses',
+                            'Learn from industry experts',
+                            'Interactive practical exercises',
+                            'Earn verified certificates',
+                        ].map((feature, index) => (
+                            <motion.div
+                                key={feature}
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: 0.7 + index * 0.1 }}
+                                className="flex items-center text-white/80"
+                            >
+                                <div className="w-6 h-6 rounded-full bg-emerald-200/20 flex items-center justify-center mr-3">
+                                    <svg className="w-4 h-4 text-emerald-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                    </svg>
+                                </div>
+                                {feature}
+                            </motion.div>
+                        ))}
+                    </motion.div>
+                </div>
+            </motion.div>
+
+            {/* Right Side - Registration Form - Scrollable */}
+            <motion.div
+                initial={{ opacity: 0, x: 50 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.6 }}
                 className="w-full lg:w-1/2 h-screen overflow-y-auto p-6 bg-white"
@@ -285,6 +368,40 @@ const StudentRegister = () => {
                         onSubmit={handleSubmit}
                         className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8"
                     >
+                        {/* Photo Upload */}
+                        <div className="flex flex-col items-center mb-6">
+                            <div className="relative group">
+                                <div className="w-24 h-24 rounded-2xl bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden transition-all group-hover:border-emerald-500">
+                                    {photoPreview ? (
+                                        <img src={photoPreview} alt="Preview" className="w-full h-full object-cover" />
+                                    ) : (
+                                        <div className="text-center">
+                                            <Camera className="w-8 h-8 text-gray-400 mx-auto mb-1" />
+                                            <span className="text-[10px] text-gray-500 font-medium">Photo</span>
+                                        </div>
+                                    )}
+                                </div>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handlePhotoChange}
+                                    className="absolute inset-0 opacity-0 cursor-pointer"
+                                    id="photo-upload"
+                                />
+                                {photoPreview && (
+                                    <button
+                                        type="button"
+                                        onClick={() => { setPhotoFile(null); setPhotoPreview(null); }}
+                                        className="absolute -top-2 -right-2 p-1 bg-red-500 text-white rounded-full shadow-lg hover:bg-red-600 transition-colors"
+                                    >
+                                        <X className="w-3 h-3" />
+                                    </button>
+                                )}
+                            </div>
+                            <p className="mt-2 text-xs text-gray-500">Upload profile picture (Max 2MB)</p>
+                            {errors.photo && <p className="mt-1 text-xs text-red-500">{errors.photo}</p>}
+                        </div>
+
                         {/* Personal Information */}
                         <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-2 border-b">Personal Information</h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
@@ -335,38 +452,7 @@ const StudentRegister = () => {
                             <InputField label="Country *" name="country" placeholder="Your country" value={formData.country} onChange={handleChange} error={errors.country} />
                         </div>
 
-                        {/* Attachments */}
-                        <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-2 border-b">Attachments</h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
-                            <div className="form-group">
-                                <label className="block text-sm font-medium text-gray-700 mb-1.5">Profile Photo</label>
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    onChange={handlePhotoChange}
-                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all bg-gray-50/50"
-                                />
-                                <p className="mt-1 text-xs text-red-500 font-medium">⚠️ Upload image less than 1MB</p>
-                                {photoFile && <p className="mt-1 text-sm text-emerald-600">Selected: {photoFile.name}</p>}
-                            </div>
-                            <div className="form-group">
-                                <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                                    Registration Fee Screenshot <span className="text-gray-400 font-normal">(Optional)</span>
-                                </label>
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    onChange={handleFeeChange}
-                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all bg-gray-50/50"
-                                />
-                                <p className="mt-1 text-xs text-red-500 font-medium">⚠️ Upload image less than 1MB</p>
-                                {feeFile ? (
-                                    <p className="mt-1 text-sm text-emerald-600">Selected: {feeFile.name}</p>
-                                ) : (
-                                    <p className="mt-1 text-xs text-gray-500">Pay Rs. 300 and upload screenshot (optional)</p>
-                                )}
-                            </div>
-                        </div>
+
 
                         {apiError && (
                             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-600">
@@ -466,47 +552,7 @@ const StudentRegister = () => {
                 </div>
             </motion.div>
 
-            {/* Right Side - Decorative Panel with Image - Fixed */}
-            <motion.div
-                initial={{ opacity: 0, x: 50 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6 }}
-                className="hidden lg:flex lg:w-1/2 h-screen sticky top-0 relative overflow-hidden"
-            >
-                {/* Gradient Background */}
-                <div className="absolute inset-0 bg-gradient-to-br from-[#1a1a2e] via-[#16213e] to-[#0f0f23]">
-                    {/* Animated Background Elements */}
-                    <div className="absolute top-20 left-20 w-72 h-72 bg-purple-500/20 rounded-full blur-3xl animate-pulse-slow"></div>
-                    <div className="absolute bottom-20 right-20 w-96 h-96 bg-orange-500/20 rounded-full blur-3xl animate-pulse-slow delay-300"></div>
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-pink-500/10 rounded-full blur-3xl animate-float"></div>
-                </div>
 
-                {/* Content */}
-                <div className="relative z-10 flex flex-col items-center justify-center w-full h-full p-8">
-                    {/* Logo & Branding - Centered */}
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 0.3, duration: 0.5 }}
-                        className="flex flex-col items-center justify-center gap-6"
-                    >
-                        <div className="w-32 h-32 bg-white/10 backdrop-blur-md rounded-3xl flex items-center justify-center border border-white/20 overflow-hidden shadow-2xl">
-                            <img
-                                src="/logo.png"
-                                alt="AdeebTechLab Logo"
-                                className="w-full h-full object-cover"
-                                onError={(e) => {
-                                    e.target.style.display = 'none';
-                                    e.target.nextSibling.style.display = 'block';
-                                }}
-                            />
-                            <GraduationCap className="w-16 h-16 text-white hidden" />
-                        </div>
-                        <h1 className="text-white text-4xl font-bold tracking-tight">AdeebTechLab</h1>
-                        <p className="text-white/70 text-lg">Empowering Your Tech Journey</p>
-                    </motion.div>
-                </div>
-            </motion.div>
         </div>
     );
 };

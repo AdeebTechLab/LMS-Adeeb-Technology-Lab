@@ -101,14 +101,17 @@ enrollmentSchema.methods.updateActiveStatus = function () {
         const firstInstallment = this.installments[0];
         const isFirstVerified = firstInstallment && firstInstallment.status === 'verified';
 
-        // Check if last installment is overdue
+        // Check if last installment is genuinely overdue:
+        // Only count as overdue if it is 'pending' (student has NOT submitted any payment yet)
+        // 'submitted' means the student uploaded proof — admin hasn't verified yet. Don't penalize.
+        // 'verified' means fully paid — not overdue at all.
         const lastInstallment = this.installments[this.installments.length - 1];
         const now = new Date();
         const isLastOverdue = lastInstallment &&
-            lastInstallment.status !== 'verified' &&
+            lastInstallment.status === 'pending' && // ONLY pending (not submitted, not verified)
             now > lastInstallment.dueDate;
 
-        // Active if first verified and last not overdue
+        // Active if first verified and last not genuinely overdue
         this.isActive = isFirstVerified && !isLastOverdue;
     }
 

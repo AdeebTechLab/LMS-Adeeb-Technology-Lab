@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
     ArrowLeft, Loader2, User, Mail, Phone, CreditCard,
-    MapPin, Briefcase, FileText, Camera, ChevronDown, AlertCircle, Eye, EyeOff, Calendar
+    MapPin, Briefcase, FileText, Camera, ChevronDown, AlertCircle, Eye, EyeOff, Calendar, X
 } from 'lucide-react';
 import { authAPI } from '../../services/api';
 
@@ -70,6 +70,8 @@ const JobRegister = () => {
     const [apiError, setApiError] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [photoFile, setPhotoFile] = useState(null);
+    const [photoPreview, setPhotoPreview] = useState(null);
 
     const [formData, setFormData] = useState({
         fullName: '',
@@ -104,7 +106,6 @@ const JobRegister = () => {
         }
         return age;
     };
-    const [photoFile, setPhotoFile] = useState(null);
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -142,8 +143,17 @@ const JobRegister = () => {
     };
 
     const handlePhotoChange = (e) => {
-        if (e.target.files && e.target.files[0]) {
-            setPhotoFile(e.target.files[0]);
+        const file = e.target.files[0];
+        if (file) {
+            if (file.size > 2 * 1024 * 1024) {
+                setErrors(prev => ({ ...prev, photo: 'Image size should be less than 2MB' }));
+                return;
+            }
+            setPhotoFile(file);
+            const reader = new FileReader();
+            reader.onloadend = () => setPhotoPreview(reader.result);
+            reader.readAsDataURL(file);
+            if (errors.photo) setErrors(prev => ({ ...prev, photo: '' }));
         }
     };
 
@@ -214,9 +224,92 @@ const JobRegister = () => {
 
     return (
         <div className="min-h-screen flex">
-            {/* Left Side - Registration Form - Scrollable */}
+            {/* Left Side - Decorative - Fixed */}
             <motion.div
                 initial={{ opacity: 0, x: -50 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6 }}
+                className="hidden lg:flex lg:w-1/2 h-screen sticky top-0 relative overflow-hidden"
+            >
+                {/* Gradient Background */}
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-600 via-fuchsia-500 to-purple-800">
+                    {/* Animated Background Elements */}
+                    <div className="absolute top-20 left-20 w-72 h-72 bg-purple-400/20 rounded-full blur-3xl animate-pulse-slow"></div>
+                    <div className="absolute bottom-20 right-20 w-96 h-96 bg-fuchsia-300/20 rounded-full blur-3xl animate-pulse-slow delay-300"></div>
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-pink-400/10 rounded-full blur-3xl animate-float"></div>
+                </div>
+
+                {/* Content */}
+                <div className="relative z-10 flex flex-col items-center justify-center w-full h-full p-8">
+                    <motion.div
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3, duration: 0.5 }}
+                        className="flex flex-col items-center gap-3"
+                    >
+                        <div className="w-20 h-20 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 overflow-hidden shadow-xl">
+                            <img
+                                src="/logo.png"
+                                alt="AdeebTechLab Logo"
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                    e.target.style.display = 'none';
+                                    e.target.nextSibling.style.display = 'block';
+                                }}
+                            />
+                            <Briefcase className="w-12 h-12 text-white hidden" />
+                        </div>
+                        <h2 className="text-white text-2xl font-bold tracking-tight">AdeebTechLab</h2>
+                    </motion.div>
+
+                    {/* Text Content */}
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.4, duration: 0.6 }}
+                        className="text-center text-white"
+                    >
+                        <h2 className="text-4xl font-bold mb-4">Join Our Team</h2>
+                        <p className="text-white/70 text-lg max-w-sm">
+                            Build innovative solutions in a dynamic and collaborative environment
+                        </p>
+                    </motion.div>
+
+                    {/* Features List */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 30 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.6, duration: 0.5 }}
+                        className="mt-12 space-y-4"
+                    >
+                        {[
+                            'Join a talented tech team',
+                            'Flexible work environment',
+                            'Competitive compensation',
+                            'Grow your professional skills',
+                        ].map((feature, index) => (
+                            <motion.div
+                                key={feature}
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: 0.7 + index * 0.1 }}
+                                className="flex items-center text-white/80"
+                            >
+                                <div className="w-6 h-6 rounded-full bg-purple-200/20 flex items-center justify-center mr-3">
+                                    <svg className="w-4 h-4 text-purple-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                    </svg>
+                                </div>
+                                {feature}
+                            </motion.div>
+                        ))}
+                    </motion.div>
+                </div>
+            </motion.div>
+
+            {/* Right Side - Registration Form - Scrollable */}
+            <motion.div
+                initial={{ opacity: 0, x: 50 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.6 }}
                 className="w-full lg:w-1/2 h-screen overflow-y-auto p-8 bg-white"
@@ -254,6 +347,40 @@ const JobRegister = () => {
                                 {apiError}
                             </div>
                         )}
+
+                        {/* Photo Upload */}
+                        <div className="flex flex-col items-center mb-6">
+                            <div className="relative group">
+                                <div className="w-24 h-24 rounded-2xl bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden transition-all group-hover:border-purple-500">
+                                    {photoPreview ? (
+                                        <img src={photoPreview} alt="Preview" className="w-full h-full object-cover" />
+                                    ) : (
+                                        <div className="text-center">
+                                            <Camera className="w-8 h-8 text-gray-400 mx-auto mb-1" />
+                                            <span className="text-[10px] text-gray-500 font-medium">Photo</span>
+                                        </div>
+                                    )}
+                                </div>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handlePhotoChange}
+                                    className="absolute inset-0 opacity-0 cursor-pointer"
+                                    id="photo-upload"
+                                />
+                                {photoPreview && (
+                                    <button
+                                        type="button"
+                                        onClick={() => { setPhotoFile(null); setPhotoPreview(null); }}
+                                        className="absolute -top-2 -right-2 p-1 bg-red-500 text-white rounded-full shadow-lg hover:bg-red-600 transition-colors"
+                                    >
+                                        <X className="w-3 h-3" />
+                                    </button>
+                                )}
+                            </div>
+                            <p className="mt-2 text-xs text-gray-500">Upload profile picture (Max 2MB)</p>
+                            {errors.photo && <p className="mt-1 text-xs text-red-500">{errors.photo}</p>}
+                        </div>
 
                         {/* Personal Information */}
                         <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-2 border-b flex items-center gap-2">
@@ -326,17 +453,6 @@ const JobRegister = () => {
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
                             <InputField label="CV/Resume URL (Drive/Dropbox)" name="cvUrl" type="url" icon={FileText} placeholder="https://drive.google.com/..." value={formData.cvUrl} onChange={handleChange} error={errors.cvUrl} />
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1.5">Profile Photo</label>
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    onChange={handlePhotoChange}
-                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all bg-gray-50/50"
-                                />
-                                <p className="mt-1 text-xs text-red-500 font-medium">⚠️ Upload image less than 1MB</p>
-                                {photoFile && <p className="mt-1 text-sm text-purple-600">Selected: {photoFile.name}</p>}
-                            </div>
                             <SelectField label="Preferred City *" name="preferredCity" options={CITIES} placeholder="Select City" value={formData.preferredCity} onChange={handleChange} error={errors.preferredCity} />
                             <SelectField label="Preferred Mode *" name="preferredMode" options={['Remote', 'On-Site']} placeholder="Select Mode" value={formData.preferredMode} onChange={handleChange} error={errors.preferredMode} />
                             <div className="md:col-span-2">
@@ -424,47 +540,7 @@ const JobRegister = () => {
                 </div>
             </motion.div>
 
-            {/* Right Side - Decorative Panel with Image - Fixed */}
-            <motion.div
-                initial={{ opacity: 0, x: 50 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6 }}
-                className="hidden lg:flex lg:w-1/2 h-screen sticky top-0 relative overflow-hidden"
-            >
-                {/* Gradient Background */}
-                <div className="absolute inset-0 bg-gradient-to-br from-[#1a1a2e] via-[#16213e] to-[#0f0f23]">
-                    {/* Animated Background Elements */}
-                    <div className="absolute top-20 left-20 w-72 h-72 bg-purple-500/20 rounded-full blur-3xl animate-pulse-slow"></div>
-                    <div className="absolute bottom-20 right-20 w-96 h-96 bg-pink-500/20 rounded-full blur-3xl animate-pulse-slow delay-300"></div>
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-violet-500/10 rounded-full blur-3xl animate-float"></div>
-                </div>
 
-                {/* Content */}
-                <div className="relative z-10 flex flex-col items-center justify-center w-full h-full p-12">
-                    {/* Logo & Branding - Centered */}
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 0.3, duration: 0.5 }}
-                        className="flex flex-col items-center"
-                    >
-                        <div className="w-32 h-32 bg-white/10 backdrop-blur-md rounded-3xl flex items-center justify-center border border-white/20 overflow-hidden mb-6 shadow-2xl">
-                            <img
-                                src="/logo.png"
-                                alt="AdeebTechLab Logo"
-                                className="w-full h-full object-cover"
-                                onError={(e) => {
-                                    e.target.style.display = 'none';
-                                    e.target.nextSibling.style.display = 'block';
-                                }}
-                            />
-                            <Briefcase className="w-16 h-16 text-white hidden" />
-                        </div>
-                        <h1 className="text-white text-4xl font-bold tracking-tight mb-2">AdeebTechLab</h1>
-                        <p className="text-white/70 text-lg">Empowering Your Tech Journey</p>
-                    </motion.div>
-                </div>
-            </motion.div>
         </div>
     );
 };

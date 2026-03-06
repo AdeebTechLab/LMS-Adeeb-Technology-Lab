@@ -2,26 +2,18 @@ const Attendance = require('../models/Attendance');
 const Enrollment = require('../models/Enrollment');
 const Course = require('../models/Course');
 const SystemSetting = require('../models/SystemSetting');
+const moment = require('moment-timezone');
 
-// Called by cron job at 12:00 AM Pakistan Time (19:00 UTC) to auto-save and lock yesterday's attendance
+// Called by cron job at 12:00 AM Pakistan Time to auto-save and lock yesterday's attendance
 const lockTodayAttendance = async () => {
-    // PKT = UTC+5. The cron fires at 19:00 UTC = 00:00 PKT.
-    // We shift 'now' forward by 5 hours to get the current PKT date,
-    // then lock the PREVIOUS PKT calendar day.
-    const PKT_OFFSET_MS = 5 * 60 * 60 * 1000; // +5 hours in milliseconds
-    const nowPKT = new Date(Date.now() + PKT_OFFSET_MS);
+    // The cron fires at 00:00 PKT.
+    // 'yesterday' in PKT: 
+    const yesterdayMoment = moment().tz('Asia/Karachi').subtract(1, 'days').startOf('day');
+    const yesterday = yesterdayMoment.toDate();
 
-    // 'yesterday' in PKT: take PKT date components, subtract 1 day, store as UTC midnight
-    const yesterday = new Date(Date.UTC(
-        nowPKT.getUTCFullYear(),
-        nowPKT.getUTCMonth(),
-        nowPKT.getUTCDate() - 1, // The completed PKT calendar day
-        0, 0, 0, 0
-    ));
+    const yesterdayDayOfWeek = yesterdayMoment.day(); // 0=Sunday, 1=Monday, ..., 6=Saturday
 
-    const yesterdayDayOfWeek = yesterday.getUTCDay(); // 0=Sunday, 1=Monday, ..., 6=Saturday
-
-    console.log(`🔒 Auto-saving PKT attendance for ${yesterday.toISOString().split('T')[0]} (PKT Day: ${yesterdayDayOfWeek}, triggered at ${new Date().toISOString()} UTC / 00:00 PKT)...`);
+    console.log(`🔒 Auto-saving PKT attendance for ${yesterdayMoment.format('YYYY-MM-DD')} (PKT Day: ${yesterdayDayOfWeek}, triggered at ${new Date().toISOString()})...`);
 
     // Get global holiday settings
     const holidaySetting = await SystemSetting.findOne({ key: 'globalHolidayDays' });
@@ -126,7 +118,7 @@ const lockTodayAttendance = async () => {
         }
     }
 
-    console.log(`✅ Auto-saved & locked ${processedCount} attendance records (${createdCount} new, ${holidayCount} holidays) at 12:00 AM PKT (19:00 UTC)`);
+    console.log(`✅ Auto-saved & locked ${processedCount} attendance records (${createdCount} new, ${holidayCount} holidays) at 12:00 AM PKT`);
     return { processedCount, createdCount, holidayCount };
 };
 

@@ -15,13 +15,14 @@ const Fee = require('../models/Fee');
 const Course = require('../models/Course');
 const Certificate = require('../models/Certificate');
 const Enrollment = require('../models/Enrollment');
+const moment = require('moment-timezone');
 
 /**
  * Generate installments for all eligible enrollments
  */
 const generateInstallments = async () => {
     console.log('🔄 Starting installment generation check...');
-    
+
     try {
         // Get all Fee records that have at least one verified installment
         const fees = await Fee.find({})
@@ -60,12 +61,19 @@ const generateInstallments = async () => {
                 const lastInstallment = fee.installments[fee.installments.length - 1];
                 if (!lastInstallment) continue;
 
+                // SAFETY CHECK: If the last installment is still pending or submitted,
+                // DO NOT generate another one. The student hasn't paid the current one yet
+                // (pending) or has uploaded proof that admin hasn't verified yet (submitted).
+                if (lastInstallment.status === 'pending' || lastInstallment.status === 'submitted') {
+                    continue;
+                }
+
                 // Calculate if we need to generate a new installment
                 // New installment should be generated when:
                 // - 30 days have passed since the last installment's due date
-                const lastDueDate = new Date(lastInstallment.dueDate);
-                const now = new Date();
-                const daysSinceLastDue = Math.floor((now - lastDueDate) / (1000 * 60 * 60 * 24));
+                const lastDueDate = moment.tz(lastInstallment.dueDate, 'Asia/Karachi');
+                const now = moment().tz('Asia/Karachi');
+                const daysSinceLastDue = now.diff(lastDueDate, 'days');
 
                 // Generate new installment if 30 days have passed since last due date
                 if (daysSinceLastDue >= 30) {
@@ -84,17 +92,17 @@ const generateInstallments = async () => {
                     }
 
                     if (courseFee === 0) {
-                        console.log(`⚠️ Could not determine fee amount for ${fee.course?.title}`);
+                        console.log(`⚠️ Could not determine fee amount for ${fee.course?.title} - skipping new installment`);
                         continue;
                     }
 
-                    // Calculate new due date (7 days from now)
-                    const newDueDate = new Date();
-                    newDueDate.setDate(newDueDate.getDate() + 7);
+                    // Calculate new due date (Exactly 1 month after the last due date)
+                    // This ensures consistency even if the system was down for a few days
+                    const newDueDate = lastDueDate.clone().add(1, 'month').toDate();
 
                     // Create new installment
                     const newInstallmentNumber = fee.installments.length + 1;
-                    
+
                     fee.installments.push({
                         amount: courseFee,
                         dueDate: newDueDate,
@@ -126,7 +134,7 @@ const generateInstallments = async () => {
  */
 const updateEnrollmentStatus = async () => {
     console.log('🔄 Updating enrollment active status...');
-    
+
     try {
         const fees = await Fee.find({}).populate('course');
         let updatedCount = 0;
@@ -170,17 +178,19 @@ const updateEnrollmentStatus = async () => {
                 }
 
                 // Check if any pending installment is overdue (more than 7 days past due)
-                const now = new Date();
+                const now = moment().tz('Asia/Karachi');
                 let hasOverdue = false;
 
                 for (const inst of fee.installments) {
-                    if (inst.status !== 'verified' && inst.status !== 'paid') {
-                        const dueDate = new Date(inst.dueDate);
-                        const daysPastDue = Math.floor((now - dueDate) / (1000 * 60 * 60 * 24));
-                        
+                    // Only treat as overdue if status is 'pending' - meaning the student has NOT
+                    // taken any action at all. 'submitted' means they uploaded proof and are
+                    // waiting for admin to verify — do NOT punish them for that.
+                    if (inst.status === 'pending') {
+                        const dueDate = moment.tz(inst.dueDate, 'Asia/Karachi');
+                        const daysPastDue = now.diff(dueDate, 'days');
+
                         if (daysPastDue > 7) {
                             hasOverdue = true;
-                            // Mark installment as overdue
                             if (inst.status !== 'overdue') {
                                 inst.status = 'overdue';
                             }
@@ -191,7 +201,7 @@ const updateEnrollmentStatus = async () => {
 
                 // Update enrollment status
                 const newIsActive = isFirstVerified && !hasOverdue;
-                
+
                 if (enrollment.isActive !== newIsActive) {
                     enrollment.isActive = newIsActive;
                     await enrollment.save();
@@ -229,7 +239,7 @@ module.exports = {
 // Run standalone if called directly
 if (require.main === module) {
     require('dotenv').config();
-    
+
     mongoose.connect(process.env.MONGO_URI)
         .then(async () => {
             console.log('Connected to MongoDB');

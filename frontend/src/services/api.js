@@ -92,7 +92,9 @@ export const courseAPI = {
     update: (id, data) => api.put(`/courses/${id}`, data),
     delete: (id) => api.delete(`/courses/${id}`),
     getStudents: (id) => api.get(`/courses/${id}/students`),
-    getTeacherDashboard: () => api.get('/courses/teacher/dashboard')
+    getTeacherDashboard: () => api.get('/courses/teacher/dashboard'),
+    pauseTeacher: (courseId, teacherId) => api.put(`/courses/${courseId}/pause-teacher/${teacherId}`),
+    resumeTeacher: (courseId, teacherId) => api.put(`/courses/${courseId}/resume-teacher/${teacherId}`)
 };
 
 // Enrollment APIs

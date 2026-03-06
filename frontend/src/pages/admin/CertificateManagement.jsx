@@ -237,7 +237,7 @@ const CertificateManagement = () => {
         // Pre-select all assigned courses by default
         const allCourseNames = (teacher.assignedCourses || []).map(c => c.title);
         setTeacherCertData({
-            rollNo: teacher.rollNo || '',
+            rollNo: '',  // Admin enters the unique number manually
             skills: teacher.specialization || 'Teaching',
             duration: '',
             passoutDate: new Date().toISOString().split('T')[0],
@@ -708,15 +708,6 @@ const CertificateManagement = () => {
                             <Users className="w-5 h-5 text-blue-600" />
                             Teachers & Certificates
                         </h2>
-                        <button
-                            onClick={handleBackfillTeacherIds}
-                            disabled={isBackfilling}
-                            className="px-4 py-2 text-xs bg-amber-50 border border-amber-200 text-amber-700 font-bold rounded-xl hover:bg-amber-100 transition-all flex items-center gap-2"
-                            title="Assign t0001... IDs to existing teachers that don't have one yet"
-                        >
-                            {isBackfilling ? <Loader2 className="w-4 h-4 animate-spin" /> : <Award className="w-4 h-4" />}
-                            Backfill Teacher IDs
-                        </button>
                     </div>
 
                     {teachers.length === 0 ? (
@@ -1063,13 +1054,13 @@ const CertificateManagement = () => {
 
                         <div className="grid grid-cols-1 gap-4">
                             <div>
-                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Teacher ID</label>
+                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Unique ID / Certificate Number</label>
                                 <input
                                     type="text"
                                     value={teacherCertData.rollNo}
                                     onChange={(e) => setTeacherCertData({ ...teacherCertData, rollNo: e.target.value })}
                                     className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 outline-none font-mono font-bold"
-                                    placeholder="e.g. t0001"
+                                    placeholder="Enter any unique number (e.g. 1001, T-25, etc.)"
                                 />
                             </div>
                             <div>

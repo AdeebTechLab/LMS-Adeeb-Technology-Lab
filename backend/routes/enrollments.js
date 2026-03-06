@@ -21,11 +21,15 @@ router.get('/my', protect, async (req, res) => {
 
         // Calculate attendance stats for each enrollment and update active status
         const data = await Promise.all(enrollments.map(async (e) => {
-            // Recalculate active status based on recent dates/fees
-            const wasActive = e.isActive;
-            const nowActive = e.updateActiveStatus();
-            if (wasActive !== nowActive) {
-                await e.save();
+            // Only run auto-status update if enrollment is NOT already explicitly active
+            // (i.e., explicitly set active by admin during fee verification)
+            // This prevents auto-deactivation from overriding admin's decision
+            if (!e.isActive || e.status !== 'enrolled') {
+                const wasActive = e.isActive;
+                const nowActive = e.updateActiveStatus();
+                if (wasActive !== nowActive) {
+                    await e.save();
+                }
             }
 
             const eObj = e.toObject();
@@ -328,13 +332,16 @@ router.get('/all', protect, authorize('admin', 'teacher'), async (req, res) => {
             .populate('course', 'title city durationMonths')
             .sort('-createdAt');
 
-        // Sync statuses (Safer)
+        // Sync statuses - only for enrollments that are NOT explicitly active
         for (let e of enrollments) {
             try {
-                const wasActive = e.isActive;
-                const nowActive = e.updateActiveStatus();
-                if (wasActive !== nowActive) {
-                    await e.save();
+                // Only auto-update status if enrollment is not already confirmed active by admin
+                if (!e.isActive || e.status !== 'enrolled') {
+                    const wasActive = e.isActive;
+                    const nowActive = e.updateActiveStatus();
+                    if (wasActive !== nowActive) {
+                        await e.save();
+                    }
                 }
             } catch (err) {
                 console.error(`Sync error for enrollment ${e?._id}:`, err.message);

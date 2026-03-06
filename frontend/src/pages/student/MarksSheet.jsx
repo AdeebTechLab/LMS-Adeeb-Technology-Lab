@@ -184,6 +184,17 @@ const MarksSheet = () => {
         );
     }
 
+    const GRADE_SCALE = [
+        { grade: 'A+', range: '90–100', color: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+        { grade: 'A', range: '85–89', color: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+        { grade: 'B+', range: '80–84', color: 'bg-blue-50 text-blue-700 border-blue-200' },
+        { grade: 'B', range: '75–79', color: 'bg-blue-50 text-blue-700 border-blue-200' },
+        { grade: 'C+', range: '70–74', color: 'bg-amber-50 text-amber-700 border-amber-200' },
+        { grade: 'C', range: '65–69', color: 'bg-amber-50 text-amber-700 border-amber-200' },
+        { grade: 'D', range: '60–64', color: 'bg-orange-50 text-orange-700 border-orange-200' },
+        { grade: 'F', range: '0–59', color: 'bg-red-50 text-red-700 border-red-200' },
+    ];
+
     return (
         <div className="space-y-6">
             {/* Header */}
@@ -191,6 +202,19 @@ const MarksSheet = () => {
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Academic Marks Sheet</h1>
                     <p className="text-gray-500">Select a course to view detailed grading and feedback</p>
+                </div>
+            </div>
+
+            {/* Grade Scale Legend */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm px-5 py-4">
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Grade Scale (out of 100)</p>
+                <div className="flex flex-wrap gap-2">
+                    {GRADE_SCALE.map(({ grade, range, color }) => (
+                        <div key={grade} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-black ${color}`}>
+                            <span className="text-sm">{grade}</span>
+                            <span className="opacity-60 font-medium">→ {range}</span>
+                        </div>
+                    ))}
                 </div>
             </div>
 

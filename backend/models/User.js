@@ -92,6 +92,11 @@ const userSchema = new mongoose.Schema({
         type: Boolean,
         default: true
     },
+    // Admin can mark a registered-but-not-enrolled student as "old registered"
+    registeredOld: {
+        type: Boolean,
+        default: false
+    },
     verifiedAt: Date,
     verifiedBy: {
         type: mongoose.Schema.Types.ObjectId,

@@ -36,11 +36,16 @@ const AdminDashboard = () => {
     const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(true);
     const [data, setData] = useState(null);
+    const today = new Date();
+    const oneMonthAgo = new Date(today);
+    oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+
     const [filters, setFilters] = useState({
-        month: new Date().toISOString().slice(0, 7), // YYYY-MM
-        startDate: '',
-        endDate: ''
+        month: '',
+        startDate: oneMonthAgo.toISOString().split('T')[0],
+        endDate: today.toISOString().split('T')[0]
     });
+    const [dateRangeType, setDateRangeType] = useState('1m');
     const [showFullHistory, setShowFullHistory] = useState(false);
     const [isDownloading, setIsDownloading] = useState(false);
     const [slipModal, setSlipModal] = useState({ open: false, url: null, student: '' });
@@ -49,6 +54,24 @@ const AdminDashboard = () => {
     useEffect(() => {
         fetchStats();
     }, [filters.month, filters.startDate, filters.endDate]);
+
+    useEffect(() => {
+        if (dateRangeType === 'custom') return;
+
+        const today = new Date();
+        const endStr = today.toISOString().split('T')[0];
+        const start = new Date(today);
+
+        if (dateRangeType === '1m') {
+            start.setMonth(start.getMonth() - 1);
+        } else if (dateRangeType === '2m') {
+            start.setMonth(start.getMonth() - 2);
+        } else if (dateRangeType === '3m') {
+            start.setMonth(start.getMonth() - 3);
+        }
+
+        setFilters({ month: '', startDate: start.toISOString().split('T')[0], endDate: endStr });
+    }, [dateRangeType]);
 
     const fetchStats = async () => {
         setIsLoading(true);
@@ -304,36 +327,44 @@ const AdminDashboard = () => {
                                     <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-orange-500 mb-1">Financial Intelligence</h2>
                                     <h3 className="text-3xl font-black text-gray-900 uppercase tracking-tighter leading-none">Total Revenue</h3>
                                 </div>
-                                <div className="flex flex-wrap items-center gap-4">
-                                    <div className="flex items-center gap-2 bg-white p-2.5 rounded-2xl border-2 border-orange-100 shadow-sm hover:border-orange-300 transition-colors">
-                                        <Calendar className="w-5 h-5 text-orange-500 ml-2" />
-                                        <input
-                                            type="month"
-                                            name="month"
-                                            value={filters.month}
-                                            onChange={handleFilterChange}
-                                            className="bg-transparent border-none text-sm font-black uppercase tracking-widest focus:ring-0 cursor-pointer px-3"
-                                        />
+                                <div className="flex flex-col md:items-end gap-3">
+                                    <div className="flex items-center gap-4">
+                                        <div className="flex items-center gap-2 bg-white p-2.5 rounded-2xl border-2 border-orange-100 shadow-sm hover:border-orange-300 transition-colors">
+                                            <Calendar className="w-5 h-5 text-orange-500 ml-2" />
+                                            <select
+                                                value={dateRangeType}
+                                                onChange={(e) => setDateRangeType(e.target.value)}
+                                                className="bg-transparent border-none text-sm font-black uppercase tracking-widest focus:ring-0 cursor-pointer px-3 outline-none"
+                                            >
+                                                <option value="1m">1 Month</option>
+                                                <option value="2m">2 Months</option>
+                                                <option value="3m">3 Months</option>
+                                                <option value="custom">Custom Range</option>
+                                            </select>
+                                        </div>
+                                        {isLoading && <Loader2 className="w-6 h-6 animate-spin text-[#ff8e01]" />}
                                     </div>
-                                    <div className="flex items-center gap-3 bg-white p-2.5 rounded-2xl border-2 border-orange-100 shadow-sm hover:border-orange-300 transition-colors">
-                                        <span className="text-[10px] font-black text-orange-400 uppercase tracking-widest pl-2">Custom Range</span>
-                                        <input
-                                            type="date"
-                                            name="startDate"
-                                            value={filters.startDate}
-                                            onChange={handleFilterChange}
-                                            className="bg-transparent border-none text-xs font-black focus:ring-0 cursor-pointer w-32"
-                                        />
-                                        <ArrowRight className="w-4 h-4 text-orange-300" />
-                                        <input
-                                            type="date"
-                                            name="endDate"
-                                            value={filters.endDate}
-                                            onChange={handleFilterChange}
-                                            className="bg-transparent border-none text-xs font-black focus:ring-0 cursor-pointer w-32"
-                                        />
-                                    </div>
-                                    {isLoading && <Loader2 className="w-6 h-6 animate-spin text-[#ff8e01]" />}
+
+                                    {dateRangeType === 'custom' && (
+                                        <div className="flex items-center gap-3 bg-white p-2.5 rounded-2xl border-2 border-orange-100 shadow-sm hover:border-orange-300 transition-colors">
+                                            <span className="text-[10px] font-black text-orange-400 uppercase tracking-widest pl-2">Custom Range</span>
+                                            <input
+                                                type="date"
+                                                name="startDate"
+                                                value={filters.startDate}
+                                                onChange={handleFilterChange}
+                                                className="bg-transparent border-none text-xs font-black focus:ring-0 cursor-pointer w-32"
+                                            />
+                                            <ArrowRight className="w-4 h-4 text-orange-300" />
+                                            <input
+                                                type="date"
+                                                name="endDate"
+                                                value={filters.endDate}
+                                                onChange={handleFilterChange}
+                                                className="bg-transparent border-none text-xs font-black focus:ring-0 cursor-pointer w-32"
+                                            />
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 

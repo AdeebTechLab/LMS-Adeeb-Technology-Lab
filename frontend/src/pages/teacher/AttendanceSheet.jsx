@@ -41,6 +41,13 @@ const AttendanceSheet = () => {
     const [selectedCities, setSelectedCities] = useState([]); // Array of strings
     const [selectedTypes, setSelectedTypes] = useState([]);   // Array of strings
     const [chatUnreadCount, setChatUnreadCount] = useState(0);
+    // Track last-opened timestamp per courseId so recently opened courses float to top
+    const [recentCourses, setRecentCourses] = useState(() => {
+        try {
+            const saved = localStorage.getItem('teacher_recent_courses');
+            return saved ? JSON.parse(saved) : {};
+        } catch { return {}; }
+    });
     // Load submission notifications from localStorage
     const [submissionNotifications, setSubmissionNotifications] = useState(() => {
         try {
@@ -178,8 +185,15 @@ const AttendanceSheet = () => {
             );
         }
 
+        // 4. Sort: recently opened courses first
+        result = [...result].sort((a, b) => {
+            const tA = recentCourses[String(a.id || a._id)] || 0;
+            const tB = recentCourses[String(b.id || b._id)] || 0;
+            return tB - tA; // descending — most recent on top
+        });
+
         setFilteredCourses(result);
-    }, [myCourses, searchQuery, selectedCities, selectedTypes]);
+    }, [myCourses, searchQuery, selectedCities, selectedTypes, recentCourses]);
 
     const fetchMyCourses = async () => {
         setIsLoading(true);
@@ -323,6 +337,13 @@ const AttendanceSheet = () => {
         setSubmissionNotifications(prev => {
             const updated = { ...prev };
             delete updated[courseId];
+            return updated;
+        });
+
+        // Record last-opened timestamp for this course so it floats to the top
+        setRecentCourses(prev => {
+            const updated = { ...prev, [courseId]: Date.now() };
+            try { localStorage.setItem('teacher_recent_courses', JSON.stringify(updated)); } catch { }
             return updated;
         });
 

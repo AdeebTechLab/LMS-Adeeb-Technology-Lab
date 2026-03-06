@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { protect, authorize } = require('../middleware/auth');
 const { uploadSubmission } = require('../config/cloudinary');
+const moment = require('moment-timezone');
 const Assignment = require('../models/Assignment');
 const Enrollment = require('../models/Enrollment');
 const Course = require('../models/Course');
@@ -178,14 +179,10 @@ router.post('/', protect, authorize('teacher', 'admin'), async (req, res) => {
             assignedUsers = selectedUsers || altSelectedUsers || [];
         }
 
-        // Parse and set due date to end of day in Pakistan time (23:59:59 PKT = 18:59:59 UTC)
+        // Parse and set due date to end of day in Pakistan time (23:59:59 PKT)
         let assignmentDueDate = dueDate;
         if (dueDate) {
-            const dateObj = new Date(dueDate);
-            if (!isNaN(dateObj.getTime())) {
-                dateObj.setUTCHours(18, 59, 59, 999);
-                assignmentDueDate = dateObj;
-            }
+            assignmentDueDate = moment.tz(dueDate, 'Asia/Karachi').endOf('day').toDate();
         }
 
         const assignment = await Assignment.create({
@@ -267,7 +264,7 @@ router.post('/:id/submit', protect, uploadSubmission.single('file'), async (req,
             // Update the existing submission in-place (preserve history)
             existingSubmission.notes = notes || req.body.notes || existingSubmission.notes;
             existingSubmission.fileUrl = req.file ? req.file.path : (req.body.fileUrl || existingSubmission.fileUrl);
-            existingSubmission.submittedAt = new Date();
+            existingSubmission.submittedAt = moment().tz('Asia/Karachi').toDate();
             existingSubmission.status = 'submitted';
             existingSubmission.marks = undefined;
             // Keep the old feedback so student can still reference it
@@ -301,7 +298,7 @@ router.post('/:id/submit', protect, uploadSubmission.single('file'), async (req,
             user: req.user.id,
             notes: notes || req.body.notes,
             fileUrl: req.file ? req.file.path : req.body.fileUrl || null,
-            submittedAt: new Date()
+            submittedAt: moment().tz('Asia/Karachi').toDate()
         });
 
         await assignment.save();
@@ -373,7 +370,7 @@ router.put('/:assignmentId/grade/:submissionId', protect, authorize('teacher', '
         submission.feedback = feedback || submission.feedback;
         submission.status = status || 'graded';
         submission.gradedBy = req.user.id;
-        submission.gradedAt = new Date();
+        submission.gradedAt = moment().tz('Asia/Karachi').toDate();
 
         await assignment.save();
 
@@ -497,13 +494,9 @@ router.put('/:id', protect, authorize('teacher', 'admin'), async (req, res) => {
         // properties to update
         const updateData = { ...req.body };
 
-        // If dueDate is provided, set it to end of day in Pakistan time (23:59:59 PKT = 18:59:59 UTC)
+        // If dueDate is provided, set it to end of day in Pakistan time (23:59:59 PKT)
         if (updateData.dueDate) {
-            const dateObj = new Date(updateData.dueDate);
-            if (!isNaN(dateObj.getTime())) {
-                dateObj.setUTCHours(18, 59, 59, 999);
-                updateData.dueDate = dateObj;
-            }
+            updateData.dueDate = moment.tz(updateData.dueDate, 'Asia/Karachi').endOf('day').toDate();
         }
 
         const assignment = await Assignment.findByIdAndUpdate(
