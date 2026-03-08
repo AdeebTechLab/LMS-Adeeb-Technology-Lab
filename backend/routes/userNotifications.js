@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { protect } = require('../middleware/auth');
 const UserNotification = require('../models/UserNotification');
+const User = require('../models/User');
 
 // @route   GET /api/user-notifications
 // @desc    Get all notifications for current user
@@ -104,6 +105,38 @@ router.delete('/:id', protect, async (req, res) => {
             message: 'Notification deleted'
         });
     } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// @route   POST /api/user-notifications/subscribe
+// @desc    Subscribe user to web push notifications
+// @access  Private
+router.post('/subscribe', protect, async (req, res) => {
+    try {
+        const subscription = req.body;
+
+        if (!subscription || !subscription.endpoint) {
+            return res.status(400).json({ success: false, message: 'Invalid subscription object' });
+        }
+
+        const user = await User.findById(req.user.id);
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+
+        // Check if subscription already exists for this endpoint to prevent duplicates
+        const exists = user.pushSubscriptions?.some(sub => sub.endpoint === subscription.endpoint);
+
+        if (!exists) {
+            if (!user.pushSubscriptions) user.pushSubscriptions = [];
+            user.pushSubscriptions.push(subscription);
+            await user.save();
+        }
+
+        res.status(201).json({ success: true, message: 'Successfully subscribed to push notifications' });
+    } catch (error) {
+        console.error('Push subscription error:', error);
         res.status(500).json({ success: false, message: error.message });
     }
 });

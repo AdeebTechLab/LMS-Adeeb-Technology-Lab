@@ -1,7 +1,9 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { useSelector } from 'react-redux';
+import { useEffect } from 'react';
 import store from './store/store';
+import { subscribeToPushNotifications } from './utils/pushNotifications';
 
 // Auth Pages
 import Login from './pages/auth/Login';
@@ -77,6 +79,13 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
 // App Routes Component
 const AppRoutes = () => {
   const { isAuthenticated, role } = useSelector((state) => state.auth);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      // Small timeout to not block rendering
+      setTimeout(() => subscribeToPushNotifications(), 1000);
+    }
+  }, [isAuthenticated]);
 
   const getDefaultPage = () => {
     switch (role) {

@@ -74,9 +74,12 @@ const FeeVerification = () => {
         setSelectedFee(fee);
         // Pre-fill existing installments or start with one empty
         const existing = fee.installments?.map(i => ({
+            _id: i._id,
             amount: i.amount,
             dueDate: i.dueDate ? new Date(i.dueDate).toISOString().split('T')[0] : '',
-            status: i.status
+            status: i.status,
+            receiptUrl: i.receiptUrl,
+            slipId: i.slipId
         })) || [];
 
         setInstallmentPlan(existing.length > 0 ? existing : [{ amount: '', dueDate: '', status: 'pending' }]);
@@ -421,7 +424,14 @@ const FeeVerification = () => {
                                                     </div>
                                                 )}
                                                 <div>
-                                                    <h3 className="font-semibold text-gray-900">{fee.user?.name || 'Unknown Student'}</h3>
+                                                    <h3 className="font-semibold text-gray-900">
+                                                        {fee.user?.name || 'Unknown Student'}
+                                                        {fee.user?.phone && (
+                                                            <span className="ml-2 text-xs font-normal text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full inline-flex items-center gap-1">
+                                                                📞 {fee.user.phone}
+                                                            </span>
+                                                        )}
+                                                    </h3>
                                                     <p className="text-sm text-gray-500">
                                                         {fee.course?.title || 'Unknown Course'} ({fee.course?.city || 'N/A'})
                                                         <span className={`ml-2 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest ${fee.course?.targetAudience === 'students' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-purple-50 text-purple-600 border border-purple-100'}`}>
@@ -485,7 +495,7 @@ const FeeVerification = () => {
                             <div className="grid gap-3">
                                 {getFilteredFees(fees).map(fee => (
                                     (fee.installments || []).filter(i => i.status === 'pending').map(inst => (
-                                        <div key={`${fee._id}-${inst._id}`} className="bg-gray-50 p-4 rounded-xl border border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4 opacity-75 hover:opacity-100 transition-opacity">
+                                        <div key={`${fee._id}-${inst._id}`} className="bg-gray-50 dark:bg-slate-800 p-4 rounded-xl border border-gray-100 dark:border-slate-700 flex flex-col md:flex-row md:items-center justify-between gap-4 opacity-75 hover:opacity-100 transition-opacity">
                                             <div className="flex items-center gap-3">
                                                 {fee.user?.photo ? (
                                                     <img
@@ -499,8 +509,15 @@ const FeeVerification = () => {
                                                     </div>
                                                 )}
                                                 <div>
-                                                    <h3 className="font-medium text-gray-700">{fee.user?.name || 'Unknown Student'}</h3>
-                                                    <p className="text-xs text-gray-500">
+                                                    <h3 className="font-medium text-gray-700 dark:text-gray-100">
+                                                        {fee.user?.name || 'Unknown Student'}
+                                                        {fee.user?.phone && (
+                                                            <span className="ml-2 text-xs font-normal text-gray-500 dark:text-gray-200 bg-gray-200/50 dark:bg-slate-700 px-2 py-0.5 rounded-full inline-flex items-center gap-1">
+                                                                📞 {fee.user.phone}
+                                                            </span>
+                                                        )}
+                                                    </h3>
+                                                    <p className="text-xs text-gray-500 dark:text-gray-400">
                                                         {fee.course?.title} ({fee.course?.city}) • Due: {formatDate(inst.dueDate)}
                                                         <span className={`ml-2 px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest ${fee.course?.targetAudience === 'students' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-purple-50 text-purple-600 border border-purple-100'}`}>
                                                             {fee.course?.targetAudience}
@@ -510,8 +527,8 @@ const FeeVerification = () => {
                                             </div>
                                             <div className="flex items-center gap-4">
                                                 <div className="text-left md:text-right">
-                                                    <span className="font-bold text-gray-700">Rs {(inst.amount || 0).toLocaleString()}</span>
-                                                    <span className="ml-3 text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded">Pending</span>
+                                                    <span className="font-bold text-gray-700 dark:text-gray-100">Rs {(inst.amount || 0).toLocaleString()}</span>
+                                                    <span className="ml-3 text-xs bg-gray-200 dark:bg-slate-700 text-gray-600 dark:text-gray-300 px-2 py-1 rounded">Pending</span>
                                                 </div>
                                                 <button
                                                     onClick={() => handleDeleteInstallment(fee._id, inst._id)}
@@ -641,7 +658,14 @@ const FeeVerification = () => {
                                                     </div>
                                                 )}
                                                 <div>
-                                                    <h3 className="font-semibold text-gray-900">{fee.user?.name || 'Unknown Student'}</h3>
+                                                    <h3 className="font-semibold text-gray-900">
+                                                        {fee.user?.name || 'Unknown Student'}
+                                                        {fee.user?.phone && (
+                                                            <span className="ml-2 text-xs font-normal text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full inline-flex items-center gap-1">
+                                                                📞 {fee.user.phone}
+                                                            </span>
+                                                        )}
+                                                    </h3>
                                                     <p className="text-sm text-gray-500">
                                                         {fee.course?.title || 'Unknown Course'}
                                                         <span className={`ml-2 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest ${fee.course?.targetAudience === 'students' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-purple-50 text-purple-600 border border-purple-100'}`}>
@@ -684,7 +708,7 @@ const FeeVerification = () => {
             }
 
             {/* Screenshot Modal */}
-            <Modal isOpen={isImageModalOpen} onClose={() => setIsImageModalOpen(false)} title="Payment Receipt">
+            <Modal isOpen={isImageModalOpen} onClose={() => setIsImageModalOpen(false)} title="Payment Receipt" zIndex={150}>
                 {selectedInstallment && (
                     <div className="space-y-4">
                         <div className="flex justify-between items-center bg-gray-50 p-3 rounded-lg">
@@ -754,6 +778,16 @@ const FeeVerification = () => {
                                     />
                                 </div>
                                 <div className="flex items-center gap-2 pb-1">
+                                    {inst.receiptUrl && (
+                                        <button
+                                            type="button"
+                                            onClick={() => handleViewScreenshot({ ...inst, feeId: selectedFee?._id, student: selectedFee?.user?.name, course: selectedFee?.course?.title })}
+                                            className="p-2.5 bg-blue-50 dark:bg-blue-900/30 text-blue-500 dark:text-blue-400 hover:bg-blue-500 hover:text-white rounded-lg transition-colors border border-blue-100 dark:border-blue-800"
+                                            title="View Uploaded Slip"
+                                        >
+                                            <Eye className="w-4 h-4" />
+                                        </button>
+                                    )}
                                     <button
                                         type="button"
                                         onClick={() => handleInstallmentChange(idx, 'status', inst.status === 'verified' ? 'pending' : 'verified')}

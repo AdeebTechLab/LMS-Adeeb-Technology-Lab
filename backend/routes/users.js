@@ -47,14 +47,14 @@ router.get('/pending-counts', protect, authorize('admin'), async (req, res) => {
         // Count students/interns who signed up but have NO enrollments
         // Get all enrolled user IDs
         const enrolledUserIds = await Enrollment.distinct('user');
-        
+
         // Count students with no enrollments
         const studentsNotRegistered = await User.countDocuments({
             role: 'student',
             isVerified: true,
             _id: { $nin: enrolledUserIds }
         });
-        
+
         // Count interns with no enrollments
         const internsNotRegistered = await User.countDocuments({
             role: 'intern',
@@ -110,6 +110,15 @@ router.get('/role/:role', protect, authorize('admin'), async (req, res) => {
                                 input: '$enrollmentData',
                                 as: 'e',
                                 cond: { $in: ['$$e.status', ['enrolled', 'pending']] }
+                            }
+                        }
+                    },
+                    pausedEnrollments: {
+                        $size: {
+                            $filter: {
+                                input: '$enrollmentData',
+                                as: 'e',
+                                cond: { $eq: ['$$e.isPaused', true] }
                             }
                         }
                     },

@@ -101,7 +101,15 @@ const userSchema = new mongoose.Schema({
     verifiedBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
-    }
+    },
+    pushSubscriptions: [{
+        endpoint: String,
+        expirationTime: Date,
+        keys: {
+            p256dh: String,
+            auth: String
+        }
+    }]
 }, {
     timestamps: true
 });

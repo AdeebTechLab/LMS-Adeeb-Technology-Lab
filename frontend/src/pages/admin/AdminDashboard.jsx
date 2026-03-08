@@ -37,15 +37,14 @@ const AdminDashboard = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [data, setData] = useState(null);
     const today = new Date();
-    const oneMonthAgo = new Date(today);
-    oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+    const startOfCurrentMonth = new Date(today.getFullYear(), today.getMonth(), 1);
 
     const [filters, setFilters] = useState({
         month: '',
-        startDate: oneMonthAgo.toISOString().split('T')[0],
+        startDate: startOfCurrentMonth.toISOString().split('T')[0],
         endDate: today.toISOString().split('T')[0]
     });
-    const [dateRangeType, setDateRangeType] = useState('1m');
+    const [dateRangeType, setDateRangeType] = useState('current_month');
     const [showFullHistory, setShowFullHistory] = useState(false);
     const [isDownloading, setIsDownloading] = useState(false);
     const [slipModal, setSlipModal] = useState({ open: false, url: null, student: '' });
@@ -62,7 +61,9 @@ const AdminDashboard = () => {
         const endStr = today.toISOString().split('T')[0];
         const start = new Date(today);
 
-        if (dateRangeType === '1m') {
+        if (dateRangeType === 'current_month') {
+            start.setFullYear(today.getFullYear(), today.getMonth(), 1);
+        } else if (dateRangeType === '1m') {
             start.setMonth(start.getMonth() - 1);
         } else if (dateRangeType === '2m') {
             start.setMonth(start.getMonth() - 2);
@@ -324,8 +325,8 @@ const AdminDashboard = () => {
                         <div className="relative z-10">
                             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
                                 <div>
-                                    <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-orange-500 mb-1">Financial Intelligence</h2>
-                                    <h3 className="text-3xl font-black text-gray-900 uppercase tracking-tighter leading-none">Total Revenue</h3>
+                                    <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-orange-500 dark:text-orange-400 mb-1">Financial Intelligence</h2>
+                                    <h3 className="text-3xl font-black text-gray-900 dark:text-white uppercase tracking-tighter leading-none">Total Revenue</h3>
                                 </div>
                                 <div className="flex flex-col md:items-end gap-3">
                                     <div className="flex items-center gap-4">
@@ -336,6 +337,7 @@ const AdminDashboard = () => {
                                                 onChange={(e) => setDateRangeType(e.target.value)}
                                                 className="bg-transparent border-none text-sm font-black uppercase tracking-widest focus:ring-0 cursor-pointer px-3 outline-none"
                                             >
+                                                <option value="current_month">Current Month</option>
                                                 <option value="1m">1 Month</option>
                                                 <option value="2m">2 Months</option>
                                                 <option value="3m">3 Months</option>
@@ -369,7 +371,7 @@ const AdminDashboard = () => {
                             </div>
 
                             <div className="flex items-baseline gap-6 mb-2">
-                                <span className="text-7xl font-black text-gray-900 tracking-tighter drop-shadow-sm">
+                                <span className="text-7xl font-black text-gray-900 dark:text-white tracking-tighter drop-shadow-sm">
                                     Rs {data?.totalRevenue.toLocaleString()}
                                 </span>
                                 <div className="flex items-center gap-2 px-4 py-2 bg-emerald-100 text-emerald-700 rounded-2xl border-2 border-emerald-200 shadow-sm">
@@ -377,7 +379,7 @@ const AdminDashboard = () => {
                                     <span className="text-xs font-black uppercase tracking-widest">Growth Plan Active</span>
                                 </div>
                             </div>
-                            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-2 ml-1">
+                            <p className="text-xs font-bold text-gray-400 dark:text-gray-300 uppercase tracking-widest mt-2 ml-1">
                                 Verified Installments from {filters.startDate ? `${filters.startDate} to ${filters.endDate}` : `Month: ${filters.month}`}
                             </p>
                         </div>

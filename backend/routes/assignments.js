@@ -7,6 +7,7 @@ const Assignment = require('../models/Assignment');
 const Enrollment = require('../models/Enrollment');
 const Course = require('../models/Course');
 const Fee = require('../models/Fee');
+const { sendPushNotification } = require('../utils/pushHelper');
 
 // Helper function to check if student has overdue fees (more than 7 days past due)
 const hasOverdueFee = async (userId, courseId) => {
@@ -373,6 +374,16 @@ router.put('/:assignmentId/grade/:submissionId', protect, authorize('teacher', '
         submission.gradedAt = moment().tz('Asia/Karachi').toDate();
 
         await assignment.save();
+
+        // Send a push notification if the assignment was rejected
+        if (status === 'rejected') {
+            sendPushNotification(submission.user, {
+                title: 'Assignment Rejected',
+                body: `Your submission for "${assignment.title}" has been rejected. Feedback: ${feedback}`,
+                icon: '/logo.png',
+                url: `/`
+            });
+        }
 
         res.json({ success: true, assignment });
     } catch (error) {

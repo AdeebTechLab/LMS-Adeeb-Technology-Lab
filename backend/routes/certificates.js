@@ -27,8 +27,8 @@ router.get('/my', protect, async (req, res) => {
 // @access  Private (Admin)
 router.get('/requests', protect, authorize('admin'), async (req, res) => {
     try {
-        console.log('📋 [ROUTES] Fetching certificate requests for user:', req.user.name);
-        const requests = await CertificateRequest.find()
+        console.log('📋 [ROUTES] Fetching pending certificate requests for user:', req.user.name);
+        const requests = await CertificateRequest.find({ status: 'pending' })
             .populate('user', 'name email rollNo photo role cnic')
             .populate('course', 'title description location')
             .populate('teacher', 'name email')
@@ -208,8 +208,16 @@ router.get('/courses', protect, authorize('admin'), async (req, res) => {
             };
         }));
 
+        const totalPlatformStudents = await User.countDocuments({ role: { $in: ['student', 'intern'] } });
+        const totalPlatformTeachers = await User.countDocuments({ role: 'teacher' });
+
         console.log(`✅ [CERTIFICATES] Returning ${coursesWithStudents.length} courses with students`);
-        res.json({ success: true, courses: coursesWithStudents });
+        res.json({
+            success: true,
+            courses: coursesWithStudents,
+            totalPlatformStudents,
+            totalPlatformTeachers
+        });
     } catch (error) {
         console.error('❌ [CERTIFICATES] Error fetching courses:', error.message);
         res.status(500).json({ success: false, message: error.message });

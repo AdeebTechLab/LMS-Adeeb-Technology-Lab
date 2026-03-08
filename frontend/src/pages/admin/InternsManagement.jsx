@@ -180,6 +180,20 @@ const InternsManagement = () => {
         });
     };
 
+    const getInternStatus = (i) => {
+        const total = i.totalEnrollments || 0;
+        const completed = i.completedEnrollments || 0;
+        const paused = i.pausedEnrollments || 0;
+
+        if (total > 0 && total === completed) return 'Completed';
+        if (total > 0 && completed < total && (total - completed) === paused) return 'Enrolled (Inactive)';
+        if (total > 0 && completed < total && (total - completed - paused) > 0) return 'Enrolled (Active)';
+        if ((total === 0 || !total) && i.registeredOld) return 'Registered (Old)';
+        if ((total === 0 || !total) && !i.registeredOld) return 'Registered (New)';
+
+        return i.isVerified ? 'Verified' : 'Pending';
+    };
+
     const downloadPDF = async (type = 'full') => {
         // Fetch enrollments to build userId -> courses map
         let userCoursesMap = {};
@@ -256,7 +270,7 @@ const InternsManagement = () => {
                 i.location ? (i.location.charAt(0).toUpperCase() + i.location.slice(1)) : 'N/A',
                 (i.attendType === 'Physical' || i.attendType === 'On-Site') ? 'Onsite' : (i.attendType === 'Online' ? 'Remote' : (i.attendType || 'N/A')),
                 (userCoursesMap[i._id] && userCoursesMap[i._id].length > 0) ? userCoursesMap[i._id].join(', ') : 'N/A',
-                i.isVerified ? 'Verified' : 'Pending'
+                getInternStatus(i)
             ]);
         }
 
@@ -288,50 +302,79 @@ const InternsManagement = () => {
 
         doc.setTextColor(0, 0, 0);
         doc.setFontSize(10);
-        doc.text(`Status: ${i.isVerified ? 'VERIFIED' : 'PENDING'}`, 140, 26);
+        doc.text(`Status: ${getInternStatus(i).toUpperCase()}`, 140, 26);
 
         let y = 50;
-        doc.setFontSize(14);
-        doc.setFont('helvetica', 'bold');
-        doc.text('Personal Information', 14, y);
-        doc.line(14, y + 2, 200, y + 2);
 
-        y += 10;
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'normal');
-        const fields = [
-            ['Name', i.name],
-            ['Email', i.email],
-            ['Phone', i.phone],
-            ['CNIC', i.cnic],
-            ['Gender', i.gender],
-            ['Education', i.education],
-            ['Location', i.location],
-            ['City', i.city],
-            ['Country', i.country],
-            ['Address', i.address],
-            ['Guardian Name', i.guardianName],
-            ['Guardian Phone', i.guardianPhone],
-            ['Guardian Job', i.guardianOccupation],
-            ['Attendance Type', i.attendType],
-            ['Heard About', i.heardAbout],
-            ['Admission Date', i.createdAt ? new Date(i.createdAt).toLocaleDateString() : 'N/A']
-        ];
-
-        fields.forEach(([label, value]) => {
+        const addFieldsAndSave = () => {
+            doc.setFontSize(14);
             doc.setFont('helvetica', 'bold');
-            doc.text(`${label}:`, 14, y);
+            doc.text('Personal Information', 14, y);
+            doc.line(14, y + 2, 200, y + 2);
+
+            y += 10;
+            doc.setFontSize(10);
             doc.setFont('helvetica', 'normal');
-            doc.text(`${value || 'N/A'}`, 60, y);
-            y += 7;
+            const fields = [
+                ['Name', i.name],
+                ['Email', i.email],
+                ['Phone', i.phone],
+                ['CNIC', i.cnic],
+                ['Gender', i.gender],
+                ['Education', i.education],
+                ['Location', i.location],
+                ['City', i.city],
+                ['Country', i.country],
+                ['Address', i.address],
+                ['Guardian Name', i.guardianName],
+                ['Guardian Phone', i.guardianPhone],
+                ['Guardian Job', i.guardianOccupation],
+                ['Attendance Type', i.attendType],
+                ['Heard About', i.heardAbout],
+                ['Admission Date', i.createdAt ? new Date(i.createdAt).toLocaleDateString() : 'N/A']
+            ];
 
-            if (y > 270) {
-                doc.addPage();
-                y = 20;
-            }
-        });
+            fields.forEach(([label, value]) => {
+                doc.setFont('helvetica', 'bold');
+                doc.text(`${label}:`, 14, y);
+                doc.setFont('helvetica', 'normal');
+                doc.text(`${value || 'N/A'}`, 60, y);
+                y += 7;
 
-        doc.save(`Intern_${i.name?.replace(/\s+/g, '_')}.pdf`);
+                if (y > 270) {
+                    doc.addPage();
+                    y = 20;
+                }
+            });
+
+            doc.save(`Intern_${i.name?.replace(/\s+/g, '_')}.pdf`);
+        };
+
+        if (i.photo) {
+            // Load image as base64 to avoid CORS issues in PDF rendering
+            const img = new Image();
+            img.crossOrigin = 'Anonymous';
+            img.onload = function () {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+                const dataURL = canvas.toDataURL('image/jpeg');
+
+                // Draw profile picture at top right below header
+                doc.addImage(dataURL, 'JPEG', 160, 45, 35, 35);
+                y = Math.max(y, 85); // Adjust Y to ensure fields don't overlap image
+                addFieldsAndSave();
+            };
+            img.onerror = function () {
+                // If image fails to load, just render text
+                addFieldsAndSave();
+            };
+            img.src = i.photo;
+        } else {
+            addFieldsAndSave();
+        }
     };
 
     const handleDownloadCompleteReport = async (intern) => {
@@ -429,11 +472,20 @@ const InternsManagement = () => {
         // "Registered Old" = No enrollments AND marked as old by admin
         if (filterStatus === 'registeredOld') return (i.totalEnrollments || 0) === 0 && i.registeredOld;
 
-        // "Enrolled" (Active) = Has enrollments AND not all completed
+        // "Enrolled" (Active) = Has enrollments, not all completed, AND at least one is NOT paused
         if (filterStatus === 'enrolled') {
             const total = i.totalEnrollments || 0;
             const completed = i.completedEnrollments || 0;
-            return total > 0 && completed < total;
+            const paused = i.pausedEnrollments || 0;
+            return total > 0 && completed < total && (total - completed - paused) > 0;
+        }
+
+        // "Enrolled" (Inactive) = Has enrollments, not all completed, AND ALL non-completed are paused
+        if (filterStatus === 'enrolledInactive') {
+            const total = i.totalEnrollments || 0;
+            const completed = i.completedEnrollments || 0;
+            const paused = i.pausedEnrollments || 0;
+            return total > 0 && completed < total && (total - completed) === paused;
         }
 
         // "Completed" = All enrollments are completed
@@ -569,7 +621,18 @@ const InternsManagement = () => {
                             count: interns.filter(i => {
                                 const total = i.totalEnrollments || 0;
                                 const completed = i.completedEnrollments || 0;
-                                return total > 0 && completed < total;
+                                const paused = i.pausedEnrollments || 0;
+                                return total > 0 && completed < total && (total - completed - paused) > 0;
+                            }).length
+                        },
+                        {
+                            id: 'enrolledInactive',
+                            label: 'Enrolled (Inactive)',
+                            count: interns.filter(i => {
+                                const total = i.totalEnrollments || 0;
+                                const completed = i.completedEnrollments || 0;
+                                const paused = i.pausedEnrollments || 0;
+                                return total > 0 && completed < total && (total - completed) === paused;
                             }).length
                         },
                         {

@@ -515,10 +515,12 @@ router.post('/forgot-password', async (req, res) => {
             `
         };
 
-        await transporter.sendMail(mailOptions);
-        console.log('Password reset email sent to:', user.email);
-
         res.json({ success: true, message: 'Password reset email sent' });
+
+        transporter.sendMail(mailOptions)
+            .then(() => console.log('Password reset email sent to:', user.email))
+            .catch((error) => console.error('Error sending password reset email asynchronously:', error));
+
     } catch (error) {
         console.error('Forgot password error:', error);
         res.status(500).json({

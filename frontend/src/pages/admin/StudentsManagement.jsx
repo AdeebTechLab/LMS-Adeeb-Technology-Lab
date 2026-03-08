@@ -190,6 +190,20 @@ const StudentsManagement = () => {
         }
     };
 
+    const getStudentStatus = (s) => {
+        const total = s.totalEnrollments || 0;
+        const completed = s.completedEnrollments || 0;
+        const paused = s.pausedEnrollments || 0;
+
+        if (total > 0 && total === completed) return 'Completed';
+        if (total > 0 && completed < total && (total - completed) === paused) return 'Enrolled (Inactive)';
+        if (total > 0 && completed < total && (total - completed - paused) > 0) return 'Enrolled (Active)';
+        if ((total === 0 || !total) && s.registeredOld) return 'Registered (Old)';
+        if ((total === 0 || !total) && !s.registeredOld) return 'Registered (New)';
+
+        return s.isVerified ? 'Verified' : 'Pending';
+    };
+
     const downloadPDF = async (type = 'full') => {
         // Fetch enrollments to build userId -> courses map
         let userCoursesMap = {};
@@ -250,7 +264,7 @@ const StudentsManagement = () => {
                 s.course || 'N/A',
                 s.education || 'N/A',
                 (userCoursesMap[s._id] && userCoursesMap[s._id].length > 0) ? userCoursesMap[s._id].join(', ') : 'N/A',
-                s.isVerified ? 'Verified' : 'Pending'
+                getStudentStatus(s)
             ]);
         } else if (type === 'address') {
             headers = [['Roll No', 'Name', 'Address', 'City', 'Country']];
@@ -279,7 +293,7 @@ const StudentsManagement = () => {
                 s.guardianPhone || 'N/A',
                 s.address || 'N/A',
                 (userCoursesMap[s._id] && userCoursesMap[s._id].length > 0) ? userCoursesMap[s._id].join(', ') : 'N/A',
-                s.isVerified ? 'Verified' : 'Pending'
+                getStudentStatus(s)
             ]);
         }
 
@@ -313,53 +327,82 @@ const StudentsManagement = () => {
         doc.setTextColor(0, 0, 0);
         doc.setFontSize(10);
         doc.text(`Roll Number: ${s.rollNo || 'N/A'}`, 140, 20);
-        doc.text(`Status: ${s.isVerified ? 'VERIFIED' : 'PENDING'}`, 140, 26);
+        doc.text(`Status: ${getStudentStatus(s).toUpperCase()}`, 140, 26);
 
         let y = 50;
-        doc.setFontSize(14);
-        doc.setFont('helvetica', 'bold');
-        doc.text('Personal Information', 14, y);
-        doc.line(14, y + 2, 200, y + 2);
 
-        y += 10;
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'normal');
-        const fields = [
-            ['Roll Number', s.rollNo],
-            ['Name', s.name],
-            ['Email', s.email],
-            ['Phone', s.phone],
-            ['CNIC', s.cnic],
-            ['Gender', s.gender],
-            ['Date of Birth', s.dob ? new Date(s.dob).toLocaleDateString() : 'N/A'],
-            ['Age', s.age],
-            ['Education', s.education],
-            ['Location', s.location],
-            ['City', s.city],
-            ['Country', s.country],
-            ['Address', s.address],
-            ['Guardian Name', s.guardianName],
-            ['Guardian Phone', s.guardianPhone],
-            ['Guardian Job', s.guardianOccupation],
-            ['Attendance Type', s.attendType],
-            ['Heard About', s.heardAbout],
-            ['Admission Date', s.createdAt ? new Date(s.createdAt).toLocaleDateString() : 'N/A']
-        ];
-
-        fields.forEach(([label, value]) => {
+        const addFieldsAndSave = () => {
+            doc.setFontSize(14);
             doc.setFont('helvetica', 'bold');
-            doc.text(`${label}:`, 14, y);
+            doc.text('Personal Information', 14, y);
+            doc.line(14, y + 2, 200, y + 2);
+
+            y += 10;
+            doc.setFontSize(10);
             doc.setFont('helvetica', 'normal');
-            doc.text(`${value || 'N/A'}`, 60, y);
-            y += 7;
+            const fields = [
+                ['Roll Number', s.rollNo],
+                ['Name', s.name],
+                ['Email', s.email],
+                ['Phone', s.phone],
+                ['CNIC', s.cnic],
+                ['Gender', s.gender],
+                ['Date of Birth', s.dob ? new Date(s.dob).toLocaleDateString() : 'N/A'],
+                ['Age', s.age],
+                ['Education', s.education],
+                ['Location', s.location],
+                ['City', s.city],
+                ['Country', s.country],
+                ['Address', s.address],
+                ['Guardian Name', s.guardianName],
+                ['Guardian Phone', s.guardianPhone],
+                ['Guardian Job', s.guardianOccupation],
+                ['Attendance Type', s.attendType],
+                ['Heard About', s.heardAbout],
+                ['Admission Date', s.createdAt ? new Date(s.createdAt).toLocaleDateString() : 'N/A']
+            ];
 
-            if (y > 270) {
-                doc.addPage();
-                y = 20;
-            }
-        });
+            fields.forEach(([label, value]) => {
+                doc.setFont('helvetica', 'bold');
+                doc.text(`${label}:`, 14, y);
+                doc.setFont('helvetica', 'normal');
+                doc.text(`${value || 'N/A'}`, 60, y);
+                y += 7;
 
-        doc.save(`Student_${s.name?.replace(/\s+/g, '_')}_${s.rollNo || ''}.pdf`);
+                if (y > 270) {
+                    doc.addPage();
+                    y = 20;
+                }
+            });
+
+            doc.save(`Student_${s.name?.replace(/\s+/g, '_')}_${s.rollNo || ''}.pdf`);
+        };
+
+        if (s.photo) {
+            // Load image as base64 to avoid CORS issues in PDF rendering
+            const img = new Image();
+            img.crossOrigin = 'Anonymous';
+            img.onload = function () {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+                const dataURL = canvas.toDataURL('image/jpeg');
+
+                // Draw profile picture at top right below header
+                doc.addImage(dataURL, 'JPEG', 160, 45, 35, 35);
+                y = Math.max(y, 85); // Adjust Y to ensure fields don't overlap image
+                addFieldsAndSave();
+            };
+            img.onerror = function () {
+                // If image fails to load, just render text
+                addFieldsAndSave();
+            };
+            img.src = s.photo;
+        } else {
+            addFieldsAndSave();
+        }
     };
 
     const handleDownloadCompleteReport = async (student) => {
@@ -433,11 +476,20 @@ const StudentsManagement = () => {
         // "Registered Old" = No enrollments AND marked as old by admin
         if (filterStatus === 'registeredOld') return (s.totalEnrollments || 0) === 0 && s.registeredOld;
 
-        // "Enrolled" (Active) = Has enrollments AND not all completed
+        // "Enrolled" (Active) = Has enrollments, not all completed, AND at least one is NOT paused
         if (filterStatus === 'enrolled') {
             const total = s.totalEnrollments || 0;
             const completed = s.completedEnrollments || 0;
-            return total > 0 && completed < total;
+            const paused = s.pausedEnrollments || 0;
+            return total > 0 && completed < total && (total - completed - paused) > 0;
+        }
+
+        // "Enrolled" (Inactive) = Has enrollments, not all completed, AND ALL non-completed are paused
+        if (filterStatus === 'enrolledInactive') {
+            const total = s.totalEnrollments || 0;
+            const completed = s.completedEnrollments || 0;
+            const paused = s.pausedEnrollments || 0;
+            return total > 0 && completed < total && (total - completed) === paused;
         }
 
         // "Completed" = All enrollments are completed
@@ -579,7 +631,18 @@ const StudentsManagement = () => {
                             count: students.filter(s => {
                                 const total = s.totalEnrollments || 0;
                                 const completed = s.completedEnrollments || 0;
-                                return total > 0 && completed < total;
+                                const paused = s.pausedEnrollments || 0;
+                                return total > 0 && completed < total && (total - completed - paused) > 0;
+                            }).length
+                        },
+                        {
+                            id: 'enrolledInactive',
+                            label: 'Enrolled (Inactive)',
+                            count: students.filter(s => {
+                                const total = s.totalEnrollments || 0;
+                                const completed = s.completedEnrollments || 0;
+                                const paused = s.pausedEnrollments || 0;
+                                return total > 0 && completed < total && (total - completed) === paused;
                             }).length
                         },
                         {

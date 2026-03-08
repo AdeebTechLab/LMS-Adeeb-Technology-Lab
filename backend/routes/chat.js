@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const { protect, authorize } = require('../middleware/auth');
 const GlobalMessage = require('../models/GlobalMessage');
 const User = require('../models/User');
+const { sendPushNotification } = require('../utils/pushHelper');
 
 // @route   GET /api/chat/messages/:otherUserId
 // @desc    Get messages with a specific user
@@ -62,6 +63,14 @@ router.post('/messages', protect, async (req, res) => {
             io.to(recipientId.toString()).emit('new_global_message', socketData);
             io.to(senderId.toString()).emit('new_global_message', socketData);
         }
+
+        // Trigger a Web Push Notification in the background
+        sendPushNotification(recipientId, {
+            title: `New message from ${populatedMessage.sender.name}`,
+            body: text,
+            icon: '/logo.png',
+            url: `/chat`
+        });
 
         res.status(201).json({ success: true, data: populatedMessage });
     } catch (error) {
@@ -282,6 +291,14 @@ router.post('/course/:courseId/send', protect, async (req, res) => {
             io.to(recipientId.toString()).emit('new_global_message', socketData);
             io.to(senderId.toString()).emit('new_global_message', socketData);
         }
+
+        // Trigger a Web Push Notification in the background
+        sendPushNotification(recipientId, {
+            title: `New course message from ${populatedMessage.sender.name}`,
+            body: text,
+            icon: '/logo.png',
+            url: `/chat`
+        });
 
         res.status(201).json({ success: true, data: populatedMessage });
     } catch (error) {

@@ -19,6 +19,7 @@ const CertificateManagement = () => {
     const [courses, setCourses] = useState([]);
     const [teachers, setTeachers] = useState([]);
     const [requests, setRequests] = useState([]);
+    const [platformCounts, setPlatformCounts] = useState({ students: 0, teachers: 0 });
     const [isLoading, setIsLoading] = useState(true);
     const [isIssuing, setIsIssuing] = useState(false);
     const [activeSection, setActiveSection] = useState('courses'); // 'courses' | 'teachers'
@@ -103,6 +104,10 @@ const CertificateManagement = () => {
             console.log('✅ [CERT] Formatted Courses:', formattedCourses);
             setCourses(formattedCourses);
             setTeachers(teachersRes.data.teachers || []);
+            setPlatformCounts({
+                students: coursesRes.data.totalPlatformStudents || 0,
+                teachers: coursesRes.data.totalPlatformTeachers || teachersRes.data.teachers?.length || 0
+            });
         } catch (error) {
             console.error('❌ [CERT] Error fetching data:', error);
             console.error('❌ [CERT] Error Status:', error.response?.status);
@@ -328,9 +333,22 @@ const CertificateManagement = () => {
         return matchesSearch && matchesCity && matchesType;
     });
 
-    const totalStudents = courses.reduce((acc, c) => acc + c.students.length, 0);
-    const totalCertified = courses.reduce((acc, c) => acc + c.students.filter(s => s.certificateIssued).length, 0);
-    const teachersCertified = teachers.filter(t => t.certificateIssued).length;
+    // Calculate unique students and certified students
+    const uniqueStudents = new Set();
+    const uniqueCertifiedStudents = new Set();
+    courses.forEach(c => {
+        c.students.forEach(s => {
+            const id = s.id || s._id;
+            uniqueStudents.add(id);
+            if (s.certificateIssued) uniqueCertifiedStudents.add(id);
+        });
+    });
+
+    const studentsCertifiedCount = uniqueCertifiedStudents.size;
+    const studentsPendingCount = uniqueStudents.size - studentsCertifiedCount;
+
+    const teachersCertifiedCount = teachers.filter(t => t.certificateIssued).length;
+    const teachersPendingCount = teachers.length - teachersCertifiedCount;
 
     if (isLoading) {
         return (
@@ -349,18 +367,35 @@ const CertificateManagement = () => {
                     <h1 className="text-2xl font-bold text-gray-900">Certificate Management</h1>
                     <p className="text-gray-500">Issue and manage student & teacher certificates</p>
                 </div>
-                <div className="flex gap-4">
-                    <div className="px-4 py-2 bg-amber-50 rounded-xl text-center">
-                        <p className="text-2xl font-bold text-amber-600">{requests.length}</p>
-                        <p className="text-xs text-gray-500">Pending</p>
+                <div className="flex flex-wrap gap-4 mt-4 sm:mt-0">
+                    {/* Students/Interns Metrics */}
+                    <div className="flex flex-col bg-emerald-50 rounded-xl p-3 border border-emerald-100 min-w-[140px]">
+                        <p className="text-xs text-emerald-800 font-bold mb-1 border-b border-emerald-200 pb-1">Students / Interns</p>
+                        <div className="flex justify-between items-end mt-1">
+                            <div>
+                                <p className="text-2xl font-black text-emerald-600 leading-none">{studentsCertifiedCount}</p>
+                                <p className="text-[10px] text-emerald-600/80 font-medium uppercase tracking-wider">Assigned</p>
+                            </div>
+                            <div className="text-right">
+                                <p className="text-xl font-bold text-amber-500 leading-none">{studentsPendingCount}</p>
+                                <p className="text-[10px] text-amber-600/80 font-medium uppercase tracking-wider">Pending</p>
+                            </div>
+                        </div>
                     </div>
-                    <div className="px-4 py-2 bg-emerald-50 rounded-xl text-center">
-                        <p className="text-2xl font-bold text-emerald-600">{totalCertified}</p>
-                        <p className="text-xs text-gray-500">Students</p>
-                    </div>
-                    <div className="px-4 py-2 bg-blue-50 rounded-xl text-center">
-                        <p className="text-2xl font-bold text-blue-600">{teachersCertified}</p>
-                        <p className="text-xs text-gray-500">Teachers</p>
+
+                    {/* Teachers Metrics */}
+                    <div className="flex flex-col bg-blue-50 rounded-xl p-3 border border-blue-100 min-w-[140px]">
+                        <p className="text-xs text-blue-800 font-bold mb-1 border-b border-blue-200 pb-1">Teachers</p>
+                        <div className="flex justify-between items-end mt-1">
+                            <div>
+                                <p className="text-2xl font-black text-blue-600 leading-none">{teachersCertifiedCount}</p>
+                                <p className="text-[10px] text-blue-600/80 font-medium uppercase tracking-wider">Assigned</p>
+                            </div>
+                            <div className="text-right">
+                                <p className="text-xl font-bold text-amber-500 leading-none">{teachersPendingCount}</p>
+                                <p className="text-[10px] text-amber-600/80 font-medium uppercase tracking-wider">Pending</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

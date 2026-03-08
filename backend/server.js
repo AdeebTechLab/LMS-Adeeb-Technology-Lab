@@ -225,4 +225,13 @@ server.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
 });
 
+// Final error handler to prevent CORS issues on crashes
+app.use((err, req, res, next) => {
+    console.error('🔥 Global Server Error:', err);
+    res.status(err.status || 500).json({
+        success: false,
+        message: err.message || 'Internal Server Error'
+    });
+});
+
 module.exports = app;

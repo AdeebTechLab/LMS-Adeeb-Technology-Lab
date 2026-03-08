@@ -90,11 +90,20 @@ const BrowseTasks = () => {
     // Get tasks I've applied to (from my tasks)
     const appliedTasks = myTasks.filter(t => hasApplied(t) && !isAssignedToMe(t) && t.status === 'open');
 
-    // Get tasks assigned to me (in progress - not yet submitted or pending payment)
-    const assignedTasks = myTasks.filter(t => isAssignedToMe(t) && (t.status === 'assigned' || (t.status === 'submitted' && !t.paymentSent)));
+    // Get tasks assigned to me (in progress - not yet submitted, pending payment, or awaiting feedback)
+    const assignedTasks = myTasks.filter(t =>
+        isAssignedToMe(t) &&
+        (t.status === 'assigned' ||
+            (t.status === 'submitted' && !t.paymentSent) ||
+            (t.status === 'completed' && t.paymentSent && !t.feedback?.some(f => f.user?._id === user?.id || f.user === user?.id)))
+    );
 
-    // Get completed tasks (payment received)
-    const completedTasks = myTasks.filter(t => isAssignedToMe(t) && t.paymentSent);
+    // Get completed tasks (payment received AND feedback submitted)
+    const completedTasks = myTasks.filter(t =>
+        isAssignedToMe(t) &&
+        t.paymentSent &&
+        t.feedback?.some(f => f.user?._id === user?.id || f.user === user?.id)
+    );
 
     // Get expired tasks (deadline passed without assignment)
     const expiredTasks = tasks.filter(t => t.status === 'open' && isExpired(t));
@@ -226,44 +235,41 @@ const BrowseTasks = () => {
             )}
 
             {/* Tabs */}
-            <div className="flex flex-wrap items-center justify-between gap-4">
-                <div className="flex gap-2 bg-gray-100 p-1 rounded-xl w-fit">
+            <div className="flex flex-wrap items-center gap-4">
+                <div className="flex flex-wrap gap-2 bg-gray-100 p-1 rounded-xl w-fit">
                     <button
                         onClick={() => setActiveTab('available')}
-                        className={`px-5 py-2.5 rounded-lg font-medium transition-all ${activeTab === 'available' ? 'bg-white text-purple-600 shadow-sm' : 'text-gray-600'}`}
+                        className={`px-5 py-2.5 rounded-lg font-medium transition-all ${activeTab === 'available' ? 'bg-white text-purple-600 shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
                     >
                         Available ({availableTasks.length})
                     </button>
                     <button
                         onClick={() => setActiveTab('applied')}
-                        className={`px-5 py-2.5 rounded-lg font-medium transition-all ${activeTab === 'applied' ? 'bg-white text-purple-600 shadow-sm' : 'text-gray-600'}`}
+                        className={`px-5 py-2.5 rounded-lg font-medium transition-all ${activeTab === 'applied' ? 'bg-white text-purple-600 shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
                     >
                         My Applications ({appliedTasks.length})
                     </button>
                     <button
                         onClick={() => setActiveTab('assigned')}
-                        className={`px-5 py-2.5 rounded-lg font-medium transition-all ${activeTab === 'assigned' ? 'bg-white text-purple-600 shadow-sm' : 'text-gray-600'}`}
+                        className={`px-5 py-2.5 rounded-lg font-medium transition-all ${activeTab === 'assigned' ? 'bg-white text-purple-600 shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
                     >
                         Assigned ({assignedTasks.length})
                     </button>
                     <button
                         onClick={() => setActiveTab('completed')}
-                        className={`px-5 py-2.5 rounded-lg font-medium transition-all ${activeTab === 'completed' ? 'bg-white text-emerald-600 shadow-sm' : 'text-gray-600'}`}
+                        className={`px-5 py-2.5 rounded-lg font-medium transition-all ${activeTab === 'completed' ? 'bg-white text-emerald-600 shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
                     >
                         Completed ({completedTasks.length})
                     </button>
                     <button
                         onClick={() => setActiveTab('expired')}
-                        className={`px-5 py-2.5 rounded-lg font-medium transition-all ${activeTab === 'expired' ? 'bg-white text-red-600 shadow-sm' : 'text-gray-600'}`}
+                        className={`px-5 py-2.5 rounded-lg font-medium transition-all ${activeTab === 'expired' ? 'bg-white text-red-600 shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
                     >
                         Expired ({expiredTasks.length})
                     </button>
-                </div>
-
-                <div className="bg-emerald-50 p-1 rounded-xl border border-emerald-100">
                     <button
                         onClick={() => setActiveTab('showcase')}
-                        className={`px-5 py-2.5 rounded-lg font-medium transition-all flex items-center justify-center gap-2 ${activeTab === 'showcase' ? 'bg-emerald-600 text-white shadow-md' : 'text-emerald-700 hover:bg-emerald-100/50'}`}
+                        className={`px-5 py-2.5 rounded-lg font-medium transition-all flex items-center justify-center gap-2 ${activeTab === 'showcase' ? 'bg-white text-emerald-600 shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
                         title="View tasks completed by our jobbers with feedback"
                     >
                         <MessageSquare className="w-4 h-4" />
@@ -317,7 +323,8 @@ const BrowseTasks = () => {
                                     {hasApplied(task) && !assigned && <Badge variant="warning">Applied</Badge>}
                                     {assigned && !submitted && <Badge variant="info">Assigned</Badge>}
                                     {submitted && !isPaid && <Badge variant="warning">Pending Payment</Badge>}
-                                    {isPaid && <Badge variant="success"><CheckCircle className="w-3 h-3 mr-1" />Paid</Badge>}
+                                    {isPaid && !hasUserFeedback && <Badge variant="warning">Awaiting Feedback</Badge>}
+                                    {isPaid && hasUserFeedback && <Badge variant="success"><CheckCircle className="w-3 h-3 mr-1" />Completed</Badge>}
                                 </div>
                             </div>
 
@@ -411,12 +418,17 @@ const BrowseTasks = () => {
                                             Payment Received
                                         </div>
                                         {activeTab !== 'showcase' && !hasUserFeedback && (
-                                            <button
-                                                onClick={() => { setSelectedTask(task); setFeedbackModalOpen(true); }}
-                                                className="w-full py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2"
-                                            >
-                                                <span>★</span> Leave Feedback
-                                            </button>
+                                            <>
+                                                <div className="text-center text-xs text-amber-600 mb-1">
+                                                    Action Required: Please leave feedback to complete this task.
+                                                </div>
+                                                <button
+                                                    onClick={() => { setSelectedTask(task); setFeedbackModalOpen(true); }}
+                                                    className="w-full py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2 animate-pulse"
+                                                >
+                                                    <span>★</span> Leave Feedback
+                                                </button>
+                                            </>
                                         )}
                                     </div>
                                 )}
