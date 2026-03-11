@@ -387,7 +387,9 @@ const AssignmentSubmission = () => {
 
     const handleCourseSelect = (courseId) => {
         const enroll = enrollments.find(e => (e.course?._id || e.course) === courseId);
-        const isFirstPaid = enroll?.installments?.[0]?.status === 'verified';
+        // isActive is reliably set to true by the backend when first fee is verified.
+        // Also check installments[0].status as a fallback.
+        const isFirstPaid = enroll?.isActive === true || enroll?.installments?.[0]?.status === 'verified';
 
         if (!isFirstPaid) {
             alert('Your enrollment for this course is pending fee verification. Please ensure your first month\'s fee is paid and verified.');
@@ -529,7 +531,8 @@ const AssignmentSubmission = () => {
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {myCourses.map((course, idx) => {
                                 const isRestricted = !course.isActive;
-                                const isFirstPaid = course.enrollment?.installments?.[0]?.status === 'verified' || course.isFirstMonthVerified;
+                                // isActive is reliably set to true on fee verification
+                                const isFirstPaid = course.isActive === true || course.enrollment?.installments?.[0]?.status === 'verified' || course.isFirstMonthVerified;
                                 const isBlocked = !isFirstPaid;
 
                                 return (

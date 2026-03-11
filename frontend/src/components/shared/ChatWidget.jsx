@@ -61,20 +61,24 @@ const ChatWidget = () => {
     }, [shouldShow]);
 
     // Helper to show a browser notification
-    const showBrowserNotification = (senderName, messageText) => {
+    const showBrowserNotification = (title, messageText, url = null) => {
         if (!('Notification' in window)) return;
         if (Notification.permission !== 'granted') return;
 
-        const notification = new Notification(`New message from ${senderName}`, {
+        const notification = new Notification(title, {
             body: messageText.length > 100 ? messageText.substring(0, 100) + '...' : messageText,
             icon: '/favicon.ico',
-            tag: 'chat-message', // Replaces previous notification instead of stacking
+            tag: url ? 'general-notification' : 'chat-message', // Replaces previous notification instead of stacking
             silent: false
         });
 
         notification.onclick = () => {
             window.focus();
-            setIsOpen(true);
+            if (url) {
+                window.location.href = url;
+            } else {
+                setIsOpen(true);
+            }
             notification.close();
         };
 
@@ -141,7 +145,7 @@ const ChatWidget = () => {
                     setUnreadCount(prev => prev + 1);
                     // Show browser notification when widget is closed
                     if (document.hidden) {
-                        showBrowserNotification(data.senderName || 'New Message', data.text);
+                        showBrowserNotification(`New message from ${data.senderName || 'New Message'}`, data.text);
                     }
                 }
             } else {
@@ -158,7 +162,7 @@ const ChatWidget = () => {
 
                     // Show browser notification for background messages
                     if (document.hidden || !isOpenRef.current) {
-                        showBrowserNotification(data.senderName || 'New Message', data.text);
+                        showBrowserNotification(`New message from ${data.senderName || 'New Message'}`, data.text);
                     }
                 }
 
@@ -169,6 +173,15 @@ const ChatWidget = () => {
                         fetchConversations();
                     }
                 }, 500);
+            }
+        });
+
+        socketRef.current.on('new_browser_notification', (data) => {
+            // data: { title, message, url }
+            if (document.hidden || !isOpenRef.current) {
+                showBrowserNotification(data.title, data.message, data.url);
+            } else {
+                showBrowserNotification(data.title, data.message, data.url);
             }
         });
 

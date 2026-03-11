@@ -354,10 +354,10 @@ const StudentDashboard = () => {
                                 Attendance
                             </button>
                             <button
-                                onClick={() => navigate('/student/courses')}
+                                onClick={() => navigate(`/${role}/courses`)}
                                 className="px-5 py-2.5 bg-[#ff8e01] hover:bg-[#ff8e01]/90 text-white rounded-xl font-black text-[10px] uppercase tracking-widest transition-all duration-300 shadow-lg shadow-orange-900/20"
                             >
-                                Browse Courses
+                                {role === 'intern' ? 'Browse Skills' : 'Browse Courses'}
                             </button>
                         </div>
                     </div>
@@ -442,10 +442,10 @@ const StudentDashboard = () => {
                                 <BookOpen className="w-12 h-12 text-gray-300 mx-auto mb-4" />
                                 <p className="text-gray-500 mb-4 font-bold uppercase tracking-widest text-xs">No active enrollments</p>
                                 <button
-                                    onClick={() => navigate('/student/courses')}
+                                    onClick={() => navigate(`/${role}/courses`)}
                                     className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-medium"
                                 >
-                                    Browse Courses
+                                    {role === 'intern' ? 'Browse Skills' : 'Browse Courses'}
                                 </button>
                             </div>
                         ) : (
@@ -456,11 +456,9 @@ const StudentDashboard = () => {
                                         whileHover={{ y: -4 }}
                                         className="bg-white p-4 rounded-2xl border border-gray-100 flex gap-4 hover:shadow-md transition-all cursor-pointer group"
                                         onClick={() => {
-                                            if (course.isCompleted) {
-                                                navigate(`/${role}/assignments`);
-                                            } else {
-                                                navigate(`../course/${course.id}`);
-                                            }
+                                            navigate(`/${role}/assignments`, {
+                                                state: { courseId: course.id }
+                                            });
                                         }}
                                     >
                                         <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors shadow-sm ${(() => {

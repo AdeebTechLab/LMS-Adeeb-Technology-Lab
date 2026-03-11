@@ -168,7 +168,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             intern: [
                 { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/intern/dashboard' },
                 { id: 'profile', label: 'My Profile', icon: User, path: '/intern/profile' },
-                { id: 'courses', label: 'Browse Courses', icon: BookOpen, path: '/intern/courses' },
+                { id: 'courses', label: 'Browse Skills', icon: BookOpen, path: '/intern/courses' },
                 { id: 'fees', label: 'Fee Management', icon: CreditCard, path: '/intern/fees' },
                 { id: 'assignments', label: 'Assignments', icon: ClipboardList, path: '/intern/assignments' },
                 { id: 'daily-tasks', label: 'Daily Tasks', icon: Calendar, path: '/intern/assignments', state: { tab: 'daily_tasks' } },

@@ -267,6 +267,20 @@ const FeeVerification = () => {
         });
     };
 
+    const getImageUrl = (url) => {
+        if (!url) return '';
+        try {
+            const cleanUrl = String(url).trim();
+            if (cleanUrl.toLowerCase().startsWith('http') || cleanUrl.toLowerCase().startsWith('data:')) {
+                return cleanUrl;
+            }
+            const baseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace(/\/api\/?$/, '');
+            return `${baseUrl}/${cleanUrl.replace(/\\/g, '/').replace(/^\//, '')}`;
+        } catch (e) {
+            return url;
+        }
+    };
+
     if (isFetching && !isProcessing && fees.length === 0 && allFees.length === 0) {
         return (
             <div className="flex items-center justify-center h-64">
@@ -303,7 +317,7 @@ const FeeVerification = () => {
 
             {/* Filters and Search */}
             <div className="bg-white rounded-2xl p-6 border border-gray-100 space-y-4">
-                <div className="flex flex-col md:flex-row gap-4">
+                <div className="flex flex-col gap-4">
                     {/* Search */}
                     <div className="flex-1 flex items-center bg-gray-50 rounded-xl px-4 py-3 border border-transparent focus-within:border-emerald-500/20 focus-within:bg-white transition-all">
                         <Search className="w-5 h-5 text-gray-400 mr-3" />
@@ -509,6 +523,9 @@ const FeeVerification = () => {
                                                     </div>
                                                 )}
                                                 <div>
+                                                    <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest inline-block mb-1 ${fee.course?.targetAudience === 'students' ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-purple-50 text-purple-600 border border-purple-200'}`}>
+                                                        {fee.course?.targetAudience}
+                                                    </span>
                                                     <h3 className="font-medium text-gray-700 dark:text-gray-100">
                                                         {fee.user?.name || 'Unknown Student'}
                                                         {fee.user?.phone && (
@@ -519,9 +536,6 @@ const FeeVerification = () => {
                                                     </h3>
                                                     <p className="text-xs text-gray-500 dark:text-gray-400">
                                                         {fee.course?.title} ({fee.course?.city}) • Due: {formatDate(inst.dueDate)}
-                                                        <span className={`ml-2 px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest ${fee.course?.targetAudience === 'students' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-purple-50 text-purple-600 border border-purple-100'}`}>
-                                                            {fee.course?.targetAudience}
-                                                        </span>
                                                     </p>
                                                 </div>
                                             </div>
@@ -720,7 +734,7 @@ const FeeVerification = () => {
                         </div>
                         <div className="rounded-lg overflow-hidden border border-gray-200">
                             <img
-                                src={selectedInstallment.receiptUrl}
+                                src={getImageUrl(selectedInstallment.receiptUrl)}
                                 alt="Receipt"
                                 className="w-full h-auto"
                             />

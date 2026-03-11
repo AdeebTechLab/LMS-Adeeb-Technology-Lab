@@ -5,6 +5,7 @@ const moment = require('moment-timezone');
 const Attendance = require('../models/Attendance');
 const Enrollment = require('../models/Enrollment');
 const Course = require('../models/Course');
+const { sendPushNotification } = require('../utils/pushHelper');
 
 // Lock function is now handled in controllers/attendanceController.js
 
@@ -121,6 +122,34 @@ router.post('/', protect, authorize('teacher', 'admin'), async (req, res) => {
         }
 
         await attendance.save();
+
+        // Emit browser notifications for each updated record
+        const io = req.app.get('io');
+        const courseData = await Course.findById(courseId).select('title');
+        const cTitle = courseData ? courseData.title : 'Course';
+        const displayDate = moment(attendanceDate).tz('Asia/Karachi').format('MMM D, YYYY');
+
+        for (const record of records) {
+            const studentId = record.userId.toString();
+            const notifPayload = {
+                title: 'Attendance Marked',
+                body: `Your attendance for "${cTitle}" on ${displayDate} is marked as ${record.status}.`,
+                icon: '/logo.png',
+                url: '/student/attendance'
+            };
+
+            // Socket notification (real-time in-app)
+            if (io) {
+                io.to(studentId).emit('new_browser_notification', {
+                    title: notifPayload.title,
+                    message: notifPayload.body,
+                    url: notifPayload.url
+                });
+            }
+
+            // Web push notification (works even when tab closed)
+            sendPushNotification(studentId, notifPayload);
+        }
 
         res.json({ success: true, attendance });
     } catch (error) {

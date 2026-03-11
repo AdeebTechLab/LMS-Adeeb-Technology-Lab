@@ -15,9 +15,11 @@ router.get('/admin-dashboard', protect, authorize('admin'), async (req, res) => 
         // Build Date Filter
         let dateFilter = {};
         if (startDate && endDate) {
+            const end = new Date(endDate);
+            end.setHours(23, 59, 59, 999); // end of day so today's entries are included
             dateFilter = {
                 $gte: new Date(startDate),
-                $lte: new Date(endDate)
+                $lte: end
             };
         } else if (month) {
             const [year, m] = month.split('-');
@@ -26,33 +28,32 @@ router.get('/admin-dashboard', protect, authorize('admin'), async (req, res) => 
             dateFilter = { $gte: start, $lte: end };
         }
 
-        // 1. Calculate Revenue from Verified Installments
-        const feeQuery = {};
-        if (Object.keys(dateFilter).length > 0) {
-            feeQuery["installments.verifiedAt"] = dateFilter;
-        }
-
-        const fees = await Fee.find(feeQuery).populate('user', 'name').populate('course', 'title');
+        // Fetch all fees (we filter per-installment in JS since installments is an embedded array)
+        const fees = await Fee.find({}).populate('user', 'name').populate('course', 'title');
 
         let totalRevenue = 0;
         let recentSubmissions = [];
 
+        const hasDateFilter = Object.keys(dateFilter).length > 0;
+
         fees.forEach(fee => {
             fee.installments.forEach(inst => {
+                // ── Revenue: count verified installments within date range ──
                 if (inst.status === 'verified') {
-                    const verifiedDate = new Date(inst.verifiedAt);
-                    // Check date filter if present
-                    if (Object.keys(dateFilter).length > 0) {
-                        if (verifiedDate >= dateFilter.$gte && verifiedDate <= dateFilter.$lte) {
-                            totalRevenue += inst.amount;
-                        }
-                    } else {
+                    const verifiedDate = inst.verifiedAt ? new Date(inst.verifiedAt) : null;
+                    if (!hasDateFilter) {
+                        totalRevenue += inst.amount;
+                    } else if (verifiedDate && verifiedDate >= dateFilter.$gte && verifiedDate <= dateFilter.$lte) {
                         totalRevenue += inst.amount;
                     }
                 }
 
-                // Add to recent submissions (unverified or absolute recent)
-                if (inst.receiptUrl) {
+                // ── Recent Submissions: include submitted (pending) AND verified installments ──
+                const isSubmitted = inst.status === 'submitted' || inst.status === 'pending';
+                const isVerified = inst.status === 'verified';
+
+                if (isSubmitted && inst.receiptUrl) {
+                    // Awaiting admin verification - has uploaded slip
                     recentSubmissions.push({
                         id: inst._id,
                         feeId: fee._id,
@@ -60,9 +61,26 @@ router.get('/admin-dashboard', protect, authorize('admin'), async (req, res) => 
                         course: fee.course?.title || 'Unknown Course',
                         amount: inst.amount,
                         date: inst.paidAt || fee.createdAt,
-                        status: inst.status === 'submitted' ? 'pending' : inst.status,
+                        status: 'pending',
                         receiptUrl: inst.receiptUrl || null
                     });
+                } else if (isVerified) {
+                    // Verified by admin - show even if receipt was deleted
+                    const verifiedDate = inst.verifiedAt ? new Date(inst.verifiedAt) : null;
+                    const entryDate = inst.paidAt || inst.verifiedAt || fee.createdAt;
+                    // Apply date filter for verified entries too if set
+                    if (!hasDateFilter || (verifiedDate && verifiedDate >= dateFilter.$gte && verifiedDate <= dateFilter.$lte)) {
+                        recentSubmissions.push({
+                            id: inst._id,
+                            feeId: fee._id,
+                            student: fee.user?.name || 'Unknown',
+                            course: fee.course?.title || 'Unknown Course',
+                            amount: inst.amount,
+                            date: entryDate,
+                            status: 'verified',
+                            receiptUrl: inst.receiptUrl || null
+                        });
+                    }
                 }
             });
         });

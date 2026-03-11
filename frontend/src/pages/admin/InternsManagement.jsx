@@ -591,7 +591,7 @@ const InternsManagement = () => {
             </div>
 
             {/* Search & Filter */}
-            <div className="bg-white rounded-2xl p-4 border border-gray-100 flex flex-col sm:flex-row gap-4">
+            <div className="bg-white rounded-2xl p-4 border border-gray-100 flex flex-col gap-4">
                 <div className="flex-1 flex items-center bg-gray-50 rounded-xl px-4 py-3">
                     <Search className="w-5 h-5 text-gray-400 mr-3" />
                     <input

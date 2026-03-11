@@ -224,7 +224,7 @@ const CourseManagement = () => {
 
             {/* Filters and Search */}
             <div className="bg-white rounded-2xl p-6 border border-gray-100 space-y-4">
-                <div className="flex flex-col md:flex-row gap-4">
+                <div className="flex flex-col gap-4">
                     {/* Search */}
                     <div className="flex-1 flex items-center bg-gray-50 rounded-xl px-4 py-3 border border-transparent focus-within:border-emerald-500/20 focus-within:bg-white transition-all">
                         <Search className="w-5 h-5 text-gray-400 mr-3" />

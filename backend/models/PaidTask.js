@@ -23,13 +23,24 @@ const paidTaskSchema = new mongoose.Schema({
         type: String,
         required: [true, 'Description is required']
     },
+    type: {
+        type: String,
+        enum: ['task', 'product'],
+        default: 'task'
+    },
+    image: {
+        type: String
+    },
     budget: {
         type: String, // Changed to String to allow ranges (e.g., "1500-2500")
         required: [true, 'Budget is required']
     },
     deadline: {
-        type: Date,
-        required: [true, 'Deadline is required']
+        type: Date
+    },
+    isLifetime: {
+        type: Boolean,
+        default: false
     },
     skills: String,
     category: {

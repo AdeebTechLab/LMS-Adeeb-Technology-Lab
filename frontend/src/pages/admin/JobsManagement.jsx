@@ -2,11 +2,12 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
     Search, UserCheck, UserX, Trash2, User, Mail, Phone, MapPin,
-    Briefcase, Loader2, CheckCircle, Clock, Star, FileText, Edit2, Save, Camera, Upload, Plus, Shield
+    Briefcase, Loader2, CheckCircle, Clock, Star, FileText, Edit2, Save, Camera, Upload, Plus, Shield, Download
 } from 'lucide-react';
+import { jsPDF } from 'jspdf';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
-import { userAPI, settingsAPI } from '../../services/api';
+import { userAPI, settingsAPI, taskAPI } from '../../services/api';
 
 const JobsManagement = () => {
     const [searchQuery, setSearchQuery] = useState('');
@@ -101,6 +102,134 @@ const JobsManagement = () => {
         } finally {
             setIsProcessing(false);
             setConfirmModal({ open: false, action: null, user: null });
+        }
+    };
+
+    const downloadUserPDF = async (user) => {
+        let tasksDone = [];
+        try {
+            const res = await taskAPI.getAll();
+            let allTasks = [];
+            if (res.data && Array.isArray(res.data.data)) {
+                allTasks = res.data.data;
+            } else if (res.data && Array.isArray(res.data)) {
+                allTasks = res.data;
+            }
+            
+            tasksDone = allTasks.filter(task => {
+                if (!task.assignedTo) return false;
+                let isAssigned = false;
+                if (Array.isArray(task.assignedTo)) {
+                    isAssigned = task.assignedTo.some(u => String(u._id || u) === String(user._id));
+                } else {
+                    isAssigned = String(task.assignedTo._id || task.assignedTo) === String(user._id);
+                }
+                return isAssigned && task.status === 'completed';
+            }).map(t => t.title);
+        } catch (e) {
+            console.error('Error fetching tasks', e);
+        }
+
+        const doc = new jsPDF();
+
+        // Purple header for freelancer matching UI
+        doc.setFillColor(147, 51, 234);
+        doc.rect(0, 0, 210, 40, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(24);
+        doc.text('FREELANCER PROFILE', 14, 25);
+
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(10);
+        doc.text(`Status: ${user.isVerified ? 'VERIFIED' : 'PENDING'}`, 140, 26);
+
+        let y = 50;
+
+        const addFieldsAndSave = () => {
+            doc.setFontSize(14);
+            doc.setFont('helvetica', 'bold');
+            doc.text('Personal & Professional Information', 14, y);
+            doc.line(14, y + 2, 200, y + 2);
+
+            y += 10;
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'normal');
+            const fields = [
+                ['Name', user.name],
+                ['Email', user.email],
+                ['Phone', user.phone],
+                ['CNIC', user.cnic],
+                ['Location', user.location],
+                ['City', user.city],
+                ['Qualification', user.qualification],
+                ['Teaching Experience', user.teachingExperience],
+                ['Preferred Mode', user.preferredMode],
+                ['Tasks Done', user.completedTasks?.toString() || tasksDone.length.toString()],
+                ['Rating', user.rating?.toString() || '0'],
+                ['Registration Date', user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A']
+            ];
+            fields.forEach(([label, value]) => {
+                doc.setFont('helvetica', 'bold');
+                doc.text(`${label}:`, 14, y);
+                doc.setFont('helvetica', 'normal');
+                doc.text(`${value || 'N/A'}`, 60, y);
+                y += 7;
+
+                if (y > 270) {
+                    doc.addPage();
+                    y = 20;
+                }
+            });
+            
+            y += 5; // Extra spacing
+            doc.setFontSize(14);
+            doc.setFont('helvetica', 'bold');
+            doc.text('Completed Projects', 14, y);
+            doc.line(14, y + 2, 200, y + 2);
+            y += 10;
+            
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'normal');
+            
+            if (tasksDone.length === 0) {
+                doc.text('No matching projects completed yet.', 14, y);
+            } else {
+                tasksDone.forEach((taskTitle, idx) => {
+                    const lines = doc.splitTextToSize(`• ${taskTitle}`, 180);
+                    doc.text(lines, 14, y);
+                    y += (lines.length * 5) + 2; 
+                    
+                    if (y > 270) {
+                        doc.addPage();
+                        y = 20;
+                    }
+                });
+            }
+
+            doc.save(`Freelancer_${user.name?.replace(/\s+/g, '_')}.pdf`);
+        };
+
+        if (user.photo) {
+            const img = new Image();
+            img.crossOrigin = 'Anonymous';
+            img.onload = function () {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+                const dataURL = canvas.toDataURL('image/jpeg');
+
+                doc.addImage(dataURL, 'JPEG', 160, 45, 35, 35);
+                y = Math.max(y, 85);
+                addFieldsAndSave();
+            };
+            img.onerror = function () {
+                addFieldsAndSave();
+            };
+            img.src = user.photo;
+        } else {
+            addFieldsAndSave();
         }
     };
 
@@ -206,7 +335,7 @@ const JobsManagement = () => {
             </div>
 
             {/* Search & Filter */}
-            <div className="bg-white rounded-2xl p-4 border border-gray-100 flex flex-col sm:flex-row gap-4">
+            <div className="bg-white rounded-2xl p-4 border border-gray-100 flex flex-col gap-4">
                 <div className="flex-1 flex items-center bg-gray-50 rounded-xl px-4 py-3">
                     <Search className="w-5 h-5 text-gray-400 mr-3" />
                     <input
@@ -315,6 +444,13 @@ const JobsManagement = () => {
 
                                 {/* Actions */}
                                 <div className="flex gap-2">
+                                    <button
+                                        onClick={() => downloadUserPDF(user)}
+                                        className="p-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 rounded-xl"
+                                        title="Download Profile"
+                                    >
+                                        <Download className="w-5 h-5" />
+                                    </button>
                                     {!user.isVerified ? (
                                         <button
                                             onClick={() => setConfirmModal({ open: true, action: 'verify', user })}

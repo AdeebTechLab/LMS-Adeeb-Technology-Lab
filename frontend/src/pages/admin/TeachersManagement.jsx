@@ -202,7 +202,18 @@ const TeachersManagement = () => {
         setShowExportOptions(false);
     };
 
-    const downloadTeacherPDF = (t) => {
+    const downloadTeacherPDF = async (t) => {
+        let assignedCourses = [];
+        try {
+            const res = await courseAPI.getAll();
+            const allCourses = res.data.data || [];
+            assignedCourses = allCourses.filter(c => 
+                c.teachers?.some(teacher => (teacher._id || teacher).toString() === t._id.toString())
+            ).map(c => c.title);
+        } catch (e) {
+            console.error('Error fetching courses', e);
+        }
+
         const doc = new jsPDF();
 
         doc.setFillColor(13, 40, 24);
@@ -216,37 +227,90 @@ const TeachersManagement = () => {
         doc.text(`Status: ${t.isVerified ? 'VERIFIED' : 'PENDING'}`, 140, 26);
 
         let y = 50;
-        doc.setFontSize(14);
-        doc.setFont('helvetica', 'bold');
-        doc.text('Professional Information', 14, y);
-        doc.line(14, y + 2, 200, y + 2);
 
-        y += 10;
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'normal');
-        const fields = [
-            ['Name', t.name],
-            ['Email', t.email],
-            ['Phone', t.phone],
-            ['CNIC', t.cnic],
-            ['Qualification', t.qualification],
-            ['Specialization', t.specialization],
-            ['Department', t.department],
-            ['Experience', t.experience],
-            ['Location', t.location],
-            ['Address', t.address],
-            ['Joining Date', t.createdAt ? new Date(t.createdAt).toLocaleDateString() : 'N/A']
-        ];
-
-        fields.forEach(([label, value]) => {
+        const addFieldsAndSave = () => {
+            doc.setFontSize(14);
             doc.setFont('helvetica', 'bold');
-            doc.text(`${label}:`, 14, y);
-            doc.setFont('helvetica', 'normal');
-            doc.text(`${value || 'N/A'}`, 50, y);
-            y += 7;
-        });
+            doc.text('Professional Information', 14, y);
+            doc.line(14, y + 2, 200, y + 2);
 
-        doc.save(`Teacher_${t.name?.replace(/\s+/g, '_')}.pdf`);
+            y += 10;
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'normal');
+            const fields = [
+                ['Name', t.name],
+                ['Email', t.email],
+                ['Phone', t.phone],
+                ['CNIC', t.cnic],
+                ['Qualification', t.qualification],
+                ['Specialization', t.specialization],
+                ['Department', t.department],
+                ['Experience', t.experience],
+                ['Location', t.location],
+                ['Address', t.address],
+                ['Joining Date', t.createdAt ? new Date(t.createdAt).toLocaleDateString() : 'N/A']
+            ];
+            fields.forEach(([label, value]) => {
+                doc.setFont('helvetica', 'bold');
+                doc.text(`${label}:`, 14, y);
+                doc.setFont('helvetica', 'normal');
+                doc.text(`${value || 'N/A'}`, 50, y);
+                y += 7;
+            });
+            
+            y += 5; // Extra spacing
+            doc.setFontSize(14);
+            doc.setFont('helvetica', 'bold');
+            doc.text('Assigned Courses', 14, y);
+            doc.line(14, y + 2, 200, y + 2);
+            y += 10;
+            
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'normal');
+            
+            if (assignedCourses.length === 0) {
+                doc.text('No courses assigned currently.', 14, y);
+            } else {
+                assignedCourses.forEach((courseStr, idx) => {
+                    const lines = doc.splitTextToSize(`• ${courseStr}`, 180);
+                    doc.text(lines, 14, y);
+                    y += (lines.length * 5) + 2; 
+                    
+                    if (y > 270) {
+                        doc.addPage();
+                        y = 20;
+                    }
+                });
+            }
+
+            doc.save(`Teacher_${t.name?.replace(/\s+/g, '_')}.pdf`);
+        };
+
+        if (t.photo) {
+            // Load image as base64 to avoid CORS issues in PDF rendering
+            const img = new Image();
+            img.crossOrigin = 'Anonymous';
+            img.onload = function () {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+                const dataURL = canvas.toDataURL('image/jpeg');
+
+                // Draw profile picture at top right below header
+                doc.addImage(dataURL, 'JPEG', 160, 45, 35, 35);
+                y = Math.max(y, 85); // Adjust Y to ensure fields don't overlap image
+                addFieldsAndSave();
+            };
+            img.onerror = function () {
+                // If image fails to load, just render text
+                addFieldsAndSave();
+            };
+            img.src = t.photo;
+        } else {
+            addFieldsAndSave();
+        }
     };
 
     const handleUpdate = async (e) => {
@@ -436,7 +500,7 @@ const TeachersManagement = () => {
             </div>
 
             {/* Search & Filter */}
-            <div className="bg-white rounded-2xl p-4 border border-gray-100 flex flex-col sm:flex-row gap-4">
+            <div className="bg-white rounded-2xl p-4 border border-gray-100 flex flex-col gap-4">
                 <div className="flex-1 flex items-center bg-gray-50 rounded-xl px-4 py-3">
                     <Search className="w-5 h-5 text-gray-400 mr-3" />
                     <input

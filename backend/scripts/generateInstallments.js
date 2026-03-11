@@ -16,11 +16,12 @@ const Course = require('../models/Course');
 const Certificate = require('../models/Certificate');
 const Enrollment = require('../models/Enrollment');
 const moment = require('moment-timezone');
+const { sendPushNotification } = require('../utils/pushHelper');
 
 /**
  * Generate installments for all eligible enrollments
  */
-const generateInstallments = async () => {
+const generateInstallments = async (io) => {
     console.log('🔄 Starting installment generation check...');
 
     try {
@@ -114,6 +115,31 @@ const generateInstallments = async () => {
                     generatedCount++;
 
                     console.log(`✨ Generated installment #${newInstallmentNumber} for ${fee.user?.name || fee.user} - ${fee.course?.title} (PKR ${courseFee})`);
+                    
+                    // Notifications
+                    const studentId = fee.user._id ? fee.user._id.toString() : fee.user.toString();
+                    const notifPayload = {
+                        title: 'Monthly Fee Challan Generated',
+                        body: `Your monthly fee challan for "${fee.course?.title}" has been generated (PKR ${courseFee}). Please review your fee plan.`,
+                        icon: '/logo.png',
+                        url: '/student/fees'
+                    };
+
+                    // Socket notification (real-time in-app)
+                    if (io) {
+                        try {
+                            io.to(studentId).emit('new_browser_notification', {
+                                title: notifPayload.title,
+                                message: notifPayload.body,
+                                url: notifPayload.url
+                            });
+                        } catch (e) {
+                            console.error('Error emitting fee notification:', e);
+                        }
+                    }
+
+                    // Web push notification (works even when tab closed)
+                    sendPushNotification(studentId, notifPayload);
                 }
             } catch (err) {
                 console.error(`Error processing fee ${fee._id}:`, err.message);
@@ -225,8 +251,8 @@ const updateEnrollmentStatus = async () => {
 /**
  * Main function to run both tasks
  */
-const runInstallmentJob = async () => {
-    await generateInstallments();
+const runInstallmentJob = async (io = null) => {
+    await generateInstallments(io);
     await updateEnrollmentStatus();
 };
 

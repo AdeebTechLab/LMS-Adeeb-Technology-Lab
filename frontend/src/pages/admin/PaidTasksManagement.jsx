@@ -31,7 +31,11 @@ const PaidTasksManagement = () => {
         deadline: '',
         skills: '',
         category: 'web',
+        type: 'task',
+        image: null,
+        isLifetime: false,
     });
+    const [imagePreview, setImagePreview] = useState(null);
 
     useEffect(() => {
         const title = (formData.title || '').toLowerCase();
@@ -104,6 +108,7 @@ const PaidTasksManagement = () => {
 
     // Check if task deadline has passed without assignment
     const isExpired = (task) => {
+        if (task.isLifetime) return false;
         if (!task.deadline) return false;
         // Expired if not assigned to ANYONE and status is open
         return new Date(task.deadline) < new Date() && (!task.assignedTo || task.assignedTo.length === 0) && task.status === 'open';
@@ -146,32 +151,32 @@ const PaidTasksManagement = () => {
         setError('');
 
         try {
+            const submitData = new FormData();
+            submitData.append('title', formData.title);
+            submitData.append('description', formData.description);
+            submitData.append('budget', formData.budget);
+            submitData.append('deadline', formData.deadline);
+            submitData.append('skills', formData.skills);
+            submitData.append('category', formData.category);
+            submitData.append('type', formData.type);
+            submitData.append('isLifetime', formData.isLifetime);
+            if (formData.image instanceof File) {
+                submitData.append('image', formData.image);
+            }
+
             if (editingTask) {
-                await taskAPI.update(editingTask._id, {
-                    title: formData.title,
-                    description: formData.description,
-                    budget: formData.budget, // Send as string
-                    deadline: formData.deadline,
-                    skills: formData.skills,
-                    category: formData.category,
-                });
+                await taskAPI.update(editingTask._id, submitData);
             } else {
-                await taskAPI.create({
-                    title: formData.title,
-                    description: formData.description,
-                    budget: formData.budget, // Send as string
-                    deadline: formData.deadline,
-                    skills: formData.skills,
-                    category: formData.category,
-                });
+                await taskAPI.create(submitData);
             }
             setIsModalOpen(false);
             setEditingTask(null);
-            setFormData({ title: '', description: '', budget: '', deadline: '', skills: '', category: 'web' });
+            setFormData({ title: '', description: '', budget: '', deadline: '', skills: '', category: 'web', type: 'task', image: null, isLifetime: false });
+            setImagePreview(null);
             fetchTasks(); // Refresh list
         } catch (err) {
             console.error('Error saving task:', err);
-            setError(err.response?.data?.message || 'Failed to save task');
+            setError(err.response?.data?.message || 'Failed to save task/item');
         } finally {
             setIsLoading(false);
         }
@@ -186,7 +191,11 @@ const PaidTasksManagement = () => {
             deadline: task.deadline ? new Date(task.deadline).toISOString().split('T')[0] : '',
             skills: task.skills,
             category: task.category || 'web',
+            type: task.type || 'task',
+            image: null,
+            isLifetime: task.isLifetime || false,
         });
+        setImagePreview(task.image || null);
         setIsModalOpen(true);
     };
 
@@ -306,13 +315,26 @@ const PaidTasksManagement = () => {
                     <button
                         onClick={() => {
                             setEditingTask(null);
-                            setFormData({ title: '', description: '', budget: '', deadline: '', skills: '', category: 'web' });
+                            setFormData({ title: '', description: '', budget: '', deadline: '', skills: '', category: 'web', type: 'task', image: null, isLifetime: false });
+                            setImagePreview(null);
                             setIsModalOpen(true);
                         }}
                         className="flex items-center justify-center gap-2 px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl transition-all duration-300 font-medium"
                     >
                         <Briefcase className="w-5 h-5" />
                         Create Paid Task
+                    </button>
+                    <button
+                        onClick={() => {
+                            setEditingTask(null);
+                            setFormData({ title: '', description: '', budget: '', deadline: '', skills: '', category: 'E-Commerce', type: 'product', image: null, isLifetime: false });
+                            setImagePreview(null);
+                            setIsModalOpen(true);
+                        }}
+                        className="flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl transition-all duration-300 font-medium"
+                    >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                        Add Item For Sale
                     </button>
                 </div>
             </div>
@@ -386,13 +408,16 @@ const PaidTasksManagement = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredTasks.map((task, index) => {
                     const statusConfig = getStatusConfig(task.status);
+                    const unassignedApplicantsCount = task.applicants?.filter(a => !isAssignedTo(task, a.user?._id)).length || 0;
+                    const hasNewApplicants = task.status === 'assigned' && unassignedApplicantsCount > 0;
+
                     return (
                         <motion.div
                             key={task._id}
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: index * 0.1 }}
-                            className={`bg-white rounded-2xl p-6 border border-gray-100 ${task.status === 'assigned' ? 'opacity-75' : ''}`}
+                            className={`bg-white rounded-2xl p-6 border border-gray-100 ${task.status === 'assigned' ? 'opacity-95' : ''}`}
                         >
                             <div className="flex items-start justify-between mb-4">
                                 {(() => {
@@ -403,10 +428,16 @@ const PaidTasksManagement = () => {
                                         </div>
                                     );
                                 })()}
-                                <div className="flex items-center gap-2">
+                                <div className="flex flex-wrap items-center justify-end gap-2">
                                     {task.applicants?.length > 0 && (
                                         <span className="px-2.5 py-1 bg-yellow-400 text-yellow-900 text-xs font-extrabold rounded-lg shadow-sm">
                                             {task.applicants.length} Applicant{task.applicants.length !== 1 ? 's' : ''}
+                                        </span>
+                                    )}
+                                    {hasNewApplicants && (
+                                        <span className="px-2.5 py-1 bg-red-100 text-red-700 border border-red-200 text-xs font-extrabold rounded-lg shadow-sm animate-pulse flex items-center gap-1">
+                                            <AlertCircle className="w-3 h-3" />
+                                            {unassignedApplicantsCount} New!
                                         </span>
                                     )}
                                     <Badge variant={statusConfig.variant}>{statusConfig.label}</Badge>
@@ -430,6 +461,12 @@ const PaidTasksManagement = () => {
                                 </div>
                             </div>
 
+                            {task.type === 'product' && task.image && (
+                                <div className="mb-4 aspect-video rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center">
+                                    <img src={task.image} alt={task.title} className="w-full h-full object-cover" />
+                                </div>
+                            )}
+
                             <h3 className="font-bold text-gray-900 mb-2">{task.title}</h3>
                             <p className="text-sm text-gray-500 mb-4 line-clamp-2">{task.description}</p>
 
@@ -444,9 +481,9 @@ const PaidTasksManagement = () => {
                             <div className="flex items-center justify-between text-sm mb-4">
                                 <span className="flex items-center gap-1 text-gray-500">
                                     <Calendar className="w-4 h-4" />
-                                    {task.deadline && new Date(task.deadline).toLocaleDateString()}
+                                    {task.isLifetime ? 'Lifetime' : (task.deadline && new Date(task.deadline).toLocaleDateString())}
                                 </span>
-                                <span className="font-bold text-purple-600">
+                                <span className={task.type === 'product' ? "font-bold text-emerald-600" : "font-bold text-purple-600"}>
                                     Rs {isNaN(Number(task.budget)) ? task.budget : Number(task.budget).toLocaleString()}
                                 </span>
                             </div>
@@ -487,10 +524,14 @@ const PaidTasksManagement = () => {
                                     <div className="flex gap-2 w-full">
                                         <button
                                             onClick={() => handleViewApplicants(task)}
-                                            className="flex-1 py-2 text-sm font-medium text-amber-600 bg-amber-50 hover:bg-amber-100 rounded-xl flex items-center justify-center gap-1"
+                                            className={`flex-1 py-2 text-sm font-medium rounded-xl flex items-center justify-center gap-1 relative ${hasNewApplicants ? 'bg-red-50 text-red-600 hover:bg-red-100 ring-1 ring-red-200' : 'text-amber-600 bg-amber-50 hover:bg-amber-100'}`}
+                                            title="View Applicants & Assign More"
                                         >
                                             <Users className="w-4 h-4" />
-                                            Assigned ({task.assignedTo?.length || 0})
+                                            {hasNewApplicants ? `New Applicants (${unassignedApplicantsCount})` : `Assigned (${task.assignedTo?.length || 0})`}
+                                            {hasNewApplicants && (
+                                                <span className="absolute top-0 right-0 -mr-1 -mt-1 w-3 h-3 bg-red-500 rounded-full animate-pulse border-2 border-white"></span>
+                                            )}
                                         </button>
                                         <button
                                             onClick={() => handleVerifyAndPay(task._id)}
@@ -542,15 +583,37 @@ const PaidTasksManagement = () => {
             </div>
 
             {/* Create/Edit Task Modal */}
-            <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingTask ? "Edit Paid Task" : "Create Paid Task"} size="lg">
+            <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingTask ? (editingTask.type === 'product' ? "Edit Item" : "Edit Paid Task") : (formData.type === 'product' ? "Add Item For Sale" : "Create Paid Task")} size="lg">
                 <form onSubmit={handleCreateTask} className="space-y-5">
+                    {formData.type === 'product' && (
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Item Image (Optional)</label>
+                            <div className="flex items-center gap-4">
+                                {imagePreview && (
+                                    <img src={imagePreview} alt="Preview" className="w-20 h-20 rounded-xl object-cover border border-gray-200" />
+                                )}
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => {
+                                        const file = e.target.files[0];
+                                        if (file) {
+                                            setFormData({ ...formData, image: file });
+                                            setImagePreview(URL.createObjectURL(file));
+                                        }
+                                    }}
+                                    className="w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 transition-colors"
+                                />
+                            </div>
+                        </div>
+                    )}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Task Title *</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{formData.type === 'product' ? 'Product Name *' : 'Task Title *'}</label>
                         <input
                             type="text"
                             value={formData.title}
                             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                            placeholder="e.g., Build a Landing Page"
+                            placeholder={formData.type === 'product' ? "e.g., Premium Office Chair" : "e.g., Build a Landing Page"}
                             className="w-full px-4 py-3 border border-gray-200 rounded-xl"
                             required
                         />
@@ -577,35 +640,49 @@ const PaidTasksManagement = () => {
                                 required
                             />
                         </div>
-                        <div>
+                        <div className="col-span-1">
                             <label className="block text-sm font-medium text-gray-700 mb-2">Deadline *</label>
-                            <input
-                                type="date"
-                                value={formData.deadline}
-                                onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
-                                className="w-full px-4 py-3 border border-gray-200 rounded-xl"
-                                required
-                            />
+                            <div className="flex flex-col gap-2">
+                                <input
+                                    type="date"
+                                    value={formData.deadline}
+                                    onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
+                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl"
+                                    required={!formData.isLifetime}
+                                    disabled={formData.isLifetime}
+                                />
+                                <label className="flex items-center gap-2 cursor-pointer mt-1">
+                                    <input 
+                                        type="checkbox" 
+                                        checked={formData.isLifetime}
+                                        onChange={(e) => setFormData({ ...formData, isLifetime: e.target.checked, deadline: e.target.checked ? '' : formData.deadline })}
+                                        className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                                    />
+                                    <span className="text-sm text-gray-600">Lifetime (No Deadline)</span>
+                                </label>
+                            </div>
                         </div>
                     </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Required Skills</label>
-                        <input
-                            type="text"
-                            value={formData.skills}
-                            onChange={(e) => setFormData({ ...formData, skills: e.target.value })}
-                            placeholder="e.g., React, Node.js, MongoDB"
-                            className="w-full px-4 py-3 border border-gray-200 rounded-xl"
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Task Category *</label>
-                        <select
-                            value={formData.category}
-                            onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                            className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white"
-                            required
-                        >
+                    {formData.type !== 'product' && (
+                        <>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Required Skills</label>
+                                <input
+                                    type="text"
+                                    value={formData.skills}
+                                    onChange={(e) => setFormData({ ...formData, skills: e.target.value })}
+                                    placeholder="e.g., React, Node.js, MongoDB"
+                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Task Category *</label>
+                                <select
+                                    value={formData.category}
+                                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white"
+                                    required={formData.type !== 'product'}
+                                >
                             <option value="web">Web Development (General)</option>
                             <option value="ai">AI (General)</option>
                             <option value="Web Development">Web Development (Full Stack)</option>
@@ -626,18 +703,20 @@ const PaidTasksManagement = () => {
                             <option value="UX/UI Designing">UX/UI Designing</option>
                             <option value="Youtuber Course">Youtuber Course</option>
                             <option value="Home Architecture">Home Architecture</option>
-                            <option value="Taxation">Taxation</option>
-                            <option value="Trading">Trading</option>
-                            <option value="Truck Dispatching">Truck Dispatching</option>
-                            <option value="other">Other</option>
-                        </select>
-                    </div>
+                                <option value="Taxation">Taxation</option>
+                                <option value="Trading">Trading</option>
+                                <option value="Truck Dispatching">Truck Dispatching</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                    </>
+                )}
                     <div className="flex gap-3 pt-4 border-t">
                         <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-3 text-gray-600 hover:bg-gray-100 rounded-xl font-medium">
                             Cancel
                         </button>
-                        <button type="submit" disabled={isLoading} className="flex-1 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-medium flex items-center justify-center gap-2">
-                            {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : (editingTask ? 'Update Task' : 'Create Task')}
+                        <button type="submit" disabled={isLoading} className={`flex-1 py-3 text-white rounded-xl font-medium flex items-center justify-center gap-2 ${formData.type === 'product' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-purple-600 hover:bg-purple-700'}`}>
+                            {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : (editingTask ? 'Update ' + (formData.type === 'product' ? 'Item' : 'Task') : 'Create ' + (formData.type === 'product' ? 'Item' : 'Task'))}
                         </button>
                     </div>
                 </form>

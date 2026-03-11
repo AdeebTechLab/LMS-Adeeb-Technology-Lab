@@ -16,6 +16,7 @@ const BrowseTasks = () => {
     const [selectedTask, setSelectedTask] = useState(null);
     const [applyModalOpen, setApplyModalOpen] = useState(false);
     const [submitModalOpen, setSubmitModalOpen] = useState(false);
+    const [viewModalOpen, setViewModalOpen] = useState(false);
     const [applicationMessage, setApplicationMessage] = useState('');
     const [submission, setSubmission] = useState({ notes: '', projectLink: '', accountDetails: '' });
     const [tasks, setTasks] = useState([]);
@@ -79,6 +80,7 @@ const BrowseTasks = () => {
 
     // Check if task deadline has passed
     const isExpired = (task) => {
+        if (task.isLifetime) return false;
         if (!task.deadline) return false;
         // Expired if not assigned to ANYONE and status is open
         return new Date(task.deadline) < new Date() && (!task.assignedTo || task.assignedTo.length === 0) && task.status === 'open';
@@ -329,7 +331,24 @@ const BrowseTasks = () => {
                             </div>
 
                             <h3 className="font-bold text-gray-900 mb-2">{task.title}</h3>
-                            <p className="text-sm text-gray-500 mb-4 line-clamp-2">{task.description}</p>
+                            
+                            {task.type === 'product' && task.image && (
+                                <div className="mb-4 aspect-video rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center">
+                                    <img src={task.image} alt={task.title} className="w-full h-full object-cover" />
+                                </div>
+                            )}
+
+                            <div className="mb-4">
+                                <p className="text-sm text-gray-500 line-clamp-2">{task.description}</p>
+                                {task.description?.length > 100 && (
+                                    <button 
+                                        onClick={() => { setSelectedTask(task); setViewModalOpen(true); }}
+                                        className="text-xs text-purple-600 hover:text-purple-700 font-medium mt-1"
+                                    >
+                                        Read more
+                                    </button>
+                                )}
+                            </div>
 
                             {activeTab === 'showcase' && task.feedback && task.feedback.length > 0 && (
                                 <div className="mb-4 space-y-3 bg-indigo-50/50 p-4 rounded-xl border border-indigo-100">
@@ -361,9 +380,9 @@ const BrowseTasks = () => {
                             <div className="flex items-center justify-between text-sm mb-4">
                                 <span className="flex items-center gap-1 text-gray-500">
                                     <Calendar className="w-4 h-4" />
-                                    {task.deadline && new Date(task.deadline).toLocaleDateString()}
+                                    {task.isLifetime ? 'Lifetime' : (task.deadline && new Date(task.deadline).toLocaleDateString())}
                                 </span>
-                                <span className="font-bold text-purple-600">
+                                <span className={task.type === 'product' ? "font-bold text-emerald-600" : "font-bold text-purple-600"}>
                                     Rs {isNaN(Number(task.budget)) ? task.budget : Number(task.budget).toLocaleString()}
                                 </span>
                             </div>
@@ -388,7 +407,7 @@ const BrowseTasks = () => {
                                 {hasApplied(task) && !assigned && (
                                     <div className="text-center text-sm text-gray-500 py-2">Application under review</div>
                                 )}
-                                {assigned && !submitted && (
+                                {assigned && !submitted && activeTab !== 'showcase' && (
                                     <div className="flex gap-2">
                                         <button
                                             onClick={() => { setSelectedTask(task); setSubmitModalOpen(true); }}
@@ -509,23 +528,23 @@ const BrowseTasks = () => {
             </Modal>
 
             {/* Apply Modal */}
-            <Modal isOpen={applyModalOpen} onClose={() => setApplyModalOpen(false)} title="Apply for Task" size="md">
+            <Modal isOpen={applyModalOpen} onClose={() => setApplyModalOpen(false)} title={selectedTask?.type === 'product' ? "Buy Item" : "Apply for Task"} size="md">
                 {selectedTask && (
                     <div className="space-y-4">
                         <div className="p-4 bg-gray-50 rounded-xl">
                             <h3 className="font-semibold text-gray-900">{selectedTask.title}</h3>
-                            <p className="text-sm text-purple-600 font-medium mt-1">
-                                Budget: Rs {isNaN(Number(selectedTask.budget)) ? selectedTask.budget : Number(selectedTask.budget).toLocaleString()}
+                            <p className={`text-sm font-medium mt-1 ${selectedTask.type === 'product' ? 'text-emerald-600' : 'text-purple-600'}`}>
+                                {selectedTask.type === 'product' ? 'Price: ' : 'Budget: '} Rs {isNaN(Number(selectedTask.budget)) ? selectedTask.budget : Number(selectedTask.budget).toLocaleString()}
                             </p>
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Why should we hire you? *
+                                {selectedTask.type === 'product' ? 'At what price do you want to buy? *' : 'Why should we hire you? *'}
                             </label>
                             <textarea
                                 value={applicationMessage}
                                 onChange={(e) => setApplicationMessage(e.target.value)}
-                                placeholder="Describe your experience and why you're the best fit..."
+                                placeholder={selectedTask.type === 'product' ? "Enter your proposed buying price..." : "Describe your experience and why you're the best fit..."}
                                 rows={4}
                                 className="w-full px-4 py-3 border border-gray-200 rounded-xl"
                             />
@@ -537,9 +556,9 @@ const BrowseTasks = () => {
                             <button
                                 onClick={handleApply}
                                 disabled={isSubmitting}
-                                className="flex-1 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-medium flex items-center justify-center gap-2 disabled:opacity-70"
+                                className={`flex-1 py-3 text-white rounded-xl font-medium flex items-center justify-center gap-2 disabled:opacity-70 ${selectedTask.type === 'product' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-purple-600 hover:bg-purple-700'}`}
                             >
-                                {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Submit Application'}
+                                {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : (selectedTask.type === 'product' ? 'Submit Offer' : 'Submit Application')}
                             </button>
                         </div>
                     </div>
@@ -552,7 +571,7 @@ const BrowseTasks = () => {
                     <div className="space-y-4">
                         <div className="p-4 bg-gray-50 rounded-xl">
                             <h3 className="font-semibold text-gray-900">{selectedTask.title}</h3>
-                            <p className="text-sm text-gray-500 mt-1">Deadline: {selectedTask.deadline && new Date(selectedTask.deadline).toLocaleDateString()}</p>
+                            <p className="text-sm text-gray-500 mt-1">Deadline: {selectedTask.isLifetime ? 'Lifetime' : (selectedTask.deadline && new Date(selectedTask.deadline).toLocaleDateString())}</p>
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">Work Description / Notes *</label>
@@ -600,6 +619,28 @@ const BrowseTasks = () => {
                                 className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-medium flex items-center justify-center gap-2 disabled:opacity-70"
                             >
                                 {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Submit Work'}
+                            </button>
+                        </div>
+                    </div>
+                )}
+            </Modal>
+
+            {/* View Description Modal */}
+            <Modal isOpen={viewModalOpen} onClose={() => setViewModalOpen(false)} title="Task Details" size="md">
+                {selectedTask && (
+                    <div className="space-y-4">
+                        <div className="p-4 bg-gray-50 rounded-xl">
+                            <h3 className="font-semibold text-gray-900">{selectedTask.title}</h3>
+                            <p className="text-sm text-purple-600 font-medium mt-1">
+                                Budget: Rs {isNaN(Number(selectedTask.budget)) ? selectedTask.budget : Number(selectedTask.budget).toLocaleString()}
+                            </p>
+                        </div>
+                        <div className="p-4 bg-white border border-gray-100 rounded-xl whitespace-pre-wrap text-sm text-gray-700 max-h-96 overflow-y-auto">
+                            {selectedTask.description}
+                        </div>
+                        <div className="pt-4 border-t">
+                            <button onClick={() => setViewModalOpen(false)} className="w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-xl font-medium transition-colors">
+                                Close
                             </button>
                         </div>
                     </div>

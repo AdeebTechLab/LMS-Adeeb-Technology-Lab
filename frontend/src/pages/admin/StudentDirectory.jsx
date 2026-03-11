@@ -121,7 +121,7 @@ const StudentDirectory = () => {
 
             {/* Filters & Search */}
             <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
-                <div className="flex flex-col lg:flex-row gap-4">
+                <div className="flex flex-col gap-4">
                     {/* Search */}
                     <div className="flex-1 relative">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />

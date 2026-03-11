@@ -6,6 +6,7 @@ const Fee = require('../models/Fee');
 const User = require('../models/User');
 const Enrollment = require('../models/Enrollment');
 const Counter = require('../models/Counter');
+const { sendPushNotification } = require('../utils/pushHelper');
 
 
 
@@ -148,24 +149,65 @@ router.put('/:feeId/installments/:installmentId/verify', protect, authorize('adm
 
         // ALWAYS ensure enrollment is active when any installment is verified
         // This runs unconditionally so it works even if rollNoAssigned was already true
-        await Enrollment.findOneAndUpdate(
-            { user: fee.user, course: fee.course },
-            {
-                status: 'enrolled',
-                isActive: true,
-                feeStatus: fee.status === 'verified' ? 'verified' : 'partial',
-                $setOnInsert: { enrollmentDate: new Date() }
-            },
-            { upsert: false }
-        );
-
-        // Also set enrollmentDate if not already set
-        await Enrollment.findOneAndUpdate(
-            { user: fee.user, course: fee.course, enrollmentDate: { $exists: false } },
-            { enrollmentDate: new Date() }
-        );
+        // Also sync the embedded installments in enrollment so frontend checks work correctly
+        const updatedEnrollment = await Enrollment.findOne({ user: fee.user, course: fee.course });
+        if (updatedEnrollment) {
+            // Find matching installment by index (installments are parallel arrays)
+            const instIndex = fee.installments.findIndex(i => i._id.toString() === req.params.installmentId);
+            if (instIndex >= 0 && updatedEnrollment.installments && updatedEnrollment.installments[instIndex]) {
+                updatedEnrollment.installments[instIndex].status = 'verified';
+            } else if (instIndex === 0) {
+                // Ensure at least first installment is reflected
+                if (updatedEnrollment.installments && updatedEnrollment.installments.length === 0) {
+                    updatedEnrollment.installments = [{ installmentNumber: 1, amount: installment.amount, dueDate: installment.dueDate, status: 'verified' }];
+                } else if (updatedEnrollment.installments) {
+                    updatedEnrollment.installments[0] = { ...updatedEnrollment.installments[0]?.toObject?.() || {}, status: 'verified' };
+                }
+            }
+            updatedEnrollment.status = 'enrolled';
+            updatedEnrollment.isActive = true;
+            updatedEnrollment.feeStatus = fee.status === 'verified' ? 'verified' : 'partial';
+            if (!updatedEnrollment.enrollmentDate) updatedEnrollment.enrollmentDate = new Date();
+            await updatedEnrollment.save();
+        } else {
+            await Enrollment.findOneAndUpdate(
+                { user: fee.user, course: fee.course },
+                {
+                    status: 'enrolled',
+                    isActive: true,
+                    feeStatus: fee.status === 'verified' ? 'verified' : 'partial',
+                    $setOnInsert: { enrollmentDate: new Date() }
+                },
+                { upsert: false }
+            );
+        }
 
         await fee.save();
+
+        // Notify student that their fee was verified
+        const studentId = fee.user.toString();
+        const course = await require('../models/Course').findById(fee.course).select('title');
+        const courseName = course?.title || 'your course';
+        const instNumber = fee.installments.findIndex(i => i._id.toString() === req.params.installmentId) + 1;
+        const notifPayload = {
+            title: 'Fee Payment Verified ✅',
+            body: `Installment #${instNumber} for "${courseName}" (PKR ${installment.amount.toLocaleString()}) has been verified.`,
+            icon: '/logo.png',
+            url: '/student/fees'
+        };
+
+        // Socket notification
+        const io = req.app.get('io');
+        if (io) {
+            io.to(studentId).emit('new_browser_notification', {
+                title: notifPayload.title,
+                message: notifPayload.body,
+                url: notifPayload.url
+            });
+        }
+
+        // Web push notification
+        sendPushNotification(studentId, notifPayload);
 
         res.json({ success: true, fee, message: 'Payment verified successfully' });
     } catch (error) {
@@ -308,6 +350,17 @@ router.post('/:id/installments', protect, authorize('admin'), async (req, res) =
             { user: fee.user, course: fee.course },
             enrollmentUpdate
         );
+
+        // Notify user about fee challan generation
+        if (req.app.get('io') && newInstallments.some(i => i.status === 'pending')) {
+            const courseData = await require('../models/Course').findById(fee.course).select('title');
+            const cTitle = courseData ? courseData.title : 'Course';
+            req.app.get('io').to(fee.user.toString()).emit('new_browser_notification', {
+                title: 'Fee Challan Generated',
+                message: `A new fee challan has been generated for "${cTitle}". Please review your fee plan.`,
+                url: '/student/dashboard'
+            });
+        }
 
         res.json({ success: true, fee });
     } catch (error) {

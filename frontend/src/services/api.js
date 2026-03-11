@@ -176,8 +176,14 @@ export const taskAPI = {
     getAll: (params) => api.get('/tasks', { params }),
     getMy: () => api.get('/tasks/my'),
     getCompletedShowcase: () => api.get('/tasks/completed-showcase'),
-    create: (data) => api.post('/tasks', data),
-    update: (id, data) => api.put(`/tasks/${id}`, data),
+    create: (data) => {
+        const config = data instanceof FormData ? { headers: { 'Content-Type': 'multipart/form-data' } } : {};
+        return api.post('/tasks', data, config);
+    },
+    update: (id, data) => {
+        const config = data instanceof FormData ? { headers: { 'Content-Type': 'multipart/form-data' } } : {};
+        return api.put(`/tasks/${id}`, data, config);
+    },
     apply: (id, message) => api.post(`/tasks/${id}/apply`, { message }),
     assign: (id, userId) => api.put(`/tasks/${id}/assign`, { userId }),
     unassign: (id, userId) => api.put(`/tasks/${id}/unassign`, { userId }),

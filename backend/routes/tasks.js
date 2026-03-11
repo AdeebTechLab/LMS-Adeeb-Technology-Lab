@@ -37,10 +37,15 @@ router.get('/', async (req, res) => {
 // @route   POST /api/tasks
 // @desc    Create new task
 // @access  Private (Admin)
-router.post('/', protect, authorize('admin'), async (req, res) => {
+router.post('/', protect, authorize('admin'), uploadSubmission.single('image'), async (req, res) => {
     try {
+        const bodyData = { ...req.body };
+        if (req.file) {
+            bodyData.image = req.file.path;
+        }
+
         const task = await PaidTask.create({
-            ...req.body,
+            ...bodyData,
             createdBy: req.user.id
         });
 
@@ -53,7 +58,7 @@ router.post('/', protect, authorize('admin'), async (req, res) => {
 // @route   PUT /api/tasks/:id
 // @desc    Update task details
 // @access  Private (Admin)
-router.put('/:id', protect, authorize('admin'), async (req, res) => {
+router.put('/:id', protect, authorize('admin'), uploadSubmission.single('image'), async (req, res) => {
     try {
         let task = await PaidTask.findById(req.params.id);
 
@@ -61,7 +66,12 @@ router.put('/:id', protect, authorize('admin'), async (req, res) => {
             return res.status(404).json({ success: false, message: 'Task not found' });
         }
 
-        task = await PaidTask.findByIdAndUpdate(req.params.id, req.body, {
+        const bodyData = { ...req.body };
+        if (req.file) {
+            bodyData.image = req.file.path;
+        }
+
+        task = await PaidTask.findByIdAndUpdate(req.params.id, bodyData, {
             new: true,
             runValidators: true
         });

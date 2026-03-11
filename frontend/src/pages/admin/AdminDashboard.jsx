@@ -138,6 +138,20 @@ const AdminDashboard = () => {
         }
     };
 
+    const getImageUrl = (url) => {
+        if (!url) return '';
+        try {
+            const cleanUrl = String(url).trim();
+            if (cleanUrl.toLowerCase().startsWith('http') || cleanUrl.toLowerCase().startsWith('data:')) {
+                return cleanUrl;
+            }
+            const baseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace(/\/api\/?$/, '');
+            return `${baseUrl}/${cleanUrl.replace(/\\/g, '/').replace(/^\//, '')}`;
+        } catch (e) {
+            return url;
+        }
+    };
+
     const handleFilterChange = (e) => {
         const { name, value } = e.target;
         setFilters(prev => ({
@@ -488,7 +502,7 @@ const AdminDashboard = () => {
                     {slipModal.url ? (
                         <div className="rounded-lg overflow-hidden border border-gray-200">
                             <img
-                                src={slipModal.url}
+                                src={getImageUrl(slipModal.url)}
                                 alt="Payment Slip"
                                 className="w-full h-auto"
                             />

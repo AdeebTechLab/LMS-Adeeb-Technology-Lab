@@ -384,6 +384,39 @@ router.put('/:assignmentId/grade/:submissionId', protect, authorize('teacher', '
                 url: `/`
             });
         }
+        
+        // Emit browser notification via Socket.IO for both grading and rejection
+        const io = req.app.get('io');
+        const studentId = submission.user.toString();
+        let nTitle = '';
+        let nMessage = '';
+            
+        if (status === 'rejected') {
+            nTitle = 'Assignment Rejected';
+            nMessage = `Your submission for "${assignment.title}" has been rejected. Feedback: ${feedback}`;
+        } else if (status === 'graded') {
+            nTitle = 'Assignment Graded';
+            nMessage = `Your submission for "${assignment.title}" has been graded. Marks: ${marks}/${assignment.totalMarks}`;
+        }
+
+        if (nTitle && nMessage) {
+            // Socket notification (real-time in-app)
+            if (io) {
+                io.to(studentId).emit('new_browser_notification', {
+                    title: nTitle,
+                    message: nMessage,
+                    url: '/student/assignments'
+                });
+            }
+
+            // Web push notification (works even when tab closed)
+            sendPushNotification(studentId, {
+                title: nTitle,
+                body: nMessage,
+                icon: '/logo.png',
+                url: '/student/assignments'
+            });
+        }
 
         res.json({ success: true, assignment });
     } catch (error) {

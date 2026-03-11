@@ -185,7 +185,7 @@ cron.schedule('0 0 * * *', async () => {
 cron.schedule('0 1 * * *', async () => {
     try {
         console.log('🔄 Running daily installment job...');
-        await runInstallmentJob();
+        await runInstallmentJob(io);
         console.log('✅ Daily installment job completed');
     } catch (error) {
         console.error('❌ Installment job failed:', error);
@@ -213,7 +213,7 @@ app.use('/api/*', (req, res) => {
 setTimeout(async () => {
     try {
         console.log('🔄 Running startup installment check...');
-        await runInstallmentJob();
+        await runInstallmentJob(io);
         console.log('✅ Startup installment check completed');
     } catch (error) {
         console.error('❌ Startup installment check failed:', error);

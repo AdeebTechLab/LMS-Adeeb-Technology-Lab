@@ -22,6 +22,7 @@ const BrowseCourses = () => {
     const [selectedCities, setSelectedCities] = useState([]);
     const [activeTab, setActiveTab] = useState('enrolled');
     const [isEnrollModalOpen, setIsEnrollModalOpen] = useState(false);
+    const [viewModalOpen, setViewModalOpen] = useState(false);
     const [withdrawModal, setWithdrawModal] = useState({ open: false, enrollmentId: null, courseTitle: '' });
     const [selectedCourse, setSelectedCourse] = useState(null);
     const [isFetching, setIsFetching] = useState(true);
@@ -138,7 +139,9 @@ const BrowseCourses = () => {
         // If status is enrolled, it means at least the first installment is verified.
         // The user wants to see assignments if verified, otherwise payment.
         if (enrollment.status === 'enrolled') {
-            navigate(`/${role === 'intern' ? 'intern' : 'student'}/assignments`);
+            navigate(`/${role === 'intern' ? 'intern' : 'student'}/assignments`, {
+                state: { courseId: course._id }
+            });
         } else {
             navigate(`/${role === 'intern' ? 'intern' : 'student'}/fees`);
         }
@@ -158,9 +161,9 @@ const BrowseCourses = () => {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Courses</h1>
+                    <h1 className="text-2xl font-bold text-gray-900">{role === 'intern' ? 'Browse Skills' : 'Courses'}</h1>
                     <p className="text-gray-500">
-                        {role === 'intern' ? 'Browse internship programs' : 'Discover and enroll in courses'}
+                        {role === 'intern' ? 'Browse internship skills' : 'Discover and enroll in courses'}
                     </p>
                 </div>
                 <button
@@ -212,8 +215,8 @@ const BrowseCourses = () => {
             </div>
 
             {/* Search and Filters */}
-            <div className="bg-white rounded-2xl p-4 border border-gray-100 flex flex-col md:flex-row gap-4 items-center z-50 relative">
-                <div className="flex-1 flex items-center bg-gray-50 rounded-xl px-4 py-2 border border-gray-100 focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-500/20 transition-all w-full">
+            <div className="bg-white rounded-2xl p-4 border border-gray-100 flex flex-col gap-4 z-50 relative">
+                <div className="w-full flex items-center bg-gray-50 rounded-xl px-4 py-2 border border-gray-100 focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-500/20 transition-all">
                     <Search className="w-5 h-5 text-gray-400 mr-3" />
                     <input
                         type="text"
@@ -308,7 +311,15 @@ const BrowseCourses = () => {
                             {/* Course Content */}
                             <div className="p-5">
                                 <h3 className="font-bold text-gray-900 mb-2 line-clamp-1">{course.title}</h3>
-                                <p className="text-sm text-gray-500 mb-4 line-clamp-2">{course.description}</p>
+                                <p className="text-sm text-gray-500 mb-2 line-clamp-2">{course.description}</p>
+                                {course.description?.length > 100 && (
+                                    <button 
+                                        onClick={() => { setSelectedCourse(course); setViewModalOpen(true); }}
+                                        className="text-xs text-emerald-600 hover:text-emerald-700 font-medium mt-1 mb-4"
+                                    >
+                                        Read more
+                                    </button>
+                                )}
 
                                 {/* Teachers */}
                                 <div className="mb-4">
@@ -546,6 +557,42 @@ const BrowseCourses = () => {
                         </button>
                     </div>
                 </div>
+            </Modal>
+
+            {/* View Course Description Modal */}
+            <Modal
+                isOpen={viewModalOpen}
+                onClose={() => setViewModalOpen(false)}
+                title="Course Overview"
+                size="md"
+            >
+                {selectedCourse && (
+                    <div className="space-y-4">
+                        <div className="p-4 bg-emerald-50 rounded-xl">
+                            <h3 className="font-semibold text-gray-900 mb-2">{selectedCourse.title}</h3>
+                            <div className="flex items-center gap-4 text-sm text-gray-500">
+                                <span className="flex items-center gap-1">
+                                    <Clock className="w-4 h-4" />
+                                    {selectedCourse.durationMonths} {selectedCourse.durationMonths === 1 ? 'month' : 'months'}
+                                </span>
+                            </div>
+                        </div>
+                        <div className="p-4 border border-gray-100 rounded-xl bg-white">
+                            <h4 className="font-medium text-gray-900 mb-2">Description</h4>
+                            <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap">
+                                {selectedCourse.description}
+                            </p>
+                        </div>
+                        <div className="flex justify-end pt-2">
+                            <button
+                                onClick={() => setViewModalOpen(false)}
+                                className="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition-colors"
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                )}
             </Modal>
         </div>
     );
