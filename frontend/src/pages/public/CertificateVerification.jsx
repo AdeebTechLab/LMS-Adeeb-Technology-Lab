@@ -192,17 +192,7 @@ const CertificateVerification = () => {
                                                                 </p>
                                                             </div>
                                                         </div>
-                                                        {cert.certificateLink && (
-                                                            <a
-                                                                href={cert.certificateLink}
-                                                                target="_blank"
-                                                                rel="noopener noreferrer"
-                                                                className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-all shadow-md"
-                                                            >
-                                                                <ExternalLink className="w-4 h-4" />
-                                                                Open Certificate
-                                                            </a>
-                                                        )}
+
                                                     </div>
                                                 ) : (
                                                     /* Standard single-course display (student/intern) */
@@ -228,19 +218,7 @@ const CertificateVerification = () => {
                                                                 {new Date(cert.issuedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
                                                             </p>
                                                         </div>
-                                                        {cert.certificateLink && (
-                                                            <div className="md:col-span-2">
-                                                                <a
-                                                                    href={cert.certificateLink}
-                                                                    target="_blank"
-                                                                    rel="noopener noreferrer"
-                                                                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-all shadow-md"
-                                                                >
-                                                                    <ExternalLink className="w-4 h-4" />
-                                                                    Open Certificate
-                                                                </a>
-                                                            </div>
-                                                        )}
+
                                                     </div>
                                                 )}
                                             </div>
