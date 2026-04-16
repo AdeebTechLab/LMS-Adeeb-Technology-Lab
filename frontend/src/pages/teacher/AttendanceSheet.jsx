@@ -24,6 +24,7 @@ import DailyTasksTab from './components/DailyTasksTab';
 import AssignmentsTab from './components/AssignmentsTab';
 import TeacherChatTab from './components/TeacherChatTab';
 import StudentsTab from './components/StudentsTab';
+import StudentWorkView from './components/StudentWorkView';
 
 const AttendanceSheet = () => {
     const { id: routeCourseId } = useParams();
@@ -41,6 +42,13 @@ const AttendanceSheet = () => {
     const [selectedCities, setSelectedCities] = useState([]); // Array of strings
     const [selectedTypes, setSelectedTypes] = useState([]);   // Array of strings
     const [chatUnreadCount, setChatUnreadCount] = useState(0);
+
+    // Student Search Mode
+    const [searchMode, setSearchMode] = useState('courses'); // 'courses' | 'students'
+    const [studentSearchQuery, setStudentSearchQuery] = useState('');
+    const [allStudents, setAllStudents] = useState([]); // all students across teacher's courses
+    const [filteredStudents, setFilteredStudents] = useState([]);
+    const [selectedStudent, setSelectedStudent] = useState(null);
     // Track last-opened timestamp per courseId so recently opened courses float to top
     const [recentCourses, setRecentCourses] = useState(() => {
         try {
@@ -194,6 +202,48 @@ const AttendanceSheet = () => {
 
         setFilteredCourses(result);
     }, [myCourses, searchQuery, selectedCities, selectedTypes, recentCourses]);
+
+    // Build all-students list when courses are loaded
+    useEffect(() => {
+        if (myCourses.length === 0) return;
+        const seen = new Set();
+        const students = [];
+        myCourses.forEach(course => {
+            (course.enrollments || []).forEach(e => {
+                const uid = String(e.user?._id || e.user);
+                if (!seen.has(uid) && e.user?.name) {
+                    seen.add(uid);
+                    students.push({
+                        id: uid,
+                        _id: uid,
+                        name: e.user?.name || 'Student',
+                        rollNo: e.user?.rollNo || '',
+                        email: e.user?.email || '',
+                        photo: e.user?.photo || '',
+                        role: e.user?.role || 'student',
+                        courseName: course.name,
+                    });
+                }
+            });
+        });
+        setAllStudents(students);
+    }, [myCourses]);
+
+    // Filter students when query changes
+    useEffect(() => {
+        if (!studentSearchQuery.trim()) {
+            setFilteredStudents([]);
+            return;
+        }
+        const q = studentSearchQuery.toLowerCase();
+        setFilteredStudents(
+            allStudents.filter(s =>
+                s.name.toLowerCase().includes(q) ||
+                (s.rollNo && s.rollNo.toLowerCase().includes(q)) ||
+                (s.email && s.email.toLowerCase().includes(q))
+            )
+        );
+    }, [studentSearchQuery, allStudents]);
 
     const fetchMyCourses = async () => {
         setIsLoading(true);
@@ -371,6 +421,16 @@ const AttendanceSheet = () => {
         );
     }
 
+    // Student Work View
+    if (selectedStudent) {
+        return (
+            <StudentWorkView
+                student={selectedStudent}
+                onBack={() => setSelectedStudent(null)}
+            />
+        );
+    }
+
     if (!selectedCourse) {
         // Course Selection List
         return (
@@ -380,9 +440,35 @@ const AttendanceSheet = () => {
                         <h1 className="text-2xl font-bold text-gray-900">Attendance & Logs</h1>
                         <p className="text-gray-500">Manage your students, assignments and daily tasks</p>
                     </div>
+                    {/* Mode Toggle */}
+                    <div className="flex items-center gap-2 bg-gray-100 p-1 rounded-xl border border-gray-200">
+                        <button
+                            onClick={() => { setSearchMode('courses'); setStudentSearchQuery(''); setFilteredStudents([]); }}
+                            className={`px-5 py-2 rounded-lg font-bold text-sm transition-all flex items-center gap-2 ${
+                                searchMode === 'courses'
+                                    ? 'bg-white text-emerald-600 shadow-sm border border-emerald-100'
+                                    : 'text-gray-500 hover:text-gray-700'
+                            }`}
+                        >
+                            <BookOpen className="w-4 h-4" />
+                            Courses
+                        </button>
+                        <button
+                            onClick={() => { setSearchMode('students'); setSearchQuery(''); }}
+                            className={`px-5 py-2 rounded-lg font-bold text-sm transition-all flex items-center gap-2 ${
+                                searchMode === 'students'
+                                    ? 'bg-white text-emerald-600 shadow-sm border border-emerald-100'
+                                    : 'text-gray-500 hover:text-gray-700'
+                            }`}
+                        >
+                            <User className="w-4 h-4" />
+                            Search Student
+                        </button>
+                    </div>
                 </div>
 
                 {/* Filters and Search */}
+                {searchMode === 'courses' ? (
                 <div className="bg-white rounded-2xl p-4 border border-gray-100 flex flex-col xl:flex-row gap-4">
                     <div className="flex-1 flex items-center bg-gray-50 rounded-xl px-4 py-3">
                         <Search className="w-5 h-5 text-gray-400 mr-3" />
@@ -444,8 +530,105 @@ const AttendanceSheet = () => {
                         </div>
                     </div>
                 </div>
+                ) : (
+                /* Student Search Panel */
+                <div className="bg-white rounded-2xl p-4 border border-gray-100">
+                    <div className="flex items-center bg-gray-50 rounded-xl px-4 py-3 border border-gray-100">
+                        <Search className="w-5 h-5 text-emerald-500 mr-3" />
+                        <input
+                            id="student-search-input"
+                            type="text"
+                            placeholder="Search student by name, roll no, or email..."
+                            value={studentSearchQuery}
+                            onChange={(e) => setStudentSearchQuery(e.target.value)}
+                            className="bg-transparent border-none outline-none w-full text-gray-700 placeholder-gray-400 font-medium"
+                            autoFocus
+                        />
+                        {studentSearchQuery && (
+                            <button
+                                onClick={() => { setStudentSearchQuery(''); setFilteredStudents([]); }}
+                                className="ml-2 text-gray-400 hover:text-gray-600 font-bold text-xs"
+                            >✕</button>
+                        )}
+                    </div>
+                    <p className="text-xs text-gray-400 font-medium mt-2 ml-1">
+                        {allStudents.length} students across {myCourses.length} course{myCourses.length !== 1 ? 's' : ''}
+                    </p>
+                </div>
+                )}
 
-                {filteredCourses.length === 0 ? (
+                {/* Student Search Results */}
+                {searchMode === 'students' && (
+                    <div>
+                        {!studentSearchQuery.trim() ? (
+                            <div className="bg-white rounded-2xl p-12 border border-gray-100 text-center">
+                                <User className="w-12 h-12 text-gray-200 mx-auto mb-4" />
+                                <p className="text-gray-500 font-medium">Type a student name to search</p>
+                                <p className="text-sm text-gray-400 mt-1">You can also search by roll number or email</p>
+                            </div>
+                        ) : filteredStudents.length === 0 ? (
+                            <div className="bg-white rounded-2xl p-12 border border-gray-100 text-center">
+                                <Search className="w-12 h-12 text-gray-200 mx-auto mb-4" />
+                                <p className="text-gray-500 font-medium">No students found matching "{studentSearchQuery}"</p>
+                                <p className="text-sm text-gray-400 mt-1">Try a different name or roll number</p>
+                            </div>
+                        ) : (
+                            <div className="space-y-3">
+                                <p className="text-xs text-gray-400 font-bold uppercase tracking-widest px-1">
+                                    {filteredStudents.length} result{filteredStudents.length !== 1 ? 's' : ''} found
+                                </p>
+                                {filteredStudents.map((student, idx) => (
+                                    <motion.div
+                                        key={student.id}
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: idx * 0.05 }}
+                                        onClick={() => setSelectedStudent(student)}
+                                        className="bg-white rounded-2xl p-5 border border-gray-100 hover:shadow-lg hover:border-emerald-200 transition-all cursor-pointer group flex items-center gap-4"
+                                    >
+                                        <div className="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 border-2 border-gray-100">
+                                            {student.photo ? (
+                                                <img src={student.photo} alt={student.name} className="w-full h-full object-cover" />
+                                            ) : (
+                                                <div className="w-full h-full bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-white font-black text-lg">
+                                                    {(student.name || 'S').charAt(0).toUpperCase()}
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="flex-1">
+                                            <div className="flex items-center gap-2 flex-wrap">
+                                                <p className="font-bold text-gray-900 group-hover:text-emerald-600 transition-colors">{student.name}</p>
+                                                {student.rollNo && (
+                                                    <span className="text-[10px] font-black text-red-500 bg-red-50 px-2 py-0.5 rounded-lg border border-red-100">
+                                                        {student.rollNo}
+                                                    </span>
+                                                )}
+                                                <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider ${
+                                                    student.role === 'intern' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
+                                                }`}>
+                                                    {student.role || 'Student'}
+                                                </span>
+                                            </div>
+                                            {student.email && (
+                                                <p className="text-xs text-gray-400 font-medium mt-0.5">{student.email}</p>
+                                            )}
+                                            <p className="text-xs text-emerald-600 font-bold mt-1 flex items-center gap-1">
+                                                <BookOpen className="w-3 h-3" />
+                                                {student.courseName}
+                                            </p>
+                                        </div>
+                                        <div className="flex items-center text-emerald-600 font-bold text-sm">
+                                            <span className="text-xs">VIEW WORK</span>
+                                            <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+                                        </div>
+                                    </motion.div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {searchMode === 'courses' && filteredCourses.length === 0 ? (
                     <div className="bg-white rounded-2xl p-12 border border-gray-100 text-center">
                         <BookOpen className="w-12 h-12 text-gray-300 mx-auto mb-4" />
                         <p className="text-gray-500 font-medium">No courses match your filters</p>

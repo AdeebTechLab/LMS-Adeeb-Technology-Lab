@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
@@ -19,7 +19,8 @@ import {
     X,
     ExternalLink,
     StopCircle,
-    Award
+    Award,
+    Timer
 } from 'lucide-react';
 import StatCard from '../../components/ui/StatCard';
 import Badge from '../../components/ui/Badge';
@@ -43,10 +44,13 @@ const TeacherDashboard = () => {
         title: '',
         link: '',
         description: '',
-        visibility: 'all'
+        visibility: 'all',
+        autoEndMinutes: ''
     });
     const [activeLiveClasses, setActiveLiveClasses] = useState([]);
     const [isCreatingLiveClass, setIsCreatingLiveClass] = useState(false);
+    const [liveCountdowns, setLiveCountdowns] = useState({}); // { [id]: secondsLeft }
+    const cleanupIntervalRef = useRef(null);
 
     useEffect(() => {
         if (user?.id || user?._id) {
@@ -55,6 +59,33 @@ const TeacherDashboard = () => {
             fetchMyCertificate();
         }
     }, [user]);
+
+    // Start countdown ticks for active live classes that have a timer
+    useEffect(() => {
+        const tick = () => {
+            setActiveLiveClasses(prev => {
+                const now = Date.now();
+                const expired = [];
+                const updated = prev.map(lc => {
+                    if (!lc.autoEndMinutes) return lc;
+                    const expiresAt = new Date(lc.startTime).getTime() + lc.autoEndMinutes * 60 * 1000;
+                    const secondsLeft = Math.max(0, Math.round((expiresAt - now) / 1000));
+                    if (secondsLeft === 0) expired.push(lc._id);
+                    return { ...lc, _secondsLeft: secondsLeft };
+                });
+                // Remove expired ones from UI (backend cleanup happens via polling)
+                if (expired.length > 0) {
+                    liveClassAPI.cleanupExpired().catch(() => {});
+                    return updated.filter(lc => !expired.includes(lc._id));
+                }
+                return updated;
+            });
+        };
+
+        const interval = setInterval(tick, 1000);
+        tick(); // run immediately
+        return () => clearInterval(interval);
+    }, []);
 
     const fetchMyCertificate = async () => {
         try {
@@ -85,9 +116,12 @@ const TeacherDashboard = () => {
 
         setIsCreatingLiveClass(true);
         try {
-            await liveClassAPI.create(liveClassForm);
+            await liveClassAPI.create({
+                ...liveClassForm,
+                autoEndMinutes: liveClassForm.autoEndMinutes ? parseInt(liveClassForm.autoEndMinutes) : null
+            });
             setShowLiveClassModal(false);
-            setLiveClassForm({ title: '', link: '', description: '', visibility: 'all' });
+            setLiveClassForm({ title: '', link: '', description: '', visibility: 'all', autoEndMinutes: '' });
             fetchActiveLiveClasses();
         } catch (error) {
             console.error('Error creating live class:', error);
@@ -582,40 +616,65 @@ const TeacherDashboard = () => {
                             Your Active Live Classes
                         </h3>
                         <div className="space-y-3">
-                            {activeLiveClasses.map((lc) => (
-                                <div
-                                    key={lc._id}
-                                    className="flex items-center justify-between p-4 bg-red-50 border border-red-200 rounded-xl"
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-                                        <div>
-                                            <p className="font-semibold text-gray-900">{lc.title}</p>
-                                            <p className="text-sm text-gray-500">
-                                                Visible to: {lc.visibility === 'all' ? 'All Students & Interns' : lc.visibility === 'student' ? 'Students Only' : 'Interns Only'}
-                                            </p>
+                            {activeLiveClasses.map((lc) => {
+                                const hasTimer = !!lc.autoEndMinutes;
+                                const secondsLeft = lc._secondsLeft ?? (hasTimer
+                                    ? Math.max(0, Math.round((new Date(lc.startTime).getTime() + lc.autoEndMinutes * 60 * 1000 - Date.now()) / 1000))
+                                    : null);
+                                const mins = hasTimer ? Math.floor(secondsLeft / 60) : null;
+                                const secs = hasTimer ? secondsLeft % 60 : null;
+                                const isExpiringSoon = hasTimer && secondsLeft <= 60;
+                                return (
+                                    <div
+                                        key={lc._id}
+                                        className={`flex items-center justify-between p-4 rounded-xl border ${
+                                            isExpiringSoon
+                                                ? 'bg-orange-50 border-orange-300 animate-pulse'
+                                                : 'bg-red-50 border-red-200'
+                                        }`}
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                                            <div>
+                                                <p className="font-semibold text-gray-900">{lc.title}</p>
+                                                <div className="flex items-center gap-3 flex-wrap">
+                                                    <p className="text-sm text-gray-500">
+                                                        Visible to: {lc.visibility === 'all' ? 'All Students & Interns' : lc.visibility === 'student' ? 'Students Only' : 'Interns Only'}
+                                                    </p>
+                                                    {hasTimer && secondsLeft !== null && (
+                                                        <span className={`flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-full ${
+                                                            isExpiringSoon
+                                                                ? 'bg-orange-200 text-orange-700'
+                                                                : 'bg-red-100 text-red-600'
+                                                        }`}>
+                                                            <Timer className="w-3 h-3" />
+                                                            {`${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`} left
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <a
+                                                href={lc.link}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors flex items-center gap-2"
+                                            >
+                                                <ExternalLink className="w-4 h-4" />
+                                                Open
+                                            </a>
+                                            <button
+                                                onClick={() => handleEndLiveClass(lc._id)}
+                                                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center gap-2"
+                                            >
+                                                <StopCircle className="w-4 h-4" />
+                                                End Class
+                                            </button>
                                         </div>
                                     </div>
-                                    <div className="flex gap-2">
-                                        <a
-                                            href={lc.link}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors flex items-center gap-2"
-                                        >
-                                            <ExternalLink className="w-4 h-4" />
-                                            Open
-                                        </a>
-                                        <button
-                                            onClick={() => handleEndLiveClass(lc._id)}
-                                            className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center gap-2"
-                                        >
-                                            <StopCircle className="w-4 h-4" />
-                                            End Class
-                                        </button>
-                                    </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     </motion.div>
                 )}
@@ -627,9 +686,9 @@ const TeacherDashboard = () => {
                     <motion.div
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        className="bg-white rounded-2xl p-6 w-full max-w-md"
+                        className="bg-white rounded-2xl w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden"
                     >
-                        <div className="flex items-center justify-between mb-6">
+                        <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-gray-100 shrink-0">
                             <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
                                 <Video className="w-6 h-6 text-red-500" />
                                 Start Live Class
@@ -642,74 +701,119 @@ const TeacherDashboard = () => {
                             </button>
                         </div>
 
-                        <form onSubmit={handleCreateLiveClass} className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Class Title *
-                                </label>
-                                <input
-                                    type="text"
-                                    value={liveClassForm.title}
-                                    onChange={(e) => setLiveClassForm({ ...liveClassForm, title: e.target.value })}
-                                    placeholder="e.g., Web Development Live Session"
-                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                                    required
-                                />
-                            </div>
+                        <form onSubmit={handleCreateLiveClass} className="flex flex-col flex-1 overflow-hidden">
+                            {/* Scrollable fields */}
+                            <div className="overflow-y-auto flex-1 px-6 py-4 space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Class Title *
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={liveClassForm.title}
+                                        onChange={(e) => setLiveClassForm({ ...liveClassForm, title: e.target.value })}
+                                        placeholder="e.g., Web Development Live Session"
+                                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                        required
+                                    />
+                                </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Live Class Link *
-                                </label>
-                                <input
-                                    type="url"
-                                    value={liveClassForm.link}
-                                    onChange={(e) => setLiveClassForm({ ...liveClassForm, link: e.target.value })}
-                                    placeholder="https://meet.google.com/... or Zoom link"
-                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                                    required
-                                />
-                            </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Live Class Link *
+                                    </label>
+                                    <input
+                                        type="url"
+                                        value={liveClassForm.link}
+                                        onChange={(e) => setLiveClassForm({ ...liveClassForm, link: e.target.value })}
+                                        placeholder="https://meet.google.com/... or Zoom link"
+                                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                        required
+                                    />
+                                </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Description (Optional)
-                                </label>
-                                <textarea
-                                    value={liveClassForm.description}
-                                    onChange={(e) => setLiveClassForm({ ...liveClassForm, description: e.target.value })}
-                                    placeholder="Brief description about the class..."
-                                    rows={2}
-                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none"
-                                />
-                            </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Description (Optional)
+                                    </label>
+                                    <textarea
+                                        value={liveClassForm.description}
+                                        onChange={(e) => setLiveClassForm({ ...liveClassForm, description: e.target.value })}
+                                        placeholder="Brief description about the class..."
+                                        rows={2}
+                                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none"
+                                    />
+                                </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Show to *
-                                </label>
-                                <div className="grid grid-cols-3 gap-2">
-                                    {[
-                                        { value: 'all', label: 'All' },
-                                        { value: 'student', label: 'Students Only' },
-                                        { value: 'intern', label: 'Interns Only' }
-                                    ].map((opt) => (
-                                        <button
-                                            key={opt.value}
-                                            type="button"
-                                            onClick={() => setLiveClassForm({ ...liveClassForm, visibility: opt.value })}
-                                            className={`px-4 py-3 rounded-xl font-medium transition-all ${liveClassForm.visibility === opt.value
-                                                ? 'bg-emerald-500 text-white'
-                                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                {/* Auto-end timer */}
+                                <div className="bg-orange-50 border border-orange-100 rounded-xl p-4">
+                                    <label className="flex items-center gap-2 text-sm font-semibold text-orange-700 mb-3">
+                                        <Timer className="w-4 h-4" />
+                                        Auto-End Timer (Optional)
+                                    </label>
+                                    <div className="flex gap-2 flex-wrap mb-2">
+                                        {[30, 60, 90, 120].map(min => (
+                                            <button
+                                                key={min}
+                                                type="button"
+                                                onClick={() => setLiveClassForm(f => ({ ...f, autoEndMinutes: f.autoEndMinutes === String(min) ? '' : String(min) }))}
+                                                className={`px-3 py-2 rounded-xl text-sm font-semibold transition-all border ${
+                                                    liveClassForm.autoEndMinutes === String(min)
+                                                        ? 'bg-orange-500 text-white border-orange-500 shadow-sm'
+                                                        : 'bg-white text-gray-700 border-gray-200 hover:border-orange-300'
                                                 }`}
-                                        >
-                                            {opt.label}
-                                        </button>
-                                    ))}
+                                            >
+                                                {min} min
+                                            </button>
+                                        ))}
+                                        <input
+                                            type="number"
+                                            min="1"
+                                            max="480"
+                                            value={liveClassForm.autoEndMinutes}
+                                            onChange={(e) => setLiveClassForm({ ...liveClassForm, autoEndMinutes: e.target.value })}
+                                            placeholder="Custom mins"
+                                            className="flex-1 min-w-[90px] px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-400 focus:border-transparent text-sm bg-white"
+                                        />
+                                    </div>
+                                    {liveClassForm.autoEndMinutes ? (
+                                        <p className="text-xs text-orange-600 flex items-center gap-1">
+                                            <Timer className="w-3 h-3" />
+                                            Class will auto-remove after <strong>{liveClassForm.autoEndMinutes} minute{liveClassForm.autoEndMinutes !== '1' ? 's' : ''}</strong>
+                                        </p>
+                                    ) : (
+                                        <p className="text-xs text-gray-400">Leave empty to end the class manually</p>
+                                    )}
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Show to *
+                                    </label>
+                                    <div className="grid grid-cols-3 gap-2">
+                                        {[
+                                            { value: 'all', label: 'All' },
+                                            { value: 'student', label: 'Students Only' },
+                                            { value: 'intern', label: 'Interns Only' }
+                                        ].map((opt) => (
+                                            <button
+                                                key={opt.value}
+                                                type="button"
+                                                onClick={() => setLiveClassForm({ ...liveClassForm, visibility: opt.value })}
+                                                className={`px-4 py-3 rounded-xl font-medium transition-all ${liveClassForm.visibility === opt.value
+                                                    ? 'bg-emerald-500 text-white'
+                                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                                    }`}
+                                            >
+                                                {opt.label}
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
                             </div>
 
-                            <div className="flex gap-3 pt-4">
+                            {/* Sticky bottom buttons */}
+                            <div className="flex gap-3 px-6 py-4 border-t border-gray-100 shrink-0">
                                 <button
                                     type="button"
                                     onClick={() => setShowLiveClassModal(false)}
@@ -734,6 +838,7 @@ const TeacherDashboard = () => {
                     </motion.div>
                 </div>
             )}
+
         </>
     );
 };

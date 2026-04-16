@@ -6,7 +6,7 @@ import { useSelector } from 'react-redux';
 import {
     BookOpen, Users, Calendar, ArrowRight, ChevronLeft,
     FileText, ClipboardList, CheckCircle, Clock, Loader2, User, Award, X, Search,
-    Video, ExternalLink, StopCircle
+    Video, ExternalLink, StopCircle, Timer
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import { courseAPI, liveClassAPI } from '../../services/api';
@@ -42,7 +42,8 @@ const TeacherCourses = () => {
         title: '',
         link: '',
         description: '',
-        visibility: 'all'
+        visibility: 'all',
+        autoEndMinutes: ''
     });
     const [activeLiveClasses, setActiveLiveClasses] = useState([]);
     const [isCreatingLiveClass, setIsCreatingLiveClass] = useState(false);
@@ -50,6 +51,32 @@ const TeacherCourses = () => {
     useEffect(() => {
         fetchMyCourses();
         fetchActiveLiveClasses();
+    }, []);
+
+    // Start countdown ticks for active live classes that have a timer
+    useEffect(() => {
+        const tick = () => {
+            setActiveLiveClasses(prev => {
+                const now = Date.now();
+                const expired = [];
+                const updated = prev.map(lc => {
+                    if (!lc.autoEndMinutes) return lc;
+                    const expiresAt = new Date(lc.startTime).getTime() + lc.autoEndMinutes * 60 * 1000;
+                    const secondsLeft = Math.max(0, Math.round((expiresAt - now) / 1000));
+                    if (secondsLeft === 0) expired.push(lc._id);
+                    return { ...lc, _secondsLeft: secondsLeft };
+                });
+                if (expired.length > 0) {
+                    liveClassAPI.cleanupExpired().catch(() => {});
+                    return updated.filter(lc => !expired.includes(lc._id));
+                }
+                return updated;
+            });
+        };
+
+        const interval = setInterval(tick, 1000);
+        tick(); 
+        return () => clearInterval(interval);
     }, []);
 
     const fetchActiveLiveClasses = async () => {
@@ -67,9 +94,12 @@ const TeacherCourses = () => {
 
         setIsCreatingLiveClass(true);
         try {
-            await liveClassAPI.create(liveClassForm);
+            await liveClassAPI.create({
+                ...liveClassForm,
+                autoEndMinutes: liveClassForm.autoEndMinutes ? parseInt(liveClassForm.autoEndMinutes) : null
+            });
             setShowLiveClassModal(false);
-            setLiveClassForm({ title: '', link: '', description: '', visibility: 'all' });
+            setLiveClassForm({ title: '', link: '', description: '', visibility: 'all', autoEndMinutes: '' });
             fetchActiveLiveClasses();
         } catch (error) {
             console.error('Error creating live class:', error);
@@ -206,6 +236,20 @@ const TeacherCourses = () => {
                             <div className="flex items-center gap-3">
                                 <div className="w-3 h-3 bg-white rounded-full animate-pulse"></div>
                                 <span className="font-bold">🔴 Live Class Active: {activeLiveClasses[0]?.title}</span>
+                                {(() => {
+                                    const lc = activeLiveClasses[0];
+                                    if (!lc?.autoEndMinutes) return null;
+                                    const sl = lc._secondsLeft;
+                                    if (sl == null) return null;
+                                    const mins = Math.floor(sl / 60);
+                                    const secs = sl % 60;
+                                    return (
+                                        <span className="flex items-center gap-1 bg-white/20 px-2 py-1 rounded-lg text-sm font-bold ml-2">
+                                            <Timer className="w-4 h-4" />
+                                            {`${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`} left
+                                        </span>
+                                    );
+                                })()}
                             </div>
                             <div className="flex gap-2">
                                 <a
@@ -502,6 +546,47 @@ const TeacherCourses = () => {
                                         rows={2}
                                         className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none"
                                     />
+                                </div>
+
+                                {/* Auto-end timer */}
+                                <div className="bg-orange-50 border border-orange-100 rounded-xl p-4">
+                                    <label className="flex items-center gap-2 text-sm font-semibold text-orange-700 mb-3">
+                                        <Timer className="w-4 h-4" />
+                                        Auto-End Timer (Optional)
+                                    </label>
+                                    <div className="flex gap-2 flex-wrap mb-2">
+                                        {[30, 60, 90, 120].map(min => (
+                                            <button
+                                                key={min}
+                                                type="button"
+                                                onClick={() => setLiveClassForm(f => ({ ...f, autoEndMinutes: f.autoEndMinutes === String(min) ? '' : String(min) }))}
+                                                className={`px-3 py-2 rounded-xl text-sm font-semibold transition-all border ${
+                                                    liveClassForm.autoEndMinutes === String(min)
+                                                        ? 'bg-orange-500 text-white border-orange-500 shadow-sm'
+                                                        : 'bg-white text-gray-700 border-gray-200 hover:border-orange-300'
+                                                }`}
+                                            >
+                                                {min} min
+                                            </button>
+                                        ))}
+                                        <input
+                                            type="number"
+                                            min="1"
+                                            max="480"
+                                            value={liveClassForm.autoEndMinutes}
+                                            onChange={(e) => setLiveClassForm({ ...liveClassForm, autoEndMinutes: e.target.value })}
+                                            placeholder="Custom mins"
+                                            className="flex-1 min-w-[90px] px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-400 focus:border-transparent text-sm bg-white"
+                                        />
+                                    </div>
+                                    {liveClassForm.autoEndMinutes ? (
+                                        <p className="text-xs text-orange-600 flex items-center gap-1">
+                                            <Timer className="w-3 h-3" />
+                                            Class will auto-remove after <strong>{liveClassForm.autoEndMinutes} minute{liveClassForm.autoEndMinutes !== '1' ? 's' : ''}</strong>
+                                        </p>
+                                    ) : (
+                                        <p className="text-xs text-gray-400">Leave empty to end the class manually</p>
+                                    )}
                                 </div>
 
                                 <div>

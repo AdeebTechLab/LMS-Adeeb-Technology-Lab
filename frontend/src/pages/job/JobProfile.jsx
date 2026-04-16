@@ -8,6 +8,38 @@ import {
 import { authAPI, taskAPI, settingsAPI } from '../../services/api';
 import { updateUser } from '../../features/auth/authSlice';
 
+const InfoField = ({ icon: Icon, label, value, name, type = 'text', editable = true, isEditing, editForm, onChange, multiline = false }) => (
+    <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-xl">
+        <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
+            <Icon className="w-5 h-5 text-purple-600" />
+        </div>
+        <div className="flex-1 min-w-0">
+            <p className="text-sm text-gray-500 mb-1">{label}</p>
+            {isEditing && editable ? (
+                multiline ? (
+                    <textarea
+                        name={name}
+                        value={editForm[name] || ''}
+                        onChange={onChange}
+                        rows={3}
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500"
+                    />
+                ) : (
+                    <input
+                        type={type}
+                        name={name}
+                        value={editForm[name] || ''}
+                        onChange={onChange}
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500"
+                    />
+                )
+            ) : (
+                <p className="font-medium text-gray-900 truncate">{value || 'Not provided'}</p>
+            )}
+        </div>
+    </div>
+);
+
 const JobProfile = () => {
     const { user } = useSelector((state) => state.auth);
     const dispatch = useDispatch();
@@ -84,7 +116,7 @@ const JobProfile = () => {
             const response = await authAPI.updateProfile({
                 name: editForm.fullName,
                 phone: editForm.phone,
-                location: editForm.city?.toLowerCase(),
+                city: editForm.city,
                 skills: editForm.skills,
                 experience: editForm.experience,
                 portfolio: editForm.portfolio
@@ -108,37 +140,7 @@ const JobProfile = () => {
         setEditForm(prev => ({ ...prev, [name]: value }));
     };
 
-    const InfoField = ({ icon: Icon, label, value, name, type = 'text', editable = true, multiline = false }) => (
-        <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-xl">
-            <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                <Icon className="w-5 h-5 text-purple-600" />
-            </div>
-            <div className="flex-1 min-w-0">
-                <p className="text-sm text-gray-500 mb-1">{label}</p>
-                {isEditing && editable ? (
-                    multiline ? (
-                        <textarea
-                            name={name}
-                            value={editForm[name] || ''}
-                            onChange={handleChange}
-                            rows={3}
-                            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500"
-                        />
-                    ) : (
-                        <input
-                            type={type}
-                            name={name}
-                            value={editForm[name] || ''}
-                            onChange={handleChange}
-                            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500"
-                        />
-                    )
-                ) : (
-                    <p className="font-medium text-gray-900 truncate">{value || 'Not provided'}</p>
-                )}
-            </div>
-        </div>
-    );
+
 
     const stats = [
         { label: 'Tasks Applied', value: myTasks.length.toString(), icon: FileText, color: 'bg-blue-100 text-blue-600' },
@@ -258,15 +260,15 @@ const JobProfile = () => {
                         Personal Information
                     </h2>
                     <div className="space-y-4">
-                        <InfoField icon={User} label="Full Name" value={profileData.fullName} name="fullName" editable={canEditBio} />
-                        <InfoField icon={Mail} label="Email" value={profileData.email} name="email" type="email" editable={false} />
-                        <InfoField icon={Phone} label="Phone" value={profileData.phone} name="phone" editable={canEditBio} />
+                        <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={User} label="Full Name" value={profileData.fullName} name="fullName" editable={canEditBio} />
+                        <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={Mail} label="Email" value={profileData.email} name="email" type="email" editable={false} />
+                        <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={Phone} label="Phone" value={profileData.phone} name="phone" editable={canEditBio} />
                         {!canEditBio && isEditing && (
                             <p className="text-xs text-red-500 font-medium px-4">
                                 * Bio editing is currently disabled by administrator.
                             </p>
                         )}
-                        <InfoField icon={MapPin} label="City" value={profileData.city} name="city" editable={canEditBio} />
+                        <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={MapPin} label="City" value={profileData.city} name="city" editable={canEditBio} />
                     </div>
                 </motion.div>
 
@@ -282,9 +284,9 @@ const JobProfile = () => {
                         Professional Information
                     </h2>
                     <div className="space-y-4">
-                        <InfoField icon={Briefcase} label="Skills" value={profileData.skills} name="skills" multiline editable={canEditBio} />
-                        <InfoField icon={FileText} label="Experience" value={profileData.experience} name="experience" multiline editable={canEditBio} />
-                        <InfoField icon={FileText} label="Portfolio URL" value={profileData.portfolio} name="portfolio" type="url" editable={canEditBio} />
+                        <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={Briefcase} label="Skills" value={profileData.skills} name="skills" multiline editable={canEditBio} />
+                        <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={FileText} label="Experience" value={profileData.experience} name="experience" multiline editable={canEditBio} />
+                        <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={FileText} label="Portfolio URL" value={profileData.portfolio} name="portfolio" type="url" editable={canEditBio} />
                     </div>
                 </motion.div>
             </div>

@@ -39,6 +39,10 @@ const liveClassSchema = new mongoose.Schema({
     endTime: {
         type: Date,
         default: null
+    },
+    autoEndMinutes: {
+        type: Number,
+        default: null  // null = no auto-end; number = minutes until auto-delete
     }
 }, {
     timestamps: true

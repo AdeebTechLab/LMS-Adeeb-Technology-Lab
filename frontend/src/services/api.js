@@ -62,11 +62,13 @@ export const authAPI = {
     }),
     login: (credentials) => api.post('/auth/login', credentials),
     getMe: () => api.get('/auth/me'),
-    updateProfile: (formData) => api.put('/auth/profile', formData, {
+    updateProfile: (data) => api.put('/auth/profile', data, {
         headers: { 'Content-Type': 'multipart/form-data' }
     }),
     forgotPassword: (data) => api.post('/auth/forgot-password', data),
-    resetPassword: (token, password) => api.post(`/auth/reset-password/${token}`, { password })
+    resetPassword: (token, data) => api.post(`/auth/reset-password/${token}`, data),
+    getAvailableRoles: () => api.get('/auth/available-roles'),
+    switchRole: (targetRole) => api.post('/auth/switch-role', { targetRole })
 };
 
 // User APIs (for admin)
@@ -193,6 +195,8 @@ export const taskAPI = {
     complete: (id) => api.put(`/tasks/${id}/complete`),
     adminComplete: (id) => api.put(`/tasks/${id}/admin-complete`),
     addFeedback: (id, data) => api.post(`/tasks/${id}/feedback`, data),
+    editFeedback: (taskId, feedbackId, data) => api.put(`/tasks/${taskId}/feedback/${feedbackId}`, data),
+    deleteFeedback: (taskId, feedbackId) => api.delete(`/tasks/${taskId}/feedback/${feedbackId}`),
     delete: (id) => api.delete(`/tasks/${id}`)
 };
 
@@ -200,7 +204,9 @@ export const taskAPI = {
 export const dailyTaskAPI = {
     submit: (data) => api.post('/daily-tasks', data),
     getByCourse: (courseId) => api.get(`/daily-tasks/course/${courseId}`),
-    getMy: (courseId) => api.get(`/daily-tasks/my/${courseId}`)
+    getMy: (courseId) => api.get(`/daily-tasks/my/${courseId}`),
+    grade: (id, data) => api.put(`/daily-tasks/${id}/grade`, data),
+    delete: (id) => api.delete(`/daily-tasks/${id}`)
 };
 
 // Notification APIs
@@ -262,12 +268,13 @@ export const liveClassAPI = {
     getActive: () => api.get('/live-class/active'),
     update: (id, data) => api.put(`/live-class/${id}`, data),
     end: (id) => api.put(`/live-class/${id}/end`),
-    delete: (id) => api.delete(`/live-class/${id}`)
+    delete: (id) => api.delete(`/live-class/${id}`),
+    cleanupExpired: () => api.delete('/live-class/cleanup-expired')
 };
 
 // Directory API
 export const directoryAPI = {
-    getAll: (filter) => api.get('/directory', { params: { filter } })
+    getAll: (filter, type) => api.get('/directory', { params: { filter, type } })
 };
 
 export default api;

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useSelector } from 'react-redux';
 import {
-    Search, Calendar, Briefcase, CheckCircle, Send, Upload, CreditCard, Loader2, AlertCircle, Link, Trash2, MessageSquare
+    Search, Calendar, Briefcase, CheckCircle, Send, Upload, CreditCard, Loader2, AlertCircle, Link, Trash2, MessageSquare, ChevronLeft, ChevronRight, X
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
@@ -28,6 +28,28 @@ const BrowseTasks = () => {
     const [completedShowcase, setCompletedShowcase] = useState([]);
     const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
     const [feedbackData, setFeedbackData] = useState({ rating: 5, text: '' });
+    const [galleryOpen, setGalleryOpen] = useState(false);
+    const [galleryImages, setGalleryImages] = useState([]);
+    const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+    const openGallery = (task) => {
+        const imgs = task.images && task.images.length > 0 ? task.images : (task.image ? [task.image] : []);
+        if (imgs.length > 0) {
+            setGalleryImages(imgs);
+            setCurrentImageIndex(0);
+            setGalleryOpen(true);
+        }
+    };
+
+    const nextImage = (e) => {
+        e?.stopPropagation();
+        setCurrentImageIndex((prev) => (prev + 1) % galleryImages.length);
+    };
+
+    const prevImage = (e) => {
+        e?.stopPropagation();
+        setCurrentImageIndex((prev) => (prev === 0 ? galleryImages.length - 1 : prev - 1));
+    };
 
     // Fetch tasks on component mount
     useEffect(() => {
@@ -332,9 +354,22 @@ const BrowseTasks = () => {
 
                             <h3 className="font-bold text-gray-900 mb-2">{task.title}</h3>
                             
-                            {task.type === 'product' && task.image && (
-                                <div className="mb-4 aspect-video rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center">
-                                    <img src={task.image} alt={task.title} className="w-full h-full object-cover" />
+                            {task.type === 'product' && (task.images && task.images.length > 0 || task.image) && (
+                                <div 
+                                    className="mb-4 aspect-video rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center cursor-pointer relative group"
+                                    onClick={() => openGallery(task)}
+                                >
+                                    <img src={task.images && task.images.length > 0 ? task.images[0] : task.image} alt={task.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                                         <span className="opacity-0 group-hover:opacity-100 bg-white text-gray-900 px-3 py-1.5 rounded-lg text-sm font-medium shadow-lg transition-opacity duration-300">
+                                            View Pictures
+                                         </span>
+                                    </div>
+                                    {((task.images && task.images.length > 1)) && (
+                                        <div className="absolute top-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded-md max-w-max">
+                                            {task.images.length} images
+                                        </div>
+                                    )}
                                 </div>
                             )}
 
@@ -646,6 +681,62 @@ const BrowseTasks = () => {
                     </div>
                 )}
             </Modal>
+
+            {/* Image Gallery Fullscreen View */}
+            {galleryOpen && galleryImages.length > 0 && (
+                <div className="fixed inset-0 z-[999] bg-black/95 flex items-center justify-center flex-col">
+                    <div className="absolute top-4 right-4 flex items-center gap-4">
+                        <span className="text-white/70 text-sm">{currentImageIndex + 1} / {galleryImages.length}</span>
+                        <button 
+                            onClick={() => setGalleryOpen(false)} 
+                            className="bg-white/10 hover:bg-white/20 text-white p-2 rounded-full transition-all"
+                        >
+                            <X className="w-6 h-6" />
+                        </button>
+                    </div>
+
+                    <div className="relative w-full max-w-5xl px-4 md:px-12 flex items-center justify-center">
+                        {galleryImages.length > 1 && (
+                            <button 
+                                onClick={prevImage}
+                                className="absolute left-2 md:left-4 bg-white/10 hover:bg-white/20 text-white p-3 rounded-full transition-all z-10"
+                            >
+                                <ChevronLeft className="w-6 h-6" />
+                            </button>
+                        )}
+                        
+                        <img 
+                            src={galleryImages[currentImageIndex]} 
+                            alt={`Gallery image ${currentImageIndex + 1}`} 
+                            className="max-h-[85vh] w-auto max-w-full object-contain rounded-lg"
+                        />
+
+                        {galleryImages.length > 1 && (
+                            <button 
+                                onClick={nextImage}
+                                className="absolute right-2 md:right-4 bg-white/10 hover:bg-white/20 text-white p-3 rounded-full transition-all z-10"
+                            >
+                                <ChevronRight className="w-6 h-6" />
+                            </button>
+                        )}
+                    </div>
+                    
+                    {/* Thumbnails */}
+                    {galleryImages.length > 1 && (
+                        <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 px-4 overflow-x-auto pb-2">
+                            {galleryImages.map((img, idx) => (
+                                <button
+                                    key={idx}
+                                    onClick={() => setCurrentImageIndex(idx)}
+                                    className={`w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden border-2 transition-all ${currentImageIndex === idx ? 'border-purple-500 scale-105 opacity-100' : 'border-transparent opacity-50 hover:opacity-100'}`}
+                                >
+                                    <img src={img} alt={`Thumbnail ${idx}`} className="w-full h-full object-cover" />
+                                </button>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            )}
         </div>
     );
 };

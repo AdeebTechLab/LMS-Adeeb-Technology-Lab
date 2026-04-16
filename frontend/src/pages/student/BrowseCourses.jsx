@@ -139,9 +139,7 @@ const BrowseCourses = () => {
         // If status is enrolled, it means at least the first installment is verified.
         // The user wants to see assignments if verified, otherwise payment.
         if (enrollment.status === 'enrolled') {
-            navigate(`/${role === 'intern' ? 'intern' : 'student'}/assignments`, {
-                state: { courseId: course._id }
-            });
+            navigate(`/${role === 'intern' ? 'intern' : 'student'}/course/${course._id}`);
         } else {
             navigate(`/${role === 'intern' ? 'intern' : 'student'}/fees`);
         }

@@ -9,7 +9,7 @@ const Enrollment = require('../models/Enrollment');
 // @access  Private (Teacher, Admin)
 router.post('/', protect, authorize('teacher', 'admin'), async (req, res) => {
     try {
-        const { title, link, description, visibility, courseId } = req.body;
+        const { title, link, description, visibility, courseId, autoEndMinutes } = req.body;
 
         if (!title || !link) {
             return res.status(400).json({ success: false, message: 'Title and link are required' });
@@ -23,7 +23,8 @@ router.post('/', protect, authorize('teacher', 'admin'), async (req, res) => {
             course: courseId || null,
             createdBy: req.user.id,
             isActive: true,
-            startTime: new Date()
+            startTime: new Date(),
+            autoEndMinutes: autoEndMinutes ? parseInt(autoEndMinutes) : null
         });
 
         // Emit socket event to notify students/interns
@@ -48,10 +49,17 @@ router.post('/', protect, authorize('teacher', 'admin'), async (req, res) => {
 // @access  Private (Teacher, Admin)
 router.get('/', protect, authorize('teacher', 'admin'), async (req, res) => {
     try {
-        const liveClasses = await LiveClass.find({ createdBy: req.user.id })
+        let liveClasses = await LiveClass.find({ createdBy: req.user.id })
             .populate('createdBy', 'name')
             .populate('course', 'title')
             .sort('-createdAt');
+
+        const now = new Date();
+        liveClasses = liveClasses.filter(lc => {
+            if (!lc.isActive || !lc.autoEndMinutes) return true;
+            const expiresAt = new Date(lc.startTime.getTime() + lc.autoEndMinutes * 60 * 1000);
+            return now < expiresAt;
+        });
 
         res.json({ success: true, data: liveClasses });
     } catch (error) {
@@ -89,10 +97,17 @@ router.get('/active', protect, async (req, res) => {
             visibilityQuery.visibility = 'all';
         }
 
-        const liveClasses = await LiveClass.find(visibilityQuery)
+        let liveClasses = await LiveClass.find(visibilityQuery)
             .populate('createdBy', 'name photo')
             .populate('course', 'title')
             .sort('-createdAt');
+
+        const now = new Date();
+        liveClasses = liveClasses.filter(lc => {
+            if (!lc.isActive || !lc.autoEndMinutes) return true;
+            const expiresAt = new Date(lc.startTime.getTime() + lc.autoEndMinutes * 60 * 1000);
+            return now < expiresAt;
+        });
 
         res.json({ success: true, data: liveClasses });
     } catch (error) {
@@ -199,6 +214,35 @@ router.put('/:id/end', protect, authorize('teacher', 'admin'), async (req, res) 
         }
 
         res.json({ success: true, message: 'Live class ended', data: liveClass });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// @route   DELETE /api/live-class/cleanup-expired
+// @desc    Delete all expired auto-end live classes (called by frontend polling)
+// @access  Private (Teacher, Admin)
+router.delete('/cleanup-expired', protect, authorize('teacher', 'admin'), async (req, res) => {
+    try {
+        const now = new Date();
+        // Find active classes that have an autoEndMinutes set
+        const classesWithTimer = await LiveClass.find({
+            isActive: true,
+            autoEndMinutes: { $ne: null }
+        });
+
+        const toDelete = classesWithTimer.filter(lc => {
+            const expiresAt = new Date(lc.startTime.getTime() + lc.autoEndMinutes * 60 * 1000);
+            return now >= expiresAt;
+        });
+
+        const io = req.app.get('io');
+        for (const lc of toDelete) {
+            await lc.deleteOne();
+            if (io) io.emit('live_class_ended', { id: lc._id.toString() });
+        }
+
+        res.json({ success: true, deleted: toDelete.length });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }

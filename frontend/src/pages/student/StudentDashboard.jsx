@@ -456,9 +456,7 @@ const StudentDashboard = () => {
                                         whileHover={{ y: -4 }}
                                         className="bg-white p-4 rounded-2xl border border-gray-100 flex gap-4 hover:shadow-md transition-all cursor-pointer group"
                                         onClick={() => {
-                                            navigate(`/${role}/assignments`, {
-                                                state: { courseId: course.id }
-                                            });
+                                            navigate(`/${role}/course/${course.id}`);
                                         }}
                                     >
                                         <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors shadow-sm ${(() => {

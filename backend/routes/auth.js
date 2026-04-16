@@ -47,30 +47,11 @@ router.post('/register', uploadRegistration.fields([
         if (otherUserWithSameEmail) {
             assignedRollNo = otherUserWithSameEmail.rollNo;
             console.log(`Reusing roll number ${assignedRollNo} for email ${email}`);
-        } else if (['student', 'intern'].includes(role || 'student')) {
-            // Generate new roll number ONLY for students/interns if they don't have one yet
+        } else {
+            // Generate new roll number for any user who doesn't have one yet
             const Counter = require('../models/Counter');
             assignedRollNo = await Counter.getNextRollNo();
-            console.log(`Generated new roll number ${assignedRollNo} for email ${email}`);
-        } else if (role === 'teacher') {
-            // Generate unique teacher ID (t0001, t0002, ...)
-            const Counter = require('../models/Counter');
-            // Initialize counter based on existing teachers so numbers don't clash
-            const existingTeachers = await User.countDocuments({ role: 'teacher', rollNo: { $regex: /^t\d+$/ } });
-            if (existingTeachers > 0) {
-                // Make sure counter is at least as high as the current max teacher count
-                const Counter_ = require('../models/Counter');
-                const counterDoc = await Counter_.findOne({ name: 'teacherId' });
-                if (!counterDoc || counterDoc.value < existingTeachers) {
-                    await Counter_.findOneAndUpdate(
-                        { name: 'teacherId' },
-                        { $set: { value: existingTeachers } },
-                        { upsert: true }
-                    );
-                }
-            }
-            assignedRollNo = await Counter.getNextTeacherId();
-            console.log(`Generated teacher ID ${assignedRollNo} for email ${email}`);
+            console.log(`Generated new global unique ID ${assignedRollNo} for email ${email}`);
         }
 
 
@@ -352,6 +333,81 @@ router.get('/me', protect, async (req, res) => {
         res.status(500).json({ success: false, message: error.message });
     }
 });
+
+// @route   GET /api/auth/available-roles
+// @desc    Get all roles registered under the current user's email
+// @access  Private
+router.get('/available-roles', protect, async (req, res) => {
+    try {
+        // req.user has id. Let's find the email.
+        const currentUser = await User.findById(req.user.id);
+        if (!currentUser) return res.status(404).json({ success: false, message: 'User not found' });
+
+        const email = currentUser.email;
+        // Find all roles associated with this email
+        const usersWithEmail = await User.find({ email }).select('role');
+        const roles = usersWithEmail.map(u => u.role);
+
+        res.json({ success: true, roles });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// @route   POST /api/auth/switch-role
+// @desc    Switch to a different registered role for the same email
+// @access  Private
+router.post('/switch-role', protect, async (req, res) => {
+    try {
+        const { targetRole } = req.body;
+        if (!targetRole) return res.status(400).json({ success: false, message: 'Target role is required' });
+
+        const currentUser = await User.findById(req.user.id);
+        if (!currentUser) return res.status(404).json({ success: false, message: 'Current user not found' });
+
+        const email = currentUser.email;
+
+        // Find the user object for the requested role
+        const targetUser = await User.findOne({ email, role: targetRole });
+        if (!targetUser) {
+            return res.status(403).json({ success: false, message: `Access denied. You have not registered as a ${targetRole}.` });
+        }
+
+        // Check if account has been revoked by admin
+        if (targetUser.role !== 'admin' && !targetUser.isVerified) {
+            return res.status(403).json({
+                success: false,
+                message: 'Your account for this role has been suspended by admin.',
+                isRevoked: true
+            });
+        }
+
+        // Generate a new token for the target user (same session duration logic as login)
+        const token = targetUser.getSignedJwtToken('2h');
+
+        res.json({
+            success: true,
+            token,
+            user: {
+                id: targetUser._id,
+                _id: targetUser._id,
+                name: targetUser.name,
+                email: targetUser.email,
+                role: targetUser.role,
+                photo: targetUser.photo,
+                rollNo: targetUser.rollNo,
+                phone: targetUser.phone,
+                location: targetUser.location,
+                isVerified: targetUser.isVerified,
+                createdAt: targetUser.createdAt
+            }
+        });
+    } catch (error) {
+        console.error('Role switch error:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
 
 // @route   PUT /api/auth/profile
 // @desc    Update user profile

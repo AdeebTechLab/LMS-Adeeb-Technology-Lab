@@ -194,6 +194,34 @@ cron.schedule('0 1 * * *', async () => {
     timezone: "Asia/Karachi"
 });
 
+// Live Class auto-cleanup cron job - Runs every minute
+cron.schedule('* * * * *', async () => {
+    try {
+        const LiveClass = require('./models/LiveClass');
+        const now = new Date();
+        // Find active classes that have an autoEndMinutes set
+        const classesWithTimer = await LiveClass.find({
+            isActive: true,
+            autoEndMinutes: { $ne: null }
+        });
+
+        const toDelete = classesWithTimer.filter(lc => {
+            const expiresAt = new Date(lc.startTime.getTime() + lc.autoEndMinutes * 60 * 1000);
+            return now >= expiresAt;
+        });
+
+        if (toDelete.length > 0) {
+            console.log(`🧹 Auto-cleaning ${toDelete.length} expired live classes...`);
+            for (const lc of toDelete) {
+                await lc.deleteOne();
+                if (io) io.emit('live_class_ended', { id: lc._id.toString() });
+            }
+        }
+    } catch (error) {
+        console.error('❌ Live class auto-cleanup failed:', error);
+    }
+});
+
 // 404 handler for unmatched routes
 app.use('/api/*', (req, res) => {
     console.log(`⚠️ 404 Not Found: ${req.method} ${req.originalUrl}`);

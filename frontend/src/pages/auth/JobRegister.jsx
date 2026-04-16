@@ -6,6 +6,7 @@ import {
     MapPin, Briefcase, FileText, Camera, ChevronDown, AlertCircle, Eye, EyeOff, Calendar, X
 } from 'lucide-react';
 import { authAPI } from '../../services/api';
+import ImageCropper from '../../components/ui/ImageCropper';
 
 const SKILLS = [
     'Trading', 'Taxation', 'Freelancing', 'Video Editing', 'E-Commerce',
@@ -72,6 +73,7 @@ const JobRegister = () => {
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [photoFile, setPhotoFile] = useState(null);
     const [photoPreview, setPhotoPreview] = useState(null);
+    const [cropperSrc, setCropperSrc] = useState(null);
 
     const [formData, setFormData] = useState({
         fullName: '',
@@ -144,17 +146,23 @@ const JobRegister = () => {
 
     const handlePhotoChange = (e) => {
         const file = e.target.files[0];
-        if (file) {
-            if (file.size > 2 * 1024 * 1024) {
-                setErrors(prev => ({ ...prev, photo: 'Image size should be less than 2MB' }));
-                return;
-            }
-            setPhotoFile(file);
-            const reader = new FileReader();
-            reader.onloadend = () => setPhotoPreview(reader.result);
-            reader.readAsDataURL(file);
-            if (errors.photo) setErrors(prev => ({ ...prev, photo: '' }));
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onloadend = () => setCropperSrc(reader.result);
+        reader.readAsDataURL(file);
+        e.target.value = '';
+    };
+
+    const handleCropDone = (croppedFile, croppedDataUrl) => {
+        if (croppedFile.size > 2 * 1024 * 1024) {
+            setErrors(prev => ({ ...prev, photo: 'Cropped image is still over 2MB. Try zooming out.' }));
+            setCropperSrc(null);
+            return;
         }
+        setPhotoFile(croppedFile);
+        setPhotoPreview(croppedDataUrl);
+        setCropperSrc(null);
+        if (errors.photo) setErrors(prev => ({ ...prev, photo: '' }));
     };
 
     const validateForm = () => {
@@ -224,6 +232,14 @@ const JobRegister = () => {
 
     return (
         <div className="min-h-screen flex">
+            {cropperSrc && (
+                <ImageCropper
+                    imageSrc={cropperSrc}
+                    onCrop={handleCropDone}
+                    onCancel={() => setCropperSrc(null)}
+                    accentColor="purple"
+                />
+            )}
             {/* Left Side - Decorative - Fixed */}
             <motion.div
                 initial={{ opacity: 0, x: -50 }}

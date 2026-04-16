@@ -28,6 +28,7 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import CourseManagement from './pages/admin/CourseManagement';
 import FeeVerification from './pages/admin/FeeVerification';
 import PaidTasksManagement from './pages/admin/PaidTasksManagement';
+import AdminDailyTasks from './pages/admin/AdminDailyTasks';
 import CertificateManagement from './pages/admin/CertificateManagement';
 import TeachersManagement from './pages/admin/TeachersManagement';
 import StudentsManagement from './pages/admin/StudentsManagement';
@@ -35,6 +36,7 @@ import InternsManagement from './pages/admin/InternsManagement';
 import JobsManagement from './pages/admin/JobsManagement';
 import NotificationManagement from './pages/admin/NotificationManagement';
 import StudentDirectory from './pages/admin/StudentDirectory';
+import TeacherDirectory from './pages/admin/TeacherDirectory';
 
 // Teacher Pages (handles both Students and Interns)
 import TeacherProfile from './pages/teacher/TeacherProfile';
@@ -129,6 +131,7 @@ const AppRoutes = () => {
         <Route path="dashboard" element={<AdminDashboard />} />
         <Route path="courses" element={<CourseManagement />} />
         <Route path="paid-tasks" element={<PaidTasksManagement />} />
+        <Route path="daily-tasks" element={<AdminDailyTasks />} />
         <Route path="certificates" element={<CertificateManagement />} />
         <Route path="students" element={<StudentsManagement />} />
         <Route path="teachers" element={<TeachersManagement />} />
@@ -137,6 +140,7 @@ const AppRoutes = () => {
         <Route path="fees" element={<FeeVerification />} />
         <Route path="notifications" element={<NotificationManagement />} />
         <Route path="directory" element={<StudentDirectory />} />
+        <Route path="teacher-directory" element={<TeacherDirectory />} />
         <Route path="settings" element={<div className="text-gray-500">Settings - Coming Soon</div>} />
       </Route>
 

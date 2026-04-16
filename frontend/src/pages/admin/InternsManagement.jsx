@@ -18,7 +18,9 @@ const InternsManagement = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [filterStatus, setFilterStatus] = useState('all');
     const [confirmModal, setConfirmModal] = useState({ open: false, action: null, user: null });
-    const [viewFeeModal, setViewFeeModal] = useState({ open: false, url: null });
+    const [viewFeeModal, setViewFeeModal] = useState({ open: false, userId: null, internName: '' });
+    const [feeRecords, setFeeRecords] = useState([]);
+    const [feeLoading, setFeeLoading] = useState(false);
     const [editModal, setEditModal] = useState({ open: false, user: null });
     const [editForm, setEditForm] = useState({});
     const [isProcessing, setIsProcessing] = useState(false);
@@ -757,9 +759,21 @@ const InternsManagement = () => {
                                             </button>
                                         )}
                                         <button
-                                            onClick={() => setViewFeeModal({ open: true, url: intern.feeScreenshot })}
+                                            onClick={async () => {
+                                                setViewFeeModal({ open: true, userId: intern._id, internName: intern.name });
+                                                setFeeRecords([]);
+                                                setFeeLoading(true);
+                                                try {
+                                                    const res = await feeAPI.getUserFees(intern._id);
+                                                    setFeeRecords(res.data.data || []);
+                                                } catch (e) {
+                                                    console.error('Error loading fee records:', e);
+                                                } finally {
+                                                    setFeeLoading(false);
+                                                }
+                                            }}
                                             className="p-2 bg-purple-50 hover:bg-purple-100 text-purple-600 rounded-xl"
-                                            title="View Registration Fee"
+                                            title="View Submitted Challans"
                                         >
                                             <Receipt className="w-5 h-5" />
                                         </button>
@@ -989,32 +1003,68 @@ const InternsManagement = () => {
 
             <Modal
                 isOpen={viewFeeModal.open}
-                onClose={() => setViewFeeModal({ open: false, url: null })}
-                title="Registration Fee Screenshot"
+                onClose={() => setViewFeeModal({ open: false, userId: null, internName: '' })}
+                title={`Fee Challans — ${viewFeeModal.internName}`}
                 size="lg"
             >
-                <div className="flex items-center justify-center bg-gray-50 rounded-xl p-4">
-                    {viewFeeModal.url ? (
-                        <img
-                            src={viewFeeModal.url}
-                            alt="Fee Screenshot"
-                            className="max-w-full max-h-[70vh] rounded-lg shadow-sm"
-                        />
-                    ) : (
-                        <div className="text-center py-8">
-                            <Receipt className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                            <p className="text-gray-500 font-medium">No Fee Screenshot Uploaded</p>
-                            <p className="text-sm text-gray-400">This user has not provided a registration fee screenshot.</p>
+                <div className="space-y-4">
+                    {feeLoading ? (
+                        <div className="flex items-center justify-center py-12">
+                            <Loader2 className="w-7 h-7 animate-spin text-blue-600" />
+                            <span className="ml-2 text-gray-500">Loading fee records...</span>
                         </div>
-                    )}
-                </div>
-                <div className="mt-4 flex justify-end">
-                    <button
-                        onClick={() => setViewFeeModal({ open: false, url: null })}
-                        className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium"
-                    >
-                        Close
-                    </button>
+                    ) : (() => {
+                        const allInstallments = feeRecords.flatMap(fee =>
+                            (fee.installments || []).filter(i => i.receiptUrl).map(i => ({ ...i, course: fee.course, feeId: fee._id }))
+                        );
+                        return allInstallments.length === 0 ? (
+                            <div className="text-center py-12 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+                                <Receipt className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                                <p className="text-gray-500 font-medium">No Challans Submitted</p>
+                                <p className="text-sm text-gray-400 mt-1">This intern has not uploaded any fee payment proofs yet.</p>
+                            </div>
+                        ) : (
+                            <div className="space-y-5 max-h-[65vh] overflow-y-auto pr-1">
+                                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">{allInstallments.length} Receipt{allInstallments.length !== 1 ? 's' : ''} Found</p>
+                                {allInstallments.map((inst, idx) => (
+                                    <div key={inst._id || idx} className="bg-gray-50 rounded-2xl border border-gray-100 overflow-hidden">
+                                        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-white">
+                                            <div>
+                                                <p className="text-xs font-black text-gray-700 uppercase tracking-tight">{inst.course?.title || 'Unknown Course'}</p>
+                                                <div className="flex items-center gap-3 mt-0.5 text-[11px] text-gray-400 font-medium">
+                                                    {inst.slipId && <span>Slip ID: {inst.slipId}</span>}
+                                                    {inst.paidAt && <span>• {new Date(inst.paidAt).toLocaleDateString()}</span>}
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-base font-black text-gray-900">Rs {(inst.amount || 0).toLocaleString()}</span>
+                                                <span className={`text-[10px] font-black px-2 py-0.5 rounded-lg uppercase tracking-widest ${
+                                                    inst.status === 'verified' ? 'bg-emerald-100 text-emerald-700' :
+                                                    inst.status === 'rejected' ? 'bg-red-100 text-red-600' :
+                                                    'bg-amber-100 text-amber-700'
+                                                }`}>{inst.status}</span>
+                                            </div>
+                                        </div>
+                                        <div className="p-3">
+                                            <img
+                                                src={inst.receiptUrl}
+                                                alt={`Receipt ${idx + 1}`}
+                                                className="w-full rounded-xl border border-gray-200 shadow-sm object-contain max-h-80"
+                                            />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        );
+                    })()}
+                    <div className="flex justify-end pt-2">
+                        <button
+                            onClick={() => setViewFeeModal({ open: false, userId: null, internName: '' })}
+                            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium"
+                        >
+                            Close
+                        </button>
+                    </div>
                 </div>
             </Modal>
 

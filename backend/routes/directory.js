@@ -6,15 +6,17 @@ const Enrollment = require('../models/Enrollment');
 const Certificate = require('../models/Certificate');
 
 // @route   GET /api/directory
-// @desc    Get all students/interns with enrollment data for admin directory
+// @desc    Get all students/interns or teachers with enrollment data for admin directory
 // @access  Private (Admin only)
 router.get('/', protect, authorize('admin'), async (req, res) => {
     try {
-        const { filter } = req.query; // all, active, certified, not-registered
+        const { filter, type } = req.query; // filter: all, active, certified, not-registered. type: teachers or undefined
 
-        // Get all students and interns
+        // Get users based on type
+        const roleFilter = type === 'teachers' ? ['teacher'] : ['student', 'intern'];
+        
         const users = await User.find({ 
-            role: { $in: ['student', 'intern'] },
+            role: { $in: roleFilter },
             isVerified: true 
         }).select('name email phone cnic rollNo role photo createdAt').lean();
 

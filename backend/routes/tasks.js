@@ -37,11 +37,12 @@ router.get('/', async (req, res) => {
 // @route   POST /api/tasks
 // @desc    Create new task
 // @access  Private (Admin)
-router.post('/', protect, authorize('admin'), uploadSubmission.single('image'), async (req, res) => {
+router.post('/', protect, authorize('admin'), uploadSubmission.array('images', 10), async (req, res) => {
     try {
         const bodyData = { ...req.body };
-        if (req.file) {
-            bodyData.image = req.file.path;
+        if (req.files && req.files.length > 0) {
+            bodyData.images = req.files.map(file => file.path);
+            bodyData.image = bodyData.images[0]; // backward compatibility
         }
 
         const task = await PaidTask.create({
@@ -58,7 +59,7 @@ router.post('/', protect, authorize('admin'), uploadSubmission.single('image'), 
 // @route   PUT /api/tasks/:id
 // @desc    Update task details
 // @access  Private (Admin)
-router.put('/:id', protect, authorize('admin'), uploadSubmission.single('image'), async (req, res) => {
+router.put('/:id', protect, authorize('admin'), uploadSubmission.array('images', 10), async (req, res) => {
     try {
         let task = await PaidTask.findById(req.params.id);
 
@@ -67,8 +68,22 @@ router.put('/:id', protect, authorize('admin'), uploadSubmission.single('image')
         }
 
         const bodyData = { ...req.body };
-        if (req.file) {
-            bodyData.image = req.file.path;
+        // If old files are kept, client sends them as `oldImages` array or we figure out logic.
+        // But for append logic, let's keep it simple: new files replace entirely?
+        // Usually frontend sends new files + remaining old URLs inside bodyData.images if they managed it.
+        // We'll trust frontend if it sends an existing array, and concat new ones.
+        let existingImages = [];
+        if (bodyData.existingImages) {
+             existingImages = Array.isArray(bodyData.existingImages) ? bodyData.existingImages : [bodyData.existingImages];
+        }
+        
+        if (req.files && req.files.length > 0) {
+            const newImages = req.files.map(file => file.path);
+            bodyData.images = [...existingImages, ...newImages];
+            bodyData.image = bodyData.images[0] || '';
+        } else if (existingImages.length > 0) {
+            bodyData.images = existingImages;
+            bodyData.image = bodyData.images[0] || '';
         }
 
         task = await PaidTask.findByIdAndUpdate(req.params.id, bodyData, {
@@ -164,6 +179,26 @@ router.put('/:id/assign', protect, authorize('admin'), async (req, res) => {
         }
 
         await task.save();
+
+        // Notify the assigned user
+        const UserNotificationModel = require('../models/UserNotification');
+        await UserNotificationModel.create({
+            user: userId,
+            title: 'Task Assigned',
+            message: `You have been assigned to the task: "${task.title}". Please submit your work before the deadline.`,
+            type: 'task_assigned',
+            relatedTask: task._id
+        });
+
+        // Send real-time notification to the user
+        const io = req.app.get('io');
+        if (io) {
+            io.to(userId.toString()).emit('new_browser_notification', {
+                title: 'Task Assigned',
+                message: `You have been assigned to the task: "${task.title}".`,
+                url: '/job/tasks'
+            });
+        }
 
         res.json({ success: true, task });
     } catch (error) {
@@ -292,6 +327,31 @@ router.put('/:id/admin-complete', protect, authorize('admin'), async (req, res) 
                 { _id: { $in: task.assignedTo } },
                 { $inc: { completedTasks: 1 } }
             );
+
+            // Notify users that payment is completed
+            const UserNotificationModel = require('../models/UserNotification');
+            const io = req.app.get('io');
+            
+            const notificationPromises = task.assignedTo.map(userId => 
+                UserNotificationModel.create({
+                    user: userId,
+                    title: 'Payment Received!',
+                    message: `Payment for "${task.title}" has been completed! Please submit your feedback.`,
+                    type: 'task_paid',
+                    relatedTask: task._id
+                })
+            );
+            await Promise.all(notificationPromises);
+
+            if (io) {
+                task.assignedTo.forEach(userId => {
+                    io.to(userId.toString()).emit('new_browser_notification', {
+                        title: 'Payment Received!',
+                        message: `Payment for "${task.title}" has been completed! Please submit your feedback.`,
+                        url: '/job/tasks'
+                    });
+                });
+            }
         }
 
         res.json({ success: true, task });
@@ -337,6 +397,36 @@ router.post('/:id/feedback', protect, authorize('job'), async (req, res) => {
         });
 
         await task.save();
+
+        // Create notification for all admin users
+        const UserModel = require('../models/User');
+        const UserNotificationModel = require('../models/UserNotification');
+        const admins = await UserModel.find({ role: 'admin' });
+        
+        const notificationPromises = admins.map(admin =>
+            UserNotificationModel.create({
+                user: admin._id,
+                title: 'New Task Feedback',
+                message: `${req.user.name} submitted feedback (Rating: ${rating || 5}) for task "${task.title}".`,
+                type: 'task_completed',
+                relatedTask: task._id,
+                relatedUser: req.user.id
+            })
+        );
+        await Promise.all(notificationPromises);
+
+        // Send real-time notification to admins
+        const io = req.app.get('io');
+        if (io) {
+            admins.forEach(admin => {
+                const adminRoom = admin._id.toString();
+                io.to(adminRoom).emit('new_browser_notification', {
+                    title: 'New Task Feedback',
+                    message: `${req.user.name} submitted feedback for task "${task.title}".`,
+                    url: '/admin/paid-tasks'
+                });
+            });
+        }
 
         res.json({ success: true, message: 'Feedback submitted successfully' });
     } catch (error) {
@@ -437,6 +527,59 @@ router.delete('/:id', protect, async (req, res) => {
         await PaidTask.findByIdAndDelete(req.params.id);
 
         res.json({ success: true, message: 'Task permanently deleted' });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// @route   PUT /api/tasks/:id/feedback/:feedbackId
+// @desc    Edit a feedback entry (Admin only)
+// @access  Private (Admin)
+router.put('/:id/feedback/:feedbackId', protect, authorize('admin'), async (req, res) => {
+    try {
+        const { text, rating } = req.body;
+        const task = await PaidTask.findById(req.params.id);
+
+        if (!task) {
+            return res.status(404).json({ success: false, message: 'Task not found' });
+        }
+
+        const feedbackEntry = task.feedback.id(req.params.feedbackId);
+        if (!feedbackEntry) {
+            return res.status(404).json({ success: false, message: 'Feedback entry not found' });
+        }
+
+        if (text !== undefined) feedbackEntry.text = text;
+        if (rating !== undefined) feedbackEntry.rating = rating;
+
+        await task.save();
+
+        res.json({ success: true, message: 'Feedback updated successfully', data: task });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// @route   DELETE /api/tasks/:id/feedback/:feedbackId
+// @desc    Delete a feedback entry (Admin only)
+// @access  Private (Admin)
+router.delete('/:id/feedback/:feedbackId', protect, authorize('admin'), async (req, res) => {
+    try {
+        const task = await PaidTask.findById(req.params.id);
+
+        if (!task) {
+            return res.status(404).json({ success: false, message: 'Task not found' });
+        }
+
+        const feedbackEntry = task.feedback.id(req.params.feedbackId);
+        if (!feedbackEntry) {
+            return res.status(404).json({ success: false, message: 'Feedback entry not found' });
+        }
+
+        feedbackEntry.deleteOne();
+        await task.save();
+
+        res.json({ success: true, message: 'Feedback deleted successfully' });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }

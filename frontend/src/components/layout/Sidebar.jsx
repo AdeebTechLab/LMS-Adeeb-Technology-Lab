@@ -22,9 +22,10 @@ import {
     Award,
     Bell,
     FolderOpen,
+    Loader2,
 } from 'lucide-react';
-import { logout } from '../../features/auth/authSlice';
-import { userAPI } from '../../services/api';
+import { logout, loginSuccess } from '../../features/auth/authSlice';
+import { userAPI, authAPI } from '../../services/api';
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
     const navigate = useNavigate();
@@ -33,6 +34,9 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     const [pendingCount, setPendingCount] = useState(0);
     const [adminPendingCounts, setAdminPendingCounts] = useState({});
     const [teacherSubmissionCount, setTeacherSubmissionCount] = useState(0);
+    const [availableRoles, setAvailableRoles] = useState([]);
+    const [isSwitchingRole, setIsSwitchingRole] = useState(false);
+    const [showRoleMenu, setShowRoleMenu] = useState(false);
 
     useEffect(() => {
         if (role === 'student' || role === 'intern') {
@@ -49,6 +53,46 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             return () => clearInterval(interval);
         }
     }, [role, user]);
+
+    useEffect(() => {
+        const fetchRoles = async () => {
+            try {
+                const res = await authAPI.getAvailableRoles();
+                if (res.data.success) {
+                    setAvailableRoles(res.data.roles);
+                }
+            } catch (err) {
+                console.error('Error fetching available roles:', err);
+            }
+        };
+        if (user) {
+            fetchRoles();
+        }
+    }, [user, role]);
+
+    const handleSwitchRole = async (targetRole) => {
+        if (targetRole === role) return;
+        setIsSwitchingRole(true);
+        try {
+            const res = await authAPI.switchRole(targetRole);
+            if (res.data.success) {
+                const rememberMe = localStorage.getItem('rememberMe') === 'true';
+                dispatch(loginSuccess({
+                    user: res.data.user,
+                    token: res.data.token,
+                    rememberMe
+                }));
+                navigate('/');
+                setShowRoleMenu(false);
+                setIsOpen(false);
+            }
+        } catch (err) {
+            console.error('Role switch error:', err);
+            alert(err.response?.data?.message || 'Failed to switch roles.');
+        } finally {
+            setIsSwitchingRole(false);
+        }
+    };
 
     const fetchTeacherSubmissionCount = async () => {
         try {
@@ -141,6 +185,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 { id: 'directory', label: 'Directory', icon: FolderOpen, path: '/admin/directory' },
                 { id: 'courses', label: 'Courses', icon: BookOpen, path: '/admin/courses' },
                 { id: 'paid-tasks', label: 'Paid Tasks', icon: Briefcase, path: '/admin/paid-tasks' },
+                { id: 'daily-tasks', label: 'Daily Tasks', icon: ClipboardList, path: '/admin/daily-tasks' },
                 { id: 'certificates', label: 'Certificates', icon: Award, path: '/admin/certificates' },
                 { id: 'students', label: 'Students', icon: Users, path: '/admin/students', badge: adminPendingCounts.student, badgeAlt: adminPendingCounts.studentNotRegistered },
                 { id: 'teachers', label: 'Teachers', icon: GraduationCap, path: '/admin/teachers', badge: adminPendingCounts.teacher },
@@ -263,22 +308,68 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                     </div>
                 </div>
 
-                {/* User Info */}
-                <div className="p-4 mx-4 mt-4 bg-white/5 rounded-xl border border-white/5 shadow-inner">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#394251] to-[#222d38] flex items-center justify-center text-white font-semibold border border-white/10">
-                            {user?.name?.charAt(0) || 'U'}
+                {/* User Info with Role Switcher */}
+                <div className="relative mx-4 mt-4">
+                    <div 
+                        className={`p-4 bg-white/5 rounded-xl border border-white/5 shadow-inner transition-colors ${availableRoles.length > 1 ? 'cursor-pointer hover:bg-white/10' : ''}`}
+                        onClick={() => {
+                            if (availableRoles.length > 1) setShowRoleMenu(!showRoleMenu);
+                        }}
+                    >
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#394251] to-[#222d38] flex items-center justify-center text-white font-semibold border border-white/10 shrink-0 overflow-hidden">
+                                {user?.photo ? (
+                                    <img src={user.photo} alt={user.name} className="w-full h-full object-cover" />
+                                ) : (
+                                    user?.name?.charAt(0) || 'U'
+                                )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <p className="text-white font-medium text-sm truncate">
+                                    {user?.name || 'User'}
+                                </p>
+                                <p className="text-[#ff8e01] text-[10px] font-black uppercase tracking-widest truncate mt-0.5">
+                                    {getRoleDisplayName()}
+                                </p>
+                            </div>
+                            {availableRoles.length > 1 && (
+                                <ChevronDown className={`w-4 h-4 text-white/30 transition-transform ${showRoleMenu ? 'rotate-180' : ''}`} />
+                            )}
                         </div>
-                        <div className="flex-1 min-w-0">
-                            <p className="text-white font-medium text-sm truncate">
-                                {user?.name || 'User'}
-                            </p>
-                            <p className="text-white/40 text-xs truncate">
-                                {user?.email || 'user@example.com'}
-                            </p>
-                        </div>
-                        <ChevronDown className="w-4 h-4 text-white/30" />
                     </div>
+
+                    <AnimatePresence>
+                        {showRoleMenu && availableRoles.length > 1 && (
+                            <motion.div
+                                initial={{ opacity: 0, y: -10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                                className="absolute top-full left-0 right-0 mt-2 bg-[#222d38] border border-white/10 rounded-xl overflow-hidden shadow-xl z-50 py-2"
+                            >
+                                <div className="px-4 py-2 border-b border-white/10 mb-2 flex items-center justify-between">
+                                    <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">Switch Profile</span>
+                                </div>
+                                {availableRoles.map(r => (
+                                    <button
+                                        key={r}
+                                        disabled={isSwitchingRole}
+                                        onClick={() => handleSwitchRole(r)}
+                                        className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center justify-between ${
+                                            r === role 
+                                                ? 'bg-[#ff8e01]/10 text-[#ff8e01] font-bold border-l-2 border-[#ff8e01]' 
+                                                : 'text-white/70 hover:bg-white/5 hover:text-white font-medium border-l-2 border-transparent'
+                                        }`}
+                                    >
+                                        <div className="flex items-center gap-2">
+                                            <span className="capitalize">{r === 'job' ? 'Freelancer' : r} Dashboard</span>
+                                            {isSwitchingRole && r === role && <Loader2 className="w-3 h-3 animate-spin text-[#ff8e01]" />}
+                                        </div>
+                                        {r === role && <span className="w-1.5 h-1.5 rounded-full bg-[#ff8e01]"></span>}
+                                    </button>
+                                ))}
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </div>
 
                 {/* Navigation */}

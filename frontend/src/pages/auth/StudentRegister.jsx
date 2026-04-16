@@ -6,6 +6,7 @@ import {
     MapPin, BookOpen, Users, Camera, Receipt, ChevronDown, GraduationCap, Eye, EyeOff, X
 } from 'lucide-react';
 import { authAPI } from '../../services/api';
+import ImageCropper from '../../components/ui/ImageCropper';
 
 const COURSES = [
     'Trading', 'Taxation', 'Freelancing', 'Video Editing', 'E-Commerce',
@@ -70,6 +71,7 @@ const StudentRegister = () => {
     const [errors, setErrors] = useState({});
     const [photoFile, setPhotoFile] = useState(null);
     const [photoPreview, setPhotoPreview] = useState(null);
+    const [cropperSrc, setCropperSrc] = useState(null);
     const [apiError, setApiError] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -139,17 +141,25 @@ const StudentRegister = () => {
 
     const handlePhotoChange = (e) => {
         const file = e.target.files[0];
-        if (file) {
-            if (file.size > 2 * 1024 * 1024) {
-                setErrors(prev => ({ ...prev, photo: 'Image size should be less than 2MB' }));
-                return;
-            }
-            setPhotoFile(file);
-            const reader = new FileReader();
-            reader.onloadend = () => setPhotoPreview(reader.result);
-            reader.readAsDataURL(file);
-            if (errors.photo) setErrors(prev => ({ ...prev, photo: '' }));
+        if (!file) return;
+        // Open cropper — size limit checked after crop
+        const reader = new FileReader();
+        reader.onloadend = () => setCropperSrc(reader.result);
+        reader.readAsDataURL(file);
+        // Reset so same file can be re-selected
+        e.target.value = '';
+    };
+
+    const handleCropDone = (croppedFile, croppedDataUrl) => {
+        if (croppedFile.size > 2 * 1024 * 1024) {
+            setErrors(prev => ({ ...prev, photo: 'Cropped image is still over 2MB. Try zooming out.' }));
+            setCropperSrc(null);
+            return;
         }
+        setPhotoFile(croppedFile);
+        setPhotoPreview(croppedDataUrl);
+        setCropperSrc(null);
+        if (errors.photo) setErrors(prev => ({ ...prev, photo: '' }));
     };
 
     const formatCNIC = (value) => {
@@ -250,6 +260,14 @@ const StudentRegister = () => {
 
     return (
         <div className="h-screen flex overflow-hidden">
+            {/* Image Cropper Modal */}
+            {cropperSrc && (
+                <ImageCropper
+                    imageSrc={cropperSrc}
+                    onCrop={handleCropDone}
+                    onCancel={() => setCropperSrc(null)}
+                />
+            )}
             {/* Left Side - Decorative - Fixed */}
             <motion.div
                 initial={{ opacity: 0, x: -50 }}

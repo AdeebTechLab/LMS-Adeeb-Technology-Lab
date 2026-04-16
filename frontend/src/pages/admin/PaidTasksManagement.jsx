@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
-    Search, Calendar, CheckCircle, Loader2, Eye, Users, Briefcase, AlertCircle, Link, Trash2, PenSquare
+    Search, Calendar, CheckCircle, Loader2, Eye, Users, Briefcase, AlertCircle, Link, Trash2, PenSquare, MessageSquare, Star, X, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
@@ -22,6 +22,10 @@ const PaidTasksManagement = () => {
     const [viewMode, setViewMode] = useState(null);
     const [viewingProfile, setViewingProfile] = useState(null);
     const [tasks, setTasks] = useState([]);
+    const [completedShowcase, setCompletedShowcase] = useState([]);
+    const [editingFeedback, setEditingFeedback] = useState(null);
+    const [editFeedbackData, setEditFeedbackData] = useState({ text: '', rating: 5 });
+    const [isSavingFeedback, setIsSavingFeedback] = useState(false);
     const [error, setError] = useState('');
 
     const [formData, setFormData] = useState({
@@ -32,10 +36,10 @@ const PaidTasksManagement = () => {
         skills: '',
         category: 'web',
         type: 'task',
-        image: null,
+        images: [],
         isLifetime: false,
     });
-    const [imagePreview, setImagePreview] = useState(null);
+    const [imagePreviews, setImagePreviews] = useState([]);
 
     useEffect(() => {
         const title = (formData.title || '').toLowerCase();
@@ -96,8 +100,12 @@ const PaidTasksManagement = () => {
         setIsFetching(true);
         setError('');
         try {
-            const response = await taskAPI.getAll();
-            setTasks(response.data.data || []);
+            const [allRes, showcaseRes] = await Promise.all([
+                taskAPI.getAll(),
+                taskAPI.getCompletedShowcase()
+            ]);
+            setTasks(allRes.data.data || []);
+            setCompletedShowcase(showcaseRes.data.data || []);
         } catch (err) {
             console.error('Error fetching tasks:', err);
             setError('Failed to load tasks. Please try again.');
@@ -127,7 +135,42 @@ const PaidTasksManagement = () => {
             case 'assigned': return assignedTasks;
             case 'completed': return completedTasks;
             case 'expired': return expiredTasks;
+            case 'showcase': return completedShowcase;
             default: return tasks;
+        }
+    };
+
+    const handleEditFeedback = (task, feedback) => {
+        setEditingFeedback({ taskId: task._id, feedbackId: feedback._id });
+        setEditFeedbackData({ text: feedback.text, rating: feedback.rating });
+    };
+
+    const handleSaveFeedback = async () => {
+        if (!editingFeedback || !editFeedbackData.text.trim()) return;
+        setIsSavingFeedback(true);
+        try {
+            await taskAPI.editFeedback(editingFeedback.taskId, editingFeedback.feedbackId, editFeedbackData);
+            setEditingFeedback(null);
+            setEditFeedbackData({ text: '', rating: 5 });
+            fetchTasks();
+            alert('Feedback updated successfully!');
+        } catch (err) {
+            console.error('Error editing feedback:', err);
+            alert(err.response?.data?.message || 'Failed to update feedback');
+        } finally {
+            setIsSavingFeedback(false);
+        }
+    };
+
+    const handleDeleteFeedback = async (taskId, feedbackId) => {
+        if (!window.confirm('Are you sure you want to delete this feedback? This action cannot be undone.')) return;
+        try {
+            await taskAPI.deleteFeedback(taskId, feedbackId);
+            fetchTasks();
+            alert('Feedback deleted successfully!');
+        } catch (err) {
+            console.error('Error deleting feedback:', err);
+            alert(err.response?.data?.message || 'Failed to delete feedback');
         }
     };
 
@@ -160,8 +203,15 @@ const PaidTasksManagement = () => {
             submitData.append('category', formData.category);
             submitData.append('type', formData.type);
             submitData.append('isLifetime', formData.isLifetime);
-            if (formData.image instanceof File) {
-                submitData.append('image', formData.image);
+            
+            if (formData.images && formData.images.length > 0) {
+                formData.images.forEach(img => {
+                    if (img instanceof File) {
+                        submitData.append('images', img);
+                    } else if (typeof img === 'string') {
+                        submitData.append('existingImages', img);
+                    }
+                });
             }
 
             if (editingTask) {
@@ -171,8 +221,8 @@ const PaidTasksManagement = () => {
             }
             setIsModalOpen(false);
             setEditingTask(null);
-            setFormData({ title: '', description: '', budget: '', deadline: '', skills: '', category: 'web', type: 'task', image: null, isLifetime: false });
-            setImagePreview(null);
+            setFormData({ title: '', description: '', budget: '', deadline: '', skills: '', category: 'web', type: 'task', images: [], isLifetime: false });
+            setImagePreviews([]);
             fetchTasks(); // Refresh list
         } catch (err) {
             console.error('Error saving task:', err);
@@ -192,10 +242,10 @@ const PaidTasksManagement = () => {
             skills: task.skills,
             category: task.category || 'web',
             type: task.type || 'task',
-            image: null,
+            images: task.images && task.images.length > 0 ? task.images : (task.image ? [task.image] : []),
             isLifetime: task.isLifetime || false,
         });
-        setImagePreview(task.image || null);
+        setImagePreviews(task.images && task.images.length > 0 ? task.images : (task.image ? [task.image] : []));
         setIsModalOpen(true);
     };
 
@@ -315,8 +365,8 @@ const PaidTasksManagement = () => {
                     <button
                         onClick={() => {
                             setEditingTask(null);
-                            setFormData({ title: '', description: '', budget: '', deadline: '', skills: '', category: 'web', type: 'task', image: null, isLifetime: false });
-                            setImagePreview(null);
+                            setFormData({ title: '', description: '', budget: '', deadline: '', skills: '', category: 'web', type: 'task', images: [], isLifetime: false });
+                            setImagePreviews([]);
                             setIsModalOpen(true);
                         }}
                         className="flex items-center justify-center gap-2 px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl transition-all duration-300 font-medium"
@@ -327,8 +377,8 @@ const PaidTasksManagement = () => {
                     <button
                         onClick={() => {
                             setEditingTask(null);
-                            setFormData({ title: '', description: '', budget: '', deadline: '', skills: '', category: 'E-Commerce', type: 'product', image: null, isLifetime: false });
-                            setImagePreview(null);
+                            setFormData({ title: '', description: '', budget: '', deadline: '', skills: '', category: 'E-Commerce', type: 'product', images: [], isLifetime: false });
+                            setImagePreviews([]);
                             setIsModalOpen(true);
                         }}
                         className="flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl transition-all duration-300 font-medium"
@@ -379,6 +429,13 @@ const PaidTasksManagement = () => {
                 >
                     Expired ({expiredTasks.length})
                 </button>
+                <button
+                    onClick={() => setActiveTab('showcase')}
+                    className={`px-5 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2 ${activeTab === 'showcase' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-600'}`}
+                >
+                    <MessageSquare className="w-4 h-4" />
+                    Work Feedback ({completedShowcase.filter(t => t.feedback && t.feedback.length > 0).length})
+                </button>
             </div>
 
             {/* Search */}
@@ -396,7 +453,7 @@ const PaidTasksManagement = () => {
             </div>
 
             {/* No Tasks */}
-            {filteredTasks.length === 0 && (
+            {filteredTasks.length === 0 && activeTab !== 'showcase' && (
                 <div className="text-center py-12 bg-white rounded-2xl border border-gray-100">
                     <Briefcase className="w-12 h-12 text-gray-300 mx-auto mb-4" />
                     <h3 className="text-lg font-medium text-gray-600">No tasks found</h3>
@@ -404,8 +461,104 @@ const PaidTasksManagement = () => {
                 </div>
             )}
 
+            {/* Work Feedback Showcase Tab */}
+            {activeTab === 'showcase' && (
+                <div className="space-y-6">
+                    {completedShowcase.filter(t => t.feedback && t.feedback.length > 0).length === 0 ? (
+                        <div className="text-center py-12 bg-white rounded-2xl border border-gray-100">
+                            <MessageSquare className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                            <h3 className="text-lg font-medium text-gray-600">No feedback yet</h3>
+                            <p className="text-gray-400">Feedback from freelancers will appear here after they complete tasks</p>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {completedShowcase
+                                .filter(t => t.feedback && t.feedback.length > 0)
+                                .map((task, index) => (
+                                    <motion.div
+                                        key={task._id}
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: index * 0.1 }}
+                                        className="bg-white rounded-2xl p-6 border border-gray-100 hover:shadow-lg transition-all"
+                                    >
+                                        <div className="flex items-start justify-between mb-4">
+                                            {(() => {
+                                                const IconComponent = getCategoryIcon(task.category);
+                                                return (
+                                                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${getCategoryBg(task.category)}`}>
+                                                        <IconComponent className={`w-6 h-6 ${getCategoryColor(task.category)}`} />
+                                                    </div>
+                                                );
+                                            })()}
+                                            <Badge variant="success"><CheckCircle className="w-3 h-3 mr-1" />Completed</Badge>
+                                        </div>
+
+                                        <h3 className="font-bold text-gray-900 mb-2">{task.title}</h3>
+                                        <p className="text-sm text-gray-500 mb-4 line-clamp-2">{task.description}</p>
+
+                                        <div className="flex flex-wrap gap-1 mb-4">
+                                            {(task.skills || '').split(',').map((skill, i) => (
+                                                <span key={i} className="px-2 py-1 bg-purple-50 text-purple-600 text-xs rounded-md">
+                                                    {skill.trim()}
+                                                </span>
+                                            ))}
+                                        </div>
+
+                                        {/* Completed By */}
+                                        <div className="mb-4 pt-3 border-t border-gray-50 flex items-center justify-between">
+                                            <span className="text-xs text-gray-400 font-medium">Completed By:</span>
+                                            <div className="flex -space-x-2">
+                                                {(task.assignedTo || []).map((u, i) => (
+                                                    <div key={i} title={u.name} className="w-7 h-7 rounded-full border-2 border-white bg-purple-100 flex items-center justify-center text-[10px] font-bold text-purple-600">
+                                                        {u.photo ? <img src={u.photo} alt="" className="w-full h-full rounded-full object-cover" /> : u.name?.charAt(0)}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        {/* Feedback Entries */}
+                                        <div className="space-y-3">
+                                            <p className="text-xs font-bold text-indigo-700 uppercase tracking-widest">Jobber Feedback</p>
+                                            {task.feedback.map((f) => (
+                                                <div key={f._id} className="bg-indigo-50/50 p-4 rounded-xl border border-indigo-100">
+                                                    <div className="flex items-center justify-between mb-2">
+                                                        <span className="text-sm font-semibold text-indigo-900">{f.user?.name || 'Anonymous'}</span>
+                                                        <div className="flex text-amber-500 text-xs">
+                                                            {[...Array(5)].map((_, i) => (
+                                                                <span key={i}>{i < f.rating ? '★' : '☆'}</span>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                    <p className="text-sm text-indigo-800 italic mb-3">"{f.text}"</p>
+                                                    <div className="flex items-center gap-2 pt-2 border-t border-indigo-100">
+                                                        <button
+                                                            onClick={() => handleEditFeedback(task, f)}
+                                                            className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-indigo-600 bg-white hover:bg-indigo-100 rounded-lg border border-indigo-200 transition-all"
+                                                        >
+                                                            <PenSquare className="w-3 h-3" />
+                                                            Edit
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDeleteFeedback(task._id, f._id)}
+                                                            className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-red-600 bg-white hover:bg-red-50 rounded-lg border border-red-200 transition-all"
+                                                        >
+                                                            <Trash2 className="w-3 h-3" />
+                                                            Delete
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </motion.div>
+                                ))}
+                        </div>
+                    )}
+                </div>
+            )}
+
             {/* Tasks Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {activeTab !== 'showcase' && <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredTasks.map((task, index) => {
                     const statusConfig = getStatusConfig(task.status);
                     const unassignedApplicantsCount = task.applicants?.filter(a => !isAssignedTo(task, a.user?._id)).length || 0;
@@ -461,9 +614,14 @@ const PaidTasksManagement = () => {
                                 </div>
                             </div>
 
-                            {task.type === 'product' && task.image && (
+                            {task.type === 'product' && (task.images && task.images.length > 0 || task.image) && (
                                 <div className="mb-4 aspect-video rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center">
-                                    <img src={task.image} alt={task.title} className="w-full h-full object-cover" />
+                                    <img src={task.images && task.images.length > 0 ? task.images[0] : task.image} alt={task.title} className="w-full h-full object-cover" />
+                                    {(task.images && task.images.length > 1) && (
+                                        <div className="absolute top-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded-md">
+                                            +{task.images.length - 1} images
+                                        </div>
+                                    )}
                                 </div>
                             )}
 
@@ -580,29 +738,50 @@ const PaidTasksManagement = () => {
                         </motion.div>
                     );
                 })}
-            </div>
+            </div>}
 
             {/* Create/Edit Task Modal */}
             <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingTask ? (editingTask.type === 'product' ? "Edit Item" : "Edit Paid Task") : (formData.type === 'product' ? "Add Item For Sale" : "Create Paid Task")} size="lg">
                 <form onSubmit={handleCreateTask} className="space-y-5">
                     {formData.type === 'product' && (
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Item Image (Optional)</label>
-                            <div className="flex items-center gap-4">
-                                {imagePreview && (
-                                    <img src={imagePreview} alt="Preview" className="w-20 h-20 rounded-xl object-cover border border-gray-200" />
-                                )}
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Item Images (Optional)</label>
+                            <div className="flex flex-wrap items-center gap-4">
+                                {imagePreviews.map((preview, idx) => (
+                                    <div key={idx} className="relative mt-2">
+                                        <img src={preview} alt="Preview" className="w-20 h-20 rounded-xl object-cover border border-gray-200" />
+                                        <button 
+                                            type="button" 
+                                            onClick={() => {
+                                                const newImages = [...formData.images];
+                                                newImages.splice(idx, 1);
+                                                const newPreviews = [...imagePreviews];
+                                                newPreviews.splice(idx, 1);
+                                                setFormData({ ...formData, images: newImages });
+                                                setImagePreviews(newPreviews);
+                                            }}
+                                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+                                            title="Remove image"
+                                        >
+                                            <X className="w-3 h-3" />
+                                        </button>
+                                    </div>
+                                ))}
                                 <input
                                     type="file"
                                     accept="image/*"
+                                    multiple
                                     onChange={(e) => {
-                                        const file = e.target.files[0];
-                                        if (file) {
-                                            setFormData({ ...formData, image: file });
-                                            setImagePreview(URL.createObjectURL(file));
+                                        const files = Array.from(e.target.files);
+                                        if (files.length > 0) {
+                                            const validFiles = files.filter(f => f.type.startsWith('image/'));
+                                            setFormData({ ...formData, images: [...formData.images, ...validFiles] });
+                                            const newPreviews = validFiles.map(f => URL.createObjectURL(f));
+                                            setImagePreviews([...imagePreviews, ...newPreviews]);
                                         }
+                                        e.target.value = ''; // Reset input to allow adding same file again if needed
                                     }}
-                                    className="w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 transition-colors"
+                                    className="w-full mt-2 text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 transition-colors"
                                 />
                             </div>
                         </div>
@@ -961,6 +1140,51 @@ const PaidTasksManagement = () => {
                         No submissions found for this task yet.
                     </div>
                 )}
+            </Modal>
+
+            {/* Edit Feedback Modal */}
+            <Modal isOpen={editingFeedback !== null} onClose={() => setEditingFeedback(null)} title="Edit Feedback" size="md">
+                <div className="space-y-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2 text-center">Rating</label>
+                        <div className="flex justify-center gap-2 text-3xl">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                                <button
+                                    key={star}
+                                    type="button"
+                                    onClick={() => setEditFeedbackData({ ...editFeedbackData, rating: star })}
+                                    className={`transition-colors ${editFeedbackData.rating >= star ? 'text-amber-500' : 'text-gray-300'}`}
+                                >
+                                    ★
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Feedback Text *</label>
+                        <textarea
+                            value={editFeedbackData.text}
+                            onChange={(e) => setEditFeedbackData({ ...editFeedbackData, text: e.target.value })}
+                            placeholder="Feedback text..."
+                            rows={4}
+                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
+                        />
+                    </div>
+
+                    <div className="flex gap-3 pt-4 border-t">
+                        <button onClick={() => setEditingFeedback(null)} className="flex-1 py-3 text-gray-600 hover:bg-gray-100 rounded-xl font-medium">
+                            Cancel
+                        </button>
+                        <button
+                            onClick={handleSaveFeedback}
+                            disabled={isSavingFeedback || !editFeedbackData.text.trim()}
+                            className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium flex items-center justify-center gap-2 disabled:opacity-50"
+                        >
+                            {isSavingFeedback ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save Changes'}
+                        </button>
+                    </div>
+                </div>
             </Modal>
 
         </div>

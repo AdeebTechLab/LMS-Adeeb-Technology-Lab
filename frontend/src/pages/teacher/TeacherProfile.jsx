@@ -9,6 +9,28 @@ import { authAPI, courseAPI, settingsAPI } from '../../services/api';
 import { updateUser } from '../../features/auth/authSlice';
 import { getCourseIcon } from '../../utils/courseIcons';
 
+const InfoField = ({ icon: Icon, label, value, name, type = 'text', editable = true, isEditing, editForm, onChange }) => (
+    <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-xl">
+        <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center flex-shrink-0">
+            <Icon className="w-5 h-5 text-orange-600" />
+        </div>
+        <div className="flex-1 min-w-0">
+            <p className="text-sm text-gray-500 mb-1">{label}</p>
+            {isEditing && editable ? (
+                <input
+                    type={type}
+                    name={name}
+                    value={editForm[name] || ''}
+                    onChange={onChange}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
+                />
+            ) : (
+                <p className="font-medium text-gray-900 truncate">{value || 'Not provided'}</p>
+            )}
+        </div>
+    </div>
+);
+
 const TeacherProfile = () => {
     const { user } = useSelector((state) => state.auth);
     const dispatch = useDispatch();
@@ -89,7 +111,12 @@ const TeacherProfile = () => {
             const response = await authAPI.updateProfile({
                 name: editForm.fullName,
                 phone: editForm.phone,
-                location: editForm.city?.toLowerCase()
+                cnic: editForm.cnic,
+                qualification: editForm.qualification,
+                specialization: editForm.specialization,
+                experience: editForm.experience,
+                address: editForm.address,
+                city: editForm.city
             });
 
             setProfileData({ ...editForm });
@@ -110,27 +137,7 @@ const TeacherProfile = () => {
         setEditForm(prev => ({ ...prev, [name]: value }));
     };
 
-    const InfoField = ({ icon: Icon, label, value, name, type = 'text', editable = true }) => (
-        <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-xl">
-            <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                <Icon className="w-5 h-5 text-orange-600" />
-            </div>
-            <div className="flex-1 min-w-0">
-                <p className="text-sm text-gray-500 mb-1">{label}</p>
-                {isEditing && editable ? (
-                    <input
-                        type={type}
-                        name={name}
-                        value={editForm[name] || ''}
-                        onChange={handleChange}
-                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
-                    />
-                ) : (
-                    <p className="font-medium text-gray-900 truncate">{value || 'Not provided'}</p>
-                )}
-            </div>
-        </div>
-    );
+
 
     const stats = [
         { label: 'My Courses', value: myCourses.length.toString(), icon: BookOpen, color: 'bg-blue-100 text-blue-600' },
@@ -249,19 +256,19 @@ const TeacherProfile = () => {
                         Personal Information
                     </h2>
                     <div className="space-y-4">
-                        <InfoField icon={User} label="Full Name" value={profileData.fullName} name="fullName" editable={canEditBio} />
-                        <InfoField icon={Mail} label="Email" value={profileData.email} name="email" type="email" editable={false} />
-                        <InfoField icon={Phone} label="Phone" value={profileData.phone} name="phone" editable={canEditBio} />
+                        <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={User} label="Full Name" value={profileData.fullName} name="fullName" editable={canEditBio} />
+                        <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={Mail} label="Email" value={profileData.email} name="email" type="email" editable={false} />
+                        <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={Phone} label="Phone" value={profileData.phone} name="phone" editable={canEditBio} />
                         {!canEditBio && isEditing && (
                             <p className="text-xs text-red-500 font-medium px-4">
                                 * Bio editing is currently disabled by administrator.
                             </p>
                         )}
-                        <InfoField icon={CreditCard} label="CNIC" value={profileData.cnic} name="cnic" editable={canEditBio} />
-                        <InfoField icon={GraduationCap} label="Qualification" value={profileData.qualification} name="qualification" editable={canEditBio} />
-                        <InfoField icon={Briefcase} label="Specialization / Skills" value={profileData.specialization} name="specialization" editable={canEditBio} />
-                        <InfoField icon={Briefcase} label="Experience" value={profileData.experience} name="experience" editable={canEditBio} />
-                        <InfoField icon={MapPin} label="City" value={profileData.city} name="city" editable={canEditBio} />
+                        <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={CreditCard} label="CNIC" value={profileData.cnic} name="cnic" editable={canEditBio} />
+                        <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={GraduationCap} label="Qualification" value={profileData.qualification} name="qualification" editable={canEditBio} />
+                        <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={Briefcase} label="Specialization / Skills" value={profileData.specialization} name="specialization" editable={canEditBio} />
+                        <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={Briefcase} label="Experience" value={profileData.experience} name="experience" editable={canEditBio} />
+                        <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={MapPin} label="City" value={profileData.city} name="city" editable={canEditBio} />
                     </div>
                 </motion.div>
 
