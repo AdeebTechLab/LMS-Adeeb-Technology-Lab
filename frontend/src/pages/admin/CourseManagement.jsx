@@ -206,7 +206,7 @@ const CourseManagement = () => {
                 <div className="flex items-center gap-2">
                     <button
                         onClick={() => handleOpenModal()}
-                        className="flex items-center justify-center gap-2 px-5 py-2.5 bg-[#0D2818] hover:bg-[#1A5D3A] text-white rounded-xl transition-all duration-300 font-medium"
+                        className="flex items-center justify-center gap-2 px-5 py-2.5 bg-[#0f2847] hover:bg-[#0545a7] text-white rounded-xl transition-all duration-300 font-medium"
                     >
                         <BookOpen className="w-5 h-5" />
                         Add New Course
@@ -661,7 +661,7 @@ const CourseManagement = () => {
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className="flex-1 py-3 bg-[#0D2818] hover:bg-[#1A5D3A] text-white font-medium rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-70"
+                            className="flex-1 py-3 bg-[#0f2847] hover:bg-[#0545a7] text-white font-medium rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-70"
                         >
                             {isLoading ? (
                                 <>

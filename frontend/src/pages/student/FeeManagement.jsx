@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
-    CreditCard, Upload, Clock, CheckCircle, AlertCircle, FileText, Loader2, FileImage, Trash2
+    CreditCard, Upload, Clock, CheckCircle, AlertCircle, FileText, Loader2, FileImage, Trash2, X
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
@@ -24,8 +24,14 @@ const FeeManagement = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState('');
     const [showSlipError, setShowSlipError] = useState(false);
+    const [qrPreview, setQrPreview] = useState({ open: false, src: '', title: '' });
 
     const navigate = useNavigate();
+    const QR_LINKS = {
+        hbl: 'https://res.cloudinary.com/adeeb-tech-lab/image/upload/v1776804616/HBL_Bank_nbng72.png',
+        jazzcash: 'https://res.cloudinary.com/adeeb-tech-lab/image/upload/v1776804616/jazzcash_ztcw5s.png',
+        easypaisa: 'https://res.cloudinary.com/adeeb-tech-lab/image/upload/v1776804616/easypaisa_yr7gux.png'
+    };
 
     useEffect(() => {
         fetchFees();
@@ -191,15 +197,15 @@ const FeeManagement = () => {
 
     if (isFetching) {
         return (
-            <div className="flex items-center justify-center h-64">
-                <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
-                <span className="ml-2 text-gray-600">Loading fees...</span>
+            <div className="flex flex-col items-center justify-center h-64 gap-3">
+                <img src="/loading.gif" alt="Loading" className="w-20 h-20 object-contain" />
+                <span className="text-gray-600 font-medium">Loading fees...</span>
             </div>
         );
     }
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 flex flex-col">
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
@@ -279,8 +285,94 @@ const FeeManagement = () => {
                 </motion.div>
             </div>
 
+            {/* Course Challan List */}
+            <div className="space-y-4 order-1">
+                <div className="flex items-center gap-2 mb-2">
+                    <div className="w-1 h-6 bg-[#ff8e01] rounded-full"></div>
+                    <h2 className="text-xl font-bold text-gray-900">Course Challan</h2>
+                </div>
+
+                {fees.length === 0 ? (
+                    <div className="bg-white rounded-2xl p-12 border border-gray-100 text-center">
+                        <CreditCard className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                        <p className="text-gray-500">No challan found</p>
+                        <p className="text-sm text-gray-400">Enroll in a course to see challan details</p>
+                    </div>
+                ) : (
+                    <div className="space-y-4">
+                        {fees.map((fee, feeIndex) => (
+                            <motion.div key={fee._id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: feeIndex * 0.1 }} className="bg-white rounded-2xl p-6 border border-gray-100">
+                                <div className="flex items-center gap-4 mb-6 pb-4 border-b border-gray-100">
+                                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center">
+                                        <CreditCard className="w-6 h-6 text-white" />
+                                    </div>
+                                    <div className="flex-1">
+                                        <h3 className="font-semibold text-gray-900 text-lg">
+                                            {fee.course?.title || 'Course'}
+                                            {fee.course?.city && <span className="text-sm font-normal text-gray-500 ml-2">({fee.course?.city})</span>}
+                                        </h3>
+                                        <p className="text-sm text-gray-500">Total Fee: Rs {(fee.totalFee ?? fee.course?.fee ?? 0).toLocaleString()}</p>
+                                    </div>
+                                </div>
+
+                                {/* Installments */}
+                                <div className="space-y-3">
+                                    {(!fee.installments || fee.installments.length === 0) ? (
+                                        <div className="p-8 text-center bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                                            <AlertCircle className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                                            <p className="text-gray-600 font-medium">No payment plan active</p>
+                                            <p className="text-sm text-gray-400 mt-1">Please contact the administration to set up your monthly fee plan.</p>
+                                        </div>
+                                    ) : (
+                                        fee.installments.map((inst, index) => {
+                                            const isPayable = inst.status === 'pending' || inst.status === 'rejected';
+                                            return (
+                                                <div key={inst._id || index} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-gray-50 rounded-xl gap-4 border border-gray-100 hover:border-emerald-100 transition-colors">
+                                                    <div>
+                                                        <div className="flex items-center gap-2 mb-1">
+                                                            <span className="font-medium text-gray-900">Month {index + 1} Fee</span>
+                                                            <Badge variant={
+                                                                inst.status === 'verified' ? 'success' :
+                                                                    inst.status === 'submitted' ? 'info' :
+                                                                        inst.status === 'rejected' ? 'danger' : 'warning'
+                                                            }>
+                                                                {inst.status}
+                                                            </Badge>
+                                                        </div>
+                                                        <div className="flex gap-4 text-sm text-gray-500">
+                                                            <span>Due: {inst.dueDate ? new Date(inst.dueDate).toLocaleDateString() : 'TBA'}</span>
+                                                            {inst.slipId && <span>Slip ID: {inst.slipId}</span>}
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="flex items-center gap-4">
+                                                        <span className="font-bold text-gray-900 text-lg">Rs {(inst.amount || 0).toLocaleString()}</span>
+                                                        {isPayable && (
+                                                            <button
+                                                                onClick={() => handlePayClick(fee, inst)}
+                                                                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2 shadow-sm"
+                                                            >
+                                                                <Upload className="w-4 h-4" />
+                                                                Pay Now
+                                                            </button>
+                                                        )}
+                                                        {inst.status === 'submitted' && (
+                                                            <span className="text-sm text-blue-600 font-medium bg-blue-50 px-3 py-1 rounded-lg">Processing</span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })
+                                    )}
+                                </div>
+                            </motion.div>
+                        ))}
+                    </div>
+                )}
+            </div>
+
             {/* Payment Methods Section */}
-            <div className="space-y-4">
+            <div className="space-y-4 order-2">
                 <div className="flex items-center gap-2 mb-2">
                     <div className="w-1 h-6 bg-emerald-600 rounded-full"></div>
                     <h2 className="text-xl font-bold text-gray-900">Payment Methods</h2>
@@ -298,28 +390,38 @@ const FeeManagement = () => {
                             </div>
                             <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest bg-emerald-50 px-2 py-1 rounded-md">Bank Transfer</span>
                         </div>
-                        <div className="space-y-3">
-                            <div>
-                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Bank Name</p>
-                                <p className="font-bold text-gray-900">HBL</p>
-                            </div>
-                            <div>
-                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Account Name</p>
-                                <p className="font-bold text-gray-900 text-lg">Salman</p>
-                            </div>
-                            <div className="pt-2">
-                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter mb-1">Account Number</p>
-                                <div
-                                    onClick={() => {
-                                        navigator.clipboard.writeText('14737991982703');
-                                        alert('Account number copied!');
-                                    }}
-                                    className="bg-gray-50 p-3 rounded-xl border border-gray-100 font-black text-gray-900 text-lg tracking-widest cursor-pointer hover:bg-emerald-50 hover:border-emerald-100 transition-all select-all flex justify-between items-center"
-                                >
-                                    14737991982703
-                                    <span className="text-[10px] font-bold text-emerald-600 bg-white px-2 py-1 rounded shadow-sm">COPY</span>
+                        <div className="flex gap-4 items-start">
+                            <div className="space-y-3 flex-1">
+                                <div>
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Bank Name</p>
+                                    <p className="font-bold text-gray-900">HBL</p>
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Account Name</p>
+                                    <p className="font-bold text-gray-900 text-lg">Salman</p>
+                                </div>
+                                <div className="pt-2">
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter mb-1">Account Number</p>
+                                    <div
+                                        onClick={() => {
+                                            navigator.clipboard.writeText('14737991982703');
+                                            alert('Account number copied!');
+                                        }}
+                                        className="bg-gray-50 p-3 rounded-xl border border-gray-100 font-black text-gray-900 text-lg tracking-widest cursor-pointer hover:bg-emerald-50 hover:border-emerald-100 transition-all select-all flex justify-between items-center"
+                                    >
+                                        14737991982703
+                                        <span className="text-[10px] font-bold text-emerald-600 bg-white px-2 py-1 rounded shadow-sm">COPY</span>
+                                    </div>
                                 </div>
                             </div>
+                            <button
+                                type="button"
+                                onClick={() => setQrPreview({ open: true, src: QR_LINKS.hbl, title: 'HBL QR Code' })}
+                                className="w-24 h-24 rounded-xl overflow-hidden border border-gray-200 bg-gray-50 hover:scale-105 transition-transform shadow-sm flex-shrink-0"
+                                title="Open HBL QR"
+                            >
+                                <img src={QR_LINKS.hbl} alt="HBL QR" className="w-full h-full object-cover" />
+                            </button>
                         </div>
                     </motion.div>
 
@@ -334,28 +436,38 @@ const FeeManagement = () => {
                             </div>
                             <span className="text-[10px] font-black text-orange-600 uppercase tracking-widest bg-orange-50 px-2 py-1 rounded-md">Mobile Wallet</span>
                         </div>
-                        <div className="space-y-3">
-                            <div>
-                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Provider</p>
-                                <p className="font-bold text-orange-600 text-lg">JAZZCASH</p>
-                            </div>
-                            <div>
-                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Account Name</p>
-                                <p className="font-bold text-gray-900 text-lg">Salman Yasin</p>
-                            </div>
-                            <div className="pt-2">
-                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter mb-1">Phone Number</p>
-                                <div
-                                    onClick={() => {
-                                        navigator.clipboard.writeText('03092333121');
-                                        alert('Number copied!');
-                                    }}
-                                    className="bg-gray-50 p-3 rounded-xl border border-gray-100 font-black text-orange-600 text-2xl tracking-widest cursor-pointer hover:bg-orange-50 hover:border-orange-100 transition-all select-all flex justify-between items-center"
-                                >
-                                    03092333121
-                                    <span className="text-[10px] font-bold text-orange-600 bg-white px-2 py-1 rounded shadow-sm">COPY</span>
+                        <div className="flex gap-4 items-start">
+                            <div className="space-y-3 flex-1">
+                                <div>
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Provider</p>
+                                    <p className="font-bold text-orange-600 text-lg">JAZZCASH</p>
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Account Name</p>
+                                    <p className="font-bold text-gray-900 text-lg">Salman Yasin</p>
+                                </div>
+                                <div className="pt-2">
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter mb-1">Phone Number</p>
+                                    <div
+                                        onClick={() => {
+                                            navigator.clipboard.writeText('03092333121');
+                                            alert('Number copied!');
+                                        }}
+                                        className="bg-gray-50 p-3 rounded-xl border border-gray-100 font-black text-orange-600 text-2xl tracking-widest cursor-pointer hover:bg-orange-50 hover:border-orange-100 transition-all select-all flex justify-between items-center"
+                                    >
+                                        03092333121
+                                        <span className="text-[10px] font-bold text-orange-600 bg-white px-2 py-1 rounded shadow-sm">COPY</span>
+                                    </div>
                                 </div>
                             </div>
+                            <button
+                                type="button"
+                                onClick={() => setQrPreview({ open: true, src: QR_LINKS.jazzcash, title: 'JazzCash QR Code' })}
+                                className="w-24 h-24 rounded-xl overflow-hidden border border-gray-200 bg-gray-50 hover:scale-105 transition-transform shadow-sm flex-shrink-0"
+                                title="Open JazzCash QR"
+                            >
+                                <img src={QR_LINKS.jazzcash} alt="JazzCash QR" className="w-full h-full object-cover" />
+                            </button>
                         </div>
                     </motion.div>
 
@@ -370,34 +482,44 @@ const FeeManagement = () => {
                             </div>
                             <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest bg-emerald-50 px-2 py-1 rounded-md">Mobile Wallet</span>
                         </div>
-                        <div className="space-y-3">
-                            <div>
-                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Provider</p>
-                                <p className="font-bold text-emerald-500 text-lg">EASYPAISA</p>
-                            </div>
-                            <div>
-                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Account Name</p>
-                                <p className="font-bold text-gray-900 text-lg">Salman Yasin</p>
-                            </div>
-                            <div className="pt-2">
-                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter mb-1">Phone Number</p>
-                                <div
-                                    onClick={() => {
-                                        navigator.clipboard.writeText('03441713141');
-                                        alert('Number copied!');
-                                    }}
-                                    className="bg-gray-50 p-3 rounded-xl border border-gray-100 font-black text-emerald-600 text-2xl tracking-widest cursor-pointer hover:bg-emerald-50 hover:border-emerald-100 transition-all select-all flex justify-between items-center"
-                                >
-                                    03441713141
-                                    <span className="text-[10px] font-bold text-emerald-600 bg-white px-2 py-1 rounded shadow-sm">COPY</span>
+                        <div className="flex gap-4 items-start">
+                            <div className="space-y-3 flex-1">
+                                <div>
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Provider</p>
+                                    <p className="font-bold text-emerald-500 text-lg">EASYPAISA</p>
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Account Name</p>
+                                    <p className="font-bold text-gray-900 text-lg">Salman Yasin</p>
+                                </div>
+                                <div className="pt-2">
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter mb-1">Phone Number</p>
+                                    <div
+                                        onClick={() => {
+                                            navigator.clipboard.writeText('03441713141');
+                                            alert('Number copied!');
+                                        }}
+                                        className="bg-gray-50 p-3 rounded-xl border border-gray-100 font-black text-emerald-600 text-2xl tracking-widest cursor-pointer hover:bg-emerald-50 hover:border-emerald-100 transition-all select-all flex justify-between items-center"
+                                    >
+                                        03441713141
+                                        <span className="text-[10px] font-bold text-emerald-600 bg-white px-2 py-1 rounded shadow-sm">COPY</span>
+                                    </div>
                                 </div>
                             </div>
+                            <button
+                                type="button"
+                                onClick={() => setQrPreview({ open: true, src: QR_LINKS.easypaisa, title: 'Easypaisa QR Code' })}
+                                className="w-24 h-24 rounded-xl overflow-hidden border border-gray-200 bg-gray-50 hover:scale-105 transition-transform shadow-sm flex-shrink-0"
+                                title="Open Easypaisa QR"
+                            >
+                                <img src={QR_LINKS.easypaisa} alt="Easypaisa QR" className="w-full h-full object-cover" />
+                            </button>
                         </div>
                     </motion.div>
                 </div>
 
                 {/* Clear Step Banner */}
-                <div className="bg-[#0D2818] rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-4 text-white">
+                <div className="bg-[#0f2847] rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-4 text-white">
                     <div className="flex items-center gap-3">
                         <div className="p-2 bg-white/10 rounded-lg">
                             <AlertCircle className="w-5 h-5 text-emerald-400" />
@@ -415,82 +537,24 @@ const FeeManagement = () => {
                 </div>
             </div>
 
-            {/* Fees List */}
-            {fees.length === 0 ? (
-                <div className="bg-white rounded-2xl p-12 border border-gray-100 text-center">
-                    <CreditCard className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                    <p className="text-gray-500">No fees found</p>
-                    <p className="text-sm text-gray-400">Enroll in a course to see fees here</p>
-                </div>
-            ) : (
-                <div className="space-y-4">
-                    {fees.map((fee, feeIndex) => (
-                        <motion.div key={fee._id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: feeIndex * 0.1 }} className="bg-white rounded-2xl p-6 border border-gray-100">
-                            <div className="flex items-center gap-4 mb-6 pb-4 border-b border-gray-100">
-                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center">
-                                    <CreditCard className="w-6 h-6 text-white" />
-                                </div>
-                                <div className="flex-1">
-                                    <h3 className="font-semibold text-gray-900 text-lg">
-                                        {fee.course?.title || 'Course'}
-                                        {fee.course?.city && <span className="text-sm font-normal text-gray-500 ml-2">({fee.course?.city})</span>}
-                                    </h3>
-                                    <p className="text-sm text-gray-500">Total Fee: Rs {(fee.totalFee ?? fee.course?.fee ?? 0).toLocaleString()}</p>
-                                </div>
-                            </div>
-
-                            {/* Installments */}
-                            <div className="space-y-3">
-                                {(!fee.installments || fee.installments.length === 0) ? (
-                                    <div className="p-8 text-center bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                                        <AlertCircle className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                                        <p className="text-gray-600 font-medium">No payment plan active</p>
-                                        <p className="text-sm text-gray-400 mt-1">Please contact the administration to set up your monthly fee plan.</p>
-                                    </div>
-                                ) : (
-                                    fee.installments.map((inst, index) => {
-                                        const isPayable = inst.status === 'pending' || inst.status === 'rejected';
-                                        return (
-                                            <div key={inst._id || index} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-gray-50 rounded-xl gap-4 border border-gray-100 hover:border-emerald-100 transition-colors">
-                                                <div>
-                                                    <div className="flex items-center gap-2 mb-1">
-                                                        <span className="font-medium text-gray-900">Month {index + 1} Fee</span>
-                                                        <Badge variant={
-                                                            inst.status === 'verified' ? 'success' :
-                                                                inst.status === 'submitted' ? 'info' :
-                                                                    inst.status === 'rejected' ? 'danger' : 'warning'
-                                                        }>
-                                                            {inst.status}
-                                                        </Badge>
-                                                    </div>
-                                                    <div className="flex gap-4 text-sm text-gray-500">
-                                                        <span>Due: {inst.dueDate ? new Date(inst.dueDate).toLocaleDateString() : 'TBA'}</span>
-                                                        {inst.slipId && <span>Slip ID: {inst.slipId}</span>}
-                                                    </div>
-                                                </div>
-
-                                                <div className="flex items-center gap-4">
-                                                    <span className="font-bold text-gray-900 text-lg">Rs {(inst.amount || 0).toLocaleString()}</span>
-                                                    {isPayable && (
-                                                        <button
-                                                            onClick={() => handlePayClick(fee, inst)}
-                                                            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2 shadow-sm"
-                                                        >
-                                                            <Upload className="w-4 h-4" />
-                                                            Pay Now
-                                                        </button>
-                                                    )}
-                                                    {inst.status === 'submitted' && (
-                                                        <span className="text-sm text-blue-600 font-medium bg-blue-50 px-3 py-1 rounded-lg">Processing</span>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        );
-                                    })
-                                )}
-                            </div>
-                        </motion.div>
-                    ))}
+            {/* Fullscreen QR Preview */}
+            {qrPreview.open && (
+                <div className="fixed inset-0 z-[100] bg-black/85 backdrop-blur-sm flex items-center justify-center p-4">
+                    <button
+                        onClick={() => setQrPreview({ open: false, src: '', title: '' })}
+                        className="absolute top-4 right-4 p-2 rounded-xl bg-white/10 text-white hover:bg-white/20 transition-colors"
+                        aria-label="Close QR preview"
+                    >
+                        <X className="w-6 h-6" />
+                    </button>
+                    <div className="w-full max-w-4xl max-h-[90vh] flex flex-col items-center">
+                        <h3 className="text-white font-bold text-lg mb-3">{qrPreview.title}</h3>
+                        <img
+                            src={qrPreview.src}
+                            alt={qrPreview.title}
+                            className="max-w-full max-h-[82vh] object-contain rounded-2xl shadow-2xl bg-white p-2"
+                        />
+                    </div>
                 </div>
             )}
 
@@ -562,7 +626,7 @@ const FeeManagement = () => {
                             <button
                                 onClick={handleSubmitPayment}
                                 disabled={!uploadedFile || !slipId || isSubmitting}
-                                className="flex-1 py-3 bg-[#0D2818] hover:bg-[#1A5D3A] text-white font-medium rounded-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-900/10"
+                                className="flex-1 py-3 bg-[#0f2847] hover:bg-[#0545a7] text-white font-medium rounded-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-900/10"
                             >
                                 {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Submit Payment'}
                             </button>

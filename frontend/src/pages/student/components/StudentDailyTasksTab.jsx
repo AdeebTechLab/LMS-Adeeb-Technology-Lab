@@ -77,27 +77,33 @@ const StudentDailyTasksTab = ({ course, isRestricted }) => {
             <div className={`bg-white p-6 rounded-2xl border border-gray-100 shadow-sm ${isRestricted ? 'opacity-60 grayscale-[0.5] pointer-events-none' : ''}`}>
                 <h4 className="font-semibold text-gray-800 mb-4">{course.targetAudience === 'interns' ? "Log Today's Work" : "Log Class Session"}</h4>
                 <form onSubmit={handleSubmit} className="space-y-4">
-                    <input
-                        type="text"
-                        value={workLink}
-                        onChange={(e) => setWorkLink(e.target.value)}
-                        placeholder={course.targetAudience === 'interns' ? "Work Link or Title (Optional)" : "Topic / Reference Link (Optional)"}
-                        className="w-full px-4 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20"
-                        disabled={isRestricted}
-                    />
+                    {course.targetAudience === 'interns' && (
+                        <input
+                            type="text"
+                            value={workLink}
+                            onChange={(e) => setWorkLink(e.target.value)}
+                            placeholder="Work Link or Title (Optional)"
+                            className="w-full px-4 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-[#FF832D]/30 focus:border-[#FF832D]"
+                            disabled={isRestricted}
+                        />
+                    )}
                     <textarea
                         value={newTask}
-                        onChange={(e) => setNewTask(e.target.value)}
+                        onChange={(e) => {
+                            setNewTask(e.target.value);
+                            e.target.style.height = 'auto';
+                            e.target.style.height = `${e.target.scrollHeight}px`;
+                        }}
                         placeholder={course.targetAudience === 'interns' ? "What did you work on today?" : "What was taught in this class?"}
-                        rows="3"
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20 resize-none"
+                        rows={3}
+                        className="w-full px-4 py-3 border border-[#FF832D] rounded-xl outline-none focus:ring-2 focus:ring-[#FF832D]/30 focus:border-[#FF832D] resize-none overflow-hidden min-h-[5rem]"
                         disabled={isRestricted}
                     />
-                    <div className="flex justify-end">
+                    <div className="pt-1">
                         <button
                             type="submit"
                             disabled={isSubmitting || !newTask.trim() || isRestricted}
-                            className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-300 text-white rounded-xl font-medium transition-colors flex items-center gap-2"
+                            className="w-full px-6 py-3 bg-[#FF832D] hover:bg-[#e87526] disabled:bg-gray-300 text-white rounded-xl font-medium transition-colors flex items-center justify-center gap-2"
                         >
                             {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
                             {isRestricted ? 'Submissions Disabled' : 'Submit Log'}

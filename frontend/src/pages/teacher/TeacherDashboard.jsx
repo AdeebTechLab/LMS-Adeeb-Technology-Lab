@@ -326,7 +326,7 @@ const TeacherDashboard = () => {
             {
                 label: 'Submissions',
                 data: [0, 0, 0, 0, 0, 0, 0],
-                backgroundColor: '#22C55E',
+                backgroundColor: '#0545a7',
                 borderRadius: 6,
                 barThickness: 24,
             },
@@ -335,9 +335,9 @@ const TeacherDashboard = () => {
 
     if (isLoading) {
         return (
-            <div className="flex items-center justify-center h-64">
-                <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
-                <span className="ml-2 text-gray-600">Loading dashboard...</span>
+            <div className="flex flex-col items-center justify-center h-64 gap-3">
+                <img src="/loading.gif" alt="Loading" className="w-20 h-20 object-contain" />
+                <span className="text-gray-600 font-medium">Loading dashboard...</span>
             </div>
         );
     }
@@ -349,7 +349,7 @@ const TeacherDashboard = () => {
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-gradient-to-r from-[#0D2818] to-[#1A5D3A] rounded-2xl p-6 text-white"
+                    className="bg-gradient-to-r from-[#0f2847] to-[#0545a7] rounded-2xl p-6 text-white"
                 >
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                         <div>
@@ -368,7 +368,7 @@ const TeacherDashboard = () => {
                             </button>
                             <button
                                 onClick={() => navigate('/teacher/attendance')}
-                                className="px-5 py-2.5 bg-white hover:bg-white/90 text-[#0D2818] rounded-xl font-medium transition-all duration-300"
+                                className="px-5 py-2.5 bg-white hover:bg-white/90 text-[#0f2847] rounded-xl font-medium transition-all duration-300"
                             >
                                 Mark Attendance
                             </button>
@@ -562,7 +562,7 @@ const TeacherDashboard = () => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.55 }}
-                        className="bg-gradient-to-r from-[#0D2818] to-[#1A5D3A] rounded-2xl p-6 border border-emerald-800 text-white"
+                        className="bg-gradient-to-r from-[#0f2847] to-[#0545a7] rounded-2xl p-6 border border-emerald-800 text-white"
                     >
                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                             <div className="flex items-center gap-4">
@@ -594,7 +594,7 @@ const TeacherDashboard = () => {
                                     href={myCertificate.certificateLink}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="flex items-center gap-2 px-5 py-2.5 bg-amber-400 hover:bg-amber-300 text-[#0D2818] font-bold rounded-xl transition-all shrink-0 self-start sm:self-auto"
+                                    className="flex items-center gap-2 px-5 py-2.5 bg-amber-400 hover:bg-amber-300 text-[#0f2847] font-bold rounded-xl transition-all shrink-0 self-start sm:self-auto"
                                 >
                                     <ExternalLink className="w-4 h-4" />
                                     Open Certificate
@@ -686,7 +686,7 @@ const TeacherDashboard = () => {
                     <motion.div
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        className="bg-white rounded-2xl w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden"
+                        className="bg-white rounded-2xl w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden"
                     >
                         <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-gray-100 shrink-0">
                             <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">

@@ -5,12 +5,13 @@ import {
     CheckCircle, Clock, XCircle, ExternalLink, Upload,
     BookOpen, Tag, Calendar, AlertCircle
 } from 'lucide-react';
-import { assignmentAPI, enrollmentAPI } from '../../../services/api';
+import { assignmentAPI, enrollmentAPI, attendanceAPI, dailyTaskAPI } from '../../../services/api';
 import api from '../../../services/api';
 import Badge from '../../../components/ui/Badge';
 
 const TAB_ASSIGNMENTS = 'assignments';
 const TAB_DAILY_TASKS = 'daily_tasks';
+const TAB_ATTENDANCE = 'attendance';
 
 const statusVariant = {
     graded: 'success',
@@ -32,6 +33,7 @@ const StudentWorkView = ({ student, onBack }) => {
     const [assignments, setAssignments] = useState([]);
     const [dailyTasks, setDailyTasks] = useState([]);
     const [enrollments, setEnrollments] = useState([]);
+    const [attendanceData, setAttendanceData] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
@@ -43,32 +45,45 @@ const StudentWorkView = ({ student, onBack }) => {
         try {
             const studentId = student.id || student._id;
 
-            // 1. Get all enrollments to know which courses the student is in
-            const enrollRes = await enrollmentAPI.getAll();
-            const allEnrollments = enrollRes.data.data || [];
-            const studentEnrollments = allEnrollments.filter(e => {
-                const uid = String(e.user?._id || e.user);
-                return uid === String(studentId);
-            });
-            setEnrollments(studentEnrollments);
+            // 1. Get student's enrollments directly
+            try {
+                const enrollRes = await enrollmentAPI.getUserEnrollments(studentId);
+                setEnrollments(enrollRes.data.data || []);
+            } catch (err) {
+                console.error('Error loading enrollments:', err);
+                setEnrollments([]);
+            }
 
-            // 2. Get all assignments for this student (cross-course)
-            const assignRes = await assignmentAPI.getUserAssignments(studentId);
-            setAssignments(assignRes.data.assignments || []);
+            // 2. Get all assignments for this student
+            try {
+                const assignRes = await assignmentAPI.getUserAssignments(studentId);
+                setAssignments(assignRes.data.assignments || []);
+            } catch (err) {
+                console.error('Error loading assignments:', err);
+                setAssignments([]);
+            }
 
-            // 3. Fetch daily tasks from each enrolled course
-            const courseIds = studentEnrollments.map(e => e.course?._id || e.course);
-            const taskPromises = courseIds.map(cId =>
-                api.get(`/daily-tasks/course/${cId}`)
-                    .then(res => res.data.data || [])
-                    .catch(() => [])
-            );
-            const taskArrays = await Promise.all(taskPromises);
-            const allTasks = taskArrays.flat()
-                .filter(t => String(t.user?._id || t.user) === String(studentId));
-            setDailyTasks(allTasks);
+            // 3. Get all class logs (daily tasks) for this student
+            try {
+                const logsRes = await dailyTaskAPI.getUserDailyTasks(studentId);
+                const taskData = logsRes.data.data || [];
+                setDailyTasks(taskData);
+            } catch (err) {
+                console.error('Error loading class logs:', err);
+                setDailyTasks([]);
+            }
+
+            // 4. Get attendance history
+            try {
+                const attendanceRes = await attendanceAPI.getStudentAttendance(studentId);
+                const attData = attendanceRes.data.data || [];
+                setAttendanceData(attData);
+            } catch (err) {
+                console.error('Error loading attendance:', err);
+                setAttendanceData([]);
+            }
         } catch (err) {
-            console.error('Error loading student work:', err);
+            console.error('Critical error loading student work:', err);
         } finally {
             setIsLoading(false);
         }
@@ -158,9 +173,22 @@ const StudentWorkView = ({ student, onBack }) => {
                         }`}
                 >
                     <ClipboardList className="w-4 h-4" />
-                    Daily Tasks / Class Logs
+                    Class Logs
                     <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-black ${activeTab === TAB_DAILY_TASKS ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-200 text-gray-500'}`}>
                         {dailyTasks.length}
+                    </span>
+                </button>
+                <button
+                    onClick={() => setActiveTab(TAB_ATTENDANCE)}
+                    className={`px-8 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 ${activeTab === TAB_ATTENDANCE
+                        ? 'bg-white text-emerald-600 shadow-sm border border-emerald-100'
+                        : 'text-gray-500 hover:bg-gray-200 hover:text-gray-900'
+                        }`}
+                >
+                    <CheckCircle className="w-4 h-4" />
+                    Attendance
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-black ${activeTab === TAB_ATTENDANCE ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-200 text-gray-500'}`}>
+                        {attendanceData.length} Courses
                     </span>
                 </button>
             </div>
@@ -317,7 +345,7 @@ const StudentWorkView = ({ student, onBack }) => {
                                 className="space-y-6"
                             >
                                 <div className="flex items-center justify-between">
-                                    <h3 className="font-bold text-gray-900 text-lg">Daily Tasks / Class Logs</h3>
+                                    <h3 className="font-bold text-gray-900 text-lg">Class Logs</h3>
                                     <div className="flex gap-3">
                                         <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100">
                                             {dailyTasks.filter(t => t.status === 'verified' || t.status === 'graded').length} verified
@@ -331,7 +359,7 @@ const StudentWorkView = ({ student, onBack }) => {
                                 {dailyTasks.length === 0 ? (
                                     <div className="text-center py-16">
                                         <ClipboardList className="w-12 h-12 text-gray-200 mx-auto mb-3" />
-                                        <p className="text-gray-400 font-medium">No daily tasks or logs found for this student.</p>
+                                        <p className="text-gray-400 font-medium">No class logs found for this student.</p>
                                     </div>
                                 ) : (
                                     <div className="space-y-4">
@@ -351,9 +379,14 @@ const StudentWorkView = ({ student, onBack }) => {
                                                                 <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-100 uppercase tracking-tight">
                                                                     LOG #{dailyTasks.length - idx}
                                                                 </span>
-                                                                <span className="text-xs text-gray-400 font-medium flex items-center gap-1">
+                                                                {task.course?.title && (
+                                                                    <span className="text-[10px] font-black text-blue-600 bg-blue-50 px-2 py-0.5 rounded-lg border border-blue-100 uppercase tracking-tight">
+                                                                        {task.course.title}
+                                                                    </span>
+                                                                )}
+                                                                <span className="text-xs text-gray-400 font-medium flex items-center gap-1 ml-auto">
                                                                     <Clock className="w-3 h-3" />
-                                                                    {new Date(task.date || task.createdAt).toLocaleDateString()} at {new Date(task.createdAt).toLocaleTimeString()}
+                                                                    {new Date(task.date || task.createdAt).toLocaleDateString()}
                                                                 </span>
                                                             </div>
 
@@ -369,7 +402,7 @@ const StudentWorkView = ({ student, onBack }) => {
                                                                 </a>
                                                             )}
 
-                                                            <div className="bg-white p-4 rounded-2xl text-gray-700 text-sm whitespace-pre-wrap italic border border-gray-100 leading-relaxed">
+                                                            <div className="bg-white p-4 rounded-2xl text-gray-700 text-sm whitespace-pre-wrap italic border border-gray-100 leading-relaxed font-medium">
                                                                 "{task.content}"
                                                             </div>
 
@@ -393,6 +426,99 @@ const StudentWorkView = ({ student, onBack }) => {
                                                     </div>
                                                 </motion.div>
                                             ))}
+                                    </div>
+                                )}
+                            </motion.div>
+                        )}
+
+                        {activeTab === TAB_ATTENDANCE && (
+                            <motion.div
+                                key="attendance"
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                                className="space-y-8"
+                            >
+                                <div className="flex items-center justify-between">
+                                    <h3 className="font-bold text-gray-900 text-lg">Attendance History</h3>
+                                    <div className="flex gap-4">
+                                        <div className="flex items-center gap-1.5">
+                                            <div className="w-2.5 h-2.5 rounded-full bg-emerald-500"></div>
+                                            <span className="text-xs font-bold text-gray-500">Present</span>
+                                        </div>
+                                        <div className="flex items-center gap-1.5">
+                                            <div className="w-2.5 h-2.5 rounded-full bg-red-500"></div>
+                                            <span className="text-xs font-bold text-gray-500">Absent</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {attendanceData.length === 0 ? (
+                                    <div className="text-center py-16">
+                                        <CheckCircle className="w-12 h-12 text-gray-200 mx-auto mb-3" />
+                                        <p className="text-gray-400 font-medium">No attendance records found for this student.</p>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-8">
+                                        {attendanceData.map((courseData, cIdx) => (
+                                            <div key={courseData.courseId} className="bg-gray-50 rounded-3xl p-6 border border-gray-100">
+                                                {/* Course Header */}
+                                                <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+                                                    <div>
+                                                        <h4 className="font-black text-gray-900 uppercase tracking-tight text-base mb-1">{courseData.courseTitle}</h4>
+                                                        <span className="text-[10px] bg-white px-2 py-0.5 rounded border border-gray-200 text-gray-400 font-black uppercase tracking-widest">{courseData.courseCategory}</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="bg-emerald-50 px-4 py-2 rounded-2xl border border-emerald-100 text-center">
+                                                            <p className="text-xl font-black text-emerald-600">{courseData.present}</p>
+                                                            <p className="text-[10px] text-emerald-400 font-bold uppercase tracking-widest">Present</p>
+                                                        </div>
+                                                        <div className="bg-red-50 px-4 py-2 rounded-2xl border border-red-100 text-center">
+                                                            <p className="text-xl font-black text-red-600">{courseData.absent}</p>
+                                                            <p className="text-[10px] text-red-400 font-bold uppercase tracking-widest">Absent</p>
+                                                        </div>
+                                                        <div className="bg-blue-50 px-4 py-2 rounded-2xl border border-blue-100 text-center">
+                                                            <p className="text-xl font-black text-blue-600">
+                                                                {courseData.present + courseData.absent > 0 
+                                                                    ? Math.round((courseData.present / (courseData.present + courseData.absent)) * 100) 
+                                                                    : 0}%
+                                                            </p>
+                                                            <p className="text-[10px] text-blue-400 font-bold uppercase tracking-widest">Ratio</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {/* Attendance Log Grid */}
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                                    {courseData.logs.map((log, lIdx) => (
+                                                        <div 
+                                                            key={lIdx}
+                                                            className={`p-3 rounded-2xl border flex items-center justify-between ${
+                                                                log.status === 'present' 
+                                                                    ? 'bg-white border-emerald-100 shadow-sm' 
+                                                                    : 'bg-white border-red-100 shadow-sm'
+                                                            }`}
+                                                        >
+                                                            <div className="flex flex-col">
+                                                                <span className="text-xs font-bold text-gray-900">
+                                                                    {new Date(log.date).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}
+                                                                </span>
+                                                                <span className="text-[10px] text-gray-400 font-medium">
+                                                                    {new Date(log.date).toLocaleDateString(undefined, { weekday: 'long' })}
+                                                                </span>
+                                                            </div>
+                                                            <div className={`px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${
+                                                                log.status === 'present' 
+                                                                    ? 'bg-emerald-500 text-white' 
+                                                                    : 'bg-red-500 text-white'
+                                                            }`}>
+                                                                {log.status === 'present' ? 'PRESENT' : 'ABSENT'}
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        ))}
                                     </div>
                                 )}
                             </motion.div>

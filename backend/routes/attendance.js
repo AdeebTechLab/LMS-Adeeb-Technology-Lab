@@ -282,5 +282,79 @@ router.get('/stats/:courseId', protect, authorize('teacher', 'admin'), async (re
     }
 });
 
+const mongoose = require('mongoose');
+
+// @route   GET /api/attendance/student/:userId
+// @desc    Get attendance history for a specific student across all courses
+// @access  Private (Teacher, Admin)
+router.get('/student/:userId', protect, authorize('teacher', 'admin'), async (req, res) => {
+    try {
+        const User = require('../models/User');
+        const mongoose = require('mongoose');
+        const userIdInput = req.params.userId;
+
+        // Advanced Identity Resolution: Find the actual user by ID or Roll Number
+        const query = mongoose.Types.ObjectId.isValid(userIdInput)
+            ? { $or: [{ _id: userIdInput }, { rollNo: userIdInput }] }
+            : { rollNo: userIdInput };
+
+        const user = await User.findOne(query);
+        if (!user) {
+            return res.json({ success: true, data: [] });
+        }
+
+        const resolvedUserId = user._id;
+
+        // 1. Get all courses the student is enrolled in
+        const Enrollment = require('../models/Enrollment');
+        const enrollments = await Enrollment.find({ user: resolvedUserId });
+        const courseIds = enrollments.map(e => e.course);
+
+        // 2. Find ALL attendance records for those courses
+        const attendances = await Attendance.find({
+            course: { $in: courseIds }
+        })
+            .populate('course', 'title category')
+            .sort('-date');
+
+        // Organize by course
+        const result = {};
+        const resolvedUserIdStr = resolvedUserId.toString();
+
+        attendances.forEach(att => {
+            if (!att.course) return; // Skip if course is missing
+            const courseId = att.course._id.toString();
+
+            if (!result[courseId]) {
+                result[courseId] = {
+                    courseId,
+                    courseTitle: att.course.title,
+                    courseCategory: att.course.category,
+                    present: 0,
+                    absent: 0,
+                    logs: []
+                };
+            }
+
+            const record = att.records.find(r => r.user && r.user.toString() === resolvedUserIdStr);
+            const status = record ? record.status : 'absent';
+
+            if (status === 'present') result[courseId].present++;
+            else if (status === 'absent') result[courseId].absent++;
+
+            result[courseId].logs.push({
+                date: att.date,
+                status,
+                isHoliday: att.isHoliday,
+                note: att.note
+            });
+        });
+
+        res.json({ success: true, data: Object.values(result) });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
 module.exports = router;
 

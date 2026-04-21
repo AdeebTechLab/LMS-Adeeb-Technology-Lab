@@ -1,5 +1,5 @@
 import { useSelector, useDispatch } from 'react-redux';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { assignmentAPI, courseAPI, dailyTaskAPI } from '../../services/api';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -29,6 +29,7 @@ import { userAPI, authAPI } from '../../services/api';
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
     const navigate = useNavigate();
+    const location = useLocation();
     const dispatch = useDispatch();
     const { user, role } = useSelector((state) => state.auth);
     const [pendingCount, setPendingCount] = useState(0);
@@ -205,7 +206,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 { id: 'profile', label: 'My Profile', icon: User, path: '/student/profile' },
                 { id: 'courses', label: 'Courses', icon: BookOpen, path: '/student/courses' },
                 { id: 'fees', label: 'Fee Payment', icon: CreditCard, path: '/student/fees' },
-                { id: 'assignments', label: 'Assignments', icon: ClipboardList, path: '/student/assignments' },
+                { id: 'assignments', label: 'Assignments', icon: ClipboardList, path: '/student/assignments', state: { tab: 'assignments' } },
                 { id: 'class-logs', label: 'Class Logs', icon: Calendar, path: '/student/assignments', state: { tab: 'daily_tasks' } },
                 { id: 'marks', label: 'Marks Sheet', icon: FileText, path: '/student/marks' },
                 { id: 'attendance', label: 'My Attendance', icon: Calendar, path: '/student/attendance' },
@@ -215,7 +216,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 { id: 'profile', label: 'My Profile', icon: User, path: '/intern/profile' },
                 { id: 'courses', label: 'Browse Skills', icon: BookOpen, path: '/intern/courses' },
                 { id: 'fees', label: 'Fee Management', icon: CreditCard, path: '/intern/fees' },
-                { id: 'assignments', label: 'Assignments', icon: ClipboardList, path: '/intern/assignments' },
+                { id: 'assignments', label: 'Assignments', icon: ClipboardList, path: '/intern/assignments', state: { tab: 'assignments' } },
                 { id: 'daily-tasks', label: 'Daily Tasks', icon: Calendar, path: '/intern/assignments', state: { tab: 'daily_tasks' } },
                 { id: 'marks', label: 'Marks Sheet', icon: FileText, path: '/intern/marks' },
                 { id: 'attendance', label: 'My Attendance', icon: Calendar, path: '/intern/attendance' },
@@ -379,13 +380,18 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                             <li key={item.id}>
                                 <NavLink
                                     to={item.path}
+                                    state={item.state}
                                     onClick={() => setIsOpen(false)}
-                                    className={({ isActive }) =>
-                                        `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 group ${isActive
+                                    className={() => {
+                                        const isPathActive = location.pathname === item.path;
+                                        const isStateActive = !item.state || location.state?.tab === item.state.tab;
+                                        const isActive = isPathActive && isStateActive;
+
+                                        return `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 group ${isActive
                                             ? 'bg-[#394251] text-white border-l-4 border-[#ff8e01] shadow-lg shadow-black/20'
                                             : 'text-white/60 hover:text-white hover:bg-[#394251]/50'
-                                        }`
-                                    }
+                                        }`;
+                                    }}
                                 >
                                     <item.icon className="w-5 h-5 flex-shrink-0" />
                                     <span className="font-medium flex-1">{item.label}</span>

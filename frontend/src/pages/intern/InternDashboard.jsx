@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { io } from 'socket.io-client';
 import {
-    Clock, CheckCircle, BookOpen, CreditCard, Users, TrendingUp, Loader2, Bell, Video, ExternalLink
+    Clock, CheckCircle, BookOpen, CreditCard, Users, TrendingUp, Bell, Video, ExternalLink
 } from 'lucide-react';
 import StatCard from '../../components/ui/StatCard';
 import Badge from '../../components/ui/Badge';
@@ -161,9 +161,9 @@ const InternDashboard = () => {
 
     if (isLoading) {
         return (
-            <div className="flex items-center justify-center h-64">
-                <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-                <span className="ml-2 text-gray-600">Loading dashboard...</span>
+            <div className="flex flex-col items-center justify-center h-64 gap-3">
+                <img src="/loading.gif" alt="Loading" className="w-20 h-20 object-contain" />
+                <span className="text-gray-600 font-medium">Loading dashboard...</span>
             </div>
         );
     }

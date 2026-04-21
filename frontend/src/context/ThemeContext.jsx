@@ -8,6 +8,10 @@ export const ThemeProvider = ({ children }) => {
         return saved === 'dark';
     });
 
+    const [theme, setTheme] = useState(() => {
+        return localStorage.getItem('color-theme') || 'orange';
+    });
+
     useEffect(() => {
         if (isDark) {
             document.documentElement.classList.add('dark');
@@ -18,10 +22,22 @@ export const ThemeProvider = ({ children }) => {
         }
     }, [isDark]);
 
+    useEffect(() => {
+        // Remove all color theme classes first
+        const themeClasses = ['theme-blue', 'theme-purple', 'theme-rose', 'theme-emerald'];
+        document.documentElement.classList.remove(...themeClasses);
+        
+        // Add current theme class if not default (orange)
+        if (theme !== 'orange') {
+            document.documentElement.classList.add(`theme-${theme}`);
+        }
+        localStorage.setItem('color-theme', theme);
+    }, [theme]);
+
     const toggleTheme = () => setIsDark(prev => !prev);
 
     return (
-        <ThemeContext.Provider value={{ isDark, toggleTheme }}>
+        <ThemeContext.Provider value={{ isDark, toggleTheme, theme, setTheme }}>
             {children}
         </ThemeContext.Provider>
     );

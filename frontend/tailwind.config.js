@@ -9,11 +9,16 @@ export default {
     extend: {
       colors: {
         primary: {
-          darkest: '#071310',
-          dark: '#0D2818',
-          DEFAULT: '#1A5D3A',
-          light: '#22C55E',
-          lighter: '#4ADE80',
+          darkest: 'var(--primary-darkest)',
+          dark: 'var(--primary-dark)',
+          DEFAULT: 'var(--primary)',
+          light: 'var(--primary-light)',
+          lighter: 'var(--primary-lighter)',
+        },
+        secondary: {
+          dark: 'var(--secondary-dark)',
+          DEFAULT: 'var(--secondary)',
+          light: 'var(--secondary-light)',
         },
         accent: {
           gold: '#F4C430',

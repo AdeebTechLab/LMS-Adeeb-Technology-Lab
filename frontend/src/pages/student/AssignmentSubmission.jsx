@@ -4,7 +4,7 @@ import { useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
     CheckCircle, Clock, Calendar, Search, Filter, AlertCircle, XCircle, ChevronLeft, ChevronRight,
-    BookOpen, GraduationCap, ArrowRight, ExternalLink, Send, FileText, ClipboardList, Plus, Loader2, Link as LinkIcon, MessageCircle, CalendarCheck
+    BookOpen, GraduationCap, ArrowRight, ExternalLink, Send, FileText, ClipboardList, Plus, Loader2, Link as LinkIcon, MessageCircle, MapPin
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import { assignmentAPI, courseAPI, dailyTaskAPI, enrollmentAPI, chatAPI, feeAPI } from '../../services/api';
@@ -500,9 +500,9 @@ const AssignmentSubmission = () => {
 
     if (isLoading && activeTab === 'assignments') {
         return (
-            <div className="flex items-center justify-center h-64">
-                <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
-                <span className="ml-2 text-gray-600">Loading details...</span>
+            <div className="flex flex-col items-center justify-center h-64 gap-3">
+                <img src="/loading.gif" alt="Loading" className="w-20 h-20 object-contain" />
+                <span className="text-gray-600 font-medium">Loading details...</span>
             </div>
         );
     }
@@ -563,22 +563,16 @@ const AssignmentSubmission = () => {
                                         </div>
                                         <div className="flex-1 relative z-10">
                                             <h3 className="text-xl font-black text-gray-900 uppercase tracking-tighter group-hover:text-emerald-600 transition-colors leading-tight mb-2">{course.title}</h3>
-                                            <div className="flex items-center gap-4 text-xs text-gray-500 font-bold uppercase tracking-widest">
+                                            <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500 font-bold uppercase tracking-widest">
                                                 <span className="flex items-center gap-1">
                                                     <Calendar className="w-3.5 h-3.5" />
-                                                    {new Date(course.startDate).toLocaleDateString()}
+                                                    {course.startDate ? new Date(course.startDate).toLocaleDateString() : 'Date not set'}
                                                 </span>
-                                                {course.bookLink && (
-                                                    <a
-                                                        href={course.bookLink}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        onClick={(e) => e.stopPropagation()}
-                                                        className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl shadow-md shadow-indigo-200 hover:bg-indigo-700 hover:shadow-lg transition-all font-black text-[10px] uppercase tracking-widest mt-2 w-fit group-hover:scale-105"
-                                                    >
-                                                        <BookOpen className="w-3.5 h-3.5" />
-                                                        OPEN COURSE BOOK
-                                                    </a>
+                                                {(course.city || course.location) && (
+                                                    <span className="flex items-center gap-1 text-[10px]">
+                                                        <MapPin className="w-3.5 h-3.5" />
+                                                        {course.city || course.location}
+                                                    </span>
                                                 )}
                                             </div>
                                         </div>
@@ -602,7 +596,7 @@ const AssignmentSubmission = () => {
                         <div>
                             <button
                                 onClick={() => setSelectedCourseId('')}
-                                className="flex items-center gap-2 text-emerald-600 hover:text-emerald-700 mb-2 font-bold text-sm tracking-wide"
+                                className="flex items-center gap-2 text-[#0545a7] hover:text-[#043b8f] mb-2 font-bold text-sm tracking-wide"
                             >
                                 <ChevronLeft className="w-4 h-4" />
                                 BACK TO ALL COURSES
@@ -611,7 +605,7 @@ const AssignmentSubmission = () => {
                             <div className="flex items-center gap-3 mt-1">
                                 <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${user?.role === 'intern'
                                     ? 'bg-purple-600 text-white'
-                                    : 'bg-emerald-600 text-white'
+                                    : 'bg-[#0545a7] text-white'
                                     }`}>
                                     {user?.role === 'intern' ? 'Interns Portal' : 'Students Portal'}
                                 </span>
@@ -628,7 +622,7 @@ const AssignmentSubmission = () => {
                                 href={myCourses.find(c => c._id === selectedCourseId).bookLink}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-xl shadow-lg shadow-indigo-200 hover:bg-indigo-700 hover:shadow-xl transition-all font-bold text-sm uppercase tracking-wide active:scale-95"
+                                className="inline-flex items-center gap-2.5 px-6 py-3 bg-[#FF832D] text-white rounded-xl shadow-[0_10px_30px_rgba(255,131,45,0.45)] hover:bg-[#e87526] hover:shadow-[0_12px_34px_rgba(255,131,45,0.55)] transition-all font-bold text-sm uppercase tracking-wide active:scale-95 shrink-0"
                             >
                                 <BookOpen className="w-5 h-5" />
                                 Course Book
@@ -667,11 +661,11 @@ const AssignmentSubmission = () => {
                     })()}
 
                     {/* Tab Navigation - Teacher Portal Style */}
-                    <div className="flex gap-2 bg-gray-100/80 p-1.5 rounded-2xl w-fit border border-gray-200">
+                    <div className="flex gap-2 bg-gray-100/80 p-1.5 rounded-2xl w-fit border border-[#ff8e01]">
                         <button
                             onClick={() => setActiveTab('daily_tasks')}
                             className={`px-8 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 ${activeTab === 'daily_tasks'
-                                ? 'bg-white text-emerald-600 shadow-sm border border-emerald-100'
+                                ? 'bg-white text-[#0545a7] shadow-sm border border-[#c9dafc]'
                                 : 'text-gray-500 hover:bg-gray-200 hover:text-gray-900'
                                 }`}
                         >
@@ -681,7 +675,7 @@ const AssignmentSubmission = () => {
                         <button
                             onClick={() => setActiveTab('assignments')}
                             className={`px-8 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 ${activeTab === 'assignments'
-                                ? 'bg-white text-emerald-600 shadow-sm border border-emerald-100'
+                                ? 'bg-white text-[#0545a7] shadow-sm border border-[#c9dafc]'
                                 : 'text-gray-500 hover:bg-gray-200 hover:text-gray-900'
                                 }`}
                         >
@@ -692,7 +686,7 @@ const AssignmentSubmission = () => {
                         <button
                             onClick={() => setActiveTab('chat')}
                             className={`px-8 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 relative ${activeTab === 'chat'
-                                ? 'bg-white text-emerald-600 shadow-sm border border-emerald-100'
+                                ? 'bg-white text-[#0545a7] shadow-sm border border-[#c9dafc]'
                                 : 'text-gray-500 hover:bg-gray-200 hover:text-gray-900'
                                 }`}
                         >
@@ -817,7 +811,7 @@ const AssignmentSubmission = () => {
                                                                                 setSubmissionText(assignment.status === 'rejected' ? (assignment.notes || '') : '');
                                                                             }}
                                                                             disabled={isRestricted}
-                                                                            className={`w-full py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all text-white shadow-xl ${assignment.status === 'rejected' ? 'bg-red-600 hover:bg-red-700' : 'bg-[#0D2818] hover:bg-emerald-900'} disabled:bg-gray-300 disabled:shadow-none`}
+                                                                            className={`w-full py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all text-white shadow-xl ${assignment.status === 'rejected' ? 'bg-red-600 hover:bg-red-700' : 'bg-[#0f2847] hover:bg-[#0545a7]'} disabled:bg-gray-300 disabled:shadow-none`}
                                                                         >
                                                                             {isRestricted ? 'LOCKED (FEE OVERDUE)' : (assignment.status === 'rejected' ? 'RESUBMIT WORK' : 'SUBMIT WORK')}
                                                                         </button>
@@ -882,9 +876,6 @@ const AssignmentSubmission = () => {
                                             <div className="flex items-center justify-between mb-8">
                                                 <div>
                                                     <h3 className="text-xl font-black text-gray-900 uppercase tracking-tight">Post Daily Log</h3>
-                                                    <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mt-1">
-                                                        {isCompleted ? 'WORK LOGS LOCKED (COURSE COMPLETED)' : 'LOG YOUR SESSION ACHIEVEMENTS'}
-                                                    </p>
                                                 </div>
                                                 <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600">
                                                     <Plus className="w-6 h-6" />
@@ -912,22 +903,24 @@ const AssignmentSubmission = () => {
                                                 )}
 
                                                 <div>
-                                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2.5 block ml-1">Learning Summary / Task Description</label>
                                                     <textarea
                                                         value={newTaskContent}
-                                                        onChange={(e) => setNewTaskContent(e.target.value)}
-                                                        onInput={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }}
+                                                        onChange={(e) => {
+                                                            setNewTaskContent(e.target.value);
+                                                            e.target.style.height = 'auto';
+                                                            e.target.style.height = `${e.target.scrollHeight}px`;
+                                                        }}
                                                         disabled={isRestricted || isCompleted}
                                                         placeholder="Describe your achievements and challenges today..."
-                                                        rows="4"
-                                                        className="w-full px-7 py-5 bg-gray-50 border border-gray-100 rounded-3xl outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 font-medium transition-all resize-none overflow-hidden shadow-inner disabled:opacity-50"
+                                                        rows={4}
+                                                        className="daily-log-textarea w-full px-7 py-5 bg-gray-50 border border-[#ff8e01] rounded-3xl outline-none focus:ring-4 focus:ring-[#ff8e01]/20 focus:border-[#ff8e01] font-medium transition-all resize-none overflow-hidden shadow-inner disabled:opacity-50 min-h-[7rem]"
                                                     />
                                                 </div>
 
                                                 <button
                                                     type="submit"
                                                     disabled={isSubmitting || !newTaskContent.trim() || isRestricted || isCompleted}
-                                                    className="w-full py-6 bg-[#0D2818] hover:bg-[#1A5D3A] text-white rounded-[1.5rem] font-black text-lg tracking-widest uppercase shadow-2xl shadow-emerald-900/20 transition-all active:scale-[0.98] flex items-center justify-center gap-3 disabled:grayscale disabled:opacity-50"
+                                                    className="w-full py-6 bg-[#ff8e01] hover:bg-[#e67f00] text-white rounded-[1.5rem] font-black text-lg tracking-widest uppercase shadow-2xl shadow-[#ff8e01]/30 transition-all active:scale-[0.98] flex items-center justify-center gap-3 disabled:grayscale disabled:opacity-50"
                                                 >
                                                     {isSubmitting ? <Loader2 className="w-6 h-6 animate-spin" /> : <Send className="w-6 h-6" />}
                                                     {isCompleted ? 'LOGS ARCHIVED' : (isRestricted ? 'PORTAL LOCKED' : (resubmittingTaskId ? 'UPDATE ARCHIVE ENTRY' : 'COMMIT DAILY LOG'))}

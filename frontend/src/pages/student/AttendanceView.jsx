@@ -6,7 +6,6 @@ import {
     CheckCircle,
     Calendar,
     ArrowRight,
-    Loader2,
     XCircle,
     ChevronLeft,
     ChevronRight,
@@ -112,9 +111,9 @@ const AttendanceView = () => {
 
     if (isLoading) {
         return (
-            <div className="flex items-center justify-center h-64">
-                <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
-                <span className="ml-2 text-gray-600 font-bold uppercase tracking-widest text-xs">Loading records...</span>
+            <div className="flex flex-col items-center justify-center h-64 gap-3">
+                <img src="/loading.gif" alt="Loading" className="w-20 h-20 object-contain" />
+                <span className="text-gray-600 font-bold uppercase tracking-widest text-xs">Loading records...</span>
             </div>
         );
     }

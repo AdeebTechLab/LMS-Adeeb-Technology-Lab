@@ -126,47 +126,56 @@ const DashboardLayout = () => {
             <div className="flex-1 flex flex-col h-screen overflow-hidden">
                 {/* Header */}
                 <header className={`border-b sticky top-0 z-30 transition-colors duration-300 ${isDark ? 'bg-[#1a1f2e] border-white/10' : 'bg-white border-gray-100'}`}>
-                    <div className="flex items-center justify-between px-6 py-4">
-                        {/* Left Side */}
-                        <div className="flex items-center gap-4">
+                    <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:gap-4 px-4 sm:px-6 py-4 w-full min-w-0">
+                        {/* Left: menu + title */}
+                        <div className="flex items-center gap-3 sm:gap-4 shrink-0 min-w-0">
                             <button
+                                type="button"
                                 onClick={() => setSidebarOpen(!sidebarOpen)}
-                                className="p-2 hover:bg-gray-100 rounded-xl transition-colors lg:hidden"
+                                className={`p-2 rounded-xl transition-colors lg:hidden shrink-0 ${isDark ? 'hover:bg-white/10 text-white/80' : 'hover:bg-gray-100 text-gray-600'}`}
                             >
-                                <Menu className="w-5 h-5 text-gray-600" />
+                                <Menu className="w-5 h-5" />
                             </button>
 
-                            <div>
-                                <h1 className={`text-2xl font-bold transition-colors duration-300 ${isDark ? 'text-white' : 'text-gray-900'}`}>{getPageTitle()}</h1>
+                            <div className="min-w-0">
+                                <h1 className={`text-xl sm:text-2xl font-bold transition-colors duration-300 truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>{getPageTitle()}</h1>
                             </div>
                         </div>
 
-                        {/* Right Side */}
-                        <div className="flex items-center gap-3">
-                            {/* Search */}
-                            <div className={`hidden md:flex items-center rounded-xl px-4 py-2.5 w-64 transition-colors duration-300 ${isDark ? 'bg-white/5' : 'bg-gray-50'}`}>
-                                <Search className={`w-4 h-4 mr-2 ${isDark ? 'text-white/40' : 'text-gray-400'}`} />
+                        {/* Center: grows to fill space between title and actions */}
+                        <div className="flex-1 w-full min-w-0 flex items-stretch">
+                            <div
+                                className={`flex w-full items-center rounded-xl px-3 sm:px-4 py-2.5 min-h-[2.75rem] transition-colors duration-300 border ${isDark ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200/80'}`}
+                            >
+                                <Search className={`w-4 h-4 mr-2 shrink-0 ${isDark ? 'text-white/40' : 'text-gray-400'}`} />
                                 <input
-                                    type="text"
-                                    placeholder="Search..."
-                                    className={`bg-transparent border-none outline-none text-sm w-full ${isDark ? 'text-white/80 placeholder:text-white/30' : 'text-gray-600 placeholder:text-gray-400'}`}
+                                    type="search"
+                                    placeholder="Search courses, pages, and more..."
+                                    aria-label="Search"
+                                    className={`bg-transparent border-none outline-none text-sm w-full min-w-0 flex-1 ${isDark ? 'text-white/90 placeholder:text-white/35' : 'text-gray-800 placeholder:text-gray-400'}`}
                                 />
                             </div>
+                        </div>
 
+                        {/* Right: actions */}
+                        <div className="flex items-center gap-2 sm:gap-3 shrink-0 justify-end flex-wrap">
                             {/* Refresh Button */}
                             <button
+                                type="button"
                                 onClick={() => window.location.reload()}
-                                className="p-2.5 rounded-xl transition-all duration-200 bg-[#222d38] hover:bg-[#1a232c] text-white shadow-md hover:shadow-lg flex items-center justify-center"
+                                className="rounded-xl transition-all duration-200 bg-[#222d38] hover:bg-[#1a232c] text-white shadow-md hover:shadow-lg flex items-center justify-center gap-2 px-3 py-2.5"
                                 title="Refresh Page"
                             >
-                                <RefreshCw className="w-5 h-5" />
+                                <RefreshCw className="w-5 h-5 shrink-0" />
+                                <span className="hidden sm:inline text-sm font-semibold">Refresh</span>
                             </button>
 
                             {/* Dark / Light Mode Toggle */}
                             <button
+                                type="button"
                                 onClick={toggleTheme}
                                 title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-                                className={`relative p-2.5 rounded-xl transition-all duration-300 shadow-md hover:shadow-lg flex items-center justify-center overflow-hidden ${isDark
+                                className={`relative rounded-xl transition-all duration-300 shadow-md hover:shadow-lg flex items-center justify-center gap-2 overflow-hidden px-3 py-2.5 ${isDark
                                     ? 'bg-[#ffab40] hover:bg-[#ff8e01] text-white'
                                     : 'bg-[#222d38] hover:bg-[#1a232c] text-white'
                                     }`}
@@ -179,7 +188,7 @@ const DashboardLayout = () => {
                                             animate={{ rotate: 0, opacity: 1, scale: 1 }}
                                             exit={{ rotate: 90, opacity: 0, scale: 0.5 }}
                                             transition={{ duration: 0.25 }}
-                                            className="flex items-center justify-center"
+                                            className="flex items-center justify-center shrink-0"
                                         >
                                             <Sun className="w-5 h-5" />
                                         </motion.span>
@@ -190,12 +199,15 @@ const DashboardLayout = () => {
                                             animate={{ rotate: 0, opacity: 1, scale: 1 }}
                                             exit={{ rotate: -90, opacity: 0, scale: 0.5 }}
                                             transition={{ duration: 0.25 }}
-                                            className="flex items-center justify-center"
+                                            className="flex items-center justify-center shrink-0"
                                         >
                                             <Moon className="w-5 h-5" />
                                         </motion.span>
                                     )}
                                 </AnimatePresence>
+                                <span className="hidden sm:inline text-sm font-semibold whitespace-nowrap">
+                                    {isDark ? 'Light mode' : 'Dark mode'}
+                                </span>
                             </button>
 
 

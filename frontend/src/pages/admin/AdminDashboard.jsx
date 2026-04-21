@@ -273,9 +273,9 @@ const AdminDashboard = () => {
 
     if (isLoading && !data) {
         return (
-            <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
-                <Loader2 className="w-12 h-12 animate-spin text-[#ff8e01]" />
-                <span className="text-gray-500 font-black uppercase tracking-widest text-xs animate-pulse">Syncing Portal Data...</span>
+            <div className="flex flex-col items-center justify-center h-[60vh] gap-3">
+                <img src="/loading.gif" alt="Loading" className="w-24 h-24 object-contain" />
+                <span className="text-gray-500 font-black uppercase tracking-widest text-xs">Syncing Portal Data...</span>
             </div>
         );
     }

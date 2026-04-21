@@ -231,7 +231,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                         setAssignSearchTerm('');
                         setIsCreateModalOpen(true);
                     }}
-                    className="px-4 py-2 bg-[#0D2818] hover:bg-[#1A5D3A] text-white rounded-xl font-medium transition-all flex items-center gap-2"
+                    className="px-4 py-2 bg-[#0f2847] hover:bg-[#0545a7] text-white rounded-xl font-medium transition-all flex items-center gap-2"
                 >
                     <Plus className="w-4 h-4" />
                     Create Assignment

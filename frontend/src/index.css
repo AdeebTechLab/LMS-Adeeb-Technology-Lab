@@ -7,12 +7,38 @@
 
 /* Custom CSS Variables - Design Tokens */
 :root {
-  /* Primary Colors - Dark Green Theme */
-  --primary-darkest: #071310;
-  --primary-dark: #0D2818;
-  --primary: #1A5D3A;
-  --primary-light: #22C55E;
-  --primary-lighter: #4ADE80;
+  /* Default Theme (Adeeb Classic - Orange/Dark Blue) */
+  --primary: #ff8e01;
+  --primary-dark: #e67e00;
+  --primary-darkest: #1a232c;
+  --primary-light: #ffab40;
+  --primary-lighter: #ffc97f;
+
+  --secondary: #222d38;
+  --secondary-light: #394251;
+  --secondary-dark: #1a232c;
+
+  --brand-blue-50: #fff7ed;
+  --brand-blue-100: #ffedd5;
+  --brand-blue-200: #fed7aa;
+  --brand-blue-300: #fdba74;
+  --brand-blue-400: #fb923c;
+  --brand-blue-500: #ff8e01;
+  --brand-blue-600: #e67e00;
+  --brand-blue-700: #c2410c;
+  --brand-blue-800: #9a3412;
+  --brand-blue-900: #7c2d12;
+
+  --brand-secondary-50: #f8fafc;
+  --brand-secondary-100: #f1f5f9;
+  --brand-secondary-200: #e2e8f0;
+  --brand-secondary-300: #cbd5e1;
+  --brand-secondary-400: #94a3b8;
+  --brand-secondary-500: #64748b;
+  --brand-secondary-600: #475569;
+  --brand-secondary-700: #334155;
+  --brand-secondary-800: #1e293b;
+  --brand-secondary-900: #0f172a;
 
   /* Accent Colors */
   --accent-gold: #F4C430;
@@ -21,7 +47,7 @@
   /* Background Colors */
   --bg-main: #F8FAFC;
   --bg-card: #FFFFFF;
-  --bg-sidebar: #0D2818;
+  --bg-sidebar: #222d38;
 
   /* Text Colors */
   --text-primary: #1E293B;
@@ -30,7 +56,7 @@
   --text-light: #FFFFFF;
 
   /* Status Colors */
-  --success: #22C55E;
+  --success: var(--primary);
   --warning: #F59E0B;
   --error: #EF4444;
   --info: #3B82F6;
@@ -46,6 +72,368 @@
   --transition-normal: 250ms ease;
   --transition-slow: 350ms ease;
 }
+
+/* Theme Overrides */
+.theme-blue {
+  --primary: #0545a7;
+  --primary-dark: #0f2847;
+  --primary-darkest: #0a1628;
+  --primary-light: #2d6fd4;
+  --primary-lighter: #5a97ff;
+
+  --secondary: #4f46e5;
+  --secondary-light: #818cf8;
+  --secondary-dark: #3730a3;
+
+  --brand-blue-50: #eff6ff;
+  --brand-blue-100: #dbeafe;
+  --brand-blue-200: #bfdbfe;
+  --brand-blue-300: #93c5fd;
+  --brand-blue-400: #60a5fa;
+  --brand-blue-500: #3b82f6;
+  --brand-blue-600: #0545a7;
+  --brand-blue-700: #043b8f;
+  --brand-blue-800: #032f73;
+  --brand-blue-900: #022458;
+
+  --brand-secondary-50: #eef2ff;
+  --brand-secondary-100: #e0e7ff;
+  --brand-secondary-200: #c7d2fe;
+  --brand-secondary-300: #a5b4fc;
+  --brand-secondary-400: #818cf8;
+  --brand-secondary-500: #6366f1;
+  --brand-secondary-600: #4f46e5;
+  --brand-secondary-700: #4338ca;
+  --brand-secondary-800: #3730a3;
+  --brand-secondary-900: #1e1b4b;
+  --bg-sidebar: #0f2847;
+}
+
+.theme-purple {
+  --primary: #7c3aed;
+  --primary-dark: #312e81;
+  --primary-darkest: #1e1b4b;
+  --primary-light: #8b5cf6;
+  --primary-lighter: #a78bfa;
+
+  --secondary: #ec4899;
+  --secondary-light: #f472b6;
+  --secondary-dark: #be185d;
+
+  --brand-blue-50: #f5f3ff;
+  --brand-blue-100: #ede9fe;
+  --brand-blue-200: #ddd6fe;
+  --brand-blue-300: #c4b5fd;
+  --brand-blue-400: #a78bfa;
+  --brand-blue-500: #8b5cf6;
+  --brand-blue-600: #7c3aed;
+  --brand-blue-700: #6d28d9;
+  --brand-blue-800: #5b21b6;
+  --brand-blue-900: #4c1d95;
+
+  --brand-secondary-50: #fdf2f8;
+  --brand-secondary-100: #fce7f3;
+  --brand-secondary-200: #fbcfe8;
+  --brand-secondary-300: #f9a8d4;
+  --brand-secondary-400: #f472b6;
+  --brand-secondary-500: #ec4899;
+  --brand-secondary-600: #db2777;
+  --brand-secondary-700: #be185d;
+  --brand-secondary-800: #9d174d;
+  --brand-secondary-900: #831843;
+  --bg-sidebar: #312e81;
+}
+
+.theme-rose {
+  --primary: #e11d48;
+  --primary-dark: #881337;
+  --primary-darkest: #4c0519;
+  --primary-light: #f43f5e;
+  --primary-lighter: #fb7185;
+
+  --secondary: #f59e0b;
+  --secondary-light: #fbbf24;
+  --secondary-dark: #b45309;
+
+  --brand-blue-50: #fff1f2;
+  --brand-blue-100: #ffe4e6;
+  --brand-blue-200: #fecdd3;
+  --brand-blue-300: #fda4af;
+  --brand-blue-400: #fb7185;
+  --brand-blue-500: #f43f5e;
+  --brand-blue-600: #e11d48;
+  --brand-blue-700: #be123c;
+  --brand-blue-800: #9f1239;
+  --brand-blue-900: #881337;
+
+  --brand-secondary-50: #fffbeb;
+  --brand-secondary-100: #fef3c7;
+  --brand-secondary-200: #fde68a;
+  --brand-secondary-300: #fcd34d;
+  --brand-secondary-400: #fbbf24;
+  --brand-secondary-500: #f59e0b;
+  --brand-secondary-600: #d97706;
+  --brand-secondary-700: #b45309;
+  --brand-secondary-800: #92400e;
+  --brand-secondary-900: #78350f;
+  --bg-sidebar: #881337;
+}
+
+.theme-emerald {
+  --primary: #10b981;
+  --primary-dark: #065f46;
+  --primary-darkest: #064e3b;
+  --primary-light: #34d399;
+  --primary-lighter: #6ee7b7;
+
+  --secondary: #06b6d4;
+  --secondary-light: #22d3ee;
+  --secondary-dark: #0e7490;
+
+  --brand-blue-50: #ecfdf5;
+  --brand-blue-100: #d1fae5;
+  --brand-blue-200: #a7f3d0;
+  --brand-blue-300: #6ee7b7;
+  --brand-blue-400: #34d399;
+  --brand-blue-500: #10b981;
+  --brand-blue-600: #059669;
+  --brand-blue-700: #047857;
+  --brand-blue-800: #065f46;
+  --brand-blue-900: #064e3b;
+
+  --brand-secondary-50: #ecfeff;
+  --brand-secondary-100: #cffafe;
+  --brand-secondary-200: #a5f3fc;
+  --brand-secondary-300: #67e8f9;
+  --brand-secondary-400: #22d3ee;
+  --brand-secondary-500: #06b6d4;
+  --brand-secondary-600: #0891b2;
+  --brand-secondary-700: #0e7490;
+  --brand-secondary-800: #155e75;
+  --brand-secondary-900: #164e63;
+  --bg-sidebar: #065f46;
+}
+
+
+/* ============================================================
+   BRAND BLUE — Global remap: emerald / green / teal utilities
+   Tailwind still emits green class names; these overrides paint
+   them with the #0545a7 family sitewide.
+   ============================================================ */
+
+/* --- Text --- */
+.text-emerald-50 { color: var(--brand-blue-50) !important; }
+.text-emerald-100 { color: var(--brand-blue-100) !important; }
+.text-emerald-200 { color: var(--brand-blue-200) !important; }
+.text-emerald-300 { color: var(--brand-blue-300) !important; }
+.text-emerald-400 { color: var(--brand-blue-400) !important; }
+.text-emerald-500 { color: var(--brand-blue-500) !important; }
+.text-emerald-600 { color: var(--brand-blue-600) !important; }
+.text-emerald-700 { color: var(--brand-blue-700) !important; }
+.text-emerald-800 { color: var(--brand-blue-800) !important; }
+.text-emerald-900 { color: var(--brand-blue-900) !important; }
+
+.text-green-50 { color: var(--brand-blue-50) !important; }
+.text-green-100 { color: var(--brand-blue-100) !important; }
+.text-green-200 { color: var(--brand-blue-200) !important; }
+.text-green-300 { color: var(--brand-blue-300) !important; }
+.text-green-400 { color: var(--brand-blue-400) !important; }
+.text-green-500 { color: var(--brand-blue-500) !important; }
+.text-green-600 { color: var(--brand-blue-600) !important; }
+.text-green-700 { color: var(--brand-blue-700) !important; }
+.text-green-800 { color: var(--brand-blue-800) !important; }
+.text-green-900 { color: var(--brand-blue-900) !important; }
+
+.text-teal-50 { color: var(--brand-blue-50) !important; }
+.text-teal-100 { color: var(--brand-blue-100) !important; }
+.text-teal-200 { color: var(--brand-blue-200) !important; }
+.text-teal-300 { color: var(--brand-blue-300) !important; }
+.text-teal-400 { color: var(--brand-blue-400) !important; }
+.text-teal-500 { color: var(--brand-blue-500) !important; }
+.text-teal-600 { color: var(--brand-blue-600) !important; }
+.text-teal-700 { color: var(--brand-blue-700) !important; }
+.text-teal-800 { color: var(--brand-blue-800) !important; }
+.text-teal-900 { color: var(--brand-blue-900) !important; }
+
+.text-emerald-300\/60 { color: rgb(147 197 253 / 0.6) !important; }
+
+/* --- Backgrounds --- */
+.bg-emerald-50 { background-color: var(--brand-blue-50) !important; }
+.bg-emerald-100 { background-color: var(--brand-blue-100) !important; }
+.bg-emerald-200 { background-color: var(--brand-blue-200) !important; }
+.bg-emerald-300 { background-color: var(--brand-blue-300) !important; }
+.bg-emerald-400 { background-color: var(--brand-blue-400) !important; }
+.bg-emerald-500 { background-color: var(--brand-blue-500) !important; }
+.bg-emerald-600 { background-color: var(--brand-blue-600) !important; }
+.bg-emerald-700 { background-color: var(--brand-blue-700) !important; }
+.bg-emerald-800 { background-color: var(--brand-blue-800) !important; }
+.bg-emerald-900 { background-color: var(--brand-blue-900) !important; }
+
+.bg-green-50 { background-color: var(--brand-blue-50) !important; }
+.bg-green-100 { background-color: var(--brand-blue-100) !important; }
+.bg-green-200 { background-color: var(--brand-blue-200) !important; }
+.bg-green-300 { background-color: var(--brand-blue-300) !important; }
+.bg-green-400 { background-color: var(--brand-blue-400) !important; }
+.bg-green-500 { background-color: var(--brand-blue-500) !important; }
+.bg-green-600 { background-color: var(--brand-blue-600) !important; }
+.bg-green-700 { background-color: var(--brand-blue-700) !important; }
+.bg-green-800 { background-color: var(--brand-blue-800) !important; }
+.bg-green-900 { background-color: var(--brand-blue-900) !important; }
+
+.bg-teal-50 { background-color: var(--brand-blue-50) !important; }
+.bg-teal-100 { background-color: var(--brand-blue-100) !important; }
+.bg-teal-200 { background-color: var(--brand-blue-200) !important; }
+.bg-teal-300 { background-color: var(--brand-blue-300) !important; }
+.bg-teal-400 { background-color: var(--brand-blue-400) !important; }
+.bg-teal-500 { background-color: var(--brand-blue-500) !important; }
+.bg-teal-600 { background-color: var(--brand-blue-600) !important; }
+.bg-teal-700 { background-color: var(--brand-blue-700) !important; }
+.bg-teal-800 { background-color: var(--brand-blue-800) !important; }
+.bg-teal-900 { background-color: var(--brand-blue-900) !important; }
+
+.bg-green-500\/20 { background-color: rgb(5 69 167 / 0.2) !important; }
+
+/* --- Borders --- */
+.border-emerald-50 { border-color: var(--brand-blue-50) !important; }
+.border-emerald-100 { border-color: var(--brand-blue-100) !important; }
+.border-emerald-200 { border-color: var(--brand-blue-200) !important; }
+.border-emerald-300 { border-color: var(--brand-blue-300) !important; }
+.border-emerald-400 { border-color: var(--brand-blue-400) !important; }
+.border-emerald-500 { border-color: var(--brand-blue-500) !important; }
+.border-emerald-600 { border-color: var(--brand-blue-600) !important; }
+.border-emerald-700 { border-color: var(--brand-blue-700) !important; }
+.border-emerald-800 { border-color: var(--brand-blue-800) !important; }
+.border-emerald-900 { border-color: var(--brand-blue-900) !important; }
+
+.border-green-100 { border-color: var(--brand-blue-100) !important; }
+.border-green-200 { border-color: var(--brand-blue-200) !important; }
+.border-green-300 { border-color: var(--brand-blue-300) !important; }
+.border-green-400 { border-color: var(--brand-blue-400) !important; }
+.border-green-500 { border-color: var(--brand-blue-500) !important; }
+.border-green-600 { border-color: var(--brand-blue-600) !important; }
+
+.border-teal-100 { border-color: var(--brand-blue-100) !important; }
+.border-teal-200 { border-color: var(--brand-blue-200) !important; }
+.border-teal-300 { border-color: var(--brand-blue-300) !important; }
+.border-teal-400 { border-color: var(--brand-blue-400) !important; }
+.border-teal-500 { border-color: var(--brand-blue-500) !important; }
+.border-teal-600 { border-color: var(--brand-blue-600) !important; }
+
+.border-l-emerald-400 { border-left-color: var(--brand-blue-400) !important; }
+.border-l-emerald-600 { border-left-color: var(--brand-blue-600) !important; }
+
+.border-green-500\/50 { border-color: rgb(5 69 167 / 0.5) !important; }
+
+/* --- Divide --- */
+.divide-emerald-100 > :not([hidden]) ~ :not([hidden]) { border-color: var(--brand-blue-100) !important; }
+.divide-emerald-200 > :not([hidden]) ~ :not([hidden]) { border-color: var(--brand-blue-200) !important; }
+
+/* --- Rings / focus --- */
+.ring-emerald-500 { --tw-ring-color: var(--brand-blue-500) !important; }
+.ring-emerald-400 { --tw-ring-color: var(--brand-blue-400) !important; }
+.focus\:ring-emerald-500:focus { --tw-ring-color: var(--brand-blue-500) !important; }
+.focus\:ring-emerald-500\/20:focus { --tw-ring-color: rgb(5 69 167 / 0.2) !important; }
+.focus\:ring-emerald-500\/10:focus { --tw-ring-color: rgb(5 69 167 / 0.1) !important; }
+
+.ring-emerald-500\/10 { --tw-ring-color: rgb(5 69 167 / 0.1) !important; }
+
+.focus\:border-emerald-500:focus { border-color: var(--brand-blue-500) !important; }
+
+/* --- Gradient stops (common emerald/teal pairs) --- */
+.from-emerald-50 { --tw-gradient-from: var(--brand-blue-50) var(--tw-gradient-from-position) !important; }
+.from-emerald-100 { --tw-gradient-from: var(--brand-blue-100) var(--tw-gradient-from-position) !important; }
+.from-emerald-200 { --tw-gradient-from: var(--brand-blue-200) var(--tw-gradient-from-position) !important; }
+.from-emerald-300 { --tw-gradient-from: var(--brand-blue-300) var(--tw-gradient-from-position) !important; }
+.from-emerald-400 { --tw-gradient-from: var(--brand-blue-400) var(--tw-gradient-from-position) !important; }
+.from-emerald-500 { --tw-gradient-from: var(--brand-blue-500) var(--tw-gradient-from-position) !important; }
+.from-emerald-600 { --tw-gradient-from: var(--brand-blue-600) var(--tw-gradient-from-position) !important; }
+
+.to-emerald-400 { --tw-gradient-to: var(--brand-blue-400) var(--tw-gradient-to-position) !important; }
+.to-emerald-500 { --tw-gradient-to: var(--brand-blue-500) var(--tw-gradient-to-position) !important; }
+.to-emerald-600 { --tw-gradient-to: var(--brand-blue-600) var(--tw-gradient-to-position) !important; }
+
+.from-teal-400 { --tw-gradient-from: var(--brand-blue-400) var(--tw-gradient-from-position) !important; }
+.from-teal-500 { --tw-gradient-from: var(--brand-blue-500) var(--tw-gradient-from-position) !important; }
+.to-teal-400 { --tw-gradient-to: var(--brand-blue-400) var(--tw-gradient-to-position) !important; }
+.to-teal-500 { --tw-gradient-to: var(--brand-blue-500) var(--tw-gradient-to-position) !important; }
+.to-teal-600 { --tw-gradient-to: var(--brand-blue-600) var(--tw-gradient-to-position) !important; }
+
+.from-green-400 { --tw-gradient-from: var(--brand-blue-400) var(--tw-gradient-from-position) !important; }
+.from-green-500 { --tw-gradient-from: var(--brand-blue-500) var(--tw-gradient-from-position) !important; }
+.to-green-500 { --tw-gradient-to: var(--brand-blue-500) var(--tw-gradient-to-position) !important; }
+
+/* --- Hovers --- */
+.hover\:bg-emerald-50:hover { background-color: var(--brand-blue-50) !important; }
+.hover\:bg-emerald-100:hover { background-color: var(--brand-blue-100) !important; }
+.hover\:bg-emerald-600:hover { background-color: var(--brand-blue-600) !important; }
+.hover\:bg-emerald-700:hover { background-color: var(--brand-blue-700) !important; }
+.hover\:bg-emerald-900:hover { background-color: var(--brand-blue-900) !important; }
+
+.hover\:bg-green-50:hover { background-color: var(--brand-blue-50) !important; }
+.hover\:bg-green-100:hover { background-color: var(--brand-blue-100) !important; }
+
+.hover\:border-emerald-100:hover { border-color: var(--brand-blue-100) !important; }
+.hover\:border-emerald-200:hover { border-color: var(--brand-blue-200) !important; }
+.hover\:border-emerald-400:hover { border-color: var(--brand-blue-400) !important; }
+
+.hover\:text-emerald-600:hover { color: var(--brand-blue-600) !important; }
+.hover\:text-emerald-700:hover { color: var(--brand-blue-700) !important; }
+.hover\:text-green-600:hover { color: var(--brand-blue-600) !important; }
+
+/* --- Group hover --- */
+.group:hover .group-hover\:bg-emerald-50 { background-color: var(--brand-blue-50) !important; }
+.group:hover .group-hover\:text-emerald-500 { color: var(--brand-blue-500) !important; }
+.group:hover .group-hover\:text-emerald-600 { color: var(--brand-blue-600) !important; }
+
+/* --- Shadows tinted emerald → blue --- */
+.shadow-emerald-200 { --tw-shadow-color: rgb(5 69 167 / 0.22) !important; }
+.shadow-emerald-900\/10 { --tw-shadow-color: rgb(21 61 115 / 0.1) !important; }
+.shadow-emerald-900\/20 { --tw-shadow-color: rgb(21 61 115 / 0.2) !important; }
+
+/* --- Outline / checkbox accents --- */
+.outline-emerald-500 { outline-color: var(--brand-blue-500) !important; }
+
+/* ============================================================
+   SECONDARY COLOR — Global remap: indigo utilities
+   ============================================================ */
+
+/* --- Text --- */
+.text-indigo-50 { color: var(--brand-secondary-50) !important; }
+.text-indigo-100 { color: var(--brand-secondary-100) !important; }
+.text-indigo-200 { color: var(--brand-secondary-200) !important; }
+.text-indigo-300 { color: var(--brand-secondary-300) !important; }
+.text-indigo-400 { color: var(--brand-secondary-400) !important; }
+.text-indigo-500 { color: var(--brand-secondary-500) !important; }
+.text-indigo-600 { color: var(--brand-secondary-600) !important; }
+.text-indigo-700 { color: var(--brand-secondary-700) !important; }
+.text-indigo-800 { color: var(--brand-secondary-800) !important; }
+.text-indigo-900 { color: var(--brand-secondary-900) !important; }
+
+/* --- Backgrounds --- */
+.bg-indigo-50 { background-color: var(--brand-secondary-50) !important; }
+.bg-indigo-100 { background-color: var(--brand-secondary-100) !important; }
+.bg-indigo-200 { background-color: var(--brand-secondary-200) !important; }
+.bg-indigo-300 { background-color: var(--brand-secondary-300) !important; }
+.bg-indigo-400 { background-color: var(--brand-secondary-400) !important; }
+.bg-indigo-500 { background-color: var(--brand-secondary-500) !important; }
+.bg-indigo-600 { background-color: var(--brand-secondary-600) !important; }
+.bg-indigo-700 { background-color: var(--brand-secondary-700) !important; }
+.bg-indigo-800 { background-color: var(--brand-secondary-800) !important; }
+.bg-indigo-900 { background-color: var(--brand-secondary-900) !important; }
+
+/* --- Borders --- */
+.border-indigo-50 { border-color: var(--brand-secondary-50) !important; }
+.border-indigo-100 { border-color: var(--brand-secondary-100) !important; }
+.border-indigo-200 { border-color: var(--brand-secondary-200) !important; }
+.border-indigo-300 { border-color: var(--brand-secondary-300) !important; }
+.border-indigo-400 { border-color: var(--brand-secondary-400) !important; }
+.border-indigo-500 { border-color: var(--brand-secondary-500) !important; }
+.border-indigo-600 { border-color: var(--brand-secondary-600) !important; }
+
+/* --- Hovers --- */
+.hover\:bg-indigo-50:hover { background-color: var(--brand-secondary-50) !important; }
+.hover\:bg-indigo-600:hover { background-color: var(--brand-secondary-600) !important; }
+.hover\:text-indigo-600:hover { color: var(--brand-secondary-600) !important; }
 
 /* Base Styles */
 * {
@@ -208,6 +596,16 @@ body {
   box-shadow: 0 0 0 3px rgba(255, 142, 1, 0.15) !important;
 }
 
+/* Post Daily Log — keep orange outline on this textarea in dark mode */
+.dark .daily-log-textarea {
+  border-color: #ff8e01 !important;
+}
+
+.dark .daily-log-textarea:focus {
+  border-color: #ff8e01 !important;
+  box-shadow: 0 0 0 4px rgba(255, 142, 1, 0.2) !important;
+}
+
 /* === Cards / White containers === */
 .dark .rounded-2xl.bg-white,
 .dark .rounded-xl.bg-white,
@@ -218,7 +616,7 @@ body {
 
 /* === Stat cards / light bg variations === */
 .dark .bg-emerald-100 {
-  background-color: rgba(16, 185, 129, 0.15) !important;
+  background-color: rgba(37, 124, 255, 0.15) !important;
 }
 
 .dark .bg-blue-100 {
@@ -251,7 +649,7 @@ body {
 
 /* Quick-action card hover zones */
 .dark .bg-emerald-50 {
-  background-color: rgba(16, 185, 129, 0.1) !important;
+  background-color: rgba(37, 124, 255, 0.1) !important;
 }
 
 .dark .bg-blue-50 {
@@ -287,12 +685,12 @@ body {
 }
 
 .dark .bg-green-50 {
-  background-color: rgba(34, 197, 94, 0.1) !important;
+  background-color: rgba(37, 124, 255, 0.1) !important;
 }
 
 /* Hover variants for light-colored quick-action tiles */
 .dark .hover\:bg-emerald-100:hover {
-  background-color: rgba(16, 185, 129, 0.2) !important;
+  background-color: rgba(37, 124, 255, 0.2) !important;
 }
 
 .dark .hover\:bg-blue-100:hover {
@@ -356,7 +754,7 @@ body {
 
 /* === Badge / Pill borders === */
 .dark .border-emerald-200 {
-  border-color: rgba(16, 185, 129, 0.3) !important;
+  border-color: rgba(37, 124, 255, 0.3) !important;
 }
 
 .dark .border-blue-200 {
@@ -377,8 +775,8 @@ body {
 
 /* Mini gradient insight strips inside cards */
 .dark .bg-gradient-to-r.from-emerald-50\/80 {
-  background: linear-gradient(to right, rgba(16, 185, 129, 0.08), rgba(59, 130, 246, 0.08)) !important;
-  border-color: rgba(16, 185, 129, 0.15) !important;
+  background: linear-gradient(to right, rgba(37, 124, 255, 0.08), rgba(59, 130, 246, 0.08)) !important;
+  border-color: rgba(37, 124, 255, 0.15) !important;
 }
 
 /* ============================================================
@@ -823,3 +1221,60 @@ select:focus {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+
+/* ============================================================
+   GLOBAL BRAND OVERRIDES — Sitewide Theme Enforcement
+   Ensures hardcoded orange/yellow hexes follow the selected theme.
+   ============================================================ */
+
+/* Primary Overrides (Orange/Yellow → Theme Primary) */
+.bg-\[\#ff8e01\], .bg-\[\#ffab40\], .bg-\[\#ff8e01\]\/90 { 
+  background-color: var(--primary) !important; 
+}
+.bg-\[\#ff8e01\]\/20, .bg-emerald-200 { 
+  background-color: var(--brand-blue-200) !important; 
+}
+.bg-\[\#ff8e01\]\/10, .bg-emerald-100, .bg-emerald-50 { 
+  background-color: var(--brand-blue-100) !important; 
+}
+.hover\:bg-\[\#ff8e01\]\/90:hover, .hover\:bg-\[\#ff8e01\]:hover, .hover\:bg-\[\#e67e00\]:hover { 
+  background-color: var(--primary-light) !important; 
+}
+.text-\[\#ff8e01\], .text-\[\#ffab40\], .text-\[\#ff8e01\]\/70, .text-emerald-700, .text-emerald-600 { 
+  color: var(--primary) !important; 
+}
+.border-\[\#ff8e01\], .border-\[\#ff8e01\]\/20, .border-\[\#ff8e01\]\/30 { 
+  border-color: var(--primary) !important; 
+}
+.shadow-\[\#ff8e01\]\/20, .shadow-orange-900\/20 { 
+  --tw-shadow-color: var(--primary-darkest) !important;
+  box-shadow: 0 10px 15px -3px var(--primary-darkest), 0 4px 6px -4px var(--primary-darkest) !important;
+}
+
+/* Sidebar & Dark Elements Overrides (#222d38 → Theme Dark) */
+.bg-\[\#222d38\], .from-\[\#222d38\], .bg-\[\#1a232c\] { 
+  background-color: var(--bg-sidebar) !important; 
+}
+.to-\[\#394251\], .bg-\[\#394251\], .bg-\[\#394251\]\/50, .hover\:bg-\[\#394251\]\/50:hover { 
+  background-color: var(--primary-dark) !important; 
+}
+.border-l-\[\#ff8e01\], .border-\[\#ff8e01\] { 
+  border-left-color: var(--primary) !important;
+  border-color: var(--primary) !important;
+}
+
+/* Standard Tailwind Scale Remaps (Yellow/Amber/Orange → Theme) */
+.bg-orange-500, .bg-amber-500, .bg-yellow-500 { background-color: var(--primary) !important; }
+.bg-orange-600, .bg-amber-600, .bg-yellow-600 { background-color: var(--primary-dark) !important; }
+.bg-orange-100, .bg-amber-100, .bg-yellow-100 { background-color: var(--brand-blue-100) !important; }
+.bg-orange-50, .bg-amber-50, .bg-yellow-50 { background-color: var(--brand-blue-50) !important; }
+
+.text-orange-500, .text-amber-500, .text-yellow-500 { color: var(--primary) !important; }
+.text-orange-600, .text-amber-600, .text-yellow-600 { color: var(--primary-dark) !important; }
+
+.border-orange-500, .border-amber-500, .border-yellow-500 { border-color: var(--primary) !important; }
+
+/* Dashboard Specific Overrides */
+.from-red-600 { --tw-gradient-from: var(--primary) !important; }
+.via-red-500 { --tw-gradient-to: var(--primary-light) !important; }
+.to-orange-500 { --tw-gradient-to: var(--secondary) !important; }

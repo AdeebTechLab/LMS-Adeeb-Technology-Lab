@@ -491,7 +491,7 @@ const TeacherCourses = () => {
                         <motion.div
                             initial={{ opacity: 0, scale: 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
-                            className="bg-white rounded-2xl p-6 w-full max-w-md"
+                            className="bg-white rounded-2xl p-6 w-full max-w-xl"
                         >
                             <div className="flex items-center justify-between mb-6">
                                 <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">

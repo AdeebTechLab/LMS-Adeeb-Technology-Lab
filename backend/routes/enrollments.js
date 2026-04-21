@@ -61,11 +61,27 @@ router.get('/my', protect, async (req, res) => {
 });
 
 // @route   GET /api/enrollments/user/:userId
-// @desc    Get enrollments for a specific user (Admin only)
-// @access  Private (Admin)
-router.get('/user/:userId', protect, authorize('admin'), async (req, res) => {
+// @desc    Get enrollments for a specific user (Admin, Teacher)
+// @access  Private (Admin, Teacher)
+router.get('/user/:userId', protect, authorize('admin', 'teacher'), async (req, res) => {
     try {
-        const enrollments = await Enrollment.find({ user: req.params.userId })
+        const User = require('../models/User');
+        const mongoose = require('mongoose');
+        const userIdInput = req.params.userId;
+        
+        // Advanced Identity Resolution: Find the actual user by ID or Roll Number
+        const query = mongoose.Types.ObjectId.isValid(userIdInput) 
+            ? { $or: [{ _id: userIdInput }, { rollNo: userIdInput }] }
+            : { rollNo: userIdInput };
+        
+        const user = await User.findOne(query);
+        if (!user) {
+            return res.json({ success: true, data: [] });
+        }
+
+        const resolvedUserId = user._id;
+
+        const enrollments = await Enrollment.find({ user: resolvedUserId })
             .populate({
                 path: 'course',
                 populate: { path: 'teachers', select: 'name email specialization photo' }

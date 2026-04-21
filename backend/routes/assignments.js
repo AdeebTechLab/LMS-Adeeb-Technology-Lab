@@ -117,8 +117,23 @@ router.get('/course/:courseId', protect, async (req, res) => {
 // @access  Private (Admin, Teacher)
 router.get('/user/:userId', protect, authorize('admin', 'teacher'), async (req, res) => {
     try {
-        const userId = req.params.userId;
-        const enrollments = await Enrollment.find({ user: userId });
+        const User = require('../models/User');
+        const mongoose = require('mongoose');
+        const userIdInput = req.params.userId;
+
+        // Advanced Identity Resolution: Find the actual user by ID or Roll Number
+        const query = mongoose.Types.ObjectId.isValid(userIdInput)
+            ? { $or: [{ _id: userIdInput }, { rollNo: userIdInput }] }
+            : { rollNo: userIdInput };
+
+        const user = await User.findOne(query);
+        if (!user) {
+            return res.json({ success: true, assignments: [] });
+        }
+
+        const resolvedUserId = user._id;
+
+        const enrollments = await Enrollment.find({ user: resolvedUserId });
 
         if (enrollments.length === 0) {
             return res.json({ success: true, assignments: [] });
@@ -130,19 +145,20 @@ router.get('/user/:userId', protect, authorize('admin', 'teacher'), async (req, 
             course: { $in: courseIds },
             $or: [
                 { assignTo: 'all' },
-                { assignedUsers: userId },
-                { "submissions.user": userId }
+                { assignedUsers: resolvedUserId },
+                { "submissions.user": resolvedUserId }
             ]
         })
             .populate('course', 'title')
             .sort('-createdAt');
 
         // Filter submissions to only show the target user's submission
+        const resolvedUserIdStr = resolvedUserId.toString();
         const sanitizedAssignments = assignments.map(assignment => {
             const assignmentObj = assignment.toObject();
             if (assignmentObj.submissions) {
                 assignmentObj.submissions = assignmentObj.submissions.filter(
-                    s => s.user.toString() === userId
+                    s => s.user && s.user.toString() === resolvedUserIdStr
                 );
             }
             return assignmentObj;
@@ -384,13 +400,13 @@ router.put('/:assignmentId/grade/:submissionId', protect, authorize('teacher', '
                 url: `/`
             });
         }
-        
+
         // Emit browser notification via Socket.IO for both grading and rejection
         const io = req.app.get('io');
         const studentId = submission.user.toString();
         let nTitle = '';
         let nMessage = '';
-            
+
         if (status === 'rejected') {
             nTitle = 'Assignment Rejected';
             nMessage = `Your submission for "${assignment.title}" has been rejected. Feedback: ${feedback}`;

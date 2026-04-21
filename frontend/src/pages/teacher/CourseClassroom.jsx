@@ -101,7 +101,7 @@ const CourseClassroom = () => {
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-gradient-to-r from-[#0D2818] to-[#1A5D3A] rounded-2xl p-6 text-white"
+                className="bg-gradient-to-r from-[#0f2847] to-[#0545a7] rounded-2xl p-6 text-white"
             >
                 <div className="flex items-start justify-between">
                     <div>
@@ -128,7 +128,7 @@ const CourseClassroom = () => {
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
                         className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-lg font-medium transition-all ${activeTab === tab.id
-                                ? 'bg-[#0D2818] text-white'
+                                ? 'bg-[#0f2847] text-white'
                                 : 'text-gray-500 hover:bg-gray-100'
                             }`}
                     >
@@ -164,7 +164,7 @@ const CourseClassroom = () => {
                                     </button>
                                     <button
                                         onClick={handlePostAnnouncement}
-                                        className="px-5 py-2.5 bg-[#0D2818] hover:bg-[#1A5D3A] text-white rounded-xl font-medium transition-all flex items-center gap-2"
+                                        className="px-5 py-2.5 bg-[#0f2847] hover:bg-[#0545a7] text-white rounded-xl font-medium transition-all flex items-center gap-2"
                                     >
                                         <Send className="w-4 h-4" />
                                         Post
@@ -217,7 +217,7 @@ const CourseClassroom = () => {
                     <div className="space-y-4">
                         <div className="flex items-center justify-between">
                             <h3 className="font-semibold text-gray-900">All Assignments</h3>
-                            <button className="px-4 py-2 bg-[#0D2818] hover:bg-[#1A5D3A] text-white rounded-xl font-medium transition-all flex items-center gap-2">
+                            <button className="px-4 py-2 bg-[#0f2847] hover:bg-[#0545a7] text-white rounded-xl font-medium transition-all flex items-center gap-2">
                                 <Plus className="w-4 h-4" />
                                 Create Assignment
                             </button>

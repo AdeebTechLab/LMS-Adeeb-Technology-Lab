@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ChevronLeft, FileText, ClipboardList, Clock, Loader2, BookOpen, Calendar, MapPin, CreditCard, AlertCircle, Trash2, MessageCircle } from 'lucide-react';
+import { ChevronLeft, FileText, ClipboardList, Clock, BookOpen, Calendar, MapPin, CreditCard, AlertCircle, Trash2, MessageCircle, User } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
 import { courseAPI, enrollmentAPI } from '../../services/api';
@@ -70,8 +70,8 @@ const StudentCourseView = () => {
     if (isLoading) {
         return (
             <div className="flex items-center justify-center h-screen">
-                <div className="flex flex-col items-center">
-                    <Loader2 className="w-8 h-8 animate-spin text-emerald-600 mb-2" />
+                <div className="flex flex-col items-center gap-3">
+                    <img src="/loading.gif" alt="Loading" className="w-20 h-20 object-contain" />
                     <p className="text-gray-500 font-medium tracking-tight">Loading Course Details...</p>
                 </div>
             </div>
@@ -116,37 +116,49 @@ const StudentCourseView = () => {
                             </div>
                             <div>
                                 <h1 className="text-2xl font-black text-gray-900 mb-1 uppercase tracking-tight">{course.title}</h1>
-                                <div className="flex items-center gap-4 text-sm text-gray-500 font-medium">
+                                <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 font-medium">
                                     <span className="flex items-center gap-1">
                                         <Calendar className="w-4 h-4" />
-                                        {new Date(course.startDate).toLocaleDateString()}
+                                        {course.startDate ? new Date(course.startDate).toLocaleDateString() : 'Date not set'}
                                     </span>
-                                    <span className="flex items-center gap-1 uppercase">
-                                        <MapPin className="w-4 h-4" />
-                                        {course.location}
-                                    </span>
+                                    {(course.city || course.location) && (
+                                        <span className="flex items-center gap-1 uppercase">
+                                            <MapPin className="w-4 h-4" />
+                                            {course.city || course.location}
+                                        </span>
+                                    )}
                                 </div>
-                                {/* Teachers List */}
-                                <div className="flex items-center gap-2 mt-3">
-                                    <div className="flex -space-x-2">
-                                        {course.teachers?.map((teacher, idx) => (
-                                            <div key={idx} className="relative group cursor-pointer" title={`${teacher.name} (${teacher.specialization || 'Teacher'})`}>
-                                                {teacher.photo ? (
-                                                    <img
-                                                        src={teacher.photo}
-                                                        alt={teacher.name}
-                                                        className="w-8 h-8 rounded-full border-2 border-white object-cover shadow-sm hover:scale-110 transition-transform"
-                                                    />
-                                                ) : (
-                                                    <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-xs font-bold text-emerald-700 border-2 border-white shadow-sm hover:scale-110 transition-transform">
-                                                        {teacher.name?.charAt(0)}
+                                {/* Teachers */}
+                                {course.teachers?.length > 0 ? (
+                                    <div className="mt-3">
+                                        <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">Teachers</p>
+                                        <div className="flex flex-wrap items-center gap-2">
+                                            {course.teachers.map((teacher, idx) => (
+                                                <div key={teacher._id || teacher.id || idx} className="relative group">
+                                                    {teacher.photo ? (
+                                                        <img
+                                                            src={teacher.photo}
+                                                            alt={teacher.name || 'Teacher'}
+                                                            className="w-9 h-9 rounded-full border-2 border-gray-100 object-cover shadow-sm"
+                                                        />
+                                                    ) : (
+                                                        <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center border-2 border-gray-100 text-gray-600">
+                                                            <User className="w-4 h-4" />
+                                                        </div>
+                                                    )}
+                                                    <div className="absolute -top-9 left-1/2 -translate-x-1/2 whitespace-nowrap bg-gray-900 text-white text-[10px] font-medium px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-20">
+                                                        {teacher.name || 'Teacher'}
                                                     </div>
-                                                )}
-                                            </div>
-                                        ))}
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
-                                    {course.teachers?.length > 0 && <span className="text-xs text-gray-500 font-medium">Instru.</span>}
-                                </div>
+                                ) : (
+                                    <div className="mt-3 flex items-center gap-1 text-[10px] text-gray-400 font-bold uppercase tracking-wide">
+                                        <User className="w-3.5 h-3.5" />
+                                        Instructor not assigned
+                                    </div>
+                                )}
                             </div>
                         </div>
                         <div className="flex items-center gap-2">
@@ -160,7 +172,7 @@ const StudentCourseView = () => {
                                     href={course.bookLink}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl shadow-md shadow-indigo-200 hover:bg-indigo-700 hover:shadow-lg transition-all font-black text-xs uppercase tracking-widest active:scale-95"
+                                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#FF832D] text-white rounded-xl shadow-[0_8px_24px_rgba(255,131,45,0.35)] hover:bg-[#e87526] hover:shadow-[0_10px_28px_rgba(255,131,45,0.45)] transition-all font-bold text-xs uppercase tracking-wide active:scale-95 shrink-0"
                                 >
                                     <BookOpen className="w-4 h-4" />
                                     OPEN BOOK
@@ -194,7 +206,7 @@ const StudentCourseView = () => {
                         </p>
                         <button
                             onClick={() => navigate(`/${role}/fees`)}
-                            className="px-8 py-3 bg-[#0D2818] hover:bg-emerald-900 text-white rounded-xl font-bold transition-all shadow-lg hover:shadow-emerald-900/20 active:scale-95 flex items-center gap-2 mx-auto"
+                            className="px-8 py-3 bg-[#0f2847] hover:bg-emerald-900 text-white rounded-xl font-bold transition-all shadow-lg hover:shadow-emerald-900/20 active:scale-95 flex items-center gap-2 mx-auto"
                         >
                             <CreditCard className="w-5 h-5" />
                             FEES PORTAL
@@ -224,11 +236,11 @@ const StudentCourseView = () => {
                         )}
 
                         {/* Tab Nav */}
-                        <div className="flex gap-2 bg-gray-100/80 p-1.5 rounded-2xl w-fit border border-gray-200">
+                        <div className="flex gap-2 bg-gray-100/80 p-1.5 rounded-2xl w-fit border border-[#ff8e01]">
                             <button
                                 onClick={() => setActiveTab('daily_tasks')}
                                 className={`px-8 py-3 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${activeTab === 'daily_tasks'
-                                    ? 'bg-white text-emerald-600 shadow-sm border border-emerald-100'
+                                    ? 'bg-white text-[#0545a7] shadow-sm border border-[#c9dafc]'
                                     : 'text-gray-500 hover:text-gray-900'
                                     }`}
                             >
@@ -238,7 +250,7 @@ const StudentCourseView = () => {
                             <button
                                 onClick={() => setActiveTab('assignments')}
                                 className={`px-8 py-3 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${activeTab === 'assignments'
-                                    ? 'bg-white text-emerald-600 shadow-sm border border-emerald-100'
+                                    ? 'bg-white text-[#0545a7] shadow-sm border border-[#c9dafc]'
                                     : 'text-gray-500 hover:text-gray-900'
                                     }`}
                             >
@@ -248,7 +260,7 @@ const StudentCourseView = () => {
                             <button
                                 onClick={() => setActiveTab('attendance')}
                                 className={`px-8 py-3 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${activeTab === 'attendance'
-                                    ? 'bg-white text-emerald-600 shadow-sm border border-emerald-100'
+                                    ? 'bg-white text-[#0545a7] shadow-sm border border-[#c9dafc]'
                                     : 'text-gray-500 hover:text-gray-900'
                                     }`}
                             >
@@ -258,7 +270,7 @@ const StudentCourseView = () => {
                             <button
                                 onClick={() => setActiveTab('chat')}
                                 className={`px-8 py-3 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${activeTab === 'chat'
-                                    ? 'bg-white text-emerald-600 shadow-sm border border-emerald-100'
+                                    ? 'bg-white text-[#0545a7] shadow-sm border border-[#c9dafc]'
                                     : 'text-gray-500 hover:text-gray-900'
                                     }`}
                             >

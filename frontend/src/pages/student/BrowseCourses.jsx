@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useSelector } from 'react-redux';
 import {
-    Search, BookOpen, Users, Star, Clock, CheckCircle, Calendar, Award, Loader2, RefreshCw, AlertCircle, Upload, Trash2, Filter
+    Search, BookOpen, Users, Star, Clock, CheckCircle, Calendar, Award, Loader2, AlertCircle, Upload, Trash2, Filter, Eye, Heart
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
@@ -31,6 +31,8 @@ const BrowseCourses = () => {
     const [courses, setCourses] = useState([]);
     const [myEnrollments, setMyEnrollments] = useState([]);
     const [myCertificates, setMyCertificates] = useState([]);
+    const [likedCourses, setLikedCourses] = useState({});
+    const [lastViewAt, setLastViewAt] = useState({});
 
     // Fetch data on component mount
     useEffect(() => {
@@ -145,11 +147,53 @@ const BrowseCourses = () => {
         }
     };
 
+    const formatCompactCount = (value) => {
+        const num = Number(value) || 0;
+        if (num >= 1000000) return `${(num / 1000000).toFixed(num >= 10000000 ? 0 : 1).replace('.0', '')}M`;
+        if (num >= 1000) return `${(num / 1000).toFixed(num >= 10000 ? 0 : 1).replace('.0', '')}K`;
+        return `${num}`;
+    };
+
+    const handleCourseSeen = async (courseId) => {
+        if (!courseId) return;
+        const now = Date.now();
+        const lastSeen = lastViewAt[courseId] || 0;
+        if (now - lastSeen < 10000) return; // 1 view per 10s per course
+        setLastViewAt(prev => ({ ...prev, [courseId]: now }));
+        try {
+            const res = await courseAPI.addView(courseId);
+            setCourses(prev => prev.map(c => c._id === courseId ? {
+                ...c,
+                viewCount: res.data.viewCount,
+                likeCount: res.data.likeCount
+            } : c));
+        } catch (e) {
+            console.error('Failed to update view count:', e);
+        }
+    };
+
+    const handleLikeCourse = async (e, courseId) => {
+        e.stopPropagation();
+        if (!courseId || likedCourses[courseId]) return;
+        setLikedCourses(prev => ({ ...prev, [courseId]: true }));
+        try {
+            const res = await courseAPI.addLike(courseId);
+            setCourses(prev => prev.map(c => c._id === courseId ? {
+                ...c,
+                viewCount: res.data.viewCount,
+                likeCount: res.data.likeCount
+            } : c));
+        } catch (e) {
+            console.error('Failed to update like count:', e);
+            setLikedCourses(prev => ({ ...prev, [courseId]: false }));
+        }
+    };
+
     if (isFetching) {
         return (
-            <div className="flex items-center justify-center h-64">
-                <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
-                <span className="ml-2 text-gray-600">Loading courses...</span>
+            <div className="flex flex-col items-center justify-center h-64 gap-3">
+                <img src="/loading.gif" alt="Loading" className="w-20 h-20 object-contain" />
+                <span className="text-gray-600 font-medium">Loading courses...</span>
             </div>
         );
     }
@@ -164,13 +208,6 @@ const BrowseCourses = () => {
                         {role === 'intern' ? 'Browse internship skills' : 'Discover and enroll in courses'}
                     </p>
                 </div>
-                <button
-                    onClick={fetchData}
-                    className="flex items-center gap-2 px-4 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl"
-                >
-                    <RefreshCw className="w-4 h-4" />
-                    Refresh
-                </button>
             </div>
 
             {/* Error */}
@@ -182,30 +219,30 @@ const BrowseCourses = () => {
             )}
 
             {/* Tabs */}
-            <div className="flex gap-2 mb-6">
+            <div className="flex gap-2 mb-6 bg-gray-100/80 p-1.5 rounded-2xl w-fit border border-[#ff8e01]">
                 <button
                     onClick={() => setActiveTab('available')}
-                    className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${activeTab === 'available'
-                        ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-200'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${activeTab === 'available'
+                        ? 'bg-white text-[#0545a7] shadow-sm border border-[#c9dafc]'
+                        : 'text-gray-600 hover:bg-gray-200 hover:text-gray-900'
                         }`}
                 >
                     All Courses ({courses.length})
                 </button>
                 <button
                     onClick={() => setActiveTab('enrolled')}
-                    className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${activeTab === 'enrolled'
-                        ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-200'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${activeTab === 'enrolled'
+                        ? 'bg-white text-[#0545a7] shadow-sm border border-[#c9dafc]'
+                        : 'text-gray-600 hover:bg-gray-200 hover:text-gray-900'
                         }`}
                 >
                     Enrolled ({enrolledCourses.length})
                 </button>
                 <button
                     onClick={() => setActiveTab('completed')}
-                    className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${activeTab === 'completed'
-                        ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-200'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${activeTab === 'completed'
+                        ? 'bg-white text-[#0545a7] shadow-sm border border-[#c9dafc]'
+                        : 'text-gray-600 hover:bg-gray-200 hover:text-gray-900'
                         }`}
                 >
                     Completed ({completedCourses.length})
@@ -262,6 +299,8 @@ const BrowseCourses = () => {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: index * 0.1 }}
+                            onMouseEnter={() => handleCourseSeen(course._id)}
+                            onTouchStart={() => handleCourseSeen(course._id)}
                             className="bg-white rounded-2xl overflow-hidden border border-gray-100 hover:shadow-lg transition-all duration-300"
                         >
                             {/* Course Image */}
@@ -322,22 +361,33 @@ const BrowseCourses = () => {
                                 {/* Teachers */}
                                 <div className="mb-4">
                                     {course.teachers && course.teachers.length > 0 ? (
-                                        <div className="flex flex-wrap gap-1.5">
-                                            {course.teachers.slice(0, 2).map((teacher, idx) => (
-                                                <div key={idx} className="flex items-center gap-1.5 bg-gray-50 px-2 py-1 rounded-lg">
-                                                    {teacher?.photo ? (
-                                                        <img src={teacher.photo} alt={teacher.name} className="w-6 h-6 rounded-full object-cover" />
-                                                    ) : (
-                                                        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-xs font-medium">
-                                                            {teacher?.name?.charAt(0) || 'T'}
+                                        <div>
+                                            <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">Teachers</p>
+                                            <div className="flex flex-wrap gap-2">
+                                                {course.teachers
+                                                    .filter((teacher, idx, arr) => {
+                                                        const key = (teacher?._id || teacher?.id || teacher?.name || idx).toString();
+                                                        return arr.findIndex(t => ((t?._id || t?.id || t?.name || '').toString() === key)) === idx;
+                                                    })
+                                                    .map((teacher, idx) => (
+                                                        <div key={teacher?._id || teacher?.id || idx} className="relative group">
+                                                            {teacher?.photo ? (
+                                                                <img
+                                                                    src={teacher.photo}
+                                                                    alt={teacher?.name || 'Teacher'}
+                                                                    className="w-9 h-9 rounded-full object-cover border-2 border-gray-100"
+                                                                />
+                                                            ) : (
+                                                                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-xs font-bold border-2 border-gray-100">
+                                                                    {teacher?.name?.charAt(0)?.toUpperCase() || 'T'}
+                                                                </div>
+                                                            )}
+                                                            <div className="absolute -top-9 left-1/2 -translate-x-1/2 whitespace-nowrap bg-gray-900 text-white text-[10px] font-medium px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-20">
+                                                                {teacher?.name || 'Teacher'}
+                                                            </div>
                                                         </div>
-                                                    )}
-                                                    <span className="text-xs text-gray-600">{teacher?.name || 'Teacher'}</span>
-                                                </div>
-                                            ))}
-                                            {course.teachers.length > 2 && (
-                                                <span className="text-xs text-gray-500 px-2 py-1">+{course.teachers.length - 2} more</span>
-                                            )}
+                                                    ))}
+                                            </div>
                                         </div>
                                     ) : (
                                         <span className="text-sm text-gray-400">No teachers assigned</span>
@@ -345,12 +395,26 @@ const BrowseCourses = () => {
                                 </div>
 
                                 {/* Stats */}
-                                <div className="flex items-center gap-4 mb-4 text-sm text-gray-500">
+                                <div className="pt-3 border-t border-gray-100 w-full flex items-center justify-center flex-wrap gap-x-6 gap-y-2 mb-4 text-sm text-gray-500">
                                     <span className="flex items-center gap-1">
                                         <Clock className="w-4 h-4" /> {course.durationMonths} {course.durationMonths === 1 ? 'month' : 'months'}
                                     </span>
                                     <span className="flex items-center gap-1">
-                                        <Users className="w-4 h-4" /> Unlimited
+                                        <Users className="w-4 h-4" /> {formatCompactCount(course.enrolledTotal)}
+                                    </span>
+                                    <span className="flex items-center gap-1">
+                                        <Eye className="w-4 h-4" /> {formatCompactCount(course.viewCount)}
+                                    </span>
+                                    <button
+                                        onClick={(e) => handleLikeCourse(e, course._id)}
+                                        className={`flex items-center gap-1 ${likedCourses[course._id] ? 'text-red-500' : 'text-red-500 hover:text-red-600'} transition-colors`}
+                                        title={likedCourses[course._id] ? 'Liked' : 'Like this course'}
+                                    >
+                                        <Heart className={`w-4 h-4 ${likedCourses[course._id] ? 'fill-current' : 'fill-transparent stroke-current'}`} />
+                                        {formatCompactCount(course.likeCount)}
+                                    </button>
+                                    <span className="text-[10px] font-medium uppercase tracking-wide text-gray-400">
+                                        Views & Likes
                                     </span>
                                 </div>
 
@@ -381,7 +445,7 @@ const BrowseCourses = () => {
                                     {status === 'available' && (
                                         <button
                                             onClick={() => handleEnrollClick(course)}
-                                            className="px-4 py-2 bg-[#0D2818] hover:bg-[#1A5D3A] text-white rounded-lg font-medium transition-all"
+                                            className="px-4 py-2 bg-[#0f2847] hover:bg-[#0545a7] text-white rounded-lg font-medium transition-all"
                                         >
                                             Enroll Now
                                         </button>
@@ -505,7 +569,7 @@ const BrowseCourses = () => {
                             <button
                                 onClick={handleConfirmEnroll}
                                 disabled={isEnrolling}
-                                className="flex-1 py-3 bg-[#0D2818] hover:bg-[#1A5D3A] text-white font-medium rounded-xl flex items-center justify-center gap-2 disabled:opacity-70"
+                                className="flex-1 py-3 bg-[#0f2847] hover:bg-[#0545a7] text-white font-medium rounded-xl flex items-center justify-center gap-2 disabled:opacity-70"
                             >
                                 {isEnrolling ? (
                                     <>

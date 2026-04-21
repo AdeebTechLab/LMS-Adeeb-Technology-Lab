@@ -184,6 +184,12 @@ const TeacherProfile = () => {
                             <span className="px-3 py-1 bg-white/20 rounded-full text-sm capitalize">
                                 {profileData.city || user?.location || 'Location not set'}
                             </span>
+                            <span className="px-3 py-1 bg-white/20 rounded-full text-sm font-mono tracking-tight">
+                                Roll: {user?.rollNo || '—'}
+                            </span>
+                            <span className="px-3 py-1 bg-white/20 rounded-full text-sm">
+                                Joined {profileData.joinedAt ? new Date(profileData.joinedAt).toLocaleDateString() : '—'}
+                            </span>
                         </div>
                     </div>
 

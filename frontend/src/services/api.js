@@ -90,6 +90,8 @@ export const userAPI = {
 export const courseAPI = {
     getAll: (params) => api.get('/courses', { params }),
     getOne: (id) => api.get(`/courses/${id}`),
+    addView: (id) => api.post(`/courses/${id}/view`),
+    addLike: (id) => api.post(`/courses/${id}/like`),
     create: (data) => api.post('/courses', data),
     update: (id, data) => api.put(`/courses/${id}`, data),
     delete: (id) => api.delete(`/courses/${id}`),
@@ -137,7 +139,8 @@ export const attendanceAPI = {
     // Global holiday management (admin only for updates)
     getGlobalHolidays: () => api.get('/attendance/global-holidays'),
     updateGlobalHolidays: (holidayDays) => api.put('/attendance/global-holidays', { holidayDays }),
-    getStats: (courseId) => api.get(`/attendance/stats/${courseId}`)
+    getStats: (courseId) => api.get(`/attendance/stats/${courseId}`),
+    getStudentAttendance: (userId) => api.get(`/attendance/student/${userId}`)
 };
 
 // Assignment APIs
@@ -206,7 +209,8 @@ export const dailyTaskAPI = {
     getByCourse: (courseId) => api.get(`/daily-tasks/course/${courseId}`),
     getMy: (courseId) => api.get(`/daily-tasks/my/${courseId}`),
     grade: (id, data) => api.put(`/daily-tasks/${id}/grade`, data),
-    delete: (id) => api.delete(`/daily-tasks/${id}`)
+    delete: (id) => api.delete(`/daily-tasks/${id}`),
+    getUserDailyTasks: (userId) => api.get(`/daily-tasks/user/${userId}`)
 };
 
 // Notification APIs

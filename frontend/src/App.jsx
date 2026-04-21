@@ -58,6 +58,9 @@ import TeacherCertificates from './pages/teacher/TeacherCertificates';
 // Public Pages
 import CertificateVerification from './pages/public/CertificateVerification';
 
+// Settings Page
+import Settings from './pages/settings/Settings';
+
 
 // Protected Route Component
 const ProtectedRoute = ({ children, allowedRoles }) => {
@@ -141,7 +144,7 @@ const AppRoutes = () => {
         <Route path="notifications" element={<NotificationManagement />} />
         <Route path="directory" element={<StudentDirectory />} />
         <Route path="teacher-directory" element={<TeacherDirectory />} />
-        <Route path="settings" element={<div className="text-gray-500">Settings - Coming Soon</div>} />
+        <Route path="settings" element={<Settings />} />
       </Route>
 
       {/* Public Verification Route */}
@@ -158,7 +161,7 @@ const AppRoutes = () => {
         <Route path="attendance" element={<AttendanceSheet />} />
         <Route path="course/:id" element={<AttendanceSheet />} />
         <Route path="certificates" element={<TeacherCertificates />} />
-        <Route path="settings" element={<div className="text-gray-500">Settings - Coming Soon</div>} />
+        <Route path="settings" element={<Settings />} />
       </Route>
 
       {/* Student Routes */}
@@ -175,7 +178,7 @@ const AppRoutes = () => {
         <Route path="assignments" element={<AssignmentSubmission />} />
         <Route path="marks" element={<MarksSheet />} />
         <Route path="attendance" element={<AttendanceView />} />
-        <Route path="settings" element={<div className="text-gray-500">Settings - Coming Soon</div>} />
+        <Route path="settings" element={<Settings />} />
       </Route>
 
       {/* Intern Routes */}
@@ -192,7 +195,7 @@ const AppRoutes = () => {
         <Route path="assignments" element={<AssignmentSubmission />} />
         <Route path="marks" element={<MarksSheet />} />
         <Route path="attendance" element={<AttendanceView />} />
-        <Route path="settings" element={<div className="text-gray-500">Settings - Coming Soon</div>} />
+        <Route path="settings" element={<Settings />} />
       </Route>
 
       {/* Job Routes - Paid Tasks System */}
@@ -203,7 +206,7 @@ const AppRoutes = () => {
         <Route index element={<Navigate to="tasks" replace />} />
         <Route path="tasks" element={<BrowseTasks />} />
         <Route path="profile" element={<JobProfile />} />
-        <Route path="settings" element={<div className="text-gray-500">Settings - Coming Soon</div>} />
+        <Route path="settings" element={<Settings />} />
       </Route>
 
       {/* Root redirect */}

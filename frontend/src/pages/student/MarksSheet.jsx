@@ -6,7 +6,6 @@ import {
     Award,
     BookOpen,
     Download,
-    Loader2,
     RefreshCw,
     AlertCircle,
     GraduationCap
@@ -168,7 +167,7 @@ const MarksSheet = () => {
         datasets: [
             {
                 data: enrollments.map((c) => parseFloat(calculateCourseAverage(c.grades))),
-                backgroundColor: ['#22C55E', '#3B82F6', '#8B5CF6', '#F59E0B', '#EF4444'],
+                backgroundColor: ['#0545a7', '#3B82F6', '#8B5CF6', '#F59E0B', '#EF4444'],
                 borderRadius: 8,
                 barThickness: 40,
             },
@@ -177,9 +176,9 @@ const MarksSheet = () => {
 
     if (isLoading) {
         return (
-            <div className="flex items-center justify-center h-64">
-                <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
-                <span className="ml-2 text-gray-600">Loading marks...</span>
+            <div className="flex flex-col items-center justify-center h-64 gap-3">
+                <img src="/loading.gif" alt="Loading" className="w-20 h-20 object-contain" />
+                <span className="text-gray-600 font-medium">Loading marks...</span>
             </div>
         );
     }
@@ -220,7 +219,7 @@ const MarksSheet = () => {
 
             {/* Overall Stats */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-gradient-to-br from-[#0D2818] to-[#1A5D3A] rounded-2xl p-6 text-white shadow-lg">
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-gradient-to-br from-[#0f2847] to-[#0545a7] rounded-2xl p-6 text-white shadow-lg">
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-white/70 text-sm mb-1 uppercase font-black tracking-widest">Global average</p>

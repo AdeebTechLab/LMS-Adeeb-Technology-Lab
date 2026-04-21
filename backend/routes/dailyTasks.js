@@ -215,4 +215,39 @@ router.delete('/:id', protect, async (req, res) => {
     }
 });
 
+// @route   GET /api/daily-tasks/user/:userId
+// @desc    Get all daily tasks for a specific user (Intern/Student)
+// @access  Private (Teacher, Admin)
+router.get('/user/:userId', protect, authorize('teacher', 'admin'), async (req, res) => {
+    try {
+        const User = require('../models/User');
+        const mongoose = require('mongoose');
+        const userIdInput = req.params.userId;
+
+        // Advanced Identity Resolution: Find the actual user by ID or Roll Number
+        const query = mongoose.Types.ObjectId.isValid(userIdInput) 
+            ? { $or: [{ _id: userIdInput }, { rollNo: userIdInput }] }
+            : { rollNo: userIdInput };
+
+        const user = await User.findOne(query);
+        if (!user) {
+            return res.json({ success: true, count: 0, data: [] });
+        }
+
+        const resolvedUserId = user._id;
+
+        const tasks = await DailyTask.find({ user: resolvedUserId })
+            .populate('course', 'title category')
+            .sort({ createdAt: -1 });
+
+        res.json({
+            success: true,
+            count: tasks.length,
+            data: tasks
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
 module.exports = router;
