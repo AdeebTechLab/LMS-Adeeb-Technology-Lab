@@ -287,7 +287,7 @@ const AdminDashboard = () => {
                 <div className="flex justify-between items-end">
                     <div>
                         <h1 className="text-4xl font-black text-gray-900 uppercase tracking-tighter">LMS Performance Report</h1>
-                        <p className="text-[#ff8e01] font-black uppercase tracking-[0.4em] text-sm mt-2">Adeeb Tech Lab • Management Portal</p>
+                        <p className="text-[#ff8e01] font-black uppercase tracking-[0.4em] text-sm mt-2">Adeeb Technology Lab • Management Portal</p>
                     </div>
                     <div className="text-right">
                         <p className="text-xs font-black text-gray-400 uppercase tracking-widest">Report Generated</p>

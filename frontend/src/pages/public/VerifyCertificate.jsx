@@ -79,7 +79,7 @@ const VerifyCertificate = () => {
                         <div className="w-20 h-20 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 flex items-center justify-center overflow-hidden">
                             <img
                                 src="/logo.png"
-                                alt="AdeebTechLab Logo"
+                                alt="Adeeb Technology Lab Logo"
                                 className="w-12 h-12 object-contain"
                                 onError={(e) => {
                                     e.target.style.display = 'none';
@@ -89,7 +89,7 @@ const VerifyCertificate = () => {
                             <GraduationCap className="w-12 h-12 text-white hidden" />
                         </div>
                         <div className="text-center">
-                            <h2 className="text-white text-3xl font-black tracking-tighter leading-none">AdeebTechLab</h2>
+                            <h2 className="text-white text-3xl font-black tracking-tighter leading-none">Adeeb Technology Lab</h2>
                             <p className="text-emerald-300 text-[10px] font-black uppercase tracking-[0.4em] mt-2">Empowering Your Tech Journey</p>
                         </div>
                     </motion.div>

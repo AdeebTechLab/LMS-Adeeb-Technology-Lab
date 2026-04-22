@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { authAPI } from '../../services/api';
 import ImageCropper from '../../components/ui/ImageCropper';
+import { PAKISTAN_CITIES, COUNTRIES } from '../../utils/locations';
 
 const PROGRAMS = [
     'Trading', 'Taxation', 'Freelancing', 'Video Editing', 'E-Commerce',
@@ -17,7 +18,8 @@ const PROGRAMS = [
     'App Dev Without Coding', 'Web Dev Without Coding', 'Other'
 ];
 
-const CITIES = ['Bahawalpur', 'Islamabad'];
+const INTERN_CITIES = ['Bahawalpur', 'Islamabad'];
+const CITIES = PAKISTAN_CITIES;
 const DURATIONS = ['3 Month', '6 Month', '1 Year'];
 const HEARD_OPTIONS = [
     'Poster & Panaflex', 'Facebook', 'Instagram', 'WhatsApp', 'Website',
@@ -85,6 +87,9 @@ const InternshipRegister = () => {
         email: '',
         homeAddress: '',
         city: '',
+        otherCity: '',
+        country: '',
+        otherCountry: '',
         degree: '',
         university: '',
         department: '',
@@ -92,7 +97,6 @@ const InternshipRegister = () => {
         rollNumber: '',
         cgpa: '',
         majorSubjects: '',
-        program: '',
         duration: '',
         internCity: '',
         internType: '',
@@ -153,8 +157,8 @@ const InternshipRegister = () => {
     };
 
     const handleCropDone = (croppedFile, croppedDataUrl) => {
-        if (croppedFile.size > 2 * 1024 * 1024) {
-            setErrors(prev => ({ ...prev, photo: 'Cropped image is still over 2MB. Try zooming out.' }));
+        if (croppedFile.size > 1 * 1024 * 1024) {
+            setErrors(prev => ({ ...prev, photo: 'Cropped image is still over 1MB. Try zooming out.' }));
             setCropperSrc(null);
             return;
         }
@@ -201,7 +205,6 @@ const InternshipRegister = () => {
         if (!formData.city) newErrors.city = 'City is required';
         if (!formData.degree) newErrors.degree = 'Degree is required';
         if (!formData.university) newErrors.university = 'University is required';
-        if (!formData.program) newErrors.program = 'Program is required';
         if (!formData.duration) newErrors.duration = 'Duration is required';
         if (!formData.internCity) newErrors.internCity = 'City is required';
         if (!formData.internType) newErrors.internType = 'Type is required';
@@ -238,7 +241,8 @@ const InternshipRegister = () => {
             submitData.append('fatherName', formData.fatherName);
             submitData.append('guardianName', formData.fatherName); // Keep fallback if needed
             submitData.append('address', formData.homeAddress);
-            submitData.append('city', formData.city);
+            submitData.append('city', formData.city === 'Other' ? formData.otherCity : formData.city);
+            submitData.append('country', formData.country === 'Other' ? formData.otherCountry : formData.country);
             submitData.append('education', `${formData.degree} - ${formData.university}`);
             submitData.append('degree', formData.degree);
             submitData.append('university', formData.university);
@@ -299,69 +303,122 @@ const InternshipRegister = () => {
                 </div>
 
                 {/* Content */}
-                <div className="relative z-10 flex flex-col items-center justify-center w-full h-full p-8">
+                <div className="relative z-10 flex flex-col items-center justify-center w-full h-full p-8 lg:p-12">
                     <motion.div
-                        initial={{ opacity: 0, y: -20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.3, duration: 0.5 }}
-                        className="flex flex-col items-center gap-3"
-                    >
-                        <div className="w-20 h-20 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 overflow-hidden shadow-xl">
-                            <img
-                                src="/logo.png"
-                                alt="AdeebTechLab Logo"
-                                className="w-full h-full object-cover"
-                                onError={(e) => {
-                                    e.target.style.display = 'none';
-                                    e.target.nextSibling.style.display = 'block';
-                                }}
-                            />
-                            <GraduationCap className="w-12 h-12 text-white hidden" />
-                        </div>
-                        <h2 className="text-white text-2xl font-bold tracking-tight">AdeebTechLab</h2>
-                    </motion.div>
-
-                    {/* Text Content */}
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.9 }}
+                        initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 0.4, duration: 0.6 }}
-                        className="text-center text-white"
+                        transition={{ delay: 0.2, duration: 0.8 }}
+                        className="w-full max-w-lg bg-white/10 backdrop-blur-xl rounded-[2.5rem] border border-white/20 p-8 lg:p-10 shadow-2xl flex flex-col items-center relative overflow-hidden"
                     >
-                        <h2 className="text-4xl font-bold mb-4">Join as Intern</h2>
-                        <p className="text-white/70 text-lg max-w-sm">
-                            Gain real-world experience and accelerate your career growth
-                        </p>
-                    </motion.div>
+                        {/* Subtle inner glow */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none"></div>
 
-                    {/* Features List */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 30 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.6, duration: 0.5 }}
-                        className="mt-12 space-y-4"
-                    >
-                        {[
-                            'Build real-world projects',
-                            'Gain hands-on experience',
-                            'Work with professional teams',
-                            'Launch your tech career',
-                        ].map((feature, index) => (
-                            <motion.div
-                                key={feature}
-                                initial={{ opacity: 0, x: -20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 0.7 + index * 0.1 }}
-                                className="flex items-center text-white/80"
-                            >
-                                <div className="w-6 h-6 rounded-full bg-blue-200/20 flex items-center justify-center mr-3">
-                                    <svg className="w-4 h-4 text-blue-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                    </svg>
+                        <motion.div
+                            initial={{ opacity: 0, y: -20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.3, duration: 0.5 }}
+                            className="flex flex-col items-center gap-3 mb-4"
+                        >
+                            <div className="w-28 h-28 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 overflow-hidden shadow-xl">
+                                <img
+                                    src="/logo.png"
+                                    alt="Adeeb Technology Lab Logo"
+                                    className="w-full h-full object-cover"
+                                    onError={(e) => {
+                                        e.target.style.display = 'none';
+                                        e.target.nextSibling.style.display = 'block';
+                                    }}
+                                />
+                                <GraduationCap className="w-16 h-16 text-white hidden" />
+                            </div>
+                            <h2 className="text-white text-2xl font-bold tracking-tight">LMS Adeeb Technology Lab</h2>
+                        </motion.div>
+
+                        {/* Detailed Information - Scrollable Area */}
+                        <div
+                            className="w-full overflow-y-auto pr-2 custom-scrollbar text-left"
+                            style={{ maxHeight: '55vh' }}
+                        >
+                            <div className="space-y-6 text-white/90 pb-4">
+                                {/* Announcements */}
+                                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/10">
+                                    <h3 className="text-lg font-bold mb-2 flex items-center gap-2">
+                                        <span className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></span>
+                                        Announcement
+                                    </h3>
+                                    <p className="text-sm leading-relaxed text-yellow-400 font-medium">
+                                        🚀 Launch your tech career with hands-on experience!
+                                    </p>
                                 </div>
-                                {feature}
-                            </motion.div>
-                        ))}
+
+                                {/* Key Details */}
+                                {(() => {
+                                    const lastDate = new Date('2026-06-06');
+                                    const today = new Date();
+                                    const diffTime = lastDate - today;
+                                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                                    
+                                    // Open if within 20 days before or 20 days after the last date
+                                    const isOpen = diffDays <= 20 && diffDays >= -20;
+                                    
+                                    return (
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="bg-white/5 p-3 rounded-lg border border-white/5">
+                                                <p className="text-xs text-white/60">Status</p>
+                                                <p className={`font-bold ${isOpen ? 'text-green-400' : 'text-red-400'}`}>
+                                                    {isOpen ? 'Open' : 'Closed'}
+                                                </p>
+                                            </div>
+                                            <div className="bg-white/5 p-3 rounded-lg border border-white/5">
+                                                <p className="text-xs text-white/60">Last Date</p>
+                                                <p className="font-bold">06/06/2026</p>
+                                            </div>
+                                            <div className="bg-white/5 p-3 rounded-lg border border-white/5 col-span-2 text-center">
+                                                <p className="text-xs text-white/60">Duration</p>
+                                                <p className="font-bold">3 - 6 Months</p>
+                                            </div>
+                                        </div>
+                                    );
+                                })()}
+
+                                <div className="bg-blue-400/20 p-3 rounded-lg border border-blue-400/30">
+                                    <p className="text-sm font-semibold">Type: On-Site / Remote</p>
+                                </div>
+
+                                {/* Requirements */}
+                                <div>
+                                    <h4 className="font-bold mb-3 border-l-4 border-yellow-400 pl-3 uppercase text-xs tracking-widest">Internship Requirements</h4>
+                                    <ul className="space-y-2 text-sm">
+                                        <li className="flex items-center gap-2">💻 Personal Laptop</li>
+                                        <li className="flex items-center gap-2">🌐 Home Wi-Fi</li>
+                                    </ul>
+                                </div>
+
+                                {/* Fields Include */}
+                                <div>
+                                    <h4 className="font-bold mb-3 border-l-4 border-yellow-400 pl-3 uppercase text-xs tracking-widest">Internship Fields Include</h4>
+                                    <div className="grid grid-cols-1 gap-2 text-sm">
+                                        <div className="p-2 bg-white/5 rounded">📌 Office Work (IT)</div>
+                                        <div className="p-2 bg-white/5 rounded">📌 Social Media Marketing</div>
+                                        <div className="p-2 bg-white/5 rounded">📌 Graphic Designing</div>
+                                        <div className="p-2 bg-white/5 rounded">📌 Video Editing</div>
+                                        <div className="p-2 bg-white/5 rounded">📌 Web, App & Software Development</div>
+                                        <div className="p-2 bg-white/5 rounded">📌 Team Management</div>
+                                    </div>
+                                </div>
+
+                                {/* Internship Benefits */}
+                                <div>
+                                    <h4 className="font-bold mb-3 border-l-4 border-yellow-400 pl-3 uppercase text-xs tracking-widest">Internship Benefits</h4>
+                                    <ul className="space-y-2 text-sm">
+                                        <li className="flex items-center gap-2">✅ Work on real projects</li>
+                                        <li className="flex items-center gap-2">✅ Learn industry skills</li>
+                                        <li className="flex items-center gap-2">✅ Internship Certificate</li>
+                                        <li className="flex items-center gap-2">✅ Online & On-Site Available</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
                     </motion.div>
                 </div>
             </motion.div>
@@ -454,7 +511,6 @@ const InternshipRegister = () => {
                             <InputField label="CNIC / B-Form *" name="cnic" icon={CreditCard} placeholder="XXXXX-XXXXXXX-X" value={formData.cnic} onChange={handleCNICChange} error={errors.cnic} />
                             <InputField label="Contact Number *" name="contact" type="tel" icon={Phone} placeholder="+92 300 1234567" value={formData.contact} onChange={handleChange} error={errors.contact} />
                             <InputField label="Email Address *" name="email" type="email" icon={Mail} placeholder="your@email.com" value={formData.email} onChange={handleChange} error={errors.email} />
-                            <InputField label="City *" name="city" icon={MapPin} placeholder="Your city" value={formData.city} onChange={handleChange} error={errors.city} />
                         </div>
 
                         {/* Guardian Information */}
@@ -480,8 +536,20 @@ const InternshipRegister = () => {
                             />
                         </div>
 
-                        <div className="md:col-span-2 mb-8">
-                            <InputField label="Home Address *" name="homeAddress" icon={MapPin} placeholder="Complete address" value={formData.homeAddress} onChange={handleChange} error={errors.homeAddress} />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
+                            <SelectField label="City *" name="city" options={PAKISTAN_CITIES} placeholder="Select City" value={formData.city} onChange={handleChange} error={errors.city} />
+                            {formData.city === 'Other' && (
+                                <InputField label="Specify City *" name="otherCity" placeholder="Enter your city" value={formData.otherCity} onChange={handleChange} error={errors.otherCity} />
+                            )}
+                            
+                            <SelectField label="Country *" name="country" options={COUNTRIES} placeholder="Select Country" value={formData.country} onChange={handleChange} error={errors.country} />
+                            {formData.country === 'Other' && (
+                                <InputField label="Specify Country *" name="otherCountry" placeholder="Enter your country" value={formData.otherCountry} onChange={handleChange} error={errors.otherCountry} />
+                            )}
+
+                            <div className="md:col-span-2">
+                                <InputField label="Home Address *" name="homeAddress" icon={MapPin} placeholder="Complete address" value={formData.homeAddress} onChange={handleChange} error={errors.homeAddress} />
+                            </div>
                         </div>
 
                         {/* Educational Details */}
@@ -504,9 +572,8 @@ const InternshipRegister = () => {
                             <BookOpen className="w-5 h-5 text-blue-600" /> Internship Details
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
-                            <SelectField label="Internship Program *" name="program" options={PROGRAMS} placeholder="Select Program" value={formData.program} onChange={handleChange} error={errors.program} />
                             <SelectField label="Duration *" name="duration" options={DURATIONS} placeholder="Select Duration" value={formData.duration} onChange={handleChange} error={errors.duration} />
-                            <SelectField label="City for Internship *" name="internCity" options={CITIES} placeholder="Select City" value={formData.internCity} onChange={handleChange} error={errors.internCity} />
+                            <SelectField label="City for Internship *" name="internCity" options={INTERN_CITIES} placeholder="Select City" value={formData.internCity} onChange={handleChange} error={errors.internCity} />
                             <SelectField label="Internship Type *" name="internType" options={['Physical', 'Online']} placeholder="Select Type" value={formData.internType} onChange={handleChange} error={errors.internType} />
                             <div className="md:col-span-2">
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Requirements</label>

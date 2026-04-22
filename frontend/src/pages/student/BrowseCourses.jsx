@@ -19,7 +19,11 @@ const BrowseCourses = () => {
     const navigate = useNavigate();
     const { role, user } = useSelector((state) => state.auth);
     const [searchQuery, setSearchQuery] = useState('');
-    const [selectedCities, setSelectedCities] = useState([]);
+    const [selectedCities, setSelectedCities] = useState(
+        (role === 'student' || role === 'intern') && user?.location 
+            ? [user.location.charAt(0).toUpperCase() + user.location.slice(1).toLowerCase()] 
+            : []
+    );
     const [activeTab, setActiveTab] = useState('enrolled');
     const [isEnrollModalOpen, setIsEnrollModalOpen] = useState(false);
     const [viewModalOpen, setViewModalOpen] = useState(false);
@@ -89,7 +93,10 @@ const BrowseCourses = () => {
         const matchesSearch = course.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
             course.teachers?.some(t => t.name?.toLowerCase().includes(searchQuery.toLowerCase()));
 
-        const matchesCity = selectedCities.length === 0 || selectedCities.includes(course.city || course.location);
+        const matchesCity = selectedCities.length === 0 || 
+            selectedCities.some(city => 
+                city.toLowerCase() === (course.city?.toLowerCase() || course.location?.toLowerCase())
+            );
 
         return matchesSearch && matchesCity;
     });
@@ -261,29 +268,31 @@ const BrowseCourses = () => {
                         className="bg-transparent border-none outline-none w-full text-gray-700 placeholder:text-gray-400"
                     />
                 </div>
-                <div className="flex gap-2">
-                    {CITY_OPTIONS.map((city) => {
-                        const isSelected = selectedCities.includes(city.value);
-                        return (
-                            <button
-                                key={city.value}
-                                onClick={() => {
-                                    if (isSelected) {
-                                        setSelectedCities(prev => prev.filter(c => c !== city.value));
-                                    } else {
-                                        setSelectedCities(prev => [...prev, city.value]);
-                                    }
-                                }}
-                                className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${isSelected
-                                    ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-200'
-                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                    }`}
-                            >
-                                {city.label}
-                            </button>
-                        );
-                    })}
-                </div>
+                {!(role === 'student' || role === 'intern') && (
+                    <div className="flex gap-2">
+                        {CITY_OPTIONS.map((city) => {
+                            const isSelected = selectedCities.includes(city.value);
+                            return (
+                                <button
+                                    key={city.value}
+                                    onClick={() => {
+                                        if (isSelected) {
+                                            setSelectedCities(prev => prev.filter(c => c !== city.value));
+                                        } else {
+                                            setSelectedCities(prev => [...prev, city.value]);
+                                        }
+                                    }}
+                                    className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${isSelected
+                                        ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-200'
+                                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                        }`}
+                                >
+                                    {city.label}
+                                </button>
+                            );
+                        })}
+                    </div>
+                )}
             </div>
 
             {/* Courses Grid */}

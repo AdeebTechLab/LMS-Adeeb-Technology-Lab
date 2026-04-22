@@ -135,9 +135,34 @@ router.get('/', async (req, res) => {
 
         let query = {};
 
-        if (targetAudience) query.targetAudience = targetAudience;
-        if (location) query.location = location;
+        // [USER REQUEST]: Filter by city/location and role for logged-in students/interns
+        // Check for token manually to avoid mandatory 'protect' behavior
+        if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+            try {
+                const token = req.headers.authorization.split(' ')[1];
+                const jwt = require('jsonwebtoken');
+                const decoded = jwt.verify(token, process.env.JWT_SECRET);
+                const User = require('../models/User');
+                const user = await User.findById(decoded.id);
+
+                if (user && (user.role === 'student' || user.role === 'intern')) {
+                    // Enforce location filter if user has one
+                    if (user.location) {
+                        query.location = user.location;
+                    }
+                    // Enforce target audience based on role
+                    query.targetAudience = user.role === 'student' ? 'students' : 'interns';
+                }
+            } catch (err) {
+                // Ignore auth error for public route
+            }
+        }
+
+        // Apply remaining filters if not already set by role-based logic
+        if (targetAudience && !query.targetAudience) query.targetAudience = targetAudience;
+        if (location && !query.location) query.location = location;
         if (city) query.city = city;
+
         if (isActive !== undefined) query.isActive = isActive === 'true';
         if (search) {
             query.$or = [

@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { authAPI } from '../../services/api';
 import ImageCropper from '../../components/ui/ImageCropper';
+import { PAKISTAN_CITIES, COUNTRIES } from '../../utils/locations';
 
 const COURSES = [
     'Trading', 'Taxation', 'Freelancing', 'Video Editing', 'E-Commerce',
@@ -17,7 +18,8 @@ const COURSES = [
     'App Dev Without Coding', 'Web Dev Without Coding', 'Other'
 ];
 
-const CITIES = ['Bahawalpur', 'Islamabad'];
+const ATTEND_CITIES = ['Bahawalpur', 'Islamabad'];
+const CITIES = PAKISTAN_CITIES;
 const HEARD_OPTIONS = [
     'Poster & Panaflex', 'Facebook', 'Instagram', 'WhatsApp', 'Website',
     'YouTube', 'Event / Seminar', 'Friends & Family', 'Twitter', 'LinkedIn', 'Other'
@@ -85,7 +87,6 @@ const StudentRegister = () => {
         age: '',
         gender: '',
         fatherName: '',
-        course: '',
         cityToAttend: '',
         attendClasses: '',
         education: '',
@@ -94,7 +95,9 @@ const StudentRegister = () => {
         guardianOccupation: '',
         address: '',
         city: '',
+        otherCity: '',
         country: '',
+        otherCountry: '',
         pictureUrl: '',
         feeScreenshotUrl: '',
         heardAbout: '',
@@ -151,8 +154,8 @@ const StudentRegister = () => {
     };
 
     const handleCropDone = (croppedFile, croppedDataUrl) => {
-        if (croppedFile.size > 2 * 1024 * 1024) {
-            setErrors(prev => ({ ...prev, photo: 'Cropped image is still over 2MB. Try zooming out.' }));
+        if (croppedFile.size > 1 * 1024 * 1024) {
+            setErrors(prev => ({ ...prev, photo: 'Cropped image is still over 1MB. Try zooming out.' }));
             setCropperSrc(null);
             return;
         }
@@ -186,7 +189,6 @@ const StudentRegister = () => {
         if (!formData.dob) newErrors.dob = 'Date of birth is required';
         if (!formData.age) newErrors.age = 'Age is required';
         if (!formData.gender) newErrors.gender = 'Gender is required';
-        if (!formData.course) newErrors.course = 'Course selection is required';
         if (!formData.cityToAttend) newErrors.cityToAttend = 'City to attend is required';
         if (!formData.attendClasses) newErrors.attendClasses = 'Class type is required';
         if (!formData.education) newErrors.education = 'Education is required';
@@ -233,8 +235,8 @@ const StudentRegister = () => {
             submitData.append('guardianPhone', formData.guardianPhone);
             submitData.append('guardianOccupation', formData.guardianOccupation);
             submitData.append('address', formData.address);
-            submitData.append('city', formData.city);
-            submitData.append('country', formData.country);
+            submitData.append('city', formData.city === 'Other' ? formData.otherCity : formData.city);
+            submitData.append('country', formData.country === 'Other' ? formData.otherCountry : formData.country);
             submitData.append('attendType', formData.attendClasses);
             submitData.append('heardAbout', formData.heardAbout);
             submitData.append('fatherName', formData.fatherName);
@@ -284,69 +286,104 @@ const StudentRegister = () => {
                 </div>
 
                 {/* Content */}
-                <div className="relative z-10 flex flex-col items-center justify-center w-full h-full p-8">
+                <div className="relative z-10 flex flex-col items-center justify-center w-full h-full p-8 lg:p-12">
                     <motion.div
-                        initial={{ opacity: 0, y: -20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.3, duration: 0.5 }}
-                        className="flex flex-col items-center gap-3"
-                    >
-                        <div className="w-20 h-20 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 overflow-hidden shadow-xl">
-                            <img
-                                src="/logo.png"
-                                alt="AdeebTechLab Logo"
-                                className="w-full h-full object-cover"
-                                onError={(e) => {
-                                    e.target.style.display = 'none';
-                                    e.target.nextSibling.style.display = 'block';
-                                }}
-                            />
-                            <GraduationCap className="w-12 h-12 text-white hidden" />
-                        </div>
-                        <h2 className="text-white text-2xl font-bold tracking-tight">AdeebTechLab</h2>
-                    </motion.div>
-
-                    {/* Text Content */}
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.9 }}
+                        initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 0.4, duration: 0.6 }}
-                        className="text-center text-white"
+                        transition={{ delay: 0.2, duration: 0.8 }}
+                        className="w-full max-w-lg bg-white/10 backdrop-blur-xl rounded-[2.5rem] border border-white/20 p-8 lg:p-10 shadow-2xl flex flex-col items-center relative overflow-hidden"
                     >
-                        <h2 className="text-4xl font-bold mb-4">Join as Student</h2>
-                        <p className="text-white/70 text-lg max-w-sm">
-                            Unlock your potential with industry-leading courses and expert guidance
-                        </p>
-                    </motion.div>
+                        {/* Subtle inner glow */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none"></div>
 
-                    {/* Features List */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 30 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.6, duration: 0.5 }}
-                        className="mt-12 space-y-4"
-                    >
-                        {[
-                            'Access premium courses',
-                            'Learn from industry experts',
-                            'Interactive practical exercises',
-                            'Earn verified certificates',
-                        ].map((feature, index) => (
-                            <motion.div
-                                key={feature}
-                                initial={{ opacity: 0, x: -20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 0.7 + index * 0.1 }}
-                                className="flex items-center text-white/80"
-                            >
-                                <div className="w-6 h-6 rounded-full bg-emerald-200/20 flex items-center justify-center mr-3">
-                                    <svg className="w-4 h-4 text-emerald-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                    </svg>
+                        <motion.div
+                            initial={{ opacity: 0, y: -20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.3, duration: 0.5 }}
+                            className="flex flex-col items-center gap-3 mb-4"
+                        >
+                            <div className="w-28 h-28 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 overflow-hidden shadow-xl">
+                                <img
+                                    src="/logo.png"
+                                    alt="Adeeb Technology Lab Logo"
+                                    className="w-full h-full object-cover"
+                                    onError={(e) => {
+                                        e.target.style.display = 'none';
+                                        e.target.nextSibling.style.display = 'block';
+                                    }}
+                                />
+                                <GraduationCap className="w-16 h-16 text-white hidden" />
+                            </div>
+                            <h2 className="text-white text-2xl font-bold tracking-tight">LMS Adeeb Technology Lab</h2>
+                        </motion.div>
+
+                        {/* Detailed Information - Scrollable Area */}
+                        <div
+                            className="w-full overflow-y-auto pr-2 custom-scrollbar text-left"
+                            style={{ maxHeight: '55vh' }}
+                        >
+                            <div className="space-y-6 text-white/90 pb-4">
+                                {/* Announcements */}
+                                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/10">
+                                    <h3 className="text-lg font-bold mb-2 flex items-center gap-2">
+                                        <span className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></span>
+                                        Announcements
+                                    </h3>
+                                    <p className="text-sm leading-relaxed">
+                                        Empowering Pakistan through digital learning and professional training.
+                                    </p>
                                 </div>
-                                {feature}
-                            </motion.div>
-                        ))}
+
+                                {/* Admission Info */}
+                                <div className="space-y-4">
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="bg-white/5 p-3 rounded-lg border border-white/5">
+                                            <p className="text-xs text-white/60">Status</p>
+                                            <p className="font-bold text-emerald-400">Open</p>
+                                        </div>
+                                        <div className="bg-white/5 p-3 rounded-lg border border-white/5">
+                                            <p className="text-xs text-white/60">Last Date</p>
+                                            <p className="font-bold">Always Open</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* What We Offer */}
+                                <div>
+                                    <h4 className="font-bold mb-3 border-l-4 border-yellow-400 pl-3">What We Offer</h4>
+                                    <ul className="space-y-2 text-sm">
+                                        <li className="flex items-center gap-2">✅ Practical Learning</li>
+                                        <li className="flex items-center gap-2">✅ Daily Expert Classes</li>
+                                        <li className="flex items-center gap-2">✅ Real Market Skills</li>
+                                        <li className="flex items-center gap-2">✅ Recognized Certificates</li>
+                                    </ul>
+                                </div>
+
+                                {/* Courses Offered */}
+                                <div>
+                                    <h4 className="font-bold mb-3 border-l-4 border-yellow-400 pl-3">Courses Offered</h4>
+                                    <div className="grid grid-cols-1 gap-2 text-sm">
+                                        <div className="p-2 bg-white/5 rounded">💻 Web Development (React, JS)</div>
+                                        <div className="p-2 bg-white/5 rounded">🎨 Graphic Designing (PS, AI)</div>
+                                        <div className="p-2 bg-white/5 rounded">📱 App Development (Flutter)</div>
+                                        <div className="p-2 bg-white/5 rounded">📊 Digital Marketing & SEO</div>
+                                        <div className="p-2 bg-white/5 rounded">🧠 Computer Basics & Office</div>
+                                        <div className="p-2 bg-white/5 rounded">🧾 Freelancing & E-Commerce</div>
+                                    </div>
+                                </div>
+
+                                {/* Program Benefits */}
+                                <div>
+                                    <h4 className="font-bold mb-3 border-l-4 border-yellow-400 pl-3">Program Benefits</h4>
+                                    <ul className="space-y-2 text-sm">
+                                        <li className="flex items-center gap-2">✅ Learn with Professionals</li>
+                                        <li className="flex items-center gap-2">✅ Hands-On Project Work</li>
+                                        <li className="flex items-center gap-2">✅ Career & Portfolio Support</li>
+                                        <li className="flex items-center gap-2">✅ Online Resources Access</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
                     </motion.div>
                 </div>
             </motion.div>
@@ -436,8 +473,7 @@ const StudentRegister = () => {
                         {/* Course & Attendance */}
                         <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-2 border-b">Course Details</h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
-                            <SelectField label="Course *" name="course" options={COURSES} placeholder="Select Course" value={formData.course} onChange={handleChange} error={errors.course} />
-                            <SelectField label="City to Attend Classes *" name="cityToAttend" options={CITIES} placeholder="Select City" value={formData.cityToAttend} onChange={handleChange} error={errors.cityToAttend} />
+                             <SelectField label="City to Attend Classes *" name="cityToAttend" options={ATTEND_CITIES} placeholder="Select City" value={formData.cityToAttend} onChange={handleChange} error={errors.cityToAttend} />
                             <SelectField label="Attend Classes *" name="attendClasses" options={['Online', 'Physical']} placeholder="Select Type" value={formData.attendClasses} onChange={handleChange} error={errors.attendClasses} />
                             <InputField label="Education *" name="education" icon={BookOpen} placeholder="Your highest education" value={formData.education} onChange={handleChange} error={errors.education} />
                         </div>
@@ -453,6 +489,16 @@ const StudentRegister = () => {
                         {/* Address */}
                         <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-2 border-b">Address</h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
+                            <SelectField label="City *" name="city" options={PAKISTAN_CITIES} placeholder="Select City" value={formData.city} onChange={handleChange} error={errors.city} />
+                            {formData.city === 'Other' && (
+                                <InputField label="Specify City *" name="otherCity" placeholder="Enter your city" value={formData.otherCity} onChange={handleChange} error={errors.otherCity} />
+                            )}
+                            
+                            <SelectField label="Country *" name="country" options={COUNTRIES} placeholder="Select Country" value={formData.country} onChange={handleChange} error={errors.country} />
+                            {formData.country === 'Other' && (
+                                <InputField label="Specify Country *" name="otherCountry" placeholder="Enter your country" value={formData.otherCountry} onChange={handleChange} error={errors.otherCountry} />
+                            )}
+
                             <div className="md:col-span-2">
                                 <label className="block text-sm font-medium text-gray-700 mb-1.5">Address *</label>
                                 <textarea
@@ -466,8 +512,6 @@ const StudentRegister = () => {
                                 />
                                 {errors.address && <p className="mt-1 text-sm text-red-500">{errors.address}</p>}
                             </div>
-                            <InputField label="City *" name="city" icon={MapPin} placeholder="Your city" value={formData.city} onChange={handleChange} error={errors.city} />
-                            <InputField label="Country *" name="country" placeholder="Your country" value={formData.country} onChange={handleChange} error={errors.country} />
                         </div>
 
 

@@ -7,8 +7,9 @@ import {
 } from 'lucide-react';
 import { authAPI } from '../../services/api';
 import ImageCropper from '../../components/ui/ImageCropper';
+import { PAKISTAN_CITIES, COUNTRIES } from '../../utils/locations';
 
-const CITIES = ['Bahawalpur', 'Islamabad'];
+const CITIES = PAKISTAN_CITIES;
 const QUALIFICATIONS = [
     'Bachelor\'s Degree',
     'Master\'s Degree',
@@ -35,6 +36,9 @@ const TeacherRegister = () => {
         specialization: '',
         experience: '',
         location: '',
+        otherCity: '',
+        country: '',
+        otherCountry: '',
         fatherName: '',
         dob: '',
         age: '',
@@ -121,7 +125,11 @@ const TeacherRegister = () => {
         }
 
         if (!formData.location) {
-            newErrors.location = 'Please select a location';
+            newErrors.location = 'Please select a city';
+        }
+
+        if (!formData.country) {
+            newErrors.country = 'Please select a country';
         }
 
         if (!formData.agreeTerms) {
@@ -165,8 +173,8 @@ const TeacherRegister = () => {
     };
 
     const handleCropDone = (croppedFile, croppedDataUrl) => {
-        if (croppedFile.size > 2 * 1024 * 1024) {
-            setErrors(prev => ({ ...prev, photo: 'Cropped image is still over 2MB. Try zooming out.' }));
+        if (croppedFile.size > 1 * 1024 * 1024) {
+            setErrors(prev => ({ ...prev, photo: 'Cropped image is still over 1MB. Try zooming out.' }));
             setCropperSrc(null);
             return;
         }
@@ -194,7 +202,8 @@ const TeacherRegister = () => {
             submitData.append('qualification', formData.qualification);
             submitData.append('specialization', formData.specialization);
             submitData.append('experience', formData.experience);
-            submitData.append('location', formData.location.toLowerCase());
+            submitData.append('location', formData.location === 'Other' ? formData.otherCity : formData.location);
+            submitData.append('country', formData.country === 'Other' ? formData.otherCountry : formData.country);
             submitData.append('fatherName', formData.fatherName);
             submitData.append('dob', formData.dob);
             submitData.append('age', formData.age);
@@ -246,69 +255,82 @@ const TeacherRegister = () => {
                 </div>
 
                 {/* Content */}
-                <div className="relative z-10 flex flex-col items-center justify-center w-full h-full p-8">
+                <div className="relative z-10 flex flex-col items-center justify-center w-full h-full p-8 lg:p-12">
                     <motion.div
-                        initial={{ opacity: 0, y: -20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.3, duration: 0.5 }}
-                        className="flex flex-col items-center gap-3"
-                    >
-                        <div className="w-20 h-20 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 overflow-hidden shadow-xl">
-                            <img
-                                src="/logo.png"
-                                alt="AdeebTechLab Logo"
-                                className="w-full h-full object-cover"
-                                onError={(e) => {
-                                    e.target.style.display = 'none';
-                                    e.target.nextSibling.style.display = 'block';
-                                }}
-                            />
-                            <GraduationCap className="w-12 h-12 text-white hidden" />
-                        </div>
-                        <h2 className="text-white text-2xl font-bold tracking-tight">AdeebTechLab</h2>
-                    </motion.div>
-
-                    {/* Text Content */}
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.9 }}
+                        initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 0.4, duration: 0.6 }}
-                        className="text-center text-white"
+                        transition={{ delay: 0.2, duration: 0.8 }}
+                        className="w-full max-w-lg bg-white/10 backdrop-blur-xl rounded-[2.5rem] border border-white/20 p-8 lg:p-10 shadow-2xl flex flex-col items-center relative overflow-hidden"
                     >
-                        <h2 className="text-4xl font-bold mb-4">Join as Teacher</h2>
-                        <p className="text-white/70 text-lg max-w-sm">
-                            Share your knowledge and expertise with students worldwide
-                        </p>
-                    </motion.div>
+                        {/* Subtle inner glow */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none"></div>
 
-                    {/* Features List */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 30 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.6, duration: 0.5 }}
-                        className="mt-12 space-y-4"
-                    >
-                        {[
-                            'Create and manage courses',
-                            'Track student progress',
-                            'Grade assignments easily',
-                            'Connect with learners',
-                        ].map((feature, index) => (
-                            <motion.div
-                                key={feature}
-                                initial={{ opacity: 0, x: -20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 0.7 + index * 0.1 }}
-                                className="flex items-center text-white/80"
-                            >
-                                <div className="w-6 h-6 rounded-full bg-orange-200/20 flex items-center justify-center mr-3">
-                                    <svg className="w-4 h-4 text-orange-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                    </svg>
+                        <motion.div
+                            initial={{ opacity: 0, y: -20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.3, duration: 0.5 }}
+                            className="flex flex-col items-center gap-3 mb-4"
+                        >
+                            <div className="w-28 h-28 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 overflow-hidden shadow-xl">
+                                <img
+                                    src="/logo.png"
+                                    alt="Adeeb Technology Lab Logo"
+                                    className="w-full h-full object-cover"
+                                    onError={(e) => {
+                                        e.target.style.display = 'none';
+                                        e.target.nextSibling.style.display = 'block';
+                                    }}
+                                />
+                                <GraduationCap className="w-16 h-16 text-white hidden" />
+                            </div>
+                            <h2 className="text-white text-2xl font-bold tracking-tight">LMS Adeeb Technology Lab</h2>
+                        </motion.div>
+
+                        {/* Detailed Information - Scrollable Area */}
+                        <div
+                            className="w-full overflow-y-auto pr-2 custom-scrollbar text-left"
+                            style={{ maxHeight: '55vh' }}
+                        >
+                            <div className="space-y-6 text-white/90 pb-4">
+                                {/* Status Banner */}
+                                <div className="bg-red-500/20 backdrop-blur-sm rounded-xl p-4 border border-red-500/30">
+                                    <div className="flex justify-between items-center mb-2">
+                                        <h3 className="text-lg font-bold">Jobs Application Form</h3>
+                                        <span className="px-2 py-1 bg-red-500 text-white text-xs font-bold rounded">Closed</span>
+                                    </div>
+                                    <p className="text-sm font-semibold text-red-400">Hiring is closed Now!</p>
+                                    <p className="text-xs mt-1 text-white/60">Last Date To Apply: 22/04/2026</p>
                                 </div>
-                                {feature}
-                            </motion.div>
-                        ))}
+
+                                <div className="bg-orange-500/20 p-3 rounded-lg border border-orange-500/30">
+                                    <p className="text-sm font-semibold">Type: On-Site / Remote</p>
+                                </div>
+
+                                {/* Why Join? */}
+                                <div>
+                                    <h4 className="font-bold mb-3 border-l-4 border-yellow-400 pl-3 uppercase text-xs tracking-widest text-orange-400">Why Join Our Team?</h4>
+                                    <ul className="space-y-2 text-sm">
+                                        <li className="flex items-center gap-2">✅ Teach in Professional Environment</li>
+                                        <li className="flex items-center gap-2">✅ Get Paid for Each Course</li>
+                                        <li className="flex items-center gap-2">✅ Build Career with Adeeb Tech Lab</li>
+                                        <li className="flex items-center gap-2">✅ Teach Online or On-Site</li>
+                                    </ul>
+                                </div>
+
+                                {/* Teaching Fields */}
+                                <div>
+                                    <h4 className="font-bold mb-3 border-l-4 border-yellow-400 pl-3 uppercase text-xs tracking-widest text-orange-400">Teaching Fields Available</h4>
+                                    <div className="grid grid-cols-1 gap-2 text-sm">
+                                        <div className="p-2 bg-white/5 rounded">💻 Web Development</div>
+                                        <div className="p-2 bg-white/5 rounded">🧠 Artificial Intelligence</div>
+                                        <div className="p-2 bg-white/5 rounded">📊 Digital Marketing</div>
+                                        <div className="p-2 bg-white/5 rounded">🎨 Graphic Design</div>
+                                        <div className="p-2 bg-white/5 rounded">💬 IELTS & Communication</div>
+                                        <div className="p-2 bg-white/5 rounded">🧾 Taxation & E-Commerce</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </motion.div>
                 </div>
             </motion.div>
@@ -593,14 +615,61 @@ const TeacherRegister = () => {
                                         onChange={handleChange}
                                         className={`w-full px-4 py-3 pl-11 border ${errors.location ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all bg-gray-50/50 appearance-none cursor-pointer`}
                                     >
-                                        <option value="">Select Location</option>
-                                        {CITIES.map(city => <option key={city} value={city}>{city}</option>)}
+                                        <option value="">Select City</option>
+                                        {PAKISTAN_CITIES.map(city => <option key={city} value={city}>{city}</option>)}
                                     </select>
                                     <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                                     <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
                                 </div>
                                 {errors.location && <p className="mt-1 text-sm text-red-500">{errors.location}</p>}
+                                
+                                {formData.location === 'Other' && (
+                                    <div className="mt-2">
+                                        <input
+                                            type="text"
+                                            name="otherCity"
+                                            value={formData.otherCity}
+                                            onChange={handleChange}
+                                            placeholder="Specify your city"
+                                            className={`w-full px-4 py-3 pl-11 border ${errors.otherCity ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all bg-gray-50/50`}
+                                        />
+                                        <MapPin className="absolute left-4 translate-y-[-2.5rem] w-5 h-5 text-gray-400" />
+                                    </div>
+                                )}
                             </div>
+                        </div>
+
+                        {/* Country */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1.5">Country *</label>
+                            <div className="relative">
+                                <select
+                                    name="country"
+                                    value={formData.country}
+                                    onChange={handleChange}
+                                    className={`w-full px-4 py-3 pl-11 border ${errors.country ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all bg-gray-50/50 appearance-none cursor-pointer`}
+                                >
+                                    <option value="">Select Country</option>
+                                    {COUNTRIES.map(country => <option key={country} value={country}>{country}</option>)}
+                                </select>
+                                <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+                            </div>
+                            {errors.country && <p className="mt-1 text-sm text-red-500">{errors.country}</p>}
+                            
+                            {formData.country === 'Other' && (
+                                <div className="mt-2 relative">
+                                    <input
+                                        type="text"
+                                        name="otherCountry"
+                                        value={formData.otherCountry}
+                                        onChange={handleChange}
+                                        placeholder="Specify your country"
+                                        className={`w-full px-4 py-3 pl-11 border ${errors.otherCountry ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all bg-gray-50/50`}
+                                    />
+                                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                </div>
+                            )}
                         </div>
 
                         {/* Password */}

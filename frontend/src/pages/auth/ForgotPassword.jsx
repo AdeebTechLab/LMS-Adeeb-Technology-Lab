@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Mail, ArrowLeft, Loader2, CheckCircle, AlertCircle, GraduationCap } from 'lucide-react';
 import { authAPI } from '../../services/api';
+import WhatsAppWidget from '../../components/shared/WhatsAppWidget';
 
 const ForgotPassword = () => {
     const [email, setEmail] = useState('');
@@ -39,7 +40,7 @@ const ForgotPassword = () => {
                         <div className="w-20 h-20 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 overflow-hidden mb-4">
                             <img
                                 src="/logo.png"
-                                alt="AdeebTechLab Logo"
+                                alt="Adeeb Technology Lab Logo"
                                 className="w-full h-full object-cover"
                                 onError={(e) => {
                                     e.target.style.display = 'none';
@@ -48,7 +49,7 @@ const ForgotPassword = () => {
                             />
                             <AlertCircle className="w-10 h-10 text-white hidden" />
                         </div>
-                        <h2 className="text-white text-2xl font-bold tracking-tight">AdeebTechLab</h2>
+                        <h2 className="text-white text-2xl font-bold tracking-tight">Adeeb Technology Lab</h2>
                     </div>
 
                     <h1 className="text-3xl font-bold text-white mb-2">Forgot Password</h1>
@@ -139,8 +140,10 @@ const ForgotPassword = () => {
                     </p>
                 </div>
             </div>
+            <WhatsAppWidget />
         </div>
     );
 };
 
 export default ForgotPassword;
+

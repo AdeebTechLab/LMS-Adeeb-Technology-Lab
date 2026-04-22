@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { Eye, EyeOff, Mail, Lock, ArrowLeft, Loader2, GraduationCap } from 'lucide-react';
 import { loginStart, loginSuccess, loginFailure } from '../../features/auth/authSlice';
 import { authAPI } from '../../services/api';
+import WhatsAppWidget from '../../components/shared/WhatsAppWidget';
 
 const Login = () => {
     const navigate = useNavigate();
@@ -383,8 +384,10 @@ const Login = () => {
                     </form>
                 </div>
             </motion.div>
+            <WhatsAppWidget />
         </div>
     );
 };
 
 export default Login;
+

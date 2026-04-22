@@ -227,12 +227,12 @@ const StudentsManagement = () => {
         }
 
         const doc = new jsPDF('l', 'mm', 'a4'); // Use landscape for wide tables
-        const title = type === 'phone' ? 'AdeebTechLab - Students Phone Directory' :
-            type === 'email' ? 'AdeebTechLab - Students Email List' :
-                type === 'guardian' ? 'AdeebTechLab - Students Guardian Information' :
-                    type === 'academic' ? 'AdeebTechLab - Students Academic Records' :
-                        type === 'address' ? 'AdeebTechLab - Students Address List' :
-                            'AdeebTechLab - Students Complete Report';
+        const title = type === 'phone' ? 'Adeeb Technology Lab - Students Phone Directory' :
+            type === 'email' ? 'Adeeb Technology Lab - Students Email List' :
+                type === 'guardian' ? 'Adeeb Technology Lab - Students Guardian Information' :
+                    type === 'academic' ? 'Adeeb Technology Lab - Students Academic Records' :
+                        type === 'address' ? 'Adeeb Technology Lab - Students Address List' :
+                            'Adeeb Technology Lab - Students Complete Report';
 
         doc.setFontSize(20);
         doc.text(title, 14, 22);

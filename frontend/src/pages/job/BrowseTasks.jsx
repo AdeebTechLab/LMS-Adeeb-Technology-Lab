@@ -385,24 +385,6 @@ const BrowseTasks = () => {
                                 )}
                             </div>
 
-                            {activeTab === 'showcase' && task.feedback && task.feedback.length > 0 && (
-                                <div className="mb-4 space-y-3 bg-indigo-50/50 p-4 rounded-xl border border-indigo-100">
-                                    <p className="text-xs font-bold text-indigo-700 uppercase tracking-widest">Jobber Feedback</p>
-                                    {task.feedback.map((f, i) => (
-                                        <div key={i} className="border-t border-indigo-100 pt-2 first:border-0 first:pt-0">
-                                            <div className="flex items-center justify-between mb-1">
-                                                <span className="text-sm font-semibold text-indigo-900">{f.user?.name || 'Anonymous'}</span>
-                                                <div className="flex text-amber-500 text-xs">
-                                                    {[...Array(5)].map((_, i) => (
-                                                        <span key={i}>{i < f.rating ? '★' : '☆'}</span>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                            <p className="text-sm text-indigo-800 italic">"{f.text}"</p>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
 
                             <div className="flex flex-wrap gap-1 mb-4">
                                 {(task.skills || '').split(',').map((skill, i) => (
@@ -486,16 +468,31 @@ const BrowseTasks = () => {
                                         )}
                                     </div>
                                 )}
-                                {activeTab === 'showcase' && (
-                                    <div className="mt-2 pt-2 border-t border-gray-50 flex items-center justify-between overflow-hidden">
-                                        <span className="text-xs text-gray-400">Completed By:</span>
-                                        <div className="flex -space-x-2">
-                                            {(task.assignedTo || []).map((u, i) => (
-                                                <div key={i} title={u.name} className="w-7 h-7 rounded-full border-2 border-white bg-purple-100 flex items-center justify-center text-[10px] font-bold text-purple-600">
-                                                    {u.photo ? <img src={u.photo} alt="" className="w-full h-full rounded-full object-cover" /> : u.name?.charAt(0)}
+                                {activeTab === 'showcase' && task.feedback && task.feedback.length > 0 && (
+                                    <div className="mt-4 space-y-3 bg-indigo-50/50 p-4 rounded-xl border border-indigo-100">
+                                        <p className="text-xs font-bold text-indigo-700 uppercase tracking-widest">Jobber Feedback</p>
+                                        {task.feedback.map((f, i) => (
+                                            <div key={i} className="border-t border-indigo-100 pt-2 first:border-0 first:pt-0">
+                                                <div className="flex items-center justify-between mb-1">
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center overflow-hidden border border-indigo-200 shadow-sm">
+                                                            {f.user?.photo ? (
+                                                                <img src={f.user.photo} alt={f.user.name} className="w-full h-full object-cover" />
+                                                            ) : (
+                                                                <span className="text-xs font-bold text-indigo-600">{(f.user?.name || 'A').charAt(0)}</span>
+                                                            )}
+                                                        </div>
+                                                        <span className="text-sm font-semibold text-indigo-900">{f.user?.name || 'Anonymous'}</span>
+                                                    </div>
+                                                    <div className="flex text-amber-500 text-[10px]">
+                                                        {[...Array(5)].map((_, i) => (
+                                                            <span key={i}>{i < f.rating ? '★' : '☆'}</span>
+                                                        ))}
+                                                    </div>
                                                 </div>
-                                            ))}
-                                        </div>
+                                                <p className="text-sm text-indigo-800 italic">"{f.text}"</p>
+                                            </div>
+                                        ))}
                                     </div>
                                 )}
                             </div>

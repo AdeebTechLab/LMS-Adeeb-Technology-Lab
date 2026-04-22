@@ -140,12 +140,22 @@ const ImageCropper = ({ imageSrc, onCrop, onCancel, accentColor = 'emerald' }) =
         ctx.drawImage(img, srcX, srcY, srcW, srcH, 0, 0, outputSize, outputSize);
         ctx.restore();
 
-        cropCanvas.toBlob((blob) => {
-            if (!blob) return;
-            const file = new File([blob], 'profile_photo.jpg', { type: 'image/jpeg' });
-            const dataUrl = cropCanvas.toDataURL('image/jpeg', 0.92);
-            onCrop(file, dataUrl);
-        }, 'image/jpeg', 0.92);
+        const processBlob = (quality) => {
+            cropCanvas.toBlob((blob) => {
+                if (!blob) return;
+                
+                // If blob is > 1MB and quality is still high, try again with lower quality
+                if (blob.size > 1 * 1024 * 1024 && quality > 0.1) {
+                    processBlob(quality - 0.1);
+                } else {
+                    const file = new File([blob], 'profile_photo.jpg', { type: 'image/jpeg' });
+                    const dataUrl = cropCanvas.toDataURL('image/jpeg', quality);
+                    onCrop(file, dataUrl);
+                }
+            }, 'image/jpeg', quality);
+        };
+
+        processBlob(0.92);
     };
 
     const handleReset = () => {
@@ -194,7 +204,7 @@ const ImageCropper = ({ imageSrc, onCrop, onCancel, accentColor = 'emerald' }) =
                     <ZoomOut className="w-4 h-4 text-gray-400 flex-shrink-0" />
                     <input
                         type="range"
-                        min="0.5"
+                        min="0.01"
                         max="3"
                         step="0.01"
                         value={zoom}

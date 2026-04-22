@@ -293,7 +293,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                                 <GraduationCap className="w-6 h-6 text-white hidden" />
                             </div>
                             <div>
-                                <h1 className="text-white font-bold text-lg tracking-tight">AdeebTechLab</h1>
+                                <h1 className="text-white font-bold text-lg tracking-tight">Adeeb Technology Lab</h1>
                                 <p className="text-[#ff8e01]/70 text-[10px] font-black uppercase tracking-[0.2em]">{getRoleDisplayName()} Portal</p>
                             </div>
                         </div>

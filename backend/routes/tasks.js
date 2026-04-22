@@ -23,8 +23,9 @@ router.get('/', async (req, res) => {
         }
 
         const tasks = await PaidTask.find(query)
-            .populate('assignedTo', 'name email')
-            .populate('submissions.user', 'name email')
+            .populate('assignedTo', 'name email photo')
+            .populate('submissions.user', 'name email photo')
+            .populate('feedback.user', 'name photo')
             .populate('applicants.user', 'name email phone skills experience portfolio completedTasks rating cvUrl photo education address city cnic')
             .sort('-createdAt');
 
@@ -74,9 +75,9 @@ router.put('/:id', protect, authorize('admin'), uploadSubmission.array('images',
         // We'll trust frontend if it sends an existing array, and concat new ones.
         let existingImages = [];
         if (bodyData.existingImages) {
-             existingImages = Array.isArray(bodyData.existingImages) ? bodyData.existingImages : [bodyData.existingImages];
+            existingImages = Array.isArray(bodyData.existingImages) ? bodyData.existingImages : [bodyData.existingImages];
         }
-        
+
         if (req.files && req.files.length > 0) {
             const newImages = req.files.map(file => file.path);
             bodyData.images = [...existingImages, ...newImages];
@@ -331,8 +332,8 @@ router.put('/:id/admin-complete', protect, authorize('admin'), async (req, res) 
             // Notify users that payment is completed
             const UserNotificationModel = require('../models/UserNotification');
             const io = req.app.get('io');
-            
-            const notificationPromises = task.assignedTo.map(userId => 
+
+            const notificationPromises = task.assignedTo.map(userId =>
                 UserNotificationModel.create({
                     user: userId,
                     title: 'Payment Received!',
@@ -402,7 +403,7 @@ router.post('/:id/feedback', protect, authorize('job'), async (req, res) => {
         const UserModel = require('../models/User');
         const UserNotificationModel = require('../models/UserNotification');
         const admins = await UserModel.find({ role: 'admin' });
-        
+
         const notificationPromises = admins.map(admin =>
             UserNotificationModel.create({
                 user: admin._id,
@@ -494,7 +495,8 @@ router.get('/my', protect, authorize('job'), async (req, res) => {
                 { assignedTo: req.user.id } // auto-checks array
             ]
         })
-            .populate('assignedTo', 'name email')
+            .populate('assignedTo', 'name email photo')
+            .populate('feedback.user', 'name photo')
             .sort('-createdAt');
 
         res.json({ success: true, data: tasks });

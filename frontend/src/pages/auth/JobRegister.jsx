@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { authAPI } from '../../services/api';
 import ImageCropper from '../../components/ui/ImageCropper';
+import { PAKISTAN_CITIES, COUNTRIES } from '../../utils/locations';
 
 const SKILLS = [
     'Trading', 'Taxation', 'Freelancing', 'Video Editing', 'E-Commerce',
@@ -17,7 +18,7 @@ const SKILLS = [
     'App Dev Without Coding', 'Web Dev Without Coding', 'Other'
 ];
 
-const CITIES = ['Bahawalpur', 'Islamabad'];
+const CITIES = PAKISTAN_CITIES;
 const HEARD_OPTIONS = [
     'Poster & Panaflex', 'Facebook', 'Instagram', 'WhatsApp Group', 'Website',
     'YouTube', 'Friends & Family', 'Twitter', 'LinkedIn', 'Other'
@@ -82,6 +83,9 @@ const JobRegister = () => {
         phone: '',
         cnic: '',
         city: '',
+        otherCity: '',
+        country: '',
+        otherCountry: '',
         qualification: '',
         teachingExp: '',
         experienceDetails: '',
@@ -154,8 +158,8 @@ const JobRegister = () => {
     };
 
     const handleCropDone = (croppedFile, croppedDataUrl) => {
-        if (croppedFile.size > 2 * 1024 * 1024) {
-            setErrors(prev => ({ ...prev, photo: 'Cropped image is still over 2MB. Try zooming out.' }));
+        if (croppedFile.size > 1 * 1024 * 1024) {
+            setErrors(prev => ({ ...prev, photo: 'Cropped image is still over 1MB. Try zooming out.' }));
             setCropperSrc(null);
             return;
         }
@@ -175,6 +179,7 @@ const JobRegister = () => {
         if (!formData.cnic) newErrors.cnic = 'CNIC is required';
         if (!formData.dob) newErrors.dob = 'Date of Birth is required';
         if (!formData.city) newErrors.city = 'City is required';
+        if (!formData.country) newErrors.country = 'Country is required';
         if (!formData.qualification) newErrors.qualification = 'Qualification is required';
         if (!formData.teachingExp) newErrors.teachingExp = 'This field is required';
         if (formData.skills.length === 0) newErrors.skills = 'Select at least one skill';
@@ -203,7 +208,8 @@ const JobRegister = () => {
             submitData.append('password', formData.password);
             submitData.append('phone', formData.phone);
             submitData.append('role', 'job');
-            submitData.append('location', formData.preferredCity.toLowerCase());
+            submitData.append('location', formData.city === 'Other' ? formData.otherCity : formData.city);
+            submitData.append('country', formData.country === 'Other' ? formData.otherCountry : formData.country);
             submitData.append('cnic', formData.cnic);
             submitData.append('dob', formData.dob);
             submitData.append('age', formData.age);
@@ -256,69 +262,82 @@ const JobRegister = () => {
                 </div>
 
                 {/* Content */}
-                <div className="relative z-10 flex flex-col items-center justify-center w-full h-full p-8">
+                <div className="relative z-10 flex flex-col items-center justify-center w-full h-full p-8 lg:p-12">
                     <motion.div
-                        initial={{ opacity: 0, y: -20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.3, duration: 0.5 }}
-                        className="flex flex-col items-center gap-3"
-                    >
-                        <div className="w-20 h-20 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 overflow-hidden shadow-xl">
-                            <img
-                                src="/logo.png"
-                                alt="AdeebTechLab Logo"
-                                className="w-full h-full object-cover"
-                                onError={(e) => {
-                                    e.target.style.display = 'none';
-                                    e.target.nextSibling.style.display = 'block';
-                                }}
-                            />
-                            <Briefcase className="w-12 h-12 text-white hidden" />
-                        </div>
-                        <h2 className="text-white text-2xl font-bold tracking-tight">AdeebTechLab</h2>
-                    </motion.div>
-
-                    {/* Text Content */}
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.9 }}
+                        initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 0.4, duration: 0.6 }}
-                        className="text-center text-white"
+                        transition={{ delay: 0.2, duration: 0.8 }}
+                        className="w-full max-w-lg bg-white/10 backdrop-blur-xl rounded-[2.5rem] border border-white/20 p-8 lg:p-10 shadow-2xl flex flex-col items-center relative overflow-hidden"
                     >
-                        <h2 className="text-4xl font-bold mb-4">Join Our Team</h2>
-                        <p className="text-white/70 text-lg max-w-sm">
-                            Build innovative solutions in a dynamic and collaborative environment
-                        </p>
-                    </motion.div>
+                        {/* Subtle inner glow */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none"></div>
 
-                    {/* Features List */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 30 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.6, duration: 0.5 }}
-                        className="mt-12 space-y-4"
-                    >
-                        {[
-                            'Join a talented tech team',
-                            'Flexible work environment',
-                            'Competitive compensation',
-                            'Grow your professional skills',
-                        ].map((feature, index) => (
-                            <motion.div
-                                key={feature}
-                                initial={{ opacity: 0, x: -20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 0.7 + index * 0.1 }}
-                                className="flex items-center text-white/80"
-                            >
-                                <div className="w-6 h-6 rounded-full bg-purple-200/20 flex items-center justify-center mr-3">
-                                    <svg className="w-4 h-4 text-purple-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                    </svg>
+                        <motion.div
+                            initial={{ opacity: 0, y: -20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.3, duration: 0.5 }}
+                            className="flex flex-col items-center gap-3 mb-4"
+                        >
+                            <div className="w-28 h-28 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 overflow-hidden shadow-xl">
+                                <img
+                                    src="/logo.png"
+                                    alt="Adeeb Technology Lab Logo"
+                                    className="w-full h-full object-cover"
+                                    onError={(e) => {
+                                        e.target.style.display = 'none';
+                                        e.target.nextSibling.style.display = 'block';
+                                    }}
+                                />
+                                <Briefcase className="w-16 h-16 text-white hidden" />
+                            </div>
+                            <h2 className="text-white text-2xl font-bold tracking-tight">LMS Adeeb Technology Lab</h2>
+                        </motion.div>
+
+                        {/* Detailed Information - Scrollable Area */}
+                        <div
+                            className="w-full overflow-y-auto pr-2 custom-scrollbar text-left"
+                            style={{ maxHeight: '55vh' }}
+                        >
+                            <div className="space-y-6 text-white/90 pb-4">
+                                {/* Status Banner */}
+                                <div className="bg-emerald-500/20 backdrop-blur-sm rounded-xl p-4 border border-emerald-500/30">
+                                    <div className="flex justify-between items-center mb-2">
+                                        <h3 className="text-lg font-bold">Jobs Application Form</h3>
+                                        <span className="px-2 py-1 bg-emerald-500 text-white text-xs font-bold rounded">Open</span>
+                                    </div>
+                                    <p className="text-sm font-semibold text-emerald-400">Applications are currently open!</p>
+                                    <p className="text-xs mt-1 text-white/60">Last Date To Apply: Always Open</p>
                                 </div>
-                                {feature}
-                            </motion.div>
-                        ))}
+
+                                <div className="bg-fuchsia-500/20 p-3 rounded-lg border border-fuchsia-500/30">
+                                    <p className="text-sm font-semibold">Type: On-Site / Remote</p>
+                                </div>
+
+                                {/* Why Join? */}
+                                <div>
+                                    <h4 className="font-bold mb-3 border-l-4 border-yellow-400 pl-3 uppercase text-xs tracking-widest text-fuchsia-400">Why Join Our Team?</h4>
+                                    <ul className="space-y-2 text-sm">
+                                        <li className="flex items-center gap-2">✅ Teach in Professional Environment</li>
+                                        <li className="flex items-center gap-2">✅ Get Paid for Each Course</li>
+                                        <li className="flex items-center gap-2">✅ Build Career with Adeeb Tech Lab</li>
+                                        <li className="flex items-center gap-2">✅ Teach Online or On-Site</li>
+                                    </ul>
+                                </div>
+
+                                {/* Teaching Fields */}
+                                <div>
+                                    <h4 className="font-bold mb-3 border-l-4 border-yellow-400 pl-3 uppercase text-xs tracking-widest text-fuchsia-400">Teaching Fields Available</h4>
+                                    <div className="grid grid-cols-1 gap-2 text-sm">
+                                        <div className="p-2 bg-white/5 rounded">💻 Web Development</div>
+                                        <div className="p-2 bg-white/5 rounded">🧠 Artificial Intelligence</div>
+                                        <div className="p-2 bg-white/5 rounded">📊 Digital Marketing</div>
+                                        <div className="p-2 bg-white/5 rounded">🎨 Graphic Design</div>
+                                        <div className="p-2 bg-white/5 rounded">💬 IELTS & Communication</div>
+                                        <div className="p-2 bg-white/5 rounded">🧾 Taxation & E-Commerce</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </motion.div>
                 </div>
             </motion.div>
@@ -410,7 +429,15 @@ const JobRegister = () => {
                             <InputField label="CNIC Number *" name="cnic" icon={CreditCard} placeholder="XXXXX-XXXXXXX-X" value={formData.cnic} onChange={handleCNICChange} error={errors.cnic} />
                             <InputField label="Date of Birth *" name="dob" type="date" icon={Calendar} value={formData.dob} onChange={handleChange} error={errors.dob} />
                             <InputField label="Age (Auto) *" name="age" type="number" placeholder="Calculated automatically" value={formData.age} onChange={handleChange} error={errors.age} readOnly />
-                            <InputField label="City *" name="city" icon={MapPin} placeholder="Your city" value={formData.city} onChange={handleChange} error={errors.city} />
+                            <SelectField label="City *" name="city" options={PAKISTAN_CITIES} placeholder="Select City" value={formData.city} onChange={handleChange} error={errors.city} />
+                            {formData.city === 'Other' && (
+                                <InputField label="Specify City *" name="otherCity" placeholder="Enter your city" value={formData.otherCity} onChange={handleChange} error={errors.otherCity} />
+                            )}
+                            
+                            <SelectField label="Country *" name="country" options={COUNTRIES} placeholder="Select Country" value={formData.country} onChange={handleChange} error={errors.country} />
+                            {formData.country === 'Other' && (
+                                <InputField label="Specify Country *" name="otherCountry" placeholder="Enter your country" value={formData.otherCountry} onChange={handleChange} error={errors.otherCountry} />
+                            )}
                         </div>
 
                         {/* Professional Details */}
