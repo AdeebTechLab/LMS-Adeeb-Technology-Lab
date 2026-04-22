@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useSelector } from 'react-redux';
 import { io } from 'socket.io-client';
@@ -29,6 +29,7 @@ import StudentWorkView from './components/StudentWorkView';
 const AttendanceSheet = () => {
     const { id: routeCourseId } = useParams();
     const navigate = useNavigate();
+    const location = useLocation();
     const { user } = useSelector((state) => state.auth);
     const [selectedCourse, setSelectedCourse] = useState(null);
     const [activeTab, setActiveTab] = useState('daily_tasks'); // assignments | daily_tasks | attendance
@@ -163,9 +164,14 @@ const AttendanceSheet = () => {
             const course = myCourses.find(c => c.id.toString() === routeCourseId.toString());
             if (course && (!selectedCourse || selectedCourse.id !== course.id)) {
                 handleSelectCourse(course, true); // true to skip navigation
+                // Check if a specific tab was requested via navigation state
+                const requestedTab = location.state?.tab;
+                if (requestedTab) {
+                    setActiveTab(requestedTab);
+                }
             }
         }
-    }, [routeCourseId, myCourses]);
+    }, [routeCourseId, myCourses, location.state]);
 
     // Effect to apply filters whenever courses or filter states change
     useEffect(() => {
@@ -412,11 +418,9 @@ const AttendanceSheet = () => {
 
     if (isLoading) {
         return (
-            <div className="flex items-center justify-center h-64">
-                <div className="flex flex-col items-center">
-                    <Loader2 className="w-8 h-8 animate-spin text-emerald-600 mb-2" />
-                    <span className="text-gray-600">Loading Dashboard...</span>
-                </div>
+            <div className="flex flex-col items-center justify-center h-64 gap-3">
+                <img src="/loading.gif" alt="Loading" className="w-20 h-20 object-contain" />
+                <span className="text-gray-600 font-medium">Loading courses...</span>
             </div>
         );
     }
@@ -644,7 +648,7 @@ const AttendanceSheet = () => {
                         )}
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {filteredCourses.map((course, index) => {
                             const CourseIcon = getCourseIcon(course.category, course.name);
                             const courseStyle = getCourseStyle(course.category, course.name);
@@ -777,7 +781,7 @@ const AttendanceSheet = () => {
                         href={selectedCourse.bookLink}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-xl shadow-lg shadow-indigo-200 hover:bg-indigo-700 hover:shadow-xl transition-all font-bold text-sm uppercase tracking-wide active:scale-95"
+                        className="flex items-center gap-2 px-5 py-2.5 bg-[#FF832D] text-white rounded-xl shadow-[0_8px_24px_rgba(255,131,45,0.35)] hover:bg-[#e87526] hover:shadow-[0_10px_28px_rgba(255,131,45,0.45)] transition-all font-bold text-sm uppercase tracking-wide active:scale-95"
                     >
                         <BookOpen className="w-5 h-5" />
                         Course Book
@@ -788,11 +792,11 @@ const AttendanceSheet = () => {
             {/* Course Content: Multi-Tab */}
             <div className="space-y-6">
                 {/* Tab Navigation */}
-                <div className="flex gap-2 bg-gray-100/80 p-1.5 rounded-2xl w-fit border border-gray-200">
+                <div className="flex gap-2 bg-gray-100/80 p-1.5 rounded-2xl w-fit border border-[#ff8e01]">
                     <button
                         onClick={() => setActiveTab('daily_tasks')}
                         className={`px-8 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 ${activeTab === 'daily_tasks'
-                            ? 'bg-white text-emerald-600 shadow-sm border border-emerald-100'
+                            ? 'bg-white text-[#ff8e01] shadow-sm border border-[#ff8e01]/30'
                             : 'text-gray-500 hover:bg-gray-200 hover:text-gray-900'
                             }`}
                     >
@@ -802,7 +806,7 @@ const AttendanceSheet = () => {
                     <button
                         onClick={() => setActiveTab('assignments')}
                         className={`px-8 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 ${activeTab === 'assignments'
-                            ? 'bg-white text-emerald-600 shadow-sm border border-emerald-100'
+                            ? 'bg-white text-[#ff8e01] shadow-sm border border-[#ff8e01]/30'
                             : 'text-gray-500 hover:bg-gray-200 hover:text-gray-900'
                             }`}
                     >
@@ -812,7 +816,7 @@ const AttendanceSheet = () => {
                     <button
                         onClick={() => setActiveTab('attendance')}
                         className={`px-8 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 ${activeTab === 'attendance'
-                            ? 'bg-white text-emerald-600 shadow-sm border border-emerald-100'
+                            ? 'bg-white text-[#ff8e01] shadow-sm border border-[#ff8e01]/30'
                             : 'text-gray-500 hover:bg-gray-200 hover:text-gray-900'
                             }`}
                     >
@@ -822,7 +826,7 @@ const AttendanceSheet = () => {
                     <button
                         onClick={() => setActiveTab('students')}
                         className={`px-8 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 ${activeTab === 'students'
-                            ? 'bg-white text-emerald-600 shadow-sm border border-emerald-100'
+                            ? 'bg-white text-[#ff8e01] shadow-sm border border-[#ff8e01]/30'
                             : 'text-gray-500 hover:bg-gray-200 hover:text-gray-900'
                             }`}
                     >
@@ -832,7 +836,7 @@ const AttendanceSheet = () => {
                     <button
                         onClick={() => setActiveTab('chat')}
                         className={`px-8 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 relative ${activeTab === 'chat'
-                            ? 'bg-white text-emerald-600 shadow-sm border border-emerald-100'
+                            ? 'bg-white text-[#ff8e01] shadow-sm border border-[#ff8e01]/30'
                             : 'text-gray-500 hover:bg-gray-200 hover:text-gray-900'
                             }`}
                     >
@@ -847,7 +851,7 @@ const AttendanceSheet = () => {
                 </div>
 
                 {/* Tab Content */}
-                <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-xl shadow-gray-200/50 min-h-[500px]">
+                <div className="bg-white rounded-3xl p-8 border border-[#ff8e01]/20 shadow-xl shadow-gray-200/50 min-h-[500px]">
                     {activeTab === 'daily_tasks' && (
                         <DailyTasksTab course={selectedCourse} students={courseStudents} />
                     )}

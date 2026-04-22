@@ -204,8 +204,9 @@ const TeacherChatTab = ({ course, students, onUnreadCountChange }) => {
 
     if (isLoading) {
         return (
-            <div className="flex justify-center py-12">
-                <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
+            <div className="flex flex-col items-center justify-center py-12 gap-3">
+                <img src="/loading.gif" alt="Loading" className="w-16 h-16 object-contain" />
+                <span className="text-gray-600 font-medium">Loading chat...</span>
             </div>
         );
     }

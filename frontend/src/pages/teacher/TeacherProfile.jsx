@@ -38,6 +38,7 @@ const TeacherProfile = () => {
     const [isSaving, setIsSaving] = useState(false);
     const [myCourses, setMyCourses] = useState([]);
     const [totalStudents, setTotalStudents] = useState(0);
+    const [isLoading, setIsLoading] = useState(true);
 
     const [profileData, setProfileData] = useState({
         fullName: user?.name || '',
@@ -57,8 +58,12 @@ const TeacherProfile = () => {
     const [editForm, setEditForm] = useState({ ...profileData });
 
     useEffect(() => {
-        fetchMyCourses();
-        fetchSettings();
+        const init = async () => {
+            setIsLoading(true);
+            await Promise.all([fetchMyCourses(), fetchSettings()]);
+            setIsLoading(false);
+        };
+        init();
     }, []);
 
     const [allowBioEditing, setAllowBioEditing] = useState(true);
@@ -144,6 +149,15 @@ const TeacherProfile = () => {
         { label: 'Active Students', value: totalStudents.toString(), icon: User, color: 'bg-emerald-100 text-emerald-600' },
         { label: 'Classes This Month', value: '0', icon: GraduationCap, color: 'bg-purple-100 text-purple-600' },
     ];
+
+    if (isLoading) {
+        return (
+            <div className="flex flex-col items-center justify-center h-64 gap-3">
+                <img src="/loading.gif" alt="Loading" className="w-20 h-20 object-contain" />
+                <span className="text-gray-600 font-medium">Loading profile...</span>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-6">
@@ -234,7 +248,7 @@ const TeacherProfile = () => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.1 }}
-                        className="bg-white rounded-xl p-6 border border-gray-100"
+                        className="bg-white rounded-xl p-6 border border-[#ff8e01]/20 shadow-sm"
                     >
                         <div className="flex items-center justify-between">
                             <div>
@@ -255,7 +269,7 @@ const TeacherProfile = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
-                    className="bg-white rounded-2xl p-6 border border-gray-100"
+                    className="bg-white rounded-2xl p-6 border border-[#ff8e01]/20 shadow-sm"
                 >
                     <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
                         <User className="w-5 h-5 text-orange-600" />
@@ -283,7 +297,7 @@ const TeacherProfile = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 }}
-                    className="bg-white rounded-2xl p-6 border border-gray-100"
+                    className="bg-white rounded-2xl p-6 border border-[#ff8e01]/20 shadow-sm"
                 >
                     <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
                         <BookOpen className="w-5 h-5 text-orange-600" />

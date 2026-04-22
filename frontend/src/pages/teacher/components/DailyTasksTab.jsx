@@ -92,6 +92,15 @@ const DailyTasksTab = ({ course, students = [] }) => {
         return matchesSearch;
     });
 
+    if (isLoading && tasks.length === 0) {
+        return (
+            <div className="flex flex-col items-center justify-center py-20 gap-3">
+                <img src="/loading.gif" alt="Loading" className="w-16 h-16 object-contain" />
+                <span className="text-gray-500 font-medium">Loading submissions...</span>
+            </div>
+        );
+    }
+
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">

@@ -93,10 +93,16 @@ const AssignmentSubmission = () => {
 
     useEffect(() => {
         // Restore tab and selected course from location state or localStorage
-        const savedTab = location.state?.tab || localStorage.getItem('submission_activeTab');
-        const savedCourse = location.state?.courseId || localStorage.getItem('submission_selectedCourse');
-        if (savedTab) setActiveTab(savedTab);
-        if (savedCourse) setSelectedCourseId(savedCourse);
+        const stateTab = location.state?.tab;
+        const stateCourse = location.state?.courseId;
+        const savedTab = localStorage.getItem('submission_activeTab');
+        const savedCourse = localStorage.getItem('submission_selectedCourse');
+        
+        if (stateTab) setActiveTab(stateTab);
+        else if (savedTab) setActiveTab(savedTab);
+        
+        if (stateCourse) setSelectedCourseId(stateCourse);
+        else if (savedCourse) setSelectedCourseId(savedCourse);
     }, [location.state]);
 
     useEffect(() => {
@@ -384,6 +390,18 @@ const AssignmentSubmission = () => {
             setIsLoading(false);
         }
     };
+
+    // Auto-select specific assignment if passed in state
+    useEffect(() => {
+        if (location.state?.assignmentId && assignments.length > 0) {
+            const assignment = assignments.find(a => String(a._id || a.id) === String(location.state.assignmentId));
+            if (assignment) {
+                setSelectedAssignment(assignment);
+                // Also ensure we are on the assignments tab
+                if (activeTab !== 'assignments') setActiveTab('assignments');
+            }
+        }
+    }, [assignments, location.state?.assignmentId]);
 
     const handleCourseSelect = (courseId) => {
         const enroll = enrollments.find(e => (e.course?._id || e.course) === courseId);

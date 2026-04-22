@@ -397,7 +397,7 @@ const TeacherDashboard = () => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.3 }}
-                        className="lg:col-span-2 bg-white rounded-2xl p-6 border border-gray-100 overflow-visible"
+                        className="lg:col-span-2 bg-white rounded-2xl p-6 border border-[#ff8e01]/20 shadow-sm overflow-visible"
                     >
                         <div className="flex items-center justify-between mb-6">
                             <div>
@@ -420,7 +420,7 @@ const TeacherDashboard = () => {
                                         initial={{ opacity: 0, x: -20 }}
                                         animate={{ opacity: 1, x: 0 }}
                                         transition={{ delay: 0.4 + index * 0.1 }}
-                                        className="p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors cursor-pointer border border-gray-100 relative"
+                                        className="p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors cursor-pointer border border-[#ff8e01]/10 hover:border-[#ff8e01]/30 relative"
                                     >
                                         {/* Pending (ungraded) Submission Count Badge */}
                                         {course.assignmentStats?.pendingGrading > 0 && (
@@ -497,7 +497,7 @@ const TeacherDashboard = () => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.4 }}
-                        className="bg-white rounded-2xl p-6 border border-gray-100"
+                        className="bg-white rounded-2xl p-6 border border-[#ff8e01]/20 shadow-sm"
                     >
                         <div className="flex items-center justify-between mb-6">
                             <div>
@@ -514,7 +514,7 @@ const TeacherDashboard = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.5 }}
-                    className="bg-white rounded-2xl p-6 border border-gray-100"
+                    className="bg-white rounded-2xl p-6 border border-[#ff8e01]/20 shadow-sm"
                 >
                     <h3 className="text-lg font-bold text-gray-900 mb-4">Quick Actions</h3>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -793,8 +793,8 @@ const TeacherDashboard = () => {
                                     <div className="grid grid-cols-3 gap-2">
                                         {[
                                             { value: 'all', label: 'All' },
-                                            { value: 'student', label: 'Students Only' },
-                                            { value: 'intern', label: 'Interns Only' }
+                                            { value: 'student', label: 'Students' },
+                                            { value: 'intern', label: 'Interns' }
                                         ].map((opt) => (
                                             <button
                                                 key={opt.value}

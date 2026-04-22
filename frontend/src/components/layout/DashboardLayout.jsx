@@ -10,13 +10,17 @@ import {
     Sun,
     Moon,
     RefreshCw,
+    User,
+    Settings,
+    LifeBuoy
 } from 'lucide-react';
 import Sidebar from './Sidebar';
 import NotificationPopup from '../shared/NotificationPopup';
 import ChatWidget from '../shared/ChatWidget';
-import { userNotificationAPI } from '../../services/api';
+import { userNotificationAPI, assignmentAPI, courseAPI } from '../../services/api';
 import useAutoLogout from '../../hooks/useAutoLogout';
 import { useTheme } from '../../context/ThemeContext';
+import { ClipboardList, AlertCircle } from 'lucide-react';
 
 const DashboardLayout = () => {
     // Enable auto-logout
@@ -31,13 +35,72 @@ const DashboardLayout = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const { isDark, toggleTheme } = useTheme();
+    const [pendingTasks, setPendingTasks] = useState([]);
 
-    // Fetch notifications
+    // Fetch notifications and tasks
     useEffect(() => {
         fetchNotifications();
-        const interval = setInterval(fetchNotifications, 30000); // Poll every 30 seconds
+        fetchPendingTasks();
+        const interval = setInterval(() => {
+            fetchNotifications();
+            fetchPendingTasks();
+        }, 30000); // Poll every 30 seconds
         return () => clearInterval(interval);
-    }, []);
+    }, [role, user]);
+
+    const fetchPendingTasks = async () => {
+        if (!user) return;
+        try {
+            const tasks = [];
+            if (role === 'teacher') {
+                const res = await courseAPI.getTeacherDashboard();
+                const courses = res.data.data || [];
+                for (const course of courses) {
+                    if (course.pendingAssignments > 0) {
+                        const assignRes = await assignmentAPI.getByCourse(course._id);
+                        const assignments = assignRes.data.assignments || [];
+                        assignments.forEach(a => {
+                            const ungradedCount = (a.submissions || []).filter(s => s.marks === undefined || s.marks === null).length;
+                            if (ungradedCount > 0) {
+                                tasks.push({
+                                    _id: `task-${a._id}`,
+                                    title: `${course.name} - ${a.title}`,
+                                    message: `${ungradedCount} submission(s) pending grading`,
+                                    date: a.dueDate,
+                                    type: 'task',
+                                    path: `/teacher/course/${course._id}`,
+                                    courseId: course._id,
+                                    assignmentId: a._id
+                                });
+                            }
+                        });
+                    }
+                }
+            } else if (role === 'student' || role === 'intern') {
+                const res = await assignmentAPI.getMy();
+                const assignments = res.data.assignments || [];
+                const myId = (user.id || user._id).toString();
+                assignments.forEach(a => {
+                    const mySub = a.submissions?.find(s => (s.user?._id || s.user || s.student?._id || s.student) === myId);
+                    if (!mySub) {
+                        tasks.push({
+                            _id: `task-${a._id}`,
+                            title: a.title,
+                            message: `Pending submission`,
+                            date: a.dueDate,
+                            type: 'task',
+                            path: `/${role}/assignments`,
+                            courseId: a.course?._id || a.course,
+                            assignmentId: a._id
+                        });
+                    }
+                });
+            }
+            setPendingTasks(tasks);
+        } catch (error) {
+            console.error('Error fetching pending tasks:', error);
+        }
+    };
 
     const fetchNotifications = async () => {
         try {
@@ -215,12 +278,13 @@ const DashboardLayout = () => {
                             <div className="relative">
                                 <button
                                     onClick={() => setShowNotifications(!showNotifications)}
-                                    className={`relative p-2.5 rounded-xl transition-colors ${isDark ? 'hover:bg-white/10 text-white/70' : 'hover:bg-gray-100 text-gray-600'}`}
+                                    className={`relative p-2.5 rounded-xl transition-all flex items-center gap-2 ${isDark ? 'hover:bg-white/10 text-white/70' : 'hover:bg-gray-100 text-gray-600'}`}
                                 >
                                     <Bell className="w-5 h-5" />
-                                    {unreadCount > 0 && (
-                                        <span className="absolute top-1.5 right-1.5 w-5 h-5 bg-[#ff8e01] text-white text-xs rounded-full flex items-center justify-center font-medium">
-                                            {unreadCount}
+                                    <span className="hidden md:inline text-sm font-semibold">Notifications</span>
+                                    {unreadCount + pendingTasks.length > 0 && (
+                                        <span className="absolute -top-1 -right-1 md:top-1.5 md:right-1.5 w-5 h-5 bg-[#ff8e01] text-white text-xs rounded-full flex items-center justify-center font-medium shadow-sm">
+                                            {unreadCount + pendingTasks.length}
                                         </span>
                                     )}
                                 </button>
@@ -245,7 +309,42 @@ const DashboardLayout = () => {
                                             </div>
                                         </div>
                                         <div className="max-h-80 overflow-y-auto">
-                                            {notifications.length === 0 ? (
+                                            {/* Actionable Tasks */}
+                                            {pendingTasks.map((task) => (
+                                                <div
+                                                    key={task._id}
+                                                    onClick={() => {
+                                                        navigate(task.path, { 
+                                                            state: { 
+                                                                tab: 'assignments', 
+                                                                assignmentId: task.assignmentId,
+                                                                courseId: task.courseId 
+                                                            } 
+                                                        });
+                                                        setShowNotifications(false);
+                                                    }}
+                                                    className={`p-4 border-b cursor-pointer transition-colors ${isDark
+                                                        ? 'border-white/5 hover:bg-[#ff8e01]/10 bg-[#ff8e01]/5'
+                                                        : 'border-gray-50 hover:bg-[#ff8e01]/5 bg-[#ff8e01]/[0.02]'
+                                                    }`}
+                                                >
+                                                    <div className="flex items-start gap-3">
+                                                        <div className="p-2 bg-[#ff8e01]/10 rounded-lg shrink-0">
+                                                            <ClipboardList className="w-4 h-4 text-[#ff8e01]" />
+                                                        </div>
+                                                        <div className="flex-1">
+                                                            <p className={`text-sm font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                                                                {task.title}
+                                                            </p>
+                                                            <p className={`text-[10px] mt-1 font-bold uppercase tracking-wider ${isDark ? 'text-[#ff8e01]/70' : 'text-[#ff8e01]'}`}>
+                                                                {new Date(task.date).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+
+                                            {notifications.length === 0 && pendingTasks.length === 0 ? (
                                                 <div className={`p-8 text-center ${isDark ? 'text-white/40' : 'text-gray-500'}`}>
                                                     <Bell className="w-12 h-12 mx-auto mb-2 opacity-30" />
                                                     <p className="text-sm">No notifications</p>
@@ -295,8 +394,12 @@ const DashboardLayout = () => {
                                     onClick={() => setShowUserMenu(!showUserMenu)}
                                     className={`flex items-center gap-3 p-1.5 rounded-xl transition-colors ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`}
                                 >
-                                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#ff8e01] to-[#ffab40] flex items-center justify-center text-white font-semibold text-sm">
-                                        {user?.name?.charAt(0) || 'U'}
+                                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#ff8e01] to-[#ffab40] flex items-center justify-center text-white font-semibold text-sm overflow-hidden border border-white/20">
+                                        {user?.photo ? (
+                                            <img src={user.photo} alt={user.name} className="w-full h-full object-cover" />
+                                        ) : (
+                                            user?.name?.charAt(0) || 'U'
+                                        )}
                                     </div>
                                     <div className="hidden md:block text-left">
                                         <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
@@ -314,16 +417,49 @@ const DashboardLayout = () => {
                                         animate={{ opacity: 1, y: 0 }}
                                         className={`absolute right-0 mt-2 w-56 rounded-2xl shadow-xl border overflow-hidden z-50 transition-colors duration-200 ${isDark ? 'bg-[#1a1f2e] border-white/10' : 'bg-white border-gray-100'}`}
                                     >
-                                        <div className={`p-4 border-b ${isDark ? 'border-white/10' : 'border-gray-100'}`}>
-                                            <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{user?.name}</p>
-                                            <p className={`text-sm ${isDark ? 'text-white/40' : 'text-gray-500'}`}>{user?.email}</p>
+                                        <div className={`p-4 border-b flex items-center gap-3 ${isDark ? 'border-white/10' : 'border-gray-100'}`}>
+                                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#ff8e01] to-[#ffab40] flex items-center justify-center text-white font-bold overflow-hidden">
+                                                {user?.photo ? (
+                                                    <img src={user.photo} alt={user.name} className="w-full h-full object-cover" />
+                                                ) : (
+                                                    user?.name?.charAt(0) || 'U'
+                                                )}
+                                            </div>
+                                            <div className="min-w-0">
+                                                <p className={`font-medium truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>{user?.name}</p>
+                                                <p className={`text-xs truncate ${isDark ? 'text-white/40' : 'text-gray-500'}`}>{user?.email}</p>
+                                            </div>
                                         </div>
                                         <div className="p-2">
-                                            <button className={`w-full flex items-center gap-3 px-3 py-2 text-sm rounded-lg ${isDark ? 'text-white/60 hover:bg-white/5 hover:text-white' : 'text-gray-600 hover:bg-gray-50'}`}>
-                                                Profile Settings
+                                            <button 
+                                                onClick={() => {
+                                                    navigate(`/${role}/profile`);
+                                                    setShowUserMenu(false);
+                                                }}
+                                                className={`w-full flex items-center gap-3 px-3 py-2 text-sm rounded-lg ${isDark ? 'text-white/60 hover:bg-white/5 hover:text-white' : 'text-gray-600 hover:bg-gray-50'}`}
+                                            >
+                                                <User className="w-4 h-4" />
+                                                Profile
                                             </button>
-                                            <button className={`w-full flex items-center gap-3 px-3 py-2 text-sm rounded-lg ${isDark ? 'text-white/60 hover:bg-white/5 hover:text-white' : 'text-gray-600 hover:bg-gray-50'}`}>
-                                                Help &amp; Support
+                                            <button 
+                                                onClick={() => {
+                                                    navigate(`/${role}/settings`);
+                                                    setShowUserMenu(false);
+                                                }}
+                                                className={`w-full flex items-center gap-3 px-3 py-2 text-sm rounded-lg ${isDark ? 'text-white/60 hover:bg-white/5 hover:text-white' : 'text-gray-600 hover:bg-gray-50'}`}
+                                            >
+                                                <Settings className="w-4 h-4" />
+                                                Settings
+                                            </button>
+                                            <button 
+                                                onClick={() => {
+                                                    window.dispatchEvent(new CustomEvent('openChatWidget', { detail: { open: true } }));
+                                                    setShowUserMenu(false);
+                                                }}
+                                                className={`w-full flex items-center gap-3 px-3 py-2 text-sm rounded-lg ${isDark ? 'text-white/60 hover:bg-white/5 hover:text-white' : 'text-gray-600 hover:bg-gray-50'}`}
+                                            >
+                                                <LifeBuoy className="w-4 h-4" />
+                                                Help & Support
                                             </button>
                                         </div>
                                     </motion.div>
@@ -334,7 +470,7 @@ const DashboardLayout = () => {
                 </header>
 
                 {/* Page Content */}
-                <main className={`flex-1 p-6 overflow-y-auto transition-colors duration-300 ${isDark ? 'bg-[#0f1117]' : 'bg-[#F8FAFC]'}`}>
+                <main className={`flex-1 p-6 overflow-y-auto overflow-x-hidden transition-colors duration-300 ${isDark ? 'bg-[#0f1117]' : 'bg-[#F8FAFC]'}`}>
                     <motion.div
                         key={location.pathname}
                         initial={{ opacity: 0, y: 20 }}

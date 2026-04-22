@@ -15,7 +15,7 @@ import { getCourseIcon, getCourseStyle } from '../../utils/courseIcons';
 
 
 
-const TeacherCourses = () => {
+const TeacherCourses = ({ isDashboard = false }) => {
     const navigate = useNavigate();
     const { user } = useSelector((state) => state.auth);
     const [isLoading, setIsLoading] = useState(true);
@@ -161,6 +161,14 @@ const TeacherCourses = () => {
 
             // Calculate overall summary
             const uniqueStudentIds = new Set();
+            
+            // If in Dashboard mode, filter to only show courses with pending tasks
+            const displayCourses = isDashboard 
+                ? coursesWithData.filter(c => (c.pendingAssignments || 0) > 0)
+                : coursesWithData;
+
+            // Stats should always reflect ALL courses for accuracy, or just current view? 
+            // User said "Total Courses" etc. so we keep the calculation on coursesWithData
             coursesWithData.forEach(c => {
                 (c.enrollments || []).forEach(e => {
                     const uid = e.user?._id || e.student?._id || e.user || e.student;
@@ -187,6 +195,9 @@ const TeacherCourses = () => {
                 todayPresent,
                 todayAbsent,
             });
+
+            // Set the filtered courses to state
+            setMyCourses(displayCourses);
         } catch (error) {
             console.error('Error fetching courses:', error);
         } finally {
@@ -201,9 +212,9 @@ const TeacherCourses = () => {
 
     if (isLoading) {
         return (
-            <div className="flex items-center justify-center h-64">
-                <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
-                <span className="ml-2 text-gray-600">Loading courses...</span>
+            <div className="flex flex-col items-center justify-center h-64 gap-3">
+                <img src="/loading.gif" alt="Loading" className="w-20 h-20 object-contain" />
+                <span className="text-gray-600 font-medium">Loading Dashboard...</span>
             </div>
         );
     }
@@ -213,8 +224,12 @@ const TeacherCourses = () => {
             <div className="space-y-6">
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900">Teacher Dashboard</h1>
-                        <p className="text-gray-500">Overview of your courses and student activity</p>
+                        <h1 className="text-2xl font-bold text-gray-900">{isDashboard ? 'Pending Tasks Dashboard' : 'My Courses'}</h1>
+                        <p className="text-gray-500">
+                            {isDashboard 
+                                ? 'Showing courses that require grading attention' 
+                                : 'Overview of all your assigned courses'}
+                        </p>
                     </div>
                     <button
                         onClick={() => setShowLiveClassModal(true)}
@@ -274,7 +289,7 @@ const TeacherCourses = () => {
                 )}
 
                 {/* Summary Stats */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6 gap-4">
                     <StatCard
                         title="Total Courses"
                         value={summaryStats.totalCourses}
@@ -396,7 +411,7 @@ const TeacherCourses = () => {
                         )}
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-3 pr-3">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-3 pr-3">
                         {filteredCourses.map((course, index) => {
                             const CourseIcon = getCourseIcon(course.category, course.name);
                             const courseStyle = getCourseStyle(course.category, course.name);
@@ -408,7 +423,7 @@ const TeacherCourses = () => {
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: index * 0.1 }}
                                     onClick={() => handleSelectCourse(course)}
-                                    className="bg-white rounded-3xl p-6 border border-gray-100 cursor-pointer hover:shadow-xl hover:border-emerald-200 transition-all group relative"
+                                    className="bg-white rounded-3xl p-6 border border-[#ff8e01]/20 cursor-pointer hover:shadow-xl hover:border-[#ff8e01]/50 transition-all group relative"
                                 >
                                     {/* Pending (ungraded) Submission Count Badge */}
                                     {course.pendingAssignments > 0 && (
@@ -596,8 +611,8 @@ const TeacherCourses = () => {
                                     <div className="grid grid-cols-3 gap-2">
                                         {[
                                             { value: 'all', label: 'All' },
-                                            { value: 'student', label: 'Students Only' },
-                                            { value: 'intern', label: 'Interns Only' }
+                                            { value: 'student', label: 'Students' },
+                                            { value: 'intern', label: 'Interns' }
                                         ].map((opt) => (
                                             <button
                                                 key={opt.value}

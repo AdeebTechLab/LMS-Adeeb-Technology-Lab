@@ -156,7 +156,7 @@ const AppRoutes = () => {
         element={<ProtectedRoute allowedRoles={['teacher']}><DashboardLayout /></ProtectedRoute>}
       >
         <Route index element={<Navigate to="dashboard" replace />} />
-        <Route path="dashboard" element={<TeacherCourses />} />
+        <Route path="dashboard" element={<TeacherCourses isDashboard={true} />} />
         <Route path="profile" element={<TeacherProfile />} />
         <Route path="attendance" element={<AttendanceSheet />} />
         <Route path="course/:id" element={<AttendanceSheet />} />

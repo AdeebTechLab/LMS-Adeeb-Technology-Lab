@@ -160,9 +160,9 @@ const GradingSystem = () => {
 
     if (isLoading) {
         return (
-            <div className="flex items-center justify-center h-64">
-                <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
-                <span className="ml-2 text-gray-600">Loading submissions...</span>
+            <div className="flex flex-col items-center justify-center h-64 gap-3">
+                <img src="/loading.gif" alt="Loading" className="w-20 h-20 object-contain" />
+                <span className="text-gray-600 font-medium">Loading submissions...</span>
             </div>
         );
     }
@@ -178,7 +178,7 @@ const GradingSystem = () => {
             </div>
 
             {/* Filters */}
-            <div className="bg-white rounded-2xl p-4 border border-gray-100">
+            <div className="bg-white rounded-2xl p-4 border border-[#ff8e01]/20 shadow-sm">
                 <div className="flex flex-col md:flex-row md:items-center gap-4">
                     <div className="flex-1 flex items-center bg-gray-50 rounded-xl px-4 py-3">
                         <Search className="w-5 h-5 text-gray-400 mr-3" />
@@ -223,7 +223,7 @@ const GradingSystem = () => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.1 }}
-                        className="bg-white rounded-2xl p-6 border border-gray-100"
+                        className="bg-white rounded-2xl p-6 border border-[#ff8e01]/20 shadow-sm"
                     >
                         <div className="flex flex-col lg:flex-row lg:items-center gap-6">
                             {/* Student Info */}

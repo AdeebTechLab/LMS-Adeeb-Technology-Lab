@@ -31,9 +31,9 @@ const StudentsTab = ({ course }) => {
 
     if (isLoading) {
         return (
-            <div className="flex items-center justify-center py-20">
-                <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
-                <span className="ml-3 text-gray-500 font-medium">Loading students...</span>
+            <div className="flex flex-col items-center justify-center py-20 gap-3">
+                <img src="/loading.gif" alt="Loading" className="w-16 h-16 object-contain" />
+                <span className="text-gray-500 font-medium">Loading students...</span>
             </div>
         );
     }

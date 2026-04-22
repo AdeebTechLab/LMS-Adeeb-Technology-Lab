@@ -197,7 +197,7 @@ const StudentWorkView = ({ student, onBack }) => {
             <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-xl shadow-gray-200/50 min-h-[400px]">
                 {isLoading ? (
                     <div className="flex flex-col items-center justify-center py-24 gap-3">
-                        <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
+                        <img src="/loading.gif" alt="Loading" className="w-16 h-16 object-contain" />
                         <span className="text-gray-500 font-medium">Loading student work...</span>
                     </div>
                 ) : (
