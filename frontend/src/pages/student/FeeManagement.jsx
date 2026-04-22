@@ -25,6 +25,7 @@ const FeeManagement = () => {
     const [error, setError] = useState('');
     const [showSlipError, setShowSlipError] = useState(false);
     const [qrPreview, setQrPreview] = useState({ open: false, src: '', title: '' });
+    const [previewUrl, setPreviewUrl] = useState(null);
 
     const navigate = useNavigate();
     const QR_LINKS = {
@@ -121,6 +122,7 @@ const FeeManagement = () => {
                 return;
             }
             setUploadedFile(file);
+            setPreviewUrl(URL.createObjectURL(file));
         }
     };
 
@@ -145,6 +147,7 @@ const FeeManagement = () => {
             await feeAPI.pay(selectedFee._id, formData);
             setIsUploadModalOpen(false);
             setUploadedFile(null);
+            setPreviewUrl(null);
             setSlipId('');
             setSelectedFee(null);
             setSelectedInstallment(null);
@@ -390,8 +393,8 @@ const FeeManagement = () => {
                             </div>
                             <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest bg-emerald-50 px-2 py-1 rounded-md">Bank Transfer</span>
                         </div>
-                        <div className="flex gap-4 items-start">
-                            <div className="space-y-3 flex-1">
+                        <div className="flex gap-4 items-center justify-between">
+                            <div className="space-y-3 flex-1 min-w-0">
                                 <div>
                                     <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Bank Name</p>
                                     <p className="font-bold text-gray-900">HBL</p>
@@ -436,8 +439,8 @@ const FeeManagement = () => {
                             </div>
                             <span className="text-[10px] font-black text-orange-600 uppercase tracking-widest bg-orange-50 px-2 py-1 rounded-md">Mobile Wallet</span>
                         </div>
-                        <div className="flex gap-4 items-start">
-                            <div className="space-y-3 flex-1">
+                        <div className="flex gap-4 items-center justify-between">
+                            <div className="space-y-3 flex-1 min-w-0">
                                 <div>
                                     <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Provider</p>
                                     <p className="font-bold text-orange-600 text-lg">JAZZCASH</p>
@@ -482,8 +485,8 @@ const FeeManagement = () => {
                             </div>
                             <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest bg-emerald-50 px-2 py-1 rounded-md">Mobile Wallet</span>
                         </div>
-                        <div className="flex gap-4 items-start">
-                            <div className="space-y-3 flex-1">
+                        <div className="flex gap-4 items-center justify-between">
+                            <div className="space-y-3 flex-1 min-w-0">
                                 <div>
                                     <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Provider</p>
                                     <p className="font-bold text-emerald-500 text-lg">EASYPAISA</p>
@@ -559,7 +562,12 @@ const FeeManagement = () => {
             )}
 
             {/* Upload Modal */}
-            <Modal isOpen={isUploadModalOpen} onClose={() => { setIsUploadModalOpen(false); setUploadedFile(null); setSlipId(''); }} title="Upload Payment Receipt" size="md">
+            <Modal isOpen={isUploadModalOpen} onClose={() => { 
+                setIsUploadModalOpen(false); 
+                setUploadedFile(null); 
+                setPreviewUrl(null);
+                setSlipId(''); 
+            }} title="Upload Payment Receipt" size="md" noScroll={true}>
                 {selectedFee && selectedInstallment && (
                     <div className="space-y-6">
                         <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
@@ -595,14 +603,28 @@ const FeeManagement = () => {
                         <div className="border-2 border-dashed border-gray-200 rounded-xl p-8 text-center hover:border-emerald-400 transition-colors group cursor-pointer relative">
                             {uploadedFile ? (
                                 <div className="space-y-3">
-                                    <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center mx-auto text-emerald-600">
-                                        <FileImage className="w-6 h-6" />
-                                    </div>
+                                    {previewUrl ? (
+                                        <div className="relative w-full max-h-48 rounded-lg overflow-hidden border border-gray-100 mb-3 group/preview">
+                                            <img src={previewUrl} alt="Preview" className="w-full h-full object-contain bg-gray-50" />
+                                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/preview:opacity-100 transition-opacity flex items-center justify-center">
+                                                <button 
+                                                    onClick={(e) => { e.stopPropagation(); setUploadedFile(null); setPreviewUrl(null); }}
+                                                    className="bg-white p-2 rounded-full text-red-500 shadow-lg hover:scale-110 transition-transform"
+                                                >
+                                                    <Trash2 className="w-5 h-5" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center mx-auto text-emerald-600">
+                                            <FileImage className="w-6 h-6" />
+                                        </div>
+                                    )}
                                     <div>
                                         <p className="font-medium text-gray-900">{uploadedFile.name}</p>
                                         <p className="text-sm text-gray-500">{(uploadedFile.size / 1024 / 1024).toFixed(2)} MB</p>
                                     </div>
-                                    <button onClick={(e) => { e.stopPropagation(); setUploadedFile(null); }} className="text-sm text-red-500 hover:text-red-700 font-medium underline">
+                                    <button onClick={(e) => { e.stopPropagation(); setUploadedFile(null); setPreviewUrl(null); }} className="text-sm text-red-500 hover:text-red-700 font-medium underline">
                                         Remove file
                                     </button>
                                 </div>
@@ -620,12 +642,12 @@ const FeeManagement = () => {
                         </div>
 
                         <div className="flex gap-3 pt-2">
-                            <button onClick={() => { setIsUploadModalOpen(false); setUploadedFile(null); setSlipId(''); }} className="flex-1 py-3 text-gray-600 font-medium hover:bg-gray-100 rounded-xl transition-colors">
+                            <button onClick={() => { setIsUploadModalOpen(false); setUploadedFile(null); setPreviewUrl(null); setSlipId(''); }} className="flex-1 py-3 text-gray-600 font-medium hover:bg-gray-100 rounded-xl transition-colors">
                                 Cancel
                             </button>
                             <button
                                 onClick={handleSubmitPayment}
-                                disabled={!uploadedFile || !slipId || isSubmitting}
+                                disabled={!uploadedFile || isSubmitting}
                                 className="flex-1 py-3 bg-[#0f2847] hover:bg-[#0545a7] text-white font-medium rounded-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-900/10"
                             >
                                 {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Submit Payment'}

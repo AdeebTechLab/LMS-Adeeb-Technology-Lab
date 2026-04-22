@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { FileText, Plus, Calendar, MoreHorizontal, Users, Loader2, CheckCircle, Clock, X, Upload, Edit2, Search, ChevronDown, Check } from 'lucide-react';
+import { FileText, Plus, Calendar, MoreHorizontal, Users, RefreshCw, Loader2, CheckCircle, Clock, X, Upload, Edit2, Search, ChevronDown, Check } from 'lucide-react';
 import api, { assignmentAPI } from '../../../services/api';
 import Modal from '../../../components/ui/Modal';
 import Badge from '../../../components/ui/Badge';
@@ -24,6 +24,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
         title: '',
         description: '',
         dueDate: '',
+        publishDate: '', // Scheduling time
         totalMarks: 100,
         assignTo: 'all', // all | selected
         assignedUsers: [] // Array of student IDs
@@ -69,6 +70,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                 title: '',
                 description: '',
                 dueDate: '',
+                publishDate: '',
                 totalMarks: 100,
                 assignTo: 'all',
                 assignedUsers: []
@@ -85,7 +87,8 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
     const handleEditAssignment = (assignment) => {
         setEditingAssignment({
             ...assignment,
-            dueDate: assignment.dueDate ? new Date(assignment.dueDate).toISOString().split('T')[0] : ''
+            dueDate: assignment.dueDate ? new Date(assignment.dueDate).toISOString().split('T')[0] : '',
+            publishDate: assignment.publishDate ? new Date(assignment.publishDate).toISOString().slice(0, 16) : ''
         });
         setIsEditModalOpen(true);
     };
@@ -217,25 +220,35 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <h3 className="font-bold text-gray-900 text-lg">Assignments</h3>
-                <button
-                    onClick={() => {
-                        // Reset form state when opening modal to prevent focus issues
-                        setNewAssignment({
-                            title: '',
-                            description: '',
-                            dueDate: '',
-                            totalMarks: 100,
-                            assignTo: 'all',
-                            assignedUsers: []
-                        });
-                        setAssignSearchTerm('');
-                        setIsCreateModalOpen(true);
-                    }}
-                    className="px-4 py-2 bg-[#0f2847] hover:bg-[#0545a7] text-white rounded-xl font-medium transition-all flex items-center gap-2"
-                >
-                    <Plus className="w-4 h-4" />
-                    Create Assignment
-                </button>
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={fetchAssignments}
+                        className="flex items-center gap-2 px-3 py-1.5 hover:bg-gray-100 rounded-lg text-gray-500 transition-all active:scale-95"
+                    >
+                        <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+                        <span className="text-xs font-bold uppercase tracking-wider">Refresh</span>
+                    </button>
+                    <button
+                        onClick={() => {
+                            // Reset form state when opening modal to prevent focus issues
+                            setNewAssignment({
+                                title: '',
+                                description: '',
+                                dueDate: '',
+                                publishDate: '',
+                                totalMarks: 100,
+                                assignTo: 'all',
+                                assignedUsers: []
+                            });
+                            setAssignSearchTerm('');
+                            setIsCreateModalOpen(true);
+                        }}
+                        className="px-4 py-2 bg-[#0f2847] hover:bg-[#0545a7] text-white rounded-xl font-medium transition-all flex items-center gap-2"
+                    >
+                        <Plus className="w-4 h-4" />
+                        Create Assignment
+                    </button>
+                </div>
             </div>
 
             {/* Student Filter - Improved Design */}
@@ -360,7 +373,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                 )}
             </div>
 
-            {isLoading ? (
+            {isLoading && assignments.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 gap-3">
                     <img src="/loading.gif" alt="Loading" className="w-16 h-16 object-contain" />
                     <span className="text-gray-500 font-medium">Loading assignments...</span>
@@ -380,6 +393,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                             const gradedCount = assignment.submissions?.filter(s => s.marks !== undefined && s.marks !== null).length || 0;
                             const isFullyGraded = submissionCount > 0 && gradedCount === submissionCount;
                             const isOverdue = new Date(assignment.dueDate) < new Date();
+                            const isScheduled = new Date(assignment.publishDate) > new Date();
 
                             return (
                                 <motion.div
@@ -395,6 +409,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                                 <h4 className="font-bold text-gray-900 text-lg uppercase tracking-tight">{assignment.title}</h4>
                                                 <div className="flex gap-2">
                                                     <Badge variant="info">ASSIGNED</Badge>
+                                                    {isScheduled && <Badge variant="warning">SCHEDULED</Badge>}
                                                     {isOverdue && <Badge variant="error font-black uppercase">Expired</Badge>}
                                                     {isFullyGraded && <Badge variant="success">ALL GRADED</Badge>}
                                                 </div>
@@ -507,6 +522,19 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                 required
                             />
                         </div>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Publish At (Schedule) - Optional
+                        </label>
+                        <input
+                            type="datetime-local"
+                            value={newAssignment.publishDate}
+                            onChange={(e) => setNewAssignment({ ...newAssignment, publishDate: e.target.value })}
+                            className="w-full px-4 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20"
+                        />
+                        <p className="text-[10px] text-gray-400 mt-1 uppercase font-bold tracking-tighter italic">Leave empty to publish immediately</p>
                     </div>
 
                     {/* Assign To Section */}
@@ -700,6 +728,19 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                     required
                                 />
                             </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Publish At (Schedule) - Optional
+                            </label>
+                            <input
+                                type="datetime-local"
+                                value={editingAssignment.publishDate}
+                                onChange={(e) => setEditingAssignment({ ...editingAssignment, publishDate: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20"
+                            />
+                            <p className="text-[10px] text-gray-400 mt-1 uppercase font-bold tracking-tighter italic">Leave empty to publish immediately</p>
                         </div>
 
                         <div className="flex justify-end gap-3 pt-4">

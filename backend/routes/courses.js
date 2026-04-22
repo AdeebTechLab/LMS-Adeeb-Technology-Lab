@@ -310,4 +310,49 @@ router.put('/:courseId/resume-teacher/:teacherId', protect, authorize('admin'), 
     }
 });
 
+// @route   POST /api/courses/:id/view
+// @desc    Increment course view count
+// @access  Public
+router.post('/:id/view', async (req, res) => {
+    try {
+        const course = await Course.findByIdAndUpdate(
+            req.params.id,
+            { $inc: { views: 1 } },
+            { new: true }
+        );
+        if (!course) return res.status(404).json({ success: false, message: 'Course not found' });
+        res.json({ success: true, views: course.views });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// @route   POST /api/courses/:id/like
+// @desc    Toggle course like
+// @access  Private
+router.post('/:id/like', protect, async (req, res) => {
+    try {
+        const course = await Course.findById(req.params.id);
+        if (!course) return res.status(404).json({ success: false, message: 'Course not found' });
+
+        const userId = req.user._id;
+        const alreadyLiked = course.likedBy.includes(userId);
+
+        if (alreadyLiked) {
+            // Unlike
+            course.likedBy = course.likedBy.filter(id => id.toString() !== userId.toString());
+            course.likes = Math.max(0, course.likes - 1);
+        } else {
+            // Like
+            course.likedBy.push(userId);
+            course.likes += 1;
+        }
+
+        await course.save();
+        res.json({ success: true, likes: course.likes, isLiked: !alreadyLiked });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
 module.exports = router;

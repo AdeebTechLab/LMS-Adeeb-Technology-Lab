@@ -111,6 +111,15 @@ const AdminDailyTasks = () => {
                     <h1 className="text-2xl font-bold text-gray-900">Student Daily Tasks</h1>
                     <p className="text-gray-500">Monitor, edit, and manage daily submissions</p>
                 </div>
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={() => selectedCourse && fetchTasks(selectedCourse)}
+                        className="flex items-center gap-2 px-3 py-1.5 hover:bg-gray-100 rounded-lg text-gray-500 transition-all active:scale-95"
+                    >
+                        <Loader2 className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+                        <span className="text-xs font-bold uppercase tracking-wider">Refresh</span>
+                    </button>
+                </div>
             </div>
 
             <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col md:flex-row gap-4">
@@ -142,13 +151,13 @@ const AdminDailyTasks = () => {
                 </div>
             </div>
 
-            {isLoading && (
+            {isLoading && tasks.length === 0 && (
                 <div className="flex items-center justify-center py-20">
                     <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
                 </div>
             )}
 
-            {!isLoading && (
+            {(!isLoading || tasks.length > 0) && (
                 <div className="space-y-4">
                     {filteredTasks.map((task) => (
                         <motion.div

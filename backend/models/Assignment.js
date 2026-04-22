@@ -55,6 +55,10 @@ const assignmentSchema = new mongoose.Schema({
         ref: 'User'
     }],
     submissions: [submissionSchema],
+    publishDate: {
+        type: Date,
+        default: Date.now
+    },
     createdBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'

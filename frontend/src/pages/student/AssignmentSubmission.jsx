@@ -821,7 +821,7 @@ const AssignmentSubmission = () => {
                                                                         </div>
                                                                     )}
 
-                                                                    {(canSubmit || assignment.status === 'rejected') && (
+                                                                    {(canSubmit || assignment.status === 'rejected') && selectedAssignment?.id !== assignment.id && (
                                                                         <button
                                                                             onClick={() => {
                                                                                 setSelectedAssignment(assignment);

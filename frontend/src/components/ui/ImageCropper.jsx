@@ -54,27 +54,24 @@ const ImageCropper = ({ imageSrc, onCrop, onCancel, accentColor = 'emerald' }) =
 
         ctx.drawImage(img, x, y, iw, ih);
 
-        // Draw overlay (dark mask outside crop circle)
-        const cx = CANVAS_SIZE / 2;
-        const cy = CANVAS_SIZE / 2;
-        const r = CROP_SIZE / 2;
+        // Draw overlay (dark mask outside crop square)
+        const cropLeft = (CANVAS_SIZE - CROP_SIZE) / 2;
+        const cropTop = (CANVAS_SIZE - CROP_SIZE) / 2;
 
         ctx.save();
         ctx.fillStyle = 'rgba(0,0,0,0.55)';
         ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
         ctx.globalCompositeOperation = 'destination-out';
         ctx.beginPath();
-        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.rect(cropLeft, cropTop, CROP_SIZE, CROP_SIZE);
         ctx.fill();
         ctx.restore();
 
-        // Draw circle border
+        // Draw square border
         ctx.save();
         ctx.strokeStyle = 'rgba(255,255,255,0.9)';
         ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.arc(cx, cy, r, 0, Math.PI * 2);
-        ctx.stroke();
+        ctx.strokeRect(cropLeft, cropTop, CROP_SIZE, CROP_SIZE);
         ctx.restore();
     }, [zoom, offset, imgLoaded]);
 
@@ -132,13 +129,8 @@ const ImageCropper = ({ imageSrc, onCrop, onCancel, accentColor = 'emerald' }) =
         const srcW = CROP_SIZE / scale;
         const srcH = CROP_SIZE / scale;
 
-        // Draw cropped circle
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(outputSize / 2, outputSize / 2, outputSize / 2, 0, Math.PI * 2);
-        ctx.clip();
+        // Draw cropped square
         ctx.drawImage(img, srcX, srcY, srcW, srcH, 0, 0, outputSize, outputSize);
-        ctx.restore();
 
         const processBlob = (quality) => {
             cropCanvas.toBlob((blob) => {

@@ -158,7 +158,9 @@ const StudentsManagement = () => {
             city: student.city || '',
             country: student.country || '',
             attendType: normalizedAttendType,
-            heardAbout: student.heardAbout || ''
+            heardAbout: student.heardAbout || '',
+            password: student.password || '',
+            fatherName: student.fatherName || student.guardianName || ''
         });
     };
 
@@ -510,7 +512,7 @@ const StudentsManagement = () => {
     const verifiedCount = students.filter(s => s.isVerified).length;
     const pendingCount = students.filter(s => !s.isVerified).length;
 
-    if (isLoading) {
+    if (isLoading && students.length === 0) {
         return (
             <div className="flex items-center justify-center h-64">
                 <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
@@ -526,7 +528,7 @@ const StudentsManagement = () => {
                     <h1 className="text-2xl font-bold text-gray-900">Students Management</h1>
                     <p className="text-gray-500">View and manage registered students</p>
                 </div>
-                <div className="flex flex-wrap gap-4">
+                <div className="flex flex-wrap gap-4 items-center">
                     <button
                         onClick={toggleBioEditing}
                         className={`p-2.5 border rounded-xl transition-colors flex items-center gap-2 text-sm font-bold shadow-sm ${allowBioEditing
@@ -1131,12 +1133,31 @@ const StudentsManagement = () => {
                             />
                         </div>
                         <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">Father Name</label>
+                            <input
+                                type="text"
+                                value={editForm.fatherName}
+                                onChange={(e) => setEditForm({ ...editForm, fatherName: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none"
+                            />
+                        </div>
+                        <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-700">Email Address *</label>
                             <input
                                 type="email"
                                 value={editForm.email}
                                 onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
                                 className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none"
+                                required
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">Password *</label>
+                            <input
+                                type="text"
+                                value={editForm.password}
+                                onChange={(e) => setEditForm({ ...editForm, password: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none font-mono"
                                 required
                             />
                         </div>

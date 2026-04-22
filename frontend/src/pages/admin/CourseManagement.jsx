@@ -186,7 +186,7 @@ const CourseManagement = () => {
         return course.enrolledCount || 0;
     };
 
-    if (isFetching) {
+    if (isFetching && courses.length === 0) {
         return (
             <div className="flex items-center justify-center h-64">
                 <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
@@ -204,6 +204,13 @@ const CourseManagement = () => {
                     <p className="text-gray-500">Create and manage all courses</p>
                 </div>
                 <div className="flex items-center gap-2">
+                    <button
+                        onClick={fetchData}
+                        className="flex items-center gap-2 px-3 py-1.5 hover:bg-gray-100 rounded-lg text-gray-500 transition-all active:scale-95"
+                    >
+                        <Loader2 className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
+                        <span className="text-xs font-bold uppercase tracking-wider">Refresh</span>
+                    </button>
                     <button
                         onClick={() => handleOpenModal()}
                         className="flex items-center justify-center gap-2 px-5 py-2.5 bg-[#0f2847] hover:bg-[#0545a7] text-white rounded-xl transition-all duration-300 font-medium"

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { FileText, CheckCircle, Clock, Search, Loader2, ExternalLink, Trash2, Users, ChevronDown, Check, X } from 'lucide-react';
+import { FileText, CheckCircle, Clock, Search, RefreshCw, ExternalLink, Trash2, Users, ChevronDown, Check, X } from 'lucide-react';
 import Badge from '../../../components/ui/Badge';
 import api from '../../../services/api';
 
@@ -107,8 +107,12 @@ const DailyTasksTab = ({ course, students = [] }) => {
                 <h3 className="text-lg font-bold text-gray-900 uppercase italic">
                     {course.targetAudience === 'interns' ? 'Daily Task Submissions' : 'Class Log Submissions'}
                 </h3>
-                <button onClick={fetchTasks} className="p-2 hover:bg-gray-100 rounded-lg text-gray-500">
-                    <Loader2 className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} />
+                <button 
+                    onClick={fetchTasks} 
+                    className="flex items-center gap-2 px-3 py-1.5 hover:bg-gray-100 rounded-lg text-gray-500 transition-all active:scale-95"
+                >
+                    <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+                    <span className="text-xs font-bold uppercase tracking-wider">Refresh</span>
                 </button>
             </div>
 

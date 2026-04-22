@@ -178,7 +178,8 @@ const InternsManagement = () => {
             cgpa: intern.cgpa || '',
             majorSubjects: intern.majorSubjects || '',
             attendType: normalizedAttendType,
-            heardAbout: intern.heardAbout || ''
+            heardAbout: intern.heardAbout || '',
+            password: intern.password || ''
         });
     };
 
@@ -505,7 +506,7 @@ const InternsManagement = () => {
     const verifiedCount = interns.filter(i => i.isVerified).length;
     const pendingCount = interns.filter(i => !i.isVerified).length;
 
-    if (isLoading) {
+    if (isLoading && interns.length === 0) {
         return (
             <div className="flex items-center justify-center h-64">
                 <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
@@ -522,7 +523,7 @@ const InternsManagement = () => {
                     <h1 className="text-2xl font-bold text-gray-900">Interns Management</h1>
                     <p className="text-gray-500">View and manage registered interns</p>
                 </div>
-                <div className="flex flex-wrap gap-4">
+                <div className="flex flex-wrap gap-4 items-center">
                     <button
                         onClick={toggleBioEditing}
                         className={`p-2.5 border rounded-xl transition-colors flex items-center gap-2 text-sm font-bold shadow-sm ${allowBioEditing
@@ -1137,6 +1138,16 @@ const InternsManagement = () => {
                                 value={editForm.email}
                                 onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
                                 className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                                required
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">Password *</label>
+                            <input
+                                type="text"
+                                value={editForm.password}
+                                onChange={(e) => setEditForm({ ...editForm, password: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none font-mono"
                                 required
                             />
                         </div>

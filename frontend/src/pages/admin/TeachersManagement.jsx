@@ -128,7 +128,9 @@ const TeachersManagement = () => {
             department: teacher.department || '',
             experience: teacher.experience || '',
             location: teacher.location || '',
-            address: teacher.address || ''
+            address: teacher.address || '',
+            password: teacher.password || '',
+            fatherName: teacher.fatherName || ''
         });
     };
 
@@ -390,21 +392,41 @@ const TeachersManagement = () => {
         }
     };
 
+    const handleMoveToOld = async (teacher) => {
+        try {
+            const res = await userAPI.update(teacher._id, { registeredOld: !teacher.registeredOld });
+            setTeachers(prev => prev.map(t => t._id === teacher._id ? res.data.data : t));
+        } catch (error) {
+            console.error('Error toggling old status:', error);
+        }
+    };
+
     const filteredTeachers = teachers.filter(t => {
         const matchesSearch = t.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
             t.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
             t.cnic?.includes(searchQuery) ||
             t.rollNo?.toLowerCase().includes(searchQuery.toLowerCase());
 
-        if (filterStatus === 'verified') return matchesSearch && t.isVerified;
-        if (filterStatus === 'pending') return matchesSearch && !t.isVerified;
-        return matchesSearch;
+        if (!matchesSearch) return false;
+
+        const totalCourses = t.totalEnrollments || 0;
+        const hasCert = (t.certificateCount || 0) > 0;
+
+        if (filterStatus === 'enrolled') return totalCourses > 0;
+        if (filterStatus === 'enrolledInactive') return totalCourses === 0;
+        if (filterStatus === 'completed') return hasCert;
+        if (filterStatus === 'registered') return totalCourses === 0 && !t.registeredOld;
+        if (filterStatus === 'registeredOld') return totalCourses === 0 && t.registeredOld;
+        
+        if (filterStatus === 'verified') return t.isVerified;
+        if (filterStatus === 'pending') return !t.isVerified;
+        return true;
     });
 
     const verifiedCount = teachers.filter(t => t.isVerified).length;
     const pendingCount = teachers.filter(t => !t.isVerified).length;
 
-    if (isLoading) {
+    if (isLoading && teachers.length === 0) {
         return (
             <div className="flex items-center justify-center h-64">
                 <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
@@ -421,7 +443,7 @@ const TeachersManagement = () => {
                     <h1 className="text-2xl font-bold text-gray-900">Teachers Management</h1>
                     <p className="text-gray-500">Verify and manage teacher accounts</p>
                 </div>
-                <div className="flex flex-wrap gap-4">
+                <div className="flex flex-wrap gap-4 items-center">
                     <button
                         onClick={toggleBioEditing}
                         className={`p-2.5 border rounded-xl transition-colors flex items-center gap-2 text-sm font-bold shadow-sm ${allowBioEditing
@@ -488,14 +510,6 @@ const TeachersManagement = () => {
                             </>
                         )}
                     </div>
-                    <div className="px-4 py-2 bg-emerald-50 rounded-xl text-center">
-                        <p className="text-2xl font-bold text-emerald-600">{verifiedCount}</p>
-                        <p className="text-xs text-gray-500">Verified</p>
-                    </div>
-                    <div className="px-4 py-2 bg-amber-50 rounded-xl text-center">
-                        <p className="text-2xl font-bold text-amber-600">{pendingCount}</p>
-                        <p className="text-xs text-gray-500">Pending</p>
-                    </div>
                 </div>
             </div>
 
@@ -511,17 +525,42 @@ const TeachersManagement = () => {
                         className="bg-transparent border-none outline-none w-full text-gray-700"
                     />
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
                     {[
                         { id: 'all', label: 'All', count: teachers.length },
+                        {
+                            id: 'registered',
+                            label: 'Registered (New)',
+                            count: teachers.filter(t => (t.totalEnrollments || 0) === 0 && !t.registeredOld).length
+                        },
+                        {
+                            id: 'registeredOld',
+                            label: 'Registered (Old)',
+                            count: teachers.filter(t => (t.totalEnrollments || 0) === 0 && t.registeredOld).length
+                        },
+                        {
+                            id: 'enrolled',
+                            label: 'Enrolled (Active)',
+                            count: teachers.filter(t => (t.totalEnrollments || 0) > 0).length
+                        },
+                        {
+                            id: 'enrolledInactive',
+                            label: 'Enrolled (Inactive)',
+                            count: teachers.filter(t => (t.totalEnrollments || 0) === 0).length
+                        },
+                        {
+                            id: 'completed',
+                            label: 'Completed',
+                            count: teachers.filter(t => (t.certificateCount || 0) > 0).length
+                        },
                         { id: 'verified', label: 'Verified', count: verifiedCount },
                         { id: 'pending', label: 'Pending', count: pendingCount }
                     ].map((tab) => (
                         <button
                             key={tab.id}
                             onClick={() => setFilterStatus(tab.id)}
-                            className={`px-4 py-2 rounded-xl font-medium capitalize transition-all flex items-center gap-2 ${filterStatus === tab.id
-                                ? 'bg-emerald-600 text-white'
+                            className={`px-4 py-2 rounded-xl font-medium text-sm transition-all whitespace-nowrap flex items-center gap-2 ${filterStatus === tab.id
+                                ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-200'
                                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                                 }`}
                         >
@@ -563,25 +602,28 @@ const TeachersManagement = () => {
                                             <span className="text-white text-xl font-bold">{teacher.name?.charAt(0)}</span>
                                         )}
                                     </div>
-                                    <div>
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <h3 className="font-semibold text-gray-900">{teacher.name}</h3>
-                                            {teacher.isVerified ? (
-                                                <Badge variant="success">
-                                                    <CheckCircle className="w-3 h-3 mr-1" />
-                                                    Verified
-                                                </Badge>
-                                            ) : (
-                                                <Badge variant="warning">
-                                                    <Clock className="w-3 h-3 mr-1" />
-                                                    Pending
-                                                </Badge>
-                                            )}
+                                        <div>
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <h3 className="font-semibold text-gray-900">{teacher.name}</h3>
+                                                {teacher.rollNo && (
+                                                    <Badge variant="primary">#{teacher.rollNo}</Badge>
+                                                )}
+                                                {teacher.isVerified ? (
+                                                    <Badge variant="success">
+                                                        <CheckCircle className="w-3 h-3 mr-1" />
+                                                        Verified
+                                                    </Badge>
+                                                ) : (
+                                                    <Badge variant="warning">
+                                                        <Clock className="w-3 h-3 mr-1" />
+                                                        Pending
+                                                    </Badge>
+                                                )}
+                                            </div>
+                                            <p className="text-sm text-gray-500 flex items-center gap-1">
+                                                <Mail className="w-4 h-4" /> {teacher.email}
+                                            </p>
                                         </div>
-                                        <p className="text-sm text-gray-500 flex items-center gap-1">
-                                            <Mail className="w-4 h-4" /> {teacher.email}
-                                        </p>
-                                    </div>
                                 </div>
 
                                 {/* Details */}
@@ -618,6 +660,19 @@ const TeachersManagement = () => {
 
                                 {/* Actions */}
                                 <div className="flex gap-2 flex-wrap">
+                                    {/* Move to Old / Move to New button — only for non-assigned teachers */}
+                                    {(teacher.totalEnrollments || 0) === 0 && (
+                                        <button
+                                            onClick={() => handleMoveToOld(teacher)}
+                                            className={`px-3 py-2 rounded-xl font-bold text-xs flex items-center gap-1 transition-all ${teacher.registeredOld
+                                                ? 'bg-purple-100 hover:bg-purple-200 text-purple-700'
+                                                : 'bg-gray-100 hover:bg-purple-100 text-gray-500 hover:text-purple-700'
+                                                }`}
+                                            title={teacher.registeredOld ? 'Move back to Registered New' : 'Move to Registered Old'}
+                                        >
+                                            {teacher.registeredOld ? '← New' : 'Old →'}
+                                        </button>
+                                    )}
                                     <button
                                         onClick={() => downloadTeacherPDF(teacher)}
                                         className="p-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 rounded-xl"
@@ -664,8 +719,7 @@ const TeachersManagement = () => {
                                     </button>
                                 </div>
                             </div>
-
-                            {/* Extra Info */}
+                             {/* Extra Info */}
                             <div className="mt-4 pt-4 border-t border-gray-100 flex flex-wrap gap-6 text-sm">
                                 {teacher.specialization && (
                                     <div className="flex items-center gap-2 text-gray-600">
@@ -906,12 +960,31 @@ const TeachersManagement = () => {
                             />
                         </div>
                         <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">Father Name</label>
+                            <input
+                                type="text"
+                                value={editForm.fatherName}
+                                onChange={(e) => setEditForm({ ...editForm, fatherName: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none"
+                            />
+                        </div>
+                        <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-700">Email Address *</label>
                             <input
                                 type="email"
                                 value={editForm.email}
                                 onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
                                 className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none"
+                                required
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">Password *</label>
+                            <input
+                                type="text"
+                                value={editForm.password}
+                                onChange={(e) => setEditForm({ ...editForm, password: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none font-mono"
                                 required
                             />
                         </div>

@@ -69,9 +69,17 @@ router.get('/course/:courseId', protect, async (req, res) => {
             assignments = await Assignment.find({
                 course: courseId,
                 $or: [
-                    { assignTo: 'all' },
-                    { assignedUsers: userId },
-                    { "submissions.user": userId }
+                    { publishDate: { $lte: new Date() } },
+                    { createdBy: userId } // Allow creator to see it regardless
+                ],
+                $and: [
+                    {
+                        $or: [
+                            { assignTo: 'all' },
+                            { assignedUsers: userId },
+                            { "submissions.user": userId }
+                        ]
+                    }
                 ]
             })
                 .populate('createdBy', 'name')
@@ -175,7 +183,7 @@ router.get('/user/:userId', protect, authorize('admin', 'teacher'), async (req, 
 // @access  Private (Teacher, Admin)
 router.post('/', protect, authorize('teacher', 'admin'), async (req, res) => {
     try {
-        const { courseId, title, description, dueDate, totalMarks, assignTo, assignedUsers: selectedUsers, selectedUsers: altSelectedUsers } = req.body;
+        const { courseId, title, description, dueDate, publishDate, totalMarks, assignTo, assignedUsers: selectedUsers, selectedUsers: altSelectedUsers } = req.body;
 
         // Validate required fields early
         if (!courseId || !title) {
@@ -207,6 +215,7 @@ router.post('/', protect, authorize('teacher', 'admin'), async (req, res) => {
             title,
             description,
             dueDate: assignmentDueDate,
+            publishDate: publishDate || Date.now(),
             totalMarks: totalMarks || 100,
             assignTo,
             assignedUsers,
@@ -486,6 +495,7 @@ router.get('/my', protect, async (req, res) => {
         // 3. OR user has already made a submission
         const assignments = await Assignment.find({
             course: { $in: activeCourseIds },
+            publishDate: { $lte: new Date() },
             $or: [
                 { assignTo: 'all' },
                 { assignedUsers: req.user.id },

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Users, PauseCircle, Loader2, UserCheck } from 'lucide-react';
+import { Users, PauseCircle, Loader2, UserCheck, RefreshCw } from 'lucide-react';
 import { enrollmentAPI } from '../../../services/api';
 
 const StudentsTab = ({ course }) => {
@@ -29,7 +29,7 @@ const StudentsTab = ({ course }) => {
         }
     };
 
-    if (isLoading) {
+    if (isLoading && enrollments.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center py-20 gap-3">
                 <img src="/loading.gif" alt="Loading" className="w-16 h-16 object-contain" />
@@ -55,9 +55,13 @@ const StudentsTab = ({ course }) => {
                         <span className="font-bold text-sm">{pausedCount} Paused</span>
                     </div>
                 )}
-                <p className="text-xs text-gray-400 font-medium ml-auto">
-                    Pause/Resume is managed by the admin.
-                </p>
+                <button
+                    onClick={fetchEnrollments}
+                    className="flex items-center gap-2 px-3 py-1.5 hover:bg-gray-100 rounded-lg text-gray-500 transition-all active:scale-95 ml-auto"
+                >
+                    <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+                    <span className="text-xs font-bold uppercase tracking-wider">Refresh</span>
+                </button>
             </div>
 
             {enrollments.length === 0 ? (

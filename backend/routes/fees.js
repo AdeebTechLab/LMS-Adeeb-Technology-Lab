@@ -164,10 +164,15 @@ router.put('/:feeId/installments/:installmentId/verify', protect, authorize('adm
                     updatedEnrollment.installments[0] = { ...updatedEnrollment.installments[0]?.toObject?.() || {}, status: 'verified' };
                 }
             }
+            if (!updatedEnrollment.enrollmentDate) {
+                updatedEnrollment.enrollmentDate = new Date();
+                // Increment course enrolled count on first verification
+                const Course = require('../models/Course');
+                await Course.findByIdAndUpdate(fee.course, { $inc: { enrolledCount: 1 } });
+            }
             updatedEnrollment.status = 'enrolled';
             updatedEnrollment.isActive = true;
             updatedEnrollment.feeStatus = fee.status === 'verified' ? 'verified' : 'partial';
-            if (!updatedEnrollment.enrollmentDate) updatedEnrollment.enrollmentDate = new Date();
             await updatedEnrollment.save();
         } else {
             await Enrollment.findOneAndUpdate(

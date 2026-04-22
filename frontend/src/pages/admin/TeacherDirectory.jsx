@@ -82,7 +82,7 @@ const TeacherDirectory = () => {
         const config = {
             student: 'bg-blue-100 text-blue-700',
             intern: 'bg-purple-100 text-purple-700',
-            teacher: 'bg-emerald-100 text-emerald-700'
+            teacher: 'bg-amber-100 text-amber-700'
         };
         return (
             <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${config[role] || 'bg-gray-100 text-gray-700'}`}>

@@ -188,9 +188,9 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 { id: 'paid-tasks', label: 'Paid Tasks', icon: Briefcase, path: '/admin/paid-tasks' },
                 { id: 'daily-tasks', label: 'Daily Tasks', icon: ClipboardList, path: '/admin/daily-tasks' },
                 { id: 'certificates', label: 'Certificates', icon: Award, path: '/admin/certificates' },
-                { id: 'students', label: 'Students', icon: Users, path: '/admin/students', badge: adminPendingCounts.student, badgeAlt: adminPendingCounts.studentNotRegistered },
-                { id: 'teachers', label: 'Teachers', icon: GraduationCap, path: '/admin/teachers', badge: adminPendingCounts.teacher },
-                { id: 'interns', label: 'Interns', icon: Users, path: '/admin/interns', badge: adminPendingCounts.intern, badgeAlt: adminPendingCounts.internNotRegistered },
+                { id: 'students', label: 'Students', icon: Users, path: '/admin/students', badge: adminPendingCounts.studentRegisteredNew },
+                { id: 'teachers', label: 'Teachers', icon: GraduationCap, path: '/admin/teachers', badge: adminPendingCounts.teacherRegisteredNew },
+                { id: 'interns', label: 'Interns', icon: Users, path: '/admin/interns', badge: adminPendingCounts.internRegisteredNew },
                 { id: 'jobs', label: 'Freelancers', icon: Briefcase, path: '/admin/jobs', badge: adminPendingCounts.job },
                 { id: 'notifications', label: 'Notifications', icon: Bell, path: '/admin/notifications' },
                 { id: 'fees', label: 'Fee Verification', icon: CreditCard, path: '/admin/fees', badge: adminPendingCounts.fees },
@@ -404,26 +404,15 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                                             {pendingCount}
                                         </motion.span>
                                     )}
-                                    {/* Badge for unverified users (orange) */}
+                                    {/* Badge for Registered (New) users (orange) */}
                                     {item.badge > 0 && (
                                         <motion.span
                                             initial={{ scale: 0 }}
                                             animate={{ scale: 1 }}
                                             className="bg-[#ff8e01] text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow-lg shadow-[#ff8e01]/20"
-                                            title="Pending Verification"
+                                            title="Registered (New)"
                                         >
                                             {item.badge}
-                                        </motion.span>
-                                    )}
-                                    {/* Badge for users not registered in any course (red) */}
-                                    {item.badgeAlt > 0 && (
-                                        <motion.span
-                                            initial={{ scale: 0 }}
-                                            animate={{ scale: 1 }}
-                                            className="bg-red-500 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow-lg shadow-red-500/20"
-                                            title="Not Registered in Any Course"
-                                        >
-                                            {item.badgeAlt}
                                         </motion.span>
                                     )}
                                     {/* Badge for teacher pending (ungraded) submissions (red) */}

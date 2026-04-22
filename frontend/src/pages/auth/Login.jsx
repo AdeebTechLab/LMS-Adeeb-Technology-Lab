@@ -15,7 +15,6 @@ const Login = () => {
     const [formData, setFormData] = useState({
         email: '',
         password: '',
-        role: 'student', // Default role
         rememberMe: false,
         agreeTerms: true,
     });
@@ -195,35 +194,6 @@ const Login = () => {
                         </motion.div>
                     )}
 
-                    {/* Role Selection */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.35 }}
-                        className="mb-5"
-                    >
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Select Your Role
-                        </label>
-                        <p className="text-xs text-gray-500 mb-3">
-                            <strong>Student:</strong> Enrolled learners • <strong>Teacher:</strong> Course instructors • <strong>Intern:</strong> Internship program • <strong>Job:</strong> Remote employees
-                        </p>
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                            {['student', 'teacher', 'intern', 'job'].map((role) => (
-                                <button
-                                    key={role}
-                                    type="button"
-                                    onClick={() => setFormData(prev => ({ ...prev, role }))}
-                                    className={`py-2.5 px-3 rounded-xl text-xs font-bold border-2 transition-all ${formData.role === role
-                                        ? 'bg-gray-900 text-white border-gray-900 shadow-md transform scale-105'
-                                        : 'bg-white text-gray-600 border-gray-100 hover:border-gray-200 hover:shadow-sm'
-                                        } capitalize`}
-                                >
-                                    {role}
-                                </button>
-                            ))}
-                        </div>
-                    </motion.div>
 
                     {/* Login Form */}
                     <form onSubmit={handleSubmit} className="space-y-5">

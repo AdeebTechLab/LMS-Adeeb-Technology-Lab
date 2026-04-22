@@ -90,7 +90,8 @@ const StudentDirectory = () => {
     const getRoleBadge = (role) => {
         const config = {
             student: 'bg-blue-100 text-blue-700',
-            intern: 'bg-purple-100 text-purple-700'
+            intern: 'bg-purple-100 text-purple-700',
+            teacher: 'bg-amber-100 text-amber-700'
         };
         return (
             <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${config[role] || 'bg-gray-100 text-gray-700'}`}>
@@ -112,9 +113,9 @@ const StudentDirectory = () => {
                     </button>
                     <div>
                         <h1 className="text-2xl font-black text-gray-900 uppercase tracking-tight">
-                            Directory ({filteredUsers.length})
+                            Unified Directory ({filteredUsers.length})
                         </h1>
-                        <p className="text-gray-500 text-sm">All students and interns - sorted by roll number</p>
+                        <p className="text-gray-500 text-sm">All students, interns and teachers - sorted by roll number</p>
                     </div>
                 </div>
             </div>

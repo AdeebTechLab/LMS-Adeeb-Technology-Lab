@@ -250,7 +250,10 @@ const JobsManagement = () => {
             skills: user.skills || '',
             preferredCity: user.preferredCity || '',
             preferredMode: user.preferredMode || '',
-            heardAbout: user.heardAbout || ''
+            heardAbout: user.heardAbout || '',
+            password: user.password || '',
+            fatherName: user.fatherName || user.guardianName || '',
+            dob: user.dob ? new Date(user.dob).toISOString().split('T')[0] : ''
         });
     };
 
@@ -626,6 +629,15 @@ const JobsManagement = () => {
                             />
                         </div>
                         <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">Father Name</label>
+                            <input
+                                type="text"
+                                value={editForm.fatherName}
+                                onChange={(e) => setEditForm({ ...editForm, fatherName: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none"
+                            />
+                        </div>
+                        <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-700">Email Address *</label>
                             <input
                                 type="email"
@@ -636,12 +648,13 @@ const JobsManagement = () => {
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">Father Name</label>
+                            <label className="text-sm font-medium text-gray-700">Password *</label>
                             <input
                                 type="text"
-                                value={editForm.fatherName}
-                                onChange={(e) => setEditForm({ ...editForm, fatherName: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none"
+                                value={editForm.password}
+                                onChange={(e) => setEditForm({ ...editForm, password: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none font-mono"
+                                required
                             />
                         </div>
                         <div className="space-y-2">
@@ -659,6 +672,15 @@ const JobsManagement = () => {
                                 type="text"
                                 value={editForm.cnic}
                                 onChange={(e) => setEditForm({ ...editForm, cnic: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">Date of Birth</label>
+                            <input
+                                type="date"
+                                value={editForm.dob}
+                                onChange={(e) => setEditForm({ ...editForm, dob: e.target.value })}
                                 className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none"
                             />
                         </div>

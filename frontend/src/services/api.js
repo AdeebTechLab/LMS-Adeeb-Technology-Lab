@@ -84,6 +84,7 @@ export const userAPI = {
         const config = data instanceof FormData ? { headers: { 'Content-Type': 'multipart/form-data' } } : {};
         return api.put(`/users/${id}`, data, config);
     },
+    changePasswordByEmail: (data) => api.put('/users/change-password-by-email', data),
 };
 
 // Course APIs

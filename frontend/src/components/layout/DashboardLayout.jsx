@@ -189,7 +189,7 @@ const DashboardLayout = () => {
             <div className="flex-1 flex flex-col h-screen overflow-hidden">
                 {/* Header */}
                 <header className={`border-b sticky top-0 z-30 transition-colors duration-300 ${isDark ? 'bg-[#1a1f2e] border-white/10' : 'bg-white border-gray-100'}`}>
-                    <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:gap-4 px-4 sm:px-6 py-4 w-full min-w-0">
+                    <div className="px-4 sm:px-6 py-4 w-full min-w-0 flex flex-col lg:flex-row lg:items-center gap-4">
                         {/* Left: menu + title */}
                         <div className="flex items-center gap-3 sm:gap-4 shrink-0 min-w-0">
                             <button
@@ -205,8 +205,8 @@ const DashboardLayout = () => {
                             </div>
                         </div>
 
-                        {/* Center: grows to fill space between title and actions */}
-                        <div className="flex-1 w-full min-w-0 flex items-stretch">
+                        {/* Center: Search Bar - Grows to fill space */}
+                        <div className="flex-1 min-w-0 flex items-stretch">
                             <div
                                 className={`flex w-full items-center rounded-xl px-3 sm:px-4 py-2.5 min-h-[2.75rem] transition-colors duration-300 border ${isDark ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200/80'}`}
                             >
@@ -221,7 +221,7 @@ const DashboardLayout = () => {
                         </div>
 
                         {/* Right: actions */}
-                        <div className="flex items-center gap-2 sm:gap-3 shrink-0 justify-end flex-wrap">
+                        <div className="flex items-center gap-2 sm:gap-3 shrink-0 justify-end flex-wrap ml-auto lg:ml-0">
                             {/* Refresh Button */}
                             <button
                                 type="button"
@@ -394,7 +394,7 @@ const DashboardLayout = () => {
                                     onClick={() => setShowUserMenu(!showUserMenu)}
                                     className={`flex items-center gap-3 p-1.5 rounded-xl transition-colors ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`}
                                 >
-                                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#ff8e01] to-[#ffab40] flex items-center justify-center text-white font-semibold text-sm overflow-hidden border border-white/20">
+                                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#ff8e01] to-[#ffab40] flex items-center justify-center text-white font-semibold text-sm overflow-hidden border border-white/20">
                                         {user?.photo ? (
                                             <img src={user.photo} alt={user.name} className="w-full h-full object-cover" />
                                         ) : (
@@ -418,7 +418,7 @@ const DashboardLayout = () => {
                                         className={`absolute right-0 mt-2 w-56 rounded-2xl shadow-xl border overflow-hidden z-50 transition-colors duration-200 ${isDark ? 'bg-[#1a1f2e] border-white/10' : 'bg-white border-gray-100'}`}
                                     >
                                         <div className={`p-4 border-b flex items-center gap-3 ${isDark ? 'border-white/10' : 'border-gray-100'}`}>
-                                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#ff8e01] to-[#ffab40] flex items-center justify-center text-white font-bold overflow-hidden">
+                                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#ff8e01] to-[#ffab40] flex items-center justify-center text-white font-bold overflow-hidden">
                                                 {user?.photo ? (
                                                     <img src={user.photo} alt={user.name} className="w-full h-full object-cover" />
                                                 ) : (

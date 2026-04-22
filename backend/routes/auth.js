@@ -222,40 +222,35 @@ router.post('/register', uploadRegistration.fields([
 // @access  Public
 router.post('/login', async (req, res) => {
     try {
-        const { email, password, role, rememberMe } = req.body;
+        const { email, password, rememberMe } = req.body;
 
         // Validate
         if (!email || !password) {
             return res.status(400).json({ success: false, message: 'Please provide email and password' });
         }
 
-        // 1. Try to find an admin user with this email first
+        // Find all users with this email (using select +password to verify)
         // Use primary read to ensure we get the latest data
-        let user = await User.findOne({ email, role: 'admin' })
+        const users = await User.find({ email })
             .select('+password')
             .read('primary')
             .maxTimeMS(10000);
 
-        // 2. If no admin or password doesn't match, check for the specific role
-        if (!user) {
-            // Build query for role-based login
-            const query = { email };
-            if (role) {
-                query.role = role;
-            }
-            user = await User.findOne(query)
-                .select('+password')
-                .read('primary')
-                .maxTimeMS(10000);
-        }
-
-        if (!user) {
+        if (!users || users.length === 0) {
             return res.status(401).json({ success: false, message: 'Invalid credentials' });
         }
 
-        // Check password
-        const isMatch = await user.matchPassword(password);
-        if (!isMatch) {
+        // Try to find the user where the password matches
+        let user = null;
+        for (const u of users) {
+            const isMatch = await u.matchPassword(password);
+            if (isMatch) {
+                user = u;
+                break;
+            }
+        }
+
+        if (!user) {
             return res.status(401).json({ success: false, message: 'Invalid credentials' });
         }
 

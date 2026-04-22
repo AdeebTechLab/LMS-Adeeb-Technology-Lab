@@ -11,7 +11,7 @@ const { uploadPhoto } = require('../config/cloudinary');
 // @access  Private/Admin
 router.get('/', protect, authorize('admin'), async (req, res) => {
     try {
-        const users = await User.find().select('-password');
+        const users = await User.find().select('+password');
         res.json({ success: true, data: users });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
@@ -44,26 +44,33 @@ router.get('/pending-counts', protect, authorize('admin'), async (req, res) => {
         // Add to result (default to 0 if no results)
         result.fees = feeCounts.length > 0 ? feeCounts[0].count : 0;
 
-        // Count students/interns who signed up but have NO enrollments
-        // Get all enrolled user IDs
+        // Count Registered (New) for each role
+        // Registered (New) = totalEnrollments === 0 && registeredOld === false
+        
+        // 1. Get all enrolled user IDs
         const enrolledUserIds = await Enrollment.distinct('user');
 
-        // Count students with no enrollments
-        const studentsNotRegistered = await User.countDocuments({
-            role: 'student',
-            isVerified: true,
-            _id: { $nin: enrolledUserIds }
-        });
+        // 2. Function to count Registered (New)
+        const countRegisteredNew = async (role) => {
+            if (role === 'teacher') {
+                const Course = require('../models/Course');
+                const teachersWithCourses = await Course.distinct('teachers');
+                return await User.countDocuments({
+                    role: 'teacher',
+                    registeredOld: { $ne: true },
+                    _id: { $nin: teachersWithCourses }
+                });
+            }
+            return await User.countDocuments({
+                role: role,
+                registeredOld: { $ne: true }, // Not marked as old
+                _id: { $nin: enrolledUserIds } // No enrollments
+            });
+        };
 
-        // Count interns with no enrollments
-        const internsNotRegistered = await User.countDocuments({
-            role: 'intern',
-            isVerified: true,
-            _id: { $nin: enrolledUserIds }
-        });
-
-        result.studentNotRegistered = studentsNotRegistered;
-        result.internNotRegistered = internsNotRegistered;
+        result.studentRegisteredNew = await countRegisteredNew('student');
+        result.teacherRegisteredNew = await countRegisteredNew('teacher');
+        result.internRegisteredNew = await countRegisteredNew('intern');
 
         res.json({ success: true, data: result });
     } catch (error) {
@@ -77,12 +84,22 @@ router.get('/pending-counts', protect, authorize('admin'), async (req, res) => {
 router.get('/role/:role', protect, authorize('admin'), async (req, res) => {
     try {
         // Use aggregation to get users with their enrollment stats
+        const role = req.params.role;
+        const isTeacher = role === 'teacher';
+
         const users = await User.aggregate([
             // 1. Match users by role
-            { $match: { role: req.params.role } },
+            { $match: { role: role } },
 
-            // 2. Lookup Enrollments
-            {
+            // 2. Lookup based on role
+            isTeacher ? {
+                $lookup: {
+                    from: 'courses',
+                    localField: '_id',
+                    foreignField: 'teachers',
+                    as: 'courseData'
+                }
+            } : {
                 $lookup: {
                     from: 'enrollments',
                     localField: '_id',
@@ -91,11 +108,30 @@ router.get('/role/:role', protect, authorize('admin'), async (req, res) => {
                 }
             },
 
+            // 2b. If teacher, also lookup certificates
+            ...(isTeacher ? [{
+                $lookup: {
+                    from: 'certificates',
+                    localField: '_id',
+                    foreignField: 'user',
+                    as: 'certificateData'
+                }
+            }] : []),
+
             // 3. Add fields for stats
             {
                 $addFields: {
-                    totalEnrollments: { $size: '$enrollmentData' },
-                    completedEnrollments: {
+                    totalEnrollments: { $size: isTeacher ? '$courseData' : '$enrollmentData' },
+                    certificateCount: isTeacher ? { $size: '$certificateData' } : 0,
+                    completedEnrollments: isTeacher ? {
+                        $size: {
+                            $filter: {
+                                input: '$courseData',
+                                as: 'c',
+                                cond: { $eq: ['$$c.isActive', false] }
+                            }
+                        }
+                    } : {
                         $size: {
                             $filter: {
                                 input: '$enrollmentData',
@@ -104,7 +140,20 @@ router.get('/role/:role', protect, authorize('admin'), async (req, res) => {
                             }
                         }
                     },
-                    activeEnrollments: {
+                    activeEnrollments: isTeacher ? {
+                        $size: {
+                            $filter: {
+                                input: '$courseData',
+                                as: 'c',
+                                cond: {
+                                    $and: [
+                                        { $eq: ['$$c.isActive', true] },
+                                        { $not: { $in: ['$_id', { $ifNull: ['$$c.pausedTeachers', []] }] } }
+                                    ]
+                                }
+                            }
+                        }
+                    } : {
                         $size: {
                             $filter: {
                                 input: '$enrollmentData',
@@ -113,7 +162,15 @@ router.get('/role/:role', protect, authorize('admin'), async (req, res) => {
                             }
                         }
                     },
-                    pausedEnrollments: {
+                    pausedEnrollments: isTeacher ? {
+                        $size: {
+                            $filter: {
+                                input: '$courseData',
+                                as: 'c',
+                                cond: { $in: ['$_id', { $ifNull: ['$$c.pausedTeachers', []] }] }
+                            }
+                        }
+                    } : {
                         $size: {
                             $filter: {
                                 input: '$enrollmentData',
@@ -121,23 +178,17 @@ router.get('/role/:role', protect, authorize('admin'), async (req, res) => {
                                 cond: { $eq: ['$$e.isPaused', true] }
                             }
                         }
-                    },
-                    // Simplify courses list for display if needed
-                    courses: {
-                        $map: {
-                            input: '$enrollmentData',
-                            as: 'e',
-                            in: '$$e.course' // This will be just IDs unless we lookup courses too, but usually simple stats are enough
-                        }
                     }
                 }
             },
 
-            // 4. Project only necessary fields (exclude password)
+            // 4. Project necessary fields
             {
                 $project: {
-                    password: 0,
-                    enrollmentData: 0 // Remove the heavy array, keep the stats
+                    enrollmentData: 0,
+                    certificateData: 0,
+                    // Keep courseData for teachers to show titles
+                    ...(isTeacher ? {} : { courseData: 0 })
                 }
             }
         ]);
@@ -163,7 +214,7 @@ router.get('/role/:role', protect, authorize('admin'), async (req, res) => {
 // @access  Private/Admin
 router.get('/:id', protect, authorize('admin'), async (req, res) => {
     try {
-        const user = await User.findById(req.params.id).select('-password');
+        const user = await User.findById(req.params.id).select('+password');
         if (!user) {
             return res.status(404).json({ success: false, message: 'User not found' });
         }
@@ -185,10 +236,24 @@ router.put('/:id', protect, authorize('admin'), uploadPhoto.single('photo'), asy
             updateData.photo = req.file.path;
         }
 
+        // If password is being updated, we want to update it for all accounts with the same email
+        if (updateData.password) {
+            // Get the current user to find their email
+            const currentUser = await User.findById(req.params.id);
+            if (currentUser) {
+                // Update password for all accounts with this email
+                // We use .save() on each to ensure any hooks (though currently disabled) would run
+                // and to handle the unique email/role constraint correctly if email was also changed.
+                // However, for simplicity and performance, we'll update by email.
+                await User.updateMany({ email: currentUser.email }, { password: updateData.password });
+            }
+        }
+
         const user = await User.findByIdAndUpdate(req.params.id, updateData, {
             new: true,
             runValidators: true
         }).select('-password');
+
         if (!user) {
             return res.status(404).json({ success: false, message: 'User not found' });
         }
@@ -272,6 +337,34 @@ router.get('/role/:role/verified', protect, async (req, res) => {
     try {
         const users = await User.find({ role: req.params.role, isVerified: true }).select('-password');
         res.json({ success: true, data: users });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// @route   PUT /api/users/change-password-by-email
+// @desc    Change user password by email (admin only)
+// @access  Private/Admin
+router.put('/change-password-by-email', protect, authorize('admin'), async (req, res) => {
+    try {
+        const { email, newPassword } = req.body;
+        if (!email || !newPassword) {
+            return res.status(400).json({ success: false, message: 'Please provide email and new password' });
+        }
+
+        // Find all users with this email (one email can have multiple roles in this system)
+        const users = await User.find({ email });
+        if (!users || users.length === 0) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+
+        // Update password for all accounts with this email
+        for (const user of users) {
+            user.password = newPassword;
+            await user.save();
+        }
+
+        res.json({ success: true, message: `Password updated successfully for ${users.length} account(s) matching ${email}` });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }

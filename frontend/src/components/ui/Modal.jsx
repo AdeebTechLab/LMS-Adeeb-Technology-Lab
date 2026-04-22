@@ -8,6 +8,7 @@ const Modal = ({
     children,
     size = 'md',
     showClose = true,
+    noScroll = false,
     zIndex = 100,
 }) => {
     const sizes = {
@@ -59,7 +60,7 @@ const Modal = ({
                             )}
 
                             {/* Content */}
-                            <div className="p-6 max-h-[70vh] overflow-y-auto">{children}</div>
+                            <div className={`p-6 max-h-[90vh] ${noScroll ? 'overflow-visible' : 'overflow-y-auto scrollbar-hide'}`}>{children}</div>
                         </motion.div>
                     </div>
                 </>

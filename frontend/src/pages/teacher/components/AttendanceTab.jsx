@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Clock, Search, Lock, AlertCircle, Save, Loader2, Download, Calendar, Sun } from 'lucide-react';
+import { Clock, Search, Lock, AlertCircle, Save, Loader2, Download, Calendar, Sun, RefreshCw } from 'lucide-react';
 import Badge from '../../../components/ui/Badge';
 import { attendanceAPI } from '../../../services/api';
 
@@ -24,6 +24,7 @@ const AttendanceTab = ({ course, students }) => {
     const [isLocked, setIsLocked] = useState(false);
     const [holidayDays, setHolidayDays] = useState([]);
     const [isHoliday, setIsHoliday] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
         fetchGlobalHolidays();
@@ -74,6 +75,7 @@ const AttendanceTab = ({ course, students }) => {
     };
 
     const fetchAttendance = async () => {
+        setIsLoading(true);
         try {
             const response = await attendanceAPI.get(course._id, selectedDate);
             const data = response.data.attendance || response.data.data || {};
@@ -97,6 +99,8 @@ const AttendanceTab = ({ course, students }) => {
             }
         } catch (err) {
             console.error('Error fetching attendance:', err);
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -231,6 +235,13 @@ const AttendanceTab = ({ course, students }) => {
                         </div>
                     </div>
                     <div className="flex items-center gap-3">
+                        <button
+                            onClick={fetchAttendance}
+                            className="flex items-center gap-2 px-3 py-1.5 hover:bg-gray-100 rounded-lg text-gray-500 transition-all active:scale-95"
+                        >
+                            <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+                            <span className="text-xs font-bold uppercase tracking-wider">Refresh</span>
+                        </button>
                         <div className="relative">
                             <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-600" />
                             <input

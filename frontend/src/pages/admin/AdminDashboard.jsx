@@ -307,7 +307,7 @@ const AdminDashboard = () => {
                         className="flex items-center gap-3 bg-white text-gray-700 px-6 py-3 rounded-2xl font-black uppercase tracking-widest text-xs border border-gray-200 shadow-sm hover:border-[#ff8e01] hover:text-[#ff8e01] transition-all active:scale-95 no-pdf"
                     >
                         <BookOpen className="w-4 h-4" />
-                        Student Directory
+                        Unified Directory
                     </button>
                     <button
                         onClick={() => navigate('/admin/teacher-directory')}

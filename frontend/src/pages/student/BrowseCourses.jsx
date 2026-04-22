@@ -171,8 +171,7 @@ const BrowseCourses = () => {
             const res = await courseAPI.addView(courseId);
             setCourses(prev => prev.map(c => c._id === courseId ? {
                 ...c,
-                viewCount: res.data.viewCount,
-                likeCount: res.data.likeCount
+                views: res.data.views
             } : c));
         } catch (e) {
             console.error('Failed to update view count:', e);
@@ -181,18 +180,16 @@ const BrowseCourses = () => {
 
     const handleLikeCourse = async (e, courseId) => {
         e.stopPropagation();
-        if (!courseId || likedCourses[courseId]) return;
-        setLikedCourses(prev => ({ ...prev, [courseId]: true }));
+        if (!courseId) return;
         try {
             const res = await courseAPI.addLike(courseId);
             setCourses(prev => prev.map(c => c._id === courseId ? {
                 ...c,
-                viewCount: res.data.viewCount,
-                likeCount: res.data.likeCount
+                likes: res.data.likes,
+                isLiked: res.data.isLiked
             } : c));
         } catch (e) {
             console.error('Failed to update like count:', e);
-            setLikedCourses(prev => ({ ...prev, [courseId]: false }));
         }
     };
 
@@ -409,20 +406,20 @@ const BrowseCourses = () => {
                                         <Clock className="w-4 h-4" /> {course.durationMonths} {course.durationMonths === 1 ? 'month' : 'months'}
                                     </span>
                                     <span className="flex items-center gap-1">
-                                        <Users className="w-4 h-4" /> {formatCompactCount(course.enrolledTotal)}
+                                        <Users className="w-4 h-4" /> {formatCompactCount(course.enrolledCount)}
                                     </span>
                                     <span className="flex items-center gap-1">
-                                        <Eye className="w-4 h-4" /> {formatCompactCount(course.viewCount)}
+                                        <Eye className="w-4 h-4" /> {formatCompactCount(course.views)}
                                     </span>
                                     <button
                                         onClick={(e) => handleLikeCourse(e, course._id)}
-                                        className={`flex items-center gap-1 ${likedCourses[course._id] ? 'text-red-500' : 'text-red-500 hover:text-red-600'} transition-colors`}
-                                        title={likedCourses[course._id] ? 'Liked' : 'Like this course'}
+                                        className={`flex items-center gap-1 ${course.isLiked || course.likedBy?.includes(user?.id || user?._id) ? 'text-red-500' : 'text-gray-400 hover:text-red-500'} transition-colors`}
+                                        title="Like this course"
                                     >
-                                        <Heart className={`w-4 h-4 ${likedCourses[course._id] ? 'fill-current' : 'fill-transparent stroke-current'}`} />
-                                        {formatCompactCount(course.likeCount)}
+                                        <Heart className={`w-4 h-4 ${(course.isLiked || course.likedBy?.includes(user?.id || user?._id)) ? 'fill-current' : 'fill-transparent stroke-current'}`} />
+                                        {formatCompactCount(course.likes)}
                                     </button>
-                                    <span className="text-[10px] font-medium uppercase tracking-wide text-gray-400">
+                                    <span className="text-[10px] font-bold uppercase tracking-wide text-gray-400 border-l border-gray-200 pl-3 ml-1">
                                         Views & Likes
                                     </span>
                                 </div>

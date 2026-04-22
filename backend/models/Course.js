@@ -86,7 +86,19 @@ const courseSchema = new mongoose.Schema({
             },
             message: 'Holiday days must be between 0 (Sunday) and 6 (Saturday)'
         }
-    }
+    },
+    views: {
+        type: Number,
+        default: 0
+    },
+    likes: {
+        type: Number,
+        default: 0
+    },
+    likedBy: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    }]
 }, {
     timestamps: true
 });

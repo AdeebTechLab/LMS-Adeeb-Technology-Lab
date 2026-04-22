@@ -12,8 +12,8 @@ router.get('/', protect, authorize('admin'), async (req, res) => {
     try {
         const { filter, type } = req.query; // filter: all, active, certified, not-registered. type: teachers or undefined
 
-        // Get users based on type
-        const roleFilter = type === 'teachers' ? ['teacher'] : ['student', 'intern'];
+        // Get users based on type - default to all roles if type is not specified
+        const roleFilter = type === 'teachers' ? ['teacher'] : ['student', 'intern', 'teacher'];
         
         const users = await User.find({ 
             role: { $in: roleFilter },
