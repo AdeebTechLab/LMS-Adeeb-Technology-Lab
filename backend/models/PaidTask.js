@@ -60,6 +60,11 @@ const paidTaskSchema = new mongoose.Schema({
         ],
         default: 'web'
     },
+    manualStatus: {
+        type: String,
+        enum: ['active', 'expired', 'none'],
+        default: 'none'
+    },
     status: {
         type: String,
         enum: ['open', 'assigned', 'submitted', 'completed'],

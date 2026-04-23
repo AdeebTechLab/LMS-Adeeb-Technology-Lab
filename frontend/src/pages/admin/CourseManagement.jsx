@@ -6,17 +6,18 @@ import {
     Trash2,
     Users,
     BookOpen,
-    Loader2,
     Calendar,
     Clock,
     AlertCircle,
     Filter,
     X,
+    RefreshCw
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
 import { courseAPI, userAPI } from '../../services/api';
 import { getCourseIcon, getCourseColor, getCourseStyle } from '../../utils/courseIcons';
+import Loader, { ButtonLoader } from '../../components/ui/Loader';
 
 const CourseManagement = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -188,9 +189,8 @@ const CourseManagement = () => {
 
     if (isFetching && courses.length === 0) {
         return (
-            <div className="flex items-center justify-center h-64">
-                <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
-                <span className="ml-2 text-gray-600">Loading courses...</span>
+            <div className="flex items-center justify-center min-h-[400px]">
+                <Loader message="Loading Courses..." size="lg" />
             </div>
         );
     }
@@ -206,10 +206,10 @@ const CourseManagement = () => {
                 <div className="flex items-center gap-2">
                     <button
                         onClick={fetchData}
-                        className="flex items-center gap-2 px-3 py-1.5 hover:bg-gray-100 rounded-lg text-gray-500 transition-all active:scale-95"
+                        className="flex items-center gap-2 px-3 py-1.5 hover:bg-gray-100 rounded-lg text-gray-500 transition-all active:scale-95 border border-gray-100"
                     >
-                        <Loader2 className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
-                        <span className="text-xs font-bold uppercase tracking-wider">Refresh</span>
+                        <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
+                        <span className="text-xs font-black uppercase tracking-wider">Refresh</span>
                     </button>
                     <button
                         onClick={() => handleOpenModal()}
@@ -672,7 +672,7 @@ const CourseManagement = () => {
                         >
                             {isLoading ? (
                                 <>
-                                    <Loader2 className="w-5 h-5 animate-spin" />
+                                    <ButtonLoader />
                                     {editingCourse ? 'Updating...' : 'Creating...'}
                                 </>
                             ) : (

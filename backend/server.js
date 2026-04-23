@@ -11,6 +11,7 @@ const http = require('http');
 
 // Load environment variables
 dotenv.config();
+const mongoUri = process.env.MONGODB_URI || process.env.MONGO_URI;
 
 // Validate environment variables
 console.log('\n========================================');
@@ -115,20 +116,40 @@ app.use((req, res, next) => {
     next();
 });
 
+const isDatabaseConnected = () => mongoose.connection.readyState === 1;
+
+const runDatabaseTask = async (label, task) => {
+    if (!isDatabaseConnected()) {
+        console.log(`Skipping ${label} because MongoDB is not connected.`);
+        return;
+    }
+
+    try {
+        await task();
+    } catch (error) {
+        console.error(`${label} failed:`, error);
+    }
+};
+
 // Connect to MongoDB with optimized settings for serverless/deployment
-mongoose.connect(process.env.MONGODB_URI, {
-    maxPoolSize: 10,
-    minPoolSize: 2,
-    serverSelectionTimeoutMS: 10000,
-    socketTimeoutMS: 45000,
-    connectTimeoutMS: 10000,
-    retryWrites: true,
-    retryReads: true,
-    readPreference: 'primaryPreferred', // Prefer primary to avoid stale reads
-    w: 'majority' // Write concern for data consistency
-})
+if (!mongoUri) {
+    console.error('Missing MongoDB connection string. Create backend/.env and set MONGODB_URI (or MONGO_URI).');
+    console.error('Example: copy backend/.env.example to backend/.env and restart the server.');
+} else {
+    mongoose.connect(mongoUri, {
+        maxPoolSize: 10,
+        minPoolSize: 2,
+        serverSelectionTimeoutMS: 10000,
+        socketTimeoutMS: 45000,
+        connectTimeoutMS: 10000,
+        retryWrites: true,
+        retryReads: true,
+        readPreference: 'primaryPreferred',
+        w: 'majority'
+    })
     .then(() => console.log('✅ MongoDB connected'))
     .catch((err) => console.error('❌ MongoDB error:', err.message));
+}
 
 // Keep MongoDB connection alive
 mongoose.connection.on('disconnected', () => {
@@ -168,38 +189,32 @@ app.get('/api/health', (req, res) => {
 });
 
 // Attendance auto-save & lock cron job - Runs daily at 12:00 AM Pakistan Time (PKT)
-// This saves and locks the PREVIOUS day's attendance, marking any unmarked students as absent
 cron.schedule('0 0 * * *', async () => {
     console.log('🕛 Midnight PKT cron triggered - Auto-saving attendance...');
-    try {
+    await runDatabaseTask('Daily attendance auto-save', async () => {
         const result = await lockTodayAttendance();
         console.log(`✅ Daily attendance auto-save completed: ${result.processedCount} courses processed, ${result.createdCount} new records`);
-    } catch (error) {
-        console.error('❌ Attendance auto-save failed:', error);
-    }
+    });
 }, {
     timezone: "Asia/Karachi"
 });
 
 // Installment generation cron job - Runs daily at 1:00 AM PKT
 cron.schedule('0 1 * * *', async () => {
-    try {
+    await runDatabaseTask('Daily installment job', async () => {
         console.log('🔄 Running daily installment job...');
         await runInstallmentJob(io);
         console.log('✅ Daily installment job completed');
-    } catch (error) {
-        console.error('❌ Installment job failed:', error);
-    }
+    });
 }, {
     timezone: "Asia/Karachi"
 });
 
 // Live Class auto-cleanup cron job - Runs every minute
 cron.schedule('* * * * *', async () => {
-    try {
+    await runDatabaseTask('Live class auto-cleanup', async () => {
         const LiveClass = require('./models/LiveClass');
         const now = new Date();
-        // Find active classes that have an autoEndMinutes set
         const classesWithTimer = await LiveClass.find({
             isActive: true,
             autoEndMinutes: { $ne: null }
@@ -217,21 +232,16 @@ cron.schedule('* * * * *', async () => {
                 if (io) io.emit('live_class_ended', { id: lc._id.toString() });
             }
         }
-    } catch (error) {
-        console.error('❌ Live class auto-cleanup failed:', error);
-    }
+    });
 });
 
 // 404 handler for unmatched routes
 app.use('/api/*', (req, res) => {
-    console.log(`⚠️ 404 Not Found: ${req.method} ${req.originalUrl}`);
-    console.log(`   Headers:`, JSON.stringify(req.headers, null, 2).substring(0, 500));
     res.status(404).json({
         success: false,
         message: `Route ${req.method} ${req.originalUrl} not found`,
         debug: {
             method: req.method,
-            path: req.path,
             originalUrl: req.originalUrl
         }
     });
@@ -239,13 +249,10 @@ app.use('/api/*', (req, res) => {
 
 // Run installment job once on server startup (after 5 seconds delay)
 setTimeout(async () => {
-    try {
+    await runDatabaseTask('Startup installment check', async () => {
         console.log('🔄 Running startup installment check...');
         await runInstallmentJob(io);
-        console.log('✅ Startup installment check completed');
-    } catch (error) {
-        console.error('❌ Startup installment check failed:', error);
-    }
+    });
 }, 5000);
 
 const PORT = process.env.PORT || 5000;

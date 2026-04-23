@@ -10,6 +10,7 @@ import autoTable from 'jspdf-autotable';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
 import { userAPI, settingsAPI, courseAPI } from '../../services/api';
+import Loader from '../../components/ui/Loader';
 
 const TeachersManagement = () => {
     const [searchQuery, setSearchQuery] = useState('');
@@ -428,9 +429,8 @@ const TeachersManagement = () => {
 
     if (isLoading && teachers.length === 0) {
         return (
-            <div className="flex items-center justify-center h-64">
-                <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
-                <span className="ml-2 text-gray-600">Loading teachers...</span>
+            <div className="flex items-center justify-center min-h-[400px]">
+                <Loader message="Loading Teacher Profiles..." size="lg" />
             </div>
         );
     }

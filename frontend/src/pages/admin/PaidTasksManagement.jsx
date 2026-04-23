@@ -8,6 +8,7 @@ import Modal from '../../components/ui/Modal';
 import { taskAPI, userNotificationAPI } from '../../services/api';
 import { useSelector } from 'react-redux';
 import { getCategoryIcon, getCategoryColor, getCategoryBg } from '../../utils/taskCategoryIcons';
+import Loader from '../../components/ui/Loader';
 
 const PaidTasksManagement = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -38,6 +39,7 @@ const PaidTasksManagement = () => {
         type: 'task',
         images: [],
         isLifetime: false,
+        manualStatus: 'none'
     });
     const [imagePreviews, setImagePreviews] = useState([]);
 
@@ -114,8 +116,9 @@ const PaidTasksManagement = () => {
         }
     };
 
-    // Check if task deadline has passed without assignment
     const isExpired = (task) => {
+        if (task.manualStatus === 'expired') return true;
+        if (task.manualStatus === 'active') return false;
         if (task.isLifetime) return false;
         if (!task.deadline) return false;
         // Expired if not assigned to ANYONE and status is open
@@ -203,6 +206,7 @@ const PaidTasksManagement = () => {
             submitData.append('category', formData.category);
             submitData.append('type', formData.type);
             submitData.append('isLifetime', formData.isLifetime);
+            submitData.append('manualStatus', formData.manualStatus);
             
             if (formData.images && formData.images.length > 0) {
                 formData.images.forEach(img => {
@@ -221,7 +225,7 @@ const PaidTasksManagement = () => {
             }
             setIsModalOpen(false);
             setEditingTask(null);
-            setFormData({ title: '', description: '', budget: '', deadline: '', skills: '', category: 'web', type: 'task', images: [], isLifetime: false });
+            setFormData({ title: '', description: '', budget: '', deadline: '', skills: '', category: 'web', type: 'task', images: [], isLifetime: false, manualStatus: 'none' });
             setImagePreviews([]);
             fetchTasks(); // Refresh list
         } catch (err) {
@@ -244,6 +248,7 @@ const PaidTasksManagement = () => {
             type: task.type || 'task',
             images: task.images && task.images.length > 0 ? task.images : (task.image ? [task.image] : []),
             isLifetime: task.isLifetime || false,
+            manualStatus: task.manualStatus || 'none',
         });
         setImagePreviews(task.images && task.images.length > 0 ? task.images : (task.image ? [task.image] : []));
         setIsModalOpen(true);
@@ -346,9 +351,8 @@ const PaidTasksManagement = () => {
 
     if (isFetching) {
         return (
-            <div className="flex items-center justify-center h-64">
-                <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
-                <span className="ml-2 text-gray-600">Loading tasks...</span>
+            <div className="flex items-center justify-center min-h-[400px]">
+                <Loader message="Loading Paid Tasks..." size="lg" />
             </div>
         );
     }
@@ -365,7 +369,7 @@ const PaidTasksManagement = () => {
                     <button
                         onClick={() => {
                             setEditingTask(null);
-                            setFormData({ title: '', description: '', budget: '', deadline: '', skills: '', category: 'web', type: 'task', images: [], isLifetime: false });
+                            setFormData({ title: '', description: '', budget: '', deadline: '', skills: '', category: 'web', type: 'task', images: [], isLifetime: false, manualStatus: 'none' });
                             setImagePreviews([]);
                             setIsModalOpen(true);
                         }}
@@ -373,18 +377,6 @@ const PaidTasksManagement = () => {
                     >
                         <Briefcase className="w-5 h-5" />
                         Create Paid Task
-                    </button>
-                    <button
-                        onClick={() => {
-                            setEditingTask(null);
-                            setFormData({ title: '', description: '', budget: '', deadline: '', skills: '', category: 'E-Commerce', type: 'product', images: [], isLifetime: false });
-                            setImagePreviews([]);
-                            setIsModalOpen(true);
-                        }}
-                        className="flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl transition-all duration-300 font-medium"
-                    >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
-                        Add Item For Sale
                     </button>
                 </div>
             </div>
@@ -611,10 +603,34 @@ const PaidTasksManagement = () => {
                                         <PenSquare className="w-3 h-3" />
                                         Edit
                                     </button>
+                                    <div className="flex bg-gray-100 p-0.5 rounded-lg border border-gray-200">
+                                        <button
+                                            onClick={async () => {
+                                                try {
+                                                    await taskAPI.update(task._id, { manualStatus: 'active' });
+                                                    fetchTasks();
+                                                } catch (err) { alert('Update failed'); }
+                                            }}
+                                            className={`px-2 py-1 text-[10px] font-black uppercase tracking-tighter rounded-md transition-all ${task.manualStatus === 'active' ? 'bg-green-600 text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                                        >
+                                            Active
+                                        </button>
+                                        <button
+                                            onClick={async () => {
+                                                try {
+                                                    await taskAPI.update(task._id, { manualStatus: 'expired' });
+                                                    fetchTasks();
+                                                } catch (err) { alert('Update failed'); }
+                                            }}
+                                            className={`px-2 py-1 text-[10px] font-black uppercase tracking-tighter rounded-md transition-all ${task.manualStatus === 'expired' ? 'bg-red-600 text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                                        >
+                                            Expired
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
 
-                            {task.type === 'product' && (task.images && task.images.length > 0 || task.image) && (
+                            {(task.images && task.images.length > 0 || task.image) && (
                                 <div className="mb-4 aspect-video rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center">
                                     <img src={task.images && task.images.length > 0 ? task.images[0] : task.image} alt={task.title} className="w-full h-full object-cover" />
                                     {(task.images && task.images.length > 1) && (
@@ -743,10 +759,9 @@ const PaidTasksManagement = () => {
             {/* Create/Edit Task Modal */}
             <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingTask ? (editingTask.type === 'product' ? "Edit Item" : "Edit Paid Task") : (formData.type === 'product' ? "Add Item For Sale" : "Create Paid Task")} size="lg">
                 <form onSubmit={handleCreateTask} className="space-y-5">
-                    {formData.type === 'product' && (
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Item Images (Optional)</label>
-                            <div className="flex flex-wrap items-center gap-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Task Images (Optional)</label>
+                        <div className="flex flex-wrap items-center gap-4">
                                 {imagePreviews.map((preview, idx) => (
                                     <div key={idx} className="relative mt-2">
                                         <img src={preview} alt="Preview" className="w-20 h-20 rounded-xl object-cover border border-gray-200" />
@@ -785,7 +800,6 @@ const PaidTasksManagement = () => {
                                 />
                             </div>
                         </div>
-                    )}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">{formData.type === 'product' ? 'Product Name *' : 'Task Title *'}</label>
                         <input
@@ -827,7 +841,7 @@ const PaidTasksManagement = () => {
                                     value={formData.deadline}
                                     onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
                                     className="w-full px-4 py-3 border border-gray-200 rounded-xl"
-                                    required={!formData.isLifetime}
+                                    required={false}
                                     disabled={formData.isLifetime}
                                 />
                                 <label className="flex items-center gap-2 cursor-pointer mt-1">

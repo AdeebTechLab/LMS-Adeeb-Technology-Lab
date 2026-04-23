@@ -8,6 +8,7 @@ import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
 import { taskAPI } from '../../services/api';
 import { getCategoryIcon, getCategoryColor, getCategoryBg } from '../../utils/taskCategoryIcons';
+import Loader from '../../components/ui/Loader';
 
 const BrowseTasks = () => {
     const { user } = useSelector((state) => state.auth);
@@ -233,9 +234,8 @@ const BrowseTasks = () => {
 
     if (isFetching) {
         return (
-            <div className="flex items-center justify-center h-64">
-                <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
-                <span className="ml-2 text-gray-600">Loading tasks...</span>
+            <div className="flex items-center justify-center min-h-[400px]">
+                <Loader message="Loading Paid Tasks..." size="lg" />
             </div>
         );
     }
@@ -354,7 +354,7 @@ const BrowseTasks = () => {
 
                             <h3 className="font-bold text-gray-900 mb-2">{task.title}</h3>
                             
-                            {task.type === 'product' && (task.images && task.images.length > 0 || task.image) && (
+                            {(task.images && task.images.length > 0 || task.image) && (
                                 <div 
                                     className="mb-4 aspect-video rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center cursor-pointer relative group"
                                     onClick={() => openGallery(task)}

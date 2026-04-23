@@ -11,6 +11,7 @@ import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
 import { userAPI, settingsAPI, enrollmentAPI, assignmentAPI, feeAPI } from '../../services/api';
 import { generateComprehensiveReport } from '../../utils/reportGenerator';
+import Loader from '../../components/ui/Loader';
 
 const StudentsManagement = () => {
     const [searchQuery, setSearchQuery] = useState('');
@@ -34,6 +35,13 @@ const StudentsManagement = () => {
     const [enrollFetching, setEnrollFetching] = useState(false);
     const [enrollLoadingId, setEnrollLoadingId] = useState(null);
     const [enrollToast, setEnrollToast] = useState(null);
+
+    // Installment/Fee Plan States (Integrated from FeeVerification)
+    const [isInstallmentModalOpen, setIsInstallmentModalOpen] = useState(false);
+    const [selectedFee, setSelectedFee] = useState(null);
+    const [installmentPlan, setInstallmentPlan] = useState([{ amount: '', dueDate: '' }]);
+    const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+    const [selectedInstallment, setSelectedInstallment] = useState(null);
 
     useEffect(() => {
         fetchStudents();
@@ -193,6 +201,82 @@ const StudentsManagement = () => {
             setIsProcessing(false);
         }
     };
+
+    // --- Installment Management Logic (from FeeVerification) ---
+    const handleManageInstallments = (fee) => {
+        setSelectedFee(fee);
+        const existing = fee.installments?.map(i => ({
+            _id: i._id,
+            amount: i.amount,
+            dueDate: i.dueDate ? new Date(i.dueDate).toISOString().split('T')[0] : '',
+            status: i.status,
+            receiptUrl: i.receiptUrl,
+            slipId: i.slipId
+        })) || [];
+
+        setInstallmentPlan(existing.length > 0 ? existing : [{ amount: '', dueDate: '', status: 'pending' }]);
+        setIsInstallmentModalOpen(true);
+    };
+
+    const handleInstallmentChange = (index, field, value) => {
+        const newPlan = [...installmentPlan];
+        newPlan[index][field] = value;
+        setInstallmentPlan(newPlan);
+    };
+
+    const handleAddInstallmentRow = () => {
+        setInstallmentPlan([...installmentPlan, { amount: '', dueDate: '', status: 'pending' }]);
+    };
+
+    const handleRemoveInstallmentRow = (index) => {
+        setInstallmentPlan(installmentPlan.filter((_, i) => i !== index));
+    };
+
+    const handleSaveInstallments = async () => {
+        setIsProcessing(true);
+        try {
+            const payloadInstallments = installmentPlan.map(inst => ({
+                amount: inst.amount === '' || inst.amount === null ? 0 : Number(inst.amount),
+                dueDate: inst.dueDate || null,
+                status: inst.status || 'pending'
+            }));
+
+            const res = await feeAPI.setInstallments(selectedFee._id, payloadInstallments);
+            const updatedFee = res.data.fee;
+
+            // Update in records if viewFeeModal is open
+            setFeeRecords(prev => prev.map(f => f._id === updatedFee._id ? updatedFee : f));
+            setIsInstallmentModalOpen(false);
+            alert('Fee plan updated successfully');
+        } catch (err) {
+            console.error('Error saving installments:', err);
+            alert(err.response?.data?.message || 'Failed to save installments');
+        } finally {
+            setIsProcessing(false);
+        }
+    };
+
+    const handleViewScreenshot = (installment) => {
+        setSelectedInstallment(installment);
+        setIsImageModalOpen(true);
+    };
+
+    const handleVerifyInstallment = async (feeId, installmentId) => {
+        setIsProcessing(true);
+        try {
+            await feeAPI.verify(feeId, installmentId);
+            // Refresh fee records
+            const res = await feeAPI.getUserFees(viewFeeModal.userId);
+            setFeeRecords(res.data.data || []);
+            setIsImageModalOpen(false);
+        } catch (err) {
+            console.error('Error verifying:', err);
+            alert('Failed to verify payment');
+        } finally {
+            setIsProcessing(false);
+        }
+    };
+    // ----------------------------------------------------------
 
     const getStudentStatus = (s) => {
         const total = s.totalEnrollments || 0;
@@ -514,9 +598,8 @@ const StudentsManagement = () => {
 
     if (isLoading && students.length === 0) {
         return (
-            <div className="flex items-center justify-center h-64">
-                <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
-                <span className="ml-2 text-gray-600">Loading students...</span>
+            <div className="flex items-center justify-center min-h-[400px]">
+                <Loader message="Loading Student Records..." size="lg" />
             </div>
         );
     }
@@ -768,20 +851,25 @@ const StudentsManagement = () => {
                                         )}
                                         <button
                                             onClick={async () => {
-                                                setViewFeeModal({ open: true, userId: student._id, studentName: student.name });
-                                                setFeeRecords([]);
-                                                setFeeLoading(true);
                                                 try {
                                                     const res = await feeAPI.getUserFees(student._id);
-                                                    setFeeRecords(res.data.data || []);
+                                                    const fees = res.data.data || [];
+                                                    if (fees.length === 0) {
+                                                        alert('No fee record found for this student. They must be enrolled in a course first.');
+                                                        return;
+                                                    }
+                                                    if (fees.length === 1) {
+                                                        handleManageInstallments(fees[0]);
+                                                    } else {
+                                                        setViewFeeModal({ open: true, userId: student._id, studentName: student.name });
+                                                        setFeeRecords(fees);
+                                                    }
                                                 } catch (e) {
-                                                    console.error('Error loading fee records:', e);
-                                                } finally {
-                                                    setFeeLoading(false);
+                                                    console.error('Error opening fee plan:', e);
                                                 }
                                             }}
                                             className="p-2 bg-purple-50 hover:bg-purple-100 text-purple-600 rounded-xl"
-                                            title="View Submitted Challans"
+                                            title="Manage Fee Plan & Receipts"
                                         >
                                             <Receipt className="w-5 h-5" />
                                         </button>
@@ -1023,49 +1111,37 @@ const StudentsManagement = () => {
                             <span className="ml-2 text-gray-500">Loading fee records...</span>
                         </div>
                     ) : (() => {
-                        // Collect all installments that have a receiptUrl (submitted/verified/rejected)
-                        const allInstallments = feeRecords.flatMap(fee =>
-                            (fee.installments || []).filter(i => i.receiptUrl).map(i => ({ ...i, course: fee.course, feeId: fee._id }))
-                        );
-                        return allInstallments.length === 0 ? (
-                            <div className="text-center py-12 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
-                                <Receipt className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                                <p className="text-gray-500 font-medium">No Challans Submitted</p>
-                                <p className="text-sm text-gray-400 mt-1">This student has not uploaded any fee payment proofs yet.</p>
-                            </div>
-                        ) : (
-                            <div className="space-y-5 max-h-[65vh] overflow-y-auto pr-1">
-                                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">{allInstallments.length} Receipt{allInstallments.length !== 1 ? 's' : ''} Found</p>
-                                {allInstallments.map((inst, idx) => (
-                                    <div key={inst._id || idx} className="bg-gray-50 rounded-2xl border border-gray-100 overflow-hidden">
-                                        {/* Header */}
-                                        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-white">
-                                            <div>
-                                                <p className="text-xs font-black text-gray-700 uppercase tracking-tight">{inst.course?.title || 'Unknown Course'}</p>
-                                                <div className="flex items-center gap-3 mt-0.5 text-[11px] text-gray-400 font-medium">
-                                                    {inst.slipId && <span>Slip ID: {inst.slipId}</span>}
-                                                    {inst.paidAt && <span>• {new Date(inst.paidAt).toLocaleDateString()}</span>}
+                        return (
+                            <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-1">
+                                <div className="grid gap-4">
+                                    {feeRecords.map((fee, fIdx) => (
+                                        <div key={fee._id || fIdx} className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                                            {/* Course Summary Header */}
+                                            <div className="p-4 flex items-center justify-between">
+                                                <div>
+                                                    <div className="flex items-center gap-2">
+                                                        <h4 className="text-sm font-black text-gray-900 uppercase tracking-tight">{fee.course?.title || 'Unknown Course'}</h4>
+                                                        {fee.course?.city && (
+                                                            <span className="px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded text-[9px] font-black uppercase tracking-widest border border-gray-200">
+                                                                {fee.course.city}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <p className="text-xs text-gray-500 font-medium mt-0.5">
+                                                        Total Course Fee: <span className="text-gray-900 font-bold">Rs {(fee.totalFee || 0).toLocaleString()}</span>
+                                                    </p>
                                                 </div>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-base font-black text-gray-900">Rs {(inst.amount || 0).toLocaleString()}</span>
-                                                <span className={`text-[10px] font-black px-2 py-0.5 rounded-lg uppercase tracking-widest ${
-                                                    inst.status === 'verified' ? 'bg-emerald-100 text-emerald-700' :
-                                                    inst.status === 'rejected' ? 'bg-red-100 text-red-600' :
-                                                    'bg-amber-100 text-amber-700'
-                                                }`}>{inst.status}</span>
+                                                <button
+                                                    onClick={() => handleManageInstallments(fee)}
+                                                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-2 shadow-sm transition-all"
+                                                >
+                                                    <Calendar className="w-3.5 h-3.5" />
+                                                    Manage Plan
+                                                </button>
                                             </div>
                                         </div>
-                                        {/* Receipt Image */}
-                                        <div className="p-3">
-                                            <img
-                                                src={inst.receiptUrl}
-                                                alt={`Receipt ${idx + 1}`}
-                                                className="w-full rounded-xl border border-gray-200 shadow-sm object-contain max-h-80"
-                                            />
-                                        </div>
-                                    </div>
-                                ))}
+                                    ))}
+                                </div>
                             </div>
                         );
                     })()}
@@ -1349,6 +1425,150 @@ const StudentsManagement = () => {
                         </button>
                     </div>
                 </form>
+            </Modal>
+
+            {/* Monthly Fee Management Modal */}
+            <Modal isOpen={isInstallmentModalOpen} onClose={() => setIsInstallmentModalOpen(false)} title="Manage Months" size="lg">
+                <div className="space-y-6">
+                    <div className="bg-blue-50 p-4 rounded-xl text-sm text-blue-800 border border-blue-100">
+                        <p>Set up the monthly fee plan for <strong>{selectedFee?.user?.name || viewFeeModal.studentName}</strong>.</p>
+                        <p className="mt-1">Course Fee: <strong>Rs {(selectedFee?.totalFee || 0).toLocaleString()}</strong></p>
+                    </div>
+
+                    {/* Auto-generation notice */}
+                    <div className="bg-red-50 p-4 rounded-xl text-sm text-red-700 border border-red-200">
+                        <p className="font-bold flex items-center gap-2 text-xs">
+                            <AlertCircle className="w-4 h-4" />
+                            Next month's installment will be automatically created by the system.
+                        </p>
+                        <p className="mt-1 text-[10px] text-red-600">After the first installment is verified, new installments will be auto-generated monthly using the course fee.</p>
+                    </div>
+
+                    <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2">
+                        {installmentPlan.map((inst, idx) => (
+                            <div key={idx} className="flex items-center gap-3 p-3 bg-gray-50/50 rounded-xl border border-gray-100">
+                                <div className="w-24 shrink-0">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1 block">Amount</label>
+                                    <input
+                                        type="number"
+                                        value={inst.amount}
+                                        onChange={(e) => handleInstallmentChange(idx, 'amount', e.target.value)}
+                                        className="w-full px-2 py-1.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-sm font-bold"
+                                        placeholder="0"
+                                    />
+                                </div>
+                                <div className="w-32 shrink-0">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1 block">Due Date</label>
+                                    <input
+                                        type="date"
+                                        value={inst.dueDate}
+                                        onChange={(e) => handleInstallmentChange(idx, 'dueDate', e.target.value)}
+                                        className="w-full px-2 py-1.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-xs"
+                                    />
+                                </div>
+                                <div className="flex-1">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1 block">Status</label>
+                                    <div className="flex items-center gap-2">
+                                        <Badge variant={inst.status === 'verified' ? 'success' : inst.status === 'submitted' ? 'info' : inst.status === 'rejected' ? 'error' : 'warning'}>
+                                            {inst.status === 'verified' ? 'PAID ✓' : (inst.status?.toUpperCase() || 'PENDING')}
+                                        </Badge>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-1 shrink-0">
+                                    {inst.receiptUrl && (
+                                        <button
+                                            type="button"
+                                            onClick={() => handleViewScreenshot(inst)}
+                                            className="p-2 bg-blue-50 text-blue-500 hover:bg-blue-500 hover:text-white rounded-lg transition-colors border border-blue-100"
+                                            title="View Uploaded Slip"
+                                        >
+                                            <Receipt className="w-4 h-4" />
+                                        </button>
+                                    )}
+                                    <button
+                                        type="button"
+                                        onClick={() => handleRemoveInstallmentRow(idx)}
+                                        className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                                        title="Delete Row"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    <button onClick={handleAddInstallmentRow} className="flex items-center gap-2 text-sm text-emerald-600 font-medium hover:underline">
+                        <Plus className="w-4 h-4" /> Add Month Fee
+                    </button>
+
+                    <div className="border-t pt-4 flex justify-end gap-3">
+                        <button onClick={() => setIsInstallmentModalOpen(false)} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg font-medium">Cancel</button>
+                        <button
+                            onClick={handleSaveInstallments}
+                            disabled={isProcessing}
+                            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium flex items-center gap-2"
+                        >
+                            {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save Plan'}
+                        </button>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* Receipt Modal */}
+            <Modal isOpen={isImageModalOpen} onClose={() => setIsImageModalOpen(false)} title="Payment Receipt" size="md">
+                <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h3 className="font-bold text-gray-900">{selectedInstallment?.student || viewFeeModal.studentName}</h3>
+                            <p className="text-xs text-gray-500">Slip ID: {selectedInstallment?.slipId || 'N/A'}</p>
+                        </div>
+                        <div className="text-right">
+                            <p className="text-lg font-black text-gray-900">Rs {(selectedInstallment?.amount || 0).toLocaleString()}</p>
+                        </div>
+                    </div>
+                    <div className="rounded-2xl border-2 border-gray-100 overflow-hidden bg-gray-50">
+                        <img
+                            src={selectedInstallment?.receiptUrl}
+                            alt="Payment Slip"
+                            className="w-full h-auto max-h-[60vh] object-contain"
+                        />
+                    </div>
+                    <div className="flex justify-end gap-2 pt-2">
+                        <button onClick={() => setIsImageModalOpen(false)} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg font-medium">Close</button>
+                        {selectedInstallment?.status === 'submitted' && (
+                            <>
+                                <button
+                                    onClick={async () => {
+                                        if (window.confirm('Are you sure you want to reject this payment receipt?')) {
+                                            setIsProcessing(true);
+                                            try {
+                                                await feeAPI.reject(selectedFee?._id || selectedInstallment?.feeId, selectedInstallment?._id);
+                                                const res = await feeAPI.getUserFees(viewFeeModal.userId);
+                                                setFeeRecords(res.data.data || []);
+                                                setIsImageModalOpen(false);
+                                            } catch (err) {
+                                                console.error('Error rejecting:', err);
+                                                alert('Failed to reject payment');
+                                            } finally {
+                                                setIsProcessing(false);
+                                            }
+                                        }
+                                    }}
+                                    className="px-4 py-2 bg-red-50 text-red-600 hover:bg-red-600 hover:text-white rounded-lg flex items-center gap-2 font-medium transition-colors"
+                                >
+                                    <XCircle className="w-4 h-4" /> Reject
+                                </button>
+                                <button
+                                    onClick={() => handleVerifyInstallment(selectedFee?._id || selectedInstallment?.feeId, selectedInstallment?._id)}
+                                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg flex items-center gap-2 font-medium"
+                                >
+                                    <CheckCircle className="w-4 h-4" /> Verify Payment
+                                </button>
+                            </>
+                        )}
+                    </div>
+                </div>
             </Modal>
         </div>
     );

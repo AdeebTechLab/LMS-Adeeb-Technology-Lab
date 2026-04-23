@@ -12,15 +12,28 @@ import {
     RefreshCw,
     User,
     Settings,
-    LifeBuoy
+    LifeBuoy,
+    LogOut,
+    ClipboardList, 
+    AlertCircle, 
+    CreditCard, 
+    FileText, 
+    Award, 
+    Calendar, 
+    Zap, 
+    GraduationCap, 
+    X, 
+    Megaphone
 } from 'lucide-react';
+import { useDispatch } from 'react-redux';
+import { logout } from '../../features/auth/authSlice';
 import Sidebar from './Sidebar';
 import NotificationPopup from '../shared/NotificationPopup';
 import ChatWidget from '../shared/ChatWidget';
 import { userNotificationAPI, assignmentAPI, courseAPI } from '../../services/api';
 import useAutoLogout from '../../hooks/useAutoLogout';
 import { useTheme } from '../../context/ThemeContext';
-import { ClipboardList, AlertCircle } from 'lucide-react';
+import Loader, { FullScreenLoader } from '../ui/Loader';
 
 const DashboardLayout = () => {
     // Enable auto-logout
@@ -36,6 +49,8 @@ const DashboardLayout = () => {
     const navigate = useNavigate();
     const { isDark, toggleTheme } = useTheme();
     const [pendingTasks, setPendingTasks] = useState([]);
+    const [isPageLoading, setIsPageLoading] = useState(false);
+    const dispatch = useDispatch();
 
     // Fetch notifications and tasks
     useEffect(() => {
@@ -47,6 +62,12 @@ const DashboardLayout = () => {
         }, 30000); // Poll every 30 seconds
         return () => clearInterval(interval);
     }, [role, user]);
+
+    useEffect(() => {
+        setIsPageLoading(true);
+        const timer = setTimeout(() => setIsPageLoading(false), 600);
+        return () => clearTimeout(timer);
+    }, [location.pathname]);
 
     const fetchPendingTasks = async () => {
         if (!user) return;
@@ -162,6 +183,26 @@ const DashboardLayout = () => {
         return lastSegment.charAt(0).toUpperCase() + lastSegment.slice(1).replace(/-/g, ' ');
     };
 
+    const getNotificationIcon = (notification) => {
+        const title = (notification.title || '').toLowerCase();
+        const message = (notification.message || '').toLowerCase();
+        
+        if (title.includes('fee') || title.includes('payment') || title.includes('installment') || message.includes('fee')) {
+            return <CreditCard className="w-4 h-4 text-emerald-500" />;
+        }
+        if (title.includes('assignment') || title.includes('task') || message.includes('assignment')) {
+            return <FileText className="w-4 h-4 text-blue-500" />;
+        }
+        if (title.includes('result') || title.includes('marks') || title.includes('certificate')) {
+            return <Award className="w-4 h-4 text-amber-500" />;
+        }
+        if (title.includes('class') || title.includes('session') || title.includes('meeting') || title.includes('live')) {
+            return <Calendar className="w-4 h-4 text-indigo-500" />;
+        }
+        
+        return <Bell className="w-4 h-4 text-[#ff8e01]" />;
+    };
+
     const formatNotificationTime = (date) => {
         const now = new Date();
         const notifDate = new Date(date);
@@ -184,6 +225,20 @@ const DashboardLayout = () => {
 
             {/* Notification Popup */}
             <NotificationPopup />
+
+            {/* Page Transition Loader */}
+            <AnimatePresence>
+                {isPageLoading && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[9999] flex items-center justify-center bg-white/60 dark:bg-[#0f1117]/60 backdrop-blur-md"
+                    >
+                        <Loader message="LMS Adeeb Tech Lab is Loading..." size="lg" />
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             {/* Main Content - Scrollable */}
             <div className="flex-1 flex flex-col h-screen overflow-hidden">
@@ -299,10 +354,18 @@ const DashboardLayout = () => {
                                     >
                                         <div className={`p-4 border-b ${isDark ? 'border-white/10' : 'border-gray-100'}`}>
                                             <div className="flex items-center justify-between">
-                                                <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Notifications</h3>
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-8 h-8 rounded-lg bg-[#ff8e01]/10 flex items-center justify-center border border-[#ff8e01]/20 overflow-hidden">
+                                                        <img src="/logo.png" alt="Logo" className="w-5 h-5 object-contain" />
+                                                    </div>
+                                                    <div>
+                                                        <h3 className={`text-sm font-black tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>Notifications</h3>
+                                                        <p className="text-[10px] font-bold text-[#ff8e01] uppercase tracking-widest">Adeeb Tech Lab</p>
+                                                    </div>
+                                                </div>
                                                 <button
                                                     onClick={handleMarkAllRead}
-                                                    className="text-sm text-[#ff8e01] hover:text-[#ffab40]"
+                                                    className="text-[10px] font-black uppercase tracking-widest text-[#ff8e01] hover:text-[#ffab40] px-2 py-1 rounded-lg hover:bg-[#ff8e01]/5 transition-all"
                                                 >
                                                     Mark all read
                                                 </button>
@@ -364,9 +427,14 @@ const DashboardLayout = () => {
                                                                 className={`w-2 h-2 rounded-full mt-2 ${!notification.isRead ? 'bg-[#ff8e01]' : isDark ? 'bg-white/20' : 'bg-gray-300'}`}
                                                             />
                                                             <div className="flex-1">
-                                                                <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                                                                    {notification.title}
-                                                                </p>
+                                                                <div className="flex items-center justify-between gap-2">
+                                                                    <p className={`text-sm font-bold truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                                                                        {notification.title}
+                                                                    </p>
+                                                                    <div className={`p-1.5 rounded-md ${isDark ? 'bg-white/5' : 'bg-gray-100'}`}>
+                                                                        {getNotificationIcon(notification)}
+                                                                    </div>
+                                                                </div>
                                                                 <p className={`text-xs mt-1 ${isDark ? 'text-white/50' : 'text-gray-600'}`}>
                                                                     {notification.message}
                                                                 </p>
@@ -417,19 +485,6 @@ const DashboardLayout = () => {
                                         animate={{ opacity: 1, y: 0 }}
                                         className={`absolute right-0 mt-2 w-56 rounded-2xl shadow-xl border overflow-hidden z-50 transition-colors duration-200 ${isDark ? 'bg-[#1a1f2e] border-white/10' : 'bg-white border-gray-100'}`}
                                     >
-                                        <div className={`p-4 border-b flex items-center gap-3 ${isDark ? 'border-white/10' : 'border-gray-100'}`}>
-                                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#ff8e01] to-[#ffab40] flex items-center justify-center text-white font-bold overflow-hidden">
-                                                {user?.photo ? (
-                                                    <img src={user.photo} alt={user.name} className="w-full h-full object-cover" />
-                                                ) : (
-                                                    user?.name?.charAt(0) || 'U'
-                                                )}
-                                            </div>
-                                            <div className="min-w-0">
-                                                <p className={`font-medium truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>{user?.name}</p>
-                                                <p className={`text-xs truncate ${isDark ? 'text-white/40' : 'text-gray-500'}`}>{user?.email}</p>
-                                            </div>
-                                        </div>
                                         <div className="p-2">
                                             <button 
                                                 onClick={() => {
@@ -460,6 +515,20 @@ const DashboardLayout = () => {
                                             >
                                                 <LifeBuoy className="w-4 h-4" />
                                                 Help & Support
+                                            </button>
+                                            
+                                            <div className={`my-1 border-t ${isDark ? 'border-white/10' : 'border-gray-100'}`} />
+                                            
+                                            <button 
+                                                onClick={() => {
+                                                    dispatch(logout());
+                                                    navigate('/login');
+                                                    setShowUserMenu(false);
+                                                }}
+                                                className={`w-full flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-colors ${isDark ? 'text-red-400 hover:bg-red-500/10 hover:text-red-300' : 'text-red-600 hover:bg-red-50'}`}
+                                            >
+                                                <LogOut className="w-4 h-4" />
+                                                Sign Out
                                             </button>
                                         </div>
                                     </motion.div>

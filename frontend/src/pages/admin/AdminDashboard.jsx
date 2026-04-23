@@ -11,7 +11,6 @@ import {
     CheckCircle,
     XCircle,
     Clock,
-    Loader2,
     Calendar,
     ChevronRight,
     Search,
@@ -31,6 +30,7 @@ import Badge from '../../components/ui/Badge';
 import { BarChart, DoughnutChart } from '../../components/charts/Charts';
 import { statsAPI, feeAPI } from '../../services/api';
 import HolidaySettings from './components/HolidaySettings';
+import Loader, { ButtonLoader } from '../../components/ui/Loader';
 
 const AdminDashboard = () => {
     const navigate = useNavigate();
@@ -273,9 +273,8 @@ const AdminDashboard = () => {
 
     if (isLoading && !data) {
         return (
-            <div className="flex flex-col items-center justify-center h-[60vh] gap-3">
-                <img src="/loading.gif" alt="Loading" className="w-24 h-24 object-contain" />
-                <span className="text-gray-500 font-black uppercase tracking-widest text-xs">Syncing Portal Data...</span>
+            <div className="flex items-center justify-center min-h-[60vh]">
+                <Loader message="Syncing Portal Data..." size="lg" />
             </div>
         );
     }
@@ -329,7 +328,7 @@ const AdminDashboard = () => {
                         className="flex items-center gap-3 bg-[#ff8e01] text-white px-6 py-3 rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg shadow-orange-200 hover:shadow-orange-300 transition-all active:scale-95 disabled:opacity-50 no-pdf"
                     >
                         {isDownloading ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
+                            <ButtonLoader />
                         ) : (
                             <Download className="w-4 h-4" />
                         )}
@@ -365,7 +364,7 @@ const AdminDashboard = () => {
                                                 <option value="custom">Custom Range</option>
                                             </select>
                                         </div>
-                                        {isLoading && <Loader2 className="w-6 h-6 animate-spin text-[#ff8e01]" />}
+                                        {isLoading && <ButtonLoader className="w-6 h-6" />}
                                     </div>
 
                                     {dateRangeType === 'custom' && (

@@ -27,7 +27,7 @@ router.get('/my', protect, async (req, res) => {
                 if (amount > 0) {
                     fee.installments = [{
                         amount: amount,
-                        dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+                        dueDate: new Date(), // Due today
                         status: 'pending'
                     }];
                     await fee.save();
@@ -319,8 +319,8 @@ router.post('/:id/installments', protect, authorize('admin'), async (req, res) =
             } else {
                 // Ensure amount is a Number and dueDate exists to satisfy schema
                 const parsedAmount = Number(newInst.amount) || 0;
-                // Prefer provided dueDate, fall back to existing installment's dueDate, then to a reasonable default (i+1 weeks)
-                const parsedDueDate = newInst.dueDate ? new Date(newInst.dueDate) : (existing && existing.dueDate) ? existing.dueDate : new Date(Date.now() + (i + 1) * 7 * 24 * 60 * 60 * 1000);
+                // Prefer provided dueDate, fall back to existing installment's dueDate, then to a reasonable default (i months from today)
+                const parsedDueDate = newInst.dueDate ? new Date(newInst.dueDate) : (existing && existing.dueDate) ? existing.dueDate : new Date(new Date().setMonth(new Date().getMonth() + i));
 
                 newInstallments.push({
                     amount: parsedAmount,

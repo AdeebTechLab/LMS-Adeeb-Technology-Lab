@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
     Search, Eye, CheckCircle, XCircle, Clock, AlertCircle, Loader2,
-    Plus, Trash2, Calendar, DollarSign, FileText, ArrowLeft, MapPin, Users
+    Plus, Trash2, Calendar, DollarSign, FileText, ArrowLeft, MapPin, Users, CheckCircle2
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
 import { feeAPI } from '../../services/api';
+import { showToast } from '../../utils/customToast';
+import Loader from '../../components/ui/Loader';
 
 const FeeVerification = () => {
     const [activeTab, setActiveTab] = useState('pending');
@@ -158,12 +160,12 @@ const FeeVerification = () => {
                     }
                     return fee;
                 }));
-                // Optionally show success toast/alert
+                showToast.success('Receipt Rejected', 'The student has been notified to re-upload their receipt.');
             }
             fetchAllFees();
         } catch (error) {
             console.error('Error rejecting fee:', error);
-            alert('Failed to reject fee');
+            showToast.error('Action Failed', 'Failed to reject the fee receipt. Please try again.');
         }
     };
 
@@ -179,9 +181,10 @@ const FeeVerification = () => {
             setAllFees(prev => prev.filter(f => f._id !== confirmDeleteModal.feeId));
             setFees(prev => prev.filter(f => f._id !== confirmDeleteModal.feeId));
             setConfirmDeleteModal({ open: false, feeId: null });
+            showToast.success('Record Deleted', 'The fee and enrollment record has been permanently removed.', Trash2);
         } catch (err) {
             console.error('Error deleting fee:', err);
-            alert('Failed to delete fee record');
+            showToast.error('Delete Failed', 'Failed to delete fee record. Please check your connection.');
         } finally {
             setIsProcessing(false);
         }
@@ -196,9 +199,10 @@ const FeeVerification = () => {
             setSelectedInstallment(null);
             if (activeTab === 'pending') fetchPendingFees();
             else fetchAllFees();
+            showToast.success('Payment Verified', 'The installment has been marked as paid successfully.', CheckCircle2);
         } catch (err) {
             console.error('Error verifying:', err);
-            setError(err.response?.data?.message || 'Failed to verify payment');
+            showToast.error('Verification Error', err.response?.data?.message || 'Failed to verify payment');
         } finally {
             setIsProcessing(false);
         }
@@ -283,9 +287,8 @@ const FeeVerification = () => {
 
     if (isFetching && !isProcessing && fees.length === 0 && allFees.length === 0) {
         return (
-            <div className="flex items-center justify-center h-64">
-                <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
-                <span className="ml-2 text-gray-600">Loading fees...</span>
+            <div className="flex items-center justify-center min-h-[400px]">
+                <Loader message="Loading Fees & Verification Data..." size="lg" />
             </div>
         );
     }
@@ -742,6 +745,15 @@ const FeeVerification = () => {
                         <div className="flex justify-end gap-2 pt-2">
                             <button onClick={() => setIsImageModalOpen(false)} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">Close</button>
                             <button
+                                onClick={() => {
+                                    handleReject(selectedInstallment.feeId, selectedInstallment._id);
+                                    setIsImageModalOpen(false);
+                                }}
+                                className="px-4 py-2 bg-rose-100 hover:bg-rose-200 text-rose-700 rounded-lg flex items-center gap-2 font-medium"
+                            >
+                                <XCircle className="w-4 h-4" /> Reject
+                            </button>
+                            <button
                                 onClick={() => handleVerify(selectedInstallment.feeId, selectedInstallment._id)}
                                 className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg flex items-center gap-2"
                             >
@@ -753,7 +765,7 @@ const FeeVerification = () => {
             </Modal>
 
             {/* Monthly Fee Management Modal */}
-            <Modal isOpen={isInstallmentModalOpen} onClose={() => setIsInstallmentModalOpen(false)} title="Manage Months">
+            <Modal isOpen={isInstallmentModalOpen} onClose={() => setIsInstallmentModalOpen(false)} title="Manage Months" size="lg">
                 <div className="space-y-6">
                     <div className="bg-blue-50 p-4 rounded-xl text-sm text-blue-800 border border-blue-100">
                         <p>Set up the monthly fee plan for <strong>{selectedFee?.user?.name}</strong>.</p>
@@ -771,32 +783,40 @@ const FeeVerification = () => {
 
                     <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2">
                         {installmentPlan.map((inst, idx) => (
-                            <div key={idx} className="flex flex-wrap md:flex-nowrap gap-3 items-end p-3 bg-gray-50/50 rounded-xl border border-gray-100">
-                                <div className="flex-1 min-w-[120px]">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1 block">Amount (Rs)</label>
+                            <div key={idx} className="flex items-center gap-3 p-3 bg-gray-50/50 rounded-xl border border-gray-100">
+                                <div className="w-24 shrink-0">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1 block">Amount</label>
                                     <input
                                         type="number"
                                         value={inst.amount}
                                         onChange={(e) => handleInstallmentChange(idx, 'amount', e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-sm font-bold"
+                                        className="w-full px-2 py-1.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-sm font-bold"
                                         placeholder="0"
                                     />
                                 </div>
-                                <div className="flex-1 min-w-[150px]">
+                                <div className="w-32 shrink-0">
                                     <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1 block">Due Date</label>
                                     <input
                                         type="date"
                                         value={inst.dueDate}
                                         onChange={(e) => handleInstallmentChange(idx, 'dueDate', e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-sm"
+                                        className="w-full px-2 py-1.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-xs"
                                     />
                                 </div>
-                                <div className="flex items-center gap-2 pb-1">
+                                <div className="flex-1">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1 block">Status</label>
+                                    <div className="flex items-center gap-2">
+                                        <Badge variant={inst.status === 'verified' ? 'success' : inst.status === 'submitted' ? 'info' : inst.status === 'rejected' ? 'error' : 'warning'}>
+                                            {inst.status === 'verified' ? 'PAID ✓' : (inst.status?.toUpperCase() || 'PENDING')}
+                                        </Badge>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-1 shrink-0">
                                     {inst.receiptUrl && (
                                         <button
                                             type="button"
                                             onClick={() => handleViewScreenshot({ ...inst, feeId: selectedFee?._id, student: selectedFee?.user?.name, course: selectedFee?.course?.title })}
-                                            className="p-2.5 bg-blue-50 dark:bg-blue-900/30 text-blue-500 dark:text-blue-400 hover:bg-blue-500 hover:text-white rounded-lg transition-colors border border-blue-100 dark:border-blue-800"
+                                            className="p-2 bg-blue-50 text-blue-500 hover:bg-blue-500 hover:text-white rounded-lg transition-colors border border-blue-100"
                                             title="View Uploaded Slip"
                                         >
                                             <Eye className="w-4 h-4" />
@@ -804,18 +824,9 @@ const FeeVerification = () => {
                                     )}
                                     <button
                                         type="button"
-                                        onClick={() => handleInstallmentChange(idx, 'status', inst.status === 'verified' ? 'pending' : 'verified')}
-                                        className={`px-3 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest border-2 transition-all ${inst.status === 'verified'
-                                            ? 'bg-emerald-500 border-emerald-500 text-white shadow-lg shadow-emerald-500/20'
-                                            : 'bg-white border-gray-200 text-gray-400 hover:border-emerald-200 hover:text-emerald-500'
-                                            }`}
-                                    >
-                                        {inst.status === 'verified' ? 'PAID ✓' : 'UNPAID'}
-                                    </button>
-                                    <button
                                         onClick={() => handleRemoveInstallmentRow(idx)}
-                                        className="p-2.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                                        title="Remove month"
+                                        className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                                        title="Delete Row"
                                     >
                                         <Trash2 className="w-4 h-4" />
                                     </button>

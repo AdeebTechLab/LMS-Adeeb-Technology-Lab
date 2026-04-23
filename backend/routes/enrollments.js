@@ -181,7 +181,7 @@ router.post('/', protect, async (req, res) => {
             enrollmentData.installments = [{
                 installmentNumber: 1,
                 amount: course.fee,
-                dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // Due in 7 days
+                dueDate: new Date(), // Due on the day of enrollment
                 status: 'pending'
             }];
         }

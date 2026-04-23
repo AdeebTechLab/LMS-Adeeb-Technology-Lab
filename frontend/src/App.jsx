@@ -221,10 +221,13 @@ const AppRoutes = () => {
   );
 };
 
+import { Toaster } from 'react-hot-toast';
+
 function App() {
   return (
     <Provider store={store}>
       <Router>
+        <Toaster position="top-right" reverseOrder={false} />
         <AppRoutes />
       </Router>
     </Provider>

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Bell, Info, AlertCircle, CheckCircle } from 'lucide-react';
+import { X, Bell, Info, AlertCircle, CheckCircle, CreditCard, FileText, Award, Calendar, Zap, GraduationCap, Megaphone } from 'lucide-react';
 import { notificationAPI } from '../../services/api';
 import { useTheme } from '../../context/ThemeContext';
 
@@ -45,12 +45,34 @@ const NotificationPopup = () => {
 
     if (!isVisible || activeNotifications.length === 0) return null;
 
-    const getIcon = (type) => {
-        switch (type) {
-            case 'warning': return <AlertCircle className="w-5 h-5 text-amber-500" />;
-            case 'success': return <CheckCircle className="w-5 h-5 text-[#ff8e01]" />;
-            case 'error': return <AlertCircle className="w-5 h-5 text-rose-500" />;
-            default: return <Info className="w-5 h-5 text-blue-500" />;
+    const getIcon = (notification) => {
+        const title = (notification.title || '').toLowerCase();
+        const message = (notification.message || '').toLowerCase();
+
+        if (title.includes('fee') || title.includes('payment') || title.includes('installment') || message.includes('fee')) {
+            return <CreditCard className="w-8 h-8 text-emerald-500" />;
+        }
+        if (title.includes('assignment') || title.includes('task') || message.includes('assignment')) {
+            return <FileText className="w-8 h-8 text-blue-500" />;
+        }
+        if (title.includes('result') || title.includes('marks') || title.includes('certificate') || title.includes('roll')) {
+            return <Award className="w-8 h-8 text-amber-500" />;
+        }
+        if (title.includes('class') || title.includes('session') || title.includes('meeting') || title.includes('zoom') || title.includes('live')) {
+            return <Calendar className="w-8 h-8 text-indigo-500" />;
+        }
+        if (title.includes('urgent') || title.includes('important') || title.includes('attention')) {
+            return <Zap className="w-8 h-8 text-[#ff8e01]" />;
+        }
+        if (title.includes('holiday') || title.includes('closed') || title.includes('off')) {
+            return <Megaphone className="w-8 h-8 text-rose-500" />;
+        }
+
+        switch (notification.type) {
+            case 'warning': return <AlertCircle className="w-8 h-8 text-amber-500" />;
+            case 'success': return <CheckCircle className="w-8 h-8 text-emerald-500" />;
+            case 'error': return <AlertCircle className="w-8 h-8 text-rose-500" />;
+            default: return <Bell className="w-8 h-8 text-[#ff8e01]" />;
         }
     };
 
@@ -96,13 +118,27 @@ const NotificationPopup = () => {
                         {/* Header */}
                         <div className={`p-6 md:p-8 pb-4 border-b flex items-center justify-between flex-shrink-0 ${isDark ? 'border-white/10' : 'border-slate-100'}`}>
                             <div className="flex items-center gap-4">
-                                <div className={`p-3 rounded-2xl ${isDark ? 'bg-blue-900/30' : 'bg-blue-50'}`}>
-                                    <Bell className="w-6 h-6 text-blue-500" />
+                                <div className={`p-2 rounded-2xl border border-[#ff8e01]/30 flex items-center justify-center overflow-hidden w-16 h-16 md:w-20 md:h-20 ${isDark ? 'bg-white/5' : 'bg-gray-50'}`}>
+                                    <img
+                                        src="/logo.png"
+                                        alt="Logo"
+                                        className="w-full h-full object-contain scale-80"
+                                        onError={(e) => {
+                                            e.target.style.display = 'none';
+                                            e.target.nextSibling.style.display = 'block';
+                                        }}
+                                    />
+                                    <GraduationCap className="w-16 h-16 text-[#ff8e01] hidden" />
                                 </div>
                                 <div>
-                                    <h2 className={`text-2xl font-black tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>Important Announcements</h2>
+                                    <div className="flex items-center gap-2">
+                                        <h1 className="text-[#ff8e01] font-black text-xs uppercase tracking-[0.3em]">LMS Adeeb Tech Lab</h1>
+                                        <div className="h-1 w-1 rounded-full bg-gray-400" />
+                                        <span className={`text-[10px] font-bold uppercase tracking-widest ${isDark ? 'text-white/40' : 'text-gray-400'}`}>Official Notice</span>
+                                    </div>
+                                    <h2 className={`text-2xl md:text-3xl font-black tracking-tight mt-0.5 ${isDark ? 'text-white' : 'text-slate-900'}`}>Important Announcements</h2>
                                     <p className={`text-sm font-medium mt-0.5 ${isDark ? 'text-white/50' : 'text-slate-500'}`}>
-                                        {activeNotifications.length} {activeNotifications.length === 1 ? 'Notification' : 'Notifications'}
+                                        You have <span className="text-[#ff8e01] font-bold">{activeNotifications.length}</span> {activeNotifications.length === 1 ? 'notification' : 'notifications'} to review
                                     </p>
                                 </div>
                             </div>
@@ -132,8 +168,8 @@ const NotificationPopup = () => {
                                         {/* Notification Content */}
                                         <div className="p-6 md:p-8">
                                             <div className="flex items-start gap-4">
-                                                <div className={`p-3 ${colors.iconBg} rounded-xl flex-shrink-0 mt-1`}>
-                                                    {getIcon(notification.type)}
+                                                <div className={`p-5 ${colors.iconBg} rounded-2xl flex-shrink-0 mt-1 shadow-inner border border-white/10`}>
+                                                    {getIcon(notification)}
                                                 </div>
                                                 <div className="flex-1 min-w-0 space-y-3">
                                                     <h3 className={`text-xl md:text-2xl font-black leading-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>

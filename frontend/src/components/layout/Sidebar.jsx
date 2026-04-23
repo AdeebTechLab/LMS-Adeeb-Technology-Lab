@@ -280,11 +280,11 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 >
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-gradient-to-br from-[#ff8e01] to-[#ffab40] rounded-xl flex items-center justify-center overflow-hidden shadow-lg shadow-orange-900/20">
+                            <div className="w-12 h-12 border-2 border-[#ff8e01] rounded-full flex items-center justify-center overflow-hidden">
                                 <img
                                     src="/logo.png"
                                     alt="Logo"
-                                    className="w-full h-full object-cover"
+                                    className="w-full h-full object-contain"
                                     onError={(e) => {
                                         e.target.style.display = 'none';
                                         e.target.nextSibling.style.display = 'block';

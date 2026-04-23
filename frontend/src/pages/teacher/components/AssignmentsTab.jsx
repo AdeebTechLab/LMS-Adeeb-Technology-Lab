@@ -88,8 +88,11 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
         setEditingAssignment({
             ...assignment,
             dueDate: assignment.dueDate ? new Date(assignment.dueDate).toISOString().split('T')[0] : '',
-            publishDate: assignment.publishDate ? new Date(assignment.publishDate).toISOString().slice(0, 16) : ''
+            publishDate: assignment.publishDate ? new Date(assignment.publishDate).toISOString().slice(0, 16) : '',
+            assignTo: assignment.assignTo || 'all',
+            assignedUsers: assignment.assignedUsers || []
         });
+        setAssignSearchTerm(''); // Reset search term
         setIsEditModalOpen(true);
     };
 
@@ -395,6 +398,11 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                             const isOverdue = new Date(assignment.dueDate) < new Date();
                             const isScheduled = new Date(assignment.publishDate) > new Date();
 
+                            // Spotlight submission if student filter is active
+                            const spotlightSubmission = selectedStudentFilter !== 'all'
+                                ? assignment.submissions?.find(s => String(s.user?._id || s.user) === String(selectedStudentFilter))
+                                : null;
+
                             return (
                                 <motion.div
                                     key={assignment._id}
@@ -441,6 +449,101 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                             </button>
                                         </div>
                                     </div>
+
+                                    {/* Submission Spotlight - Shown when filtering by student */}
+                                    {spotlightSubmission && (
+                                        <motion.div 
+                                            initial={{ opacity: 0, height: 0 }}
+                                            animate={{ opacity: 1, height: 'auto' }}
+                                            className="mb-4 p-4 bg-emerald-50/50 rounded-2xl border border-emerald-100 flex items-center justify-between gap-4"
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                {spotlightSubmission.user?.photo ? (
+                                                    <img src={spotlightSubmission.user.photo} alt="" className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm" />
+                                                ) : (
+                                                    <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 font-bold text-sm border-2 border-white shadow-sm">
+                                                        {spotlightSubmission.user?.name?.charAt(0)}
+                                                    </div>
+                                                )}
+                                                <div>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="font-bold text-gray-900 text-sm">{spotlightSubmission.user?.name}</span>
+                                                        {spotlightSubmission.user?.rollNo && (
+                                                            <span className="text-[9px] font-black text-red-500 bg-red-50 px-1.5 py-0.5 rounded-md border border-red-100 uppercase">
+                                                                {spotlightSubmission.user?.rollNo}
+                                                            </span>
+                                                        )}
+                                                        <span className={`text-[8px] font-black uppercase px-1.5 py-0.5 rounded-full border ${spotlightSubmission.user?.role === 'intern' ? 'bg-purple-50 text-purple-600 border-purple-100' : 'bg-blue-50 text-blue-600 border-blue-100'}`}>
+                                                            {spotlightSubmission.user?.role || 'student'}
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-[10px] text-gray-400 font-medium flex items-center gap-1 mt-0.5">
+                                                        <Clock className="w-3 h-3" />
+                                                        {new Date(spotlightSubmission.submittedAt).toLocaleDateString()} at {new Date(spotlightSubmission.submittedAt).toLocaleTimeString()}
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <div className="text-right">
+                                                <div className="flex flex-col items-end">
+                                                    <Badge variant={spotlightSubmission.status === 'graded' ? 'success' : spotlightSubmission.status === 'rejected' ? 'error' : 'warning'}>
+                                                        {spotlightSubmission.status?.toUpperCase() || 'SUBMITTED'}
+                                                    </Badge>
+                                                    {spotlightSubmission.marks !== undefined && spotlightSubmission.marks !== null && (
+                                                        <p className="text-sm font-black text-emerald-600 mt-1">
+                                                            {spotlightSubmission.marks}
+                                                            <span className="text-[10px] text-gray-400 font-bold"> / {assignment.totalMarks}</span>
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </motion.div>
+                                    )}
+
+                                    {/* All Submissions List - Shown when no specific student is filtered */}
+                                    {!spotlightSubmission && assignment.submissions?.length > 0 && (
+                                        <div className="mt-4 border-t border-gray-50 pt-4">
+                                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                                                <Users className="w-3 h-3" />
+                                                Student Submissions ({assignment.submissions.length})
+                                            </p>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-60 overflow-y-auto pr-2 custom-scrollbar p-1">
+                                                {assignment.submissions.map((sub) => (
+                                                    <div key={sub._id} className="p-2.5 bg-gray-50/50 hover:bg-white hover:shadow-sm rounded-xl border border-gray-100 transition-all flex items-center justify-between gap-3 group">
+                                                        <div className="flex items-center gap-2 overflow-hidden">
+                                                            {sub.user?.photo ? (
+                                                                <img src={sub.user.photo} alt="" className="w-7 h-7 rounded-full object-cover border border-gray-100" />
+                                                            ) : (
+                                                                <div className="w-7 h-7 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 font-bold text-[10px]">
+                                                                    {sub.user?.name?.charAt(0)}
+                                                                </div>
+                                                            )}
+                                                            <div className="min-w-0">
+                                                                <p className="text-[11px] font-bold text-gray-900 truncate group-hover:text-emerald-600 transition-colors">{sub.user?.name}</p>
+                                                                <div className="flex items-center gap-1.5">
+                                                                    {sub.user?.rollNo && (
+                                                                        <span className="text-[9px] font-black text-red-500/70">{sub.user?.rollNo}</span>
+                                                                    )}
+                                                                    <span className="text-[9px] text-gray-400 font-medium">
+                                                                        {new Date(sub.submittedAt).toLocaleDateString()}
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div className="text-right shrink-0">
+                                                            <div className={`text-[9px] font-black px-2 py-0.5 rounded-lg border ${
+                                                                sub.status === 'graded' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 
+                                                                sub.status === 'rejected' ? 'bg-red-50 text-red-600 border-red-100' : 
+                                                                'bg-amber-50 text-amber-600 border-amber-100'
+                                                            }`}>
+                                                                {sub.status === 'graded' ? `${sub.marks}/${assignment.totalMarks}` : (sub.status === 'rejected' ? 'REJECTED' : 'PENDING')}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
 
                                     <div className="flex items-center justify-between pt-4 border-t border-gray-100">
                                         <div className="flex items-center gap-4">
@@ -743,6 +846,125 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                             <p className="text-[10px] text-gray-400 mt-1 uppercase font-bold tracking-tighter italic">Leave empty to publish immediately</p>
                         </div>
 
+                        {/* Assign To Section for Edit */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Assign To</label>
+                            <div className="flex gap-4 mb-3">
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                    <input
+                                        type="radio"
+                                        name="editAssignTo"
+                                        checked={editingAssignment.assignTo === 'all'}
+                                        onChange={() => setEditingAssignment({ ...editingAssignment, assignTo: 'all', assignedUsers: [] })}
+                                        className="text-emerald-600 focus:ring-emerald-500"
+                                    />
+                                    <span className="text-sm text-gray-600">All Students</span>
+                                </label>
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                    <input
+                                        type="radio"
+                                        name="editAssignTo"
+                                        checked={editingAssignment.assignTo === 'selected'}
+                                        onChange={() => setEditingAssignment({ ...editingAssignment, assignTo: 'selected' })}
+                                        className="text-emerald-600 focus:ring-emerald-500"
+                                    />
+                                    <span className="text-sm text-gray-600">Selected Students</span>
+                                </label>
+                            </div>
+
+                            {editingAssignment.assignTo === 'selected' && (
+                                <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-200">
+                                    {/* Search & Controls */}
+                                    <div className="flex gap-2">
+                                        <div className="relative flex-1">
+                                            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                                            <input
+                                                type="text"
+                                                placeholder="Search by name or reg no..."
+                                                value={assignSearchTerm}
+                                                onChange={(e) => setAssignSearchTerm(e.target.value)}
+                                                className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all"
+                                            />
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                const searchTerm = assignSearchTerm.toLowerCase();
+                                                const visibleStudents = students.filter(s =>
+                                                (s.name?.toLowerCase().includes(searchTerm) ||
+                                                    s.rollNo?.toLowerCase().includes(searchTerm))
+                                                );
+                                                const newSelection = new Set(editingAssignment.assignedUsers || []);
+                                                visibleStudents.forEach(s => newSelection.add(s.id || s._id));
+                                                setEditingAssignment({ ...editingAssignment, assignedUsers: Array.from(newSelection) });
+                                            }}
+                                            className="px-3 py-2 text-xs font-bold text-emerald-600 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition-colors whitespace-nowrap"
+                                        >
+                                            Select All
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setEditingAssignment({ ...editingAssignment, assignedUsers: [] })}
+                                            className="px-3 py-2 text-xs font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors whitespace-nowrap"
+                                        >
+                                            Clear
+                                        </button>
+                                    </div>
+
+                                    {/* List */}
+                                    <div className="border border-gray-200 rounded-xl max-h-48 overflow-y-auto divide-y divide-gray-100 bg-white shadow-inner">
+                                        {students?.filter(s =>
+                                            s.name?.toLowerCase().includes(assignSearchTerm.toLowerCase()) ||
+                                            s.rollNo?.toLowerCase().includes(assignSearchTerm.toLowerCase())
+                                        ).map(student => (
+                                            <label key={student.id || student._id} className="flex items-center gap-3 p-3 hover:bg-gray-50 cursor-pointer transition-colors">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={editingAssignment.assignedUsers?.includes(student.id || student._id)}
+                                                    onChange={(e) => {
+                                                        const sId = student.id || student._id;
+                                                        const current = editingAssignment.assignedUsers || [];
+                                                        if (e.target.checked) {
+                                                            setEditingAssignment({ ...editingAssignment, assignedUsers: [...current, sId] });
+                                                        } else {
+                                                            setEditingAssignment({ ...editingAssignment, assignedUsers: current.filter(id => id !== sId) });
+                                                        }
+                                                    }}
+                                                    className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 border-gray-300"
+                                                />
+                                                <div className="flex-1 flex items-center justify-between">
+                                                    <div className="flex items-center gap-3">
+                                                        {student.photo ? (
+                                                            <img src={student.photo} alt={student.name} className="w-8 h-8 rounded-full object-cover" />
+                                                        ) : (
+                                                            <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-xs font-bold">
+                                                                {student.name?.charAt(0)}
+                                                            </div>
+                                                        )}
+                                                        <div>
+                                                            <p className="text-sm font-medium text-gray-900">{student.name}</p>
+                                                            <p className="text-xs text-gray-400">{student.rollNo}</p>
+                                                        </div>
+                                                    </div>
+                                                    {editingAssignment.assignedUsers?.includes(student.id || student._id) && (
+                                                        <CheckCircle className="w-4 h-4 text-emerald-500" />
+                                                    )}
+                                                </div>
+                                            </label>
+                                        ))}
+                                    </div>
+                                    <div className="flex justify-between items-center px-1">
+                                        <span className="text-xs text-gray-400">
+                                            {students?.length} total students
+                                        </span>
+                                        <span className="text-xs font-bold text-emerald-600">
+                                            {editingAssignment.assignedUsers?.length || 0} selected
+                                        </span>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
                         <div className="flex justify-end gap-3 pt-4">
                             <button
                                 type="button"
@@ -784,17 +1006,21 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                                 {submission.user?.name?.charAt(0)}
                                             </div>
                                         )}
-                                        <div>
-                                            <div className="flex items-center gap-2">
-                                                <p className="font-semibold text-gray-900 text-sm">{submission.user?.name}</p>
+                                        <div className="flex-1">
+                                            <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                                <p className="font-bold text-gray-900 text-sm">{submission.user?.name}</p>
                                                 {submission.user?.rollNo && (
-                                                    <span className="text-xs font-bold text-red-500 bg-red-50 px-2 py-0.5 rounded-lg border border-red-100">
+                                                    <span className="text-[10px] font-black text-red-500 bg-red-50 px-2 py-0.5 rounded-lg border border-red-100 uppercase tracking-tighter">
                                                         {submission.user?.rollNo}
                                                     </span>
                                                 )}
+                                                <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border ${submission.user?.role === 'intern' ? 'bg-purple-50 text-purple-600 border-purple-100' : 'bg-blue-50 text-blue-600 border-blue-100'}`}>
+                                                    {submission.user?.role || 'student'}
+                                                </span>
                                             </div>
-                                            <p className="text-xs text-gray-500">
-                                                {new Date(submission.submittedAt).toLocaleDateString()}
+                                            <p className="text-[11px] text-gray-400 font-medium flex items-center gap-1.5">
+                                                <Clock className="w-3.5 h-3.5" />
+                                                {new Date(submission.submittedAt).toLocaleDateString()} at {new Date(submission.submittedAt).toLocaleTimeString()}
                                             </p>
                                         </div>
                                     </div>
