@@ -20,7 +20,8 @@ import {
     ExternalLink,
     StopCircle,
     Award,
-    Timer
+    Timer,
+    MessageSquare
 } from 'lucide-react';
 import StatCard from '../../components/ui/StatCard';
 import Badge from '../../components/ui/Badge';
@@ -144,155 +145,33 @@ const TeacherDashboard = () => {
     const fetchDashboardData = async () => {
         setIsLoading(true);
         try {
-            // Fetch all courses
-            const coursesRes = await courseAPI.getAll();
-            const allCourses = coursesRes.data.data || [];
+            // Use optimized teacher dashboard API
+            const res = await courseAPI.getTeacherDashboard();
+            const coursesWithData = res.data.data || [];
 
-            // Filter courses where this teacher is assigned (check teachers array)
-            // User object from login has 'id' not '_id'
-            const teacherId = (user?.id || user?._id)?.toString();
-            console.log('Dashboard - Logged in Teacher ID:', teacherId);
+            console.log('Dashboard - Teacher courses found:', coursesWithData.length);
 
-            const teacherCourses = allCourses.filter(c => {
-                const isMatch = c.teachers?.some(t => {
-                    const tId = (t._id || t)?.toString();
-                    return tId === teacherId;
-                });
-                return isMatch;
-            });
+            // Calculate total stats
+            const totalStudentsCount = coursesWithData.reduce((sum, c) => sum + (c.internCount || 0), 0);
+            const totalPendingAssignments = coursesWithData.reduce((sum, c) => sum + (c.pendingAssignments || 0), 0);
+            const totalUnreadMessages = coursesWithData.reduce((sum, c) => sum + (c.unreadMessages || 0), 0);
+            const totalPendingReviews = totalPendingAssignments + totalUnreadMessages;
 
-            console.log('Dashboard - Teacher courses found:', teacherCourses.length, teacherCourses.map(c => c.title));
-
-            // Get enrollments to count students per course
-            let enrollments = [];
-            try {
-                const enrollmentsRes = await enrollmentAPI.getAll();
-                enrollments = enrollmentsRes.data.data || [];
-                console.log('Dashboard - Total enrollments fetched:', enrollments.length);
-            } catch (e) {
-                console.error('Error fetching enrollments:', e);
-            }
-
-            // Map courses with student counts
-            const coursesWithData = teacherCourses.map(course => {
-                // Compare course IDs as strings for proper matching
-                const courseIdStr = course._id.toString();
-                const courseEnrollments = enrollments.filter(e => {
-                    const enrollCourseId = (e.course?._id || e.course)?.toString();
-                    return enrollCourseId === courseIdStr;
-                });
-
-                console.log(`Dashboard - Course "${course.title}": ${courseEnrollments.length} enrollments`);
-
-                return {
-                    id: course._id,
-                    title: course.title,
-                    students: courseEnrollments.length,
-                    assignments: 0,
-                    pendingSubmissions: 0,
-                    status: course.isActive !== false ? 'active' : 'inactive',
-                    startDate: course.startDate,
-                    category: course.category,
-                    duration: course.duration
-                };
-            });
-
-            // Fetch assignments and daily tasks for each course
-            let totalPendingReviews = 0;
-            const coursesWithFullData = await Promise.all(coursesWithData.map(async (courseData) => {
-                try {
-                    // Fetch assignments for this course
-                    const assignmentsRes = await assignmentAPI.getByCourse(courseData.id);
-                    const assignments = assignmentsRes.data.assignments || [];
-
-                    // Count pending submissions (submitted but not graded)
-                    let pendingAssignments = 0;
-                    let totalSubmissions = 0;
-                    let gradedSubmissions = 0;
-                    let totalMarks = 0;
-                    let totalPossibleMarks = 0;
-
-                    assignments.forEach(a => {
-                        const submissions = a.submissions || [];
-                        totalSubmissions += submissions.length;
-
-                        submissions.forEach(s => {
-                            if (s.marks !== undefined && s.marks !== null) {
-                                gradedSubmissions++;
-                                totalMarks += s.marks;
-                                totalPossibleMarks += (a.totalMarks || 100);
-                            } else {
-                                pendingAssignments++;
-                            }
-                        });
-                    });
-
-                    const avgPercentage = totalPossibleMarks > 0
-                        ? Math.round((totalMarks / totalPossibleMarks) * 100)
-                        : 0;
-
-                    // Fetch daily tasks for this course
-                    let pendingTasks = 0;
-                    try {
-                        const tasksRes = await dailyTaskAPI.getByCourse(courseData.id);
-                        const tasks = tasksRes.data.data || [];
-                        pendingTasks = tasks.filter(t => t.status === 'submitted').length;
-                    } catch (e) {
-                        // Daily tasks might not be available for all courses
-                    }
-
-                    const totalPending = pendingAssignments + pendingTasks;
-                    totalPendingReviews += totalPending;
-
-                    console.log(`Dashboard - Course "${courseData.title}" assignment stats:`, {
-                        totalSubmissions,
-                        gradedSubmissions,
-                        pendingGrading: pendingAssignments
-                    });
-
-                    return {
-                        ...courseData,
-                        assignments: assignments.length,
-                        pendingSubmissions: totalPending,
-                        assignmentStats: {
-                            totalSubmissions,
-                            gradedSubmissions,
-                            avgPercentage,
-                            pendingGrading: pendingAssignments
-                        }
-                    };
-                } catch (e) {
-                    console.error(`Error fetching data for course ${courseData.title}:`, e);
-                    return {
-                        ...courseData,
-                        assignmentStats: { totalSubmissions: 0, gradedSubmissions: 0, avgPercentage: 0, pendingGrading: 0 }
-                    };
-                }
-            }));
-
-            console.log('Dashboard - Courses with full data:', coursesWithFullData.map(c => ({
-                title: c.title,
-                assignmentStats: c.assignmentStats
-            })));
-
-            setMyCourses(coursesWithFullData);
-
-            // Calculate total students
-            const total = coursesWithFullData.reduce((sum, c) => sum + c.students, 0);
-            setTotalStudents(total);
+            setMyCourses(coursesWithData);
+            setTotalStudents(totalStudentsCount);
 
             // Build stats
             setStats([
                 {
                     title: 'My Courses',
-                    value: coursesWithFullData.length.toString(),
+                    value: coursesWithData.length.toString(),
                     icon: BookOpen,
                     iconBg: 'bg-emerald-100',
                     iconColor: 'text-emerald-600',
                 },
                 {
                     title: 'Total Students',
-                    value: total.toString(),
+                    value: totalStudentsCount.toString(),
                     icon: Users,
                     iconBg: 'bg-blue-100',
                     iconColor: 'text-blue-600',
@@ -306,7 +185,7 @@ const TeacherDashboard = () => {
                 },
                 {
                     title: 'Active Courses',
-                    value: coursesWithFullData.filter(c => c.status === 'active').length.toString(),
+                    value: coursesWithData.filter(c => c.status === 'active').length.toString(),
                     icon: CheckCircle,
                     iconBg: 'bg-purple-100',
                     iconColor: 'text-purple-600',
@@ -422,10 +301,19 @@ const TeacherDashboard = () => {
                                         transition={{ delay: 0.4 + index * 0.1 }}
                                         className="p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors cursor-pointer border border-[#ff8e01]/10 hover:border-[#ff8e01]/30 relative"
                                     >
-                                        {/* Pending (ungraded) Submission Count Badge */}
-                                        {course.assignmentStats?.pendingGrading > 0 && (
-                                            <div className="absolute -top-2 -right-2 w-7 h-7 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center shadow-lg">
-                                                {course.assignmentStats.pendingGrading > 99 ? '99+' : course.assignmentStats.pendingGrading}
+                                        {/* Combined Pending Badge */}
+                                        {(course.pendingAssignments > 0 || course.unreadMessages > 0) && (
+                                            <div className="absolute -top-2 -right-2 flex flex-col gap-1 items-end z-20">
+                                                {course.pendingAssignments > 0 && (
+                                                    <div className="w-7 h-7 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center shadow-lg border-2 border-white">
+                                                        {course.pendingAssignments > 99 ? '99+' : course.pendingAssignments}
+                                                    </div>
+                                                )}
+                                                {course.unreadMessages > 0 && (
+                                                    <div className="w-7 h-7 bg-blue-500 text-white text-xs font-bold rounded-full flex items-center justify-center shadow-lg border-2 border-white">
+                                                        <MessageSquare className="w-3 h-3" />
+                                                    </div>
+                                                )}
                                             </div>
                                         )}
                                         <div className="flex items-start justify-between mb-3">
@@ -445,7 +333,7 @@ const TeacherDashboard = () => {
                                         <h4 className="font-semibold text-gray-900 mb-2">{course.title}</h4>
                                         <div className="flex items-center gap-4 text-sm text-gray-500 mb-2">
                                             <span className="flex items-center gap-1">
-                                                <Users className="w-4 h-4" /> {course.students} students
+                                                <Users className="w-4 h-4" /> {course.internCount || course.students} students
                                             </span>
                                             {course.startDate && (
                                                 <span className="flex items-center gap-1">
@@ -454,31 +342,31 @@ const TeacherDashboard = () => {
                                             )}
                                         </div>
 
-                                        {/* Assignment Stats */}
-                                        {course.assignmentStats && course.assignments > 0 && (
-                                            <div className="bg-gradient-to-r from-emerald-50/80 to-blue-50/80 rounded-lg p-2 mb-3 border border-emerald-100/50">
-                                                <div className="flex items-center justify-between text-xs">
-                                                    <span className="flex items-center gap-1 text-gray-600 font-medium">
-                                                        <FileText className="w-3.5 h-3.5 text-emerald-600" />
-                                                        {course.assignments} Assignment{course.assignments > 1 ? 's' : ''}
-                                                    </span>
-                                                    <div className="flex items-center gap-2">
-                                                        {course.assignmentStats.gradedSubmissions > 0 && (
-                                                            <span className="flex items-center gap-1 text-emerald-600 font-bold">
-                                                                <CheckCircle className="w-3 h-3" />
-                                                                Avg: {course.assignmentStats.avgPercentage}%
-                                                            </span>
-                                                        )}
-                                                        {course.assignmentStats.pendingGrading > 0 && (
-                                                            <span className="flex items-center gap-1 text-amber-600 font-bold">
-                                                                <Clock className="w-3 h-3" />
-                                                                {course.assignmentStats.pendingGrading} pending
-                                                            </span>
-                                                        )}
-                                                    </div>
+                                        {/* Assignment & Message Stats */}
+                                        <div className="bg-gradient-to-r from-emerald-50/80 to-blue-50/80 rounded-lg p-2 mb-3 border border-emerald-100/50">
+                                            <div className="flex items-center justify-between text-xs">
+                                                <div className="flex flex-col gap-1">
+                                                    {course.pendingAssignments > 0 && (
+                                                        <span className="flex items-center gap-1 text-amber-600 font-bold">
+                                                            <FileText className="w-3.5 h-3.5" />
+                                                            {course.pendingAssignments} tasks pending
+                                                        </span>
+                                                    )}
+                                                    {course.unreadMessages > 0 && (
+                                                        <span className="flex items-center gap-1 text-blue-600 font-bold">
+                                                            <MessageSquare className="w-3.5 h-3.5" />
+                                                            {course.unreadMessages} new messages
+                                                        </span>
+                                                    )}
+                                                    {(!course.pendingAssignments && !course.unreadMessages) && (
+                                                        <span className="flex items-center gap-1 text-emerald-600 font-medium">
+                                                            <CheckCircle className="w-3.5 h-3.5" />
+                                                            Up to date
+                                                        </span>
+                                                    )}
                                                 </div>
                                             </div>
-                                        )}
+                                        </div>
 
                                         <button
                                             onClick={() => navigate('/teacher/attendance')}

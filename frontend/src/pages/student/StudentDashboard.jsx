@@ -14,11 +14,12 @@ import {
     Bell,
     Trash2,
     Video,
-    ExternalLink
+    ExternalLink,
+    MessageSquare
 } from 'lucide-react';
 import StatCard from '../../components/ui/StatCard';
 import Badge from '../../components/ui/Badge';
-import { enrollmentAPI, feeAPI, assignmentAPI, liveClassAPI } from '../../services/api';
+import { enrollmentAPI, feeAPI, assignmentAPI, liveClassAPI, chatAPI } from '../../services/api';
 import Modal from '../../components/ui/Modal'; // Assuming Modal component exists
 import { getCourseIcon, getCourseColor, getCourseStyle } from '../../utils/courseIcons';
 
@@ -96,19 +97,36 @@ const StudentDashboard = () => {
             const enrollmentRes = await enrollmentAPI.getMy();
             const enrollments = enrollmentRes.data.data || [];
 
-            const courses = enrollments.map(e => ({
-                id: e.course?._id || e._id,
-                enrollmentId: e._id,
-                title: e.course?.title || 'Unknown Course',
-                teacher: e.course?.teachers?.[0]?.name || 'TBA',
-                bookLink: e.course?.bookLink || '',
-                progress: e.progress || 0,
-                nextClass: e.course?.schedule || 'Check schedule',
-                isActive: e.isActive,
-                status: e.status,
-                isCompleted: e.status === 'completed',
-                isFirstMonthVerified: e.installments?.[0]?.status === 'verified'
-            }));
+            // Fetch chat unread counts
+            let chatData = [];
+            try {
+                const chatRes = await chatAPI.getStudentCourses();
+                chatData = chatRes.data.data || [];
+            } catch (e) {
+                console.error('Chat unread fetch failed', e);
+            }
+
+            const courses = enrollments.map(e => {
+                const courseId = e.course?._id || e._id;
+                const unread = chatData.find(c => String(c._id) === String(courseId))?.totalUnread || 0;
+                
+                return {
+                    id: courseId,
+                    enrollmentId: e._id,
+                    title: e.course?.title || 'Unknown Course',
+                    category: e.course?.category || '',
+                    teacher: e.course?.teachers?.[0]?.name || 'TBA',
+                    bookLink: e.course?.bookLink || '',
+                    progress: e.progress || 0,
+                    nextClass: e.course?.schedule || 'Check schedule',
+                    isActive: e.isActive,
+                    isPaused: e.isPaused,
+                    status: e.status,
+                    unreadMessages: unread,
+                    isCompleted: e.status === 'completed',
+                    isFirstMonthVerified: e.installments?.[0]?.status === 'verified'
+                };
+            });
             setEnrolledCourses(courses);
 
             // Fetch fees
@@ -189,8 +207,8 @@ const StudentDashboard = () => {
                     title: 'Certificates',
                     value: courses.filter(c => c.isCompleted).length.toString(),
                     icon: CheckCircle,
-                    iconBg: 'bg-blue-100',
-                    iconColor: 'text-blue-600',
+                    iconBg: 'bg-orange-100',
+                    iconColor: 'text-[#ff8e01]',
                 },
                 {
                     title: 'Pending Fees',
@@ -306,6 +324,25 @@ const StudentDashboard = () => {
                         </motion.div>
                     )}
                 </AnimatePresence>
+
+                {/* Paused Warning */}
+                {enrolledCourses.some(c => c.isPaused) && (
+                    <motion.div
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        className="bg-amber-50 border-2 border-amber-300 px-5 py-4 rounded-2xl flex items-start gap-4"
+                    >
+                        <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <Bell className="w-5 h-5 text-amber-600" />
+                        </div>
+                        <div>
+                            <p className="text-sm font-black text-amber-800 uppercase tracking-wide">Account Temporarily Paused</p>
+                            <p className="text-xs text-amber-700 font-medium mt-1 leading-relaxed">
+                                Your access to one or more courses has been paused by your teacher. Assignments, daily task submissions, and fee installments are blocked until your teacher resumes your access.
+                            </p>
+                        </div>
+                    </motion.div>
+                )}
 
                 {/* High Priority Highlight */}
                 {pendingAssignments.length > 0 && (
@@ -453,11 +490,16 @@ const StudentDashboard = () => {
                                     <motion.div
                                         key={course.id}
                                         whileHover={{ y: -4 }}
-                                        className="bg-white p-4 rounded-2xl border border-gray-100 flex gap-4 hover:shadow-md transition-all cursor-pointer group"
+                                        className="bg-white p-4 rounded-2xl border border-gray-100 flex gap-4 hover:shadow-md transition-all cursor-pointer group relative"
                                         onClick={() => {
-                                            navigate(`/${role}/course/${course.id}`);
+                                            navigate(`/${role}/assignments`, { state: { courseId: course.id, tab: course.unreadMessages > 0 ? 'chat' : 'assignments' } });
                                         }}
                                     >
+                                        {course.unreadMessages > 0 && (
+                                            <div className="absolute -top-2 -right-2 w-7 h-7 bg-blue-500 text-white rounded-full flex items-center justify-center shadow-lg border-2 border-white animate-bounce z-20">
+                                                <MessageSquare className="w-3 h-3" />
+                                            </div>
+                                        )}
                                         <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors shadow-sm ${(() => {
                                             const style = getCourseStyle(course.category || '', course.title);
                                             return `${style.bg}`;
@@ -480,6 +522,8 @@ const StudentDashboard = () => {
                                                     <div>
                                                         {course.isCompleted ? (
                                                             <Badge variant="success">Completed</Badge>
+                                                        ) : course.isPaused ? (
+                                                            <Badge variant="warning">Paused</Badge>
                                                         ) : !course.isFirstMonthVerified ? (
                                                             <Badge variant="warning">Verification Pending</Badge>
                                                         ) : !course.isActive ? (

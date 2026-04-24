@@ -96,9 +96,22 @@ router.post('/', protect, authorize('teacher', 'admin'), async (req, res) => {
             });
         }
 
+        // Fetch all enrollments for this course to check for paused status
+        const enrollments = await Enrollment.find({ course: courseId });
+        const pausedUserIds = new Set(
+            enrollments.filter(e => e.isPaused).map(e => (e.user?._id || e.user)?.toString())
+        );
+
         // Update records
         for (const record of records) {
             const userIdStr = record.userId.toString();
+
+            // Skip if user is paused
+            if (pausedUserIds.has(userIdStr)) {
+                console.log(`⏸️ Skipping attendance for paused user: ${userIdStr}`);
+                continue;
+            }
+
 
             // Find existing record index
             const existingIndex = attendance.records.findIndex(

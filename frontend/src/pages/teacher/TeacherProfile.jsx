@@ -8,6 +8,7 @@ import {
 import { authAPI, courseAPI, settingsAPI } from '../../services/api';
 import { updateUser } from '../../features/auth/authSlice';
 import { getCourseIcon } from '../../utils/courseIcons';
+import ProfileAvatar from '../../components/ui/ProfileAvatar';
 
 const InfoField = ({ icon: Icon, label, value, name, type = 'text', editable = true, isEditing, editForm, onChange }) => (
     <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-xl">
@@ -172,12 +173,8 @@ const TeacherProfile = () => {
                 <div className="flex flex-col md:flex-row items-center gap-6 relative z-10">
                     {/* Profile Picture */}
                     <div className="relative">
-                        <div className="w-28 h-28 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-4xl font-bold border-4 border-white/30 overflow-hidden">
-                            {user?.photo ? (
-                                <img src={user.photo} alt={user.name} className="w-full h-full object-cover" />
-                            ) : (
-                                (profileData.fullName || 'T').charAt(0).toUpperCase()
-                            )}
+                        <div className="w-28 h-28 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center border-4 border-white/30 overflow-hidden">
+                            <ProfileAvatar src={user?.photo} name={profileData.fullName || 'T'} size="2xl" shape="rounded-none" border="" fallbackColor="bg-white/20" />
                         </div>
                         <button className="absolute -bottom-2 -right-2 w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-lg hover:bg-gray-50 transition-colors">
                             <Camera className="w-5 h-5 text-orange-600" />

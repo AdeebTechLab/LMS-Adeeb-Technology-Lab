@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { logout, loginSuccess } from '../../features/auth/authSlice';
 import { userAPI, authAPI } from '../../services/api';
+import ProfileAvatar from '../ui/ProfileAvatar';
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
     const navigate = useNavigate();
@@ -209,7 +210,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 { id: 'assignments', label: 'Assignments', icon: ClipboardList, path: '/student/assignments', state: { tab: 'assignments' } },
                 { id: 'class-logs', label: 'Class Logs', icon: Calendar, path: '/student/assignments', state: { tab: 'daily_tasks' } },
                 { id: 'marks', label: 'Marks Sheet', icon: FileText, path: '/student/marks' },
-                { id: 'attendance', label: 'My Attendance', icon: Calendar, path: '/student/attendance' },
+                { id: 'attendance', label: 'My Attendance', icon: Calendar, path: '/student/assignments', state: { tab: 'attendance' } },
             ],
             intern: [
                 { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/intern/dashboard' },
@@ -219,7 +220,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 { id: 'assignments', label: 'Assignments', icon: ClipboardList, path: '/intern/assignments', state: { tab: 'assignments' } },
                 { id: 'daily-tasks', label: 'Daily Tasks', icon: Calendar, path: '/intern/assignments', state: { tab: 'daily_tasks' } },
                 { id: 'marks', label: 'Marks Sheet', icon: FileText, path: '/intern/marks' },
-                { id: 'attendance', label: 'My Attendance', icon: Calendar, path: '/intern/attendance' },
+                { id: 'attendance', label: 'My Attendance', icon: Calendar, path: '/intern/assignments', state: { tab: 'attendance' } },
             ],
             job: [
                 { id: 'tasks', label: 'Paid Tasks', icon: Briefcase, path: '/job/tasks' },
@@ -318,13 +319,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                         }}
                     >
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#394251] to-[#222d38] flex items-center justify-center text-white font-semibold border border-white/10 shrink-0 overflow-hidden">
-                                {user?.photo ? (
-                                    <img src={user.photo} alt={user.name} className="w-full h-full object-cover" />
-                                ) : (
-                                    user?.name?.charAt(0) || 'U'
-                                )}
-                            </div>
+                            <ProfileAvatar src={user?.photo} name={user?.name} size="md" border="border border-white/10" fallbackColor="bg-gradient-to-br from-[#394251] to-[#222d38]" />
                             <div className="flex-1 min-w-0">
                                 <p className="text-white font-medium text-sm truncate">
                                     {user?.name || 'User'}

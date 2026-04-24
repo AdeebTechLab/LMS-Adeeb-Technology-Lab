@@ -9,6 +9,7 @@ import {
 import Badge from '../../components/ui/Badge';
 import { assignmentAPI, courseAPI, dailyTaskAPI, enrollmentAPI, chatAPI, feeAPI } from '../../services/api';
 import StudentChatTab from './components/StudentChatTab';
+import StudentAttendanceTab from './components/StudentAttendanceTab';
 import { io } from 'socket.io-client';
 
 const getSocketURL = () => {
@@ -114,7 +115,7 @@ const AssignmentSubmission = () => {
     }, [activeTab]);
 
     const fetchInternData = async () => {
-        setIsLoading(true);
+        if (myCourses.length === 0) setIsLoading(true);
         try {
             const enrollRes = await enrollmentAPI.getMy();
             const myEnrollments = enrollRes.data.data || [];
@@ -309,7 +310,7 @@ const AssignmentSubmission = () => {
     };
 
     const fetchAssignments = async () => {
-        setIsLoading(true);
+        if (assignments.length === 0) setIsLoading(true);
         try {
             const response = await assignmentAPI.getMy();
             const data = response.data.assignments || [];
@@ -516,14 +517,8 @@ const AssignmentSubmission = () => {
         return new Date(deadline) < new Date();
     };
 
-    if (isLoading && activeTab === 'assignments') {
-        return (
-            <div className="flex flex-col items-center justify-center h-64 gap-3">
-                <img src="/loading.gif" alt="Loading" className="w-20 h-20 object-contain" />
-                <span className="text-gray-600 font-medium">Loading details...</span>
-            </div>
-        );
-    }
+    // No more early return for isLoading to prevent "full page reload" feeling
+
 
     return (
         <div className="space-y-6">
@@ -614,7 +609,7 @@ const AssignmentSubmission = () => {
                         <div>
                             <button
                                 onClick={() => setSelectedCourseId('')}
-                                className="flex items-center gap-2 text-[#0545a7] hover:text-[#043b8f] mb-2 font-bold text-sm tracking-wide"
+                                className="flex items-center gap-2 text-[#ff8e01] hover:text-[#e67e00] mb-2 font-bold text-sm tracking-wide"
                             >
                                 <ChevronLeft className="w-4 h-4" />
                                 BACK TO ALL COURSES
@@ -623,7 +618,7 @@ const AssignmentSubmission = () => {
                             <div className="flex items-center gap-3 mt-1">
                                 <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${user?.role === 'intern'
                                     ? 'bg-purple-600 text-white'
-                                    : 'bg-[#0545a7] text-white'
+                                    : 'bg-[#ff8e01] text-white'
                                     }`}>
                                     {user?.role === 'intern' ? 'Interns Portal' : 'Students Portal'}
                                 </span>
@@ -683,7 +678,7 @@ const AssignmentSubmission = () => {
                         <button
                             onClick={() => setActiveTab('daily_tasks')}
                             className={`px-8 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 ${activeTab === 'daily_tasks'
-                                ? 'bg-white text-[#0545a7] shadow-sm border border-[#c9dafc]'
+                                ? 'bg-white text-[#ff8e01] shadow-sm border border-[#ff8e01]'
                                 : 'text-gray-500 hover:bg-gray-200 hover:text-gray-900'
                                 }`}
                         >
@@ -693,7 +688,7 @@ const AssignmentSubmission = () => {
                         <button
                             onClick={() => setActiveTab('assignments')}
                             className={`px-8 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 ${activeTab === 'assignments'
-                                ? 'bg-white text-[#0545a7] shadow-sm border border-[#c9dafc]'
+                                ? 'bg-white text-[#ff8e01] shadow-sm border border-[#ff8e01]'
                                 : 'text-gray-500 hover:bg-gray-200 hover:text-gray-900'
                                 }`}
                         >
@@ -702,9 +697,20 @@ const AssignmentSubmission = () => {
                         </button>
 
                         <button
+                            onClick={() => setActiveTab('attendance')}
+                            className={`px-8 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 ${activeTab === 'attendance'
+                                ? 'bg-white text-[#ff8e01] shadow-sm border border-[#ff8e01]'
+                                : 'text-gray-500 hover:bg-gray-200 hover:text-gray-900'
+                                }`}
+                        >
+                            <Clock className="w-4 h-4" />
+                            Attendance
+                        </button>
+
+                        <button
                             onClick={() => setActiveTab('chat')}
                             className={`px-8 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 relative ${activeTab === 'chat'
-                                ? 'bg-white text-[#0545a7] shadow-sm border border-[#c9dafc]'
+                                ? 'bg-white text-[#ff8e01] shadow-sm border border-[#ff8e01]'
                                 : 'text-gray-500 hover:bg-gray-200 hover:text-gray-900'
                                 }`}
                         >
@@ -727,7 +733,12 @@ const AssignmentSubmission = () => {
                         return (
                             <>
 
-                                {activeTab === 'assignments' ? (
+                                {isLoading ? (
+                                    <div className="flex flex-col items-center justify-center py-24 gap-4">
+                                        <img src="/loading.gif" alt="Loading" className="w-28 h-28 object-contain" />
+                                        <span className="text-gray-400 font-black uppercase tracking-[0.3em] text-[10px] animate-pulse">Synchronizing Workspace...</span>
+                                    </div>
+                                ) : activeTab === 'assignments' ? (
                                     /* ASSIGNMENTS LIST */
                                     <div className="space-y-6">
                                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -829,9 +840,9 @@ const AssignmentSubmission = () => {
                                                                                 setSubmissionText(assignment.status === 'rejected' ? (assignment.notes || '') : '');
                                                                             }}
                                                                             disabled={isRestricted}
-                                                                            className={`w-full py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all text-white shadow-xl ${assignment.status === 'rejected' ? 'bg-red-600 hover:bg-red-700' : 'bg-[#0f2847] hover:bg-[#0545a7]'} disabled:bg-gray-300 disabled:shadow-none`}
+                                                                            className={`w-full py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all text-white shadow-xl ${assignment.status === 'rejected' ? 'bg-red-600 hover:bg-red-700' : 'bg-[#0f2847] hover:bg-[#ff8e01]'} disabled:bg-gray-300 disabled:shadow-none`}
                                                                         >
-                                                                            {isRestricted ? 'LOCKED (FEE OVERDUE)' : (assignment.status === 'rejected' ? 'RESUBMIT WORK' : 'SUBMIT WORK')}
+                                                                            {isRestricted ? (currentEnrollment?.isPaused ? 'LOCKED (PAUSED)' : 'LOCKED (FEE OVERDUE)') : (assignment.status === 'rejected' ? 'RESUBMIT ASSIGNMENT' : 'SUBMIT ASSIGNMENT')}
                                                                         </button>
                                                                     )}
 
@@ -875,7 +886,7 @@ const AssignmentSubmission = () => {
                                                                                 disabled={isSubmitting || isRestricted}
                                                                                 className="flex-1 py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-black uppercase tracking-widest text-xs rounded-2xl shadow-xl shadow-emerald-200 transition-all disabled:bg-gray-300"
                                                                             >
-                                                                                {isSubmitting ? 'Processing...' : 'Submit Entry'}
+                                                                                {isSubmitting ? 'Processing...' : 'Submit Assignment'}
                                                                             </button>
                                                                         </div>
                                                                     </div>
@@ -941,7 +952,7 @@ const AssignmentSubmission = () => {
                                                     className="w-full py-6 bg-[#ff8e01] hover:bg-[#e67f00] text-white rounded-[1.5rem] font-black text-lg tracking-widest uppercase shadow-2xl shadow-[#ff8e01]/30 transition-all active:scale-[0.98] flex items-center justify-center gap-3 disabled:grayscale disabled:opacity-50"
                                                 >
                                                     {isSubmitting ? <Loader2 className="w-6 h-6 animate-spin" /> : <Send className="w-6 h-6" />}
-                                                    {isCompleted ? 'LOGS ARCHIVED' : (isRestricted ? 'PORTAL LOCKED' : (resubmittingTaskId ? 'UPDATE ARCHIVE ENTRY' : 'COMMIT DAILY LOG'))}
+                                                    {isCompleted ? 'LOGS ARCHIVED' : (isRestricted ? (currentEnrollment?.isPaused ? 'LOCKED (PAUSED)' : 'PORTAL LOCKED') : (resubmittingTaskId ? 'UPDATE ARCHIVE ENTRY' : 'COMMIT DAILY LOG'))}
                                                 </button>
                                             </form>
                                         </div>
@@ -1000,13 +1011,25 @@ const AssignmentSubmission = () => {
                                             )}
                                         </div>
                                     </div>
+                                ) : activeTab === 'attendance' ? (
+                                    /* ATTENDANCE VIEW */
+                                    <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm min-h-[400px]">
+                                        {selectedCourseId && myCourses.find(c => c._id === selectedCourseId) ? (
+                                            <StudentAttendanceTab course={myCourses.find(c => c._id === selectedCourseId)} />
+                                        ) : (
+                                            <div className="flex flex-col items-center justify-center h-full py-20 text-gray-400">
+                                                <Clock className="w-16 h-16 mb-4 opacity-50" />
+                                                <p className="text-lg font-bold">Select a course to view attendance</p>
+                                            </div>
+                                        )}
+                                    </div>
                                 ) : (
                                     /* CHAT VIEW */
                                     <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm min-h-[500px]">
                                         {selectedCourseId && myCourses.find(c => c._id === selectedCourseId) ? (
                                             <StudentChatTab
                                                 course={myCourses.find(c => c._id === selectedCourseId)}
-                                                isRestricted={isRestricted}
+                                                isRestricted={false}
                                             />
                                         ) : (
                                             <div className="flex flex-col items-center justify-center h-full py-20 text-gray-400">

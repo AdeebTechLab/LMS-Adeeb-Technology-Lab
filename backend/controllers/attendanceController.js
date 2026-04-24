@@ -85,7 +85,8 @@ const lockTodayAttendance = async () => {
             // 3. Get all enrolled students/interns for this course
             const enrollments = await Enrollment.find({
                 course: course._id,
-                status: { $in: ['enrolled', 'active'] }
+                status: { $in: ['enrolled', 'active'] },
+                isPaused: { $ne: true } // Skip paused students
             });
 
             // 4. Mark missing students as absent (those not already marked)

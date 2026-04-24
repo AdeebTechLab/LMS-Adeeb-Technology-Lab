@@ -6,6 +6,7 @@ import {
     MessageCircle, Send, User, Loader2, GraduationCap
 } from 'lucide-react';
 import { chatAPI } from '../../../services/api';
+import ProfileAvatar from '../../../components/ui/ProfileAvatar';
 
 const getSocketURL = () => {
     const rawUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -179,8 +180,9 @@ const StudentChatTab = ({ course, isRestricted }) => {
 
     if (isLoading) {
         return (
-            <div className="flex justify-center py-12">
-                <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
+            <div className="flex flex-col items-center justify-center py-24 gap-4">
+                <img src="/loading.gif" alt="Loading" className="w-24 h-24 object-contain" />
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] animate-pulse">Initializing Secure Chat...</p>
             </div>
         );
     }
@@ -216,13 +218,7 @@ const StudentChatTab = ({ course, isRestricted }) => {
                             }`}
                         >
                             <div className="relative">
-                                {teacher.photo ? (
-                                    <img src={teacher.photo} alt="" className="w-10 h-10 rounded-full object-cover" />
-                                ) : (
-                                    <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-                                        <GraduationCap className="w-5 h-5 text-purple-600" />
-                                    </div>
-                                )}
+                                <ProfileAvatar src={teacher.photo} name={teacher.name} size="md" fallbackColor="bg-purple-100" />
                                 {teacher.unreadCount > 0 && (
                                     <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
                                         {teacher.unreadCount}
@@ -245,13 +241,7 @@ const StudentChatTab = ({ course, isRestricted }) => {
                         {/* Chat Header */}
                         <div className="p-4 border-b border-gray-200 bg-white rounded-t-xl">
                             <div className="flex items-center gap-3">
-                                {activeTeacher.photo ? (
-                                    <img src={activeTeacher.photo} alt="" className="w-10 h-10 rounded-full object-cover" />
-                                ) : (
-                                    <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-                                        <GraduationCap className="w-5 h-5 text-purple-600" />
-                                    </div>
-                                )}
+                                <ProfileAvatar src={activeTeacher.photo} name={activeTeacher.name} size="md" fallbackColor="bg-purple-100" />
                                 <div>
                                     <h4 className="font-bold text-gray-900">{activeTeacher.name}</h4>
                                     <p className="text-xs text-gray-500">Teacher</p>

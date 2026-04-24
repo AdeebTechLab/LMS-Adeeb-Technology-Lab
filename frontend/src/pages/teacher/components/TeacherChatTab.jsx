@@ -6,6 +6,7 @@ import {
     MessageCircle, Send, User, Search, Loader2, Users, Mail
 } from 'lucide-react';
 import { chatAPI } from '../../../services/api';
+import ProfileAvatar from '../../../components/ui/ProfileAvatar';
 
 const getSocketURL = () => {
     const rawUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -258,13 +259,7 @@ const TeacherChatTab = ({ course, students, onUnreadCountChange }) => {
                                 }`}
                         >
                             <div className="relative">
-                                {student.photo ? (
-                                    <img src={student.photo} alt="" className="w-10 h-10 rounded-full object-cover" />
-                                ) : (
-                                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                                        <User className="w-5 h-5 text-blue-600" />
-                                    </div>
-                                )}
+                                <ProfileAvatar src={student.photo} name={student.name} size="md" fallbackColor="bg-blue-100" />
                                 {student.unreadCount > 0 && (
                                     <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
                                         {student.unreadCount}
@@ -290,13 +285,7 @@ const TeacherChatTab = ({ course, students, onUnreadCountChange }) => {
                         {/* Chat Header */}
                         <div className="p-4 border-b border-gray-200 bg-white rounded-t-xl">
                             <div className="flex items-center gap-3">
-                                {activeStudent.photo ? (
-                                    <img src={activeStudent.photo} alt="" className="w-10 h-10 rounded-full object-cover" />
-                                ) : (
-                                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                                        <User className="w-5 h-5 text-blue-600" />
-                                    </div>
-                                )}
+                                <ProfileAvatar src={activeStudent.photo} name={activeStudent.name} size="md" fallbackColor="bg-blue-100" />
                                 <div>
                                     <h4 className="font-bold text-gray-900">{activeStudent.name}</h4>
                                     <p className="text-xs text-gray-500">{activeStudent.email}</p>

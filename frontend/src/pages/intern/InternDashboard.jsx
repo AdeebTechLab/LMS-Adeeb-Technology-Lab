@@ -4,11 +4,11 @@ import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { io } from 'socket.io-client';
 import {
-    Clock, CheckCircle, BookOpen, CreditCard, Users, TrendingUp, Bell, Video, ExternalLink
+    Clock, CheckCircle, BookOpen, CreditCard, Users, TrendingUp, Bell, Video, ExternalLink, MessageSquare
 } from 'lucide-react';
 import StatCard from '../../components/ui/StatCard';
 import Badge from '../../components/ui/Badge';
-import { enrollmentAPI, assignmentAPI, feeAPI, liveClassAPI } from '../../services/api';
+import { enrollmentAPI, assignmentAPI, feeAPI, liveClassAPI, chatAPI } from '../../services/api';
 import { getCourseIcon } from '../../utils/courseIcons';
 
 const getSocketURL = () => {
@@ -65,16 +65,32 @@ const InternDashboard = () => {
             // Fetch Enrollments
             const response = await enrollmentAPI.getMy();
             const data = response.data.data || [];
-            setEnrollments(data);
 
-            const courses = data.map(e => ({
-                id: e.course?._id || e._id,
-                title: e.course?.title || 'Unknown Program',
-                isActive: e.isActive,
-                isCompleted: e.status === 'completed',
-                isFirstMonthVerified: e.installments?.[0]?.status === 'verified',
-                durationMonths: e.course?.durationMonths
-            }));
+            // Fetch chat unread counts
+            let chatData = [];
+            try {
+                const chatRes = await chatAPI.getStudentCourses();
+                chatData = chatRes.data.data || [];
+            } catch (e) {
+                console.error('Chat unread fetch failed', e);
+            }
+
+            const courses = data.map(e => {
+                const courseId = e.course?._id || e._id;
+                const unread = chatData.find(c => String(c._id) === String(courseId))?.totalUnread || 0;
+                
+                return {
+                    ...e,
+                    id: courseId,
+                    title: e.course?.title || 'Unknown Program',
+                    isActive: e.isActive,
+                    unreadMessages: unread,
+                    isCompleted: e.status === 'completed',
+                    isFirstMonthVerified: e.installments?.[0]?.status === 'verified',
+                    durationMonths: e.course?.durationMonths
+                };
+            });
+            setEnrollments(courses);
 
             // Fetch Fees
             let totalPendingAmount = 0;
@@ -138,8 +154,8 @@ const InternDashboard = () => {
                     title: 'Certificates',
                     value: courses.filter(c => c.isCompleted).length.toString(),
                     icon: CheckCircle,
-                    iconBg: 'bg-blue-100',
-                    iconColor: 'text-blue-600',
+                    iconBg: 'bg-orange-100',
+                    iconColor: 'text-[#ff8e01]',
                 },
                 {
                     title: 'Pending Fees',
@@ -353,17 +369,23 @@ const InternDashboard = () => {
                         {enrollments.map((enrollment) => (
                             <div
                                 key={enrollment._id}
-                                className="flex items-center justify-between p-6 bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition-all group"
+                                onClick={() => navigate(`/${role}/assignments`, { state: { courseId: enrollment.id, tab: enrollment.unreadMessages > 0 ? 'chat' : 'assignments' } })}
+                                className="flex items-center justify-between p-6 bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition-all group relative cursor-pointer"
                             >
+                                {enrollment.unreadMessages > 0 && (
+                                    <div className="absolute -top-2 -right-2 w-7 h-7 bg-blue-500 text-white rounded-full flex items-center justify-center shadow-lg border-2 border-white animate-bounce z-20">
+                                        <MessageSquare className="w-3 h-3" />
+                                    </div>
+                                )}
                                 <div className="flex items-center gap-5">
-                                    <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center border border-blue-100 group-hover:bg-blue-600 transition-colors">
+                                    <div className="w-12 h-12 bg-orange-50 rounded-2xl flex items-center justify-center border border-orange-100 group-hover:bg-[#ff8e01] transition-colors">
                                         {(() => {
                                             const Icon = getCourseIcon(enrollment.course?.category, enrollment.course?.title);
-                                            return <Icon className="w-6 h-6 text-blue-600 group-hover:text-white transition-colors" />;
+                                            return <Icon className="w-6 h-6 text-[#ff8e01] group-hover:text-white transition-colors" />;
                                         })()}
                                     </div>
                                     <div>
-                                        <h3 className="font-bold text-gray-900 uppercase tracking-tight group-hover:text-blue-600 transition-colors">{enrollment.course?.title || 'Program'}</h3>
+                                        <h3 className="font-bold text-gray-900 uppercase tracking-tight group-hover:text-[#ff8e01] transition-colors">{enrollment.course?.title || 'Program'}</h3>
                                         <p className="text-xs text-gray-400 font-bold uppercase tracking-widest mt-1 italic">
                                             {enrollment.course?.durationMonths
                                                 ? `${enrollment.course.durationMonths} ${enrollment.course.durationMonths === 1 ? 'Month' : 'Months'}`
@@ -374,15 +396,15 @@ const InternDashboard = () => {
                                 <div className="flex gap-2">
                                     {enrollment.installments?.[0]?.status !== 'verified' ? (
                                         <button
-                                            onClick={() => navigate(`/${role}/fees`)}
+                                            onClick={(e) => { e.stopPropagation(); navigate(`/${role}/fees`); }}
                                             className="px-6 py-2.5 text-[10px] font-black uppercase tracking-widest text-red-600 bg-red-50 rounded-xl hover:bg-red-100 transition-all active:scale-95"
                                         >
                                             Pay Fee
                                         </button>
                                     ) : (
                                         <button
-                                            onClick={() => navigate(`/${role}/attendance`)}
-                                            className="px-6 py-2.5 text-[10px] font-black uppercase tracking-widest text-blue-600 bg-blue-50 rounded-xl hover:bg-blue-100 transition-all active:scale-95"
+                                            onClick={(e) => { e.stopPropagation(); navigate(`/${role}/assignments`, { state: { courseId: enrollment.id } }); }}
+                                            className="px-6 py-2.5 text-[10px] font-black uppercase tracking-widest text-[#ff8e01] bg-orange-50 rounded-xl hover:bg-orange-100 transition-all active:scale-95"
                                         >
                                             Portal
                                         </button>

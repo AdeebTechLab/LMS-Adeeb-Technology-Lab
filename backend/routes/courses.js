@@ -5,6 +5,7 @@ const Course = require('../models/Course');
 const Enrollment = require('../models/Enrollment');
 const Assignment = require('../models/Assignment');
 const Attendance = require('../models/Attendance');
+const GlobalMessage = require('../models/GlobalMessage');
 
 // @route   GET /api/courses/teacher/dashboard
 // @desc    Get all teacher's courses with stats in ONE query (optimized)
@@ -51,12 +52,14 @@ router.get('/teacher/dashboard', protect, authorize('teacher', 'admin'), async (
         const enrollmentMap = {};
         const assignmentMap = {};
         const attendanceMap = {};
+        const unreadMessageMap = {};
 
         courseIds.forEach(id => {
             const idStr = id.toString();
             enrollmentMap[idStr] = [];
             assignmentMap[idStr] = { pending: 0 };
             attendanceMap[idStr] = { present: 0, absent: 0 };
+            unreadMessageMap[idStr] = 0;
         });
 
         // Populate enrollment counts
@@ -91,6 +94,31 @@ router.get('/teacher/dashboard', protect, authorize('teacher', 'admin'), async (
             }
         });
 
+        // Populate unread message counts
+        const unreadMessages = await GlobalMessage.aggregate([
+            {
+                $match: {
+                    recipient: new mongoose.Types.ObjectId(teacherId),
+                    course: { $in: courseIds },
+                    isRead: false
+                }
+            },
+            {
+                $group: {
+                    _id: "$course",
+                    count: { $sum: 1 }
+                }
+            }
+        ]);
+
+        unreadMessages.forEach(um => {
+            const courseId = um._id.toString();
+            if (unreadMessageMap[courseId] !== undefined) {
+                unreadMessageMap[courseId] = um.count;
+            }
+        });
+
+
         // 5. Build final response
         const coursesWithData = allCourses.map(course => {
             const courseId = course._id.toString();
@@ -115,6 +143,7 @@ router.get('/teacher/dashboard', protect, authorize('teacher', 'admin'), async (
                 pendingAssignments: assignmentMap[courseId]?.pending || 0,
                 presentCount: attendanceMap[courseId]?.present || 0,
                 absentCount: attendanceMap[courseId]?.absent || 0,
+                unreadMessages: unreadMessageMap[courseId] || 0,
                 enrollments: courseEnrollments
             };
         });

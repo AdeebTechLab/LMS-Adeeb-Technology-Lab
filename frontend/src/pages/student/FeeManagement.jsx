@@ -69,7 +69,7 @@ const FeeManagement = () => {
                 const enrollment = enrollments.find(e =>
                     (e.course?._id || e.course) === (fee.course?._id || fee.course)
                 );
-                return { ...fee, enrollmentId: enrollment?._id, enrollmentIsActive: enrollment?.isActive || false, courseId: fee.course?._id || fee.course };
+                return { ...fee, enrollmentId: enrollment?._id, enrollmentIsActive: enrollment?.isActive || false, enrollmentIsPaused: enrollment?.isPaused || false, courseId: fee.course?._id || fee.course };
             });
 
             // Detect newly verified installments compared to current state
@@ -86,7 +86,11 @@ const FeeManagement = () => {
                                 if (newFee.enrollmentIsActive && newFee.courseId) {
                                     // small delay to allow UI to settle
                                     setTimeout(() => {
-                                        navigate(`/student/course/${newFee.courseId}`);
+                                    if (newFee.courseId) {
+                                        navigate(`/student/assignments`, { state: { courseId: newFee.courseId } });
+                                    } else {
+                                        navigate('/student/dashboard');
+                                    }
                                     }, 400);
                                 } else {
                                     alert(`Payment verified for ${newFee.course?.title || 'your course'}. Course is now accessible.`);
@@ -295,6 +299,21 @@ const FeeManagement = () => {
                     <h2 className="text-xl font-bold text-gray-900">Course Challan</h2>
                 </div>
 
+                {/* Paused Warning */}
+                {fees.some(f => f.enrollmentIsPaused) && (
+                    <div className="bg-amber-50 border-2 border-amber-300 px-5 py-4 rounded-2xl flex items-start gap-4 mb-4">
+                        <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <AlertCircle className="w-5 h-5 text-amber-600" />
+                        </div>
+                        <div>
+                            <p className="text-sm font-black text-amber-800 uppercase tracking-wide">Account Temporarily Paused</p>
+                            <p className="text-xs text-amber-700 font-medium mt-1 leading-relaxed">
+                                Your access to this course has been paused by your teacher. Assignments, daily task submissions, and fee installments are blocked until your teacher resumes your access. Please contact your teacher for more information.
+                            </p>
+                        </div>
+                    </div>
+                )}
+
                 {fees.length === 0 ? (
                     <div className="bg-white rounded-2xl p-12 border border-gray-100 text-center">
                         <CreditCard className="w-12 h-12 text-gray-300 mx-auto mb-4" />
@@ -353,14 +372,15 @@ const FeeManagement = () => {
                                                         {isPayable && (
                                                             <button
                                                                 onClick={() => handlePayClick(fee, inst)}
-                                                                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2 shadow-sm"
+                                                                disabled={fee.enrollmentIsPaused}
+                                                                className={`px-4 py-2 ${fee.enrollmentIsPaused ? 'bg-gray-300 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-700'} text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2 shadow-sm`}
                                                             >
                                                                 <Upload className="w-4 h-4" />
-                                                                Pay Now
+                                                                {fee.enrollmentIsPaused ? 'LOCKED' : 'Pay Now'}
                                                             </button>
                                                         )}
                                                         {inst.status === 'submitted' && (
-                                                            <span className="text-sm text-blue-600 font-medium bg-blue-50 px-3 py-1 rounded-lg">Processing</span>
+                                                            <span className="text-sm text-[#ff8e01] font-medium bg-orange-50 px-3 py-1 rounded-lg">Processing</span>
                                                         )}
                                                     </div>
                                                 </div>
@@ -648,7 +668,7 @@ const FeeManagement = () => {
                             <button
                                 onClick={handleSubmitPayment}
                                 disabled={!uploadedFile || isSubmitting}
-                                className="flex-1 py-3 bg-[#0f2847] hover:bg-[#0545a7] text-white font-medium rounded-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-900/10"
+                                className="flex-1 py-3 bg-[#0f2847] hover:bg-[#ff8e01] text-white font-medium rounded-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all shadow-lg shadow-orange-900/10"
                             >
                                 {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Submit Payment'}
                             </button>

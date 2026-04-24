@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Clock, Search, Lock, AlertCircle, Save, Loader2, Download, Calendar, Sun, RefreshCw } from 'lucide-react';
 import Badge from '../../../components/ui/Badge';
+import ProfileAvatar from '../../../components/ui/ProfileAvatar';
 import { attendanceAPI } from '../../../services/api';
 
 // Utility function to get local date string in YYYY-MM-DD format
@@ -334,22 +335,7 @@ const AttendanceTab = ({ course, students }) => {
                                 <tr key={student.id} className={`hover:bg-gray-50 transition-colors ${getRowBgColor(student.id)}`}>
                                     <td className="px-4 py-3">
                                         <div className="flex items-center gap-3">
-                                            {student.photo ? (
-                                                <img
-                                                    src={student.photo}
-                                                    alt={student.name}
-                                                    className="w-8 h-8 rounded-full object-cover"
-                                                />
-                                            ) : (
-                                                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${attendanceMarks[student.id]?.status === 'present'
-                                                    ? 'bg-emerald-200 text-emerald-700'
-                                                    : attendanceMarks[student.id]?.status === 'absent'
-                                                        ? 'bg-red-200 text-red-700'
-                                                        : 'bg-gray-100 text-gray-500'
-                                                    }`}>
-                                                    {student.name.charAt(0)}
-                                                </div>
-                                            )}
+                                            <ProfileAvatar src={student.photo} name={student.name} size="sm" border={`border ${attendanceMarks[student.id]?.status === 'present' ? 'border-emerald-300' : attendanceMarks[student.id]?.status === 'absent' ? 'border-red-300' : 'border-gray-200'}`} />
                                             <div className="text-sm font-medium text-gray-900">{student.name}</div>
                                         </div>
                                     </td>

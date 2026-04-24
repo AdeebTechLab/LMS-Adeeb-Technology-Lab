@@ -7,6 +7,7 @@ import {
     CheckCircle, XCircle
 } from 'lucide-react';
 import { directoryAPI } from '../../services/api';
+import ProfileAvatar from '../../components/ui/ProfileAvatar';
 
 const FILTER_OPTIONS = [
     { value: 'all', label: 'All', icon: Users },
@@ -206,17 +207,7 @@ const TeacherDirectory = () => {
                                         {/* Name */}
                                         <td className="px-4 py-3">
                                             <div className="flex items-center gap-3">
-                                                {user.photo ? (
-                                                    <img
-                                                        src={user.photo}
-                                                        alt={user.name}
-                                                        className="w-8 h-8 rounded-lg object-cover border border-gray-200"
-                                                    />
-                                                ) : (
-                                                    <div className="w-8 h-8 rounded-lg bg-[#ff8e01] flex items-center justify-center text-white text-xs font-black">
-                                                        {user.name?.charAt(0).toUpperCase()}
-                                                    </div>
-                                                )}
+                                                <ProfileAvatar src={user.photo} name={user.name} size="sm" shape="rounded-lg" />
                                                 <div>
                                                     <p className="font-bold text-gray-900 text-sm group-hover:text-[#ff8e01] transition-colors">
                                                         {user.name}

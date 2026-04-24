@@ -34,6 +34,7 @@ import { userNotificationAPI, assignmentAPI, courseAPI } from '../../services/ap
 import useAutoLogout from '../../hooks/useAutoLogout';
 import { useTheme } from '../../context/ThemeContext';
 import Loader, { FullScreenLoader } from '../ui/Loader';
+import ProfileAvatar from '../ui/ProfileAvatar';
 
 const DashboardLayout = () => {
     // Enable auto-logout
@@ -462,13 +463,7 @@ const DashboardLayout = () => {
                                     onClick={() => setShowUserMenu(!showUserMenu)}
                                     className={`flex items-center gap-3 p-1.5 rounded-xl transition-colors ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`}
                                 >
-                                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#ff8e01] to-[#ffab40] flex items-center justify-center text-white font-semibold text-sm overflow-hidden border border-white/20">
-                                        {user?.photo ? (
-                                            <img src={user.photo} alt={user.name} className="w-full h-full object-cover" />
-                                        ) : (
-                                            user?.name?.charAt(0) || 'U'
-                                        )}
-                                    </div>
+                                    <ProfileAvatar src={user?.photo} name={user?.name} size="sm" shape="rounded-xl" border="border border-white/20" fallbackColor="bg-gradient-to-br from-[#ff8e01] to-[#ffab40]" />
                                     <div className="hidden md:block text-left">
                                         <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
                                             {user?.name || 'User'}

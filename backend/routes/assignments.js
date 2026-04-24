@@ -451,16 +451,6 @@ router.get('/my', protect, async (req, res) => {
 
         console.log(`📅 User registration date: ${userRegistrationDate}`);
 
-        // Exclude paused course enrollments from assignment feed
-        const pausedCourseIds = new Set(
-            enrollments.filter(e => e.isPaused).map(e => e.course.toString())
-        );
-        const activeCourseIds = courseIds.filter(id => !pausedCourseIds.has(id.toString()));
-
-        if (activeCourseIds.length === 0) {
-            return res.json({ success: true, assignments: [] });
-        }
-
         // Get assignments for those courses
         // Show assignment if:
         // 1. assignTo is 'all' (meant for everyone in the course)

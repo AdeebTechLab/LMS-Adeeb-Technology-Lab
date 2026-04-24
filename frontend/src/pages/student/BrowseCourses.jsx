@@ -148,7 +148,7 @@ const BrowseCourses = () => {
         // If status is enrolled, it means at least the first installment is verified.
         // The user wants to see assignments if verified, otherwise payment.
         if (enrollment.status === 'enrolled') {
-            navigate(`/${role === 'intern' ? 'intern' : 'student'}/course/${course._id}`);
+            navigate(`/${role === 'intern' ? 'intern' : 'student'}/assignments`, { state: { courseId: course._id } });
         } else {
             navigate(`/${role === 'intern' ? 'intern' : 'student'}/fees`);
         }
@@ -227,7 +227,7 @@ const BrowseCourses = () => {
                 <button
                     onClick={() => setActiveTab('available')}
                     className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${activeTab === 'available'
-                        ? 'bg-white text-[#0545a7] shadow-sm border border-[#c9dafc]'
+                        ? 'bg-white text-[#ff8e01] shadow-sm border border-[#ff8e01]'
                         : 'text-gray-600 hover:bg-gray-200 hover:text-gray-900'
                         }`}
                 >
@@ -236,7 +236,7 @@ const BrowseCourses = () => {
                 <button
                     onClick={() => setActiveTab('enrolled')}
                     className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${activeTab === 'enrolled'
-                        ? 'bg-white text-[#0545a7] shadow-sm border border-[#c9dafc]'
+                        ? 'bg-white text-[#ff8e01] shadow-sm border border-[#ff8e01]'
                         : 'text-gray-600 hover:bg-gray-200 hover:text-gray-900'
                         }`}
                 >
@@ -245,7 +245,7 @@ const BrowseCourses = () => {
                 <button
                     onClick={() => setActiveTab('completed')}
                     className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${activeTab === 'completed'
-                        ? 'bg-white text-[#0545a7] shadow-sm border border-[#c9dafc]'
+                        ? 'bg-white text-[#ff8e01] shadow-sm border border-[#ff8e01]'
                         : 'text-gray-600 hover:bg-gray-200 hover:text-gray-900'
                         }`}
                 >
@@ -451,7 +451,7 @@ const BrowseCourses = () => {
                                     {status === 'available' && (
                                         <button
                                             onClick={() => handleEnrollClick(course)}
-                                            className="px-4 py-2 bg-[#0f2847] hover:bg-[#0545a7] text-white rounded-lg font-medium transition-all"
+                                            className="px-4 py-2 bg-[#0f2847] hover:bg-[#ff8e01] text-white rounded-lg font-medium transition-all"
                                         >
                                             Enroll Now
                                         </button>
@@ -575,7 +575,7 @@ const BrowseCourses = () => {
                             <button
                                 onClick={handleConfirmEnroll}
                                 disabled={isEnrolling}
-                                className="flex-1 py-3 bg-[#0f2847] hover:bg-[#0545a7] text-white font-medium rounded-xl flex items-center justify-center gap-2 disabled:opacity-70"
+                                className="flex-1 py-3 bg-[#0f2847] hover:bg-[#ff8e01] text-white font-medium rounded-xl flex items-center justify-center gap-2 disabled:opacity-70"
                             >
                                 {isEnrolling ? (
                                     <>

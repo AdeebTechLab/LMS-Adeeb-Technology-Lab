@@ -51,8 +51,6 @@ import JobProfile from './pages/job/JobProfile';
 import StudentProfile from './pages/student/StudentProfile';
 import BrowseCourses from './pages/student/BrowseCourses';
 import FeeManagement from './pages/student/FeeManagement';
-import AttendanceView from './pages/student/AttendanceView';
-import StudentCourseView from './pages/student/StudentCourseView';
 import TeacherCertificates from './pages/teacher/TeacherCertificates';
 
 // Public Pages
@@ -173,11 +171,9 @@ const AppRoutes = () => {
         <Route path="dashboard" element={<StudentDashboard />} />
         <Route path="profile" element={<StudentProfile />} />
         <Route path="courses" element={<BrowseCourses />} />
-        <Route path="course/:id" element={<StudentCourseView />} />
         <Route path="fees" element={<FeeManagement />} />
         <Route path="assignments" element={<AssignmentSubmission />} />
         <Route path="marks" element={<MarksSheet />} />
-        <Route path="attendance" element={<AttendanceView />} />
         <Route path="settings" element={<Settings />} />
       </Route>
 
@@ -190,11 +186,9 @@ const AppRoutes = () => {
         <Route path="dashboard" element={<StudentDashboard />} />
         <Route path="profile" element={<StudentProfile />} />
         <Route path="courses" element={<BrowseCourses />} />
-        <Route path="course/:id" element={<StudentCourseView />} />
         <Route path="fees" element={<FeeManagement />} />
         <Route path="assignments" element={<AssignmentSubmission />} />
         <Route path="marks" element={<MarksSheet />} />
-        <Route path="attendance" element={<AttendanceView />} />
         <Route path="settings" element={<Settings />} />
       </Route>
 

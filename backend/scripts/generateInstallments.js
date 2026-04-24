@@ -40,6 +40,17 @@ const generateInstallments = async (io) => {
                     continue;
                 }
 
+                // Check if enrollment is paused
+                const enrollment = await Enrollment.findOne({
+                    user: fee.user._id || fee.user,
+                    course: fee.course._id || fee.course
+                });
+
+                if (enrollment && enrollment.isPaused) {
+                    console.log(`⏸️ Enrollment for ${fee.user?.name || fee.user} in ${fee.course?.title} is paused - skipping installment generation`);
+                    continue;
+                }
+
                 // Check if user has a certificate for this course
                 const hasCertificate = await Certificate.findOne({
                     user: fee.user._id || fee.user,

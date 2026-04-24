@@ -6,7 +6,7 @@ import { useSelector } from 'react-redux';
 import {
     BookOpen, Users, Calendar, ArrowRight, ChevronLeft,
     FileText, ClipboardList, CheckCircle, Clock, Loader2, User, Award, X, Search,
-    Video, ExternalLink, StopCircle, Timer
+    Video, ExternalLink, StopCircle, Timer, MessageSquare
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import { courseAPI, liveClassAPI } from '../../services/api';
@@ -162,9 +162,9 @@ const TeacherCourses = ({ isDashboard = false }) => {
             // Calculate overall summary
             const uniqueStudentIds = new Set();
             
-            // If in Dashboard mode, filter to only show courses with pending tasks
+            // If in Dashboard mode, filter to only show courses with pending tasks (grading or unread messages)
             const displayCourses = isDashboard 
-                ? coursesWithData.filter(c => (c.pendingAssignments || 0) > 0)
+                ? coursesWithData.filter(c => (c.pendingAssignments || 0) > 0 || (c.unreadMessages || 0) > 0)
                 : coursesWithData;
 
             // Stats should always reflect ALL courses for accuracy, or just current view? 
@@ -178,6 +178,7 @@ const TeacherCourses = ({ isDashboard = false }) => {
 
             const totalActive = coursesWithData.reduce((acc, c) => acc + (c.activeStudents || 0), 0);
             const totalPending = coursesWithData.reduce((acc, c) => acc + (c.pendingAssignments || 0), 0);
+            const totalUnreadMessages = coursesWithData.reduce((acc, c) => acc + (c.unreadMessages || 0), 0);
             const todayPresent = coursesWithData.reduce((acc, c) => acc + (c.presentCount || 0), 0);
             const todayAbsent = coursesWithData.reduce((acc, c) => acc + (c.absentCount || 0), 0);
 
@@ -191,7 +192,7 @@ const TeacherCourses = ({ isDashboard = false }) => {
                 totalCourses: coursesWithData.length,
                 totalStudents: uniqueStudentIds.size,
                 activeStudents: totalActive,
-                pendingAssignments: totalPending,
+                pendingAssignments: totalPending + totalUnreadMessages,
                 todayPresent,
                 todayAbsent,
             });
@@ -425,10 +426,19 @@ const TeacherCourses = ({ isDashboard = false }) => {
                                     onClick={() => handleSelectCourse(course)}
                                     className="bg-white rounded-3xl p-6 border border-[#ff8e01]/20 cursor-pointer hover:shadow-xl hover:border-[#ff8e01]/50 transition-all group relative"
                                 >
-                                    {/* Pending (ungraded) Submission Count Badge */}
-                                    {course.pendingAssignments > 0 && (
-                                        <div className="absolute -top-2 -right-2 w-7 h-7 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center shadow-lg z-20">
-                                            {course.pendingAssignments > 99 ? '99+' : course.pendingAssignments}
+                                    {/* Combined Pending Badge */}
+                                    {(course.pendingAssignments > 0 || course.unreadMessages > 0) && (
+                                        <div className="absolute -top-2 -right-2 flex flex-col gap-1 items-end z-20">
+                                            {course.pendingAssignments > 0 && (
+                                                <div className="w-7 h-7 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center shadow-lg border-2 border-white">
+                                                    {course.pendingAssignments > 99 ? '99+' : course.pendingAssignments}
+                                                </div>
+                                            )}
+                                            {course.unreadMessages > 0 && (
+                                                <div className="w-7 h-7 bg-blue-500 text-white text-xs font-bold rounded-full flex items-center justify-center shadow-lg border-2 border-white">
+                                                    <MessageSquare className="w-3 h-3" />
+                                                </div>
+                                            )}
                                         </div>
                                     )}
                                     <div className={`absolute top-0 right-0 w-32 h-32 opacity-10 rounded-full -mr-16 -mt-16 transition-colors ${courseStyle.bg}`} />
@@ -467,6 +477,12 @@ const TeacherCourses = ({ isDashboard = false }) => {
                                                     <FileText className="w-4 h-4" />
                                                     <span>{course.pendingAssignments} Pending Tasks</span>
                                                 </div>
+                                                {course.unreadMessages > 0 && (
+                                                    <div className="flex items-center gap-2 text-sm text-blue-600 font-bold">
+                                                        <MessageSquare className="w-4 h-4" />
+                                                        <span>{course.unreadMessages} New Messages</span>
+                                                    </div>
+                                                )}
                                             </div>
                                             <div className="bg-gray-50 rounded-2xl p-3 border border-gray-100">
                                                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 border-b border-gray-200 pb-1">Today's Attendance</p>
