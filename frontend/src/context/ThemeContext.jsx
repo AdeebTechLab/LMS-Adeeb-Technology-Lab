@@ -24,7 +24,7 @@ export const ThemeProvider = ({ children }) => {
 
     useEffect(() => {
         // Remove all color theme classes first
-        const themeClasses = ['theme-blue', 'theme-purple', 'theme-rose', 'theme-emerald'];
+        const themeClasses = ['theme-blue', 'theme-purple', 'theme-rose', 'theme-emerald', 'theme-gold', 'theme-olive', 'theme-navy', 'theme-lavender', 'theme-rose-pink'];
         document.documentElement.classList.remove(...themeClasses);
         
         // Add current theme class if not default (orange)

@@ -13,36 +13,44 @@ const themes = [
         description: 'Official Brand Identity'
     },
     {
-        id: 'blue',
-        name: 'Ocean Blue',
-        color: '#0545a7',
-        preview: 'bg-[#0545a7]',
-        bgLight: 'bg-blue-50',
-        description: 'Classic & Professional'
+        id: 'gold',
+        name: 'Luxury Gold',
+        color: '#f5d7a5',
+        preview: 'bg-[#f5d7a5]',
+        bgLight: 'bg-[#6b3d25]/10',
+        description: 'Premium & Elegant'
     },
     {
-        id: 'purple',
-        name: 'Royal Purple',
-        color: '#7c3aed',
-        preview: 'bg-[#7c3aed]',
-        bgLight: 'bg-purple-50',
-        description: 'Creative & Modern'
+        id: 'olive',
+        name: 'Olive Garden',
+        color: '#678018',
+        preview: 'bg-[#678018]',
+        bgLight: 'bg-[#324321]/10',
+        description: 'Nature & Harmony'
     },
     {
-        id: 'rose',
-        name: 'Vivid Rose',
-        color: '#e11d48',
-        preview: 'bg-[#e11d48]',
-        bgLight: 'bg-rose-50',
-        description: 'Bold & Energetic'
+        id: 'navy',
+        name: 'Midnight Navy',
+        color: '#1154bd',
+        preview: 'bg-[#1154bd]',
+        bgLight: 'bg-[#0a316a]/10',
+        description: 'Deep & Trustworthy'
     },
     {
-        id: 'emerald',
-        name: 'Emerald Green',
-        color: '#10b981',
-        preview: 'bg-[#10b981]',
-        bgLight: 'bg-emerald-50',
-        description: 'Fresh & Growth'
+        id: 'lavender',
+        name: 'Royal Lavender',
+        color: '#6841c2',
+        preview: 'bg-[#fedef6]',
+        bgLight: 'bg-[#6841c2]/10',
+        description: 'Creative & Calm'
+    },
+    {
+        id: 'rose-pink',
+        name: 'Rose Petal',
+        color: '#b11954',
+        preview: 'bg-[#f83c93]',
+        bgLight: 'bg-[#b11954]/10',
+        description: 'Bold & Passionate'
     }
 ];
 
@@ -111,7 +119,7 @@ const Settings = () => {
                     <Palette className="w-5 h-5 text-primary" />
                     <h2 className="text-xl font-bold text-gray-900 dark:text-white uppercase italic">Color Themes</h2>
                 </div>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {themes.map((t) => (
                         <motion.div
@@ -119,19 +127,28 @@ const Settings = () => {
                             whileHover={{ y: -4 }}
                             whileTap={{ scale: 0.98 }}
                             onClick={() => handleThemeChange(t.id)}
-                            className={`relative cursor-pointer p-5 rounded-3xl border-2 transition-all duration-300 flex items-center gap-4 ${
-                                theme === t.id 
-                                ? 'border-primary bg-primary/5 shadow-lg shadow-primary/10' 
-                                : 'border-gray-100 dark:border-gray-800 bg-white dark:bg-[#1a1f2e] hover:border-primary/30'
-                            }`}
+                            style={{
+                                borderColor: theme === t.id ? t.color : 'transparent',
+                                backgroundColor: theme === t.id ? `${t.color}10` : undefined
+                            }}
+                            className={`relative cursor-pointer p-5 rounded-3xl border-2 transition-all duration-300 flex items-center gap-4 ${theme === t.id
+                                    ? 'shadow-lg shadow-black/5'
+                                    : 'border-gray-100 dark:border-gray-800 bg-white dark:bg-[#1a1f2e] hover:border-gray-200 dark:hover:border-gray-700'
+                                }`}
                         >
                             {/* Color Preview Swatch */}
-                            <div className={`w-14 h-14 rounded-2xl ${t.preview} shadow-inner flex items-center justify-center text-white`}>
+                            <div
+                                style={{ backgroundColor: t.color }}
+                                className={`w-14 h-14 rounded-2xl shadow-inner flex items-center justify-center text-white`}
+                            >
                                 {theme === t.id && <Check className="w-6 h-6 stroke-[3px]" />}
                             </div>
 
                             <div className="flex-1">
-                                <h4 className={`font-black uppercase italic tracking-tight ${theme === t.id ? 'text-primary' : 'text-gray-900 dark:text-white'}`}>
+                                <h4
+                                    style={{ color: theme === t.id ? t.color : undefined }}
+                                    className={`font-black uppercase italic tracking-tight ${theme !== t.id ? 'text-gray-900 dark:text-white' : ''}`}
+                                >
                                     {t.name}
                                 </h4>
                                 <p className="text-[10px] text-gray-500 dark:text-gray-400 font-bold uppercase tracking-widest mt-0.5">
@@ -141,7 +158,10 @@ const Settings = () => {
 
                             {theme === t.id && (
                                 <div className="absolute top-3 right-3">
-                                    <div className="w-6 h-6 bg-primary text-white rounded-full flex items-center justify-center shadow-md">
+                                    <div
+                                        style={{ backgroundColor: t.color }}
+                                        className="w-6 h-6 text-white rounded-full flex items-center justify-center shadow-md"
+                                    >
                                         <Check className="w-4 h-4 stroke-[3px]" />
                                     </div>
                                 </div>

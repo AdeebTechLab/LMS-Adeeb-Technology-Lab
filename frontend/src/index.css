@@ -214,6 +214,187 @@
   --bg-sidebar: #065f46;
 }
 
+.theme-gold {
+  --primary: #f5d7a5;
+  --primary-dark: #f5d7a5;
+  --primary-darkest: #1e140d;
+  --primary-light: #f9e5c5;
+  --primary-lighter: #fcf1de;
+
+  --secondary: #6b3d25;
+  --secondary-light: #8b5336;
+  --secondary-dark: #4a2a1a;
+
+  --brand-blue-50: #fffbeb;
+  --brand-blue-100: #fef3c7;
+  --brand-blue-200: #fde68a;
+  --brand-blue-300: #fcd34d;
+  --brand-blue-400: #fbbf24;
+  --brand-blue-500: #f5d7a5;
+  --brand-blue-600: #eab308;
+  --brand-blue-700: #ca8a04;
+  --brand-blue-800: #a16207;
+  --brand-blue-900: #854d0e;
+
+  --brand-secondary-50: #fafaf9;
+  --brand-secondary-100: #f5f5f4;
+  --brand-secondary-200: #e7e5e4;
+  --brand-secondary-300: #d6d3d1;
+  --brand-secondary-400: #a8a29e;
+  --brand-secondary-500: #78716c;
+  --brand-secondary-600: #57534e;
+  --brand-secondary-700: #44403c;
+  --brand-secondary-800: #292524;
+  --brand-secondary-900: #1c1917;
+  --bg-sidebar: #6b3d25;
+  --text-primary: #65371d;
+  --text-secondary: #8c6046;
+}
+
+.theme-olive {
+  --primary: #678018;
+  --primary-dark: #678018;
+  --primary-darkest: #1a230d;
+  --primary-light: #8fa63b;
+  --primary-lighter: #b5cc61;
+
+  --secondary: #324321;
+  --secondary-light: #455a2d;
+  --secondary-dark: #1e2914;
+
+  --brand-blue-50: #f7fee7;
+  --brand-blue-100: #ecfccb;
+  --brand-blue-200: #d9f99d;
+  --brand-blue-300: #bef264;
+  --brand-blue-400: #a3e635;
+  --brand-blue-500: #678018;
+  --brand-blue-600: #65a30d;
+  --brand-blue-700: #4d7c0f;
+  --brand-blue-800: #3f6212;
+  --brand-blue-900: #365314;
+
+  --brand-secondary-50: #f8fafc;
+  --brand-secondary-100: #f1f5f9;
+  --brand-secondary-200: #e2e8f0;
+  --brand-secondary-300: #cbd5e1;
+  --brand-secondary-400: #94a3b8;
+  --brand-secondary-500: #64748b;
+  --brand-secondary-600: #475569;
+  --brand-secondary-700: #334155;
+  --brand-secondary-800: #1e293b;
+  --brand-secondary-900: #0f172a;
+  --bg-sidebar: #324321;
+  --text-primary: #2f401e;
+}
+
+.theme-navy {
+  --primary: #1154bd;
+  --primary-dark: #1154bd;
+  --primary-darkest: #051633;
+  --primary-light: #3b76d4;
+  --primary-lighter: #6a9ceb;
+
+  --secondary: #0a316a;
+  --secondary-light: #12458a;
+  --secondary-dark: #061e40;
+
+  --brand-blue-50: #eff6ff;
+  --brand-blue-100: #dbeafe;
+  --brand-blue-200: #bfdbfe;
+  --brand-blue-300: #93c5fd;
+  --brand-blue-400: #60a5fa;
+  --brand-blue-500: #1154bd;
+  --brand-blue-600: #2563eb;
+  --brand-blue-700: #1d4ed8;
+  --brand-blue-800: #1e40af;
+  --brand-blue-900: #1e3a8a;
+
+  --brand-secondary-50: #f8fafc;
+  --brand-secondary-100: #f1f5f9;
+  --brand-secondary-200: #e2e8f0;
+  --brand-secondary-300: #cbd5e1;
+  --brand-secondary-400: #94a3b8;
+  --brand-secondary-500: #64748b;
+  --brand-secondary-600: #475569;
+  --brand-secondary-700: #334155;
+  --brand-secondary-800: #1e293b;
+  --brand-secondary-900: #0f172a;
+  --bg-sidebar: #0a316a;
+  --text-primary: #0b2c5f;
+}
+
+.theme-lavender {
+  --primary: #fedef6;
+  --primary-dark: #fedef6;
+  --primary-darkest: #1e0d33;
+  --primary-light: #ffebf9;
+  --primary-lighter: #fff5fd;
+
+  --secondary: #6841c2;
+  --secondary-light: #845ef7;
+  --secondary-dark: #5131a6;
+
+  --brand-blue-50: #f5f3ff;
+  --brand-blue-100: #ede9fe;
+  --brand-blue-200: #ddd6fe;
+  --brand-blue-300: #c4b5fd;
+  --brand-blue-400: #a78bfa;
+  --brand-blue-500: #fedef6;
+  --brand-blue-600: #8b5cf6;
+  --brand-blue-700: #7c3aed;
+  --brand-blue-800: #6d28d9;
+  --brand-blue-900: #5b21b6;
+
+  --brand-secondary-50: #fafaf9;
+  --brand-secondary-100: #f5f5f4;
+  --brand-secondary-200: #e7e5e4;
+  --brand-secondary-300: #d6d3d1;
+  --brand-secondary-400: #a8a29e;
+  --brand-secondary-500: #78716c;
+  --brand-secondary-600: #57534e;
+  --brand-secondary-700: #44403c;
+  --brand-secondary-800: #292524;
+  --brand-secondary-900: #1c1917;
+  --bg-sidebar: #6841c2;
+  --text-primary: #4e2bab;
+}
+
+.theme-rose-pink {
+  --primary: #f83c93;
+  --primary-dark: #f83c93;
+  --primary-darkest: #330d1d;
+  --primary-light: #fb71ae;
+  --primary-lighter: #fda4cd;
+
+  --secondary: #b11954;
+  --secondary-light: #d81b60;
+  --secondary-dark: #880e4f;
+
+  --brand-blue-50: #fff1f2;
+  --brand-blue-100: #ffe4e6;
+  --brand-blue-200: #fecdd3;
+  --brand-blue-300: #fda4af;
+  --brand-blue-400: #fb7185;
+  --brand-blue-500: #f83c93;
+  --brand-blue-600: #e11d48;
+  --brand-blue-700: #be123c;
+  --brand-blue-800: #9f1239;
+  --brand-blue-900: #881337;
+
+  --brand-secondary-50: #f8fafc;
+  --brand-secondary-100: #f1f5f9;
+  --brand-secondary-200: #e2e8f0;
+  --brand-secondary-300: #cbd5e1;
+  --brand-secondary-400: #94a3b8;
+  --brand-secondary-500: #64748b;
+  --brand-secondary-600: #475569;
+  --brand-secondary-700: #334155;
+  --brand-secondary-800: #1e293b;
+  --brand-secondary-900: #0f172a;
+  --bg-sidebar: #b11954;
+  --text-primary: #920d3e;
+}
+
 
 /* ============================================================
    BRAND BLUE — Global remap: emerald / green / teal utilities
