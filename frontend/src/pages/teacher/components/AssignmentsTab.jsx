@@ -224,7 +224,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
             <div className="flex items-center justify-between">
                 <h3 className="font-bold text-gray-900 text-lg">Assignments</h3>
                 <div className="flex items-center gap-2">
-                    <button 
+                    <button
                         onClick={fetchAssignments}
                         disabled={isLoading}
                         className="flex items-center gap-2 px-5 py-2.5 bg-emerald-50 text-emerald-600 rounded-xl font-black text-[10px] uppercase tracking-widest border-2 border-emerald-100 hover:border-emerald-500 hover:bg-white hover:shadow-lg hover:shadow-emerald-100 transition-all active:scale-95 disabled:opacity-50"
@@ -453,7 +453,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
 
                                     {/* Submission Spotlight - Shown when filtering by student */}
                                     {spotlightSubmission && (
-                                        <motion.div 
+                                        <motion.div
                                             initial={{ opacity: 0, height: 0 }}
                                             animate={{ opacity: 1, height: 'auto' }}
                                             className="mb-4 p-4 bg-emerald-50/50 rounded-2xl border border-emerald-100 flex items-center justify-between gap-4"
@@ -532,11 +532,10 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                                             </div>
                                                         </div>
                                                         <div className="text-right shrink-0">
-                                                            <div className={`text-[9px] font-black px-2 py-0.5 rounded-lg border ${
-                                                                sub.status === 'graded' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 
-                                                                sub.status === 'rejected' ? 'bg-red-50 text-red-600 border-red-100' : 
-                                                                'bg-amber-50 text-amber-600 border-amber-100'
-                                                            }`}>
+                                                            <div className={`text-[9px] font-black px-2 py-0.5 rounded-lg border ${sub.status === 'graded' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
+                                                                    sub.status === 'rejected' ? 'bg-red-50 text-red-600 border-red-100' :
+                                                                        'bg-amber-50 text-amber-600 border-amber-100'
+                                                                }`}>
                                                                 {sub.status === 'graded' ? `${sub.marks}/${assignment.totalMarks}` : (sub.status === 'rejected' ? 'REJECTED' : 'PENDING')}
                                                             </div>
                                                         </div>

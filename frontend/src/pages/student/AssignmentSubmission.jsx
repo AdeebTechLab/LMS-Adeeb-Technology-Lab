@@ -4,12 +4,13 @@ import { useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
     CheckCircle, Clock, Calendar, Search, Filter, AlertCircle, XCircle, ChevronLeft, ChevronRight,
-    BookOpen, GraduationCap, ArrowRight, ExternalLink, Send, FileText, ClipboardList, Plus, Loader2, Link as LinkIcon, MessageCircle, MapPin
+    BookOpen, GraduationCap, ArrowRight, ExternalLink, Send, FileText, ClipboardList, Plus, Loader2, Link as LinkIcon, MessageCircle, MapPin, Zap
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import { assignmentAPI, courseAPI, dailyTaskAPI, enrollmentAPI, chatAPI, feeAPI } from '../../services/api';
 import StudentChatTab from './components/StudentChatTab';
 import StudentAttendanceTab from './components/StudentAttendanceTab';
+import StudentTestsTab from './components/StudentTestsTab';
 import { io } from 'socket.io-client';
 
 const getSocketURL = () => {
@@ -704,6 +705,17 @@ const AssignmentSubmission = () => {
                         </button>
 
                         <button
+                            onClick={() => setActiveTab('tests')}
+                            className={`px-6 sm:px-8 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 whitespace-nowrap shrink-0 ${activeTab === 'tests'
+                                ? 'bg-white text-[#ff8e01] shadow-sm border border-[#ff8e01]'
+                                : 'text-gray-500 hover:bg-gray-200 hover:text-gray-900'
+                                }`}
+                        >
+                            <Zap className="w-4 h-4" />
+                            Tests
+                        </button>
+
+                        <button
                             onClick={() => setActiveTab('attendance')}
                             className={`px-6 sm:px-8 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 whitespace-nowrap shrink-0 ${activeTab === 'attendance'
                                 ? 'bg-white text-[#ff8e01] shadow-sm border border-[#ff8e01]'
@@ -750,14 +762,19 @@ const AssignmentSubmission = () => {
                                     <div className="space-y-6">
                                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                             {[
-                                                { label: 'Pending', count: filteredAssignments.filter((a) => a.status === 'pending' && !isDeadlinePassed(a.deadline)).length, color: 'text-amber-700 bg-amber-100' },
-                                                { label: 'Submitted', count: filteredAssignments.filter((a) => a.status === 'submitted').length, color: 'text-blue-700 bg-blue-100' },
-                                                { label: 'Graded', count: filteredAssignments.filter((a) => a.status === 'graded').length, color: 'text-emerald-700 bg-emerald-100' },
-                                                { label: 'Overdue', count: filteredAssignments.filter((a) => a.status === 'overdue' || (a.status === 'pending' && isDeadlinePassed(a.deadline))).length, color: 'text-red-700 bg-red-100' },
+                                                { label: 'Pending', icon: Clock, count: filteredAssignments.filter((a) => a.status === 'pending' && !isDeadlinePassed(a.deadline)).length, color: 'text-amber-700 bg-amber-50 border-amber-100' },
+                                                { label: 'Submitted', icon: Send, count: filteredAssignments.filter((a) => a.status === 'submitted').length, color: 'text-blue-700 bg-blue-50 border-blue-100' },
+                                                { label: 'Graded', icon: CheckCircle, count: filteredAssignments.filter((a) => a.status === 'graded').length, color: 'text-emerald-700 bg-emerald-50 border-emerald-100' },
+                                                { label: 'Overdue', icon: AlertCircle, count: filteredAssignments.filter((a) => a.status === 'overdue' || (a.status === 'pending' && isDeadlinePassed(a.deadline))).length, color: 'text-red-700 bg-red-50 border-red-100' },
                                             ].map((stat) => (
-                                                <div key={stat.label} className={`${stat.color} rounded-xl p-4 border border-black/5`}>
-                                                    <span className="text-[10px] font-black uppercase tracking-widest opacity-60">{stat.label}</span>
-                                                    <p className="text-2xl font-black mt-1 leading-none">{stat.count}</p>
+                                                <div key={stat.label} className={`${stat.color} rounded-2xl p-4 border flex items-center justify-between shadow-sm`}>
+                                                    <div>
+                                                        <span className="text-[10px] font-black uppercase tracking-widest opacity-70 block mb-1">{stat.label}</span>
+                                                        <p className="text-2xl font-black leading-none">{stat.count}</p>
+                                                    </div>
+                                                    <div className={`p-2 rounded-xl bg-white/50 backdrop-blur-sm`}>
+                                                        <stat.icon className="w-5 h-5 opacity-80" />
+                                                    </div>
                                                 </div>
                                             ))}
                                         </div>
@@ -853,10 +870,35 @@ const AssignmentSubmission = () => {
                                                                         </button>
                                                                     )}
 
-                                                                    {assignment.status === 'submitted' && (
-                                                                        <div className="bg-blue-50 p-4 rounded-2xl border border-blue-100 text-center">
-                                                                            <Clock className="w-5 h-5 text-blue-600 mx-auto mb-1" />
-                                                                            <p className="text-[10px] font-black text-blue-700 uppercase tracking-widest">Verification Pending</p>
+                                                                    {/* Student's Own Submission Data */}
+                                                                    {(assignment.status === 'submitted' || assignment.status === 'graded') && (
+                                                                        <div className="mt-2 space-y-3 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                                                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">My Submission</p>
+                                                                            
+                                                                            {assignment.submissionLink && (
+                                                                                <a 
+                                                                                    href={assignment.submissionLink} 
+                                                                                    target="_blank" 
+                                                                                    rel="noopener noreferrer"
+                                                                                    className="flex items-center gap-2 text-xs font-bold text-blue-600 hover:underline truncate"
+                                                                                >
+                                                                                    <LinkIcon className="w-3.5 h-3.5 shrink-0" />
+                                                                                    {assignment.submissionLink}
+                                                                                </a>
+                                                                            )}
+
+                                                                            {assignment.notes && (
+                                                                                <div className="bg-white/60 p-3 rounded-xl border border-slate-200">
+                                                                                    <p className="text-xs text-slate-600 font-medium whitespace-pre-wrap">{assignment.notes}</p>
+                                                                                </div>
+                                                                            )}
+
+                                                                            {assignment.status === 'submitted' && (
+                                                                                <div className="flex items-center gap-2 pt-1">
+                                                                                    <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+                                                                                    <p className="text-[9px] font-black text-blue-600 uppercase tracking-widest">Verification Pending</p>
+                                                                                </div>
+                                                                            )}
                                                                         </div>
                                                                     )}
                                                                 </div>
@@ -1030,7 +1072,7 @@ const AssignmentSubmission = () => {
                                             </div>
                                         )}
                                     </div>
-                                ) : (
+                                ) : activeTab === 'chat' ? (
                                     /* CHAT VIEW */
                                     <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm min-h-[500px]">
                                         {selectedCourseId && myCourses.find(c => c._id === selectedCourseId) ? (
@@ -1042,6 +1084,21 @@ const AssignmentSubmission = () => {
                                             <div className="flex flex-col items-center justify-center h-full py-20 text-gray-400">
                                                 <MessageCircle className="w-16 h-16 mb-4 opacity-50" />
                                                 <p className="text-lg font-bold">Select a course to start chatting</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                ) : (
+                                    /* TESTS VIEW */
+                                    <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm min-h-[400px]">
+                                        {selectedCourseId && myCourses.find(c => c._id === selectedCourseId) ? (
+                                            <StudentTestsTab 
+                                                courseId={selectedCourseId} 
+                                                isRestricted={isRestricted} 
+                                            />
+                                        ) : (
+                                            <div className="flex flex-col items-center justify-center h-full py-20 text-gray-400">
+                                                <Zap className="w-16 h-16 mb-4 opacity-50 text-[#ff8e01]" />
+                                                <p className="text-lg font-bold">Select a course to view tests</p>
                                             </div>
                                         )}
                                     </div>

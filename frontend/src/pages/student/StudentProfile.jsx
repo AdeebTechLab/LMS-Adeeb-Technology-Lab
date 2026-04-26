@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { useSelector, useDispatch } from 'react-redux';
 import {
     User, Mail, Phone, MapPin, Calendar, CreditCard,
-    Edit2, Save, X, Camera, BookOpen, GraduationCap, Users, Loader2
+    Edit2, Save, X, Camera, BookOpen, GraduationCap, Users, Loader2, Clock
 } from 'lucide-react';
 import { authAPI, enrollmentAPI, settingsAPI } from '../../services/api';
 import { updateUser } from '../../features/auth/authSlice';
@@ -25,6 +25,33 @@ const InfoField = ({ icon: Icon, label, value, name, type = 'text', editable = t
                 />
             ) : (
                 <p className="font-medium text-gray-900 truncate">{value || 'Not provided'}</p>
+            )}
+        </div>
+    </div>
+);
+
+const SelectField = ({ icon: Icon, label, value, name, options, editable = true, isEditing, editForm, onChange }) => (
+    <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-xl">
+        <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center flex-shrink-0">
+            <Icon className="w-5 h-5 text-emerald-600" />
+        </div>
+        <div className="flex-1 min-w-0">
+            <p className="text-sm text-gray-500 mb-1">{label}</p>
+            {isEditing && editable ? (
+                <select
+                    name={name}
+                    value={editForm[name] || ''}
+                    onChange={onChange}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white"
+                >
+                    {options.map(opt => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
+                </select>
+            ) : (
+                <p className="font-medium text-gray-900 truncate">
+                    {options.find(opt => opt.value === value)?.label || value || 'Not provided'}
+                </p>
             )}
         </div>
     </div>
@@ -126,7 +153,9 @@ const StudentProfile = () => {
                 guardianPhone: editForm.guardianPhone,
                 guardianOccupation: editForm.guardianOccupation,
                 address: editForm.address,
-                city: editForm.city
+                city: editForm.city,
+                attendType: editForm.attendType,
+                location: editForm.cityToAttend
             });
 
             setProfileData({ ...editForm });
@@ -258,6 +287,35 @@ const StudentProfile = () => {
                         <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={GraduationCap} label="Education" value={profileData.education} name="education" editable={canEditBio} />
                         <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={MapPin} label="Address" value={profileData.address} name="address" editable={canEditBio} />
                         <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={MapPin} label="City" value={profileData.city} name="city" editable={canEditBio} />
+                        <SelectField 
+                            isEditing={isEditing} 
+                            editForm={editForm} 
+                            onChange={handleChange} 
+                            icon={Clock} 
+                            label="Attend Type" 
+                            value={profileData.attendType} 
+                            name="attendType" 
+                            options={[
+                                { value: 'Physical', label: 'Physical (OnSite)' },
+                                { value: 'Online', label: 'Online (Remote)' }
+                            ]} 
+                            editable={canEditBio} 
+                        />
+                        <SelectField 
+                            isEditing={isEditing} 
+                            editForm={editForm} 
+                            onChange={handleChange} 
+                            icon={MapPin} 
+                            label="Campus" 
+                            value={profileData.cityToAttend} 
+                            name="cityToAttend" 
+                            options={[
+                                { value: '', label: 'Select Campus' },
+                                { value: 'islamabad', label: 'Islamabad' },
+                                { value: 'bahawalpur', label: 'Bahawalpur' }
+                            ]} 
+                            editable={canEditBio} 
+                        />
                     </div>
                 </motion.div>
 

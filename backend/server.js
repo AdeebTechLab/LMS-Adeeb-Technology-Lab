@@ -178,6 +178,7 @@ app.use('/api/daily-tasks', dailyTasksRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/user-notifications', userNotificationRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/api/tests', require('./routes/tests'));
 app.use('/api/stats', statsRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/live-class', liveClassRoutes);

@@ -467,7 +467,7 @@ const TeacherCourses = ({ isDashboard = false }) => {
                                                     ? 'bg-purple-100 text-purple-700'
                                                     : 'bg-blue-100 text-blue-700'
                                                     }`}>
-                                                    {course.targetAudience === 'interns' ? 'Internship' : 'Regular Course'}
+                                                    {course.targetAudience === 'interns' ? 'Internship' : 'Student'}
                                                 </span>
                                             </div>
                                         </div>

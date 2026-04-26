@@ -11,6 +11,11 @@ const attendanceRecordSchema = new mongoose.Schema({
         enum: ['present', 'absent'],
         default: 'absent'
     },
+    mode: {
+        type: String,
+        enum: ['online', 'onsite'],
+        default: 'onsite'
+    },
     markedBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'

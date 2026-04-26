@@ -214,6 +214,15 @@ export const dailyTaskAPI = {
     getUserDailyTasks: (userId) => api.get(`/daily-tasks/user/${userId}`)
 };
 
+// Test APIs
+export const testAPI = {
+    getByCourse: (courseId) => api.get(`/tests/course/${courseId}`),
+    create: (data) => api.post('/tests', data),
+    submit: (id, answers) => api.post(`/tests/${id}/submit`, { answers }),
+    update: (id, data) => api.put(`/tests/${id}`, data),
+    delete: (id) => api.delete(`/tests/${id}`)
+};
+
 // Notification APIs
 export const notificationAPI = {
     getActive: () => api.get('/notifications/active'),

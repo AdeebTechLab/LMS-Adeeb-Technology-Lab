@@ -113,12 +113,12 @@ const NotificationPopup = () => {
                         initial={{ opacity: 0, scale: 0.95, y: 30 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: 30 }}
-                        className={`w-full max-w-4xl rounded-[2.5rem] shadow-[0_40px_150px_-30px_rgba(0,0,0,0.4)] overflow-hidden relative max-h-[90vh] flex flex-col transition-colors duration-300 ${isDark ? 'bg-[#1a1f2e]' : 'bg-white'}`}
+                        className={`w-full max-w-2xl rounded-[1.5rem] shadow-[0_30px_100px_-20px_rgba(0,0,0,0.3)] overflow-hidden relative max-h-[85vh] flex flex-col transition-colors duration-300 ${isDark ? 'bg-[#1a1f2e]' : 'bg-white'}`}
                     >
                         {/* Header */}
-                        <div className={`p-6 md:p-8 pb-4 border-b flex items-center justify-between flex-shrink-0 ${isDark ? 'border-white/10' : 'border-slate-100'}`}>
-                            <div className="flex items-center gap-4">
-                                <div className={`p-2 rounded-2xl border border-[#ff8e01]/30 flex items-center justify-center overflow-hidden w-16 h-16 md:w-20 md:h-20 ${isDark ? 'bg-white/5' : 'bg-gray-50'}`}>
+                        <div className={`p-4 md:p-5 pb-3 border-b flex items-center justify-between flex-shrink-0 ${isDark ? 'border-white/10' : 'border-slate-100'}`}>
+                            <div className="flex items-center gap-3">
+                                <div className={`p-1.5 rounded-xl border border-[#ff8e01]/30 flex items-center justify-center overflow-hidden w-12 h-12 md:w-14 md:h-14 ${isDark ? 'bg-white/5' : 'bg-gray-50'}`}>
                                     <img
                                         src="/logo.png"
                                         alt="Logo"
@@ -132,12 +132,12 @@ const NotificationPopup = () => {
                                 </div>
                                 <div>
                                     <div className="flex items-center gap-2">
-                                        <h1 className="text-[#ff8e01] font-black text-xs uppercase tracking-[0.3em]">LMS Adeeb Tech Lab</h1>
+                                        <h1 className="text-[#ff8e01] font-black text-[10px] uppercase tracking-[0.2em]">LMS Adeeb Tech Lab</h1>
                                         <div className="h-1 w-1 rounded-full bg-gray-400" />
                                         <span className={`text-[10px] font-bold uppercase tracking-widest ${isDark ? 'text-white/40' : 'text-gray-400'}`}>Official Notice</span>
                                     </div>
-                                    <h2 className={`text-2xl md:text-3xl font-black tracking-tight mt-0.5 ${isDark ? 'text-white' : 'text-slate-900'}`}>Important Announcements</h2>
-                                    <p className={`text-sm font-medium mt-0.5 ${isDark ? 'text-white/50' : 'text-slate-500'}`}>
+                                    <h2 className={`text-xl md:text-2xl font-black tracking-tight mt-0.5 ${isDark ? 'text-white' : 'text-slate-900'}`}>Important Announcements</h2>
+                                    <p className={`text-xs font-medium mt-0.5 ${isDark ? 'text-white/50' : 'text-slate-500'}`}>
                                         You have <span className="text-[#ff8e01] font-bold">{activeNotifications.length}</span> {activeNotifications.length === 1 ? 'notification' : 'notifications'} to review
                                     </p>
                                 </div>
@@ -151,7 +151,7 @@ const NotificationPopup = () => {
                         </div>
 
                         {/* Scrollable Notifications Container */}
-                        <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6">
+                        <div className="flex-1 overflow-y-auto px-4 md:px-5 pt-3 md:pt-4 pb-6 space-y-4">
                             {activeNotifications.map((notification, index) => {
                                 const colors = getColorClasses(notification.type);
                                 return (
@@ -160,49 +160,26 @@ const NotificationPopup = () => {
                                         initial={{ opacity: 0, y: 20 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         transition={{ delay: index * 0.1 }}
-                                        className={`border-2 ${colors.border} ${colors.bg} rounded-3xl overflow-hidden shadow-lg hover:shadow-xl transition-all`}
+                                        className={`border-2 ${colors.border} ${colors.bg} rounded-2xl overflow-hidden shadow-md hover:shadow-lg transition-all`}
                                     >
                                         {/* Type Color Bar */}
                                         <div className={`h-2 w-full ${colors.bar}`} />
 
                                         {/* Notification Content */}
-                                        <div className="p-6 md:p-8">
-                                            <div className="flex items-start gap-4">
-                                                <div className={`p-5 ${colors.iconBg} rounded-2xl flex-shrink-0 mt-1 shadow-inner border border-white/10`}>
-                                                    {getIcon(notification)}
+                                        <div className="px-4 md:px-5 py-2 md:py-3">
+                                            <h3 className={`text-lg md:text-xl font-black leading-none ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                                                {notification.title?.trim()}
+                                            </h3>
+                                            {notification.isHtml ? (
+                                                <div
+                                                    className={`text-sm md:text-base leading-normal prose prose-sm max-w-none analytics-html-content ${isDark ? 'text-white/70 prose-invert' : 'text-slate-700'} mt-1`}
+                                                    dangerouslySetInnerHTML={{ __html: notification.message }}
+                                                />
+                                            ) : (
+                                                <div className={`text-sm md:text-base leading-normal whitespace-pre-wrap ${isDark ? 'text-white/70' : 'text-slate-700'} mt-1`}>
+                                                    {notification.message?.trim()}
                                                 </div>
-                                                <div className="flex-1 min-w-0 space-y-3">
-                                                    <h3 className={`text-xl md:text-2xl font-black leading-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                                                        {notification.title}
-                                                    </h3>
-                                                    {notification.isHtml ? (
-                                                        <div
-                                                            className={`text-base md:text-lg leading-relaxed prose prose-sm max-w-none analytics-html-content ${isDark ? 'text-white/70 prose-invert' : 'text-slate-700'}`}
-                                                            dangerouslySetInnerHTML={{ __html: notification.message }}
-                                                        />
-                                                    ) : (
-                                                        <div className={`text-base md:text-lg leading-relaxed space-y-2 ${isDark ? 'text-white/70' : 'text-slate-700'}`}>
-                                                            {notification.message.split('\n').map((line, i) => (
-                                                                <p key={i}>{line}</p>
-                                                            ))}
-                                                        </div>
-                                                    )}
-
-                                                    {/* Metadata */}
-                                                    <div className={`flex items-center gap-3 pt-2 text-xs font-medium ${isDark ? 'text-white/30' : 'text-slate-400'}`}>
-                                                        <div className="flex items-center gap-1.5">
-                                                            <div className="w-1.5 h-1.5 rounded-full bg-[#ff8e01] animate-pulse" />
-                                                            <span className="uppercase tracking-wider">Live Update</span>
-                                                        </div>
-                                                        {notification.showLifetime && (
-                                                            <div className="flex items-center gap-1.5">
-                                                                <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                                                                <span className="uppercase tracking-wider">Permanent Notice</span>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </div>
+                                            )}
                                         </div>
                                     </motion.div>
                                 );

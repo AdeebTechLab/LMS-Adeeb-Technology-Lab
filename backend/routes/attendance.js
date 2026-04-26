@@ -121,6 +121,7 @@ router.post('/', protect, authorize('teacher', 'admin'), async (req, res) => {
             if (existingIndex >= 0) {
                 // Update existing record
                 attendance.records[existingIndex].status = record.status;
+                attendance.records[existingIndex].mode = record.mode || 'onsite';
                 attendance.records[existingIndex].markedBy = req.user.id;
                 attendance.records[existingIndex].markedAt = moment().tz('Asia/Karachi').toDate();
             } else {
@@ -128,6 +129,7 @@ router.post('/', protect, authorize('teacher', 'admin'), async (req, res) => {
                 attendance.records.push({
                     user: record.userId,
                     status: record.status,
+                    mode: record.mode || 'onsite',
                     markedBy: req.user.id,
                     markedAt: moment().tz('Asia/Karachi').toDate()
                 });

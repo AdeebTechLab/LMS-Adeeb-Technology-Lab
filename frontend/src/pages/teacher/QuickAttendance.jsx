@@ -5,7 +5,7 @@ import { useSelector } from 'react-redux';
 import { 
     CheckCircle, X, Search, Calendar, ChevronLeft, 
     Loader2, Users, Save, AlertCircle, RefreshCw,
-    UserCheck, UserX, Clock, Filter, Download
+    UserCheck, UserX, Clock, Filter, Download, MapPin, GraduationCap
 } from 'lucide-react';
 import { courseAPI, attendanceAPI } from '../../services/api';
 import ProfileAvatar from '../../components/ui/ProfileAvatar';
@@ -34,6 +34,8 @@ const QuickAttendance = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [filterCourse, setFilterCourse] = useState('all');
     const [filterStatus, setFilterStatus] = useState(location.state?.initialFilter || 'all');
+    const [filterLocation, setFilterLocation] = useState('all');
+    const [filterCategory, setFilterCategory] = useState('all');
     const [courses, setCourses] = useState([]);
     const [holidayDays, setHolidayDays] = useState([]);
 
@@ -79,7 +81,8 @@ const QuickAttendance = () => {
                                 courseId: course._id,
                                 courseName: course.name,
                                 audience: course.targetAudience,
-                                location: course.location || 'N/A'
+                                location: course.location || 'N/A',
+                                attendType: e.user?.attendType || 'Physical'
                             });
                         }
                     }
@@ -107,7 +110,10 @@ const QuickAttendance = () => {
                 const res = await attendanceAPI.get(course._id, selectedDate);
                 const records = res.data.attendance?.records || [];
                 records.forEach(r => {
-                    marks[`${course._id}-${r.user?._id || r.user}`] = r.status;
+                    marks[`${course._id}-${r.user?._id || r.user}`] = {
+                        status: r.status,
+                        mode: r.mode // Will fallback to student preference in UI if not set
+                    };
                 });
             }));
             setAttendanceMarks(marks);
@@ -118,29 +124,36 @@ const QuickAttendance = () => {
 
     const handleMark = async (student, status) => {
         const markKey = `${student.courseId}-${student.id}`;
+        const defaultMode = (student.attendType || '').toLowerCase().includes('online') ? 'online' : 'onsite';
         
         // Optimistic UI Update
-        const oldMark = attendanceMarks[markKey];
-        setAttendanceMarks(prev => ({ ...prev, [markKey]: status }));
+        const oldData = attendanceMarks[markKey];
+        setAttendanceMarks(prev => ({ 
+            ...prev, 
+            [markKey]: { status, mode: defaultMode } 
+        }));
 
         try {
-            // We save per course since the API is course-based
             const courseStudents = students.filter(s => s.courseId === student.courseId);
-            const records = courseStudents.map(s => ({
-                userId: s.id,
-                status: (s.id === student.id ? status : (attendanceMarks[`${s.courseId}-${s.id}`] || 'absent'))
-            }));
+            const records = courseStudents.map(s => {
+                const sKey = `${s.courseId}-${s.id}`;
+                const sDefaultMode = (s.attendType || '').toLowerCase().includes('online') ? 'online' : 'onsite';
+                const sData = s.id === student.id ? { status, mode: defaultMode } : (attendanceMarks[sKey] || { status: 'absent', mode: sDefaultMode });
+                return {
+                    userId: s.id,
+                    status: sData.status,
+                    mode: sData.mode || sDefaultMode
+                };
+            });
 
             await attendanceAPI.mark({
                 courseId: student.courseId,
                 date: selectedDate,
                 records
             });
-            
-            // showToast.success('Updated', `${student.name} marked ${status}`);
         } catch (error) {
             console.error('Failed to save attendance:', error);
-            setAttendanceMarks(prev => ({ ...prev, [markKey]: oldMark }));
+            setAttendanceMarks(prev => ({ ...prev, [markKey]: oldData }));
             showToast.error('Sync Error', 'Failed to save attendance');
         }
     };
@@ -154,7 +167,7 @@ const QuickAttendance = () => {
             // Header Section
             doc.setFontSize(22);
             doc.setTextColor(16, 185, 129); // Emerald-500
-            doc.text('ADEEB TECHNOLOGY LAB', 14, 20);
+            doc.text('LMS ADEEB TECH LAB', 14, 20);
             
             doc.setFontSize(14);
             doc.setTextColor(100, 116, 139); // Slate-500
@@ -166,20 +179,23 @@ const QuickAttendance = () => {
 
             const tableRows = filteredStudents.map((s, idx) => {
                 const markKey = `${s.courseId}-${s.id}`;
-                const status = attendanceMarks[markKey] || 'Not Marked';
+                const data = attendanceMarks[markKey] || { status: 'Not Marked', mode: 'onsite' };
+                const status = data.status || 'Not Marked';
+                const mode = data.mode || 'onsite';
                 return [
                     idx + 1,
                     s.name.toUpperCase(),
                     s.rollNo,
                     s.courseName.toUpperCase(),
                     s.audience === 'interns' ? 'INTERN' : 'STUDENT',
+                    mode.toUpperCase(),
                     status.toUpperCase()
                 ];
             });
 
             autoTable(doc, {
                 startY: 55,
-                head: [['#', 'Student Name', 'Roll Number', 'Course', 'Category', 'Status']],
+                head: [['#', 'Student Name', 'Roll Number', 'Course', 'Category', 'Mode', 'Status']],
                 body: tableRows,
                 headStyles: { 
                     fillColor: [16, 185, 129], 
@@ -228,7 +244,7 @@ const QuickAttendance = () => {
             // Header Section
             doc.setFontSize(24);
             doc.setTextColor(16, 185, 129);
-            doc.text('ADEEB TECHNOLOGY LAB', 14, 20);
+            doc.text('LMS ADEEB TECH LAB', 14, 20);
             
             doc.setFontSize(14);
             doc.setTextColor(100, 116, 139);
@@ -368,15 +384,18 @@ const QuickAttendance = () => {
         const matchesSearch = s.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
                              s.rollNo.toLowerCase().includes(searchQuery.toLowerCase());
         const matchesCourse = filterCourse === 'all' || s.courseId === filterCourse;
+        const matchesLocation = filterLocation === 'all' || s.location?.toLowerCase() === filterLocation.toLowerCase();
+        const matchesCategory = filterCategory === 'all' || s.audience?.toLowerCase() === filterCategory.toLowerCase();
         
         const markKey = `${s.courseId}-${s.id}`;
-        const currentMark = attendanceMarks[markKey];
+        const currentData = attendanceMarks[markKey];
+        const currentMark = currentData?.status;
         const matchesStatus = filterStatus === 'all' || 
                              (filterStatus === 'present' && currentMark === 'present') ||
                              (filterStatus === 'absent' && currentMark === 'absent') ||
                              (filterStatus === 'not_marked' && !currentMark);
 
-        return matchesSearch && matchesCourse && matchesStatus;
+        return matchesSearch && matchesCourse && matchesLocation && matchesCategory && matchesStatus;
     });
 
     const isDateHoliday = () => {
@@ -395,7 +414,7 @@ const QuickAttendance = () => {
     }
 
     return (
-        <div className="max-w-5xl mx-auto space-y-6 pb-20">
+        <div className="w-full px-4 md:px-6 lg:px-8 space-y-6 pb-20">
             {/* Premium Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-6 sm:p-8 rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden relative group">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-50 rounded-full -mr-32 -mt-32 opacity-50 group-hover:scale-110 transition-transform duration-700"></div>
@@ -463,56 +482,101 @@ const QuickAttendance = () => {
                 </motion.div>
             )}
 
-            {/* Quick Filters */}
-            <div className="bg-white p-4 rounded-[2rem] border border-gray-100 shadow-sm space-y-4">
-                <div className="flex flex-col sm:flex-row gap-4 items-center">
-                    <div className="relative flex-1 w-full">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            {/* Professional Filter Toolbar */}
+            <div className="bg-white/80 backdrop-blur-xl p-4 sm:p-5 rounded-[2.5rem] border border-gray-100 shadow-sm space-y-5">
+                <div className="flex flex-col lg:flex-row gap-4 items-center">
+                    {/* Search Bar - Sleek Design */}
+                    <div className="relative flex-1 w-full group">
+                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <Search className="w-4 h-4 text-gray-400 group-focus-within:text-emerald-500 transition-colors" />
+                        </div>
                         <input 
                             type="text"
-                            placeholder="Quick search students..."
+                            placeholder="Search by name or roll number..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-transparent focus:border-emerald-500/20 focus:bg-white rounded-xl text-sm font-bold outline-none transition-all"
+                            className="w-full pl-11 pr-4 py-3.5 bg-gray-50/50 border border-gray-100 focus:border-emerald-500/30 focus:bg-white focus:ring-4 focus:ring-emerald-500/5 rounded-2xl text-sm font-bold outline-none transition-all placeholder:text-gray-400"
                         />
                     </div>
-                    <div className="flex items-center gap-2 w-full sm:w-auto">
-                        <Filter className="w-4 h-4 text-gray-400 ml-2 hidden sm:block" />
-                        <select 
-                            value={filterCourse}
-                            onChange={(e) => setFilterCourse(e.target.value)}
-                            className="flex-1 sm:w-48 bg-gray-50 px-4 py-3 rounded-xl text-xs font-black uppercase tracking-widest border border-transparent outline-none focus:border-emerald-500/20 cursor-pointer"
-                        >
-                            <option value="all">All Courses</option>
-                            {courses.map(c => (
-                                <option key={c._id} value={c._id}>{c.name}</option>
-                            ))}
-                        </select>
+
+                    {/* Filters Row */}
+                    <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
+                        {/* Course Filter */}
+                        <div className="relative flex-1 lg:w-48">
+                            <Filter className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3 h-3 text-emerald-500" />
+                            <select 
+                                value={filterCourse}
+                                onChange={(e) => setFilterCourse(e.target.value)}
+                                className="w-full pl-9 pr-8 py-3 bg-gray-50/50 border border-gray-100 rounded-xl text-[9px] font-black uppercase tracking-widest outline-none focus:border-emerald-500/30 focus:bg-white transition-all cursor-pointer appearance-none"
+                            >
+                                <option value="all">All Courses</option>
+                                {courses.map(c => (
+                                    <option key={c._id} value={c._id}>{c.name}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        {/* Location Filter */}
+                        <div className="relative flex-1 lg:w-40">
+                            <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3 h-3 text-emerald-500" />
+                            <select 
+                                value={filterLocation}
+                                onChange={(e) => setFilterLocation(e.target.value)}
+                                className="w-full pl-9 pr-8 py-3 bg-gray-50/50 border border-gray-100 rounded-xl text-[9px] font-black uppercase tracking-widest outline-none focus:border-emerald-500/30 focus:bg-white transition-all cursor-pointer appearance-none"
+                            >
+                                <option value="all">All Locations</option>
+                                <option value="Bahawalpur">Bahawalpur</option>
+                                <option value="Islamabad">Islamabad</option>
+                            </select>
+                        </div>
+
+                        {/* Category Filter */}
+                        <div className="relative flex-1 lg:w-36">
+                            <GraduationCap className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3 h-3 text-emerald-500" />
+                            <select 
+                                value={filterCategory}
+                                onChange={(e) => setFilterCategory(e.target.value)}
+                                className="w-full pl-9 pr-8 py-3 bg-gray-50/50 border border-gray-100 rounded-xl text-[9px] font-black uppercase tracking-widest outline-none focus:border-emerald-500/30 focus:bg-white transition-all cursor-pointer appearance-none"
+                            >
+                                <option value="all">All Categories</option>
+                                <option value="students">Students</option>
+                                <option value="interns">Interns</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
 
-                {/* Status Filter Buttons */}
-                <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-gray-50">
-                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest mr-2 ml-1">Filter By Status:</span>
-                    {[
-                        { id: 'all', label: 'All Students', icon: Users, color: 'gray' },
-                        { id: 'present', label: 'Present', icon: UserCheck, color: 'emerald' },
-                        { id: 'absent', label: 'Absent', icon: UserX, color: 'rose' },
-                        { id: 'not_marked', label: 'Not Marked', icon: Clock, color: 'amber' }
-                    ].map(btn => (
-                        <button
-                            key={btn.id}
-                            onClick={() => setFilterStatus(btn.id)}
-                            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border-2 ${
-                                filterStatus === btn.id
-                                ? `bg-${btn.color}-500 border-${btn.color}-500 text-white shadow-lg shadow-${btn.color}-200`
-                                : `bg-white border-gray-100 text-gray-500 hover:border-${btn.color}-200 hover:text-${btn.color}-600`
-                            }`}
-                        >
-                            <btn.icon className="w-3.5 h-3.5" />
-                            {btn.label}
-                        </button>
-                    ))}
+                {/* Status Chips - Interactive Filtering */}
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 pt-4 border-t border-gray-50">
+                    <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 rounded-full border border-gray-100">
+                        <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                        <span className="text-[9px] font-black text-gray-500 uppercase tracking-[0.15em]">Quick Status Filter</span>
+                    </div>
+                    
+                    <div className="flex flex-wrap items-center gap-2">
+                        {[
+                            { id: 'all', label: 'All Students', icon: Users, baseColor: 'gray', activeClass: 'bg-gray-900 border-gray-900 text-white shadow-gray-200' },
+                            { id: 'present', label: 'Present', icon: UserCheck, baseColor: 'emerald', activeClass: 'bg-emerald-600 border-emerald-600 text-white shadow-emerald-100' },
+                            { id: 'absent', label: 'Absent', icon: UserX, baseColor: 'rose', activeClass: 'bg-rose-600 border-rose-600 text-white shadow-rose-100' },
+                            { id: 'not_marked', label: 'Not Marked', icon: Clock, baseColor: 'amber', activeClass: 'bg-amber-500 border-amber-500 text-white shadow-amber-100' }
+                        ].map(btn => (
+                            <button
+                                key={btn.id}
+                                onClick={() => setFilterStatus(btn.id)}
+                                className={`flex items-center gap-2.5 px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all border shadow-sm ${
+                                    filterStatus === btn.id
+                                    ? `${btn.activeClass} shadow-lg scale-105`
+                                    : `bg-white border-gray-100 text-gray-500 hover:border-${btn.baseColor}-200 hover:bg-${btn.baseColor}-50/50 hover:text-${btn.baseColor}-600`
+                                }`}
+                            >
+                                <btn.icon className={`w-3.5 h-3.5 ${filterStatus === btn.id ? 'opacity-100' : 'opacity-60'}`} />
+                                {btn.label}
+                                {filterStatus === btn.id && (
+                                    <span className="ml-1 w-1.5 h-1.5 rounded-full bg-white/40"></span>
+                                )}
+                            </button>
+                        ))}
+                    </div>
                 </div>
             </div>
 
@@ -521,12 +585,14 @@ const QuickAttendance = () => {
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className="bg-gray-50/50 border-b border-gray-100">
-                                <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Student Details</th>
-                                <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Roll Number</th>
-                                <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Active Course</th>
-                                <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Category</th>
-                                <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] text-center">Attendance Marking</th>
+                            <tr className="bg-emerald-600 border-b border-emerald-700">
+                                <th className="px-6 py-5 text-[10px] font-black text-white/90 uppercase tracking-[0.2em] text-center w-12">#</th>
+                                <th className="px-8 py-5 text-[10px] font-black text-white/90 uppercase tracking-[0.2em]">Student Details</th>
+                                <th className="px-6 py-5 text-[10px] font-black text-white/90 uppercase tracking-[0.2em]">Roll Number</th>
+                                <th className="px-6 py-5 text-[10px] font-black text-white/90 uppercase tracking-[0.2em]">Active Course</th>
+                                <th className="px-6 py-5 text-[10px] font-black text-white/90 uppercase tracking-[0.2em]">Category</th>
+                                <th className="px-6 py-5 text-[10px] font-black text-white/90 uppercase tracking-[0.2em]">Attend Type</th>
+                                <th className="px-8 py-5 text-[10px] font-black text-white/90 uppercase tracking-[0.2em] text-center">Attendance Marking</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50">
@@ -544,20 +610,25 @@ const QuickAttendance = () => {
                                             exit={{ opacity: 0 }}
                                             transition={{ delay: index * 0.01 }}
                                             className={`group transition-colors ${
-                                                currentMark === 'present' ? 'bg-emerald-50/30' : 
-                                                currentMark === 'absent' ? 'bg-rose-50/30' : 
+                                                currentMark?.status === 'present' ? 'bg-emerald-50/30' : 
+                                                currentMark?.status === 'absent' ? 'bg-rose-50/30' : 
                                                 'hover:bg-gray-50/50'
                                             }`}
                                         >
+                                            <td className="px-6 py-4 text-center">
+                                                <span className="text-xs font-black text-gray-400">
+                                                    {index + 1}
+                                                </span>
+                                            </td>
                                             <td className="px-8 py-4">
                                                 <div className="flex items-center gap-4">
                                                     <div className="relative">
                                                         <ProfileAvatar 
                                                             src={student.photo} 
                                                             name={student.name} 
-                                                            size="md" 
-                                                            shape="rounded-lg"
-                                                            border={currentMark === 'present' ? 'border-emerald-500' : currentMark === 'absent' ? 'border-rose-500' : 'border-gray-100'} 
+                                                            size="lg" 
+                                                            shape="rounded-xl"
+                                                            border={currentMark?.status === 'present' ? 'border-emerald-500' : currentMark?.status === 'absent' ? 'border-rose-500' : 'border-gray-100'} 
                                                         />
                                                     </div>
                                                     <div className="min-w-0">
@@ -585,13 +656,19 @@ const QuickAttendance = () => {
                                                     {student.audience === 'interns' ? 'Intern' : 'Student'}
                                                 </span>
                                             </td>
+                                            <td className="px-6 py-4">
+                                                    {(student.attendType || '').toLowerCase().includes('online')
+                                                    ? <span className="bg-rose-50 text-rose-600 border-rose-200 text-[10px] px-3 py-1.5 rounded-lg font-black uppercase tracking-widest border shadow-sm">Remote</span>
+                                                    : <span className="bg-emerald-50 text-emerald-600 border-emerald-200 text-[10px] px-3 py-1.5 rounded-lg font-black uppercase tracking-widest border shadow-sm">OnSite</span>
+                                                }
+                                            </td>
                                             <td className="px-8 py-4">
                                                 <div className="flex items-center justify-center gap-2">
                                                     <button
                                                         disabled={isDateHoliday()}
                                                         onClick={() => handleMark(student, 'present')}
                                                         className={`px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-[0.15em] transition-all flex items-center justify-center gap-2 border-2 ${
-                                                            currentMark === 'present'
+                                                            currentMark?.status === 'present'
                                                             ? 'bg-emerald-600 border-emerald-600 text-white shadow-lg shadow-emerald-200'
                                                             : 'bg-white border-gray-100 text-gray-400 hover:border-emerald-500 hover:text-emerald-600'
                                                         } disabled:opacity-30 disabled:cursor-not-allowed active:scale-95`}
@@ -602,7 +679,7 @@ const QuickAttendance = () => {
                                                         disabled={isDateHoliday()}
                                                         onClick={() => handleMark(student, 'absent')}
                                                         className={`px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-[0.15em] transition-all flex items-center justify-center gap-2 border-2 ${
-                                                            currentMark === 'absent'
+                                                            currentMark?.status === 'absent'
                                                             ? 'bg-rose-600 border-rose-600 text-white shadow-lg shadow-rose-200'
                                                             : 'bg-white border-gray-100 text-gray-400 hover:border-rose-500 hover:text-rose-600'
                                                         } disabled:opacity-30 disabled:cursor-not-allowed active:scale-95`}
@@ -640,7 +717,7 @@ const QuickAttendance = () => {
                         <div className="flex flex-col">
                             <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Present</span>
                             <span className="text-xl font-black text-white leading-none">
-                                {Object.values(attendanceMarks).filter(v => v === 'present').length}
+                                {Object.values(attendanceMarks).filter(v => v?.status === 'present').length}
                             </span>
                         </div>
                     </div>

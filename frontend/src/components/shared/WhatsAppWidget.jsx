@@ -11,10 +11,10 @@ const WhatsAppWidget = () => {
     });
 
     useEffect(() => {
-        // Auto-open after 3 seconds to catch user's attention
+        // Auto-open after 10 seconds to catch user's attention
         const timer = setTimeout(() => {
             setIsOpen(true);
-        }, 3000);
+        }, 10000);
         return () => clearTimeout(timer);
     }, []);
 

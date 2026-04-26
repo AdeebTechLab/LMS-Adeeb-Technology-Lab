@@ -5,10 +5,10 @@ import { useSelector } from 'react-redux';
 import { io } from 'socket.io-client';
 import {
     BookOpen, Users, Calendar, ArrowRight, ChevronLeft,
-    FileText, ClipboardList, CheckCircle, Clock, Loader2, User, Search, Filter, MessageCircle, UserCheck
+    FileText, ClipboardList, CheckCircle, Clock, Loader2, User, Search, Filter, MessageCircle, UserCheck, Zap
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
-import { courseAPI, enrollmentAPI, chatAPI, assignmentAPI } from '../../services/api';
+import { courseAPI, enrollmentAPI, chatAPI, assignmentAPI, testAPI } from '../../services/api';
 
 const getSocketURL = () => {
     const rawUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -25,6 +25,7 @@ import AssignmentsTab from './components/AssignmentsTab';
 import TeacherChatTab from './components/TeacherChatTab';
 import StudentsTab from './components/StudentsTab';
 import StudentWorkView from './components/StudentWorkView';
+import TestsTab from './components/TestsTab';
 
 const AttendanceSheet = () => {
     const { id: routeCourseId } = useParams();
@@ -821,6 +822,16 @@ const AttendanceSheet = () => {
                         Assignments
                     </button>
                     <button
+                        onClick={() => setActiveTab('tests')}
+                        className={`px-8 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 ${activeTab === 'tests'
+                            ? 'bg-white text-[#ff8e01] shadow-sm border border-[#ff8e01]/30'
+                            : 'text-gray-500 hover:bg-gray-200 hover:text-gray-900'
+                            }`}
+                    >
+                        <Zap className="w-4 h-4" />
+                        Tests
+                    </button>
+                    <button
                         onClick={() => setActiveTab('attendance')}
                         className={`px-6 sm:px-8 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 whitespace-nowrap shrink-0 ${activeTab === 'attendance'
                             ? 'bg-white text-[#ff8e01] shadow-sm border border-[#ff8e01]/30'
@@ -873,6 +884,9 @@ const AttendanceSheet = () => {
                     )}
                     {activeTab === 'chat' && (
                         <TeacherChatTab course={selectedCourse} students={courseStudents} onUnreadCountChange={fetchChatUnreadCount} />
+                    )}
+                    {activeTab === 'tests' && (
+                        <TestsTab course={selectedCourse} students={courseStudents} />
                     )}
                 </div>
             </div>
