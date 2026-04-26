@@ -438,29 +438,29 @@ const TeachersManagement = () => {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Teachers Management</h1>
-                    <p className="text-gray-500">Verify and manage teacher accounts</p>
+                    <p className="text-gray-500 text-sm">Verify and manage teacher accounts</p>
                 </div>
-                <div className="flex flex-wrap gap-4 items-center">
+                <div className="flex items-center gap-2 w-full md:w-auto">
                     <button
                         onClick={toggleBioEditing}
-                        className={`p-2.5 border rounded-xl transition-colors flex items-center gap-2 text-sm font-bold shadow-sm ${allowBioEditing
-                            ? 'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100'
-                            : 'bg-red-50 border-red-200 text-red-700 hover:bg-red-100'
+                        className={`flex-1 md:flex-none px-4 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all border flex items-center justify-center gap-2 ${allowBioEditing
+                                ? 'bg-amber-50 border-amber-200 text-amber-700'
+                                : 'bg-gray-50 border-gray-200 text-gray-500'
                             }`}
-                        title={allowBioEditing ? "Bio Editing is Enabled for Users" : "Bio Editing is Disabled for Users"}
                     >
-                        {allowBioEditing ? <Edit2 className="w-5 h-5" /> : <Shield className="w-5 h-5" />}
+                        <Shield className={`w-4 h-4 ${allowBioEditing ? 'animate-pulse' : ''}`} />
                         {allowBioEditing ? 'EDITS ON' : 'EDITS OFF'}
                     </button>
-                    <div className="relative">
+
+                    <div className="relative flex-1 md:flex-none">
                         <button
                             onClick={() => setShowExportOptions(!showExportOptions)}
-                            className="p-2.5 bg-white border border-gray-200 hover:bg-gray-50 rounded-xl transition-colors flex items-center gap-2 text-sm font-bold text-gray-700 shadow-sm"
+                            className="w-full px-4 py-2.5 bg-white border border-emerald-100 rounded-xl font-black text-[10px] uppercase tracking-widest text-emerald-700 hover:bg-emerald-50 transition-all flex items-center justify-center gap-2 shadow-sm"
                         >
-                            <Download className="w-5 h-5 text-emerald-600" />
+                            <Download className="w-4 h-4 text-emerald-600" />
                             EXPORT DATA
                         </button>
 
@@ -471,41 +471,22 @@ const TeachersManagement = () => {
                                     <div className="px-4 py-2 border-b border-gray-50 mb-1">
                                         <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Select Format</p>
                                     </div>
-                                    <button
-                                        onClick={() => downloadPDF('full')}
-                                        className="w-full px-4 py-2.5 text-left text-sm font-bold text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 flex items-center gap-3 transition-colors"
-                                    >
-                                        <FileText className="w-4 h-4" />
-                                        Complete Report
-                                    </button>
-                                    <button
-                                        onClick={() => downloadPDF('phone')}
-                                        className="w-full px-4 py-2.5 text-left text-sm font-bold text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 flex items-center gap-3 transition-colors"
-                                    >
-                                        <Phone className="w-4 h-4" />
-                                        Phone Directory
-                                    </button>
-                                    <button
-                                        onClick={() => downloadPDF('email')}
-                                        className="w-full px-4 py-2.5 text-left text-sm font-bold text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 flex items-center gap-3 transition-colors"
-                                    >
-                                        <Mail className="w-4 h-4" />
-                                        Email List
-                                    </button>
-                                    <button
-                                        onClick={() => downloadPDF('academic')}
-                                        className="w-full px-4 py-2 text-left text-sm font-bold text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 flex items-center gap-3 transition-colors"
-                                    >
-                                        <GraduationCap className="w-4 h-4" />
-                                        Academic Info
-                                    </button>
-                                    <button
-                                        onClick={() => downloadPDF('address')}
-                                        className="w-full px-4 py-2 text-left text-sm font-bold text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 flex items-center gap-3 transition-colors"
-                                    >
-                                        <MapPin className="w-4 h-4" />
-                                        Address List
-                                    </button>
+                                    {[
+                                        { id: 'full', label: 'Complete Report', icon: FileText },
+                                        { id: 'phone', label: 'Phone Directory', icon: Phone },
+                                        { id: 'email', label: 'Email List', icon: Mail },
+                                        { id: 'academic', label: 'Academic Info', icon: GraduationCap },
+                                        { id: 'address', label: 'Address List', icon: MapPin }
+                                    ].map((opt) => (
+                                        <button
+                                            key={opt.id}
+                                            onClick={() => downloadPDF(opt.id)}
+                                            className="w-full px-4 py-2.5 text-left text-[11px] font-bold text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 flex items-center gap-3 transition-colors"
+                                        >
+                                            <opt.icon className="w-4 h-4" />
+                                            {opt.label}
+                                        </button>
+                                    ))}
                                 </div>
                             </>
                         )}
@@ -514,18 +495,19 @@ const TeachersManagement = () => {
             </div>
 
             {/* Search & Filter */}
-            <div className="bg-white rounded-2xl p-4 border border-gray-100 flex flex-col gap-4">
-                <div className="flex-1 flex items-center bg-gray-50 rounded-xl px-4 py-3">
-                    <Search className="w-5 h-5 text-gray-400 mr-3" />
+            <div className="bg-white rounded-3xl p-4 sm:p-5 border border-gray-100 shadow-sm space-y-4">
+                <div className="relative">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                     <input
                         type="text"
                         placeholder="Search by name, email, or CNIC..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="bg-transparent border-none outline-none w-full text-gray-700"
+                        className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-transparent focus:border-emerald-500 focus:bg-white rounded-2xl transition-all outline-none text-sm font-medium"
                     />
                 </div>
-                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+
+                <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2">
                     {[
                         { id: 'all', label: 'All', count: teachers.length },
                         {
@@ -559,15 +541,15 @@ const TeachersManagement = () => {
                         <button
                             key={tab.id}
                             onClick={() => setFilterStatus(tab.id)}
-                            className={`px-4 py-2 rounded-xl font-medium text-sm transition-all whitespace-nowrap flex items-center gap-2 ${filterStatus === tab.id
-                                ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-200'
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                            className={`px-3 py-2.5 rounded-xl font-black text-[9px] uppercase tracking-widest transition-all flex items-center justify-between gap-2 border ${filterStatus === tab.id
+                                ? 'bg-emerald-600 text-white border-emerald-600 shadow-lg shadow-emerald-900/10'
+                                : 'bg-gray-50 text-gray-500 border-gray-100 hover:bg-gray-100'
                                 }`}
                         >
-                            {tab.label}
-                            <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${filterStatus === tab.id
+                            <span className="truncate">{tab.label}</span>
+                            <span className={`text-[9px] px-2 py-0.5 rounded-full font-black shrink-0 ${filterStatus === tab.id
                                 ? 'bg-white/20 text-white'
-                                : 'bg-white text-gray-500'
+                                : 'bg-gray-200 text-gray-500'
                                 }`}>
                                 {tab.count}
                             </span>
@@ -592,150 +574,142 @@ const TeachersManagement = () => {
                             transition={{ delay: index * 0.05 }}
                             className="bg-white rounded-2xl p-6 border border-gray-100"
                         >
-                            <div className="flex flex-col md:flex-row md:items-center gap-4">
+                            <div className="flex flex-col lg:flex-row lg:items-center gap-6">
                                 {/* Photo & Basic Info */}
-                                <div className="flex items-center gap-4 flex-1">
-                                    <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center overflow-hidden">
+                                <div className="flex items-center gap-4 min-w-0">
+                                    <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center overflow-hidden shrink-0 shadow-lg shadow-orange-900/10">
                                         {teacher.photo ? (
                                             <img src={teacher.photo} alt={teacher.name} className="w-full h-full object-cover" />
                                         ) : (
-                                            <span className="text-white text-xl font-bold">{teacher.name?.charAt(0)}</span>
+                                            <span className="text-white text-2xl font-black">{teacher.name?.charAt(0)}</span>
                                         )}
                                     </div>
-                                        <div>
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <h3 className="font-semibold text-gray-900">{teacher.name}</h3>
-                                                {teacher.rollNo && (
-                                                    <Badge variant="primary">#{teacher.rollNo}</Badge>
-                                                )}
-                                                {teacher.isVerified ? (
-                                                    <Badge variant="success">
-                                                        <CheckCircle className="w-3 h-3 mr-1" />
-                                                        Verified
-                                                    </Badge>
-                                                ) : (
-                                                    <Badge variant="warning">
-                                                        <Clock className="w-3 h-3 mr-1" />
-                                                        Pending
-                                                    </Badge>
-                                                )}
-                                            </div>
-                                            <p className="text-sm text-gray-500 flex items-center gap-1">
-                                                <Mail className="w-4 h-4" /> {teacher.email}
-                                            </p>
+                                    <div className="min-w-0">
+                                        <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                                            <h3 className="text-sm font-black text-gray-900 uppercase tracking-tighter truncate">{teacher.name}</h3>
+                                            {teacher.rollNo && (
+                                                <Badge variant="primary" size="xxs">#{teacher.rollNo}</Badge>
+                                            )}
                                         </div>
+                                        <p className="text-xs font-medium text-gray-500 flex items-center gap-1.5 truncate">
+                                            <Mail className="w-3.5 h-3.5 text-gray-400" /> {teacher.email}
+                                        </p>
+                                    </div>
                                 </div>
 
-                                {/* Details */}
-                                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 text-sm flex-[2]">
-                                    <div>
-                                        <p className="text-gray-400">Teacher ID</p>
-                                        <p className="font-bold text-blue-600 font-mono">{teacher.rollNo || <span className="text-gray-300 font-normal">Not assigned</span>}</p>
+                                {/* Details Grid */}
+                                <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-6 flex-[2] bg-gray-50/50 p-4 rounded-2xl border border-gray-100">
+                                    <div className="space-y-1">
+                                        <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Teacher ID</p>
+                                        <p className="text-xs font-bold text-blue-600 font-mono tracking-tighter">{teacher.rollNo || 'N/A'}</p>
                                     </div>
-                                    <div>
-                                        <p className="text-gray-400">Phone</p>
-                                        <p className="font-medium text-gray-700">{teacher.phone || 'N/A'}</p>
+                                    <div className="space-y-1">
+                                        <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Phone</p>
+                                        <p className="text-xs font-bold text-gray-700">{teacher.phone || 'N/A'}</p>
                                     </div>
-                                    <div>
-                                        <p className="text-gray-400">CNIC</p>
-                                        <p className="font-medium text-gray-700 font-mono">{teacher.cnic || 'N/A'}</p>
+                                    <div className="space-y-1">
+                                        <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">CNIC</p>
+                                        <p className="text-xs font-bold text-gray-700 font-mono tracking-tighter">{teacher.cnic || 'N/A'}</p>
                                     </div>
-                                    <div>
-                                        <p className="text-gray-400">DOB</p>
-                                        <p className="font-medium text-gray-700">{teacher.dob ? new Date(teacher.dob).toLocaleDateString() : 'N/A'}</p>
+                                    <div className="space-y-1">
+                                        <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Gender</p>
+                                        <p className="text-xs font-bold text-gray-700">{teacher.gender || 'N/A'}</p>
                                     </div>
-                                    <div>
-                                        <p className="text-gray-400">Gender</p>
-                                        <p className="font-medium text-gray-700">{teacher.gender || 'N/A'}</p>
+                                    <div className="space-y-1">
+                                        <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Qualification</p>
+                                        <p className="text-xs font-bold text-gray-700 truncate">{teacher.qualification || 'N/A'}</p>
                                     </div>
-                                    <div>
-                                        <p className="text-gray-400">Qualification</p>
-                                        <p className="font-medium text-gray-700 truncate">{teacher.qualification || 'N/A'}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-gray-400">Location</p>
-                                        <p className="font-medium text-gray-700 capitalize">{teacher.location || 'N/A'}</p>
+                                    <div className="space-y-1">
+                                        <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Location</p>
+                                        <p className="text-xs font-bold text-gray-700 capitalize">{teacher.location || 'N/A'}</p>
                                     </div>
                                 </div>
 
                                 {/* Actions */}
-                                <div className="flex gap-2 flex-wrap">
-                                    {/* Move to Old / Move to New button — only for non-assigned teachers */}
-                                    {(teacher.totalEnrollments || 0) === 0 && (
+                                <div className="flex flex-wrap items-center justify-end gap-2 shrink-0 border-t lg:border-t-0 pt-4 lg:pt-0">
+                                    <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2 lg:pb-0">
+                                        {(teacher.totalEnrollments || 0) === 0 && (
+                                            <button
+                                                onClick={() => handleMoveToOld(teacher)}
+                                                className={`px-3 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all border ${teacher.registeredOld
+                                                    ? 'bg-purple-50 border-purple-200 text-purple-700'
+                                                    : 'bg-gray-50 border-gray-200 text-gray-500 hover:text-purple-700'
+                                                    }`}
+                                                title={teacher.registeredOld ? 'Move to New' : 'Move to Old'}
+                                            >
+                                                {teacher.registeredOld ? 'New' : 'Old'}
+                                            </button>
+                                        )}
                                         <button
-                                            onClick={() => handleMoveToOld(teacher)}
-                                            className={`px-3 py-2 rounded-xl font-bold text-xs flex items-center gap-1 transition-all ${teacher.registeredOld
-                                                ? 'bg-purple-100 hover:bg-purple-200 text-purple-700'
-                                                : 'bg-gray-100 hover:bg-purple-100 text-gray-500 hover:text-purple-700'
-                                                }`}
-                                            title={teacher.registeredOld ? 'Move back to Registered New' : 'Move to Registered Old'}
+                                            onClick={() => downloadTeacherPDF(teacher)}
+                                            className="p-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 rounded-xl border border-emerald-100 transition-all"
+                                            title="PDF"
                                         >
-                                            {teacher.registeredOld ? '← New' : 'Old →'}
+                                            <Download className="w-5 h-5" />
                                         </button>
-                                    )}
-                                    <button
-                                        onClick={() => downloadTeacherPDF(teacher)}
-                                        className="p-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 rounded-xl"
-                                        title="Download PDF"
-                                    >
-                                        <Download className="w-5 h-5" />
-                                    </button>
-                                    {!teacher.isVerified ? (
                                         <button
-                                            onClick={() => setConfirmModal({ open: true, action: 'verify', teacher })}
-                                            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-medium flex items-center gap-2"
+                                            onClick={() => openPauseModal(teacher)}
+                                            className="p-2.5 bg-orange-50 hover:bg-orange-100 text-orange-600 rounded-xl border border-orange-100 transition-all"
+                                            title="Pause"
                                         >
-                                            <UserCheck className="w-4 h-4" />
-                                            Verify
+                                            <PauseCircle className="w-5 h-5" />
                                         </button>
-                                    ) : (
                                         <button
-                                            onClick={() => setConfirmModal({ open: true, action: 'unverify', teacher })}
-                                            className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-medium flex items-center gap-2"
+                                            onClick={() => handleEditClick(teacher)}
+                                            className="p-2.5 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl border border-blue-100 transition-all"
+                                            title="Edit"
                                         >
-                                            <UserX className="w-4 h-4" />
-                                            Revoke
+                                            <Edit2 className="w-5 h-5" />
                                         </button>
-                                    )}
+                                        <button
+                                            onClick={() => setConfirmModal({ open: true, action: 'delete', teacher })}
+                                            className="p-2.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl border border-red-100 transition-all"
+                                        >
+                                            <Trash2 className="w-5 h-5" />
+                                        </button>
+                                    </div>
+
+                                    <div className="h-8 w-px bg-gray-100 hidden lg:block mx-1" />
+
                                     <button
-                                        onClick={() => openPauseModal(teacher)}
-                                        className="p-2 bg-orange-50 hover:bg-orange-100 text-orange-600 rounded-xl"
-                                        title="Pause from Course"
+                                        onClick={() => setConfirmModal({ open: true, action: teacher.isVerified ? 'unverify' : 'verify', teacher })}
+                                        className={`px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all shadow-lg ${teacher.isVerified
+                                            ? 'bg-amber-500 hover:bg-amber-600 text-white shadow-amber-900/10'
+                                            : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-900/10'
+                                            } flex items-center justify-center gap-2 min-w-[120px] active:scale-95`}
                                     >
-                                        <PauseCircle className="w-5 h-5" />
-                                    </button>
-                                    <button
-                                        onClick={() => handleEditClick(teacher)}
-                                        className="p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl"
-                                        title="Edit Bio"
-                                    >
-                                        <Edit2 className="w-5 h-5" />
-                                    </button>
-                                    <button
-                                        onClick={() => setConfirmModal({ open: true, action: 'delete', teacher })}
-                                        className="p-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl"
-                                    >
-                                        <Trash2 className="w-5 h-5" />
+                                        {teacher.isVerified ? <UserX className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
+                                        {teacher.isVerified ? 'Revoke' : 'Verify'}
                                     </button>
                                 </div>
                             </div>
-                             {/* Extra Info */}
-                            <div className="mt-4 pt-4 border-t border-gray-100 flex flex-wrap gap-6 text-sm">
+
+                            {/* Extra Info */}
+                            <div className="mt-4 pt-4 border-t border-gray-50 grid grid-cols-1 sm:grid-cols-3 gap-4">
                                 {teacher.specialization && (
-                                    <div className="flex items-center gap-2 text-gray-600">
-                                        <GraduationCap className="w-4 h-4 text-gray-400" />
-                                        <span>Skills: {teacher.specialization}</span>
+                                    <div className="flex items-center gap-2.5 px-3 py-2 bg-gray-50/50 rounded-xl border border-gray-100">
+                                        <GraduationCap className="w-4 h-4 text-emerald-500" />
+                                        <div>
+                                            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Skills</p>
+                                            <p className="text-[11px] font-bold text-gray-700 truncate">{teacher.specialization}</p>
+                                        </div>
                                     </div>
                                 )}
                                 {teacher.experience && (
-                                    <div className="flex items-center gap-2 text-gray-600">
-                                        <Calendar className="w-4 h-4 text-gray-400" />
-                                        <span>Experience: {teacher.experience}</span>
+                                    <div className="flex items-center gap-2.5 px-3 py-2 bg-gray-50/50 rounded-xl border border-gray-100">
+                                        <Calendar className="w-4 h-4 text-orange-500" />
+                                        <div>
+                                            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Experience</p>
+                                            <p className="text-[11px] font-bold text-gray-700 truncate">{teacher.experience} Years</p>
+                                        </div>
                                     </div>
                                 )}
-                                <div className="flex items-center gap-2 text-gray-600">
-                                    <MapPin className="w-4 h-4 text-gray-400" />
-                                    <span>Address: {teacher.address || 'N/A'}</span>
+                                <div className="flex items-center gap-2.5 px-3 py-2 bg-gray-50/50 rounded-xl border border-gray-100">
+                                    <MapPin className="w-4 h-4 text-blue-500" />
+                                    <div>
+                                        <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Address</p>
+                                        <p className="text-[11px] font-bold text-gray-700 truncate">{teacher.address || 'N/A'}</p>
+                                    </div>
                                 </div>
                             </div>
                         </motion.div>

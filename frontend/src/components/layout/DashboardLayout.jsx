@@ -244,49 +244,182 @@ const DashboardLayout = () => {
             {/* Main Content - Scrollable */}
             <div className="flex-1 flex flex-col h-screen overflow-hidden">
                 {/* Header */}
-                <header className={`border-b sticky top-0 z-30 transition-colors duration-300 ${isDark ? 'bg-[#1a1f2e] border-white/10' : 'bg-white border-gray-100'}`}>
-                    <div className="px-4 sm:px-6 py-4 w-full min-w-0 flex flex-col lg:flex-row lg:items-center gap-4">
-                        {/* Left: menu + title */}
-                        <div className="flex items-center gap-3 sm:gap-4 shrink-0 min-w-0">
-                            <button
-                                type="button"
-                                onClick={() => setSidebarOpen(!sidebarOpen)}
-                                className={`p-2 rounded-xl transition-colors lg:hidden shrink-0 ${isDark ? 'hover:bg-white/10 text-white/80' : 'hover:bg-gray-100 text-gray-600'}`}
-                            >
-                                <Menu className="w-5 h-5" />
-                            </button>
+                <header className={`border-b sticky top-0 z-40 transition-colors duration-300 ${isDark ? 'bg-[#1a1f2e] border-white/10' : 'bg-white border-gray-100'}`}>
+                    <div className="px-4 sm:px-6 py-3 sm:py-4 w-full min-w-0 flex flex-col lg:flex-row lg:items-center gap-3 sm:gap-4">
+                        {/* Top row for mobile: Menu + Title + Actions */}
+                        <div className="flex items-center justify-between w-full lg:w-auto gap-4">
+                            {/* Left: menu + title */}
+                            <div className="flex items-center gap-3 sm:gap-4 shrink-0 min-w-0">
+                                <button
+                                    type="button"
+                                    onClick={() => setSidebarOpen(!sidebarOpen)}
+                                    className={`p-2.5 rounded-xl transition-all lg:hidden shrink-0 bg-primary text-white shadow-md shadow-primary/20 active:scale-95`}
+                                >
+                                    <Menu className="w-5 h-5" />
+                                </button>
 
-                            <div className="min-w-0">
-                                <h1 className={`text-xl sm:text-2xl font-bold transition-colors duration-300 truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>{getPageTitle()}</h1>
+                                <div className="min-w-0">
+                                    <h1 className={`text-lg sm:text-2xl font-bold transition-colors duration-300 truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>{getPageTitle()}</h1>
+                                </div>
+                            </div>
+
+                            {/* Right: actions (Moved here for mobile top row) */}
+                            <div className="flex lg:hidden items-center gap-2 sm:gap-3 shrink-0 relative z-10">
+                                {/* Refresh Button */}
+                                <button
+                                    type="button"
+                                    onClick={() => window.location.reload()}
+                                    className="rounded-xl transition-all duration-200 bg-[#222d38] hover:bg-[#1a232c] text-white shadow-sm p-2.5"
+                                    title="Refresh Page"
+                                >
+                                    <RefreshCw className="w-5 h-5 shrink-0" />
+                                </button>
+
+                                {/* Dark / Light Mode Toggle */}
+                                <button
+                                    type="button"
+                                    onClick={toggleTheme}
+                                    className={`relative rounded-xl transition-all duration-300 shadow-sm flex items-center justify-center overflow-hidden p-2.5 ${isDark
+                                        ? 'bg-[#ffab40] text-white'
+                                        : 'bg-[#222d38] text-white'
+                                        }`}
+                                >
+                                    {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                                </button>
+
+                                {/* Notifications */}
+                                <div className="relative">
+                                    <button
+                                        onClick={() => setShowNotifications(!showNotifications)}
+                                        className={`relative p-2.5 rounded-xl transition-all flex items-center ${isDark ? 'hover:bg-white/10 text-white/70' : 'hover:bg-gray-100 text-gray-600'}`}
+                                    >
+                                        <Bell className="w-5 h-5" />
+                                        {unreadCount + pendingTasks.length > 0 && (
+                                            <span className="absolute top-0 right-0 w-4 h-4 bg-[#ff8e01] text-white text-[8px] rounded-full flex items-center justify-center font-bold shadow-sm">
+                                                {unreadCount + pendingTasks.length}
+                                            </span>
+                                        )}
+                                    </button>
+
+                                    {/* Mobile Notifications Dropdown */}
+                                    {showNotifications && (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            className={`absolute right-[-60px] sm:right-0 mt-3 w-72 sm:w-80 rounded-2xl shadow-2xl border overflow-hidden z-[100] transition-colors duration-200 ${isDark ? 'bg-[#1a1f2e] border-white/10' : 'bg-white border-gray-100'}`}
+                                        >
+                                            <div className={`p-4 border-b ${isDark ? 'border-white/10' : 'border-gray-100'}`}>
+                                                <div className="flex items-center justify-between">
+                                                    <h3 className={`font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Notifications</h3>
+                                                    <span className="text-[10px] font-black bg-[#ff8e01]/10 text-[#ff8e01] px-2 py-1 rounded-lg uppercase">New</span>
+                                                </div>
+                                            </div>
+                                            <div className="max-h-[350px] overflow-y-auto no-scrollbar">
+                                                {pendingTasks.map((task, idx) => (
+                                                    <div
+                                                        key={`task-${idx}`}
+                                                        onClick={() => {
+                                                            navigate(task.path, { state: { tab: 'assignments', assignmentId: task.assignmentId, courseId: task.courseId } });
+                                                            setShowNotifications(false);
+                                                        }}
+                                                        className={`p-4 border-b cursor-pointer ${isDark ? 'border-white/5 hover:bg-white/5 bg-[#ff8e01]/5' : 'border-gray-50 hover:bg-gray-50 bg-[#ff8e01]/[0.02]'}`}
+                                                    >
+                                                        <p className={`text-sm font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{task.title}</p>
+                                                        <p className="text-[10px] text-[#ff8e01] font-bold mt-1 uppercase">{new Date(task.date).toLocaleDateString()}</p>
+                                                    </div>
+                                                ))}
+                                                {notifications.length === 0 && pendingTasks.length === 0 && (
+                                                    <div className="p-8 text-center text-gray-500">
+                                                        <Bell className="w-10 h-10 mx-auto mb-2 opacity-20" />
+                                                        <p className="text-xs">No new notifications</p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </div>
+
+                                {/* User Profile Mini */}
+                                <div className="relative">
+                                    <button
+                                        onClick={() => setShowUserMenu(!showUserMenu)}
+                                        className="shrink-0 p-0.5 rounded-xl transition-all"
+                                    >
+                                        <ProfileAvatar src={user?.photo} name={user?.name} size="sm" shape="rounded-xl" border="border border-white/20" fallbackColor="bg-gradient-to-br from-[#ff8e01] to-[#ffab40]" />
+                                    </button>
+
+                                    {/* Mobile User Dropdown */}
+                                    {showUserMenu && (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            className={`absolute right-0 mt-3 w-56 rounded-2xl shadow-2xl border overflow-hidden z-[100] transition-colors duration-200 ${isDark ? 'bg-[#1a1f2e] border-white/10' : 'bg-white border-gray-100'}`}
+                                        >
+                                            <div className="p-4 border-b border-gray-100">
+                                                <p className={`text-sm font-bold truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>{user?.name}</p>
+                                                <p className="text-xs text-gray-500 capitalize">{role}</p>
+                                            </div>
+                                            <div className="p-2">
+                                                <button
+                                                    onClick={() => { navigate(`/${role}/profile`); setShowUserMenu(false); }}
+                                                    className={`w-full flex items-center gap-3 p-2.5 rounded-xl text-sm font-medium ${isDark ? 'text-white/70 hover:bg-white/5 hover:text-white' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`}
+                                                >
+                                                    <User className="w-4 h-4" /> Profile
+                                                </button>
+                                                <button
+                                                    onClick={() => { navigate(`/${role}/settings`); setShowUserMenu(false); }}
+                                                    className={`w-full flex items-center gap-3 p-2.5 rounded-xl text-sm font-medium ${isDark ? 'text-white/70 hover:bg-white/5 hover:text-white' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`}
+                                                >
+                                                    <Settings className="w-4 h-4" /> Settings
+                                                </button>
+                                                <button
+                                                    onClick={() => { window.dispatchEvent(new CustomEvent('openChatWidget', { detail: { open: true } })); setShowUserMenu(false); }}
+                                                    className={`w-full flex items-center gap-3 p-2.5 rounded-xl text-sm font-medium ${isDark ? 'text-white/70 hover:bg-white/5 hover:text-white' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`}
+                                                >
+                                                    <LifeBuoy className="w-4 h-4" /> Help & Support
+                                                </button>
+                                                
+                                                <div className={`my-1 border-t ${isDark ? 'border-white/10' : 'border-gray-100'}`} />
+                                                
+                                                <button
+                                                    onClick={() => { handleLogout(); setShowUserMenu(false); }}
+                                                    className={`w-full flex items-center gap-3 p-2.5 rounded-xl text-sm font-medium transition-colors ${isDark ? 'text-red-400 hover:bg-red-500/10 hover:text-red-300' : 'text-red-600 hover:bg-red-50'}`}
+                                                >
+                                                    <LogOut className="w-4 h-4" /> Sign Out
+                                                </button>
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </div>
                             </div>
                         </div>
 
-                        {/* Center: Search Bar - Grows to fill space */}
-                        <div className="flex-1 min-w-0 flex items-stretch">
+                        {/* Search Bar - Takes second row on mobile */}
+                        <div className="flex-1 min-w-0 flex items-stretch relative z-0 order-last lg:order-none">
                             <div
-                                className={`flex w-full items-center rounded-xl px-3 sm:px-4 py-2.5 min-h-[2.75rem] transition-colors duration-300 border ${isDark ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200/80'}`}
+                                className={`flex w-full items-center rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 min-h-[2.25rem] sm:min-h-[2.75rem] transition-colors duration-300 border ${isDark ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200/80'}`}
                             >
                                 <Search className={`w-4 h-4 mr-2 shrink-0 ${isDark ? 'text-white/40' : 'text-gray-400'}`} />
                                 <input
                                     type="search"
-                                    placeholder="Search courses, pages, and more..."
+                                    placeholder="Search courses or teachers..."
                                     aria-label="Search"
-                                    className={`bg-transparent border-none outline-none text-sm w-full min-w-0 flex-1 ${isDark ? 'text-white/90 placeholder:text-white/35' : 'text-gray-800 placeholder:text-gray-400'}`}
+                                    className={`bg-transparent border-none outline-none text-xs sm:text-sm w-full min-w-0 flex-1 ${isDark ? 'text-white/90 placeholder:text-white/35' : 'text-gray-800 placeholder:text-gray-400'}`}
                                 />
                             </div>
                         </div>
 
-                        {/* Right: actions */}
-                        <div className="flex items-center gap-2 sm:gap-3 shrink-0 justify-end flex-wrap ml-auto lg:ml-0">
+                        {/* Right: actions (Desktop only) */}
+                        <div className="hidden lg:flex items-center gap-1.5 sm:gap-3 shrink-0 relative z-10">
                             {/* Refresh Button */}
                             <button
                                 type="button"
                                 onClick={() => window.location.reload()}
-                                className="rounded-xl transition-all duration-200 bg-[#222d38] hover:bg-[#1a232c] text-white shadow-md hover:shadow-lg flex items-center justify-center gap-2 px-3 py-2.5"
+                                className="rounded-xl transition-all duration-200 bg-[#222d38] hover:bg-[#1a232c] text-white shadow-md hover:shadow-lg flex items-center justify-center gap-2 p-2.5 sm:px-3 sm:py-2.5"
                                 title="Refresh Page"
                             >
                                 <RefreshCw className="w-5 h-5 shrink-0" />
-                                <span className="hidden sm:inline text-sm font-semibold">Refresh</span>
+                                <span className="hidden xl:inline text-sm font-semibold">Refresh</span>
                             </button>
 
                             {/* Dark / Light Mode Toggle */}
@@ -294,7 +427,7 @@ const DashboardLayout = () => {
                                 type="button"
                                 onClick={toggleTheme}
                                 title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-                                className={`relative rounded-xl transition-all duration-300 shadow-md hover:shadow-lg flex items-center justify-center gap-2 overflow-hidden px-3 py-2.5 ${isDark
+                                className={`relative rounded-xl transition-all duration-300 shadow-md hover:shadow-lg flex items-center justify-center gap-2 overflow-hidden p-2.5 sm:px-3 sm:py-2.5 ${isDark
                                     ? 'bg-[#ffab40] hover:bg-[#ff8e01] text-white'
                                     : 'bg-[#222d38] hover:bg-[#1a232c] text-white'
                                     }`}
@@ -324,11 +457,10 @@ const DashboardLayout = () => {
                                         </motion.span>
                                     )}
                                 </AnimatePresence>
-                                <span className="hidden sm:inline text-sm font-semibold whitespace-nowrap">
-                                    {isDark ? 'Light mode' : 'Dark mode'}
+                                <span className="hidden xl:inline text-sm font-semibold whitespace-nowrap">
+                                    {isDark ? 'Light' : 'Dark'}
                                 </span>
                             </button>
-
 
                             {/* Notifications */}
                             <div className="relative">
@@ -337,9 +469,9 @@ const DashboardLayout = () => {
                                     className={`relative p-2.5 rounded-xl transition-all flex items-center gap-2 ${isDark ? 'hover:bg-white/10 text-white/70' : 'hover:bg-gray-100 text-gray-600'}`}
                                 >
                                     <Bell className="w-5 h-5" />
-                                    <span className="hidden md:inline text-sm font-semibold">Notifications</span>
+                                    <span className="hidden xl:inline text-sm font-semibold">Notif</span>
                                     {unreadCount + pendingTasks.length > 0 && (
-                                        <span className="absolute -top-1 -right-1 md:top-1.5 md:right-1.5 w-5 h-5 bg-[#ff8e01] text-white text-xs rounded-full flex items-center justify-center font-medium shadow-sm">
+                                        <span className="absolute -top-1 -right-1 w-5 h-5 bg-[#ff8e01] text-white text-[10px] rounded-full flex items-center justify-center font-bold shadow-sm">
                                             {unreadCount + pendingTasks.length}
                                         </span>
                                     )}
@@ -351,7 +483,7 @@ const DashboardLayout = () => {
                                         initial={{ opacity: 0, y: 10 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         exit={{ opacity: 0, y: 10 }}
-                                        className={`absolute right-0 mt-2 w-80 rounded-2xl shadow-xl border overflow-hidden z-50 transition-colors duration-200 ${isDark ? 'bg-[#1a1f2e] border-white/10' : 'bg-white border-gray-100'}`}
+                                        className={`absolute right-0 mt-2 w-80 rounded-2xl shadow-xl border overflow-hidden z-[60] transition-colors duration-200 ${isDark ? 'bg-[#1a1f2e] border-white/10' : 'bg-white border-gray-100'}`}
                                     >
                                         <div className={`p-4 border-b ${isDark ? 'border-white/10' : 'border-gray-100'}`}>
                                             <div className="flex items-center justify-between">
@@ -478,7 +610,7 @@ const DashboardLayout = () => {
                                     <motion.div
                                         initial={{ opacity: 0, y: 10 }}
                                         animate={{ opacity: 1, y: 0 }}
-                                        className={`absolute right-0 mt-2 w-56 rounded-2xl shadow-xl border overflow-hidden z-50 transition-colors duration-200 ${isDark ? 'bg-[#1a1f2e] border-white/10' : 'bg-white border-gray-100'}`}
+                                        className={`absolute right-0 mt-2 w-56 rounded-2xl shadow-xl border overflow-hidden z-[60] transition-colors duration-200 ${isDark ? 'bg-[#1a1f2e] border-white/10' : 'bg-white border-gray-100'}`}
                                     >
                                         <div className="p-2">
                                             <button 

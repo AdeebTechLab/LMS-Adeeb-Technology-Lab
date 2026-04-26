@@ -224,12 +224,13 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
             <div className="flex items-center justify-between">
                 <h3 className="font-bold text-gray-900 text-lg">Assignments</h3>
                 <div className="flex items-center gap-2">
-                    <button
+                    <button 
                         onClick={fetchAssignments}
-                        className="flex items-center gap-2 px-3 py-1.5 hover:bg-gray-100 rounded-lg text-gray-500 transition-all active:scale-95"
+                        disabled={isLoading}
+                        className="flex items-center gap-2 px-5 py-2.5 bg-emerald-50 text-emerald-600 rounded-xl font-black text-[10px] uppercase tracking-widest border-2 border-emerald-100 hover:border-emerald-500 hover:bg-white hover:shadow-lg hover:shadow-emerald-100 transition-all active:scale-95 disabled:opacity-50"
                     >
-                        <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-                        <span className="text-xs font-bold uppercase tracking-wider">Refresh</span>
+                        <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
+                        Refresh List
                     </button>
                     <button
                         onClick={() => {

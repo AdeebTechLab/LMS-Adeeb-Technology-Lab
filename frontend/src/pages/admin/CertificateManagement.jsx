@@ -318,8 +318,9 @@ const CertificateManagement = () => {
 
         const matchesCity = selectedCities.length === 0 || selectedCities.includes(c.city || c.location);
         const matchesType = selectedTypes.length === 0 || selectedTypes.includes(c.targetAudience);
+        const hasStudents = c.students.length > 0;
 
-        return matchesSearch && matchesCity && matchesType;
+        return matchesSearch && matchesCity && matchesType && hasStudents;
     });
 
     const filteredRequests = requests.filter(r => {
@@ -362,38 +363,40 @@ const CertificateManagement = () => {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Certificate Management</h1>
-                    <p className="text-gray-500">Issue and manage student & teacher certificates</p>
+                    <p className="text-gray-500 text-sm">Issue and manage student & teacher certificates</p>
                 </div>
-                <div className="flex flex-wrap gap-4 mt-4 sm:mt-0">
+                
+                {/* Metrics Grid */}
+                <div className="grid grid-cols-2 gap-3">
                     {/* Students/Interns Metrics */}
-                    <div className="flex flex-col bg-emerald-50 rounded-xl p-3 border border-emerald-100 min-w-[140px]">
-                        <p className="text-xs text-emerald-800 font-bold mb-1 border-b border-emerald-200 pb-1">Students / Interns</p>
-                        <div className="flex justify-between items-end mt-1">
+                    <div className="flex flex-col bg-emerald-50 rounded-2xl p-3 border border-emerald-100 min-w-[150px] shadow-sm">
+                        <p className="text-[10px] font-black text-emerald-800 uppercase tracking-widest mb-2 border-b border-emerald-200 pb-1">Students / Interns</p>
+                        <div className="flex justify-between items-end">
                             <div>
                                 <p className="text-2xl font-black text-emerald-600 leading-none">{studentsCertifiedCount}</p>
-                                <p className="text-[10px] text-emerald-600/80 font-medium uppercase tracking-wider">Assigned</p>
+                                <p className="text-[9px] text-emerald-600/80 font-black uppercase tracking-wider mt-1">Assigned</p>
                             </div>
                             <div className="text-right">
                                 <p className="text-xl font-bold text-amber-500 leading-none">{studentsPendingCount}</p>
-                                <p className="text-[10px] text-amber-600/80 font-medium uppercase tracking-wider">Pending</p>
+                                <p className="text-[9px] text-amber-600/80 font-black uppercase tracking-wider mt-1">Pending</p>
                             </div>
                         </div>
                     </div>
 
                     {/* Teachers Metrics */}
-                    <div className="flex flex-col bg-blue-50 rounded-xl p-3 border border-blue-100 min-w-[140px]">
-                        <p className="text-xs text-blue-800 font-bold mb-1 border-b border-blue-200 pb-1">Teachers</p>
-                        <div className="flex justify-between items-end mt-1">
+                    <div className="flex flex-col bg-blue-50 rounded-2xl p-3 border border-blue-100 min-w-[150px] shadow-sm">
+                        <p className="text-[10px] font-black text-blue-800 uppercase tracking-widest mb-2 border-b border-blue-200 pb-1">Teachers</p>
+                        <div className="flex justify-between items-end">
                             <div>
                                 <p className="text-2xl font-black text-blue-600 leading-none">{teachersCertifiedCount}</p>
-                                <p className="text-[10px] text-blue-600/80 font-medium uppercase tracking-wider">Assigned</p>
+                                <p className="text-[9px] text-blue-600/80 font-black uppercase tracking-wider mt-1">Assigned</p>
                             </div>
                             <div className="text-right">
                                 <p className="text-xl font-bold text-amber-500 leading-none">{teachersPendingCount}</p>
-                                <p className="text-[10px] text-amber-600/80 font-medium uppercase tracking-wider">Pending</p>
+                                <p className="text-[9px] text-amber-600/80 font-black uppercase tracking-wider mt-1">Pending</p>
                             </div>
                         </div>
                     </div>
@@ -401,35 +404,35 @@ const CertificateManagement = () => {
             </div>
 
             {/* Section Toggle */}
-            <div className="flex gap-2 bg-gray-100 p-1.5 rounded-2xl w-fit">
+            <div className="flex gap-2 bg-gray-100 p-1.5 rounded-2xl w-full sm:w-fit">
                 <button
                     onClick={() => setActiveSection('courses')}
-                    className={`px-5 py-2 rounded-xl font-bold text-sm transition-all ${activeSection === 'courses' ? 'bg-white text-emerald-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                    className={`flex-1 sm:flex-none px-5 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${activeSection === 'courses' ? 'bg-white text-emerald-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
                 >
                     Students & Interns
                 </button>
                 <button
                     onClick={() => setActiveSection('teachers')}
-                    className={`px-5 py-2 rounded-xl font-bold text-sm transition-all flex items-center gap-2 ${activeSection === 'teachers' ? 'bg-white text-blue-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                    className={`flex-1 sm:flex-none px-5 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${activeSection === 'teachers' ? 'bg-white text-blue-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
                 >
                     Teachers
-                    {teachers.length > 0 && <span className="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full font-black">{teachers.length}</span>}
+                    {teachers.length > 0 && <span className="text-[10px] bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full font-black">{teachers.length}</span>}
                 </button>
             </div>
 
             {/* ── STUDENTS & INTERNS SECTION ── */}
             {activeSection === 'courses' && (<>
-                <div className="bg-white rounded-2xl p-6 border border-gray-100 space-y-4">
-                    <div className="flex flex-col gap-4">
+                <div className="bg-white rounded-3xl p-4 sm:p-6 border border-gray-100 shadow-sm space-y-4">
+                    <div className="flex flex-col sm:flex-row gap-4">
                         {/* Search */}
-                        <div className="flex-1 flex items-center bg-gray-50 rounded-xl px-4 py-3 border border-transparent focus-within:border-emerald-500/20 focus-within:bg-white transition-all">
-                            <Search className="w-5 h-5 text-gray-400 mr-3" />
+                        <div className="flex-1 relative">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                             <input
                                 type="text"
                                 placeholder="Search by course, student, roll no, CNIC..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="bg-transparent border-none outline-none w-full text-gray-700 placeholder:text-gray-400"
+                                className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-transparent focus:border-emerald-500 focus:bg-white rounded-2xl transition-all outline-none text-sm font-medium"
                             />
                         </div>
 
@@ -437,64 +440,53 @@ const CertificateManagement = () => {
                         {(selectedTypes.length > 0 || selectedCities.length > 0 || searchQuery) && (
                             <button
                                 onClick={clearFilters}
-                                className="flex items-center justify-center gap-2 px-4 py-2 text-rose-500 hover:bg-rose-50 rounded-xl transition-all text-sm font-medium"
+                                className="flex items-center justify-center gap-2 px-4 py-3 text-rose-500 hover:bg-rose-50 rounded-xl transition-all text-sm font-bold uppercase tracking-widest"
                             >
                                 <X className="w-4 h-4" />
-                                Clear Filters
+                                Clear
                             </button>
                         )}
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-6 pt-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {/* Audience Filters */}
-                        <div className="flex items-center gap-2">
-                            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Audience:</span>
-                            <div className="flex bg-gray-100 p-1 rounded-lg">
-                                <button
-                                    onClick={() => toggleFilter('type', 'students')}
-                                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${selectedTypes.includes('students')
-                                        ? 'bg-white text-emerald-600 shadow-sm'
-                                        : 'text-gray-500 hover:text-gray-700'
-                                        }`}
-                                >
-                                    Students
-                                </button>
-                                <button
-                                    onClick={() => toggleFilter('type', 'interns')}
-                                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${selectedTypes.includes('interns')
-                                        ? 'bg-white text-emerald-600 shadow-sm'
-                                        : 'text-gray-500 hover:text-gray-700'
-                                        }`}
-                                >
-                                    Interns
-                                </button>
+                        <div className="space-y-2">
+                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Audience</p>
+                            <div className="flex items-center gap-2 bg-gray-50 p-1.5 rounded-2xl">
+                                {[
+                                    { id: 'students', label: 'Students' },
+                                    { id: 'interns', label: 'Interns' }
+                                ].map((type) => (
+                                    <button
+                                        key={type.id}
+                                        onClick={() => toggleFilter('type', type.id)}
+                                        className={`flex-1 px-3 py-2 rounded-xl font-bold text-xs transition-all ${selectedTypes.includes(type.id)
+                                            ? 'bg-white text-emerald-600 shadow-md border border-emerald-100'
+                                            : 'text-gray-500 hover:text-gray-700 hover:bg-white/50'
+                                            }`}
+                                    >
+                                        {type.label}
+                                    </button>
+                                ))}
                             </div>
                         </div>
 
-                        <div className="h-6 w-px bg-gray-200 hidden sm:block" />
-
                         {/* City Filters */}
-                        <div className="flex items-center gap-2">
-                            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Location:</span>
-                            <div className="flex bg-gray-100 p-1 rounded-lg">
-                                <button
-                                    onClick={() => toggleFilter('city', 'Islamabad')}
-                                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${selectedCities.includes('Islamabad')
-                                        ? 'bg-white text-emerald-600 shadow-sm'
-                                        : 'text-gray-500 hover:text-gray-700'
-                                        }`}
-                                >
-                                    Islamabad
-                                </button>
-                                <button
-                                    onClick={() => toggleFilter('city', 'Bahawalpur')}
-                                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${selectedCities.includes('Bahawalpur')
-                                        ? 'bg-white text-emerald-600 shadow-sm'
-                                        : 'text-gray-500 hover:text-gray-700'
-                                        }`}
-                                >
-                                    Bahawalpur
-                                </button>
+                        <div className="space-y-2">
+                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Location</p>
+                            <div className="flex items-center gap-2 bg-gray-50 p-1.5 rounded-2xl">
+                                {['Bahawalpur', 'Islamabad'].map((city) => (
+                                    <button
+                                        key={city}
+                                        onClick={() => toggleFilter('city', city)}
+                                        className={`flex-1 px-3 py-2 rounded-xl font-bold text-xs transition-all ${selectedCities.includes(city)
+                                            ? 'bg-white text-emerald-600 shadow-md border border-emerald-100'
+                                            : 'text-gray-500 hover:text-gray-700 hover:bg-white/50'
+                                            }`}
+                                    >
+                                        {city}
+                                    </button>
+                                ))}
                             </div>
                         </div>
                     </div>
@@ -512,53 +504,53 @@ const CertificateManagement = () => {
                                 key={request._id}
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                className="bg-white rounded-2xl p-6 border border-amber-100 flex flex-col md:flex-row items-center justify-between gap-6"
+                                className="bg-white rounded-3xl p-5 sm:p-6 border border-amber-100 flex flex-col md:flex-row items-center md:items-start justify-between gap-6 shadow-sm"
                             >
-                                <div className="flex items-center gap-4 flex-1">
-                                    <div className="w-16 h-16 rounded-xl bg-gray-100 border border-gray-200 overflow-hidden shrink-0">
+                                <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 flex-1 text-center sm:text-left">
+                                    <div className="w-20 h-20 rounded-2xl bg-gray-100 border border-gray-200 overflow-hidden shrink-0 shadow-inner">
                                         {request.user?.photo ? (
                                             <img src={request.user.photo} alt="" className="w-full h-full object-cover" />
                                         ) : (
-                                            <div className="w-full h-full flex items-center justify-center">
-                                                <User className="w-8 h-8 text-gray-300" />
+                                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+                                                <User className="w-10 h-10 text-gray-300" />
                                             </div>
                                         )}
                                     </div>
-                                    <div>
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <h3 className="text-lg font-bold text-gray-900">{request.user?.name}</h3>
-                                            <Badge variant={request.user?.role === 'intern' ? 'warning' : 'info'}>
+                                    <div className="flex-1">
+                                        <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mb-2">
+                                            <h3 className="text-xl font-black text-gray-900 uppercase tracking-tighter">{request.user?.name}</h3>
+                                            <Badge variant={request.user?.role === 'intern' ? 'warning' : 'info'} size="sm">
                                                 {request.user?.role}
                                             </Badge>
                                         </div>
-                                        <p className="text-sm text-emerald-600 font-medium">{request.course?.title}</p>
-                                        <div className="flex items-center gap-2 mt-1">
-                                            <Badge variant="info">
+                                        <p className="text-sm text-emerald-600 font-black uppercase tracking-tight mb-2">{request.course?.title}</p>
+                                        <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mb-2">
+                                            <Badge variant="info" size="xs">
                                                 {request.course?.city || request.course?.location || 'Unknown'}
                                             </Badge>
-                                            <Badge variant={(request.course?.targetAudience || (request.user?.role === 'intern' ? 'interns' : 'students')) === 'interns' ? 'purple' : 'success'}>
+                                            <Badge variant={(request.course?.targetAudience || (request.user?.role === 'intern' ? 'interns' : 'students')) === 'interns' ? 'purple' : 'success'} size="xs">
                                                 {(request.course?.targetAudience || (request.user?.role === 'intern' ? 'interns' : 'students')) === 'interns' ? 'Intern' : 'Student'}
                                             </Badge>
                                         </div>
-                                        <p className="text-xs text-gray-500 mt-1">Recommended by: {request.teacher?.name}</p>
+                                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Recommended by: {request.teacher?.name}</p>
                                     </div>
                                 </div>
 
-                                <div className="flex flex-col items-end gap-2 text-right">
-                                    <div className="text-xs text-gray-500 italic mb-2">
+                                <div className="flex flex-col w-full md:w-auto items-center md:items-end gap-3 text-center md:text-right">
+                                    <div className="text-[11px] font-bold text-gray-500 italic bg-amber-50 p-3 rounded-xl border border-amber-100/50 w-full md:max-w-[250px]">
                                         "{request.notes || 'No teacher notes provided'}"
                                     </div>
-                                    <div className="flex gap-2">
+                                    <div className="flex flex-col sm:flex-row gap-2 w-full">
                                         <button
                                             onClick={() => handleRejectRequest(request._id)}
-                                            className="px-4 py-2 text-red-600 hover:bg-red-50 rounded-xl font-bold transition-all flex items-center gap-2"
+                                            className="flex-1 px-4 py-3 text-red-600 hover:bg-red-50 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all flex items-center justify-center gap-2 border border-transparent hover:border-red-100"
                                         >
                                             <XCircle className="w-4 h-4" />
                                             Reject
                                         </button>
                                         <button
                                             onClick={() => handleOpenApproveModal(request)}
-                                            className="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-emerald-900/10 flex items-center gap-2"
+                                            className="flex-1 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-black uppercase tracking-widest text-[10px] transition-all shadow-lg shadow-emerald-900/10 flex items-center justify-center gap-2 active:scale-95"
                                         >
                                             <Award className="w-4 h-4" />
                                             Approve & Issue
@@ -599,25 +591,25 @@ const CertificateManagement = () => {
                                 >
                                     <div
                                         onClick={() => setExpandedCourse(expandedCourse === course.id ? null : course.id)}
-                                        className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50 transition-colors"
+                                        className="flex items-center justify-between p-4 sm:p-5 cursor-pointer hover:bg-gray-50 transition-colors"
                                     >
                                         <div className="flex items-center gap-4">
-                                            <div className="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center">
-                                                <BookOpen className="w-6 h-6 text-emerald-600" />
+                                            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-emerald-50 flex items-center justify-center shrink-0 shadow-sm border border-emerald-100">
+                                                <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600" />
                                             </div>
-                                            <div>
-                                                <h3 className="font-bold text-gray-900 line-clamp-1">{course.name}</h3>
-                                                <div className="flex items-center gap-2 mt-1">
-                                                    <Badge variant="info" size="sm">
+                                            <div className="min-w-0">
+                                                <h3 className="font-black text-gray-900 line-clamp-1 uppercase tracking-tighter text-sm sm:text-base">{course.name}</h3>
+                                                <div className="flex items-center gap-2 mt-0.5">
+                                                    <Badge variant="info" size="xs">
                                                         {course.city}
                                                     </Badge>
-                                                    <Badge variant={course.targetAudience === 'interns' ? 'purple' : 'success'} size="sm">
+                                                    <Badge variant={course.targetAudience === 'interns' ? 'purple' : 'success'} size="xs">
                                                         {course.targetAudience === 'interns' ? 'Intern' : 'Student'}
                                                     </Badge>
                                                 </div>
                                             </div>
                                         </div>
-                                        <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform ${expandedCourse === course.id ? 'rotate-180' : ''}`} />
+                                        <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform flex-shrink-0 ${expandedCourse === course.id ? 'rotate-180' : ''}`} />
                                     </div>
 
                                     {expandedCourse === course.id && (
@@ -770,12 +762,12 @@ const CertificateManagement = () => {
                                 <table className="w-full">
                                     <thead className="bg-gray-50/50">
                                         <tr>
-                                            <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Teacher</th>
-                                            <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Teacher ID</th>
-                                            <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Specialization</th>
-                                            <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Status</th>
-                                            <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Passout Date</th>
-                                            <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Action</th>
+                                            <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Teacher Details</th>
+                                            <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Teacher ID</th>
+                                            <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Specialization</th>
+                                            <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Status</th>
+                                            <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Passout Date</th>
+                                            <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Action</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-50">
@@ -877,55 +869,56 @@ const CertificateManagement = () => {
             >
                 {confirmModal.student && (
                     <div className="space-y-6">
-                        <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-100">
-                            <div className="flex items-center gap-4 mb-3">
-                                <div className="w-12 h-12 rounded-full bg-white border border-emerald-100 flex items-center justify-center overflow-hidden">
+                        <div className="p-5 bg-emerald-50 rounded-3xl border border-emerald-100 shadow-sm">
+                            <div className="flex flex-col sm:flex-row items-center gap-4 mb-4 text-center sm:text-left">
+                                <div className="w-16 h-16 rounded-2xl bg-white border-2 border-emerald-100 flex items-center justify-center overflow-hidden shadow-inner">
                                     {confirmModal.student.photo ? (
                                         <img src={confirmModal.student.photo} alt="" className="w-full h-full object-cover" />
                                     ) : (
-                                        <User className="w-6 h-6 text-emerald-300" />
+                                        <User className="w-10 h-10 text-emerald-300" />
                                     )}
                                 </div>
-                                <div>
-                                    <p className="font-bold text-emerald-900">{confirmModal.student.name}</p>
-                                    <p className="text-xs text-emerald-600">{confirmModal.course?.name}</p>
+                                <div className="min-w-0">
+                                    <p className="text-xl font-black text-emerald-900 uppercase tracking-tighter leading-none mb-1">{confirmModal.student.name}</p>
+                                    <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">{confirmModal.course?.name || confirmModal.request?.course?.title}</p>
                                 </div>
                             </div>
                             {confirmModal.request?.notes && (
-                                <div className="text-xs text-emerald-700 italic bg-white/50 p-2 rounded-lg">
-                                    Teacher note: "{confirmModal.request.notes}"
+                                <div className="text-[11px] text-emerald-700 italic bg-white/60 p-3 rounded-2xl border border-emerald-100/50 leading-relaxed">
+                                    <span className="font-black uppercase tracking-widest text-[9px] block mb-1 opacity-50">Teacher Note:</span>
+                                    "{confirmModal.request.notes}"
                                 </div>
                             )}
                         </div>
 
-                        <div className="grid grid-cols-1 gap-4">
-                            <div>
-                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Roll Number / ID</label>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="space-y-1.5">
+                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Roll Number / ID</label>
                                 <input
                                     type="text"
                                     value={editData.rollNo}
                                     onChange={(e) => setEditData({ ...editData, rollNo: e.target.value })}
-                                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 outline-none font-mono font-bold"
+                                    className="w-full px-4 py-3 bg-gray-50 border border-transparent focus:border-emerald-500 focus:bg-white rounded-2xl transition-all outline-none font-bold text-sm"
                                     placeholder="Enter Roll Number"
                                 />
                             </div>
-                            <div>
-                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Passout Date</label>
+                            <div className="space-y-1.5">
+                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Passout Date</label>
                                 <input
                                     type="date"
                                     value={editData.passoutDate}
                                     onChange={(e) => setEditData({ ...editData, passoutDate: e.target.value })}
-                                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 outline-none font-bold"
+                                    className="w-full px-4 py-3 bg-gray-50 border border-transparent focus:border-emerald-500 focus:bg-white rounded-2xl transition-all outline-none font-bold text-sm"
                                 />
                             </div>
-                            <div>
-                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Certificate Link (Cloudinary/Drive)</label>
+                            <div className="sm:col-span-2 space-y-1.5">
+                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Certificate Link (Optional)</label>
                                 <input
                                     type="text"
-                                    placeholder="https://..."
+                                    placeholder="https://cloudinary.com/..."
                                     value={editData.certificateLink}
                                     onChange={(e) => setEditData({ ...editData, certificateLink: e.target.value })}
-                                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 outline-none font-medium"
+                                    className="w-full px-4 py-3 bg-gray-50 border border-transparent focus:border-emerald-500 focus:bg-white rounded-2xl transition-all outline-none text-sm font-medium"
                                 />
                             </div>
                         </div>
@@ -933,16 +926,16 @@ const CertificateManagement = () => {
                         <div className="flex gap-3 pt-2">
                             <button
                                 onClick={() => setConfirmModal({ open: false, student: null, course: null, request: null })}
-                                className="flex-1 py-3 text-gray-500 font-bold hover:bg-gray-100 rounded-xl transition-all"
+                                className="flex-1 py-3 text-gray-500 font-black uppercase tracking-widest text-[10px] hover:bg-gray-100 rounded-2xl transition-all"
                             >
                                 Cancel
                             </button>
                             <button
                                 onClick={handleIssueCertificate}
                                 disabled={isIssuing || !editData.rollNo}
-                                className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-emerald-900/10 flex items-center justify-center gap-2 disabled:opacity-50"
+                                className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-black uppercase tracking-widest text-[10px] rounded-2xl transition-all shadow-lg shadow-emerald-900/10 flex items-center justify-center gap-2 disabled:opacity-50 active:scale-95"
                             >
-                                {isIssuing ? <Loader2 className="w-5 h-5 animate-spin" /> : <Award className="w-5 h-5" />}
+                                {isIssuing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Award className="w-4 h-4" />}
                                 Issue Certificate
                             </button>
                         </div>

@@ -3,10 +3,11 @@ import { motion } from 'framer-motion';
 import { useSelector } from 'react-redux';
 import { io } from 'socket.io-client';
 import {
-    MessageCircle, Send, User, Search, Loader2, Users, Mail
+    MessageCircle, Send, User, Search, Loader2, Users, Mail, Trash2
 } from 'lucide-react';
 import { chatAPI } from '../../../services/api';
 import ProfileAvatar from '../../../components/ui/ProfileAvatar';
+import { showToast } from '../../../utils/customToast';
 
 const getSocketURL = () => {
     const rawUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -173,6 +174,22 @@ const TeacherChatTab = ({ course, students, onUnreadCountChange }) => {
         }
     };
 
+    const handleClearChat = async () => {
+        if (!activeStudent) return;
+        if (!window.confirm(`Are you sure you want to clear all chat history with ${activeStudent.name}? This cannot be undone.`)) return;
+
+        try {
+            const courseId = course.id || course._id;
+            const studentId = activeStudent._id || activeStudent.id;
+            await chatAPI.clearCourseChat(courseId, studentId);
+            setMessages([]);
+            showToast.success('Chat Cleared', 'Conversation history has been removed.');
+        } catch (error) {
+            console.error('Error clearing chat:', error);
+            showToast.error('Failed to Clear', 'Could not delete chat history.');
+        }
+    };
+
     const formatTime = (date) => {
         return new Date(date).toLocaleTimeString('en-US', {
             hour: '2-digit',
@@ -225,19 +242,19 @@ const TeacherChatTab = ({ course, students, onUnreadCountChange }) => {
     }
 
     return (
-        <div className="flex h-[500px] gap-4">
+        <div className="flex h-[550px] gap-2 sm:gap-4">
             {/* Students List */}
-            <div className="w-72 bg-gray-50 rounded-xl p-3 flex flex-col">
-                {/* Search */}
-                <div className="mb-3">
+            <div className="w-20 sm:w-72 bg-gray-50 rounded-2xl p-2 sm:p-3 flex flex-col transition-all duration-300">
+                {/* Search - Hidden on mobile for space */}
+                <div className="mb-3 hidden sm:block">
                     <div className="relative">
                         <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                         <input
                             type="text"
                             value={searchQuery}
                             onChange={(e) => handleSearch(e.target.value)}
-                            placeholder="Search by email..."
-                            className="w-full pl-10 pr-4 py-2 bg-white rounded-lg text-sm border border-gray-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                            placeholder="Search email..."
+                            className="w-full pl-10 pr-4 py-2 bg-white rounded-xl text-sm border border-gray-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
                         />
                         {isSearching && (
                             <Loader2 className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-emerald-500 animate-spin" />
@@ -245,30 +262,30 @@ const TeacherChatTab = ({ course, students, onUnreadCountChange }) => {
                     </div>
                 </div>
 
-                <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 px-2">
-                    Students ({displayStudents.length})
+                <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 px-2 hidden sm:block">
+                    Enrolled ({displayStudents.length})
                 </h3>
-                <div className="space-y-1 flex-1 overflow-y-auto">
+                <div className="space-y-2 flex-1 overflow-y-auto custom-scrollbar">
                     {displayStudents.map((student) => (
                         <button
                             key={student._id}
                             onClick={() => openChat(student)}
-                            className={`w-full flex items-center gap-3 p-3 rounded-lg transition-all ${activeStudent?._id === student._id
-                                    ? 'bg-emerald-100 text-emerald-700'
+                            className={`w-full flex items-center justify-center sm:justify-start gap-3 p-2 sm:p-3 rounded-xl transition-all ${activeStudent?._id === student._id
+                                    ? 'bg-emerald-100 text-emerald-700 shadow-sm'
                                     : 'hover:bg-gray-100'
                                 }`}
                         >
-                            <div className="relative">
+                            <div className="relative shrink-0">
                                 <ProfileAvatar src={student.photo} name={student.name} size="md" fallbackColor="bg-blue-100" />
                                 {student.unreadCount > 0 && (
-                                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-black rounded-full flex items-center justify-center border-2 border-white shadow-sm">
                                         {student.unreadCount}
                                     </span>
                                 )}
                             </div>
-                            <div className="flex-1 text-left overflow-hidden">
-                                <p className="font-semibold text-sm truncate">{student.name}</p>
-                                <p className="text-xs text-gray-500 truncate flex items-center gap-1">
+                            <div className="flex-1 text-left overflow-hidden hidden sm:block">
+                                <p className="font-bold text-sm truncate">{student.name}</p>
+                                <p className="text-[10px] text-gray-400 truncate flex items-center gap-1 font-medium">
                                     <Mail className="w-3 h-3" />
                                     {student.email}
                                 </p>
@@ -282,8 +299,7 @@ const TeacherChatTab = ({ course, students, onUnreadCountChange }) => {
             <div className="flex-1 bg-gray-50 rounded-xl flex flex-col">
                 {activeStudent ? (
                     <>
-                        {/* Chat Header */}
-                        <div className="p-4 border-b border-gray-200 bg-white rounded-t-xl">
+                        <div className="p-4 border-b border-gray-200 bg-white rounded-t-xl flex items-center justify-between">
                             <div className="flex items-center gap-3">
                                 <ProfileAvatar src={activeStudent.photo} name={activeStudent.name} size="md" fallbackColor="bg-blue-100" />
                                 <div>
@@ -291,6 +307,13 @@ const TeacherChatTab = ({ course, students, onUnreadCountChange }) => {
                                     <p className="text-xs text-gray-500">{activeStudent.email}</p>
                                 </div>
                             </div>
+                            <button
+                                onClick={handleClearChat}
+                                className="p-2.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all active:scale-95 group"
+                                title="Clear Conversation"
+                            >
+                                <Trash2 className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                            </button>
                         </div>
 
                         {/* Messages */}

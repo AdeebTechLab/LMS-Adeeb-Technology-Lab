@@ -28,7 +28,6 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import CourseManagement from './pages/admin/CourseManagement';
 import FeeVerification from './pages/admin/FeeVerification';
 import PaidTasksManagement from './pages/admin/PaidTasksManagement';
-import AdminDailyTasks from './pages/admin/AdminDailyTasks';
 import CertificateManagement from './pages/admin/CertificateManagement';
 import TeachersManagement from './pages/admin/TeachersManagement';
 import StudentsManagement from './pages/admin/StudentsManagement';
@@ -42,6 +41,7 @@ import TeacherDirectory from './pages/admin/TeacherDirectory';
 import TeacherProfile from './pages/teacher/TeacherProfile';
 import AttendanceSheet from './pages/teacher/AttendanceSheet';
 import TeacherCourses from './pages/teacher/TeacherCourses';
+import QuickAttendance from './pages/teacher/QuickAttendance';
 
 // Job Pages (Paid Tasks System)
 import BrowseTasks from './pages/job/BrowseTasks';
@@ -132,7 +132,6 @@ const AppRoutes = () => {
         <Route path="dashboard" element={<AdminDashboard />} />
         <Route path="courses" element={<CourseManagement />} />
         <Route path="paid-tasks" element={<PaidTasksManagement />} />
-        <Route path="daily-tasks" element={<AdminDailyTasks />} />
         <Route path="certificates" element={<CertificateManagement />} />
         <Route path="students" element={<StudentsManagement />} />
         <Route path="teachers" element={<TeachersManagement />} />
@@ -157,6 +156,7 @@ const AppRoutes = () => {
         <Route path="dashboard" element={<TeacherCourses isDashboard={true} />} />
         <Route path="profile" element={<TeacherProfile />} />
         <Route path="attendance" element={<AttendanceSheet />} />
+        <Route path="quick-attendance" element={<QuickAttendance />} />
         <Route path="course/:id" element={<AttendanceSheet />} />
         <Route path="certificates" element={<TeacherCertificates />} />
         <Route path="settings" element={<Settings />} />

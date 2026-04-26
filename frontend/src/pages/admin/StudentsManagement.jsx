@@ -606,29 +606,29 @@ const StudentsManagement = () => {
 
     return (
         <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Students Management</h1>
-                    <p className="text-gray-500">View and manage registered students</p>
+                    <p className="text-gray-500 text-sm">View and manage registered students</p>
                 </div>
-                <div className="flex flex-wrap gap-4 items-center">
+                <div className="flex items-center gap-2 w-full md:w-auto">
                     <button
                         onClick={toggleBioEditing}
-                        className={`p-2.5 border rounded-xl transition-colors flex items-center gap-2 text-sm font-bold shadow-sm ${allowBioEditing
-                            ? 'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100'
-                            : 'bg-red-50 border-red-200 text-red-700 hover:bg-red-100'
+                        className={`flex-1 md:flex-none px-4 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all border flex items-center justify-center gap-2 ${allowBioEditing
+                                ? 'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100'
+                                : 'bg-red-50 border-red-200 text-red-700 hover:bg-red-100'
                             }`}
                         title={allowBioEditing ? "Bio Editing is Enabled for Users" : "Bio Editing is Disabled for Users"}
                     >
-                        {allowBioEditing ? <Edit2 className="w-5 h-5" /> : <Shield className="w-5 h-5" />}
+                        {allowBioEditing ? <Edit2 className="w-4 h-4" /> : <Shield className="w-4 h-4" />}
                         {allowBioEditing ? 'EDITS ON' : 'EDITS OFF'}
                     </button>
-                    <div className="relative">
+                    <div className="relative flex-1 md:flex-none">
                         <button
                             onClick={() => setShowExportOptions(!showExportOptions)}
-                            className="p-2.5 bg-white border border-gray-200 hover:bg-gray-50 rounded-xl transition-colors flex items-center gap-2 text-sm font-bold text-gray-700 shadow-sm"
+                            className="w-full px-4 py-2.5 bg-white border border-gray-200 hover:bg-gray-50 rounded-xl transition-all flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-700 shadow-sm"
                         >
-                            <Download className="w-5 h-5 text-emerald-600" />
+                            <Download className="w-4 h-4 text-emerald-600" />
                             EXPORT DATA
                         </button>
 
@@ -688,18 +688,19 @@ const StudentsManagement = () => {
                 </div>
             </div>
 
-            <div className="bg-white rounded-2xl p-4 border border-gray-100 flex flex-col gap-4">
-                <div className="flex-1 flex items-center bg-gray-50 rounded-xl px-4 py-3">
-                    <Search className="w-5 h-5 text-gray-400 mr-3" />
+            <div className="bg-white rounded-3xl p-4 sm:p-5 border border-gray-100 shadow-sm space-y-4">
+                <div className="relative">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                     <input
                         type="text"
                         placeholder="Search by name, email, roll no, or CNIC..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="bg-transparent border-none outline-none w-full text-gray-700"
+                        className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-transparent focus:border-emerald-500 focus:bg-white rounded-2xl transition-all outline-none text-sm font-medium"
                     />
                 </div>
-                <div className="flex gap-2">
+
+                <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2">
                     {[
                         { id: 'all', label: 'All', count: students.length },
                         {
@@ -747,15 +748,15 @@ const StudentsManagement = () => {
                         <button
                             key={tab.id}
                             onClick={() => setFilterStatus(tab.id)}
-                            className={`px-4 py-2 rounded-xl font-medium text-sm transition-all whitespace-nowrap flex items-center gap-2 ${filterStatus === tab.id
-                                ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-200'
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                            className={`px-3 py-2.5 rounded-xl font-black text-[9px] uppercase tracking-widest transition-all flex items-center justify-between gap-2 border ${filterStatus === tab.id
+                                ? 'bg-emerald-600 text-white border-emerald-600 shadow-lg shadow-emerald-900/10'
+                                : 'bg-gray-50 text-gray-500 border-gray-100 hover:bg-gray-100'
                                 }`}
                         >
-                            {tab.label}
-                            <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${filterStatus === tab.id
+                            <span className="truncate">{tab.label}</span>
+                            <span className={`text-[9px] px-2 py-0.5 rounded-full font-black shrink-0 ${filterStatus === tab.id
                                 ? 'bg-white/20 text-white'
-                                : 'bg-white text-gray-500'
+                                : 'bg-gray-200 text-gray-500'
                                 }`}>
                                 {tab.count}
                             </span>
@@ -783,146 +784,126 @@ const StudentsManagement = () => {
                                 transition={{ delay: index * 0.05 }}
                                 className="bg-white rounded-2xl p-6 border border-gray-100"
                             >
-                                <div className="flex flex-col md:flex-row md:items-center gap-4">
-                                    <div className="flex items-center gap-4 flex-1">
-                                        <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center overflow-hidden">
+                                <div className="flex flex-col lg:flex-row lg:items-center gap-6">
+                                    {/* Student Basic Info */}
+                                    <div className="flex items-center gap-4 min-w-0">
+                                        <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center overflow-hidden shrink-0 shadow-lg shadow-emerald-900/10">
                                             {student.photo ? (
                                                 <img src={student.photo} alt={student.name} className="w-full h-full object-cover" />
                                             ) : (
-                                                <span className="text-white text-xl font-bold">{student.name?.charAt(0)}</span>
+                                                <span className="text-white text-2xl font-black">{student.name?.charAt(0)}</span>
                                             )}
                                         </div>
-                                        <div>
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <h3 className="font-semibold text-gray-900">{student.name}</h3>
+                                        <div className="min-w-0">
+                                            <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                                                <h3 className="text-base font-black text-gray-900 uppercase tracking-tighter truncate">{student.name}</h3>
                                                 {student.rollNo && (
-                                                    <Badge variant="primary">#{student.rollNo}</Badge>
-                                                )}
-                                                {student.isVerified ? (
-                                                    <Badge variant="success">
-                                                        <CheckCircle className="w-3 h-3 mr-1" />
-                                                        Verified
-                                                    </Badge>
-                                                ) : (
-                                                    <Badge variant="warning">
-                                                        <Clock className="w-3 h-3 mr-1" />
-                                                        Pending
-                                                    </Badge>
+                                                    <Badge variant="primary" size="xxs">#{student.rollNo}</Badge>
                                                 )}
                                             </div>
-                                            <p className="text-sm text-gray-500 flex items-center gap-1">
-                                                <Mail className="w-4 h-4" /> {student.email}
+                                            <p className="text-xs font-medium text-gray-500 flex items-center gap-1.5 truncate">
+                                                <Mail className="w-3.5 h-3.5 text-gray-400" /> {student.email}
                                             </p>
                                         </div>
                                     </div>
 
-                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm flex-1">
-                                        <div>
-                                            <p className="text-gray-400">Phone</p>
-                                            <p className="font-medium text-gray-700">{student.phone || 'N/A'}</p>
+                                    {/* Stats Grid */}
+                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-6 flex-1 bg-gray-50/50 p-4 rounded-2xl border border-gray-100">
+                                        <div className="space-y-1">
+                                            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Phone</p>
+                                            <p className="text-xs font-bold text-gray-700">{student.phone || 'N/A'}</p>
                                         </div>
-                                        <div>
-                                            <p className="text-gray-400">CNIC</p>
-                                            <p className="font-medium text-gray-700 font-mono">{student.cnic || 'N/A'}</p>
+                                        <div className="space-y-1">
+                                            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">CNIC</p>
+                                            <p className="text-xs font-bold text-gray-700 font-mono tracking-tighter">{student.cnic || 'N/A'}</p>
                                         </div>
-                                        <div>
-                                            <p className="text-gray-400">Education</p>
-                                            <p className="font-medium text-gray-700">{student.education || 'N/A'}</p>
+                                        <div className="space-y-1">
+                                            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Education</p>
+                                            <p className="text-xs font-bold text-gray-700 truncate">{student.education || 'N/A'}</p>
                                         </div>
-                                        <div>
-                                            <p className="text-gray-400">Location</p>
-                                            <p className="font-medium text-gray-700 capitalize">{student.location || 'N/A'}</p>
+                                        <div className="space-y-1">
+                                            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Location</p>
+                                            <p className="text-xs font-bold text-gray-700 capitalize">{student.location || 'N/A'}</p>
                                         </div>
                                     </div>
 
-                                    <div className="flex gap-2">
-                                        {/* Move to Old / Move to New button — only for non-enrolled students */}
-                                        {(student.totalEnrollments || 0) === 0 && (
+                                    {/* Action Buttons */}
+                                    <div className="flex flex-wrap items-center justify-end gap-2 shrink-0 border-t lg:border-t-0 pt-4 lg:pt-0">
+                                        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2 lg:pb-0">
+                                            {(student.totalEnrollments || 0) === 0 && (
+                                                <button
+                                                    onClick={() => handleMoveToOld(student)}
+                                                    className={`px-3 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all border ${student.registeredOld
+                                                        ? 'bg-purple-50 border-purple-200 text-purple-700'
+                                                        : 'bg-gray-50 border-gray-200 text-gray-500 hover:text-purple-700'
+                                                        }`}
+                                                    title={student.registeredOld ? 'Move to New' : 'Move to Old'}
+                                                >
+                                                    {student.registeredOld ? 'New' : 'Old'}
+                                                </button>
+                                            )}
                                             <button
-                                                onClick={() => handleMoveToOld(student)}
-                                                className={`px-3 py-2 rounded-xl font-bold text-xs flex items-center gap-1 transition-all ${student.registeredOld
-                                                    ? 'bg-purple-100 hover:bg-purple-200 text-purple-700'
-                                                    : 'bg-gray-100 hover:bg-purple-100 text-gray-500 hover:text-purple-700'
-                                                    }`}
-                                                title={student.registeredOld ? 'Move back to Registered New' : 'Move to Registered Old'}
+                                                onClick={async () => {
+                                                    try {
+                                                        const res = await feeAPI.getUserFees(student._id);
+                                                        const fees = res.data.data || [];
+                                                        if (fees.length === 0) { alert('No fee record found. Enrollment required.'); return; }
+                                                        if (fees.length === 1) handleManageInstallments(fees[0]);
+                                                        else { setViewFeeModal({ open: true, userId: student._id, studentName: student.name }); setFeeRecords(fees); }
+                                                    } catch (e) { console.error(e); }
+                                                }}
+                                                className="p-2.5 bg-purple-50 hover:bg-purple-100 text-purple-600 rounded-xl border border-purple-100 transition-all"
+                                                title="Fees"
                                             >
-                                                {student.registeredOld ? '← New' : 'Old →'}
+                                                <Receipt className="w-5 h-5" />
                                             </button>
-                                        )}
-                                        <button
-                                            onClick={async () => {
-                                                try {
-                                                    const res = await feeAPI.getUserFees(student._id);
-                                                    const fees = res.data.data || [];
-                                                    if (fees.length === 0) {
-                                                        alert('No fee record found for this student. They must be enrolled in a course first.');
-                                                        return;
-                                                    }
-                                                    if (fees.length === 1) {
-                                                        handleManageInstallments(fees[0]);
-                                                    } else {
-                                                        setViewFeeModal({ open: true, userId: student._id, studentName: student.name });
-                                                        setFeeRecords(fees);
-                                                    }
-                                                } catch (e) {
-                                                    console.error('Error opening fee plan:', e);
-                                                }
-                                            }}
-                                            className="p-2 bg-purple-50 hover:bg-purple-100 text-purple-600 rounded-xl"
-                                            title="Manage Fee Plan & Receipts"
-                                        >
-                                            <Receipt className="w-5 h-5" />
-                                        </button>
-                                        <button
-                                            onClick={() => downloadStudentPDF(student)}
-                                            className="p-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 rounded-xl"
-                                            title="Download Profile"
-                                        >
-                                            <Download className="w-5 h-5" />
-                                        </button>
-                                        <button
-                                            onClick={() => handleDownloadCompleteReport(student)}
-                                            className="p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl"
-                                            title="Download Complete Report (Academic)"
-                                        >
-                                            <FileText className="w-5 h-5" />
-                                        </button>
-                                        {!student.isVerified ? (
                                             <button
-                                                onClick={() => setConfirmModal({ open: true, action: 'verify', user: student })}
-                                                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-medium flex items-center gap-2"
+                                                onClick={() => downloadStudentPDF(student)}
+                                                className="p-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 rounded-xl border border-emerald-100 transition-all"
+                                                title="PDF"
                                             >
-                                                <UserCheck className="w-4 h-4" />
-                                                Verify
+                                                <Download className="w-5 h-5" />
                                             </button>
-                                        ) : (
                                             <button
-                                                onClick={() => setConfirmModal({ open: true, action: 'unverify', user: student })}
-                                                className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-medium flex items-center gap-2"
+                                                onClick={() => handleDownloadCompleteReport(student)}
+                                                className="p-2.5 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl border border-blue-100 transition-all"
+                                                title="Report"
                                             >
-                                                <UserX className="w-4 h-4" />
-                                                Revoke
+                                                <FileText className="w-5 h-5" />
                                             </button>
-                                        )}
+                                            <button
+                                                onClick={() => handleOpenEnrollModal(student)}
+                                                className="p-2.5 bg-amber-50 hover:bg-amber-100 text-amber-600 rounded-xl border border-amber-100 transition-all"
+                                                title="Enrollments"
+                                            >
+                                                <BookOpen className="w-5 h-5" />
+                                            </button>
+                                            <button
+                                                onClick={() => handleEditClick(student)}
+                                                className="p-2.5 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl border border-blue-100 transition-all"
+                                                title="Edit"
+                                            >
+                                                <Edit2 className="w-5 h-5" />
+                                            </button>
+                                            <button
+                                                onClick={() => setConfirmModal({ open: true, action: 'delete', user: student })}
+                                                className="p-2.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl border border-red-100 transition-all"
+                                            >
+                                                <Trash2 className="w-5 h-5" />
+                                            </button>
+                                        </div>
+
+                                        <div className="h-8 w-px bg-gray-100 hidden lg:block mx-1" />
+
                                         <button
-                                            onClick={() => handleOpenEnrollModal(student)}
-                                            className="p-2 bg-amber-50 hover:bg-amber-100 text-amber-600 rounded-xl"
-                                            title="Manage Course Enrollments (Pause/Resume)"
+                                            onClick={() => setConfirmModal({ open: true, action: student.isVerified ? 'unverify' : 'verify', user: student })}
+                                            className={`px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all shadow-lg ${student.isVerified
+                                                ? 'bg-amber-500 hover:bg-amber-600 text-white shadow-amber-900/10'
+                                                : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-900/10'
+                                                } flex items-center justify-center gap-2 min-w-[120px] active:scale-95`}
                                         >
-                                            <BookOpen className="w-5 h-5" />
-                                        </button>
-                                        <button
-                                            onClick={() => handleEditClick(student)}
-                                            className="p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl"
-                                            title="Edit Bio"
-                                        >
-                                            <Edit2 className="w-5 h-5" />
-                                        </button>
-                                        <button
-                                            onClick={() => setConfirmModal({ open: true, action: 'delete', user: student })}
-                                            className="p-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl"
-                                        >
-                                            <Trash2 className="w-5 h-5" />
+                                            {student.isVerified ? <UserX className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
+                                            {student.isVerified ? 'Revoke' : 'Verify'}
                                         </button>
                                     </div>
                                 </div>

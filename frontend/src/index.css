@@ -57,9 +57,16 @@
 
   /* Status Colors */
   --success: var(--primary);
+  --success-fixed: #10b981;
   --warning: #F59E0B;
   --error: #EF4444;
   --info: #3B82F6;
+
+  /* Fixed Attendance Colors */
+  --attendance-present-bg: #d1fae5;
+  --attendance-present-text: #059669;
+  --attendance-absent-bg: #fee2e2;
+  --attendance-absent-text: #dc2626;
 
   /* Shadows */
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
@@ -643,6 +650,15 @@ body {
   min-height: 100vh;
 }
 
+/* Hide scrollbar utility */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
@@ -729,6 +745,20 @@ body {
 .dark .text-gray-400 {
   color: #475569 !important;
 }
+
+/* ============================================================
+   FIXED STATUS COLORS (Non-Theme Dependent)
+   ============================================================ */
+.bg-present-fixed { background-color: var(--attendance-present-bg) !important; }
+.text-present-fixed { color: var(--attendance-present-text) !important; }
+.bg-absent-fixed { background-color: var(--attendance-absent-bg) !important; }
+.text-absent-fixed { color: var(--attendance-absent-text) !important; }
+
+/* Dark Mode support for fixed attendance */
+.dark .bg-present-fixed { background-color: rgba(16, 185, 129, 0.2) !important; }
+.dark .text-present-fixed { color: #34d399 !important; }
+.dark .bg-absent-fixed { background-color: rgba(239, 68, 68, 0.2) !important; }
+.dark .text-absent-fixed { color: #f87171 !important; }
 
 /* === Borders === */
 .dark .border-gray-100 {

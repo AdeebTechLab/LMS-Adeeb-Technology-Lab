@@ -187,7 +187,6 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 { id: 'directory', label: 'Directory', icon: FolderOpen, path: '/admin/directory' },
                 { id: 'courses', label: 'Courses', icon: BookOpen, path: '/admin/courses' },
                 { id: 'paid-tasks', label: 'Paid Tasks', icon: Briefcase, path: '/admin/paid-tasks' },
-                { id: 'daily-tasks', label: 'Daily Tasks', icon: ClipboardList, path: '/admin/daily-tasks' },
                 { id: 'certificates', label: 'Certificates', icon: Award, path: '/admin/certificates' },
                 { id: 'students', label: 'Students', icon: Users, path: '/admin/students', badge: adminPendingCounts.studentRegisteredNew },
                 { id: 'teachers', label: 'Teachers', icon: GraduationCap, path: '/admin/teachers', badge: adminPendingCounts.teacherRegisteredNew },
@@ -255,14 +254,14 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={() => setIsOpen(false)}
-                        className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+                        className="fixed inset-0 bg-black/50 z-[990] lg:hidden"
                     />
                 )}
             </AnimatePresence>
 
             {/* Sidebar */}
             <aside
-                className={`fixed lg:static top-0 left-0 z-50 h-screen w-[280px] bg-[#222d38] flex flex-col transition-transform duration-300 ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+                className={`fixed lg:relative top-0 left-0 z-[999] h-screen w-[280px] bg-[#222d38] flex flex-col transition-transform duration-300 ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
                     }`}
             >
                 <div

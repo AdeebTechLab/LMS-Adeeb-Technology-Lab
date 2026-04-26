@@ -360,12 +360,12 @@ const PaidTasksManagement = () => {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Paid Tasks</h1>
-                    <p className="text-gray-500">Create and manage freelance tasks</p>
+                    <p className="text-gray-500 text-sm">Create and manage freelance tasks</p>
                 </div>
-                <div className="flex flex-wrap gap-4">
+                <div className="flex items-center gap-3">
                     <button
                         onClick={() => {
                             setEditingTask(null);
@@ -373,10 +373,10 @@ const PaidTasksManagement = () => {
                             setImagePreviews([]);
                             setIsModalOpen(true);
                         }}
-                        className="flex items-center justify-center gap-2 px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl transition-all duration-300 font-medium"
+                        className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl transition-all duration-300 font-bold text-xs uppercase tracking-widest shadow-lg shadow-purple-200"
                     >
                         <Briefcase className="w-5 h-5" />
-                        Create Paid Task
+                        Create Task
                     </button>
                 </div>
             </div>
@@ -390,56 +390,58 @@ const PaidTasksManagement = () => {
             )}
 
             {/* Tabs */}
-            <div className="flex gap-2 bg-gray-100 p-1 rounded-xl w-fit">
-                <button
-                    onClick={() => setActiveTab('all')}
-                    className={`px-5 py-2.5 rounded-lg font-medium transition-all ${activeTab === 'all' ? 'bg-white text-purple-600 shadow-sm' : 'text-gray-600'}`}
-                >
-                    All ({tasks.length})
-                </button>
-                <button
-                    onClick={() => setActiveTab('open')}
-                    className={`px-5 py-2.5 rounded-lg font-medium transition-all ${activeTab === 'open' ? 'bg-white text-purple-600 shadow-sm' : 'text-gray-600'}`}
-                >
-                    Open ({openTasks.length})
-                </button>
-                <button
-                    onClick={() => setActiveTab('assigned')}
-                    className={`px-5 py-2.5 rounded-lg font-medium transition-all ${activeTab === 'assigned' ? 'bg-white text-amber-600 shadow-sm' : 'text-gray-600'}`}
-                >
-                    Assigned ({assignedTasks.length})
-                </button>
-                <button
-                    onClick={() => setActiveTab('completed')}
-                    className={`px-5 py-2.5 rounded-lg font-medium transition-all ${activeTab === 'completed' ? 'bg-white text-emerald-600 shadow-sm' : 'text-gray-600'}`}
-                >
-                    Completed ({completedTasks.length})
-                </button>
-                <button
-                    onClick={() => setActiveTab('expired')}
-                    className={`px-5 py-2.5 rounded-lg font-medium transition-all ${activeTab === 'expired' ? 'bg-white text-red-600 shadow-sm' : 'text-gray-600'}`}
-                >
-                    Expired ({expiredTasks.length})
-                </button>
-                <button
-                    onClick={() => setActiveTab('showcase')}
-                    className={`px-5 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2 ${activeTab === 'showcase' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-600'}`}
-                >
-                    <MessageSquare className="w-4 h-4" />
-                    Work Feedback ({completedShowcase.filter(t => t.feedback && t.feedback.length > 0).length})
-                </button>
+            <div className="overflow-x-auto pb-2 scrollbar-hide">
+                <div className="flex gap-2 bg-gray-100 p-1 rounded-xl w-fit whitespace-nowrap">
+                    <button
+                        onClick={() => setActiveTab('all')}
+                        className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all ${activeTab === 'all' ? 'bg-white text-purple-600 shadow-sm' : 'text-gray-600'}`}
+                    >
+                        All ({tasks.length})
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('open')}
+                        className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all ${activeTab === 'open' ? 'bg-white text-purple-600 shadow-sm' : 'text-gray-600'}`}
+                    >
+                        Open ({openTasks.length})
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('assigned')}
+                        className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all ${activeTab === 'assigned' ? 'bg-white text-amber-600 shadow-sm' : 'text-gray-600'}`}
+                    >
+                        Assigned ({assignedTasks.length})
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('completed')}
+                        className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all ${activeTab === 'completed' ? 'bg-white text-emerald-600 shadow-sm' : 'text-gray-600'}`}
+                    >
+                        Completed ({completedTasks.length})
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('expired')}
+                        className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all ${activeTab === 'expired' ? 'bg-white text-red-600 shadow-sm' : 'text-gray-600'}`}
+                    >
+                        Expired ({expiredTasks.length})
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('showcase')}
+                        className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 ${activeTab === 'showcase' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-600'}`}
+                    >
+                        <MessageSquare className="w-4 h-4" />
+                        Feedback ({completedShowcase.filter(t => t.feedback && t.feedback.length > 0).length})
+                    </button>
+                </div>
             </div>
 
             {/* Search */}
             <div className="bg-white rounded-2xl p-4 border border-gray-100">
-                <div className="flex items-center bg-gray-50 rounded-xl px-4 py-3">
-                    <Search className="w-5 h-5 text-gray-400 mr-3" />
+                <div className="relative">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                     <input
                         type="text"
                         placeholder="Search tasks..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="bg-transparent border-none outline-none w-full text-gray-700"
+                        className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-transparent focus:border-purple-500 focus:bg-white rounded-xl transition-all outline-none text-sm font-medium"
                     />
                 </div>
             </div>
@@ -575,9 +577,12 @@ const PaidTasksManagement = () => {
                                 })()}
                                 <div className="flex flex-wrap items-center justify-end gap-2">
                                     {task.applicants?.length > 0 && (
-                                        <span className="px-2.5 py-1 bg-yellow-400 text-yellow-900 text-xs font-extrabold rounded-lg shadow-sm">
+                                        <button
+                                            onClick={() => handleViewApplicants(task)}
+                                            className="px-2.5 py-1 bg-yellow-400 hover:bg-yellow-500 text-yellow-900 text-xs font-extrabold rounded-lg shadow-sm transition-colors"
+                                        >
                                             {task.applicants.length} Applicant{task.applicants.length !== 1 ? 's' : ''}
-                                        </span>
+                                        </button>
                                     )}
                                     {hasNewApplicants && (
                                         <span className="px-2.5 py-1 bg-red-100 text-red-700 border border-red-200 text-xs font-extrabold rounded-lg shadow-sm animate-pulse flex items-center gap-1">
@@ -919,56 +924,73 @@ const PaidTasksManagement = () => {
             <Modal isOpen={viewMode === 'applicants' && selectedTask} onClose={() => { setViewMode(null); setSelectedTask(null); }} title="Task Applicants" size="lg">
                 {selectedTask && (
                     <div className="space-y-4">
-                        <div className="p-4 bg-gray-50 rounded-xl">
-                            <h3 className="font-semibold text-gray-900">{selectedTask.title}</h3>
-                            <p className="text-sm text-gray-500">Budget: Rs {isNaN(Number(selectedTask.budget)) ? selectedTask.budget : Number(selectedTask.budget).toLocaleString()}</p>
+                        <div className="p-4 bg-gray-50 rounded-2xl">
+                            <h3 className="font-black text-gray-900 uppercase tracking-tight">{selectedTask.title}</h3>
+                            <p className="text-xs font-bold text-purple-600 mt-1">Budget: Rs {isNaN(Number(selectedTask.budget)) ? selectedTask.budget : Number(selectedTask.budget).toLocaleString()}</p>
                         </div>
                         {(!selectedTask.applicants || selectedTask.applicants.length === 0) ? (
-                            <p className="text-center text-gray-500 py-8">No applications yet</p>
+                            <div className="text-center py-12">
+                                <Users className="w-12 h-12 text-gray-200 mx-auto mb-3" />
+                                <p className="text-gray-500 font-medium">No applications yet</p>
+                            </div>
                         ) : (
-                            <div className="space-y-3">
+                            <div className="space-y-4">
                                 {selectedTask.applicants.map((applicant) => {
                                     const isAssigned = isAssignedTo(selectedTask, applicant.user?._id);
                                     return (
-                                        <div key={applicant.user?._id || applicant._id} className={`p-4 rounded-xl border ${isAssigned ? 'bg-amber-50 border-amber-200' : 'bg-gray-50 border-gray-100'}`}>
-                                            <div className="flex items-center justify-between">
+                                        <div key={applicant.user?._id || applicant._id} className={`p-4 rounded-2xl border-2 transition-all ${isAssigned ? 'bg-amber-50 border-amber-200 shadow-sm' : 'bg-white border-gray-100 hover:border-purple-100'}`}>
+                                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                                                 <div className="flex items-center gap-4">
-                                                    <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-semibold text-lg">
-                                                        {applicant.user?.name?.charAt(0) || '?'}
+                                                    <div className="relative">
+                                                        {applicant.user?.photo ? (
+                                                            <img src={applicant.user.photo} alt="" className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm" />
+                                                        ) : (
+                                                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white font-bold text-lg shadow-sm">
+                                                                {applicant.user?.name?.charAt(0) || '?'}
+                                                            </div>
+                                                        )}
+                                                        {isAssigned && (
+                                                            <div className="absolute -top-1 -right-1 w-4 h-4 bg-amber-500 rounded-full border-2 border-white flex items-center justify-center">
+                                                                <CheckCircle className="w-2 h-2 text-white" />
+                                                            </div>
+                                                        )}
                                                     </div>
-                                                    <div>
-                                                        <p className="font-medium text-gray-900">
-                                                            {applicant.user?.name}
-                                                            {isAssigned && <span className="ml-2 text-xs bg-amber-200 text-amber-800 px-2 py-0.5 rounded-full font-bold">ASSIGNED</span>}
-                                                        </p>
-                                                        <p className="text-sm text-gray-500">{applicant.user?.email}</p>
+                                                    <div className="min-w-0">
+                                                        <div className="flex items-center gap-2">
+                                                            <p className="font-black text-gray-900 truncate">{applicant.user?.name}</p>
+                                                            {isAssigned && <span className="px-2 py-0.5 bg-amber-100 text-amber-700 text-[10px] font-black uppercase rounded-lg">Assigned</span>}
+                                                        </div>
+                                                        <p className="text-xs text-gray-500 truncate">{applicant.user?.email}</p>
                                                         {applicant.user?.rating && (
                                                             <div className="flex items-center gap-1 mt-1">
-                                                                <span className="text-amber-500">★</span>
-                                                                <span className="text-xs text-gray-500">{applicant.user.rating} • {applicant.user.completedTasks || 0} tasks</span>
+                                                                <div className="flex text-amber-500 text-[10px]">
+                                                                    {[...Array(5)].map((_, i) => (
+                                                                        <span key={i}>{i < applicant.user.rating ? '★' : '☆'}</span>
+                                                                    ))}
+                                                                </div>
+                                                                <span className="text-[10px] font-bold text-gray-400">({applicant.user.completedTasks || 0} tasks)</span>
                                                             </div>
                                                         )}
                                                     </div>
                                                 </div>
-                                                <div className="flex gap-2">
+                                                <div className="flex items-center gap-2">
                                                     <button
                                                         onClick={() => setViewingProfile(applicant.user)}
-                                                        className="px-3 py-2 text-purple-600 bg-white border border-purple-200 hover:bg-purple-50 text-sm rounded-xl font-medium flex items-center gap-1"
+                                                        className="flex-1 sm:flex-none px-4 py-2 text-purple-600 bg-purple-50 hover:bg-purple-100 text-xs rounded-xl font-black uppercase tracking-widest transition-all"
                                                     >
-                                                        <Eye className="w-4 h-4" />
                                                         Profile
                                                     </button>
                                                     {isAssigned ? (
                                                         <button
                                                             onClick={() => handleUnassignTask(selectedTask._id, applicant.user?._id)}
-                                                            className="px-4 py-2 bg-red-100 hover:bg-red-200 text-red-700 text-sm rounded-xl font-medium"
+                                                            className="flex-1 sm:flex-none px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 text-xs rounded-xl font-black uppercase tracking-widest transition-all"
                                                         >
                                                             Unassign
                                                         </button>
                                                     ) : (
                                                         <button
                                                             onClick={() => handleAssignTask(selectedTask._id, applicant.user?._id)}
-                                                            className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded-xl font-medium"
+                                                            className="flex-1 sm:flex-none px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white text-xs rounded-xl font-black uppercase tracking-widest shadow-lg shadow-purple-200 transition-all"
                                                         >
                                                             Assign
                                                         </button>
@@ -976,9 +998,9 @@ const PaidTasksManagement = () => {
                                                 </div>
                                             </div>
                                             {applicant.message && (
-                                                <div className="mt-3 p-3 bg-white rounded-lg border border-gray-100">
-                                                    <p className="text-xs text-gray-400 mb-1">Application Message:</p>
-                                                    <p className="text-sm text-gray-600">{applicant.message}</p>
+                                                <div className="mt-4 p-4 bg-gray-50 rounded-xl border border-gray-100">
+                                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Application Message</p>
+                                                    <p className="text-sm text-gray-700 leading-relaxed italic">"{applicant.message}"</p>
                                                 </div>
                                             )}
                                         </div>
@@ -994,7 +1016,7 @@ const PaidTasksManagement = () => {
             <Modal isOpen={viewingProfile !== null} onClose={() => setViewingProfile(null)} title="Applicant Profile" size="lg">
                 {viewingProfile && (
                     <div className="space-y-4">
-                        <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl">
+                        <div className="flex flex-col sm:flex-row items-center gap-4 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl">
                             {viewingProfile.photo ? (
                                 <img
                                     src={viewingProfile.photo}
@@ -1002,38 +1024,42 @@ const PaidTasksManagement = () => {
                                     className="w-20 h-20 rounded-full object-cover border-4 border-white shadow-lg"
                                 />
                             ) : (
-                                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center text-white font-bold text-3xl border-4 border-white shadow-lg">
+                                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center text-white font-black text-3xl border-4 border-white shadow-lg">
                                     {viewingProfile.name?.charAt(0)}
                                 </div>
                             )}
-                            <div>
-                                <h3 className="text-xl font-bold text-gray-900">{viewingProfile.name}</h3>
-                                <p className="text-gray-500">{viewingProfile.email}</p>
+                            <div className="text-center sm:text-left">
+                                <h3 className="text-xl font-black text-gray-900 uppercase tracking-tighter leading-none mb-1">{viewingProfile.name}</h3>
+                                <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">{viewingProfile.email}</p>
                                 {(viewingProfile.rating > 0 || viewingProfile.completedTasks > 0) && (
-                                    <div className="flex items-center gap-2 mt-1">
-                                        <span className="text-amber-500 text-lg">★ {viewingProfile.rating || 0}</span>
-                                        <span className="text-sm text-gray-400">({viewingProfile.completedTasks || 0} tasks completed)</span>
+                                    <div className="flex items-center justify-center sm:justify-start gap-2 mt-2">
+                                        <div className="flex text-amber-500 text-sm">
+                                            {[...Array(5)].map((_, i) => (
+                                                <span key={i}>{i < viewingProfile.rating ? '★' : '☆'}</span>
+                                            ))}
+                                        </div>
+                                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">({viewingProfile.completedTasks || 0} tasks)</span>
                                     </div>
                                 )}
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="p-3 bg-gray-50 rounded-xl">
-                                <p className="text-xs text-gray-400 mb-1">Phone</p>
-                                <p className="text-sm font-medium text-gray-900">{viewingProfile.phone || 'Not provided'}</p>
+                        <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                            <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
+                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Phone</p>
+                                <p className="text-sm font-bold text-gray-900">{viewingProfile.phone || 'N/A'}</p>
                             </div>
-                            <div className="p-3 bg-gray-50 rounded-xl">
-                                <p className="text-xs text-gray-400 mb-1">Experience</p>
-                                <p className="text-sm font-medium text-gray-900">{viewingProfile.experience || 'Not specified'}</p>
+                            <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
+                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Exp.</p>
+                                <p className="text-sm font-bold text-gray-900">{viewingProfile.experience || 'N/A'}</p>
                             </div>
-                            <div className="p-3 bg-gray-50 rounded-xl">
-                                <p className="text-xs text-gray-400 mb-1">Education</p>
-                                <p className="text-sm font-medium text-gray-900">{viewingProfile.education || 'Not provided'}</p>
+                            <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
+                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Edu.</p>
+                                <p className="text-sm font-bold text-gray-900 truncate" title={viewingProfile.education}>{viewingProfile.education || 'N/A'}</p>
                             </div>
-                            <div className="p-3 bg-gray-50 rounded-xl">
-                                <p className="text-xs text-gray-400 mb-1">CNIC</p>
-                                <p className="text-sm font-medium text-gray-900">{viewingProfile.cnic || 'Not provided'}</p>
+                            <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
+                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">CNIC</p>
+                                <p className="text-sm font-bold text-gray-900">{viewingProfile.cnic || 'N/A'}</p>
                             </div>
                         </div>
 

@@ -5,6 +5,7 @@ import {
     Briefcase, Loader2, CheckCircle, Clock, Star, FileText, Edit2, Save, Camera, Upload, Plus, Shield, Download
 } from 'lucide-react';
 import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
 import { userAPI, settingsAPI, taskAPI } from '../../services/api';
@@ -297,6 +298,68 @@ const JobsManagement = () => {
     const verifiedCount = jobUsers.filter(u => u.isVerified).length;
     const pendingCount = jobUsers.filter(u => !u.isVerified).length;
 
+    const [showExportOptions, setShowExportOptions] = useState(false);
+
+    const downloadBulkPDF = (type = 'full') => {
+        const doc = new jsPDF();
+        doc.setFontSize(20);
+        doc.setTextColor(147, 51, 234); // Purple for Job/Freelance branding
+        doc.text('Freelancers Report', 14, 20);
+        doc.setFontSize(10);
+        doc.setTextColor(100);
+        doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 28);
+        doc.text(`Filter: ${filterStatus.toUpperCase()} | Total: ${filteredUsers.length}`, 14, 33);
+
+        let headers = [];
+        let data = [];
+
+        switch (type) {
+            case 'phone':
+                headers = [['Name', 'Phone', 'Location', 'City']];
+                data = filteredUsers.map(u => [u.name, u.phone || 'N/A', u.location || 'N/A', u.city || 'N/A']);
+                break;
+            case 'email':
+                headers = [['Name', 'Email', 'Preferred Mode']];
+                data = filteredUsers.map(u => [u.name, u.email, u.preferredMode || 'N/A']);
+                break;
+            case 'expertise':
+                headers = [['Name', 'Skills / Expertise', 'Tasks', 'Rating']];
+                data = filteredUsers.map(u => [
+                    u.name,
+                    u.skills || 'N/A',
+                    u.completedTasks || 0,
+                    u.rating > 0 ? u.rating.toFixed(1) : 'N/A'
+                ]);
+                break;
+            case 'address':
+                headers = [['Name', 'Home City', 'Preferred City', 'Location']];
+                data = filteredUsers.map(u => [u.name, u.city || 'N/A', u.preferredCity || 'N/A', u.location || 'N/A']);
+                break;
+            default: // full
+                headers = [['Name', 'Email', 'Phone', 'Skills', 'Verified']];
+                data = filteredUsers.map(u => [
+                    u.name,
+                    u.email,
+                    u.phone || 'N/A',
+                    u.skills ? (u.skills.length > 30 ? u.skills.substring(0, 30) + '...' : u.skills) : 'N/A',
+                    u.isVerified ? 'YES' : 'NO'
+                ]);
+        }
+
+        autoTable(doc, {
+            head: headers,
+            body: data,
+            startY: 40,
+            theme: 'grid',
+            headStyles: { fillColor: [147, 51, 234], textColor: 255, fontStyle: 'bold' },
+            styles: { fontSize: 8, cellPadding: 3 },
+            alternateRowStyles: { fillColor: [250, 245, 255] }
+        });
+
+        doc.save(`Freelancers_${type}_${new Date().toLocaleDateString()}.pdf`);
+        setShowExportOptions(false);
+    };
+
     if (isLoading) {
         return (
             <div className="flex items-center justify-center h-64">
@@ -309,47 +372,76 @@ const JobsManagement = () => {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Freelancers / Job Applicants</h1>
-                    <p className="text-gray-500">View and manage registered job seekers</p>
+                    <p className="text-gray-500 text-sm">View and manage registered job seekers</p>
                 </div>
-                <div className="flex gap-4">
-                    <div className="px-4 py-2 bg-purple-50 rounded-xl text-center">
-                        <p className="text-2xl font-bold text-purple-600">{verifiedCount}</p>
-                        <p className="text-xs text-gray-500">Verified</p>
-                    </div>
-                    <div className="px-4 py-2 bg-amber-50 rounded-xl text-center">
-                        <p className="text-2xl font-bold text-amber-600">{pendingCount}</p>
-                        <p className="text-xs text-gray-500">Pending</p>
-                    </div>
+                <div className="flex items-center gap-2 w-full md:w-auto">
                     <button
                         onClick={toggleBioEditing}
-                        className={`p-2.5 border rounded-xl transition-colors flex items-center gap-2 text-sm font-bold shadow-sm ${allowBioEditing
-                            ? 'bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100'
-                            : 'bg-red-50 border-red-200 text-red-700 hover:bg-red-100'
+                        className={`flex-1 md:flex-none px-4 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all border flex items-center justify-center gap-2 ${allowBioEditing
+                                ? 'bg-amber-50 border-amber-200 text-amber-700'
+                                : 'bg-gray-50 border-gray-200 text-gray-500'
                             }`}
-                        title={allowBioEditing ? "Bio Editing is Enabled for Users" : "Bio Editing is Disabled for Users"}
                     >
-                        {allowBioEditing ? <Edit2 className="w-5 h-5" /> : <Shield className="w-5 h-5" />}
+                        <Shield className={`w-4 h-4 ${allowBioEditing ? 'animate-pulse' : ''}`} />
                         {allowBioEditing ? 'EDITS ON' : 'EDITS OFF'}
                     </button>
+
+                    <div className="relative flex-1 md:flex-none">
+                        <button
+                            onClick={() => setShowExportOptions(!showExportOptions)}
+                            className="w-full px-4 py-2.5 bg-white border border-purple-100 rounded-xl font-black text-[10px] uppercase tracking-widest text-purple-700 hover:bg-purple-50 transition-all flex items-center justify-center gap-2 shadow-sm"
+                        >
+                            <Download className="w-4 h-4 text-purple-600" />
+                            EXPORT DATA
+                        </button>
+
+                        {showExportOptions && (
+                            <>
+                                <div className="fixed inset-0 z-10" onClick={() => setShowExportOptions(false)}></div>
+                                <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-100 rounded-2xl shadow-2xl z-20 py-2 overflow-hidden animate-in fade-in zoom-in duration-200">
+                                    <div className="px-4 py-2 border-b border-gray-50 mb-1">
+                                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Select Format</p>
+                                    </div>
+                                    {[
+                                        { id: 'full', label: 'Complete Report', icon: FileText },
+                                        { id: 'phone', label: 'Phone Directory', icon: Phone },
+                                        { id: 'email', label: 'Email List', icon: Mail },
+                                        { id: 'expertise', label: 'Expertise', icon: Briefcase },
+                                        { id: 'address', label: 'Address List', icon: MapPin }
+                                    ].map((opt) => (
+                                        <button
+                                            key={opt.id}
+                                            onClick={() => downloadBulkPDF(opt.id)}
+                                            className="w-full px-4 py-2.5 text-left text-[11px] font-bold text-gray-700 hover:bg-purple-50 hover:text-purple-700 flex items-center gap-3 transition-colors"
+                                        >
+                                            <opt.icon className="w-4 h-4" />
+                                            {opt.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            </>
+                        )}
+                    </div>
                 </div>
             </div>
 
             {/* Search & Filter */}
-            <div className="bg-white rounded-2xl p-4 border border-gray-100 flex flex-col gap-4">
-                <div className="flex-1 flex items-center bg-gray-50 rounded-xl px-4 py-3">
-                    <Search className="w-5 h-5 text-gray-400 mr-3" />
+            <div className="bg-white rounded-3xl p-4 sm:p-5 border border-gray-100 shadow-sm space-y-4">
+                <div className="relative">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                     <input
                         type="text"
                         placeholder="Search by name, email, or skills..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="bg-transparent border-none outline-none w-full text-gray-700"
+                        className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-transparent focus:border-purple-500 focus:bg-white rounded-2xl transition-all outline-none text-sm font-medium"
                     />
                 </div>
-                <div className="flex gap-2">
+
+                <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2">
                     {[
                         { id: 'all', label: 'All', count: jobUsers.length },
                         { id: 'verified', label: 'Verified', count: verifiedCount },
@@ -358,15 +450,15 @@ const JobsManagement = () => {
                         <button
                             key={tab.id}
                             onClick={() => setFilterStatus(tab.id)}
-                            className={`px-4 py-2 rounded-xl font-medium capitalize transition-all flex items-center gap-2 ${filterStatus === tab.id
-                                    ? 'bg-purple-600 text-white'
-                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                            className={`px-3 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-between gap-2 border ${filterStatus === tab.id
+                                ? 'bg-purple-600 text-white border-purple-600 shadow-lg shadow-purple-900/10'
+                                : 'bg-gray-50 text-gray-500 border-gray-100 hover:bg-gray-100'
                                 }`}
                         >
-                            {tab.label}
-                            <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${filterStatus === tab.id
-                                    ? 'bg-white/20 text-white'
-                                    : 'bg-white text-gray-500'
+                            <span className="truncate">{tab.label}</span>
+                            <span className={`text-[10px] px-2 py-0.5 rounded-full font-black shrink-0 ${filterStatus === tab.id
+                                ? 'bg-white/20 text-white'
+                                : 'bg-gray-200 text-gray-500'
                                 }`}>
                                 {tab.count}
                             </span>
@@ -391,115 +483,100 @@ const JobsManagement = () => {
                             transition={{ delay: index * 0.05 }}
                             className="bg-white rounded-2xl p-6 border border-gray-100"
                         >
-                            <div className="flex flex-col md:flex-row md:items-center gap-4">
+                            <div className="flex flex-col lg:flex-row lg:items-center gap-6">
                                 {/* Photo & Basic Info */}
-                                <div className="flex items-center gap-4 flex-1">
-                                    <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center overflow-hidden">
+                                <div className="flex items-center gap-4 min-w-0">
+                                    <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center overflow-hidden shrink-0 shadow-lg shadow-purple-900/10">
                                         {user.photo ? (
                                             <img src={user.photo} alt={user.name} className="w-full h-full object-cover" />
                                         ) : (
-                                            <span className="text-white text-xl font-bold">{user.name?.charAt(0)}</span>
+                                            <span className="text-white text-2xl font-black">{user.name?.charAt(0)}</span>
                                         )}
                                     </div>
-                                    <div>
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <h3 className="font-semibold text-gray-900">{user.name}</h3>
-                                            {user.isVerified ? (
-                                                <Badge variant="success">
-                                                    <CheckCircle className="w-3 h-3 mr-1" />
-                                                    Verified
-                                                </Badge>
-                                            ) : (
-                                                <Badge variant="warning">
-                                                    <Clock className="w-3 h-3 mr-1" />
-                                                    Pending
-                                                </Badge>
-                                            )}
-                                        </div>
-                                        <p className="text-sm text-gray-500 flex items-center gap-1">
-                                            <Mail className="w-4 h-4" /> {user.email}
+                                    <div className="min-w-0">
+                                        <h3 className="text-sm font-black text-gray-900 uppercase tracking-tighter truncate mb-1.5">{user.name}</h3>
+                                        <p className="text-xs font-medium text-gray-500 flex items-center gap-1.5 truncate">
+                                            <Mail className="w-3.5 h-3.5 text-gray-400" /> {user.email}
                                         </p>
                                     </div>
                                 </div>
 
-                                {/* Details */}
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm flex-1">
-                                    <div>
-                                        <p className="text-gray-400">Phone</p>
-                                        <p className="font-medium text-gray-700">{user.phone || 'N/A'}</p>
+                                {/* Stats Grid */}
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-6 flex-1 bg-gray-50/50 p-4 rounded-2xl border border-gray-100">
+                                    <div className="space-y-1">
+                                        <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Phone</p>
+                                        <p className="text-xs font-bold text-gray-700">{user.phone || 'N/A'}</p>
                                     </div>
-                                    <div>
-                                        <p className="text-gray-400">Location</p>
-                                        <p className="font-medium text-gray-700 capitalize">{user.location || 'N/A'}</p>
+                                    <div className="space-y-1">
+                                        <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Location</p>
+                                        <p className="text-xs font-bold text-gray-700 capitalize truncate">{user.location || 'N/A'}</p>
                                     </div>
-                                    <div>
-                                        <p className="text-gray-400">Tasks Done</p>
-                                        <p className="font-medium text-gray-700">{user.completedTasks || 0}</p>
+                                    <div className="space-y-1">
+                                        <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Tasks Done</p>
+                                        <p className="text-xs font-bold text-gray-700">{user.completedTasks || 0}</p>
                                     </div>
-                                    <div>
-                                        <p className="text-gray-400">Rating</p>
-                                        <p className="font-medium text-gray-700 flex items-center gap-1">
-                                            <Star className="w-4 h-4 text-amber-400" />
+                                    <div className="space-y-1">
+                                        <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Rating</p>
+                                        <p className="text-xs font-bold text-gray-700 flex items-center gap-1">
+                                            <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
                                             {user.rating > 0 ? user.rating.toFixed(1) : 'N/A'}
                                         </p>
                                     </div>
                                 </div>
 
+                                {/* Skills */}
+                                {user.skills && (
+                                    <div className="flex flex-col sm:flex-row sm:items-center gap-3 bg-purple-50/30 p-3 rounded-xl border border-purple-100/50 flex-1">
+                                        <p className="text-[9px] font-black text-purple-400 uppercase tracking-widest shrink-0">Expertise</p>
+                                        <div className="flex flex-wrap gap-1.5">
+                                            {user.skills.split(',').map((skill, idx) => (
+                                                <span key={idx} className="px-2 py-0.5 bg-white text-purple-700 rounded-md text-[10px] font-bold border border-purple-100 shadow-sm">
+                                                    {skill.trim()}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
                                 {/* Actions */}
-                                <div className="flex gap-2">
-                                    <button
-                                        onClick={() => downloadUserPDF(user)}
-                                        className="p-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 rounded-xl"
-                                        title="Download Profile"
-                                    >
-                                        <Download className="w-5 h-5" />
-                                    </button>
-                                    {!user.isVerified ? (
+                                <div className="flex flex-wrap items-center justify-end gap-2 shrink-0 border-t lg:border-t-0 pt-4 lg:pt-0">
+                                    <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2 lg:pb-0">
                                         <button
-                                            onClick={() => setConfirmModal({ open: true, action: 'verify', user })}
-                                            className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-medium flex items-center gap-2"
+                                            onClick={() => downloadUserPDF(user)}
+                                            className="p-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 rounded-xl border border-emerald-100 transition-all"
+                                            title="Download Profile"
                                         >
-                                            <UserCheck className="w-4 h-4" />
-                                            Verify
+                                            <Download className="w-5 h-5" />
                                         </button>
-                                    ) : (
                                         <button
-                                            onClick={() => setConfirmModal({ open: true, action: 'unverify', user })}
-                                            className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-medium flex items-center gap-2"
+                                            onClick={() => handleEditClick(user)}
+                                            className="p-2.5 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl border border-blue-100 transition-all"
+                                            title="Edit Bio"
                                         >
-                                            <UserX className="w-4 h-4" />
-                                            Revoke
+                                            <Edit2 className="w-5 h-5" />
                                         </button>
-                                    )}
+                                        <button
+                                            onClick={() => setConfirmModal({ open: true, action: 'delete', user })}
+                                            className="p-2.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl border border-red-100 transition-all"
+                                        >
+                                            <Trash2 className="w-5 h-5" />
+                                        </button>
+                                    </div>
+
+                                    <div className="h-8 w-px bg-gray-100 hidden lg:block mx-1" />
+
                                     <button
-                                        onClick={() => handleEditClick(user)}
-                                        className="p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl"
-                                        title="Edit Bio"
+                                        onClick={() => setConfirmModal({ open: true, action: user.isVerified ? 'unverify' : 'verify', user })}
+                                        className={`px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all shadow-lg ${user.isVerified
+                                                ? 'bg-amber-500 hover:bg-amber-600 text-white shadow-amber-900/10'
+                                                : 'bg-purple-600 hover:bg-purple-700 text-white shadow-purple-900/10'
+                                            } flex items-center justify-center gap-2 min-w-[120px] active:scale-95`}
                                     >
-                                        <Edit2 className="w-5 h-5" />
-                                    </button>
-                                    <button
-                                        onClick={() => setConfirmModal({ open: true, action: 'delete', user })}
-                                        className="p-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl"
-                                    >
-                                        <Trash2 className="w-5 h-5" />
+                                        {user.isVerified ? <UserX className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
+                                        {user.isVerified ? 'Revoke' : 'Verify'}
                                     </button>
                                 </div>
                             </div>
-
-                            {/* Skills */}
-                            {user.skills && (
-                                <div className="mt-4 pt-4 border-t border-gray-100">
-                                    <p className="text-sm text-gray-400 mb-2">Skills</p>
-                                    <div className="flex flex-wrap gap-2">
-                                        {user.skills.split(',').map((skill, idx) => (
-                                            <span key={idx} className="px-3 py-1 bg-purple-50 text-purple-700 rounded-full text-sm">
-                                                {skill.trim()}
-                                            </span>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
                         </motion.div>
                     ))}
                 </div>

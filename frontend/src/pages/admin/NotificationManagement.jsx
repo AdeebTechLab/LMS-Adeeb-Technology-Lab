@@ -232,7 +232,7 @@ const NotificationManagement = () => {
                 isOpen={modal.open}
                 onClose={() => setModal({ open: false, mode: 'create', data: null })}
                 title={modal.mode === 'create' ? 'Create Notification' : 'Edit Notification'}
-                size="md"
+                size="xl"
             >
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="grid grid-cols-1 gap-6">
@@ -248,129 +248,214 @@ const NotificationManagement = () => {
                             />
                         </div>
 
-                        <div>
-                            <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Message</label>
-
-                            {/* HTML Enable Checkbox */}
-                            <div className="mb-3 flex items-center gap-2">
-                                <input
-                                    type="checkbox"
-                                    id="isHtml"
-                                    checked={formData.isHtml}
-                                    onChange={(e) => setFormData({ ...formData, isHtml: e.target.checked })}
-                                    className="w-4 h-4 text-emerald-600 rounded focus:ring-2 focus:ring-emerald-500"
-                                />
-                                <label htmlFor="isHtml" className="text-sm font-medium text-gray-700 cursor-pointer">
-                                    Enable HTML Rendering
-                                </label>
-                            </div>
-
-                            {formData.isHtml && (
-                                <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-xl text-sm text-blue-800">
-                                    ℹ️ <strong>HTML + CSS Supported:</strong> You can use inline styles and CSS for rich formatting. Safe tags like p, div, span, h1-h6, img, table, etc. are allowed.
+                        <div className="space-y-0">
+                            <div className="flex items-center justify-between mb-2">
+                                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Message</label>
+                                <div className="flex bg-gray-100 p-0.5 rounded-lg overflow-hidden border border-gray-200">
+                                    <button
+                                        type="button"
+                                        onClick={() => setFormData({ ...formData, isHtmlView: false })}
+                                        className={`px-3 py-1 text-[10px] font-black uppercase tracking-tight rounded-md transition-all ${!formData.isHtmlView ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                                    >
+                                        Visual
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setFormData({ ...formData, isHtmlView: true })}
+                                        className={`px-3 py-1 text-[10px] font-black uppercase tracking-tight rounded-md transition-all ${formData.isHtmlView ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                                    >
+                                        Code
+                                    </button>
                                 </div>
-                            )}
-
-                            <textarea
-                                required
-                                rows={formData.isHtml ? 8 : 6}
-                                value={formData.message}
-                                onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                                className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 outline-none font-mono text-sm"
-                                placeholder={formData.isHtml ? `<div style="background: linear-gradient(to right, #10b981, #3b82f6); padding: 20px; border-radius: 12px; color: white;">\n  <h2 style="margin: 0; font-size: 24px;">Important Update!</h2>\n  <p style="margin-top: 10px;">Your notification with <strong>CSS styling</strong></p>\n</div>` : "Enter notification message"}
-                            />
-                        </div>
-
-                        {/* Lifetime Toggle */}
-                        <div className="border-t border-gray-200 pt-6">
-                            <div className="flex items-center gap-2 mb-4">
-                                <input
-                                    type="checkbox"
-                                    id="showLifetime"
-                                    checked={formData.showLifetime}
-                                    onChange={(e) => {
-                                        const isLifetime = e.target.checked;
-                                        setFormData({
-                                            ...formData,
-                                            showLifetime: isLifetime,
-                                            // Clear dates when enabling lifetime
-                                            startDate: isLifetime ? '' : formData.startDate || new Date().toISOString().slice(0, 16),
-                                            endDate: isLifetime ? '' : formData.endDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16)
-                                        });
-                                    }}
-                                    className="w-4 h-4 text-emerald-600 rounded focus:ring-2 focus:ring-emerald-500"
-                                />
-                                <label htmlFor="showLifetime" className="text-sm font-bold text-gray-700 cursor-pointer">
-                                    🕒 Show Lifetime (Permanent Display)
-                                </label>
                             </div>
-                            {formData.showLifetime && (
-                                <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl text-sm text-blue-800">
-                                    ℹ️ This notification will display permanently until manually dismissed by users.
-                                </div>
-                            )}
-                        </div>
 
-                        {/* Date Fields - Dimmed when lifetime is enabled */}
-                        <div className={`grid grid-cols-2 gap-4 transition-opacity ${formData.showLifetime ? 'opacity-40 pointer-events-none' : ''}`}>
-                            <div>
-                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">
-                                    Start Date {formData.showLifetime && '(Disabled)'}
-                                </label>
-                                <input
-                                    type="datetime-local"
-                                    required={!formData.showLifetime}
-                                    disabled={formData.showLifetime}
-                                    value={formData.startDate}
-                                    onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 outline-none"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">
-                                    End Date {formData.showLifetime && '(Disabled)'}
-                                </label>
-                                <input
-                                    type="datetime-local"
-                                    required={!formData.showLifetime}
-                                    disabled={formData.showLifetime}
-                                    value={formData.endDate}
-                                    onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 outline-none"
-                                />
-                            </div>
-                        </div>
+                            {/* WordPress Style Toolbar */}
+                            {!formData.isHtmlView && (
+                                <div className="mb-0 flex flex-wrap items-center gap-0.5 p-1.5 bg-[#2c3338] border border-gray-700 rounded-t-xl shadow-lg">
+                                    <select
+                                        onChange={(e) => document.execCommand('formatBlock', false, e.target.value)}
+                                        className="h-8 px-2 bg-[#3c434a] border border-gray-600 text-white text-[11px] font-bold rounded outline-none mr-2 cursor-pointer hover:bg-gray-700"
+                                    >
+                                        <option value="p">Paragraph</option>
+                                        <option value="h1">Heading 1</option>
+                                        <option value="h2">Heading 2</option>
+                                        <option value="h3">Heading 3</option>
+                                        <option value="h4">Heading 4</option>
+                                        <option value="pre">Preformatted</option>
+                                    </select>
 
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Type</label>
-                                <select
-                                    value={formData.type}
-                                    onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 outline-none font-bold"
-                                >
-                                    <option value="info">Information</option>
-                                    <option value="success">Success</option>
-                                    <option value="warning">Warning</option>
-                                    <option value="error">Critical/Error</option>
-                                </select>
-                            </div>
-                            <div className="flex items-center pt-6">
-                                <label className="flex items-center gap-3 cursor-pointer group">
-                                    <div className="relative">
-                                        <input
-                                            type="checkbox"
-                                            className="sr-only"
-                                            checked={formData.isActive}
-                                            onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                                        />
-                                        <div className={`block w-12 h-7 rounded-full transition-colors ${formData.isActive ? 'bg-emerald-500' : 'bg-gray-300'}`} />
-                                        <div className={`absolute left-1 top-1 bg-white w-5 h-5 rounded-full transition-transform ${formData.isActive ? 'translate-x-5' : ''}`} />
+                                    <div className="flex items-center gap-0.5">
+                                        {[
+                                            { cmd: 'bold', label: 'B', title: 'Bold', class: 'font-black' },
+                                            { cmd: 'italic', label: 'I', title: 'Italic', class: 'italic font-serif' },
+                                            { cmd: 'underline', label: 'U', title: 'Underline', class: 'underline' },
+                                            { cmd: 'strikeThrough', label: 'abc', title: 'Strikethrough', class: 'line-through' }
+                                        ].map(btn => (
+                                            <button
+                                                key={btn.cmd}
+                                                type="button"
+                                                onClick={() => document.execCommand(btn.cmd, false)}
+                                                className="w-8 h-8 flex items-center justify-center text-gray-300 hover:bg-[#3c434a] hover:text-white rounded transition-colors"
+                                                title={btn.title}
+                                            >
+                                                <span className={`${btn.class} text-sm`}>{btn.label}</span>
+                                            </button>
+                                        ))}
                                     </div>
-                                    <span className="text-sm font-bold text-gray-700">Currently Active</span>
+
+                                    <div className="w-px h-6 bg-gray-600 mx-1.5" />
+
+                                    <div className="flex items-center gap-0.5">
+                                        <button type="button" onClick={() => document.execCommand('insertUnorderedList', false)} className="w-8 h-8 flex items-center justify-center text-gray-300 hover:bg-[#3c434a] rounded" title="Bullet List">
+                                            <span className="text-lg leading-none">•</span>
+                                        </button>
+                                        <button type="button" onClick={() => document.execCommand('insertOrderedList', false)} className="w-8 h-8 flex items-center justify-center text-gray-300 hover:bg-[#3c434a] rounded" title="Numbered List">
+                                            <span className="text-[11px] font-bold">1.</span>
+                                        </button>
+                                        <button type="button" onClick={() => document.execCommand('formatBlock', false, 'blockquote')} className="w-8 h-8 flex items-center justify-center text-gray-300 hover:bg-[#3c434a] rounded" title="Blockquote">
+                                            <span className="text-lg leading-none">“</span>
+                                        </button>
+                                    </div>
+
+                                    <div className="w-px h-6 bg-gray-600 mx-1.5" />
+
+                                    <div className="flex items-center gap-0.5">
+                                        <button type="button" onClick={() => document.execCommand('justifyLeft', false)} className="w-8 h-8 flex items-center justify-center text-gray-300 hover:bg-[#3c434a] rounded" title="Align Left">
+                                            <span className="text-xs">L</span>
+                                        </button>
+                                        <button type="button" onClick={() => document.execCommand('justifyCenter', false)} className="w-8 h-8 flex items-center justify-center text-gray-300 hover:bg-[#3c434a] rounded" title="Align Center">
+                                            <span className="text-xs">C</span>
+                                        </button>
+                                        <button type="button" onClick={() => document.execCommand('justifyRight', false)} className="w-8 h-8 flex items-center justify-center text-gray-300 hover:bg-[#3c434a] rounded" title="Align Right">
+                                            <span className="text-xs">R</span>
+                                        </button>
+                                    </div>
+
+                                    <div className="w-px h-6 bg-gray-600 mx-1.5" />
+
+                                    <div className="flex items-center gap-0.5">
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                const url = prompt('Enter link URL:');
+                                                if (url) document.execCommand('createLink', false, url);
+                                            }}
+                                            className="w-8 h-8 flex items-center justify-center text-gray-300 hover:bg-[#3c434a] rounded"
+                                            title="Insert Link"
+                                        >
+                                            <span className="text-[10px] font-black text-blue-400">URL</span>
+                                        </button>
+                                        <button type="button" onClick={() => document.execCommand('unlink', false)} className="w-8 h-8 flex items-center justify-center text-gray-300 hover:bg-[#3c434a] rounded" title="Remove Link">
+                                            <span className="text-[10px] font-black text-rose-400">X</span>
+                                        </button>
+                                    </div>
+
+                                    <div className="w-px h-6 bg-gray-600 mx-1.5 ml-auto" />
+
+                                    <button
+                                        type="button"
+                                        onClick={() => document.execCommand('removeFormat', false)}
+                                        className="px-2 h-8 flex items-center justify-center text-rose-400 hover:bg-[#3c434a] rounded text-[10px] font-black"
+                                        title="Clear Formatting"
+                                    >
+                                        CLEAR
+                                    </button>
+                                </div>
+                            )}
+
+                            {/* Editor Container */}
+                            <div className={`relative border border-gray-200 ${!formData.isHtmlView ? 'rounded-b-xl border-t-0' : 'rounded-xl'}`}>
+                                {formData.isHtmlView ? (
+                                    <textarea
+                                        value={formData.message}
+                                        onChange={(e) => setFormData({ ...formData, message: e.target.value, isHtml: true })}
+                                        className="w-full min-h-[300px] p-4 bg-[#1e1e1e] text-[#d4d4d4] font-mono text-sm leading-relaxed outline-none rounded-xl"
+                                        placeholder="Enter HTML source code here..."
+                                    />
+                                ) : (
+                                    <div
+                                        contentEditable
+                                        onInput={(e) => setFormData({ ...formData, message: e.currentTarget.innerHTML, isHtml: true })}
+                                        onBlur={(e) => setFormData({ ...formData, message: e.currentTarget.innerHTML, isHtml: true })}
+                                        className="w-full min-h-[300px] p-6 bg-white outline-none text-sm leading-relaxed overflow-y-auto rounded-b-xl prose prose-sm max-w-none"
+                                        dangerouslySetInnerHTML={{ __html: formData.message }}
+                                    ></div>
+                                )}
+                            </div>
+                            <p className="mt-2 text-[10px] font-medium text-gray-400 italic flex items-center gap-2">
+                                <Info className="w-3 h-3" />
+                                * Tip: Use 'Visual' tab for easy formatting and 'Code' tab for advanced HTML/CSS styling.
+                            </p>
+                        </div>
+
+                        {/* Scheduling Section */}
+                        <div className="bg-gray-50/50 p-6 rounded-2xl border border-gray-100 space-y-6">
+                            <div className="flex items-center justify-between">
+                                <div className="space-y-1">
+                                    <div className="flex items-center gap-2">
+                                        <Clock className={`w-4 h-4 ${formData.showLifetime ? 'text-blue-600' : 'text-gray-400'}`} />
+                                        <span className="text-sm font-black text-gray-900">Show Lifetime</span>
+                                    </div>
+                                    <p className="text-[10px] font-medium text-gray-500">Permanent display until manually dismissed</p>
+                                </div>
+                                <label className="relative inline-flex items-center cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        className="sr-only peer"
+                                        checked={formData.showLifetime}
+                                        onChange={(e) => {
+                                            const isLifetime = e.target.checked;
+                                            setFormData({
+                                                ...formData,
+                                                showLifetime: isLifetime,
+                                                startDate: isLifetime ? '' : formData.startDate || new Date().toISOString().slice(0, 16),
+                                                endDate: isLifetime ? '' : formData.endDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16)
+                                            });
+                                        }}
+                                    />
+                                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                                 </label>
                             </div>
+
+                            {!formData.showLifetime && (
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                                    <div className="space-y-2">
+                                        <label className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">
+                                            <Calendar className="w-3 h-3" /> Start Display
+                                        </label>
+                                        <input
+                                            type="datetime-local"
+                                            required
+                                            value={formData.startDate}
+                                            onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                                            className="w-full p-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 outline-none text-sm font-bold text-gray-700 shadow-sm"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">
+                                            <Calendar className="w-3 h-3 text-rose-400" /> End Display
+                                        </label>
+                                        <input
+                                            type="datetime-local"
+                                            required
+                                            value={formData.endDate}
+                                            onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                                            className="w-full p-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-rose-500/20 outline-none text-sm font-bold text-gray-700 shadow-sm"
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
+                            {formData.showLifetime && (
+                                <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-xl border border-blue-100/50">
+                                    <Info className="w-4 h-4 text-blue-600 shrink-0" />
+                                    <p className="text-[11px] font-bold text-blue-800 leading-tight">
+                                        This notification will stay visible on the dashboard until users click dismiss.
+                                    </p>
+                                </div>
+                            )}
                         </div>
+
 
                         {/* Target Audience Selector */}
                         <div>

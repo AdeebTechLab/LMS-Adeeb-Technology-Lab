@@ -252,7 +252,8 @@ export const chatAPI = {
         const params = courseId ? `?email=${email}&courseId=${courseId}` : `?email=${email}`;
         return api.get(`/chat/search${params}`);
     },
-    markCourseAsRead: (courseId, senderId) => api.put(`/chat/course/${courseId}/read/${senderId}`)
+    markCourseAsRead: (courseId, senderId) => api.put(`/chat/course/${courseId}/read/${senderId}`),
+    clearCourseChat: (courseId, userId) => api.post(`/chat/course/${courseId}/clear/${userId}`)
 };
 
 // Stats APIs

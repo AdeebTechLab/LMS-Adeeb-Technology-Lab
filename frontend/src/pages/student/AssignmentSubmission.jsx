@@ -605,42 +605,49 @@ const AssignmentSubmission = () => {
                 /* SELECTED COURSE VIEW - Teacher Portal Style */
                 <div className="space-y-6">
                     {/* Course Header - Teacher Portal Style */}
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <div>
+                    <div className="flex flex-col gap-4">
+                        <div className="flex items-center justify-between gap-4">
                             <button
                                 onClick={() => setSelectedCourseId('')}
-                                className="flex items-center gap-2 text-[#ff8e01] hover:text-[#e67e00] mb-2 font-bold text-sm tracking-wide"
+                                className="flex items-center gap-2 text-[#ff8e01] hover:text-[#e67e00] font-bold text-xs sm:text-sm tracking-wide"
                             >
                                 <ChevronLeft className="w-4 h-4" />
-                                BACK TO ALL COURSES
+                                <span className="hidden xs:inline">BACK TO ALL COURSES</span>
+                                <span className="xs:hidden">BACK</span>
                             </button>
-                            <h1 className="text-3xl font-black text-gray-900 uppercase tracking-tight">{myCourses.find(c => c._id === selectedCourseId)?.title || 'Course Dashboard'}</h1>
+                            
+                            {/* Course Book Button - Moved up for mobile */}
+                            {myCourses.find(c => c._id === selectedCourseId)?.bookLink && (
+                                <a
+                                    href={myCourses.find(c => c._id === selectedCourseId).bookLink}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-2 px-3 sm:px-6 py-2 sm:py-3 bg-[#FF832D] text-white rounded-xl shadow-[0_10px_30px_rgba(255,131,45,0.3)] hover:bg-[#e87526] hover:shadow-[0_12px_34px_rgba(255,131,45,0.4)] transition-all font-bold text-[10px] sm:text-sm uppercase tracking-wide active:scale-95 shrink-0"
+                                >
+                                    <BookOpen className="w-4 h-4 sm:w-5 sm:h-5" />
+                                    Course Book
+                                </a>
+                            )}
+                        </div>
+
+                        <div>
+                            <h1 className="text-2xl sm:text-3xl font-black text-gray-900 uppercase tracking-tight leading-tight">
+                                {myCourses.find(c => c._id === selectedCourseId)?.title || 'Course Dashboard'}
+                            </h1>
                             <div className="flex items-center gap-3 mt-1">
-                                <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${user?.role === 'intern'
+                                <span className={`px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-wider ${user?.role === 'intern'
                                     ? 'bg-purple-600 text-white'
                                     : 'bg-[#ff8e01] text-white'
                                     }`}>
                                     {user?.role === 'intern' ? 'Interns Portal' : 'Students Portal'}
                                 </span>
                                 {selectedEnrollment && selectedEnrollment.status === 'completed' && (
-                                    <span className="text-emerald-500 text-sm font-semibold italic flex items-center gap-1">
+                                    <span className="text-emerald-500 text-xs sm:text-sm font-semibold italic flex items-center gap-1">
                                         <CheckCircle className="w-4 h-4" /> Course Completed
                                     </span>
                                 )}
                             </div>
                         </div>
-                        {/* Course Book Button */}
-                        {myCourses.find(c => c._id === selectedCourseId)?.bookLink && (
-                            <a
-                                href={myCourses.find(c => c._id === selectedCourseId).bookLink}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-2.5 px-6 py-3 bg-[#FF832D] text-white rounded-xl shadow-[0_10px_30px_rgba(255,131,45,0.45)] hover:bg-[#e87526] hover:shadow-[0_12px_34px_rgba(255,131,45,0.55)] transition-all font-bold text-sm uppercase tracking-wide active:scale-95 shrink-0"
-                            >
-                                <BookOpen className="w-5 h-5" />
-                                Course Book
-                            </a>
-                        )}
                     </div>
 
                     {/* Fee Overdue Warning */}
@@ -673,11 +680,11 @@ const AssignmentSubmission = () => {
                         );
                     })()}
 
-                    {/* Tab Navigation - Teacher Portal Style */}
-                    <div className="flex gap-2 bg-gray-100/80 p-1.5 rounded-2xl w-fit border border-[#ff8e01]">
+                    {/* Tab Navigation - Responsive Horizontal Scroll */}
+                    <div className="flex gap-2 bg-gray-100/80 p-1.5 rounded-2xl w-full overflow-x-auto no-scrollbar border border-[#ff8e01] scroll-smooth">
                         <button
                             onClick={() => setActiveTab('daily_tasks')}
-                            className={`px-8 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 ${activeTab === 'daily_tasks'
+                            className={`px-6 sm:px-8 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 whitespace-nowrap shrink-0 ${activeTab === 'daily_tasks'
                                 ? 'bg-white text-[#ff8e01] shadow-sm border border-[#ff8e01]'
                                 : 'text-gray-500 hover:bg-gray-200 hover:text-gray-900'
                                 }`}
@@ -687,7 +694,7 @@ const AssignmentSubmission = () => {
                         </button>
                         <button
                             onClick={() => setActiveTab('assignments')}
-                            className={`px-8 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 ${activeTab === 'assignments'
+                            className={`px-6 sm:px-8 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 whitespace-nowrap shrink-0 ${activeTab === 'assignments'
                                 ? 'bg-white text-[#ff8e01] shadow-sm border border-[#ff8e01]'
                                 : 'text-gray-500 hover:bg-gray-200 hover:text-gray-900'
                                 }`}
@@ -698,7 +705,7 @@ const AssignmentSubmission = () => {
 
                         <button
                             onClick={() => setActiveTab('attendance')}
-                            className={`px-8 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 ${activeTab === 'attendance'
+                            className={`px-6 sm:px-8 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 whitespace-nowrap shrink-0 ${activeTab === 'attendance'
                                 ? 'bg-white text-[#ff8e01] shadow-sm border border-[#ff8e01]'
                                 : 'text-gray-500 hover:bg-gray-200 hover:text-gray-900'
                                 }`}
@@ -709,7 +716,7 @@ const AssignmentSubmission = () => {
 
                         <button
                             onClick={() => setActiveTab('chat')}
-                            className={`px-8 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 relative ${activeTab === 'chat'
+                            className={`px-6 sm:px-8 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 relative whitespace-nowrap shrink-0 ${activeTab === 'chat'
                                 ? 'bg-white text-[#ff8e01] shadow-sm border border-[#ff8e01]'
                                 : 'text-gray-500 hover:bg-gray-200 hover:text-gray-900'
                                 }`}

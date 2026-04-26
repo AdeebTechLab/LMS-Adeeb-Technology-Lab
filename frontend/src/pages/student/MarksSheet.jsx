@@ -197,20 +197,20 @@ const MarksSheet = () => {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 sm:gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Academic Marks Sheet</h1>
-                    <p className="text-gray-500">Select a course to view detailed grading and feedback</p>
+                    <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Academic Marks Sheet</h1>
+                    <p className="text-sm text-gray-500">Select a course to view detailed grading and feedback</p>
                 </div>
             </div>
 
             {/* Grade Scale Legend */}
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm px-5 py-4">
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm px-4 sm:px-5 py-4">
                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Grade Scale (out of 100)</p>
                 <div className="flex flex-wrap gap-2">
                     {GRADE_SCALE.map(({ grade, range, color }) => (
-                        <div key={grade} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-black ${color}`}>
-                            <span className="text-sm">{grade}</span>
+                        <div key={grade} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-[10px] sm:text-xs font-black whitespace-nowrap ${color}`}>
+                            <span className="text-xs sm:text-sm">{grade}</span>
                             <span className="opacity-60 font-medium">→ {range}</span>
                         </div>
                     ))}
@@ -218,57 +218,69 @@ const MarksSheet = () => {
             </div>
 
             {/* Overall Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-gradient-to-br from-[#0f2847] to-[#0545a7] rounded-2xl p-6 text-white shadow-lg">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
+                <motion.div 
+                    initial={{ opacity: 0, y: 20 }} 
+                    animate={{ opacity: 1, y: 0 }} 
+                    className="col-span-2 md:col-span-1 bg-gradient-to-br from-[#0f2847] to-[#0545a7] rounded-2xl p-6 text-white shadow-lg"
+                >
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-white/70 text-sm mb-1 uppercase font-black tracking-widest">Global average</p>
-                            <p className="text-4xl font-black">{overallAverage}%</p>
-                            <p className={`text-lg font-black mt-1 text-white/80`}>Grade: {totalAssignmentsCount > 0 ? overallGrade.grade : 'N/A'}</p>
+                            <p className="text-white/70 text-[10px] sm:text-sm mb-1 uppercase font-black tracking-widest">
+                                {selectedCourse ? 'Selected Course Average' : 'Global average'}
+                            </p>
+                            <p className="text-3xl sm:text-4xl font-black">
+                                {selectedCourse ? calculateSimpleAverage(selectedCourse.grades.filter(g => g.type === 'Assignment')) : overallAverage}%
+                            </p>
+                            <p className={`text-base sm:text-lg font-black mt-1 text-white/80`}>
+                                Grade: {selectedCourse 
+                                    ? getGrade(parseFloat(calculateSimpleAverage(selectedCourse.grades.filter(g => g.type === 'Assignment')))).grade 
+                                    : (totalAssignmentsCount > 0 ? overallGrade.grade : 'N/A')}
+                            </p>
                         </div>
-                        <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center">
-                            <Award className="w-8 h-8 text-white" />
+                        <div className="w-12 h-12 sm:w-16 sm:h-16 bg-white/10 rounded-2xl flex items-center justify-center">
+                            <Award className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
                         </div>
                     </div>
                 </motion.div>
 
-                <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex items-center justify-between">
+                <div className="bg-white rounded-2xl p-4 sm:p-6 border border-gray-100 shadow-sm flex items-center justify-between">
                     <div>
-                        <p className="text-gray-400 text-[10px] font-black uppercase tracking-widest mb-1">Enrolled Courses</p>
-                        <p className="text-3xl font-black text-gray-900">{enrollments.length}</p>
+                        <p className="text-gray-400 text-[8px] sm:text-[10px] font-black uppercase tracking-widest mb-1">Enrolled Courses</p>
+                        <p className="text-2xl sm:text-3xl font-black text-gray-900">{enrollments.length}</p>
                     </div>
-                    <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center">
-                        <BookOpen className="w-6 h-6 text-blue-600" />
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-50 rounded-xl flex items-center justify-center shrink-0 ml-2">
+                        <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
                     </div>
                 </div>
 
-                <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex items-center justify-between">
+                <div className="bg-white rounded-2xl p-4 sm:p-6 border border-gray-100 shadow-sm flex items-center justify-between">
                     <div>
-                        <p className="text-gray-400 text-[10px] font-black uppercase tracking-widest mb-1">Graded Assignments</p>
-                        <p className="text-3xl font-black text-gray-900">{totalAssignmentsCount}</p>
+                        <p className="text-gray-400 text-[8px] sm:text-[10px] font-black uppercase tracking-widest mb-1">Graded Assignments</p>
+                        <p className="text-2xl sm:text-3xl font-black text-gray-900">{totalAssignmentsCount}</p>
                     </div>
-                    <div className="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center">
-                        <FileText className="w-6 h-6 text-emerald-600" />
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-emerald-50 rounded-xl flex items-center justify-center shrink-0 ml-2">
+                        <FileText className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600" />
                     </div>
                 </div>
             </div>
 
             {/* Course Selector Step - High Visibility */}
-            <div className="bg-[#f8fafc] p-8 rounded-3xl border-2 border-emerald-500/20 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl shadow-emerald-900/5">
-                <div className="flex items-center gap-4">
-                    <div className="p-4 bg-emerald-600 rounded-2xl shadow-lg shadow-emerald-200">
-                        <GraduationCap className="w-8 h-8 text-white" />
+            <div className="bg-[#f8fafc] p-4 sm:p-8 rounded-3xl border-2 border-emerald-500/20 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl shadow-emerald-900/5">
+                <div className="flex items-center gap-4 w-full md:w-auto">
+                    <div className="p-3 sm:p-4 bg-emerald-600 rounded-2xl shadow-lg shadow-emerald-200 shrink-0">
+                        <GraduationCap className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
                     </div>
                     <div>
-                        <h3 className="font-black text-gray-900 uppercase tracking-tighter leading-none mb-1 text-lg">Step 1: Select Course</h3>
-                        <p className="text-sm text-gray-500 font-medium italic">Reveal your detailed performance by choosing a course</p>
+                        <h3 className="font-black text-gray-900 uppercase tracking-tighter leading-none mb-1 text-base sm:text-lg">Step 1: Select Course</h3>
+                        <p className="text-xs sm:text-sm text-gray-500 font-medium italic">Reveal your detailed performance</p>
                     </div>
                 </div>
                 <div className="relative w-full md:w-96">
                     <select
                         value={selectedCourseId}
                         onChange={(e) => setSelectedCourseId(e.target.value)}
-                        className={`w-full px-6 py-4 bg-white border-2 rounded-2xl outline-none transition-all font-black text-lg uppercase tracking-tight appearance-none cursor-pointer ${!selectedCourseId ? 'border-amber-400 text-amber-600 animate-pulse ring-4 ring-amber-400/10' : 'border-emerald-500 text-emerald-600'
+                        className={`w-full px-4 sm:px-6 py-3 sm:py-4 bg-white border-2 rounded-2xl outline-none transition-all font-black text-sm sm:text-lg uppercase tracking-tight appearance-none cursor-pointer ${!selectedCourseId ? 'border-amber-400 text-amber-600 animate-pulse ring-4 ring-amber-400/10' : 'border-emerald-500 text-emerald-600'
                             }`}
                     >
                         <option value="">-- Choose Course Here --</option>
@@ -276,8 +288,8 @@ const MarksSheet = () => {
                             <option key={c.courseId} value={c.courseId}>{c.name}</option>
                         ))}
                     </select>
-                    <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none">
-                        <div className={`w-3 h-3 border-r-2 border-b-2 rotate-45 ${!selectedCourseId ? 'border-amber-400' : 'border-emerald-600'}`}></div>
+                    <div className="absolute right-4 sm:right-6 top-1/2 -translate-y-1/2 pointer-events-none">
+                        <div className={`w-2 h-2 sm:w-3 sm:h-3 border-r-2 border-b-2 rotate-45 ${!selectedCourseId ? 'border-amber-400' : 'border-emerald-600'}`}></div>
                     </div>
                 </div>
             </div>
@@ -298,20 +310,20 @@ const MarksSheet = () => {
 
                         return (
                             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-2xl shadow-gray-200/50">
-                                <div className="p-8 bg-gradient-to-r from-gray-50 to-white border-b border-gray-100 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                                <div className="p-4 sm:p-8 bg-gradient-to-r from-gray-50 to-white border-b border-gray-100 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                                     <div>
-                                        <h3 className="font-black text-3xl text-gray-900 uppercase tracking-tighter mb-2">{selectedCourse.name}</h3>
-                                        <div className="flex items-center gap-4">
-                                            <p className="text-xs text-gray-400 font-black uppercase tracking-[0.2em]">Instructor: <span className="text-gray-900">{selectedCourse.teacher}</span></p>
+                                        <h3 className="font-black text-xl sm:text-3xl text-gray-900 uppercase tracking-tighter mb-2 leading-tight">{selectedCourse.name}</h3>
+                                        <div className="flex flex-wrap items-center gap-3 sm:gap-4">
+                                            <p className="text-[10px] sm:text-xs text-gray-400 font-black uppercase tracking-[0.2em]">Instructor: <span className="text-gray-900">{selectedCourse.teacher}</span></p>
                                             <Badge variant={selectedCourse.status === 'completed' ? 'success' : 'info'}>{selectedCourse.status.toUpperCase()}</Badge>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-6 bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
+                                    <div className="flex items-center gap-4 sm:gap-6 bg-white p-3 sm:p-4 rounded-2xl border border-gray-100 shadow-sm w-fit">
                                         <div className="text-right">
                                             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Course Avg</p>
-                                            <p className="text-4xl font-black text-gray-900">{average}%</p>
+                                            <p className="text-2xl sm:text-4xl font-black text-gray-900">{average}%</p>
                                         </div>
-                                        <div className={`w-16 h-16 rounded-2xl flex items-center justify-center font-black text-3xl border-2 ${gradeInfo.color.replace('text', 'border').replace('600', '200')} ${gradeInfo.color} bg-gray-50`}>
+                                        <div className={`w-12 h-12 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center font-black text-xl sm:text-3xl border-2 ${gradeInfo.color.replace('text', 'border').replace('600', '200')} ${gradeInfo.color} bg-gray-50`}>
                                             {gradeInfo.grade}
                                         </div>
                                     </div>
@@ -328,8 +340,8 @@ const MarksSheet = () => {
                                             {average > 0 && <span className="text-[10px] font-black text-blue-600 bg-blue-50 px-3 py-1.5 rounded-xl border border-blue-100 uppercase">Assignment Avg: {average}%</span>}
                                         </div>
                                         {assignmentGrades.length > 0 ? (
-                                            <div className="overflow-hidden rounded-2xl border border-gray-100">
-                                                <table className="w-full text-left">
+                                            <div className="overflow-x-auto no-scrollbar rounded-2xl border border-gray-100">
+                                                <table className="w-full text-left min-w-[500px]">
                                                     <thead>
                                                         <tr className="bg-gray-50/50 border-b border-gray-100">
                                                             <th className="py-4 px-6 text-[10px] font-black text-gray-400 uppercase tracking-widest">#</th>
@@ -369,8 +381,8 @@ const MarksSheet = () => {
                                             {dailyAvgMarks && <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-100 uppercase">Work Log Avg Score: {dailyAvgMarks}/100</span>}
                                         </div>
                                         {dailyTaskGrades.length > 0 ? (
-                                            <div className="overflow-hidden rounded-2xl border border-gray-100">
-                                                <table className="w-full text-left">
+                                            <div className="overflow-x-auto no-scrollbar rounded-2xl border border-gray-100">
+                                                <table className="w-full text-left min-w-[400px]">
                                                     <thead>
                                                         <tr className="bg-gray-50/50 border-b border-gray-100">
                                                             <th className="py-4 px-6 text-[10px] font-black text-gray-400 uppercase tracking-widest">#</th>

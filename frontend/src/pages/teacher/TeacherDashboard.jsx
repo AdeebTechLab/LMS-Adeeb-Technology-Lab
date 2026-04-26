@@ -233,30 +233,30 @@ const TeacherDashboard = () => {
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                         <div>
                             <h2 className="text-2xl font-bold mb-2">Welcome back, {user?.name || 'Teacher'}!</h2>
-                            <p className="text-white/70">
-                                You have {myCourses.length} courses with {totalStudents} students enrolled.
-                            </p>
+                                <p className="text-white/70">
+                                    You have {myCourses.length} courses with {totalStudents} students enrolled.
+                                </p>
+                            </div>
+                            <div className="flex gap-2 sm:gap-3 flex-wrap">
+                                <button
+                                    onClick={() => setShowLiveClassModal(true)}
+                                    className="px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl font-medium transition-all duration-300 flex items-center gap-2"
+                                >
+                                    <Video className="w-4 h-4" />
+                                    Start Live Class
+                                </button>
+                                <button
+                                    onClick={() => navigate('/teacher/attendance')}
+                                    className="px-5 py-2.5 bg-white hover:bg-white/90 text-[#0f2847] rounded-xl font-medium transition-all duration-300"
+                                >
+                                    Mark Attendance
+                                </button>
+                            </div>
                         </div>
-                        <div className="flex gap-3">
-                            <button
-                                onClick={() => setShowLiveClassModal(true)}
-                                className="px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl font-medium transition-all duration-300 flex items-center gap-2"
-                            >
-                                <Video className="w-4 h-4" />
-                                Start Live Class
-                            </button>
-                            <button
-                                onClick={() => navigate('/teacher/attendance')}
-                                className="px-5 py-2.5 bg-white hover:bg-white/90 text-[#0f2847] rounded-xl font-medium transition-all duration-300"
-                            >
-                                Mark Attendance
-                            </button>
-                        </div>
-                    </div>
                 </motion.div>
 
                 {/* Stats Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                     {stats.map((stat, index) => (
                         <motion.div
                             key={stat.title}
@@ -292,7 +292,7 @@ const TeacherDashboard = () => {
                                 <p className="text-sm text-gray-400 mt-1">Contact admin to get courses assigned to you</p>
                             </div>
                         ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 overflow-visible pt-2 pr-2">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 overflow-visible pt-2 pr-2">
                                 {myCourses.map((course, index) => (
                                     <motion.div
                                         key={course.id}

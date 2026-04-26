@@ -295,47 +295,48 @@ const AdminDashboard = () => {
                 </div>
             </div>
 
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8">
                 <div>
                     <h1 className="text-2xl font-black text-gray-900 uppercase tracking-tighter">Dashboard Analytics</h1>
                     <p className="text-gray-500 text-xs font-bold uppercase tracking-widest">Real-time system overview</p>
                 </div>
-                <div className="flex gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-4 lg:flex gap-3 sm:gap-4 no-pdf">
                     <button
                         onClick={() => navigate('/admin/directory')}
-                        className="flex items-center gap-3 bg-white text-gray-700 px-6 py-3 rounded-2xl font-black uppercase tracking-widest text-xs border border-gray-200 shadow-sm hover:border-[#ff8e01] hover:text-[#ff8e01] transition-all active:scale-95 no-pdf"
+                        className="flex items-center justify-center gap-2 bg-white text-gray-700 px-3 py-2.5 sm:px-6 sm:py-3 rounded-xl sm:rounded-2xl font-black uppercase tracking-widest text-[10px] sm:text-xs border border-gray-200 shadow-sm hover:border-[#ff8e01] hover:text-[#ff8e01] transition-all active:scale-95"
                     >
-                        <BookOpen className="w-4 h-4" />
+                        <BookOpen className="w-4 h-4 hidden sm:block" />
                         Unified Directory
                     </button>
                     <button
                         onClick={() => navigate('/admin/teacher-directory')}
-                        className="flex items-center gap-3 bg-white text-gray-700 px-6 py-3 rounded-2xl font-black uppercase tracking-widest text-xs border border-gray-200 shadow-sm hover:border-[#ff8e01] hover:text-[#ff8e01] transition-all active:scale-95 no-pdf"
+                        className="flex items-center justify-center gap-2 bg-white text-gray-700 px-3 py-2.5 sm:px-6 sm:py-3 rounded-xl sm:rounded-2xl font-black uppercase tracking-widest text-[10px] sm:text-xs border border-gray-200 shadow-sm hover:border-[#ff8e01] hover:text-[#ff8e01] transition-all active:scale-95"
                     >
-                        <Users className="w-4 h-4" />
+                        <Users className="w-4 h-4 hidden sm:block" />
                         Teacher Directory
                     </button>
                     <button
                         onClick={() => window.open('/verify', '_blank')}
-                        className="flex items-center gap-3 bg-white text-gray-700 px-6 py-3 rounded-2xl font-black uppercase tracking-widest text-xs border border-gray-200 shadow-sm hover:border-[#ff8e01] hover:text-[#ff8e01] transition-all active:scale-95 no-pdf"
+                        className="flex items-center justify-center gap-2 bg-white text-gray-700 px-3 py-2.5 sm:px-6 sm:py-3 rounded-xl sm:rounded-2xl font-black uppercase tracking-widest text-[10px] sm:text-xs border border-gray-200 shadow-sm hover:border-[#ff8e01] hover:text-[#ff8e01] transition-all active:scale-95"
                     >
-                        <CheckCircle className="w-4 h-4" />
+                        <CheckCircle className="w-4 h-4 hidden sm:block" />
                         Verify Certificate
                     </button>
                     <button
                         onClick={handleDownloadPDF}
                         disabled={isDownloading}
-                        className="flex items-center gap-3 bg-[#ff8e01] text-white px-6 py-3 rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg shadow-orange-200 hover:shadow-orange-300 transition-all active:scale-95 disabled:opacity-50 no-pdf"
+                        className="flex items-center justify-center gap-2 bg-[#ff8e01] text-white px-3 py-2.5 sm:px-6 sm:py-3 rounded-xl sm:rounded-2xl font-black uppercase tracking-widest text-[10px] sm:text-xs shadow-lg shadow-orange-200 hover:shadow-orange-300 transition-all active:scale-95 disabled:opacity-50"
                     >
                         {isDownloading ? (
                             <ButtonLoader />
                         ) : (
-                            <Download className="w-4 h-4" />
+                            <Download className="w-4 h-4 hidden sm:block" />
                         )}
-                        {isDownloading ? 'Generating PDF...' : 'Download Report'}
+                        {isDownloading ? 'Generating...' : 'Download Report'}
                     </button>
                 </div>
             </div>
+
             {/* Header & Main Stats */}
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
                 <div className="xl:col-span-2 space-y-6">
@@ -391,7 +392,7 @@ const AdminDashboard = () => {
                             </div>
 
                             <div className="flex items-baseline gap-6 mb-2">
-                                <span className="text-7xl font-black text-gray-900 dark:text-white tracking-tighter drop-shadow-sm">
+                                <span className="text-3xl sm:text-7xl font-black text-gray-900 dark:text-white tracking-tighter drop-shadow-sm">
                                     Rs {data?.totalRevenue.toLocaleString()}
                                 </span>
                                 <div className="flex items-center gap-2 px-4 py-2 bg-emerald-100 text-emerald-700 rounded-2xl border-2 border-emerald-200 shadow-sm">
@@ -406,7 +407,7 @@ const AdminDashboard = () => {
                     </div>
 
                     {/* Student Stats Section */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                         <div className="bg-white rounded-[2rem] p-6 border border-gray-100 shadow-sm group hover:border-indigo-100 transition-colors">
                             <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 mb-4 group-hover:scale-110 transition-transform">
                                 <Users className="w-6 h-6" />
@@ -489,10 +490,12 @@ const AdminDashboard = () => {
                 </div>
 
                 <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden">
-                    <DataTable
-                        columns={columns}
-                        data={showFullHistory ? (data?.recentSubmissions || []) : (data?.recentSubmissions.slice(0, 5) || [])}
-                    />
+                    <div className="overflow-x-auto no-scrollbar">
+                        <DataTable
+                            columns={columns}
+                            data={showFullHistory ? (data?.recentSubmissions || []) : (data?.recentSubmissions.slice(0, 5) || [])}
+                        />
+                    </div>
                     {data?.recentSubmissions.length === 0 && (
                         <div className="p-20 text-center">
                             <Clock className="w-12 h-12 text-gray-200 mx-auto mb-4" />

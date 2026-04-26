@@ -27,9 +27,8 @@ const StudentAttendanceTab = ({ course }) => {
 
     const getStatusConfig = (status) => {
         switch (status) {
-            case 'present': return { bg: 'bg-emerald-100', text: 'text-emerald-600', icon: CheckCircle, label: 'Present' };
-            case 'absent': return { bg: 'bg-red-100', text: 'text-red-600', icon: XCircle, label: 'Absent' };
-            case 'late': return { bg: 'bg-amber-100', text: 'text-amber-600', icon: Clock, label: 'Late' };
+            case 'present': return { bg: 'bg-present-fixed', text: 'text-present-fixed', icon: CheckCircle, label: 'Present' };
+            case 'absent': return { bg: 'bg-absent-fixed', text: 'text-absent-fixed', icon: XCircle, label: 'Absent' };
             default: return { bg: 'bg-gray-100', text: 'text-gray-400', icon: Calendar, label: '-' };
         }
     };
@@ -76,35 +75,35 @@ const StudentAttendanceTab = ({ course }) => {
     return (
         <div className="space-y-6">
             {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-emerald-50 rounded-2xl p-6 border border-emerald-100 text-center shadow-sm">
-                    <p className="text-3xl font-black text-emerald-600">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+                <div className="bg-present-fixed/10 rounded-2xl p-4 sm:p-6 border border-present-fixed/20 text-center shadow-sm">
+                    <p className="text-2xl sm:text-3xl font-black text-present-fixed">
                         {attendanceData.length > 0
                             ? Math.round((attendanceData.filter(a => a.status === 'present').length / attendanceData.length) * 100)
                             : 0}%
                     </p>
                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Attendance</p>
                 </div>
-                <div className="bg-white rounded-2xl p-6 border border-gray-100 text-center shadow-sm">
-                    <p className="text-3xl font-black text-gray-900">
+                <div className="bg-white dark:bg-[#1a1f2e] rounded-2xl p-4 sm:p-6 border border-gray-100 dark:border-gray-800 text-center shadow-sm">
+                    <p className="text-2xl sm:text-3xl font-black text-present-fixed">
                         {attendanceData.filter(a => a.status === 'present').length}
                     </p>
                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Presents</p>
                 </div>
-                <div className="bg-white rounded-2xl p-6 border border-gray-100 text-center shadow-sm">
-                    <p className="text-3xl font-black text-red-600">
+                <div className="bg-white dark:bg-[#1a1f2e] rounded-2xl p-4 sm:p-6 border border-gray-100 dark:border-gray-800 text-center shadow-sm">
+                    <p className="text-2xl sm:text-3xl font-black text-absent-fixed">
                         {attendanceData.filter(a => a.status === 'absent').length}
                     </p>
                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Absents</p>
                 </div>
-                <div className="bg-white rounded-2xl p-6 border border-gray-100 text-center shadow-sm">
-                    <p className="text-3xl font-black text-[#ff8e01]">{attendanceData.length}</p>
+                <div className="bg-white dark:bg-[#1a1f2e] rounded-2xl p-4 sm:p-6 border border-gray-100 dark:border-gray-800 text-center shadow-sm">
+                    <p className="text-2xl sm:text-3xl font-black text-[#ff8e01]">{attendanceData.length}</p>
                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Total Classes</p>
                 </div>
             </div>
 
             {/* Calendar */}
-            <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm">
+            <div className="bg-white rounded-3xl p-4 sm:p-8 border border-gray-100 shadow-sm">
                 <div className="flex items-center justify-between mb-8">
                     <h3 className="text-xl font-black text-gray-900 uppercase italic">Attendance Calendar</h3>
                     <div className="flex items-center gap-4">
@@ -126,14 +125,14 @@ const StudentAttendanceTab = ({ course }) => {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-7 gap-3">
-                    {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                        <div key={day} className="text-center text-xs font-black text-gray-400 uppercase tracking-widest py-2">
+                <div className="grid grid-cols-7 gap-1 sm:gap-3">
+                    {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, i) => (
+                        <div key={i} className="text-center text-[8px] sm:text-xs font-black text-gray-400 uppercase tracking-widest py-2">
                             {day}
                         </div>
                     ))}
                     {generateCalendarDays().map((date, index) => {
-                        if (!date) return <div key={`empty-${index}`} className="h-16" />;
+                        if (!date) return <div key={`empty-${index}`} className="h-10 sm:h-16" />;
                         const status = getAttendanceForDate(date);
                         const config = status ? getStatusConfig(status) : null;
                         const isToday = date.toDateString() === new Date().toDateString();
@@ -144,15 +143,15 @@ const StudentAttendanceTab = ({ course }) => {
                                 initial={{ opacity: 0, scale: 0.9 }}
                                 animate={{ opacity: 1, scale: 1 }}
                                 transition={{ delay: index * 0.01 }}
-                                className={`h-16 rounded-2xl flex flex-col items-center justify-center relative transition-all ${
-                                    config ? config.bg : 'bg-gray-50'
+                                className={`h-10 sm:h-16 rounded-lg sm:rounded-2xl flex flex-col items-center justify-center relative transition-all ${
+                                    config ? config.bg : 'bg-gray-50 dark:bg-white/5'
                                 } ${isToday ? 'ring-2 ring-emerald-500 ring-offset-2' : ''}`}
                             >
-                                <span className={`text-sm font-black ${config ? config.text : 'text-gray-400'}`}>
+                                <span className={`text-[10px] sm:text-sm font-black ${config ? config.text : 'text-gray-400'}`}>
                                     {date.getDate()}
                                 </span>
                                 {config && (
-                                    <config.icon className={`w-4 h-4 mt-1 ${config.text}`} />
+                                    <config.icon className={`w-2 h-2 sm:w-4 sm:h-4 mt-0.5 sm:mt-1 ${config.text}`} />
                                 )}
                             </motion.div>
                         );
@@ -160,18 +159,14 @@ const StudentAttendanceTab = ({ course }) => {
                 </div>
 
                 {/* Legend */}
-                <div className="flex items-center justify-center gap-6 mt-8 pt-6 border-t border-gray-50">
+                <div className="flex items-center justify-center gap-6 mt-8 pt-6 border-t border-gray-50 dark:border-gray-800">
                     <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 rounded-lg bg-emerald-100 border border-emerald-200"></div>
+                        <div className="w-4 h-4 rounded-lg bg-present-fixed border border-present-fixed/20"></div>
                         <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Present</span>
                     </div>
                     <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 rounded-lg bg-red-100 border border-red-200"></div>
+                        <div className="w-4 h-4 rounded-lg bg-absent-fixed border border-absent-fixed/20"></div>
                         <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Absent</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 rounded-lg bg-amber-100 border border-amber-200"></div>
-                        <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Late</span>
                     </div>
                     <div className="flex items-center gap-2">
                         <div className="w-4 h-4 rounded-lg bg-gray-50 border border-gray-200"></div>

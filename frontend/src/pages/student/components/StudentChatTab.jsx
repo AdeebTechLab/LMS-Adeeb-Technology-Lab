@@ -200,32 +200,33 @@ const StudentChatTab = ({ course, isRestricted }) => {
     }
 
     return (
-        <div className="flex h-[500px] gap-4">
-            {/* Teachers List */}
-            <div className="w-64 bg-gray-50 rounded-xl p-3 flex flex-col">
-                <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 px-2">
-                    Teachers
+        <div className="flex h-[500px] gap-2 sm:gap-4">
+            {/* Teachers List - Only DP on mobile */}
+            <div className="w-16 sm:w-64 bg-gray-50 rounded-xl p-2 sm:p-3 flex flex-col shrink-0">
+                <h3 className="text-[10px] sm:text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 px-1 sm:px-2 text-center sm:text-left">
+                    <span className="hidden sm:inline">Teachers</span>
+                    <span className="sm:hidden">TC</span>
                 </h3>
-                <div className="space-y-1 flex-1 overflow-y-auto">
+                <div className="space-y-2 flex-1 overflow-y-auto no-scrollbar">
                     {teachers.map((teacher) => (
                         <button
                             key={teacher._id}
                             onClick={() => openChat(teacher)}
-                            className={`w-full flex items-center gap-3 p-3 rounded-lg transition-all ${
+                            className={`w-full flex items-center justify-center sm:justify-start gap-3 p-2 sm:p-3 rounded-lg transition-all ${
                                 activeTeacher?._id === teacher._id
                                     ? 'bg-emerald-100 text-emerald-700'
                                     : 'hover:bg-gray-100'
                             }`}
                         >
-                            <div className="relative">
+                            <div className="relative shrink-0">
                                 <ProfileAvatar src={teacher.photo} name={teacher.name} size="md" fallbackColor="bg-purple-100" />
                                 {teacher.unreadCount > 0 && (
-                                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                                    <span className="absolute -top-1 -right-1 w-4 h-4 sm:w-5 sm:h-5 bg-red-500 text-white text-[8px] sm:text-[10px] font-bold rounded-full flex items-center justify-center">
                                         {teacher.unreadCount}
                                     </span>
                                 )}
                             </div>
-                            <div className="flex-1 text-left">
+                            <div className="hidden sm:block flex-1 text-left">
                                 <p className="font-semibold text-sm truncate">{teacher.name}</p>
                                 <p className="text-xs text-gray-500 truncate">{teacher.email}</p>
                             </div>
@@ -265,9 +266,14 @@ const StudentChatTab = ({ course, isRestricted }) => {
                                                 key={msg._id}
                                                 initial={{ opacity: 0, y: 10 }}
                                                 animate={{ opacity: 1, y: 0 }}
-                                                className={`flex ${isMe ? 'justify-end' : 'justify-start'} mb-2`}
+                                                className={`flex items-end gap-2 ${isMe ? 'justify-end' : 'justify-start'} mb-2`}
                                             >
-                                                <div className={`max-w-[70%] px-4 py-2 rounded-2xl ${
+                                                {!isMe && (
+                                                    <div className="shrink-0 mb-1">
+                                                        <ProfileAvatar src={activeTeacher?.photo} name={activeTeacher?.name} size="xs" fallbackColor="bg-purple-100" />
+                                                    </div>
+                                                )}
+                                                <div className={`max-w-[75%] px-4 py-2 rounded-2xl ${
                                                     isMe
                                                         ? 'bg-emerald-600 text-white rounded-br-md'
                                                         : 'bg-white border border-gray-200 text-gray-800 rounded-bl-md'

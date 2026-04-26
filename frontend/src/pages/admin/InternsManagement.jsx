@@ -601,29 +601,29 @@ const InternsManagement = () => {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Interns Management</h1>
-                    <p className="text-gray-500">View and manage registered interns</p>
+                    <p className="text-gray-500 text-sm">View and manage registered interns</p>
                 </div>
-                <div className="flex flex-wrap gap-4 items-center">
+                <div className="flex items-center gap-2 w-full md:w-auto">
                     <button
                         onClick={toggleBioEditing}
-                        className={`p-2.5 border rounded-xl transition-colors flex items-center gap-2 text-sm font-bold shadow-sm ${allowBioEditing
-                            ? 'bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100'
-                            : 'bg-red-50 border-red-200 text-red-700 hover:bg-red-100'
+                        className={`flex-1 md:flex-none px-4 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all border flex items-center justify-center gap-2 ${allowBioEditing
+                                ? 'bg-amber-50 border-amber-200 text-amber-700'
+                                : 'bg-gray-50 border-gray-200 text-gray-500'
                             }`}
-                        title={allowBioEditing ? "Bio Editing is Enabled for Users" : "Bio Editing is Disabled for Users"}
                     >
-                        {allowBioEditing ? <Edit2 className="w-5 h-5" /> : <Shield className="w-5 h-5" />}
+                        <Shield className={`w-4 h-4 ${allowBioEditing ? 'animate-pulse' : ''}`} />
                         {allowBioEditing ? 'EDITS ON' : 'EDITS OFF'}
                     </button>
-                    <div className="relative">
+
+                    <div className="relative flex-1 md:flex-none">
                         <button
                             onClick={() => setShowExportOptions(!showExportOptions)}
-                            className="p-2.5 bg-white border border-gray-200 hover:bg-gray-50 rounded-xl transition-colors flex items-center gap-2 text-sm font-bold text-gray-700 shadow-sm"
+                            className="w-full px-4 py-2.5 bg-white border border-blue-100 rounded-xl font-black text-[10px] uppercase tracking-widest text-blue-700 hover:bg-blue-50 transition-all flex items-center justify-center gap-2 shadow-sm"
                         >
-                            <Download className="w-5 h-5 text-blue-600" />
+                            <Download className="w-4 h-4 text-blue-600" />
                             EXPORT DATA
                         </button>
 
@@ -634,41 +634,22 @@ const InternsManagement = () => {
                                     <div className="px-4 py-2 border-b border-gray-50 mb-1">
                                         <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Select Format</p>
                                     </div>
-                                    <button
-                                        onClick={() => downloadPDF('full')}
-                                        className="w-full px-4 py-2.5 text-left text-sm font-bold text-gray-700 hover:bg-blue-50 hover:text-blue-700 flex items-center gap-3 transition-colors"
-                                    >
-                                        <FileText className="w-4 h-4" />
-                                        Complete Report
-                                    </button>
-                                    <button
-                                        onClick={() => downloadPDF('phone')}
-                                        className="w-full px-4 py-2.5 text-left text-sm font-bold text-gray-700 hover:bg-blue-50 hover:text-blue-700 flex items-center gap-3 transition-colors"
-                                    >
-                                        <Phone className="w-4 h-4" />
-                                        Phone Directory
-                                    </button>
-                                    <button
-                                        onClick={() => downloadPDF('email')}
-                                        className="w-full px-4 py-2.5 text-left text-sm font-bold text-gray-700 hover:bg-blue-50 hover:text-blue-700 flex items-center gap-3 transition-colors"
-                                    >
-                                        <Mail className="w-4 h-4" />
-                                        Email List
-                                    </button>
-                                    <button
-                                        onClick={() => downloadPDF('academic')}
-                                        className="w-full px-4 py-2 text-left text-sm font-bold text-gray-700 hover:bg-blue-50 hover:text-blue-700 flex items-center gap-3 transition-colors"
-                                    >
-                                        <GraduationCap className="w-4 h-4" />
-                                        Academic Info
-                                    </button>
-                                    <button
-                                        onClick={() => downloadPDF('address')}
-                                        className="w-full px-4 py-2 text-left text-sm font-bold text-gray-700 hover:bg-blue-50 hover:text-blue-700 flex items-center gap-3 transition-colors"
-                                    >
-                                        <MapPin className="w-4 h-4" />
-                                        Address List
-                                    </button>
+                                    {[
+                                        { id: 'full', label: 'Complete Report', icon: FileText },
+                                        { id: 'phone', label: 'Phone Directory', icon: Phone },
+                                        { id: 'email', label: 'Email List', icon: Mail },
+                                        { id: 'academic', label: 'Academic Info', icon: GraduationCap },
+                                        { id: 'address', label: 'Address List', icon: MapPin }
+                                    ].map((opt) => (
+                                        <button
+                                            key={opt.id}
+                                            onClick={() => downloadPDF(opt.id)}
+                                            className="w-full px-4 py-2.5 text-left text-[11px] font-bold text-gray-700 hover:bg-blue-50 hover:text-blue-700 flex items-center gap-3 transition-colors"
+                                        >
+                                            <opt.icon className="w-4 h-4" />
+                                            {opt.label}
+                                        </button>
+                                    ))}
                                 </div>
                             </>
                         )}
@@ -677,18 +658,19 @@ const InternsManagement = () => {
             </div>
 
             {/* Search & Filter */}
-            <div className="bg-white rounded-2xl p-4 border border-gray-100 flex flex-col gap-4">
-                <div className="flex-1 flex items-center bg-gray-50 rounded-xl px-4 py-3">
-                    <Search className="w-5 h-5 text-gray-400 mr-3" />
+            <div className="bg-white rounded-3xl p-4 sm:p-5 border border-gray-100 shadow-sm space-y-4">
+                <div className="relative">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                     <input
                         type="text"
                         placeholder="Search by name, email, or CNIC..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="bg-transparent border-none outline-none w-full text-gray-700"
+                        className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-transparent focus:border-blue-500 focus:bg-white rounded-2xl transition-all outline-none text-sm font-medium"
                     />
                 </div>
-                <div className="flex gap-2">
+
+                <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2">
                     {[
                         { id: 'all', label: 'All', count: interns.length },
                         {
@@ -736,15 +718,15 @@ const InternsManagement = () => {
                         <button
                             key={tab.id}
                             onClick={() => setFilterStatus(tab.id)}
-                            className={`px-4 py-2 rounded-xl font-medium text-sm transition-all whitespace-nowrap flex items-center gap-2 ${filterStatus === tab.id
-                                ? 'bg-blue-600 text-white shadow-lg shadow-blue-200'
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                            className={`px-3 py-2.5 rounded-xl font-black text-[9px] uppercase tracking-widest transition-all flex items-center justify-between gap-2 border ${filterStatus === tab.id
+                                ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-900/10'
+                                : 'bg-gray-50 text-gray-500 border-gray-100 hover:bg-gray-100'
                                 }`}
                         >
-                            {tab.label}
-                            <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${filterStatus === tab.id
+                            <span className="truncate">{tab.label}</span>
+                            <span className={`text-[9px] px-2 py-0.5 rounded-full font-black shrink-0 ${filterStatus === tab.id
                                 ? 'bg-white/20 text-white'
-                                : 'bg-white text-gray-500'
+                                : 'bg-gray-200 text-gray-500'
                                 }`}>
                                 {tab.count}
                             </span>
@@ -773,149 +755,135 @@ const InternsManagement = () => {
                                 transition={{ delay: index * 0.05 }}
                                 className="bg-white rounded-2xl p-6 border border-gray-100"
                             >
-                                <div className="flex flex-col md:flex-row md:items-center gap-4">
+                                <div className="flex flex-col lg:flex-row lg:items-center gap-6">
                                     {/* Photo & Basic Info */}
-                                    <div className="flex items-center gap-4 flex-1">
-                                        <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center overflow-hidden">
+                                    <div className="flex items-center gap-4 min-w-0">
+                                        <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center overflow-hidden shrink-0 shadow-lg shadow-blue-900/10">
                                             {intern.photo ? (
                                                 <img src={intern.photo} alt={intern.name} className="w-full h-full object-cover" />
                                             ) : (
-                                                <span className="text-white text-xl font-bold">{intern.name?.charAt(0)}</span>
+                                                <span className="text-white text-2xl font-black">{intern.name?.charAt(0)}</span>
                                             )}
                                         </div>
-                                        <div>
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <h3 className="font-semibold text-gray-900">{intern.name}</h3>
-                                                {intern.isVerified ? (
-                                                    <Badge variant="success">
-                                                        <CheckCircle className="w-3 h-3 mr-1" />
-                                                        Verified
-                                                    </Badge>
-                                                ) : (
-                                                    <Badge variant="warning">
-                                                        <Clock className="w-3 h-3 mr-1" />
-                                                        Pending
-                                                    </Badge>
+                                        <div className="min-w-0">
+                                            <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                                                <h3 className="text-sm font-black text-gray-900 uppercase tracking-tighter truncate">{intern.name}</h3>
+                                                {(intern.rollNumber || intern.rollNo) && (
+                                                    <Badge variant="primary" size="xxs">#{intern.rollNumber || intern.rollNo}</Badge>
                                                 )}
                                             </div>
-                                            <p className="text-sm text-gray-500 flex items-center gap-1">
-                                                <Mail className="w-4 h-4" /> {intern.email}
-                                            </p>
-                                            <p className="text-xs text-blue-600 font-mono font-bold mt-0.5">
-                                                Roll# {intern.rollNo || intern.rollNumber || 'N/A'}
+                                            <p className="text-xs font-medium text-gray-500 flex items-center gap-1.5 truncate">
+                                                <Mail className="w-3.5 h-3.5 text-gray-400" /> {intern.email}
                                             </p>
                                         </div>
                                     </div>
 
-                                    {/* Details */}
-                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm flex-1">
-                                        <div>
-                                            <p className="text-gray-400">Phone</p>
-                                            <p className="font-medium text-gray-700">{intern.phone || 'N/A'}</p>
+                                    {/* Stats Grid */}
+                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-6 flex-1 bg-gray-50/50 p-4 rounded-2xl border border-gray-100">
+                                        <div className="space-y-1">
+                                            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Phone</p>
+                                            <p className="text-xs font-bold text-gray-700">{intern.phone || 'N/A'}</p>
                                         </div>
-                                        <div>
-                                            <p className="text-gray-400">CNIC</p>
-                                            <p className="font-medium text-gray-700 font-mono">{intern.cnic || 'N/A'}</p>
+                                        <div className="space-y-1">
+                                            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">CNIC</p>
+                                            <p className="text-xs font-bold text-gray-700 font-mono tracking-tighter">{intern.cnic || 'N/A'}</p>
                                         </div>
-                                        <div>
-                                            <p className="text-gray-400">Education</p>
-                                            <p className="font-medium text-gray-700">{intern.education || 'N/A'}</p>
+                                        <div className="space-y-1">
+                                            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Education</p>
+                                            <p className="text-xs font-bold text-gray-700 truncate">{intern.education || 'N/A'}</p>
                                         </div>
-                                        <div>
-                                            <p className="text-gray-400">Location</p>
-                                            <p className="font-medium text-gray-700 capitalize">{intern.location || 'N/A'}</p>
+                                        <div className="space-y-1">
+                                            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Location</p>
+                                            <p className="text-xs font-bold text-gray-700 capitalize">{intern.location || 'N/A'}</p>
                                         </div>
                                     </div>
 
                                     {/* Actions */}
-                                    <div className="flex gap-2">
-                                        {/* Move to Old / Move to New button — only for non-enrolled interns */}
-                                        {(intern.totalEnrollments || 0) === 0 && (
+                                    <div className="flex flex-wrap items-center justify-end gap-2 shrink-0 border-t lg:border-t-0 pt-4 lg:pt-0">
+                                        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2 lg:pb-0">
+                                            {(intern.totalEnrollments || 0) === 0 && (
+                                                <button
+                                                    onClick={() => handleMoveToOld(intern)}
+                                                    className={`px-3 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all border ${intern.registeredOld
+                                                        ? 'bg-purple-50 border-purple-200 text-purple-700'
+                                                        : 'bg-gray-50 border-gray-200 text-gray-500 hover:text-purple-700'
+                                                        }`}
+                                                    title={intern.registeredOld ? 'Move to New' : 'Move to Old'}
+                                                >
+                                                    {intern.registeredOld ? 'New' : 'Old'}
+                                                </button>
+                                            )}
                                             <button
-                                                onClick={() => handleMoveToOld(intern)}
-                                                className={`px-3 py-2 rounded-xl font-bold text-xs flex items-center gap-1 transition-all ${intern.registeredOld
-                                                    ? 'bg-purple-100 hover:bg-purple-200 text-purple-700'
-                                                    : 'bg-gray-100 hover:bg-purple-100 text-gray-500 hover:text-purple-700'
-                                                    }`}
-                                                title={intern.registeredOld ? 'Move back to Registered New' : 'Move to Registered Old'}
-                                            >
-                                                {intern.registeredOld ? '← New' : 'Old →'}
-                                            </button>
-                                        )}
-                                        <button
-                                            onClick={async () => {
-                                                try {
-                                                    const res = await feeAPI.getUserFees(intern._id);
-                                                    const fees = res.data.data || [];
-                                                    if (fees.length === 0) {
-                                                        alert('No fee record found for this intern. They must be enrolled in a course first.');
-                                                        return;
+                                                onClick={async () => {
+                                                    try {
+                                                        const res = await feeAPI.getUserFees(intern._id);
+                                                        const fees = res.data.data || [];
+                                                        if (fees.length === 0) {
+                                                            alert('No fee record found. Enroll in a course first.');
+                                                            return;
+                                                        }
+                                                        if (fees.length === 1) {
+                                                            handleManageInstallments(fees[0]);
+                                                        } else {
+                                                            setViewFeeModal({ open: true, userId: intern._id, internName: intern.name });
+                                                            setFeeRecords(fees);
+                                                        }
+                                                    } catch (e) {
+                                                        console.error('Error opening fee plan:', e);
                                                     }
-                                                    if (fees.length === 1) {
-                                                        handleManageInstallments(fees[0]);
-                                                    } else {
-                                                        setViewFeeModal({ open: true, userId: intern._id, internName: intern.name });
-                                                        setFeeRecords(fees);
-                                                    }
-                                                } catch (e) {
-                                                    console.error('Error opening fee plan:', e);
-                                                }
-                                            }}
-                                            className="p-2 bg-purple-50 hover:bg-purple-100 text-purple-600 rounded-xl"
-                                            title="Manage Fee Plan & Receipts"
-                                        >
-                                            <Receipt className="w-5 h-5" />
-                                        </button>
-                                        <button
-                                            onClick={() => downloadInternPDF(intern)}
-                                            className="p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl"
-                                            title="Download Profile"
-                                        >
-                                            <Download className="w-5 h-5" />
-                                        </button>
-                                        <button
-                                            onClick={() => handleDownloadCompleteReport(intern)}
-                                            className="p-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 rounded-xl"
-                                            title="Download Complete Report (Academic)"
-                                        >
-                                            <FileText className="w-5 h-5" />
-                                        </button>
-                                        {!intern.isVerified ? (
-                                            <button
-                                                onClick={() => setConfirmModal({ open: true, action: 'verify', user: intern })}
-                                                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium flex items-center gap-2"
+                                                }}
+                                                className="p-2.5 bg-purple-50 hover:bg-purple-100 text-purple-600 rounded-xl border border-purple-100 transition-all"
+                                                title="Fee Plan"
                                             >
-                                                <UserCheck className="w-4 h-4" />
-                                                Verify
+                                                <Receipt className="w-5 h-5" />
                                             </button>
-                                        ) : (
                                             <button
-                                                onClick={() => setConfirmModal({ open: true, action: 'unverify', user: intern })}
-                                                className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-medium flex items-center gap-2"
+                                                onClick={() => downloadInternPDF(intern)}
+                                                className="p-2.5 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl border border-blue-100 transition-all"
+                                                title="PDF Profile"
                                             >
-                                                <UserX className="w-4 h-4" />
-                                                Revoke
+                                                <Download className="w-5 h-5" />
                                             </button>
-                                        )}
+                                            <button
+                                                onClick={() => handleDownloadCompleteReport(intern)}
+                                                className="p-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 rounded-xl border border-emerald-100 transition-all"
+                                                title="Academic Report"
+                                            >
+                                                <FileText className="w-5 h-5" />
+                                            </button>
+                                            <button
+                                                onClick={() => handleOpenEnrollModal(intern)}
+                                                className="p-2.5 bg-orange-50 hover:bg-orange-100 text-orange-600 rounded-xl border border-orange-100 transition-all"
+                                                title="Pause/Enroll"
+                                            >
+                                                <BookOpen className="w-5 h-5" />
+                                            </button>
+                                            <button
+                                                onClick={() => handleEditClick(intern)}
+                                                className="p-2.5 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl border border-blue-100 transition-all"
+                                                title="Edit"
+                                            >
+                                                <Edit2 className="w-5 h-5" />
+                                            </button>
+                                            <button
+                                                onClick={() => setConfirmModal({ open: true, action: 'delete', user: intern })}
+                                                className="p-2.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl border border-red-100 transition-all"
+                                            >
+                                                <Trash2 className="w-5 h-5" />
+                                            </button>
+                                        </div>
+
+                                        <div className="h-8 w-px bg-gray-100 hidden lg:block mx-1" />
+
                                         <button
-                                            onClick={() => handleOpenEnrollModal(intern)}
-                                            className="p-2 bg-amber-50 hover:bg-amber-100 text-amber-600 rounded-xl"
-                                            title="Manage Course Enrollments (Pause/Resume)"
+                                            onClick={() => setConfirmModal({ open: true, action: intern.isVerified ? 'unverify' : 'verify', user: intern })}
+                                            className={`px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all shadow-lg ${intern.isVerified
+                                                ? 'bg-amber-500 hover:bg-amber-600 text-white shadow-amber-900/10'
+                                                : 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-900/10'
+                                                } flex items-center justify-center gap-2 min-w-[120px] active:scale-95`}
                                         >
-                                            <BookOpen className="w-5 h-5" />
-                                        </button>
-                                        <button
-                                            onClick={() => handleEditClick(intern)}
-                                            className="p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl"
-                                            title="Edit Bio"
-                                        >
-                                            <Edit2 className="w-5 h-5" />
-                                        </button>
-                                        <button
-                                            onClick={() => setConfirmModal({ open: true, action: 'delete', user: intern })}
-                                            className="p-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl"
-                                        >
-                                            <Trash2 className="w-5 h-5" />
+                                            {intern.isVerified ? <UserX className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
+                                            {intern.isVerified ? 'Revoke' : 'Verify'}
                                         </button>
                                     </div>
                                 </div>

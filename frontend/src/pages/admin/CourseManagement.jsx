@@ -198,25 +198,25 @@ const CourseManagement = () => {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Course Management</h1>
-                    <p className="text-gray-500">Create and manage all courses</p>
+                    <p className="text-gray-500 text-sm">Create and manage all courses</p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
                     <button
                         onClick={fetchData}
-                        className="flex items-center gap-2 px-3 py-1.5 hover:bg-gray-100 rounded-lg text-gray-500 transition-all active:scale-95 border border-gray-100"
+                        className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 hover:bg-gray-100 rounded-xl text-gray-500 transition-all active:scale-95 border border-gray-200 bg-white"
                     >
                         <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
                         <span className="text-xs font-black uppercase tracking-wider">Refresh</span>
                     </button>
                     <button
                         onClick={() => handleOpenModal()}
-                        className="flex items-center justify-center gap-2 px-5 py-2.5 bg-[#0f2847] hover:bg-[#0545a7] text-white rounded-xl transition-all duration-300 font-medium"
+                        className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2.5 bg-[#0f2847] hover:bg-[#0545a7] text-white rounded-xl transition-all duration-300 font-bold text-xs uppercase tracking-widest"
                     >
                         <BookOpen className="w-5 h-5" />
-                        Add New Course
+                        Add Course
                     </button>
                 </div>
             </div>
@@ -230,17 +230,17 @@ const CourseManagement = () => {
             )}
 
             {/* Filters and Search */}
-            <div className="bg-white rounded-2xl p-6 border border-gray-100 space-y-4">
-                <div className="flex flex-col gap-4">
+            <div className="bg-white rounded-3xl p-4 sm:p-6 border border-gray-100 shadow-sm space-y-4">
+                <div className="flex flex-col sm:flex-row gap-4">
                     {/* Search */}
-                    <div className="flex-1 flex items-center bg-gray-50 rounded-xl px-4 py-3 border border-transparent focus-within:border-emerald-500/20 focus-within:bg-white transition-all">
-                        <Search className="w-5 h-5 text-gray-400 mr-3" />
+                    <div className="flex-1 relative">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                         <input
                             type="text"
                             placeholder="Search courses or teachers..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="bg-transparent border-none outline-none w-full text-gray-700 placeholder:text-gray-400"
+                            className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-transparent focus:border-emerald-500 focus:bg-white rounded-2xl transition-all outline-none text-sm font-medium"
                         />
                     </div>
 
@@ -248,64 +248,53 @@ const CourseManagement = () => {
                     {(selectedRoles.length > 0 || selectedCities.length > 0 || searchQuery) && (
                         <button
                             onClick={clearFilters}
-                            className="flex items-center justify-center gap-2 px-4 py-2 text-rose-500 hover:bg-rose-50 rounded-xl transition-all text-sm font-medium"
+                            className="flex items-center justify-center gap-2 px-4 py-3 text-rose-500 hover:bg-rose-50 rounded-xl transition-all text-sm font-bold uppercase tracking-widest"
                         >
                             <X className="w-4 h-4" />
-                            Clear Filters
+                            Clear
                         </button>
                     )}
                 </div>
 
-                <div className="flex flex-wrap items-center gap-6 pt-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {/* Role Filters */}
-                    <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Audience:</span>
-                        <div className="flex bg-gray-100 p-1 rounded-lg">
-                            <button
-                                onClick={() => toggleFilter('role', 'students')}
-                                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${selectedRoles.includes('students')
-                                    ? 'bg-white text-emerald-600 shadow-sm'
-                                    : 'text-gray-500 hover:text-gray-700'
-                                    }`}
-                            >
-                                Students
-                            </button>
-                            <button
-                                onClick={() => toggleFilter('role', 'interns')}
-                                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${selectedRoles.includes('interns')
-                                    ? 'bg-white text-emerald-600 shadow-sm'
-                                    : 'text-gray-500 hover:text-gray-700'
-                                    }`}
-                            >
-                                Interns
-                            </button>
+                    <div className="space-y-2">
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Audience</p>
+                        <div className="flex items-center gap-2 bg-gray-50 p-1.5 rounded-2xl">
+                            {[
+                                { id: 'students', label: 'Students' },
+                                { id: 'interns', label: 'Interns' }
+                            ].map((type) => (
+                                <button
+                                    key={type.id}
+                                    onClick={() => toggleFilter('role', type.id)}
+                                    className={`flex-1 px-3 py-2 rounded-xl font-bold text-xs transition-all ${selectedRoles.includes(type.id)
+                                        ? 'bg-white text-emerald-600 shadow-md border border-emerald-100'
+                                        : 'text-gray-500 hover:text-gray-700 hover:bg-white/50'
+                                        }`}
+                                >
+                                    {type.label}
+                                </button>
+                            ))}
                         </div>
                     </div>
 
-                    <div className="h-6 w-px bg-gray-200 hidden sm:block" />
-
                     {/* City Filters */}
-                    <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Location:</span>
-                        <div className="flex bg-gray-100 p-1 rounded-lg">
-                            <button
-                                onClick={() => toggleFilter('city', 'Islamabad')}
-                                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${selectedCities.includes('Islamabad')
-                                    ? 'bg-white text-emerald-600 shadow-sm'
-                                    : 'text-gray-500 hover:text-gray-700'
-                                    }`}
-                            >
-                                Islamabad
-                            </button>
-                            <button
-                                onClick={() => toggleFilter('city', 'Bahawalpur')}
-                                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${selectedCities.includes('Bahawalpur')
-                                    ? 'bg-white text-emerald-600 shadow-sm'
-                                    : 'text-gray-500 hover:text-gray-700'
-                                    }`}
-                            >
-                                Bahawalpur
-                            </button>
+                    <div className="space-y-2">
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Location</p>
+                        <div className="flex items-center gap-2 bg-gray-50 p-1.5 rounded-2xl">
+                            {['Bahawalpur', 'Islamabad'].map((city) => (
+                                <button
+                                    key={city}
+                                    onClick={() => toggleFilter('city', city)}
+                                    className={`flex-1 px-3 py-2 rounded-xl font-bold text-xs transition-all ${selectedCities.includes(city)
+                                        ? 'bg-white text-emerald-600 shadow-md border border-emerald-100'
+                                        : 'text-gray-500 hover:text-gray-700 hover:bg-white/50'
+                                        }`}
+                                >
+                                    {city}
+                                </button>
+                            ))}
                         </div>
                     </div>
                 </div>

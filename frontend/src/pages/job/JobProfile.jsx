@@ -224,22 +224,22 @@ const JobProfile = () => {
             </motion.div>
 
             {/* Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                 {stats.map((stat, index) => (
                     <motion.div
                         key={stat.label}
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.1 }}
-                        className="bg-white rounded-xl p-6 border border-gray-100"
+                        className={`bg-white rounded-xl p-4 sm:p-6 border border-[#ff8e01]/20 shadow-sm ${index === 2 ? 'col-span-2 lg:col-span-1' : ''}`}
                     >
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm text-gray-500 mb-1">{stat.label}</p>
-                                <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+                                <p className="text-[10px] sm:text-sm font-black text-gray-500 uppercase tracking-widest mb-1">{stat.label}</p>
+                                <p className="text-lg sm:text-2xl font-black text-gray-900 leading-none">{stat.value}</p>
                             </div>
-                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${stat.color}`}>
-                                <stat.icon className="w-6 h-6" />
+                            <div className={`w-9 h-9 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${stat.color}`}>
+                                <stat.icon className="w-5 h-5 sm:w-6 h-6" />
                             </div>
                         </div>
                     </motion.div>

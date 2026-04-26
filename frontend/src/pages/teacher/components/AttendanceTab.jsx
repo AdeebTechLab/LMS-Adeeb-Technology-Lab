@@ -171,14 +171,14 @@ const AttendanceTab = ({ course, students }) => {
     const getStatusButton = (studentId, status, currentMark) => {
         const isActive = currentMark?.status === status;
         const config = status === 'present'
-            ? { bg: isActive ? 'bg-emerald-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-emerald-100', label: 'P' }
-            : { bg: isActive ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-red-100', label: 'A' };
+            ? { bg: isActive ? 'bg-present-fixed !important' : 'bg-gray-100 text-gray-600 hover:bg-present-fixed/20', label: 'P', text: isActive ? 'text-white' : 'text-present-fixed' }
+            : { bg: isActive ? 'bg-absent-fixed !important' : 'bg-gray-100 text-gray-600 hover:bg-absent-fixed/20', label: 'A', text: isActive ? 'text-white' : 'text-absent-fixed' };
 
         return (
             <button
                 onClick={() => markAttendance(studentId, status)}
                 disabled={isLocked}
-                className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm transition-all ${config.bg} ${isLocked ? 'cursor-not-allowed opacity-60' : 'active:scale-95 shadow-sm'}`}
+                className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm transition-all ${config.bg} ${config.text} ${isLocked ? 'cursor-not-allowed opacity-60' : 'active:scale-95 shadow-sm'}`}
             >
                 {config.label}
             </button>
@@ -189,8 +189,8 @@ const AttendanceTab = ({ course, students }) => {
     const getRowBgColor = (studentId) => {
         const mark = attendanceMarks[studentId];
         if (!mark) return '';
-        if (mark.status === 'present') return 'bg-emerald-50';
-        if (mark.status === 'absent') return 'bg-red-50';
+        if (mark.status === 'present') return 'bg-present-fixed/5';
+        if (mark.status === 'absent') return 'bg-absent-fixed/5';
         return '';
     };
 
@@ -236,12 +236,13 @@ const AttendanceTab = ({ course, students }) => {
                         </div>
                     </div>
                     <div className="flex items-center gap-3">
-                        <button
+                        <button 
                             onClick={fetchAttendance}
-                            className="flex items-center gap-2 px-3 py-1.5 hover:bg-gray-100 rounded-lg text-gray-500 transition-all active:scale-95"
+                            disabled={isLoading}
+                            className="flex items-center gap-2 px-5 py-2.5 bg-emerald-50 text-emerald-600 rounded-xl font-black text-[10px] uppercase tracking-widest border-2 border-emerald-100 hover:border-emerald-500 hover:bg-white hover:shadow-lg hover:shadow-emerald-100 transition-all active:scale-95 disabled:opacity-50"
                         >
-                            <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-                            <span className="text-xs font-bold uppercase tracking-wider">Refresh</span>
+                            <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
+                            Refresh Data
                         </button>
                         <div className="relative">
                             <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-600" />
@@ -284,12 +285,12 @@ const AttendanceTab = ({ course, students }) => {
                 {/* Color Legend */}
                 <div className="flex items-center gap-4 mb-4 text-xs font-bold">
                     <div className="flex items-center gap-1.5">
-                        <div className="w-4 h-4 rounded bg-emerald-500"></div>
-                        <span className="text-gray-600">Present</span>
+                        <div className="w-4 h-4 rounded bg-present-fixed"></div>
+                        <span className="text-gray-600 dark:text-gray-400">Present</span>
                     </div>
                     <div className="flex items-center gap-1.5">
-                        <div className="w-4 h-4 rounded bg-red-500"></div>
-                        <span className="text-gray-600">Absent</span>
+                        <div className="w-4 h-4 rounded bg-absent-fixed"></div>
+                        <span className="text-gray-600 dark:text-gray-400">Absent</span>
                     </div>
                     <div className="flex items-center gap-1.5">
                         <div className="w-4 h-4 rounded bg-yellow-400"></div>

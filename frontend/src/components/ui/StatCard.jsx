@@ -18,14 +18,14 @@ const StatCard = ({
             animate={{ opacity: 1, y: 0 }}
             whileHover={{ y: -4 }}
             onClick={onClick}
-            className={`bg-white rounded-2xl p-6 shadow-sm border border-gray-100 transition-all duration-300 hover:shadow-lg ${className} ${onClick ? 'cursor-pointer active:scale-95' : ''}`}
+            className={`bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-gray-100 transition-all duration-300 hover:shadow-lg ${className} ${onClick ? 'cursor-pointer active:scale-95' : ''}`}
         >
             <div className="flex items-start justify-between">
                 <div>
-                    <p className="text-sm font-medium text-gray-500 mb-1">{title}</p>
-                    <p className="text-3xl font-bold text-gray-900">{value}</p>
+                    <p className="text-[10px] sm:text-sm font-black text-gray-500 mb-1 uppercase tracking-wider">{title}</p>
+                    <p className="text-lg sm:text-3xl font-black text-gray-900 leading-none">{value}</p>
                     {/* Optional Subvalue (e.g., fee amount) */}
-                    {subValue && <p className="text-xs font-bold text-gray-500 mt-1">{subValue}</p>}
+                    {subValue && <p className="text-[10px] sm:text-xs font-bold text-gray-500 mt-1.5">{subValue}</p>}
                     {change && (
                         <div className="flex items-center mt-2">
                             <span
@@ -39,8 +39,8 @@ const StatCard = ({
                     )}
                 </div>
                 {Icon && (
-                    <div className={`p-3 rounded-xl ${iconBg}`}>
-                        <Icon className={`w-6 h-6 ${iconColor}`} />
+                    <div className={`p-2 sm:p-3 rounded-xl shrink-0 ${iconBg}`}>
+                        <Icon className={`w-4 h-4 sm:w-6 h-6 ${iconColor}`} />
                     </div>
                 )}
             </div>

@@ -223,7 +223,7 @@ const TeacherCourses = ({ isDashboard = false }) => {
     return (
         <>
             <div className="space-y-6">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between gap-4">
                     <div>
                         <h1 className="text-2xl font-bold text-gray-900">{isDashboard ? 'Pending Tasks Dashboard' : 'My Courses'}</h1>
                         <p className="text-gray-500">
@@ -248,10 +248,10 @@ const TeacherCourses = ({ isDashboard = false }) => {
                         animate={{ opacity: 1, y: 0 }}
                         className="bg-gradient-to-r from-red-500 to-orange-500 rounded-2xl p-4 text-white"
                     >
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                             <div className="flex items-center gap-3">
                                 <div className="w-3 h-3 bg-white rounded-full animate-pulse"></div>
-                                <span className="font-bold">🔴 Live Class Active: {activeLiveClasses[0]?.title}</span>
+                                <span className="font-bold text-sm sm:text-base line-clamp-1">🔴 Live Class Active: {activeLiveClasses[0]?.title}</span>
                                 {(() => {
                                     const lc = activeLiveClasses[0];
                                     if (!lc?.autoEndMinutes) return null;
@@ -260,8 +260,8 @@ const TeacherCourses = ({ isDashboard = false }) => {
                                     const mins = Math.floor(sl / 60);
                                     const secs = sl % 60;
                                     return (
-                                        <span className="flex items-center gap-1 bg-white/20 px-2 py-1 rounded-lg text-sm font-bold ml-2">
-                                            <Timer className="w-4 h-4" />
+                                        <span className="flex items-center gap-1 bg-white/20 px-2 py-1 rounded-lg text-[10px] sm:text-sm font-bold ml-2 whitespace-nowrap">
+                                            <Timer className="w-3 h-3 sm:w-4 h-4" />
                                             {`${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`} left
                                         </span>
                                     );
@@ -272,17 +272,17 @@ const TeacherCourses = ({ isDashboard = false }) => {
                                     href={activeLiveClasses[0]?.link}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="px-4 py-2 bg-white text-red-600 rounded-lg font-medium hover:bg-gray-100 transition-colors flex items-center gap-2"
+                                    className="flex-1 sm:flex-none px-4 py-2 bg-white text-red-600 rounded-lg font-bold text-xs hover:bg-gray-100 transition-colors flex items-center justify-center gap-2"
                                 >
                                     <ExternalLink className="w-4 h-4" />
                                     Open
                                 </a>
                                 <button
                                     onClick={() => handleEndLiveClass(activeLiveClasses[0]?._id)}
-                                    className="px-4 py-2 bg-red-700 text-white rounded-lg font-medium hover:bg-red-800 transition-colors flex items-center gap-2"
+                                    className="flex-1 sm:flex-none px-4 py-2 bg-red-700 text-white rounded-lg font-bold text-xs hover:bg-red-800 transition-colors flex items-center justify-center gap-2"
                                 >
                                     <StopCircle className="w-4 h-4" />
-                                    End Class
+                                    End
                                 </button>
                             </div>
                         </div>
@@ -290,13 +290,14 @@ const TeacherCourses = ({ isDashboard = false }) => {
                 )}
 
                 {/* Summary Stats */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6 gap-4">
+                <div className="grid grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6 gap-3 sm:gap-4">
                     <StatCard
                         title="Total Courses"
                         value={summaryStats.totalCourses}
                         icon={BookOpen}
                         iconBg="bg-blue-50"
                         iconColor="text-blue-600"
+                        onClick={() => navigate('/teacher/attendance')}
                     />
                     <StatCard
                         title="Total Students"
@@ -311,6 +312,7 @@ const TeacherCourses = ({ isDashboard = false }) => {
                         icon={CheckCircle}
                         iconBg="bg-emerald-50"
                         iconColor="text-emerald-600"
+                        onClick={() => navigate('/teacher/quick-attendance')}
                     />
                     <StatCard
                         title="Pending Gradings"
@@ -325,6 +327,7 @@ const TeacherCourses = ({ isDashboard = false }) => {
                         icon={User}
                         iconBg="bg-emerald-50"
                         iconColor="text-emerald-700"
+                        onClick={() => navigate('/teacher/quick-attendance', { state: { initialFilter: 'present' } })}
                     />
                     <StatCard
                         title="Today's Absent"
@@ -332,68 +335,76 @@ const TeacherCourses = ({ isDashboard = false }) => {
                         icon={X}
                         iconBg="bg-red-50"
                         iconColor="text-red-600"
+                        onClick={() => navigate('/teacher/quick-attendance', { state: { initialFilter: 'absent' } })}
                     />
                 </div>
 
                 {/* Filters and Search */}
-                <div className="bg-white rounded-2xl p-4 border border-gray-100 flex flex-col xl:flex-row gap-4">
-                    <div className="flex-1 flex items-center bg-gray-50 rounded-xl px-4 py-3">
-                        <Search className="w-5 h-5 text-gray-400 mr-3" />
+                <div className="bg-white rounded-3xl p-4 sm:p-6 border border-gray-100 shadow-sm space-y-4">
+                    {/* Search Bar */}
+                    <div className="relative">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                         <input
                             type="text"
                             placeholder="Search courses..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="bg-transparent border-none outline-none w-full text-gray-700 placeholder-gray-400"
+                            className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-transparent focus:border-emerald-500 focus:bg-white rounded-2xl transition-all outline-none text-sm font-medium"
                         />
                     </div>
 
-                    <div className="flex flex-col sm:flex-row gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {/* City Filters */}
-                        <div className="flex items-center gap-2 bg-gray-50 p-1 rounded-xl">
-                            {['Bahawalpur', 'Islamabad'].map((city) => (
-                                <button
-                                    key={city}
-                                    onClick={() => {
-                                        setSelectedCities(prev =>
-                                            prev.includes(city)
-                                                ? prev.filter(c => c !== city)
-                                                : [...prev, city]
-                                        );
-                                    }}
-                                    className={`px-4 py-2 rounded-lg font-medium text-sm transition-all whitespace-nowrap ${selectedCities.includes(city)
-                                        ? 'bg-white text-emerald-600 shadow-sm border border-emerald-100'
-                                        : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'
-                                        }`}
-                                >
-                                    {city}
-                                </button>
-                            ))}
+                        <div className="space-y-2">
+                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Location</p>
+                            <div className="flex items-center gap-2 bg-gray-50 p-1.5 rounded-2xl">
+                                {['Bahawalpur', 'Islamabad'].map((city) => (
+                                    <button
+                                        key={city}
+                                        onClick={() => {
+                                            setSelectedCities(prev =>
+                                                prev.includes(city)
+                                                    ? prev.filter(c => c !== city)
+                                                    : [...prev, city]
+                                            );
+                                        }}
+                                        className={`flex-1 px-3 py-2.5 rounded-xl font-bold text-xs transition-all ${selectedCities.includes(city)
+                                            ? 'bg-white text-emerald-600 shadow-md border border-emerald-100'
+                                            : 'text-gray-500 hover:text-gray-700 hover:bg-white/50'
+                                            }`}
+                                    >
+                                        {city}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
 
                         {/* Type Filters */}
-                        <div className="flex items-center gap-2 bg-gray-50 p-1 rounded-xl">
-                            {[
-                                { id: 'students', label: 'Student' },
-                                { id: 'interns', label: 'Intern' }
-                            ].map((type) => (
-                                <button
-                                    key={type.id}
-                                    onClick={() => {
-                                        setSelectedTypes(prev =>
-                                            prev.includes(type.id)
-                                                ? prev.filter(t => t !== type.id)
-                                                : [...prev, type.id]
-                                        );
-                                    }}
-                                    className={`px-4 py-2 rounded-lg font-medium text-sm transition-all whitespace-nowrap ${selectedTypes.includes(type.id)
-                                        ? 'bg-white text-emerald-600 shadow-sm border border-emerald-100'
-                                        : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'
-                                        }`}
-                                >
-                                    {type.label}
-                                </button>
-                            ))}
+                        <div className="space-y-2">
+                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Category</p>
+                            <div className="flex items-center gap-2 bg-gray-50 p-1.5 rounded-2xl">
+                                {[
+                                    { id: 'students', label: 'Student' },
+                                    { id: 'interns', label: 'Intern' }
+                                ].map((type) => (
+                                    <button
+                                        key={type.id}
+                                        onClick={() => {
+                                            setSelectedTypes(prev =>
+                                                prev.includes(type.id)
+                                                    ? prev.filter(t => t !== type.id)
+                                                    : [...prev, type.id]
+                                            );
+                                        }}
+                                        className={`flex-1 px-3 py-2.5 rounded-xl font-bold text-xs transition-all ${selectedTypes.includes(type.id)
+                                            ? 'bg-white text-emerald-600 shadow-md border border-emerald-100'
+                                            : 'text-gray-500 hover:text-gray-700 hover:bg-white/50'
+                                            }`}
+                                    >
+                                        {type.label}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
                     </div>
                 </div>

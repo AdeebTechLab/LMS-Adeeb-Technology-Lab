@@ -14,9 +14,11 @@ const Badge = ({
     };
 
     const sizes = {
-        sm: 'px-2 py-0.5 text-xs',
-        md: 'px-2.5 py-1 text-xs',
-        lg: 'px-3 py-1.5 text-sm',
+        xxs: 'px-1.5 py-0.5 text-[8px] font-black tracking-wider uppercase',
+        xs: 'px-2 py-0.5 text-[10px] font-bold tracking-tight',
+        sm: 'px-2 py-0.5 text-xs font-bold',
+        md: 'px-2.5 py-1 text-xs font-bold',
+        lg: 'px-3 py-1.5 text-sm font-bold',
     };
 
     return (

@@ -295,22 +295,22 @@ const FeeVerification = () => {
 
     return (
         <div className="space-y-6">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Fee Management</h1>
-                    <p className="text-gray-500">Verify payments and manage monthly fee plans</p>
+                    <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Fee Management</h1>
+                    <p className="text-sm text-gray-500">Verify payments and manage monthly fee plans</p>
                 </div>
-                <div className="flex bg-gray-100 p-1 rounded-xl">
+                <div className="grid grid-cols-2 sm:flex bg-gray-100 p-1 rounded-xl w-full sm:w-auto">
                     <button
                         onClick={() => setActiveTab('pending')}
-                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === 'pending' ? 'bg-white shadow text-emerald-600' : 'text-gray-500 hover:text-gray-700'
+                        className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all ${activeTab === 'pending' ? 'bg-white shadow text-emerald-600' : 'text-gray-500 hover:text-gray-700'
                             }`}
                     >
                         Pending Verification
                     </button>
                     <button
                         onClick={() => setActiveTab('all')}
-                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === 'all' ? 'bg-white shadow text-emerald-600' : 'text-gray-500 hover:text-gray-700'
+                        className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all ${activeTab === 'all' ? 'bg-white shadow text-emerald-600' : 'text-gray-500 hover:text-gray-700'
                             }`}
                     >
                         All Fees & Months
@@ -319,7 +319,7 @@ const FeeVerification = () => {
             </div>
 
             {/* Filters and Search */}
-            <div className="bg-white rounded-2xl p-6 border border-gray-100 space-y-4">
+            <div className="bg-white rounded-2xl p-4 sm:p-6 border border-gray-100 space-y-6">
                 <div className="flex flex-col gap-4">
                     {/* Search */}
                     <div className="flex-1 flex items-center bg-gray-50 rounded-xl px-4 py-3 border border-transparent focus-within:border-emerald-500/20 focus-within:bg-white transition-all">
@@ -329,7 +329,7 @@ const FeeVerification = () => {
                             placeholder="Search students or courses..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="bg-transparent border-none outline-none w-full text-gray-700 placeholder:text-gray-400 font-medium"
+                            className="bg-transparent border-none outline-none w-full text-gray-700 placeholder:text-gray-400 font-medium text-sm"
                         />
                     </div>
 
@@ -337,22 +337,22 @@ const FeeVerification = () => {
                     {(selectedRoles.length > 0 || selectedCities.length > 0 || searchQuery) && (
                         <button
                             onClick={clearFilters}
-                            className="flex items-center justify-center gap-2 px-4 py-2 text-rose-500 hover:bg-rose-50 rounded-xl transition-all text-sm font-black uppercase tracking-widest"
+                            className="flex items-center justify-center gap-2 px-4 py-2 text-rose-500 hover:bg-rose-50 rounded-xl transition-all text-[10px] font-black uppercase tracking-widest"
                         >
                             <XCircle className="w-4 h-4" />
-                            Clear
+                            Clear Filters
                         </button>
                     )}
                 </div>
 
-                <div className="flex flex-wrap items-center gap-6 pt-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
                     {/* Role Filters */}
-                    <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Audience:</span>
-                        <div className="flex bg-gray-100 p-1 rounded-lg">
+                    <div className="space-y-2">
+                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Audience:</span>
+                        <div className="grid grid-cols-2 bg-gray-100 p-1 rounded-xl">
                             <button
                                 onClick={() => toggleFilter('role', 'students')}
-                                className={`px-4 py-1.5 rounded-md text-[10px] font-black uppercase tracking-widest transition-all ${selectedRoles.includes('students')
+                                className={`py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${selectedRoles.includes('students')
                                     ? 'bg-white text-emerald-600 shadow-sm'
                                     : 'text-gray-500 hover:text-gray-700'
                                     }`}
@@ -361,7 +361,7 @@ const FeeVerification = () => {
                             </button>
                             <button
                                 onClick={() => toggleFilter('role', 'interns')}
-                                className={`px-4 py-1.5 rounded-md text-[10px] font-black uppercase tracking-widest transition-all ${selectedRoles.includes('interns')
+                                className={`py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${selectedRoles.includes('interns')
                                     ? 'bg-white text-emerald-600 shadow-sm'
                                     : 'text-gray-500 hover:text-gray-700'
                                     }`}
@@ -371,15 +371,13 @@ const FeeVerification = () => {
                         </div>
                     </div>
 
-                    <div className="h-6 w-px bg-gray-200 hidden sm:block" />
-
                     {/* City Filters */}
-                    <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Location:</span>
-                        <div className="flex bg-gray-100 p-1 rounded-lg">
+                    <div className="space-y-2">
+                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Location:</span>
+                        <div className="grid grid-cols-2 bg-gray-100 p-1 rounded-xl">
                             <button
                                 onClick={() => toggleFilter('city', 'Islamabad')}
-                                className={`px-4 py-1.5 rounded-md text-[10px] font-black uppercase tracking-widest transition-all ${selectedCities.includes('Islamabad')
+                                className={`py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${selectedCities.includes('Islamabad')
                                     ? 'bg-white text-emerald-600 shadow-sm'
                                     : 'text-gray-500 hover:text-gray-700'
                                     }`}
@@ -388,7 +386,7 @@ const FeeVerification = () => {
                             </button>
                             <button
                                 onClick={() => toggleFilter('city', 'Bahawalpur')}
-                                className={`px-4 py-1.5 rounded-md text-[10px] font-black uppercase tracking-widest transition-all ${selectedCities.includes('Bahawalpur')
+                                className={`py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${selectedCities.includes('Bahawalpur')
                                     ? 'bg-white text-emerald-600 shadow-sm'
                                     : 'text-gray-500 hover:text-gray-700'
                                     }`}
@@ -399,6 +397,7 @@ const FeeVerification = () => {
                     </div>
                 </div>
             </div>
+
 
             {/* Error */}
             {error && (
@@ -427,68 +426,68 @@ const FeeVerification = () => {
                             <div className="grid gap-4">
                                 {getFilteredFees(fees).map(fee => (
                                     (fee.installments || []).filter(i => i.status === 'submitted').map(inst => (
-                                        <motion.div key={`${fee._id}-${inst._id}`} layout className="bg-white p-6 rounded-2xl border border-amber-200 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                                            <div className="flex items-center gap-4">
+                                        <motion.div key={`${fee._id}-${inst._id}`} layout className="bg-white p-4 sm:p-6 rounded-2xl border border-amber-200 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                                            <div className="flex items-start sm:items-center gap-4">
                                                 {fee.user?.photo ? (
                                                     <img
                                                         src={fee.user.photo}
                                                         alt={fee.user.name}
-                                                        className="w-12 h-12 rounded-full object-cover border-2 border-amber-100"
+                                                        className="w-12 h-12 rounded-full object-cover border-2 border-amber-100 shrink-0"
                                                     />
                                                 ) : (
-                                                    <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center text-amber-600 font-bold text-lg">
+                                                    <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center text-amber-600 font-black text-lg shrink-0">
                                                         {fee.user?.name?.charAt(0)}
                                                     </div>
                                                 )}
-                                                <div>
-                                                    <h3 className="font-semibold text-gray-900">
-                                                        {fee.user?.name || 'Unknown Student'}
+                                                <div className="min-w-0 flex-1">
+                                                    <h3 className="font-bold text-gray-900 truncate flex flex-wrap items-center gap-2">
+                                                        <span className="text-sm sm:text-base">{fee.user?.name || 'Unknown Student'}</span>
                                                         {fee.user?.phone && (
-                                                            <span className="ml-2 text-xs font-normal text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full inline-flex items-center gap-1">
+                                                            <span className="text-[10px] font-bold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
                                                                 📞 {fee.user.phone}
                                                             </span>
                                                         )}
                                                     </h3>
-                                                    <p className="text-sm text-gray-500">
+                                                    <p className="text-xs text-gray-500 mt-0.5 truncate">
                                                         {fee.course?.title || 'Unknown Course'} ({fee.course?.city || 'N/A'})
-                                                        <span className={`ml-2 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest ${fee.course?.targetAudience === 'students' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-purple-50 text-purple-600 border border-purple-100'}`}>
+                                                        <span className={`ml-2 px-1.5 py-0.5 rounded-[4px] text-[9px] font-black uppercase tracking-widest ${fee.course?.targetAudience === 'students' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-purple-50 text-purple-600 border border-purple-100'}`}>
                                                             {fee.course?.targetAudience}
                                                         </span>
                                                     </p>
-                                                    <div className="flex gap-4 mt-1 text-sm text-gray-500">
-                                                        <span>Slip ID: {inst.slipId || 'N/A'}</span>
-                                                        <span>•</span>
-                                                        <span>Submitted: {formatDate(inst.paidAt)}</span>
+                                                    <div className="grid grid-cols-2 sm:flex gap-x-4 gap-y-1 mt-2 text-[10px] font-bold text-gray-400 uppercase tracking-tight">
+                                                        <span className="truncate">Slip: {inst.slipId || 'N/A'}</span>
+                                                        <span className="truncate">Sent: {formatDate(inst.paidAt)}</span>
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div className="text-left lg:text-right">
-                                                <p className="text-xl font-bold text-gray-900">Rs {(inst.amount || 0).toLocaleString()}</p>
-                                                <p className="text-sm text-amber-600 font-medium">{inst.status}</p>
-                                            </div>
-                                            <div className="flex items-center gap-3">
-                                                {inst.receiptUrl && (
-                                                    <button onClick={() => handleViewScreenshot({ ...inst, feeId: fee._id, student: fee.user?.name, course: fee.course?.title })} className="flex items-center gap-2 px-4 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-medium">
+
+                                            <div className="flex flex-row lg:flex-col items-center lg:items-end justify-between border-t border-dashed border-gray-100 pt-4 lg:pt-0 lg:border-none">
+                                                <div className="text-left lg:text-right">
+                                                    <p className="text-lg sm:text-xl font-black text-gray-900">Rs {(inst.amount || 0).toLocaleString()}</p>
+                                                    <p className="text-[10px] font-black text-amber-600 uppercase tracking-widest">{inst.status}</p>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <button onClick={() => handleViewScreenshot({ ...inst, feeId: fee._id, student: fee.user?.name, course: fee.course?.title })} className="w-10 h-10 sm:w-auto sm:px-4 sm:py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-500/20" title="View Receipt">
                                                         <Eye className="w-4 h-4" />
-                                                        View Receipt
+                                                        <span className="hidden sm:inline">View Receipt</span>
                                                     </button>
-                                                )}
-                                                <button
-                                                    onClick={() => handleReject(fee._id, inst._id)}
-                                                    disabled={isProcessing}
-                                                    className="flex items-center gap-2 px-4 py-2.5 bg-rose-100 hover:bg-rose-200 text-rose-700 rounded-xl font-medium disabled:opacity-50"
-                                                    title="Reject Receipt"
-                                                >
-                                                    <XCircle className="w-4 h-4" />
-                                                    Reject
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDeleteInstallment(fee._id, inst._id)}
-                                                    className="p-2.5 bg-gray-100 hover:bg-red-50 text-gray-500 hover:text-red-600 rounded-xl transition-all"
-                                                    title="Delete Month"
-                                                >
-                                                    <Trash2 className="w-4 h-4" />
-                                                </button>
+                                                    <button
+                                                        onClick={() => handleReject(fee._id, inst._id)}
+                                                        disabled={isProcessing}
+                                                        className="w-10 h-10 sm:w-auto sm:px-4 sm:py-2.5 bg-rose-100 hover:bg-rose-200 text-rose-700 rounded-xl font-bold flex items-center justify-center gap-2 transition-all disabled:opacity-50"
+                                                        title="Reject Receipt"
+                                                    >
+                                                        <XCircle className="w-4 h-4" />
+                                                        <span className="hidden sm:inline">Reject</span>
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDeleteInstallment(fee._id, inst._id)}
+                                                        className="w-10 h-10 flex items-center justify-center bg-gray-100 hover:bg-red-50 text-gray-500 hover:text-red-600 rounded-xl transition-all border border-transparent hover:border-red-100"
+                                                        title="Delete Month"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                </div>
                                             </div>
                                         </motion.div>
                                     ))
@@ -512,40 +511,42 @@ const FeeVerification = () => {
                             <div className="grid gap-3">
                                 {getFilteredFees(fees).map(fee => (
                                     (fee.installments || []).filter(i => i.status === 'pending').map(inst => (
-                                        <div key={`${fee._id}-${inst._id}`} className="bg-gray-50 dark:bg-slate-800 p-4 rounded-xl border border-gray-100 dark:border-slate-700 flex flex-col md:flex-row md:items-center justify-between gap-4 opacity-75 hover:opacity-100 transition-opacity">
+                                        <div key={`${fee._id}-${inst._id}`} className="bg-gray-50 dark:bg-slate-800 p-4 rounded-xl border border-gray-100 dark:border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-4 opacity-75 hover:opacity-100 transition-opacity">
                                             <div className="flex items-center gap-3">
                                                 {fee.user?.photo ? (
                                                     <img
                                                         src={fee.user.photo}
                                                         alt={fee.user.name}
-                                                        className="w-10 h-10 rounded-full object-cover border border-gray-200"
+                                                        className="w-10 h-10 rounded-full object-cover border border-gray-200 shrink-0"
                                                     />
                                                 ) : (
-                                                    <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center text-gray-500 font-bold text-sm">
+                                                    <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center text-gray-500 font-bold text-sm shrink-0">
                                                         {fee.user?.name?.charAt(0)}
                                                     </div>
                                                 )}
-                                                <div>
-                                                    <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest inline-block mb-1 ${fee.course?.targetAudience === 'students' ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-purple-50 text-purple-600 border border-purple-200'}`}>
-                                                        {fee.course?.targetAudience}
-                                                    </span>
-                                                    <h3 className="font-medium text-gray-700 dark:text-gray-100">
-                                                        {fee.user?.name || 'Unknown Student'}
+                                                <div className="min-w-0 flex-1">
+                                                    <div className="flex items-center gap-2 mb-0.5">
+                                                        <span className={`px-1.5 py-0.5 rounded-[4px] text-[8px] font-black uppercase tracking-widest ${fee.course?.targetAudience === 'students' ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-purple-50 text-purple-600 border border-purple-200'}`}>
+                                                            {fee.course?.targetAudience}
+                                                        </span>
+                                                    </div>
+                                                    <h3 className="font-bold text-gray-700 dark:text-gray-100 truncate flex items-center gap-2">
+                                                        <span className="text-sm">{fee.user?.name || 'Unknown Student'}</span>
                                                         {fee.user?.phone && (
-                                                            <span className="ml-2 text-xs font-normal text-gray-500 dark:text-gray-200 bg-gray-200/50 dark:bg-slate-700 px-2 py-0.5 rounded-full inline-flex items-center gap-1">
+                                                            <span className="text-[9px] font-bold text-gray-500 bg-white/50 px-1.5 py-0.5 rounded-full">
                                                                 📞 {fee.user.phone}
                                                             </span>
                                                         )}
                                                     </h3>
-                                                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                                                    <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate">
                                                         {fee.course?.title} ({fee.course?.city}) • Due: {formatDate(inst.dueDate)}
                                                     </p>
                                                 </div>
                                             </div>
-                                            <div className="flex items-center gap-4">
-                                                <div className="text-left md:text-right">
-                                                    <span className="font-bold text-gray-700 dark:text-gray-100">Rs {(inst.amount || 0).toLocaleString()}</span>
-                                                    <span className="ml-3 text-xs bg-gray-200 dark:bg-slate-700 text-gray-600 dark:text-gray-300 px-2 py-1 rounded">Pending</span>
+                                            <div className="flex items-center justify-between sm:justify-end gap-4 border-t border-dashed border-gray-100 pt-3 sm:pt-0 sm:border-none">
+                                                <div className="text-left sm:text-right">
+                                                    <span className="font-black text-gray-900 dark:text-gray-100">Rs {(inst.amount || 0).toLocaleString()}</span>
+                                                    <span className="ml-2 text-[10px] font-black uppercase tracking-widest bg-gray-200 dark:bg-slate-700 text-gray-600 dark:text-gray-300 px-2 py-1 rounded">Pending</span>
                                                 </div>
                                                 <button
                                                     onClick={() => handleDeleteInstallment(fee._id, inst._id)}

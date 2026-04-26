@@ -400,7 +400,7 @@ const StudentDashboard = () => {
                 </motion.div>
 
                 {/* Stats Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                     {stats.map((stat, index) => (
                         <motion.div
                             key={stat.title}
@@ -485,7 +485,7 @@ const StudentDashboard = () => {
                                 </button>
                             </div>
                         ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 {enrolledCourses.map((course, index) => (
                                     <motion.div
                                         key={course.id}

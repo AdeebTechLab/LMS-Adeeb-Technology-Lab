@@ -476,4 +476,35 @@ router.put('/course/:courseId/read/:senderId', protect, async (req, res) => {
     }
 });
 
+// @route   POST /api/chat/course/:courseId/clear/:userId
+// @desc    Delete ALL messages in a course with a user
+// @access  Private (Teacher or Admin)
+router.post('/course/:courseId/clear/:userId', protect, async (req, res) => {
+    try {
+        const { courseId, userId } = req.params;
+        const myId = req.user.id;
+
+        // Verify authorization: User must be a teacher or admin
+        if (req.user.role !== 'admin' && req.user.role !== 'teacher') {
+            return res.status(403).json({ success: false, message: 'Unauthorized' });
+        }
+
+        const result = await GlobalMessage.deleteMany({
+            course: courseId,
+            $or: [
+                { sender: myId, recipient: userId },
+                { sender: userId, recipient: myId }
+            ]
+        });
+
+        res.json({ 
+            success: true, 
+            message: 'Course chat history cleared successfully',
+            deletedCount: result.deletedCount 
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
 module.exports = router;
