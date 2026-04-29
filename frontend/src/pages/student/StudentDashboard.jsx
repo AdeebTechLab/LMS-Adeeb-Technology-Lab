@@ -250,7 +250,7 @@ const StudentDashboard = () => {
         return (
             <div className="flex flex-col items-center justify-center h-64 gap-3">
                 <img src="/loading.gif" alt="Loading" className="w-20 h-20 object-contain" />
-                <span className="text-gray-600 font-medium">Loading dashboard...</span>
+                <span className="text-gray-600 dark:text-gray-400 font-medium">Loading dashboard...</span>
             </div>
         );
     }
@@ -330,13 +330,13 @@ const StudentDashboard = () => {
                     <motion.div
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
-                        className="bg-amber-50 border-2 border-amber-300 px-5 py-4 rounded-2xl flex items-start gap-4"
+                        className="bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-300 dark:border-amber-500/30 px-5 py-4 rounded-2xl flex items-start gap-4"
                     >
                         <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0 mt-0.5">
                             <Bell className="w-5 h-5 text-amber-600" />
                         </div>
                         <div>
-                            <p className="text-sm font-black text-amber-800 uppercase tracking-wide">Account Temporarily Paused</p>
+                            <p className="text-sm font-black text-amber-800 dark:text-amber-200 uppercase tracking-wide">Account Temporarily Paused</p>
                             <p className="text-xs text-amber-700 font-medium mt-1 leading-relaxed">
                                 Your access to one or more courses has been paused by your teacher. Assignments, daily task submissions, and fee installments are blocked until your teacher resumes your access.
                             </p>
@@ -349,15 +349,15 @@ const StudentDashboard = () => {
                     <motion.div
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        className="bg-orange-50 border-2 border-[#ff8e01]/20 rounded-2xl p-4 flex items-center justify-between"
+                        className="bg-orange-50 dark:bg-orange-500/10 border-2 border-[#ff8e01]/20 dark:border-orange-500/30 rounded-2xl p-4 flex items-center justify-between"
                     >
                         <div className="flex items-center gap-4">
                             <div className="w-12 h-12 bg-[#ff8e01] rounded-xl flex items-center justify-center text-white shadow-lg shadow-orange-200">
                                 <Bell className="w-6 h-6 animate-bounce" />
                             </div>
                             <div>
-                                <h3 className="text-sm font-black text-gray-900 uppercase tracking-tight">Urgent Task Pending</h3>
-                                <p className="text-xs text-gray-600 font-medium lowercase">You have {pendingAssignments.length} assignment(s) requiring immediate attention.</p>
+                                <h3 className="text-sm font-black text-gray-900 dark:text-white uppercase tracking-tight">Urgent Task Pending</h3>
+                                <p className="text-xs text-gray-600 dark:text-gray-400 font-medium lowercase">You have {pendingAssignments.length} assignment(s) requiring immediate attention.</p>
                             </div>
                         </div>
                         <button
@@ -442,15 +442,15 @@ const StudentDashboard = () => {
                                                 </div>
                                                 <div>
                                                     <h4 className="font-black text-gray-900 text-sm group-hover:text-[#ff8e01] transition-colors uppercase italic truncate max-w-[150px]">{assignment.title}</h4>
-                                                    <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mt-0.5">
-                                                        Due: {new Date(assignment.dueDate).toLocaleDateString(undefined, { day: '2-digit', month: 'short' })}
-                                                    </p>
+<p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mt-0.5 dark:text-gray-500">
+                                                         Due: {new Date(assignment.dueDate).toLocaleDateString(undefined, { day: '2-digit', month: 'short' })}
+                                                     </p>
                                                 </div>
                                             </div>
                                         </div>
                                         <button
                                             onClick={() => navigate(`/${role}/assignments`)}
-                                            className="w-full py-2.5 bg-[#222d38] hover:bg-[#394251] text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-slate-200 active:scale-95"
+                                            className="w-full py-2.5 bg-[#222d38] hover:bg-[#394251] dark:bg-[#ff8e01] dark:hover:bg-[#e67e00] text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-slate-200 dark:shadow-orange-950/20 active:scale-95"
                                         >
                                             Submit Now
                                         </button>

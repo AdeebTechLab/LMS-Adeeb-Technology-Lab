@@ -76,9 +76,9 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         if (targetRole === role) return;
         setIsSwitchingRole(true);
         try {
-            const res = await authAPI.switchRole(targetRole);
+            const rememberMe = localStorage.getItem('rememberMe') === 'true';
+            const res = await authAPI.switchRole({ targetRole, rememberMe });
             if (res.data.success) {
-                const rememberMe = localStorage.getItem('rememberMe') === 'true';
                 dispatch(loginSuccess({
                     user: res.data.user,
                     token: res.data.token,

@@ -18,8 +18,7 @@ import {
     ArrowRight,
     Download,
     BookOpen,
-    Trash2,
-    ImageIcon
+    Trash2
 } from 'lucide-react';
 import Modal from '../../components/ui/Modal';
 import html2canvas from 'html2canvas';
@@ -39,10 +38,18 @@ const AdminDashboard = () => {
     const today = new Date();
     const startOfCurrentMonth = new Date(today.getFullYear(), today.getMonth(), 1);
 
+    // Helper to get local date string YYYY-MM-DD
+    const getLocalDateString = (date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+
     const [filters, setFilters] = useState({
         month: '',
-        startDate: startOfCurrentMonth.toISOString().split('T')[0],
-        endDate: today.toISOString().split('T')[0]
+        startDate: getLocalDateString(startOfCurrentMonth),
+        endDate: getLocalDateString(today)
     });
     const [dateRangeType, setDateRangeType] = useState('current_month');
     const [showFullHistory, setShowFullHistory] = useState(false);
@@ -58,7 +65,7 @@ const AdminDashboard = () => {
         if (dateRangeType === 'custom') return;
 
         const today = new Date();
-        const endStr = today.toISOString().split('T')[0];
+        const endStr = getLocalDateString(today);
         const start = new Date(today);
 
         if (dateRangeType === 'current_month') {
@@ -71,7 +78,7 @@ const AdminDashboard = () => {
             start.setMonth(start.getMonth() - 3);
         }
 
-        setFilters({ month: '', startDate: start.toISOString().split('T')[0], endDate: endStr });
+        setFilters({ month: '', startDate: getLocalDateString(start), endDate: endStr });
     }, [dateRangeType]);
 
     const fetchStats = async () => {
@@ -238,16 +245,9 @@ const AdminDashboard = () => {
                             className="p-2.5 bg-blue-50 hover:bg-blue-500 rounded-xl transition-all group shadow-sm active:scale-90"
                             title="View Uploaded Slip"
                         >
-                            <ImageIcon className="w-5 h-5 text-blue-500 group-hover:text-white" />
+                            <Eye className="w-5 h-5 text-blue-500 group-hover:text-white" />
                         </button>
                     )}
-                    <button
-                        onClick={() => navigate('/admin/fee-verification')}
-                        className="p-2.5 bg-orange-50 hover:bg-[#ff8e01] rounded-xl transition-all group shadow-sm active:scale-90"
-                        title="View Details"
-                    >
-                        <Eye className="w-5 h-5 text-[#ff8e01] group-hover:text-white" />
-                    </button>
                     <button
                         onClick={() => handleDeleteSubmission(row)}
                         className="p-2.5 bg-red-50 hover:bg-red-500 rounded-xl transition-all group shadow-sm active:scale-90"

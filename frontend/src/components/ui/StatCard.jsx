@@ -18,23 +18,23 @@ const StatCard = ({
             animate={{ opacity: 1, y: 0 }}
             whileHover={{ y: -4 }}
             onClick={onClick}
-            className={`bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-gray-100 transition-all duration-300 hover:shadow-lg ${className} ${onClick ? 'cursor-pointer active:scale-95' : ''}`}
+            className={`bg-white dark:bg-[#1a1f2e] rounded-2xl p-4 sm:p-6 shadow-sm border border-gray-100 dark:border-gray-800/50 transition-all duration-300 hover:shadow-lg ${className} ${onClick ? 'cursor-pointer active:scale-95' : ''}`}
         >
             <div className="flex items-start justify-between">
                 <div>
-                    <p className="text-[10px] sm:text-sm font-black text-gray-500 mb-1 uppercase tracking-wider">{title}</p>
-                    <p className="text-lg sm:text-3xl font-black text-gray-900 leading-none">{value}</p>
+                    <p className="text-[10px] sm:text-sm font-black text-gray-500 dark:text-gray-400 mb-1 uppercase tracking-wider">{title}</p>
+                    <p className="text-lg sm:text-3xl font-black text-gray-900 dark:text-gray-100 leading-none">{value}</p>
                     {/* Optional Subvalue (e.g., fee amount) */}
-                    {subValue && <p className="text-[10px] sm:text-xs font-bold text-gray-500 mt-1.5">{subValue}</p>}
+                    {subValue && <p className="text-[10px] sm:text-xs font-bold text-gray-500 dark:text-gray-400 mt-1.5">{subValue}</p>}
                     {change && (
                         <div className="flex items-center mt-2">
                             <span
-                                className={`text-sm font-medium ${changeType === 'positive' ? 'text-emerald-600' : 'text-red-500'
+                                className={`text-sm font-medium ${changeType === 'positive' ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500 dark:text-red-400'
                                     }`}
                             >
                                 {changeType === 'positive' ? '+' : ''}{change}
                             </span>
-                            <span className="text-xs text-gray-400 ml-1">vs last month</span>
+                            <span className="text-xs text-gray-400 dark:text-gray-500 ml-1">vs last month</span>
                         </div>
                     )}
                 </div>

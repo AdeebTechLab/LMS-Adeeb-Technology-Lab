@@ -12,6 +12,7 @@ import Modal from '../../components/ui/Modal';
 import { userAPI, settingsAPI, enrollmentAPI, assignmentAPI, feeAPI } from '../../services/api';
 import { generateComprehensiveReport } from '../../utils/reportGenerator';
 import Loader from '../../components/ui/Loader';
+import ImageCropper from '../../components/ui/ImageCropper';
 
 const StudentsManagement = () => {
     const [searchQuery, setSearchQuery] = useState('');
@@ -35,6 +36,7 @@ const StudentsManagement = () => {
     const [enrollFetching, setEnrollFetching] = useState(false);
     const [enrollLoadingId, setEnrollLoadingId] = useState(null);
     const [enrollToast, setEnrollToast] = useState(null);
+    const [cropperSrc, setCropperSrc] = useState(null);
 
     // Installment/Fee Plan States (Integrated from FeeVerification)
     const [isInstallmentModalOpen, setIsInstallmentModalOpen] = useState(false);
@@ -135,6 +137,21 @@ const StudentsManagement = () => {
             setIsProcessing(false);
             setConfirmModal({ open: false, action: null, user: null });
         }
+    };
+
+    const handlePhotoChange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onloadend = () => setCropperSrc(reader.result);
+        reader.readAsDataURL(file);
+        e.target.value = '';
+    };
+
+    const handleCropDone = (croppedFile, croppedDataUrl) => {
+        setSelectedFile(croppedFile);
+        setPhotoPreview(croppedDataUrl);
+        setCropperSrc(null);
     };
 
     const handleEditClick = (student) => {
@@ -1159,13 +1176,7 @@ const StudentsManagement = () => {
                                 <input
                                     type="file"
                                     accept="image/*"
-                                    onChange={(e) => {
-                                        const file = e.target.files[0];
-                                        if (file) {
-                                            setSelectedFile(file);
-                                            setPhotoPreview(URL.createObjectURL(file));
-                                        }
-                                    }}
+                                    onChange={handlePhotoChange}
                                     className="absolute inset-0 opacity-0 cursor-pointer"
                                 />
                             </div>
@@ -1407,6 +1418,15 @@ const StudentsManagement = () => {
                     </div>
                 </form>
             </Modal>
+
+            {cropperSrc && (
+                <ImageCropper
+                    imageSrc={cropperSrc}
+                    onCrop={handleCropDone}
+                    onCancel={() => setCropperSrc(null)}
+                    accentColor="emerald"
+                />
+            )}
 
             {/* Monthly Fee Management Modal */}
             <Modal isOpen={isInstallmentModalOpen} onClose={() => setIsInstallmentModalOpen(false)} title="Manage Months" size="lg">

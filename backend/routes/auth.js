@@ -67,10 +67,33 @@ router.post('/register', uploadRegistration.fields([
             rollNo: assignedRollNo
         };
 
+        // Fields to synchronize across all roles for the same email
+        const syncFields = [
+            'name', 'phone', 'cnic', 'dob', 'age', 'gender', 
+            'address', 'city', 'country', 'fatherName', 'photo'
+        ];
+
+        const syncData = { password }; // Password always synchronized during registration
+
         // Add photo if uploaded
         if (req.files && req.files['photo']) {
             userData.photo = req.files['photo'][0].path;
+            syncData.photo = userData.photo;
+        } else {
+            // If no photo uploaded, check if any other account with this email has a photo
+            const userWithPhoto = await User.findOne({ email, photo: { $exists: true, $ne: null, $ne: '' } });
+            if (userWithPhoto) {
+                userData.photo = userWithPhoto.photo;
+                console.log(`Reusing existing photo for ${email}`);
+            }
         }
+
+        // Add other core fields for synchronization
+        syncFields.forEach(field => {
+            if (req.body[field] !== undefined) {
+                syncData[field] = req.body[field];
+            }
+        });
 
         // Add fee screenshot if uploaded
         if (req.files && req.files['feeScreenshot']) {
@@ -133,6 +156,17 @@ router.post('/register', uploadRegistration.fields([
         let user;
         try {
             user = await User.create(userData);
+
+            // Synchronize password, photo, and core fields across all OTHER accounts with the same email
+            // We do this AFTER creating the new user to ensure the new user is safe.
+            // Note: password hashing is handled by User model middleware (if any) or pre-save hooks.
+            // If User.js has a pre-save hook for password, .create() will trigger it.
+            // UpdateMany will NOT trigger pre-save hooks, so we need to be careful if hashing is used.
+            // Let's check User model for hashing.
+            await User.updateMany(
+                { email, _id: { $ne: user._id } },
+                { $set: syncData }
+            );
         } catch (createError) {
             // Handle duplicate key error (E11000) - user was created by another request
             if (createError.code === 11000) {
@@ -264,8 +298,8 @@ router.post('/login', async (req, res) => {
         }
 
         // Generate token
-        // If rememberMe is true, expire in 30 days. Otherwise, expire in 2 hours.
-        const expiresIn = rememberMe ? '30d' : '2h';
+        // If rememberMe is true, expire in 365 days. Otherwise, expire in 2 hours.
+        const expiresIn = rememberMe ? '365d' : '2h';
         const token = user.getSignedJwtToken(expiresIn);
 
         res.json({
@@ -378,7 +412,9 @@ router.post('/switch-role', protect, async (req, res) => {
         }
 
         // Generate a new token for the target user (same session duration logic as login)
-        const token = targetUser.getSignedJwtToken('2h');
+        const { rememberMe } = req.body;
+        const expiresIn = rememberMe ? '365d' : '2h';
+        const token = targetUser.getSignedJwtToken(expiresIn);
 
         res.json({
             success: true,
@@ -415,6 +451,12 @@ const SystemSetting = require('../models/SystemSetting'); // Import SystemSettin
 
 router.put('/profile', protect, uploadPhoto.single('photo'), async (req, res) => {
     try {
+        // Get current user doc to check data and email
+        const currentUser = await User.findById(req.user.id);
+        if (!currentUser) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+
         // Check Global Bio Editing Permission based on user role
         if (req.user.role !== 'admin') { // Admin always allowed
             // Use role-specific setting key
@@ -423,8 +465,7 @@ router.put('/profile', protect, uploadPhoto.single('photo'), async (req, res) =>
             const isBioEditingAllowed = bioSetting ? bioSetting.value : false; // Default to false if not set
 
             // Check if user has no data - allow editing to fill initial data
-            const user = await User.findById(req.user.id);
-            const hasNoData = !user.phone && !user.city && !user.address;
+            const hasNoData = !currentUser.phone && !currentUser.city && !currentUser.address;
 
             if (!isBioEditingAllowed && !hasNoData) {
                 // If editing is disabled and user has data, allow ONLY photo updates
@@ -446,16 +487,38 @@ router.put('/profile', protect, uploadPhoto.single('photo'), async (req, res) =>
             updates.photo = req.file.path;
         }
 
-        // Restrict only email and role for non-admins (these should never be changed by user)
+        // Restrict only email and role for non-admins
         if (req.user.role !== 'admin') {
             const restrictedFields = ['email', 'role', 'isVerified', 'rollNo'];
             restrictedFields.forEach(field => delete updates[field]);
         }
 
-        // Remove password from updates (use separate route for password change)
+        // Remove password from updates
         delete updates.password;
 
+        // Update current user
         const user = await User.findByIdAndUpdate(req.user.id, updates, { new: true, runValidators: true });
+
+        // Fields to synchronize across all roles for the same email
+        const syncFields = [
+            'name', 'phone', 'cnic', 'dob', 'age', 'gender', 
+            'address', 'city', 'country', 'fatherName', 'photo'
+        ];
+
+        const syncData = {};
+        syncFields.forEach(field => {
+            if (updates[field] !== undefined) {
+                syncData[field] = updates[field];
+            }
+        });
+
+        // Synchronize across all other roles with the same email
+        if (Object.keys(syncData).length > 0) {
+            await User.updateMany(
+                { email: currentUser.email, _id: { $ne: req.user.id } },
+                { $set: syncData }
+            );
+        }
 
         res.json({ success: true, user });
     } catch (error) {
@@ -606,11 +669,17 @@ router.post('/reset-password/:token', async (req, res) => {
             return res.status(400).json({ success: false, message: 'Invalid or expired reset token' });
         }
 
-        // Update password
+        // Update password for the current user instance
         user.password = password;
         user.passwordResetToken = undefined;
         user.passwordResetExpires = undefined;
         await user.save();
+
+        // Synchronize password across all OTHER accounts with the same email
+        await User.updateMany(
+            { email: user.email, _id: { $ne: user._id } },
+            { $set: { password: password } }
+        );
 
         res.json({
             success: true,

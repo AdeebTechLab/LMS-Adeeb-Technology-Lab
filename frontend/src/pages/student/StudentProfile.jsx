@@ -3,7 +3,8 @@ import { motion } from 'framer-motion';
 import { useSelector, useDispatch } from 'react-redux';
 import {
     User, Mail, Phone, MapPin, Calendar, CreditCard,
-    Edit2, Save, X, Camera, BookOpen, GraduationCap, Users, Loader2, Clock
+    Edit2, Save, X, Camera, BookOpen, GraduationCap, Users, Loader2, Clock,
+    FileText, Briefcase, Globe, Award, Link as LinkIcon
 } from 'lucide-react';
 import { authAPI, enrollmentAPI, settingsAPI } from '../../services/api';
 import { updateUser } from '../../features/auth/authSlice';
@@ -58,17 +59,20 @@ const SelectField = ({ icon: Icon, label, value, name, options, editable = true,
 );
 
 const StudentProfile = () => {
-    const { user } = useSelector((state) => state.auth);
+    const { user: initialUser } = useSelector((state) => state.auth);
     const dispatch = useDispatch();
     const [isEditing, setIsEditing] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
     const [enrollments, setEnrollments] = useState([]);
+    const [user, setUser] = useState(initialUser);
 
     const [profileData, setProfileData] = useState({
         fullName: user?.name || '',
         email: user?.email || '',
         phone: user?.phone || '',
         cnic: user?.cnic || '',
+        fatherName: user?.fatherName || '',
         dob: user?.dob || '',
         age: user?.age || '',
         gender: user?.gender || '',
@@ -82,6 +86,16 @@ const StudentProfile = () => {
         course: '',
         attendType: user?.attendType || 'Physical',
         cityToAttend: user?.location || '',
+        rollNumber: user?.rollNumber || '', // Academic Roll No
+        heardAbout: user?.heardAbout || '',
+        // Intern Specific
+        degree: user?.degree || '',
+        university: user?.university || '',
+        department: user?.department || '',
+        semester: user?.semester || '',
+        cgpa: user?.cgpa || '',
+        majorSubjects: user?.majorSubjects || '',
+        resumeUrl: user?.resumeUrl || '',
         pictureUrl: user?.photo || '',
         registeredAt: user?.createdAt || new Date().toISOString(),
         isVerified: user?.isVerified || false
@@ -90,14 +104,69 @@ const StudentProfile = () => {
     const [editForm, setEditForm] = useState({ ...profileData });
 
     useEffect(() => {
+        fetchUserData();
         fetchEnrollments();
         fetchSettings();
     }, []);
+
+    // Sync profileData when user changes (e.g. after fetchUserData)
+    useEffect(() => {
+        if (user) {
+            const newData = {
+                fullName: user.name || '',
+                email: user.email || '',
+                phone: user.phone || '',
+                cnic: user.cnic || '',
+                fatherName: user.fatherName || '',
+                dob: user.dob || '',
+                age: user.age || '',
+                gender: user.gender || '',
+                education: user.education || '',
+                guardianName: user.guardianName || '',
+                guardianPhone: user.guardianPhone || '',
+                guardianOccupation: user.guardianOccupation || '',
+                address: user.address || '',
+                city: user.city || user.location || '',
+                country: user.country || 'Pakistan',
+                attendType: user.attendType || 'Physical',
+                cityToAttend: user.location || '',
+                rollNumber: user.rollNumber || '',
+                heardAbout: user.heardAbout || '',
+                degree: user.degree || '',
+                university: user.university || '',
+                department: user.department || '',
+                semester: user.semester || '',
+                cgpa: user.cgpa || '',
+                majorSubjects: user.majorSubjects || '',
+                resumeUrl: user.resumeUrl || '',
+                pictureUrl: user.photo || '',
+                registeredAt: user.createdAt || new Date().toISOString(),
+                isVerified: user.isVerified || false
+            };
+            setProfileData(prev => ({ ...prev, ...newData }));
+            setEditForm(prev => ({ ...prev, ...newData }));
+        }
+    }, [user]);
 
     const [allowBioEditing, setAllowBioEditing] = useState(true);
 
     // Check if user has bio data - if no data, allow editing regardless of setting
     const hasNoData = !user?.phone && !user?.city && !user?.address;
+
+    const fetchUserData = async () => {
+        setIsLoading(true);
+        try {
+            const res = await authAPI.getMe();
+            if (res.data.success) {
+                setUser(res.data.user);
+                dispatch(updateUser(res.data.user));
+            }
+        } catch (error) {
+            console.error('Error fetching user data:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     const fetchSettings = async () => {
         try {
@@ -146,6 +215,7 @@ const StudentProfile = () => {
                 name: editForm.fullName,
                 phone: editForm.phone,
                 cnic: editForm.cnic,
+                fatherName: editForm.fatherName,
                 dob: editForm.dob,
                 gender: editForm.gender,
                 education: editForm.education,
@@ -154,15 +224,26 @@ const StudentProfile = () => {
                 guardianOccupation: editForm.guardianOccupation,
                 address: editForm.address,
                 city: editForm.city,
+                country: editForm.country,
                 attendType: editForm.attendType,
-                location: editForm.cityToAttend
+                location: editForm.cityToAttend,
+                rollNumber: editForm.rollNumber,
+                heardAbout: editForm.heardAbout,
+                degree: editForm.degree,
+                university: editForm.university,
+                department: editForm.department,
+                semester: editForm.semester,
+                cgpa: editForm.cgpa,
+                majorSubjects: editForm.majorSubjects,
+                resumeUrl: editForm.resumeUrl
             });
 
             setProfileData({ ...editForm });
             setIsEditing(false);
 
-            // Update Redux store
+            // Update local user and Redux store
             if (response.data.user) {
+                setUser(response.data.user);
                 dispatch(updateUser(response.data.user));
             }
         } catch (error) {
@@ -206,7 +287,14 @@ const StudentProfile = () => {
 
                     {/* Basic Info */}
                     <div className="flex-1 text-center md:text-left">
-                        <h1 className="text-3xl font-bold mb-2">{profileData.fullName || user?.name}</h1>
+                        <div className="flex items-center gap-3 justify-center md:justify-start mb-2">
+                            <h1 className="text-3xl font-bold">{profileData.fullName || user?.name}</h1>
+                            {profileData.isVerified && (
+                                <span className="bg-white/20 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest flex items-center gap-1 border border-white/20">
+                                    <Users className="w-3 h-3" /> Verified
+                                </span>
+                            )}
+                        </div>
                         <p className="text-emerald-100 text-lg mb-3">
                             <BookOpen className="w-5 h-5 inline mr-2" />
                             {profileData.course || 'Student'}
@@ -219,7 +307,7 @@ const StudentProfile = () => {
                                 {profileData.city || user?.location || 'Location not set'}
                             </span>
                             <span className="px-3 py-1 bg-white/20 rounded-full text-sm font-mono tracking-tight">
-                                Roll: {user?.rollNo || user?.rollNumber || '—'}
+                                ID: {user?.rollNo || '—'}
                             </span>
                             <span className="px-3 py-1 bg-white/20 rounded-full text-sm">
                                 Joined {profileData.registeredAt ? new Date(profileData.registeredAt).toLocaleDateString() : '—'}
@@ -281,68 +369,120 @@ const StudentProfile = () => {
                                 * Bio editing is currently disabled by administrator.
                             </p>
                         )}
+                        <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={User} label="Father's Name" value={profileData.fatherName} name="fatherName" editable={canEditBio} />
                         <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={CreditCard} label="CNIC" value={profileData.cnic} name="cnic" editable={canEditBio} />
                         <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={Calendar} label="Date of Birth" value={profileData.dob ? new Date(profileData.dob).toLocaleDateString() : ''} name="dob" editable={canEditBio} />
                         <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={User} label="Gender" value={profileData.gender} name="gender" editable={canEditBio} />
                         <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={GraduationCap} label="Education" value={profileData.education} name="education" editable={canEditBio} />
                         <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={MapPin} label="Address" value={profileData.address} name="address" editable={canEditBio} />
-                        <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={MapPin} label="City" value={profileData.city} name="city" editable={canEditBio} />
-                        <SelectField 
-                            isEditing={isEditing} 
-                            editForm={editForm} 
-                            onChange={handleChange} 
-                            icon={Clock} 
-                            label="Attend Type" 
-                            value={profileData.attendType} 
-                            name="attendType" 
-                            options={[
-                                { value: 'Physical', label: 'Physical (OnSite)' },
-                                { value: 'Online', label: 'Online (Remote)' }
-                            ]} 
-                            editable={canEditBio} 
-                        />
-                        <SelectField 
-                            isEditing={isEditing} 
-                            editForm={editForm} 
-                            onChange={handleChange} 
-                            icon={MapPin} 
-                            label="Campus" 
-                            value={profileData.cityToAttend} 
-                            name="cityToAttend" 
-                            options={[
-                                { value: '', label: 'Select Campus' },
-                                { value: 'islamabad', label: 'Islamabad' },
-                                { value: 'bahawalpur', label: 'Bahawalpur' }
-                            ]} 
-                            editable={canEditBio} 
-                        />
+                        <div className="grid grid-cols-2 gap-4">
+                            <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={MapPin} label="City" value={profileData.city} name="city" editable={canEditBio} />
+                            <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={MapPin} label="Country" value={profileData.country} name="country" editable={canEditBio} />
+                        </div>
                     </div>
                 </motion.div>
+                <div className="space-y-6">
+                    {/* Academic / Other Info */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.15 }}
+                        className="bg-white rounded-2xl p-6 border border-gray-100"
+                    >
+                        <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
+                            <GraduationCap className="w-5 h-5 text-emerald-600" />
+                            Academic Information
+                        </h2>
+                        <div className="space-y-4">
+                            <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={FileText} label="Academic Roll No" value={profileData.rollNumber} name="rollNumber" editable={canEditBio} />
+                            <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={Users} label="Heard About Us Via" value={profileData.heardAbout} name="heardAbout" editable={canEditBio} />
+                            <div className="grid grid-cols-2 gap-4">
+                                <SelectField 
+                                    isEditing={isEditing} 
+                                    editForm={editForm} 
+                                    onChange={handleChange} 
+                                    icon={Clock} 
+                                    label="Attend Type" 
+                                    value={profileData.attendType} 
+                                    name="attendType" 
+                                    options={[
+                                        { value: 'Physical', label: 'Physical (OnSite)' },
+                                        { value: 'Online', label: 'Online (Remote)' }
+                                    ]} 
+                                    editable={canEditBio} 
+                                />
+                                <SelectField 
+                                    isEditing={isEditing} 
+                                    editForm={editForm} 
+                                    onChange={handleChange} 
+                                    icon={MapPin} 
+                                    label="Campus" 
+                                    value={profileData.cityToAttend} 
+                                    name="cityToAttend" 
+                                    options={[
+                                        { value: '', label: 'Select Campus' },
+                                        { value: 'islamabad', label: 'Islamabad' },
+                                        { value: 'bahawalpur', label: 'Bahawalpur' }
+                                    ]} 
+                                    editable={canEditBio} 
+                                />
+                            </div>
+                        </div>
+                    </motion.div>
 
-                {/* Guardian Information */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.15 }}
-                    className="bg-white rounded-2xl p-6 border border-gray-100"
-                >
-                    <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
-                        <Users className="w-5 h-5 text-emerald-600" />
-                        Guardian Information
-                    </h2>
-                    <div className="space-y-4">
-                        <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={User} label="Guardian Name" value={profileData.guardianName} name="guardianName" editable={canEditBio} />
-                        <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={Phone} label="Guardian Phone" value={profileData.guardianPhone} name="guardianPhone" editable={canEditBio} />
-                        <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={Users} label="Guardian Occupation" value={profileData.guardianOccupation} name="guardianOccupation" editable={canEditBio} />
-                    </div>
-                </motion.div>
+                    {/* Professional Details (For Interns) */}
+                    {(user?.role === 'intern' || profileData.degree) && (
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.18 }}
+                            className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm"
+                        >
+                            <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
+                                <Briefcase className="w-5 h-5 text-emerald-600" />
+                                Professional / Degree Details
+                            </h2>
+                            <div className="space-y-4">
+                                <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={GraduationCap} label="Degree Program" value={profileData.degree} name="degree" editable={canEditBio} />
+                                <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={Globe} label="University / Institution" value={profileData.university} name="university" editable={canEditBio} />
+                                <div className="grid grid-cols-2 gap-4">
+                                    <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={BookOpen} label="Department" value={profileData.department} name="department" editable={canEditBio} />
+                                    <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={Calendar} label="Semester" value={profileData.semester} name="semester" editable={canEditBio} />
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={Award} label="CGPA / Grade" value={profileData.cgpa} name="cgpa" editable={canEditBio} />
+                                    <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={LinkIcon} label="Resume Link" value={profileData.resumeUrl} name="resumeUrl" editable={canEditBio} />
+                                </div>
+                                <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={FileText} label="Major Subjects" value={profileData.majorSubjects} name="majorSubjects" editable={canEditBio} />
+                            </div>
+                        </motion.div>
+                    )}
+
+                    {/* Guardian Information */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2 }}
+                        className="bg-white rounded-2xl p-6 border border-gray-100"
+                    >
+                        <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
+                            <Users className="w-5 h-5 text-emerald-600" />
+                            Guardian Information
+                        </h2>
+                        <div className="space-y-4">
+                            <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={User} label="Guardian Name" value={profileData.guardianName} name="guardianName" editable={canEditBio} />
+                            <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={Phone} label="Guardian Phone" value={profileData.guardianPhone} name="guardianPhone" editable={canEditBio} />
+                            <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={Users} label="Guardian Occupation" value={profileData.guardianOccupation} name="guardianOccupation" editable={canEditBio} />
+                        </div>
+                    </motion.div>
+                </div>
 
                 {/* Course Information */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2 }}
-                    className="bg-white rounded-2xl p-6 border border-gray-100"
+                    transition={{ delay: 0.25 }}
+                    className="bg-white rounded-2xl p-6 border border-gray-100 lg:col-span-2"
                 >
                     <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
                         <GraduationCap className="w-5 h-5 text-emerald-600" />
@@ -354,7 +494,7 @@ const StudentProfile = () => {
                             <p>No courses enrolled yet</p>
                         </div>
                     ) : (
-                        <div className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {enrollments.map((enrollment) => (
                                 <div key={enrollment._id} className="flex items-start gap-4 p-4 bg-gray-50 rounded-xl">
                                     <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center flex-shrink-0">

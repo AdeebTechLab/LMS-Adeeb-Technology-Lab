@@ -188,34 +188,6 @@ const AnnouncementsPopup = ({ autoShow = true }) => {
                     </motion.div>
                 )}
             </AnimatePresence>
-
-            {/* Global styles for HTML content */}
-            <style>{`
-                .announcement-html-content h1,
-                .announcement-html-content h2,
-                .announcement-html-content h3,
-                .announcement-html-content h4 {
-                    margin-bottom: 0.5rem;
-                    font-weight: bold;
-                }
-                .announcement-html-content p {
-                    margin-bottom: 0.5rem;
-                }
-                .announcement-html-content a {
-                    text-decoration: underline;
-                }
-                .announcement-html-content ul,
-                .announcement-html-content ol {
-                    padding-left: 1.5rem;
-                    margin-bottom: 0.5rem;
-                }
-                .announcement-html-content img {
-                    max-width: 100%;
-                    height: auto;
-                    border-radius: 0.5rem;
-                    margin: 0.5rem 0;
-                }
-            `}</style>
         </>
     );
 };

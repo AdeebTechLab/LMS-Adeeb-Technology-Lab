@@ -8,12 +8,13 @@ import {
     Download,
     RefreshCw,
     AlertCircle,
-    GraduationCap
+    GraduationCap,
+    Zap
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import { BarChart } from '../../components/charts/Charts';
 import { useSelector } from 'react-redux';
-import { assignmentAPI, dailyTaskAPI, enrollmentAPI } from '../../services/api';
+import { assignmentAPI, dailyTaskAPI, enrollmentAPI, testAPI } from '../../services/api';
 
 const MarksSheet = () => {
     const { user } = useSelector((state) => state.auth);
@@ -76,25 +77,48 @@ const MarksSheet = () => {
                 };
             });
 
-            // 3. Fetch Daily Tasks per course
+            // 3. Fetch Daily Tasks and Tests per course
             const updatedCourses = await Promise.all(coursesWithMarks.map(async (course) => {
                 try {
+                    // Fetch Daily Tasks
                     const dtRes = await dailyTaskAPI.getMy(course.courseId);
                     const tasks = dtRes.data.data || [];
                     const gradedTasks = tasks
                         .filter(t => t.status === 'graded' || t.status === 'verified')
-                        .sort((a, b) => new Date(a.date || a.createdAt) - new Date(b.date || b.createdAt)) // Oldest first
+                        .sort((a, b) => new Date(a.date || a.createdAt) - new Date(b.date || b.createdAt))
                         .map((t, index) => ({
                             assessment: `Work Log: ${new Date(t.date || t.createdAt).toLocaleDateString()}`,
                             number: index + 1,
                             type: 'Daily Task',
                             marks: t.marks,
-                            total: 100 // Daily tasks are out of 100 now
+                            total: 100
                         }));
+
+                    // Fetch Tests
+                    const testRes = await testAPI.getByCourse(course.courseId);
+                    const tests = testRes?.data?.tests || [];
+                    const gradedTests = tests
+                        .map((t, index) => {
+                            if (!t) return null;
+                            const mySub = t.submissions?.find(s => 
+                                String(s.user?._id || s.user || "") === String(user?._id || user?.id || "")
+                            );
+                            if (mySub) {
+                                return {
+                                    assessment: t.title || 'Untitled Test',
+                                    number: index + 1,
+                                    type: 'Test',
+                                    marks: mySub.score || 0,
+                                    total: t.totalMarks || 100
+                                };
+                            }
+                            return null;
+                        })
+                        .filter(Boolean);
 
                     return {
                         ...course,
-                        grades: [...course.grades, ...gradedTasks]
+                        grades: [...course.grades, ...gradedTasks, ...gradedTests]
                     };
                 } catch (e) {
                     return course;
@@ -130,10 +154,10 @@ const MarksSheet = () => {
     };
 
     const getOverallAverage = () => {
-        // Average of ALL assignments across ALL courses
-        const allAssignments = enrollments.flatMap((c) => (c.grades || []).filter(g => g.type === 'Assignment'));
-        if (allAssignments.length === 0) return 0;
-        return calculateSimpleAverage(allAssignments);
+        // Average of ALL graded items across ALL courses
+        const allGrades = enrollments.flatMap((c) => c.grades || []);
+        if (allGrades.length === 0) return 0;
+        return calculateSimpleAverage(allGrades);
     };
 
     const getGrade = (percentage) => {
@@ -158,6 +182,9 @@ const MarksSheet = () => {
     const overallAverage = getOverallAverage();
     const overallGrade = getGrade(parseFloat(overallAverage));
     const totalAssignmentsCount = enrollments.reduce((sum, c) => sum + (c.grades?.filter(g => g.type === 'Assignment').length || 0), 0);
+    const totalTestsCount = enrollments.reduce((sum, c) => sum + (c.grades?.filter(g => g.type === 'Test').length || 0), 0);
+    const totalDailyCount = enrollments.reduce((sum, c) => sum + (c.grades?.filter(g => g.type === 'Daily Task').length || 0), 0);
+    const allGradesCount = totalAssignmentsCount + totalTestsCount + totalDailyCount;
 
     const selectedCourse = enrollments.find(c => c.courseId === selectedCourseId);
 
@@ -230,12 +257,12 @@ const MarksSheet = () => {
                                 {selectedCourse ? 'Selected Course Average' : 'Global average'}
                             </p>
                             <p className="text-3xl sm:text-4xl font-black">
-                                {selectedCourse ? calculateSimpleAverage(selectedCourse.grades.filter(g => g.type === 'Assignment')) : overallAverage}%
+                                {selectedCourse ? calculateSimpleAverage(selectedCourse.grades) : overallAverage}%
                             </p>
                             <p className={`text-base sm:text-lg font-black mt-1 text-white/80`}>
                                 Grade: {selectedCourse 
-                                    ? getGrade(parseFloat(calculateSimpleAverage(selectedCourse.grades.filter(g => g.type === 'Assignment')))).grade 
-                                    : (totalAssignmentsCount > 0 ? overallGrade.grade : 'N/A')}
+                                    ? getGrade(parseFloat(calculateSimpleAverage(selectedCourse.grades))).grade 
+                                    : (allGradesCount > 0 ? overallGrade.grade : 'N/A')}
                             </p>
                         </div>
                         <div className="w-12 h-12 sm:w-16 sm:h-16 bg-white/10 rounded-2xl flex items-center justify-center">
@@ -256,8 +283,8 @@ const MarksSheet = () => {
 
                 <div className="bg-white rounded-2xl p-4 sm:p-6 border border-gray-100 shadow-sm flex items-center justify-between">
                     <div>
-                        <p className="text-gray-400 text-[8px] sm:text-[10px] font-black uppercase tracking-widest mb-1">Graded Assignments</p>
-                        <p className="text-2xl sm:text-3xl font-black text-gray-900">{totalAssignmentsCount}</p>
+                        <p className="text-gray-400 text-[8px] sm:text-[10px] font-black uppercase tracking-widest mb-1">Graded Assessments</p>
+                        <p className="text-2xl sm:text-3xl font-black text-gray-900">{totalAssignmentsCount + totalTestsCount}</p>
                     </div>
                     <div className="w-10 h-10 sm:w-12 sm:h-12 bg-emerald-50 rounded-xl flex items-center justify-center shrink-0 ml-2">
                         <FileText className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600" />
@@ -301,7 +328,7 @@ const MarksSheet = () => {
                         const assignmentGrades = selectedCourse.grades.filter(g => g.type === 'Assignment');
                         const dailyTaskGrades = selectedCourse.grades.filter(g => g.type === 'Daily Task');
 
-                        const average = calculateSimpleAverage(assignmentGrades);
+                        const average = calculateSimpleAverage(selectedCourse.grades);
                         const gradeInfo = getGrade(parseFloat(average));
 
                         const dailyAvgMarks = dailyTaskGrades.length > 0
@@ -393,7 +420,6 @@ const MarksSheet = () => {
                                                     <tbody className="divide-y divide-gray-50">
                                                         {dailyTaskGrades.map((grade, idx) => {
                                                             const perc = calculatePercentage(grade.marks, grade.total);
-                                                            const gInfo = getGrade(parseFloat(perc));
                                                             return (
                                                                 <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
                                                                     <td className="py-4 px-6 font-black text-gray-300">LOG #{grade.number}</td>
@@ -408,6 +434,58 @@ const MarksSheet = () => {
                                                 </table>
                                             </div>
                                         ) : <p className="text-center py-8 text-gray-400 font-medium italic bg-gray-50 rounded-2xl border border-dashed">No work logs graded yet.</p>}
+                                    </div>
+
+                                    {/* Tests */}
+                                    <div>
+                                        {(() => {
+                                            const testGrades = selectedCourse.grades.filter(g => g.type === 'Test');
+                                            const testAvg = testGrades.length > 0 
+                                                ? calculateSimpleAverage(testGrades)
+                                                : null;
+
+                                            return (
+                                                <>
+                                                    <div className="flex items-center justify-between mb-6 px-2">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="p-2 bg-orange-50 rounded-lg"><Zap className="w-5 h-5 text-[#ff8e01]" /></div>
+                                                            <h4 className="font-black text-gray-900 uppercase tracking-widest">Tests & Exams</h4>
+                                                        </div>
+                                                        {testAvg && <span className="text-[10px] font-black text-[#ff8e01] bg-orange-50 px-3 py-1.5 rounded-xl border border-orange-100 uppercase">Test Avg: {testAvg}%</span>}
+                                                    </div>
+                                                    {testGrades.length > 0 ? (
+                                                        <div className="overflow-x-auto no-scrollbar rounded-2xl border border-gray-100">
+                                                            <table className="w-full text-left min-w-[500px]">
+                                                                <thead>
+                                                                    <tr className="bg-gray-50/50 border-b border-gray-100">
+                                                                        <th className="py-4 px-6 text-[10px] font-black text-gray-400 uppercase tracking-widest">#</th>
+                                                                        <th className="py-4 px-6 text-[10px] font-black text-gray-400 uppercase tracking-widest">Test Title</th>
+                                                                        <th className="py-4 px-6 text-[10px] font-black text-gray-400 uppercase tracking-widest">Score</th>
+                                                                        <th className="py-4 px-6 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Grade</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody className="divide-y divide-gray-50">
+                                                                    {testGrades.map((grade, idx) => {
+                                                                        const perc = calculatePercentage(grade.marks, grade.total);
+                                                                        const gInfo = getGrade(parseFloat(perc));
+                                                                        return (
+                                                                            <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
+                                                                                <td className="py-4 px-6 font-black text-gray-300">TEST #{grade.number}</td>
+                                                                                <td className="py-4 px-6 font-bold text-gray-900">{grade.assessment}</td>
+                                                                                <td className="py-4 px-6 font-medium text-gray-600">
+                                                                                    <span className="text-gray-900 font-bold">{grade.marks}</span><span className="text-xs opacity-50">/{grade.total}</span>
+                                                                                </td>
+                                                                                <td className={`py-4 px-6 font-black text-right ${gInfo.color}`}>{gInfo.grade} ({perc}%)</td>
+                                                                            </tr>
+                                                                        );
+                                                                    })}
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    ) : <p className="text-center py-8 text-gray-400 font-medium italic bg-gray-50 rounded-2xl border border-dashed">No tests taken yet.</p>}
+                                                </>
+                                            );
+                                        })()}
                                     </div>
                                 </div>
                             </motion.div>

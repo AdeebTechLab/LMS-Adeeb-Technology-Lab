@@ -14,6 +14,14 @@ const CertificateManagement = () => {
     const [selectedCities, setSelectedCities] = useState([]); // Array of strings
     const [selectedTypes, setSelectedTypes] = useState([]);  // Array of strings
     const [expandedCourse, setExpandedCourse] = useState(null);
+
+    // Helper to get local date string YYYY-MM-DD
+    const getLocalDateString = (date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
     const [confirmModal, setConfirmModal] = useState({ open: false, student: null, course: null, request: null });
     const [editCertModal, setEditCertModal] = useState({ open: false, certificate: null, student: null });
     const [courses, setCourses] = useState([]);
@@ -24,7 +32,7 @@ const CertificateManagement = () => {
     const [isIssuing, setIsIssuing] = useState(false);
     const [activeSection, setActiveSection] = useState('courses'); // 'courses' | 'teachers'
     const [teacherCertModal, setTeacherCertModal] = useState({ open: false, teacher: null });
-    const [teacherCertData, setTeacherCertData] = useState({ rollNo: '', skills: '', duration: '', passoutDate: new Date().toISOString().split('T')[0], certificateLink: '', selectedCourses: [] });
+    const [teacherCertData, setTeacherCertData] = useState({ rollNo: '', skills: '', duration: '', passoutDate: getLocalDateString(new Date()), certificateLink: '', selectedCourses: [] });
     const [isBackfilling, setIsBackfilling] = useState(false);
 
     // Modal Edit State
@@ -32,7 +40,7 @@ const CertificateManagement = () => {
         rollNo: '',
         skills: '',
         duration: '',
-        passoutDate: new Date().toISOString().split('T')[0],
+        passoutDate: getLocalDateString(new Date()),
         certificateLink: ''
     });
 
@@ -138,7 +146,7 @@ const CertificateManagement = () => {
             rollNo: request.user?.rollNo || '',
             skills: request.skills || request.course?.title || '',
             duration: request.duration || request.course?.duration || '',
-            passoutDate: new Date().toISOString().split('T')[0],
+            passoutDate: getLocalDateString(new Date()),
             certificateLink: ''
         });
     };
@@ -202,7 +210,7 @@ const CertificateManagement = () => {
             rollNo: cert?.rollNo || student.rollNo || '',
             skills: cert?.skills || course.name || '',
             duration: cert?.duration || course.duration || '',
-            passoutDate: cert?.passoutDate ? new Date(cert.passoutDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+            passoutDate: cert?.passoutDate ? getLocalDateString(new Date(cert.passoutDate)) : getLocalDateString(new Date()),
             certificateLink: cert?.certificateLink || ''
         });
     };
@@ -245,7 +253,7 @@ const CertificateManagement = () => {
             rollNo: '',  // Admin enters the unique number manually
             skills: teacher.specialization || 'Teaching',
             duration: '',
-            passoutDate: new Date().toISOString().split('T')[0],
+            passoutDate: getLocalDateString(new Date()),
             certificateLink: '',
             selectedCourses: allCourseNames
         });

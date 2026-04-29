@@ -231,7 +231,7 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-4 sm:p-6 flex flex-col items-center no-scrollbar">
-                    <div className="max-w-xl w-full py-4">
+                    <div className="max-w-4xl w-full py-4">
                         {/* Progress and Label */}
                         <div className="flex flex-col items-center space-y-1.5 mb-6">
                             <span className="text-[8px] font-black text-slate-400 uppercase tracking-[0.3em]">Progress</span>
@@ -324,7 +324,7 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
 
                 {/* Footer Navigation */}
                 <div className="shrink-0 p-4 bg-white border-t flex items-center justify-center">
-                    <div className="max-w-xl w-full flex items-center justify-between">
+                    <div className="max-w-4xl w-full flex items-center justify-between">
                         <button 
                             disabled={currentQuestionIndex === 0}
                             onClick={() => {
@@ -389,7 +389,7 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
                             </div>
 
                             <div className="flex-1 overflow-y-auto p-6 sm:p-12 space-y-8 no-scrollbar bg-slate-50/50">
-                                <div className="max-w-3xl mx-auto space-y-8 pb-12">
+                                <div className="max-w-5xl mx-auto space-y-8 pb-12">
                                     {/* Final Score Card at Top */}
                                     <div className="bg-gradient-to-br from-slate-900 to-slate-800 p-8 sm:p-10 rounded-[3rem] text-center shadow-2xl shadow-slate-200 relative overflow-hidden">
                                         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#ff8e01] to-transparent" />

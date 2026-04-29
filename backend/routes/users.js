@@ -236,27 +236,44 @@ router.put('/:id', protect, authorize('admin'), uploadPhoto.single('photo'), asy
             updateData.photo = req.file.path;
         }
 
-        // If password is being updated, we want to update it for all accounts with the same email
-        if (updateData.password) {
-            // Get the current user to find their email
-            const currentUser = await User.findById(req.params.id);
-            if (currentUser) {
-                // Update password for all accounts with this email
-                // We use .save() on each to ensure any hooks (though currently disabled) would run
-                // and to handle the unique email/role constraint correctly if email was also changed.
-                // However, for simplicity and performance, we'll update by email.
-                await User.updateMany({ email: currentUser.email }, { password: updateData.password });
-            }
+        // Get the current user to find their email
+        const currentUser = await User.findById(req.params.id);
+        if (!currentUser) {
+            return res.status(404).json({ success: false, message: 'User not found' });
         }
 
+        // Fields that should be synchronized across all roles for the same email
+        const syncFields = [
+            'name', 'phone', 'cnic', 'dob', 'age', 'gender', 
+            'address', 'city', 'country', 'fatherName', 'photo', 'rollNo'
+        ];
+
+        const syncData = {};
+        syncFields.forEach(field => {
+            if (updateData[field] !== undefined) {
+                syncData[field] = updateData[field];
+            }
+        });
+
+        // If password is being updated, include it in syncData
+        if (updateData.password) {
+            syncData.password = updateData.password;
+        }
+
+        // Update current user
         const user = await User.findByIdAndUpdate(req.params.id, updateData, {
             new: true,
             runValidators: true
         }).select('-password');
 
-        if (!user) {
-            return res.status(404).json({ success: false, message: 'User not found' });
+        // Synchronize core fields across all other roles with the same email
+        if (Object.keys(syncData).length > 0) {
+            await User.updateMany(
+                { email: currentUser.email, _id: { $ne: req.params.id } },
+                { $set: syncData }
+            );
         }
+
         res.json({ success: true, data: user });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });

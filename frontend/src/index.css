@@ -221,407 +221,22 @@
   --bg-sidebar: #065f46;
 }
 
-.theme-gold {
-  --primary: #f5d7a5;
-  --primary-dark: #f5d7a5;
-  --primary-darkest: #1e140d;
-  --primary-light: #f9e5c5;
-  --primary-lighter: #fcf1de;
-
-  --secondary: #6b3d25;
-  --secondary-light: #8b5336;
-  --secondary-dark: #4a2a1a;
-
-  --brand-blue-50: #fffbeb;
-  --brand-blue-100: #fef3c7;
-  --brand-blue-200: #fde68a;
-  --brand-blue-300: #fcd34d;
-  --brand-blue-400: #fbbf24;
-  --brand-blue-500: #f5d7a5;
-  --brand-blue-600: #eab308;
-  --brand-blue-700: #ca8a04;
-  --brand-blue-800: #a16207;
-  --brand-blue-900: #854d0e;
-
-  --brand-secondary-50: #fafaf9;
-  --brand-secondary-100: #f5f5f4;
-  --brand-secondary-200: #e7e5e4;
-  --brand-secondary-300: #d6d3d1;
-  --brand-secondary-400: #a8a29e;
-  --brand-secondary-500: #78716c;
-  --brand-secondary-600: #57534e;
-  --brand-secondary-700: #44403c;
-  --brand-secondary-800: #292524;
-  --brand-secondary-900: #1c1917;
-  --bg-sidebar: #6b3d25;
-  --text-primary: #65371d;
-  --text-secondary: #8c6046;
-}
-
-.theme-olive {
-  --primary: #678018;
-  --primary-dark: #678018;
-  --primary-darkest: #1a230d;
-  --primary-light: #8fa63b;
-  --primary-lighter: #b5cc61;
-
-  --secondary: #324321;
-  --secondary-light: #455a2d;
-  --secondary-dark: #1e2914;
-
-  --brand-blue-50: #f7fee7;
-  --brand-blue-100: #ecfccb;
-  --brand-blue-200: #d9f99d;
-  --brand-blue-300: #bef264;
-  --brand-blue-400: #a3e635;
-  --brand-blue-500: #678018;
-  --brand-blue-600: #65a30d;
-  --brand-blue-700: #4d7c0f;
-  --brand-blue-800: #3f6212;
-  --brand-blue-900: #365314;
-
-  --brand-secondary-50: #f8fafc;
-  --brand-secondary-100: #f1f5f9;
-  --brand-secondary-200: #e2e8f0;
-  --brand-secondary-300: #cbd5e1;
-  --brand-secondary-400: #94a3b8;
-  --brand-secondary-500: #64748b;
-  --brand-secondary-600: #475569;
-  --brand-secondary-700: #334155;
-  --brand-secondary-800: #1e293b;
-  --brand-secondary-900: #0f172a;
-  --bg-sidebar: #324321;
-  --text-primary: #2f401e;
-}
-
-.theme-navy {
-  --primary: #1154bd;
-  --primary-dark: #1154bd;
-  --primary-darkest: #051633;
-  --primary-light: #3b76d4;
-  --primary-lighter: #6a9ceb;
-
-  --secondary: #0a316a;
-  --secondary-light: #12458a;
-  --secondary-dark: #061e40;
-
-  --brand-blue-50: #eff6ff;
-  --brand-blue-100: #dbeafe;
-  --brand-blue-200: #bfdbfe;
-  --brand-blue-300: #93c5fd;
-  --brand-blue-400: #60a5fa;
-  --brand-blue-500: #1154bd;
-  --brand-blue-600: #2563eb;
-  --brand-blue-700: #1d4ed8;
-  --brand-blue-800: #1e40af;
-  --brand-blue-900: #1e3a8a;
-
-  --brand-secondary-50: #f8fafc;
-  --brand-secondary-100: #f1f5f9;
-  --brand-secondary-200: #e2e8f0;
-  --brand-secondary-300: #cbd5e1;
-  --brand-secondary-400: #94a3b8;
-  --brand-secondary-500: #64748b;
-  --brand-secondary-600: #475569;
-  --brand-secondary-700: #334155;
-  --brand-secondary-800: #1e293b;
-  --brand-secondary-900: #0f172a;
-  --bg-sidebar: #0a316a;
-  --text-primary: #0b2c5f;
-}
-
-.theme-lavender {
-  --primary: #fedef6;
-  --primary-dark: #fedef6;
-  --primary-darkest: #1e0d33;
-  --primary-light: #ffebf9;
-  --primary-lighter: #fff5fd;
-
-  --secondary: #6841c2;
-  --secondary-light: #845ef7;
-  --secondary-dark: #5131a6;
-
-  --brand-blue-50: #f5f3ff;
-  --brand-blue-100: #ede9fe;
-  --brand-blue-200: #ddd6fe;
-  --brand-blue-300: #c4b5fd;
-  --brand-blue-400: #a78bfa;
-  --brand-blue-500: #fedef6;
-  --brand-blue-600: #8b5cf6;
-  --brand-blue-700: #7c3aed;
-  --brand-blue-800: #6d28d9;
-  --brand-blue-900: #5b21b6;
-
-  --brand-secondary-50: #fafaf9;
-  --brand-secondary-100: #f5f5f4;
-  --brand-secondary-200: #e7e5e4;
-  --brand-secondary-300: #d6d3d1;
-  --brand-secondary-400: #a8a29e;
-  --brand-secondary-500: #78716c;
-  --brand-secondary-600: #57534e;
-  --brand-secondary-700: #44403c;
-  --brand-secondary-800: #292524;
-  --brand-secondary-900: #1c1917;
-  --bg-sidebar: #6841c2;
-  --text-primary: #4e2bab;
-}
-
-.theme-rose-pink {
-  --primary: #f83c93;
-  --primary-dark: #f83c93;
-  --primary-darkest: #330d1d;
-  --primary-light: #fb71ae;
-  --primary-lighter: #fda4cd;
-
-  --secondary: #b11954;
-  --secondary-light: #d81b60;
-  --secondary-dark: #880e4f;
-
-  --brand-blue-50: #fff1f2;
-  --brand-blue-100: #ffe4e6;
-  --brand-blue-200: #fecdd3;
-  --brand-blue-300: #fda4af;
-  --brand-blue-400: #fb7185;
-  --brand-blue-500: #f83c93;
-  --brand-blue-600: #e11d48;
-  --brand-blue-700: #be123c;
-  --brand-blue-800: #9f1239;
-  --brand-blue-900: #881337;
-
-  --brand-secondary-50: #f8fafc;
-  --brand-secondary-100: #f1f5f9;
-  --brand-secondary-200: #e2e8f0;
-  --brand-secondary-300: #cbd5e1;
-  --brand-secondary-400: #94a3b8;
-  --brand-secondary-500: #64748b;
-  --brand-secondary-600: #475569;
-  --brand-secondary-700: #334155;
-  --brand-secondary-800: #1e293b;
-  --brand-secondary-900: #0f172a;
-  --bg-sidebar: #b11954;
-  --text-primary: #920d3e;
-}
-
-
 /* ============================================================
    BRAND BLUE — Global remap: emerald / green / teal utilities
-   Tailwind still emits green class names; these overrides paint
-   them with the #0545a7 family sitewide.
    ============================================================ */
-
-/* --- Text --- */
 .text-emerald-50 { color: var(--brand-blue-50) !important; }
 .text-emerald-100 { color: var(--brand-blue-100) !important; }
-.text-emerald-200 { color: var(--brand-blue-200) !important; }
-.text-emerald-300 { color: var(--brand-blue-300) !important; }
-.text-emerald-400 { color: var(--brand-blue-400) !important; }
 .text-emerald-500 { color: var(--brand-blue-500) !important; }
 .text-emerald-600 { color: var(--brand-blue-600) !important; }
 .text-emerald-700 { color: var(--brand-blue-700) !important; }
-.text-emerald-800 { color: var(--brand-blue-800) !important; }
-.text-emerald-900 { color: var(--brand-blue-900) !important; }
 
-.text-green-50 { color: var(--brand-blue-50) !important; }
-.text-green-100 { color: var(--brand-blue-100) !important; }
-.text-green-200 { color: var(--brand-blue-200) !important; }
-.text-green-300 { color: var(--brand-blue-300) !important; }
-.text-green-400 { color: var(--brand-blue-400) !important; }
-.text-green-500 { color: var(--brand-blue-500) !important; }
-.text-green-600 { color: var(--brand-blue-600) !important; }
-.text-green-700 { color: var(--brand-blue-700) !important; }
-.text-green-800 { color: var(--brand-blue-800) !important; }
-.text-green-900 { color: var(--brand-blue-900) !important; }
-
-.text-teal-50 { color: var(--brand-blue-50) !important; }
-.text-teal-100 { color: var(--brand-blue-100) !important; }
-.text-teal-200 { color: var(--brand-blue-200) !important; }
-.text-teal-300 { color: var(--brand-blue-300) !important; }
-.text-teal-400 { color: var(--brand-blue-400) !important; }
-.text-teal-500 { color: var(--brand-blue-500) !important; }
-.text-teal-600 { color: var(--brand-blue-600) !important; }
-.text-teal-700 { color: var(--brand-blue-700) !important; }
-.text-teal-800 { color: var(--brand-blue-800) !important; }
-.text-teal-900 { color: var(--brand-blue-900) !important; }
-
-.text-emerald-300\/60 { color: rgb(147 197 253 / 0.6) !important; }
-
-/* --- Backgrounds --- */
 .bg-emerald-50 { background-color: var(--brand-blue-50) !important; }
 .bg-emerald-100 { background-color: var(--brand-blue-100) !important; }
-.bg-emerald-200 { background-color: var(--brand-blue-200) !important; }
-.bg-emerald-300 { background-color: var(--brand-blue-300) !important; }
-.bg-emerald-400 { background-color: var(--brand-blue-400) !important; }
 .bg-emerald-500 { background-color: var(--brand-blue-500) !important; }
 .bg-emerald-600 { background-color: var(--brand-blue-600) !important; }
-.bg-emerald-700 { background-color: var(--brand-blue-700) !important; }
-.bg-emerald-800 { background-color: var(--brand-blue-800) !important; }
-.bg-emerald-900 { background-color: var(--brand-blue-900) !important; }
 
-.bg-green-50 { background-color: var(--brand-blue-50) !important; }
-.bg-green-100 { background-color: var(--brand-blue-100) !important; }
-.bg-green-200 { background-color: var(--brand-blue-200) !important; }
-.bg-green-300 { background-color: var(--brand-blue-300) !important; }
-.bg-green-400 { background-color: var(--brand-blue-400) !important; }
-.bg-green-500 { background-color: var(--brand-blue-500) !important; }
-.bg-green-600 { background-color: var(--brand-blue-600) !important; }
-.bg-green-700 { background-color: var(--brand-blue-700) !important; }
-.bg-green-800 { background-color: var(--brand-blue-800) !important; }
-.bg-green-900 { background-color: var(--brand-blue-900) !important; }
-
-.bg-teal-50 { background-color: var(--brand-blue-50) !important; }
-.bg-teal-100 { background-color: var(--brand-blue-100) !important; }
-.bg-teal-200 { background-color: var(--brand-blue-200) !important; }
-.bg-teal-300 { background-color: var(--brand-blue-300) !important; }
-.bg-teal-400 { background-color: var(--brand-blue-400) !important; }
-.bg-teal-500 { background-color: var(--brand-blue-500) !important; }
-.bg-teal-600 { background-color: var(--brand-blue-600) !important; }
-.bg-teal-700 { background-color: var(--brand-blue-700) !important; }
-.bg-teal-800 { background-color: var(--brand-blue-800) !important; }
-.bg-teal-900 { background-color: var(--brand-blue-900) !important; }
-
-.bg-green-500\/20 { background-color: rgb(5 69 167 / 0.2) !important; }
-
-/* --- Borders --- */
-.border-emerald-50 { border-color: var(--brand-blue-50) !important; }
 .border-emerald-100 { border-color: var(--brand-blue-100) !important; }
-.border-emerald-200 { border-color: var(--brand-blue-200) !important; }
-.border-emerald-300 { border-color: var(--brand-blue-300) !important; }
-.border-emerald-400 { border-color: var(--brand-blue-400) !important; }
 .border-emerald-500 { border-color: var(--brand-blue-500) !important; }
-.border-emerald-600 { border-color: var(--brand-blue-600) !important; }
-.border-emerald-700 { border-color: var(--brand-blue-700) !important; }
-.border-emerald-800 { border-color: var(--brand-blue-800) !important; }
-.border-emerald-900 { border-color: var(--brand-blue-900) !important; }
-
-.border-green-100 { border-color: var(--brand-blue-100) !important; }
-.border-green-200 { border-color: var(--brand-blue-200) !important; }
-.border-green-300 { border-color: var(--brand-blue-300) !important; }
-.border-green-400 { border-color: var(--brand-blue-400) !important; }
-.border-green-500 { border-color: var(--brand-blue-500) !important; }
-.border-green-600 { border-color: var(--brand-blue-600) !important; }
-
-.border-teal-100 { border-color: var(--brand-blue-100) !important; }
-.border-teal-200 { border-color: var(--brand-blue-200) !important; }
-.border-teal-300 { border-color: var(--brand-blue-300) !important; }
-.border-teal-400 { border-color: var(--brand-blue-400) !important; }
-.border-teal-500 { border-color: var(--brand-blue-500) !important; }
-.border-teal-600 { border-color: var(--brand-blue-600) !important; }
-
-.border-l-emerald-400 { border-left-color: var(--brand-blue-400) !important; }
-.border-l-emerald-600 { border-left-color: var(--brand-blue-600) !important; }
-
-.border-green-500\/50 { border-color: rgb(5 69 167 / 0.5) !important; }
-
-/* --- Divide --- */
-.divide-emerald-100 > :not([hidden]) ~ :not([hidden]) { border-color: var(--brand-blue-100) !important; }
-.divide-emerald-200 > :not([hidden]) ~ :not([hidden]) { border-color: var(--brand-blue-200) !important; }
-
-/* --- Rings / focus --- */
-.ring-emerald-500 { --tw-ring-color: var(--brand-blue-500) !important; }
-.ring-emerald-400 { --tw-ring-color: var(--brand-blue-400) !important; }
-.focus\:ring-emerald-500:focus { --tw-ring-color: var(--brand-blue-500) !important; }
-.focus\:ring-emerald-500\/20:focus { --tw-ring-color: rgb(5 69 167 / 0.2) !important; }
-.focus\:ring-emerald-500\/10:focus { --tw-ring-color: rgb(5 69 167 / 0.1) !important; }
-
-.ring-emerald-500\/10 { --tw-ring-color: rgb(5 69 167 / 0.1) !important; }
-
-.focus\:border-emerald-500:focus { border-color: var(--brand-blue-500) !important; }
-
-/* --- Gradient stops (common emerald/teal pairs) --- */
-.from-emerald-50 { --tw-gradient-from: var(--brand-blue-50) var(--tw-gradient-from-position) !important; }
-.from-emerald-100 { --tw-gradient-from: var(--brand-blue-100) var(--tw-gradient-from-position) !important; }
-.from-emerald-200 { --tw-gradient-from: var(--brand-blue-200) var(--tw-gradient-from-position) !important; }
-.from-emerald-300 { --tw-gradient-from: var(--brand-blue-300) var(--tw-gradient-from-position) !important; }
-.from-emerald-400 { --tw-gradient-from: var(--brand-blue-400) var(--tw-gradient-from-position) !important; }
-.from-emerald-500 { --tw-gradient-from: var(--brand-blue-500) var(--tw-gradient-from-position) !important; }
-.from-emerald-600 { --tw-gradient-from: var(--brand-blue-600) var(--tw-gradient-from-position) !important; }
-
-.to-emerald-400 { --tw-gradient-to: var(--brand-blue-400) var(--tw-gradient-to-position) !important; }
-.to-emerald-500 { --tw-gradient-to: var(--brand-blue-500) var(--tw-gradient-to-position) !important; }
-.to-emerald-600 { --tw-gradient-to: var(--brand-blue-600) var(--tw-gradient-to-position) !important; }
-
-.from-teal-400 { --tw-gradient-from: var(--brand-blue-400) var(--tw-gradient-from-position) !important; }
-.from-teal-500 { --tw-gradient-from: var(--brand-blue-500) var(--tw-gradient-from-position) !important; }
-.to-teal-400 { --tw-gradient-to: var(--brand-blue-400) var(--tw-gradient-to-position) !important; }
-.to-teal-500 { --tw-gradient-to: var(--brand-blue-500) var(--tw-gradient-to-position) !important; }
-.to-teal-600 { --tw-gradient-to: var(--brand-blue-600) var(--tw-gradient-to-position) !important; }
-
-.from-green-400 { --tw-gradient-from: var(--brand-blue-400) var(--tw-gradient-from-position) !important; }
-.from-green-500 { --tw-gradient-from: var(--brand-blue-500) var(--tw-gradient-from-position) !important; }
-.to-green-500 { --tw-gradient-to: var(--brand-blue-500) var(--tw-gradient-to-position) !important; }
-
-/* --- Hovers --- */
-.hover\:bg-emerald-50:hover { background-color: var(--brand-blue-50) !important; }
-.hover\:bg-emerald-100:hover { background-color: var(--brand-blue-100) !important; }
-.hover\:bg-emerald-600:hover { background-color: var(--brand-blue-600) !important; }
-.hover\:bg-emerald-700:hover { background-color: var(--brand-blue-700) !important; }
-.hover\:bg-emerald-900:hover { background-color: var(--brand-blue-900) !important; }
-
-.hover\:bg-green-50:hover { background-color: var(--brand-blue-50) !important; }
-.hover\:bg-green-100:hover { background-color: var(--brand-blue-100) !important; }
-
-.hover\:border-emerald-100:hover { border-color: var(--brand-blue-100) !important; }
-.hover\:border-emerald-200:hover { border-color: var(--brand-blue-200) !important; }
-.hover\:border-emerald-400:hover { border-color: var(--brand-blue-400) !important; }
-
-.hover\:text-emerald-600:hover { color: var(--brand-blue-600) !important; }
-.hover\:text-emerald-700:hover { color: var(--brand-blue-700) !important; }
-.hover\:text-green-600:hover { color: var(--brand-blue-600) !important; }
-
-/* --- Group hover --- */
-.group:hover .group-hover\:bg-emerald-50 { background-color: var(--brand-blue-50) !important; }
-.group:hover .group-hover\:text-emerald-500 { color: var(--brand-blue-500) !important; }
-.group:hover .group-hover\:text-emerald-600 { color: var(--brand-blue-600) !important; }
-
-/* --- Shadows tinted emerald → blue --- */
-.shadow-emerald-200 { --tw-shadow-color: rgb(5 69 167 / 0.22) !important; }
-.shadow-emerald-900\/10 { --tw-shadow-color: rgb(21 61 115 / 0.1) !important; }
-.shadow-emerald-900\/20 { --tw-shadow-color: rgb(21 61 115 / 0.2) !important; }
-
-/* --- Outline / checkbox accents --- */
-.outline-emerald-500 { outline-color: var(--brand-blue-500) !important; }
-
-/* ============================================================
-   SECONDARY COLOR — Global remap: indigo utilities
-   ============================================================ */
-
-/* --- Text --- */
-.text-indigo-50 { color: var(--brand-secondary-50) !important; }
-.text-indigo-100 { color: var(--brand-secondary-100) !important; }
-.text-indigo-200 { color: var(--brand-secondary-200) !important; }
-.text-indigo-300 { color: var(--brand-secondary-300) !important; }
-.text-indigo-400 { color: var(--brand-secondary-400) !important; }
-.text-indigo-500 { color: var(--brand-secondary-500) !important; }
-.text-indigo-600 { color: var(--brand-secondary-600) !important; }
-.text-indigo-700 { color: var(--brand-secondary-700) !important; }
-.text-indigo-800 { color: var(--brand-secondary-800) !important; }
-.text-indigo-900 { color: var(--brand-secondary-900) !important; }
-
-/* --- Backgrounds --- */
-.bg-indigo-50 { background-color: var(--brand-secondary-50) !important; }
-.bg-indigo-100 { background-color: var(--brand-secondary-100) !important; }
-.bg-indigo-200 { background-color: var(--brand-secondary-200) !important; }
-.bg-indigo-300 { background-color: var(--brand-secondary-300) !important; }
-.bg-indigo-400 { background-color: var(--brand-secondary-400) !important; }
-.bg-indigo-500 { background-color: var(--brand-secondary-500) !important; }
-.bg-indigo-600 { background-color: var(--brand-secondary-600) !important; }
-.bg-indigo-700 { background-color: var(--brand-secondary-700) !important; }
-.bg-indigo-800 { background-color: var(--brand-secondary-800) !important; }
-.bg-indigo-900 { background-color: var(--brand-secondary-900) !important; }
-
-/* --- Borders --- */
-.border-indigo-50 { border-color: var(--brand-secondary-50) !important; }
-.border-indigo-100 { border-color: var(--brand-secondary-100) !important; }
-.border-indigo-200 { border-color: var(--brand-secondary-200) !important; }
-.border-indigo-300 { border-color: var(--brand-secondary-300) !important; }
-.border-indigo-400 { border-color: var(--brand-secondary-400) !important; }
-.border-indigo-500 { border-color: var(--brand-secondary-500) !important; }
-.border-indigo-600 { border-color: var(--brand-secondary-600) !important; }
-
-/* --- Hovers --- */
-.hover\:bg-indigo-50:hover { background-color: var(--brand-secondary-50) !important; }
-.hover\:bg-indigo-600:hover { background-color: var(--brand-secondary-600) !important; }
-.hover\:text-indigo-600:hover { color: var(--brand-secondary-600) !important; }
 
 /* Base Styles */
 * {
@@ -633,7 +248,6 @@
 html {
   scroll-behavior: smooth;
   font-size: 14px;
-  /* Base scale = 14px → prevents zoomed-in appearance on laptops */
 }
 
 body {
@@ -643,20 +257,10 @@ body {
   line-height: 1.6;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
 #root {
   min-height: 100vh;
-}
-
-/* Hide scrollbar utility */
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
 }
 
 /* Custom Scrollbar */
@@ -667,7 +271,6 @@ body {
 
 ::-webkit-scrollbar-track {
   background: #f1f5f9;
-  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
@@ -675,817 +278,139 @@ body {
   border-radius: 4px;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: #ffab40;
-}
-
-/* Dark Mode Scrollbar */
-.dark ::-webkit-scrollbar-track {
-  background: #1a1f2e;
-}
-
-.dark ::-webkit-scrollbar-thumb {
-  background: #ff8e01;
-}
-
-.dark ::-webkit-scrollbar-thumb:hover {
-  background: #ffab40;
-}
-
-/* Dark mode body */
+/* Dark Mode support */
 .dark body {
   background-color: #0f1117;
   color: #e2e8f0;
 }
 
-/* ============================================================
-   DARK MODE — Global Tailwind Overrides
-   These override the hardcoded Tailwind classes used across
-   every page so dark mode works everywhere automatically.
-   ============================================================ */
+.dark ::-webkit-scrollbar-track {
+  background: #1a1f2e;
+}
 
-/* === Backgrounds === */
+/* Dark mode text readability overrides */
+.dark .text-gray-900 { color: #f1f5f9 !important; }
+.dark .text-gray-800 { color: #e2e8f0 !important; }
+.dark .text-gray-700 { color: #cbd5e1 !important; }
+.dark .text-gray-600 { color: #94a3b8 !important; }
+.dark .text-gray-500 { color: #64748b !important; }
+.dark .text-black { color: #f1f5f9 !important; }
+
+/* Dark mode color scale overrides */
+.dark .text-red-700, .dark .text-red-600 { color: #fca5a5 !important; }
+.dark .text-amber-700, .dark .text-amber-600 { color: #fcd34d !important; }
+.dark .text-blue-700, .dark .text-blue-600 { color: #93c5fd !important; }
+.dark .text-emerald-700, .dark .text-emerald-600 { color: #6ee7b7 !important; }
+.dark .text-purple-700, .dark .text-purple-600 { color: #d8b4fe !important; }
+
+/* Dark mode background overrides */
 .dark .bg-white {
   background-color: #1a1f2e !important;
+  border-color: #252b3b !important;
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.05) !important;
 }
 
-.dark .bg-gray-50 {
-  background-color: #1e2435 !important;
-}
+.dark .bg-gray-50 { background-color: #1e2435 !important; }
+.dark .bg-gray-100 { background-color: #252b3b !important; }
 
-.dark .bg-gray-100 {
-  background-color: #252b3b !important;
-}
+/* Light color backgrounds in Dark Mode */
+.dark .bg-red-50 { background-color: rgba(239, 68, 68, 0.1) !important; }
+.dark .bg-blue-50 { background-color: rgba(59, 130, 246, 0.1) !important; }
+.dark .bg-emerald-50 { background-color: rgba(16, 185, 129, 0.1) !important; }
+.dark .bg-amber-50 { background-color: rgba(245, 158, 11, 0.1) !important; }
 
-.dark .bg-gray-200 {
-  background-color: #2d3548 !important;
-}
+/* Dark mode border overrides for status colors */
+.dark .border-red-100, .dark .border-red-200 { border-color: rgba(239, 68, 68, 0.2) !important; }
+.dark .border-blue-100, .dark .border-blue-200 { border-color: rgba(59, 130, 246, 0.2) !important; }
+.dark .border-emerald-100, .dark .border-emerald-200 { border-color: rgba(16, 185, 129, 0.2) !important; }
+.dark .border-amber-100, .dark .border-amber-200 { border-color: rgba(245, 158, 11, 0.2) !important; }
 
-/* === Text === */
-.dark .text-gray-900 {
-  color: #f1f5f9 !important;
-}
-
-.dark .text-gray-800 {
-  color: #e2e8f0 !important;
-}
-
-.dark .text-gray-700 {
-  color: #cbd5e1 !important;
-}
-
-.dark .text-gray-600 {
-  color: #94a3b8 !important;
-}
-
-.dark .text-gray-500 {
-  color: #64748b !important;
-}
-
-.dark .text-gray-400 {
-  color: #475569 !important;
-}
-
-/* ============================================================
-   FIXED STATUS COLORS (Non-Theme Dependent)
-   ============================================================ */
-.bg-present-fixed { background-color: var(--attendance-present-bg) !important; }
-.text-present-fixed { color: var(--attendance-present-text) !important; }
-.bg-absent-fixed { background-color: var(--attendance-absent-bg) !important; }
-.text-absent-fixed { color: var(--attendance-absent-text) !important; }
-
-/* Dark Mode support for fixed attendance */
+/* Fixed Attendance in Dark Mode */
 .dark .bg-present-fixed { background-color: rgba(16, 185, 129, 0.2) !important; }
 .dark .text-present-fixed { color: #34d399 !important; }
 .dark .bg-absent-fixed { background-color: rgba(239, 68, 68, 0.2) !important; }
 .dark .text-absent-fixed { color: #f87171 !important; }
 
-/* === Borders === */
-.dark .border-gray-100 {
-  border-color: #252b3b !important;
-}
+/* Utility Classes */
+.dark hr { border-color: #252b3b !important; }
 
-.dark .border-gray-200 {
-  border-color: #2d3548 !important;
-}
-
-.dark .border-gray-300 {
-  border-color: #374151 !important;
-}
-
-/* === Hover backgrounds === */
-.dark .hover\:bg-gray-50:hover {
-  background-color: #252b3b !important;
-}
-
-.dark .hover\:bg-gray-100:hover {
-  background-color: #2d3548 !important;
-}
-
-.dark .hover\:bg-gray-200:hover {
-  background-color: #374151 !important;
-}
-
-/* === Inputs, Textareas, Selects === */
-.dark input:not([type="checkbox"]):not([type="radio"]),
-.dark textarea,
-.dark select {
+.dark input, .dark textarea, .dark select {
   background-color: #252b3b !important;
   border-color: #2d3548 !important;
   color: #f1f5f9 !important;
 }
 
-.dark input::placeholder,
-.dark textarea::placeholder {
-  color: #475569 !important;
+/* Dark mode shadow overrides - make them deeper and less "muddy" */
+.dark {
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -2px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.6), 0 4px 6px -4px rgba(0, 0, 0, 0.6);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.7), 0 8px 10px -6px rgba(0, 0, 0, 0.7);
 }
 
-.dark input:focus,
-.dark textarea:focus,
-.dark select:focus {
-  border-color: #ff8e01 !important;
-  box-shadow: 0 0 0 3px rgba(255, 142, 1, 0.15) !important;
+/* Force Tailwind shadow classes to use darker colors in dark mode */
+.dark .shadow-sm, .dark .shadow, .dark .shadow-md, .dark .shadow-lg, .dark .shadow-xl, .dark .shadow-2xl {
+  --tw-shadow-color: rgba(0, 0, 0, 0.6) !important;
+  --tw-shadow: 0 10px 15px -3px var(--tw-shadow-color), 0 4px 6px -4px var(--tw-shadow-color) !important;
 }
 
-/* Post Daily Log — keep orange outline on this textarea in dark mode */
-.dark .daily-log-textarea {
-  border-color: #ff8e01 !important;
-}
-
-.dark .daily-log-textarea:focus {
-  border-color: #ff8e01 !important;
-  box-shadow: 0 0 0 4px rgba(255, 142, 1, 0.2) !important;
-}
-
-/* === Cards / White containers === */
-.dark .rounded-2xl.bg-white,
-.dark .rounded-xl.bg-white,
-.dark .rounded-lg.bg-white {
-  background-color: #1a1f2e !important;
-  border-color: #252b3b !important;
-}
-
-/* === Stat cards / light bg variations === */
-.dark .bg-emerald-100 {
-  background-color: rgba(37, 124, 255, 0.15) !important;
-}
-
-.dark .bg-blue-100 {
-  background-color: rgba(59, 130, 246, 0.15) !important;
-}
-
-.dark .bg-amber-100 {
-  background-color: rgba(245, 158, 11, 0.15) !important;
-}
-
-.dark .bg-purple-100 {
-  background-color: rgba(168, 85, 247, 0.15) !important;
-}
-
-.dark .bg-red-100 {
-  background-color: rgba(239, 68, 68, 0.15) !important;
-}
-
-.dark .bg-orange-100 {
-  background-color: rgba(249, 115, 22, 0.15) !important;
-}
-
-.dark .bg-indigo-100 {
-  background-color: rgba(99, 102, 241, 0.15) !important;
-}
-
-.dark .bg-pink-100 {
-  background-color: rgba(236, 72, 153, 0.15) !important;
-}
-
-/* Quick-action card hover zones */
-.dark .bg-emerald-50 {
-  background-color: rgba(37, 124, 255, 0.1) !important;
-}
-
-.dark .bg-blue-50 {
-  background-color: rgba(59, 130, 246, 0.1) !important;
-}
-
-.dark .bg-amber-50 {
-  background-color: rgba(245, 158, 11, 0.1) !important;
-}
-
-.dark .bg-purple-50 {
-  background-color: rgba(168, 85, 247, 0.1) !important;
-}
-
-.dark .bg-red-50 {
-  background-color: rgba(239, 68, 68, 0.1) !important;
-}
-
-.dark .bg-orange-50 {
-  background-color: rgba(249, 115, 22, 0.1) !important;
-}
-
-.dark .bg-indigo-50 {
-  background-color: rgba(99, 102, 241, 0.1) !important;
-}
-
-.dark .bg-pink-50 {
-  background-color: rgba(236, 72, 153, 0.1) !important;
-}
-
-.dark .bg-yellow-50 {
-  background-color: rgba(234, 179, 8, 0.1) !important;
-}
-
-.dark .bg-green-50 {
-  background-color: rgba(37, 124, 255, 0.1) !important;
-}
-
-/* Hover variants for light-colored quick-action tiles */
-.dark .hover\:bg-emerald-100:hover {
-  background-color: rgba(37, 124, 255, 0.2) !important;
-}
-
-.dark .hover\:bg-blue-100:hover {
-  background-color: rgba(59, 130, 246, 0.2) !important;
-}
-
-.dark .hover\:bg-purple-100:hover {
-  background-color: rgba(168, 85, 247, 0.2) !important;
-}
-
-.dark .hover\:bg-red-100:hover {
-  background-color: rgba(239, 68, 68, 0.2) !important;
-}
-
-.dark .hover\:bg-amber-100:hover {
-  background-color: rgba(245, 158, 11, 0.2) !important;
-}
-
-/* === Tables === */
-.dark table {
-  background-color: #1a1f2e !important;
-  color: #e2e8f0 !important;
-}
-
-.dark thead,
-.dark th {
-  background-color: #252b3b !important;
-  color: #94a3b8 !important;
-  border-color: #2d3548 !important;
-}
-
-.dark td {
-  border-color: #252b3b !important;
-  color: #e2e8f0 !important;
-}
-
-.dark tbody tr:hover {
-  background-color: #252b3b !important;
-}
-
-/* === Modals / Popups === */
-.dark .fixed .bg-white,
-.dark .fixed .rounded-2xl {
-  background-color: #1a1f2e !important;
-}
-
-/* === Dividers === */
-.dark .divide-gray-100>*+*,
-.dark .divide-gray-200>*+* {
-  border-color: #252b3b !important;
-}
-
-/* === Shadows (soften in dark) === */
-.dark .shadow-sm,
-.dark .shadow,
-.dark .shadow-md,
-.dark .shadow-lg,
-.dark .shadow-xl {
-  --tw-shadow-color: rgba(0, 0, 0, 0.4) !important;
-}
-
-/* === Badge / Pill borders === */
-.dark .border-emerald-200 {
-  border-color: rgba(37, 124, 255, 0.3) !important;
-}
-
-.dark .border-blue-200 {
-  border-color: rgba(59, 130, 246, 0.3) !important;
-}
-
-.dark .border-amber-200 {
-  border-color: rgba(245, 158, 11, 0.3) !important;
-}
-
-.dark .border-red-200 {
-  border-color: rgba(239, 68, 68, 0.3) !important;
-}
-
-.dark .border-purple-200 {
-  border-color: rgba(168, 85, 247, 0.3) !important;
-}
-
-/* Mini gradient insight strips inside cards */
-.dark .bg-gradient-to-r.from-emerald-50\/80 {
-  background: linear-gradient(to right, rgba(37, 124, 255, 0.08), rgba(59, 130, 246, 0.08)) !important;
-  border-color: rgba(37, 124, 255, 0.15) !important;
-}
-
-/* ============================================================
-   DARK MODE — Slate color scale (widely used in pages)
-   ============================================================ */
-
-/* Slate text */
-.dark .text-slate-900 {
-  color: #f1f5f9 !important;
-}
-
-.dark .text-slate-800 {
-  color: #e2e8f0 !important;
-}
-
-.dark .text-slate-700 {
-  color: #cbd5e1 !important;
-}
-
-.dark .text-slate-600 {
-  color: #94a3b8 !important;
-}
-
-.dark .text-slate-500 {
-  color: #64748b !important;
-}
-
-.dark .text-slate-400 {
-  color: #475569 !important;
-}
-
-.dark .text-slate-300 {
-  color: #374151 !important;
-}
-
-/* Slate backgrounds */
-.dark .bg-slate-50 {
-  background-color: #1e2435 !important;
-}
-
-.dark .bg-slate-100 {
-  background-color: #252b3b !important;
-}
-
-.dark .bg-slate-200 {
-  background-color: #2d3548 !important;
-}
-
-.dark .bg-slate-900 {
-  background-color: #0f1117 !important;
-}
-
-/* Slate borders */
-.dark .border-slate-100 {
-  border-color: #252b3b !important;
-}
-
-.dark .border-slate-200 {
-  border-color: #2d3548 !important;
-}
-
-/* Slate hover */
-.dark .hover\:bg-slate-100:hover {
-  background-color: #252b3b !important;
-}
-
-.dark .hover\:text-slate-900:hover {
-  color: #f1f5f9 !important;
-}
-
-/* ============================================================
-   DARK MODE — Generic element overrides (text-black, labels, etc.)
-   ============================================================ */
-
-/* text-black and text-white forced corrections */
-.dark .text-black {
-  color: #f1f5f9 !important;
-}
-
-/* Labels — forms often use raw label with no explicit color */
-.dark label {
-  color: #cbd5e1 !important;
-}
-
-/* Headings without explicit Tailwind color classes */
-.dark h1:not([class*="text-white"]):not([class*="text-"]),
-.dark h2:not([class*="text-white"]):not([class*="text-"]),
-.dark h3:not([class*="text-white"]):not([class*="text-"]),
-.dark h4:not([class*="text-white"]):not([class*="text-"]),
-.dark h5:not([class*="text-white"]):not([class*="text-"]),
-.dark h6:not([class*="text-white"]):not([class*="text-"]) {
-  color: #f1f5f9;
-}
-
-/* Paragraphs and spans without explicit color */
-.dark p:not([class*="text-"]),
-.dark span:not([class*="text-"]) {
-  color: inherit;
-}
-
-/* ============================================================
-   DARK MODE — More specific element fixes
-   ============================================================ */
-
-/* Select option text in dark mode */
-.dark option {
-  background-color: #1a1f2e;
-  color: #f1f5f9;
-}
-
-/* Notification/announcement popup white card background */
-.dark .bg-white.rounded-3xl,
-.dark .rounded-3xl.bg-white {
-  background-color: #1a1f2e !important;
-}
-
-/* Any element with bg-white\/... semi-transparent patterns - keep as-is for gradients */
-
-/* Admin & page stat strips */
-.dark .bg-slate-50.min-h-screen {
-  background-color: #0f1117 !important;
-}
-
-/* Horizontal rules */
-.dark hr {
-  border-color: #252b3b !important;
-}
-
-/* Dropdown menus in forms */
-.dark [role="listbox"],
-.dark [role="option"] {
-  background-color: #1a1f2e !important;
-  color: #f1f5f9 !important;
-}
-
-/* DataTable / table head text */
-.dark .text-xs.font-semibold.text-gray-500,
-.dark .text-xs.font-medium.text-gray-500 {
-  color: #64748b !important;
-}
-
-/* ============================================================
-   DARK MODE — Chat / floating widget backgrounds
-   ============================================================ */
-.dark .bg-white.shadow-2xl,
-.dark .shadow-2xl.bg-white {
-  background-color: #1a1f2e !important;
-}
-
-/* ============================================================
-   DARK MODE — Marks Page & Chart specific fixes
-   ============================================================ */
-
-/* Course selector banner (hardcoded bg-[#f8fafc]) */
-.dark [class*="bg-\[#f8fafc\]"],
-.dark [class*="bg-\[#F8FAFC\]"] {
-  background-color: #1e2435 !important;
-}
-
-/* Card header gradient strip (from-gray-50 to-white) */
-.dark .bg-gradient-to-r.from-gray-50 {
-  background: linear-gradient(to right, #1e2435, #1a1f2e) !important;
-  border-color: #252b3b !important;
-}
-
-/* Table row dividers (divide-gray-50) */
-.dark .divide-y.divide-gray-50>*+* {
-  border-color: #252b3b !important;
-}
-
-/* Table row hover (hover:bg-gray-50\/50) */
-.dark .hover\:bg-gray-50\/50:hover {
-  background-color: rgba(37, 43, 59, 0.5) !important;
-}
-
-/* Semi-transparent gray-50 thead row */
-.dark .bg-gray-50\/50 {
-  background-color: rgba(30, 36, 53, 0.8) !important;
-}
-
-/* Chart.js canvas — ensure transparent background in dark */
-.dark canvas {
-  background: transparent !important;
-}
-
-/* Score bar text inside table cells — keep readable */
-.dark td span {
-  color: inherit;
-}
-
-/* Dashed empty-state border boxes */
-.dark .border-dashed {
-  border-color: #394251 !important;
-}
-
-
-/* Custom Animations */
+/* Animations */
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes fadeInDown {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes slideInLeft {
-  from {
-    opacity: 0;
-    transform: translateX(-30px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes slideInRight {
-  from {
-    opacity: 0;
-    transform: translateX(30px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes scaleIn {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-@keyframes pulse-slow {
-
-  0%,
-  100% {
-    opacity: 1;
-  }
-
-  50% {
-    opacity: 0.7;
-  }
-}
-
-@keyframes shimmer {
-  0% {
-    background-position: -200% 0;
-  }
-
-  100% {
-    background-position: 200% 0;
-  }
-}
-
-@keyframes float {
-
-  0%,
-  100% {
-    transform: translateY(0px);
-  }
-
-  50% {
-    transform: translateY(-10px);
-  }
-}
-
-@keyframes spin-slow {
-  from {
-    transform: rotate(0deg);
-  }
-
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* Animation Utilities */
 .animate-fade-in {
   animation: fadeIn 0.5s ease-out forwards;
 }
 
-.animate-fade-in-up {
-  animation: fadeInUp 0.5s ease-out forwards;
+/* Announcement HTML Content Styles */
+.announcement-html-content h1,
+.announcement-html-content h2,
+.announcement-html-content h3,
+.announcement-html-content h4 {
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+    color: inherit;
+}
+.dark .announcement-html-content h1,
+.dark .announcement-html-content h2,
+.dark .announcement-html-content h3,
+.dark .announcement-html-content h4 {
+    color: #f1f5f9 !important;
+}
+.announcement-html-content p {
+    margin-bottom: 0.5rem;
+    color: inherit;
+}
+.dark .announcement-html-content p {
+    color: #cbd5e1 !important;
+}
+.announcement-html-content a {
+    text-decoration: underline;
+    color: #3b82f6;
+}
+.dark .announcement-html-content a {
+    color: #60a5fa !important;
+}
+.announcement-html-content ul,
+.announcement-html-content ol {
+    padding-left: 1.5rem;
+    margin-bottom: 0.5rem;
+    color: inherit;
+}
+.announcement-html-content li {
+    margin-bottom: 0.25rem;
+    color: inherit;
+}
+.announcement-html-content img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 0.5rem;
+    margin: 0.5rem 0;
 }
 
-.animate-fade-in-down {
-  animation: fadeInDown 0.5s ease-out forwards;
-}
-
-.animate-slide-in-left {
-  animation: slideInLeft 0.5s ease-out forwards;
-}
-
-.animate-slide-in-right {
-  animation: slideInRight 0.5s ease-out forwards;
-}
-
-.animate-scale-in {
-  animation: scaleIn 0.3s ease-out forwards;
-}
-
-.animate-pulse-slow {
-  animation: pulse-slow 2s ease-in-out infinite;
-}
-
-.animate-shimmer {
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-}
-
-.animate-float {
-  animation: float 3s ease-in-out infinite;
-}
-
-.animate-spin-slow {
-  animation: spin-slow 8s linear infinite;
-}
-
-/* Card Hover Effects */
-.card-hover {
-  transition: all var(--transition-normal);
-}
-
-.card-hover:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-lg);
-}
-
-/* Button Ripple Effect */
-.btn-ripple {
-  position: relative;
-  overflow: hidden;
-}
-
-.btn-ripple::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 0;
-  height: 0;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.3);
-  transform: translate(-50%, -50%);
-  transition: width 0.4s ease, height 0.4s ease;
-}
-
-.btn-ripple:active::after {
-  width: 300px;
-  height: 300px;
-}
-
-/* Gradient Backgrounds */
-.gradient-primary {
-  background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
-}
-
-.gradient-success {
-  background: linear-gradient(135deg, var(--primary-light) 0%, var(--accent-teal) 100%);
-}
-
-.gradient-gold {
-  background: linear-gradient(135deg, var(--accent-gold) 0%, #F59E0B 100%);
-}
-
-/* Glass Effect */
-.glass {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-/* Skeleton Loading */
-.skeleton {
-  background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-  border-radius: 4px;
-}
-
-/* Form Input Focus States */
-input:focus,
-textarea:focus,
-select:focus {
-  outline: none;
-}
-
-/* Line Clamp Utilities */
-.line-clamp-1 {
-  display: -webkit-box;
-  -webkit-line-clamp: 1;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.line-clamp-2 {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.line-clamp-3 {
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-/* ============================================================
-   GLOBAL BRAND OVERRIDES — Sitewide Theme Enforcement
-   Ensures hardcoded orange/yellow hexes follow the selected theme.
-   ============================================================ */
-
-/* Primary Overrides (Orange/Yellow → Theme Primary) */
-.bg-\[\#ff8e01\], .bg-\[\#ffab40\], .bg-\[\#ff8e01\]\/90 { 
-  background-color: var(--primary) !important; 
-}
-.bg-\[\#ff8e01\]\/20, .bg-emerald-200 { 
-  background-color: var(--brand-blue-200) !important; 
-}
-.bg-\[\#ff8e01\]\/10, .bg-emerald-100, .bg-emerald-50 { 
-  background-color: var(--brand-blue-100) !important; 
-}
-.hover\:bg-\[\#ff8e01\]\/90:hover, .hover\:bg-\[\#ff8e01\]:hover, .hover\:bg-\[\#e67e00\]:hover { 
-  background-color: var(--primary-light) !important; 
-}
-.text-\[\#ff8e01\], .text-\[\#ffab40\], .text-\[\#ff8e01\]\/70, .text-emerald-700, .text-emerald-600 { 
-  color: var(--primary) !important; 
-}
-.border-\[\#ff8e01\], .border-\[\#ff8e01\]\/20, .border-\[\#ff8e01\]\/30 { 
-  border-color: var(--primary) !important; 
-}
-.shadow-\[\#ff8e01\]\/20, .shadow-orange-900\/20 { 
-  --tw-shadow-color: var(--primary-darkest) !important;
-  box-shadow: 0 10px 15px -3px var(--primary-darkest), 0 4px 6px -4px var(--primary-darkest) !important;
-}
-
-/* Sidebar & Dark Elements Overrides (#222d38 → Theme Dark) */
-.bg-\[\#222d38\], .from-\[\#222d38\], .bg-\[\#1a232c\] { 
-  background-color: var(--bg-sidebar) !important; 
-}
-.to-\[\#394251\], .bg-\[\#394251\], .bg-\[\#394251\]\/50, .hover\:bg-\[\#394251\]\/50:hover { 
-  background-color: var(--primary-dark) !important; 
-}
-.border-l-\[\#ff8e01\], .border-\[\#ff8e01\] { 
-  border-left-color: var(--primary) !important;
-  border-color: var(--primary) !important;
-}
-
-/* Standard Tailwind Scale Remaps (Yellow/Amber/Orange → Theme) */
-.bg-orange-500, .bg-amber-500, .bg-yellow-500 { background-color: var(--primary) !important; }
-.bg-orange-600, .bg-amber-600, .bg-yellow-600 { background-color: var(--primary-dark) !important; }
-.bg-orange-100, .bg-amber-100, .bg-yellow-100 { background-color: var(--brand-blue-100) !important; }
-.bg-orange-50, .bg-amber-50, .bg-yellow-50 { background-color: var(--brand-blue-50) !important; }
-
-.text-orange-500, .text-amber-500, .text-yellow-500 { color: var(--primary) !important; }
-.text-orange-600, .text-amber-600, .text-yellow-600 { color: var(--primary-dark) !important; }
-
-.border-orange-500, .border-amber-500, .border-yellow-500 { border-color: var(--primary) !important; }
-
-/* Dashboard Specific Overrides */
-.from-red-600 { --tw-gradient-from: var(--primary) !important; }
-.via-red-500 { --tw-gradient-to: var(--primary-light) !important; }
-.to-orange-500 { --tw-gradient-to: var(--secondary) !important; }
+/* Global Brand Overrides */
+.bg-\[\#ff8e01\] { background-color: var(--primary) !important; }
+.text-\[\#ff8e01\] { color: var(--primary) !important; }
+.border-\[\#ff8e01\] { border-color: var(--primary) !important; }

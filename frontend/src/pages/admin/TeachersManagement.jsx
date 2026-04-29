@@ -11,6 +11,7 @@ import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
 import { userAPI, settingsAPI, courseAPI } from '../../services/api';
 import Loader from '../../components/ui/Loader';
+import ImageCropper from '../../components/ui/ImageCropper';
 
 const TeachersManagement = () => {
     const [searchQuery, setSearchQuery] = useState('');
@@ -28,6 +29,8 @@ const TeachersManagement = () => {
     const [teacherCourses, setTeacherCourses] = useState([]);
     const [loadingCourses, setLoadingCourses] = useState(false);
     const [pausingCourseId, setPausingCourseId] = useState(null);
+    const [cropperSrc, setCropperSrc] = useState(null);
+    const [photoPreview, setPhotoPreview] = useState(null);
 
     useEffect(() => {
         fetchTeachers();
@@ -99,6 +102,21 @@ const TeachersManagement = () => {
         }
     };
 
+    const handlePhotoChange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onloadend = () => setCropperSrc(reader.result);
+        reader.readAsDataURL(file);
+        e.target.value = '';
+    };
+
+    const handleCropDone = (croppedFile, croppedDataUrl) => {
+        setSelectedFile(croppedFile);
+        setPhotoPreview(croppedDataUrl);
+        setCropperSrc(null);
+    };
+
     const handleDelete = async () => {
         if (!confirmModal.teacher) return;
         setIsProcessing(true);
@@ -116,6 +134,7 @@ const TeachersManagement = () => {
     const handleEditClick = (teacher) => {
         setEditModal({ open: true, user: teacher });
         setSelectedFile(null);
+        setPhotoPreview(teacher.photo || null);
         setEditForm({
             rollNo: teacher.rollNo || '',
             name: teacher.name || '',
@@ -889,10 +908,8 @@ const TeachersManagement = () => {
                         <div className="flex items-center gap-4 p-3 bg-gray-50 rounded-xl border border-gray-100">
                             {/* Preview Current or Selected */}
                             <div className="w-12 h-12 rounded-full overflow-hidden bg-white border border-gray-200 flex-shrink-0 flex items-center justify-center">
-                                {selectedFile ? (
-                                    <img src={URL.createObjectURL(selectedFile)} alt="Selected" className="w-full h-full object-cover" />
-                                ) : editModal.user?.photo ? (
-                                    <img src={editModal.user.photo} alt="Current" className="w-full h-full object-cover" />
+                                {photoPreview ? (
+                                    <img src={photoPreview} alt="Preview" className="w-full h-full object-cover" />
                                 ) : (
                                     <User className="w-6 h-6 text-gray-400" />
                                 )}
@@ -900,7 +917,7 @@ const TeachersManagement = () => {
                             <input
                                 type="file"
                                 accept="image/*"
-                                onChange={(e) => setSelectedFile(e.target.files[0])}
+                                onChange={handlePhotoChange}
                                 className="block w-full text-sm text-gray-500
                                     file:mr-4 file:py-2 file:px-4
                                     file:rounded-xl file:border-0
@@ -1088,6 +1105,15 @@ const TeachersManagement = () => {
                     </div>
                 </form>
             </Modal>
+
+            {cropperSrc && (
+                <ImageCropper
+                    imageSrc={cropperSrc}
+                    onCrop={handleCropDone}
+                    onCancel={() => setCropperSrc(null)}
+                    accentColor="emerald"
+                />
+            )}
         </div>
     );
 };

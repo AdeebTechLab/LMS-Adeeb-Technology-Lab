@@ -9,6 +9,7 @@ import autoTable from 'jspdf-autotable';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
 import { userAPI, settingsAPI, taskAPI } from '../../services/api';
+import ImageCropper from '../../components/ui/ImageCropper';
 
 const JobsManagement = () => {
     const [searchQuery, setSearchQuery] = useState('');
@@ -21,6 +22,7 @@ const JobsManagement = () => {
     const [isProcessing, setIsProcessing] = useState(false);
     const [selectedFile, setSelectedFile] = useState(null);
     const [photoPreview, setPhotoPreview] = useState(null);
+    const [cropperSrc, setCropperSrc] = useState(null);
 
     useEffect(() => {
         fetchJobUsers();
@@ -74,6 +76,21 @@ const JobsManagement = () => {
             setIsProcessing(false);
             setConfirmModal({ open: false, action: null, user: null });
         }
+    };
+
+    const handlePhotoChange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onloadend = () => setCropperSrc(reader.result);
+        reader.readAsDataURL(file);
+        e.target.value = '';
+    };
+
+    const handleCropDone = (croppedFile, croppedDataUrl) => {
+        setSelectedFile(croppedFile);
+        setPhotoPreview(croppedDataUrl);
+        setCropperSrc(null);
     };
 
     const handleUnverify = async () => {
@@ -675,13 +692,7 @@ const JobsManagement = () => {
                                 <input
                                     type="file"
                                     accept="image/*"
-                                    onChange={(e) => {
-                                        const file = e.target.files[0];
-                                        if (file) {
-                                            setSelectedFile(file);
-                                            setPhotoPreview(URL.createObjectURL(file));
-                                        }
-                                    }}
+                                    onChange={handlePhotoChange}
                                     className="absolute inset-0 opacity-0 cursor-pointer"
                                 />
                             </div>
@@ -875,6 +886,15 @@ const JobsManagement = () => {
                     </div>
                 </form>
             </Modal>
+
+            {cropperSrc && (
+                <ImageCropper
+                    imageSrc={cropperSrc}
+                    onCrop={handleCropDone}
+                    onCancel={() => setCropperSrc(null)}
+                    accentColor="purple"
+                />
+            )}
         </div>
     );
 };

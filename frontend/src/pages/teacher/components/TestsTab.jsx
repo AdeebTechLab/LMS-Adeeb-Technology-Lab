@@ -142,7 +142,7 @@ const TestsTab = ({ course, students }) => {
                 question: `[Auto-Parsed] Question ${i + 1} from ${file.name.split('.')[0]} content...`,
                 options: ["Option A", "Option B", "Option C", "Option D"],
                 correctOption: 0,
-                marks: 5
+                marks: 1
             }));
 
             if (isEditModalOpen && editingTest) {
@@ -204,7 +204,7 @@ const TestsTab = ({ course, students }) => {
                             question: questionText,
                             options: options,
                             correctOption: 0,
-                            marks: 5
+                            marks: 1
                         });
                     }
                 });

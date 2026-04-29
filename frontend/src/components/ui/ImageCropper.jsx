@@ -54,12 +54,12 @@ const ImageCropper = ({ imageSrc, onCrop, onCancel, accentColor = 'emerald' }) =
 
         ctx.drawImage(img, x, y, iw, ih);
 
-        // Draw overlay (dark mask outside crop square)
+        // Draw overlay (much lighter mask outside crop square)
         const cropLeft = (CANVAS_SIZE - CROP_SIZE) / 2;
         const cropTop = (CANVAS_SIZE - CROP_SIZE) / 2;
 
         ctx.save();
-        ctx.fillStyle = 'rgba(0,0,0,0.55)';
+        ctx.fillStyle = 'rgba(0,0,0,0.25)'; // Lighter overlay
         ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
         ctx.globalCompositeOperation = 'destination-out';
         ctx.beginPath();
@@ -67,11 +67,40 @@ const ImageCropper = ({ imageSrc, onCrop, onCancel, accentColor = 'emerald' }) =
         ctx.fill();
         ctx.restore();
 
-        // Draw square border
+        // Draw Minimal Corner Guides (Cleaner than a full box)
         ctx.save();
-        ctx.strokeStyle = 'rgba(255,255,255,0.9)';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(cropLeft, cropTop, CROP_SIZE, CROP_SIZE);
+        ctx.strokeStyle = 'rgba(255,255,255,0.8)';
+        ctx.lineWidth = 3;
+        const cornerLen = 20;
+
+        // Top Left
+        ctx.beginPath();
+        ctx.moveTo(cropLeft, cropTop + cornerLen);
+        ctx.lineTo(cropLeft, cropTop);
+        ctx.lineTo(cropLeft + cornerLen, cropTop);
+        ctx.stroke();
+
+        // Top Right
+        ctx.beginPath();
+        ctx.moveTo(cropLeft + CROP_SIZE - cornerLen, cropTop);
+        ctx.lineTo(cropLeft + CROP_SIZE, cropTop);
+        ctx.lineTo(cropLeft + CROP_SIZE, cropTop + cornerLen);
+        ctx.stroke();
+
+        // Bottom Left
+        ctx.beginPath();
+        ctx.moveTo(cropLeft, cropTop + CROP_SIZE - cornerLen);
+        ctx.lineTo(cropLeft, cropTop + CROP_SIZE);
+        ctx.lineTo(cropLeft + cornerLen, cropTop + CROP_SIZE);
+        ctx.stroke();
+
+        // Bottom Right
+        ctx.beginPath();
+        ctx.moveTo(cropLeft + CROP_SIZE - cornerLen, cropTop + CROP_SIZE);
+        ctx.lineTo(cropLeft + CROP_SIZE, cropTop + CROP_SIZE);
+        ctx.lineTo(cropLeft + CROP_SIZE, cropTop + CROP_SIZE - cornerLen);
+        ctx.stroke();
+        
         ctx.restore();
     }, [zoom, offset, imgLoaded]);
 

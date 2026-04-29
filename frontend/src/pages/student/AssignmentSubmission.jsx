@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { useLocation } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
     CheckCircle, Clock, Calendar, Search, Filter, AlertCircle, XCircle, ChevronLeft, ChevronRight,
-    BookOpen, GraduationCap, ArrowRight, ExternalLink, Send, FileText, ClipboardList, Plus, Loader2, Link as LinkIcon, MessageCircle, MapPin, Zap
+    BookOpen, GraduationCap, ArrowRight, ExternalLink, Send, FileText, ClipboardList, Plus, Loader2, Link as LinkIcon, MessageCircle, MapPin, Zap, X
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import { assignmentAPI, courseAPI, dailyTaskAPI, enrollmentAPI, chatAPI, feeAPI } from '../../services/api';
@@ -99,10 +99,10 @@ const AssignmentSubmission = () => {
         const stateCourse = location.state?.courseId;
         const savedTab = localStorage.getItem('submission_activeTab');
         const savedCourse = localStorage.getItem('submission_selectedCourse');
-        
+
         if (stateTab) setActiveTab(stateTab);
         else if (savedTab) setActiveTab(savedTab);
-        
+
         if (stateCourse) setSelectedCourseId(stateCourse);
         else if (savedCourse) setSelectedCourseId(savedCourse);
     }, [location.state]);
@@ -616,7 +616,7 @@ const AssignmentSubmission = () => {
                                 <span className="hidden xs:inline">BACK TO ALL COURSES</span>
                                 <span className="xs:hidden">BACK</span>
                             </button>
-                            
+
                             {/* Course Book Button - Moved up for mobile */}
                             {myCourses.find(c => c._id === selectedCourseId)?.bookLink && (
                                 <a
@@ -762,17 +762,17 @@ const AssignmentSubmission = () => {
                                     <div className="space-y-6">
                                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                             {[
-                                                { label: 'Pending', icon: Clock, count: filteredAssignments.filter((a) => a.status === 'pending' && !isDeadlinePassed(a.deadline)).length, color: 'text-amber-700 bg-amber-50 border-amber-100' },
-                                                { label: 'Submitted', icon: Send, count: filteredAssignments.filter((a) => a.status === 'submitted').length, color: 'text-blue-700 bg-blue-50 border-blue-100' },
-                                                { label: 'Graded', icon: CheckCircle, count: filteredAssignments.filter((a) => a.status === 'graded').length, color: 'text-emerald-700 bg-emerald-50 border-emerald-100' },
-                                                { label: 'Overdue', icon: AlertCircle, count: filteredAssignments.filter((a) => a.status === 'overdue' || (a.status === 'pending' && isDeadlinePassed(a.deadline))).length, color: 'text-red-700 bg-red-50 border-red-100' },
+                                                { label: 'Pending', icon: Clock, count: filteredAssignments.filter((a) => a.status === 'pending' && !isDeadlinePassed(a.deadline)).length, color: 'text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-800/30' },
+                                                { label: 'Submitted', icon: Send, count: filteredAssignments.filter((a) => a.status === 'submitted').length, color: 'text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-800/30' },
+                                                { label: 'Graded', icon: CheckCircle, count: filteredAssignments.filter((a) => a.status === 'graded').length, color: 'text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-800/30' },
+                                                { label: 'Overdue', icon: AlertCircle, count: filteredAssignments.filter((a) => a.status === 'overdue' || (a.status === 'pending' && isDeadlinePassed(a.deadline))).length, color: 'text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border-red-100 dark:border-red-800/30' },
                                             ].map((stat) => (
                                                 <div key={stat.label} className={`${stat.color} rounded-2xl p-4 border flex items-center justify-between shadow-sm`}>
                                                     <div>
                                                         <span className="text-[10px] font-black uppercase tracking-widest opacity-70 block mb-1">{stat.label}</span>
                                                         <p className="text-2xl font-black leading-none">{stat.count}</p>
                                                     </div>
-                                                    <div className={`p-2 rounded-xl bg-white/50 backdrop-blur-sm`}>
+                                                    <div className={`p-2 rounded-xl bg-white/50 dark:bg-black/20 backdrop-blur-sm`}>
                                                         <stat.icon className="w-5 h-5 opacity-80" />
                                                     </div>
                                                 </div>
@@ -786,7 +786,7 @@ const AssignmentSubmission = () => {
                                                 <p className="text-gray-500 italic">No assignments are currently registered for this workspace.</p>
                                             </div>
                                         ) : (
-                                            <div className="space-y-4">
+                                            <div className="space-y-6">
                                                 {filteredAssignments.map((assignment, index) => {
                                                     const canSubmit = !isDeadlinePassed(assignment.deadline) && assignment.status === 'pending' && !isRestricted && !isCompleted;
                                                     const statusConfig = getStatusConfig(assignment.status, assignment.deadline);
@@ -796,65 +796,50 @@ const AssignmentSubmission = () => {
                                                             key={assignment.id}
                                                             initial={{ opacity: 0, y: 10 }}
                                                             animate={{ opacity: 1, y: 0 }}
-                                                            className={`bg-white rounded-3xl p-6 border border-gray-100 shadow-sm transition-all hover:shadow-md ${assignment.status === 'graded' ? 'opacity-75' : ''}`}
+                                                            className={`bg-white dark:bg-slate-900/40 rounded-[2.5rem] p-8 border border-gray-100 dark:border-slate-800 shadow-sm transition-all hover:shadow-2xl hover:border-emerald-200 dark:hover:border-emerald-900/50 group relative overflow-hidden ${assignment.status === 'graded' ? 'opacity-95' : ''}`}
                                                         >
-                                                            <div className="flex flex-col lg:flex-row justify-between gap-6">
-                                                                <div className="flex-1">
-                                                                    <div className="flex items-center gap-3 mb-3">
-                                                                        <span className="text-[10px] font-black text-gray-400 bg-gray-50 px-2.5 py-1 rounded-lg border border-gray-100 uppercase tracking-tight">Assignment #{index + 1}</span>
-                                                                        <h3 className="font-bold text-gray-900 text-lg uppercase tracking-tight">{assignment.title}</h3>
-                                                                        <Badge variant={statusConfig.variant}>{statusConfig.label.toUpperCase()}</Badge>
-                                                                    </div>
-                                                                    <p className="text-sm text-gray-500 font-medium leading-relaxed mb-4 whitespace-pre-wrap">{assignment.description}</p>
-                                                                    <div className="flex flex-wrap items-center gap-4">
-                                                                        <div className="flex items-center gap-1.5 px-3 py-1 bg-gray-50 rounded-lg border border-gray-100 text-xs font-bold text-gray-500 uppercase">
-                                                                            <Calendar className="w-4 h-4" />
-                                                                            Due: {formatDate(assignment.deadline)}
+                                                            {/* Status Glow Background */}
+                                                            <div className={`absolute top-0 right-0 w-40 h-40 rounded-full -mr-20 -mt-20 blur-3xl opacity-10 transition-opacity group-hover:opacity-20 ${assignment.status === 'graded' ? 'bg-emerald-500' : assignment.status === 'overdue' ? 'bg-red-500' : 'bg-amber-500'}`}></div>
+
+                                                            <div className="flex flex-col h-full relative z-10">
+                                                                {/* Header */}
+                                                                <div className="flex items-start justify-between mb-6">
+                                                                    <div className="flex items-center gap-3">
+                                                                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg ${assignment.status === 'graded' ? 'bg-emerald-600 shadow-emerald-100 dark:shadow-none' : assignment.status === 'submitted' ? 'bg-blue-600 shadow-blue-100 dark:shadow-none' : 'bg-[#0f2847] shadow-slate-100 dark:shadow-none'}`}>
+                                                                            <FileText className="w-6 h-6" />
                                                                         </div>
-                                                                        {canSubmit && (
-                                                                            <span className="text-[10px] font-black text-amber-600 uppercase tracking-widest animate-pulse">
-                                                                                {getTimeRemaining(assignment.deadline)}
-                                                                            </span>
-                                                                        )}
+                                                                        <div>
+                                                                            <span className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest block mb-1">TASK #{index + 1}</span>
+                                                                            <h3 className="font-black text-gray-900 dark:text-white text-lg uppercase tracking-tight group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors leading-tight">{assignment.title}</h3>
+                                                                        </div>
                                                                     </div>
+                                                                    <Badge variant={statusConfig.variant}>{statusConfig.label.toUpperCase()}</Badge>
                                                                 </div>
 
-                                                                <div className="flex flex-col gap-3 min-w-[200px]">
-                                                                    {assignment.status === 'graded' && (
-                                                                        <div className="space-y-3">
-                                                                            <div className="bg-emerald-50 p-4 rounded-2xl border border-emerald-100 text-center">
-                                                                                <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-1">Final Result</p>
-                                                                                <p className="text-3xl font-black text-emerald-700">{assignment.grade}<span className="text-lg text-emerald-400">/{assignment.totalMarks}</span></p>
+                                                                <p className="text-sm text-gray-500 dark:text-gray-400 font-medium leading-relaxed mb-6 whitespace-pre-wrap">
+                                                                    {assignment.description}
+                                                                </p>
+
+                                                                <div className="mt-auto pt-6 border-t border-gray-50 dark:border-slate-800/50 flex flex-col sm:flex-row items-center justify-between gap-4">
+                                                                    <div className="flex flex-wrap items-center gap-3">
+                                                                        <div className="flex items-center gap-3 px-4 py-2.5 bg-emerald-50/50 dark:bg-emerald-900/10 rounded-2xl border border-emerald-100 dark:border-emerald-800/30 group/date transition-all hover:bg-emerald-100 dark:hover:bg-emerald-900/20">
+                                                                            <div className="w-8 h-8 rounded-xl bg-white dark:bg-slate-800 flex items-center justify-center shadow-sm text-emerald-600">
+                                                                                <Calendar className="w-4 h-4" />
                                                                             </div>
-                                                                            {assignment.feedback && (
-                                                                                <div className="bg-gradient-to-r from-amber-50 to-orange-50 p-5 rounded-2xl border-2 border-amber-200 shadow-sm relative overflow-hidden">
-                                                                                    {/* Decorative background icon */}
-                                                                                    <MessageCircle className="absolute -right-4 -bottom-4 w-24 h-24 text-amber-100/50 transform rotate-12" />
-
-                                                                                    <p className="text-xs font-black text-amber-600 uppercase tracking-widest mb-3 flex items-center gap-2 relative z-10">
-                                                                                        <MessageCircle className="w-4 h-4" />
-                                                                                        Teacher's Feedback
-                                                                                    </p>
-                                                                                    <div className="bg-white/60 p-3 rounded-xl border border-amber-100/50 relative z-10">
-                                                                                        <p className="text-sm text-gray-800 italic leading-relaxed whitespace-pre-wrap">"{assignment.feedback}"</p>
-                                                                                    </div>
-                                                                                </div>
-                                                                            )}
-                                                                        </div>
-                                                                    )}
-
-                                                                    {assignment.status === 'rejected' && assignment.feedback && (
-                                                                        <div className="bg-gradient-to-r from-red-50 to-rose-50 p-5 rounded-2xl border-2 border-red-200 shadow-sm relative overflow-hidden mb-3">
-                                                                            <MessageCircle className="absolute -right-4 -bottom-4 w-24 h-24 text-red-100/50 transform rotate-12" />
-                                                                            <p className="text-xs font-black text-red-600 uppercase tracking-widest mb-3 flex items-center gap-2 relative z-10">
-                                                                                <MessageCircle className="w-4 h-4" />
-                                                                                Rejection Reason
-                                                                            </p>
-                                                                            <div className="bg-white/60 p-3 rounded-xl border border-red-100/50 relative z-10">
-                                                                                <p className="text-sm text-gray-800 italic leading-relaxed whitespace-pre-wrap">"{assignment.feedback}"</p>
+                                                                            <div>
+                                                                                <p className="text-[9px] font-black text-emerald-600/60 dark:text-emerald-400/40 uppercase tracking-widest leading-none mb-1">Target Date</p>
+                                                                                <p className="text-xs font-black text-gray-700 dark:text-gray-300 uppercase tracking-tight">{formatDate(assignment.deadline)}</p>
                                                                             </div>
                                                                         </div>
-                                                                    )}
+                                                                        {canSubmit && (
+                                                                            <div className="flex items-center gap-2 px-4 py-2.5 bg-amber-50 dark:bg-amber-900/10 rounded-2xl border border-amber-100 dark:border-amber-800/30 animate-pulse">
+                                                                                <Clock className="w-4 h-4 text-amber-500" />
+                                                                                <span className="text-[10px] font-black text-amber-600 dark:text-amber-500 uppercase tracking-widest">
+                                                                                    {getTimeRemaining(assignment.deadline)}
+                                                                                </span>
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
 
                                                                     {(canSubmit || assignment.status === 'rejected') && selectedAssignment?.id !== assignment.id && (
                                                                         <button
@@ -864,98 +849,205 @@ const AssignmentSubmission = () => {
                                                                                 setSubmissionText(assignment.status === 'rejected' ? (assignment.notes || '') : '');
                                                                             }}
                                                                             disabled={isRestricted}
-                                                                            className={`w-full py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all text-white shadow-xl ${assignment.status === 'rejected' ? 'bg-red-600 hover:bg-red-700' : 'bg-[#0f2847] hover:bg-[#ff8e01]'} disabled:bg-gray-300 disabled:shadow-none`}
+                                                                            className={`px-8 py-3.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all text-white shadow-xl hover:shadow-2xl hover:scale-[1.03] hover:-translate-y-0.5 active:scale-[0.98] ring-offset-2 focus:ring-2 focus:ring-emerald-500/50 ${assignment.status === 'rejected' ? 'bg-red-600 hover:bg-red-700 shadow-red-200 dark:shadow-red-950/20' : 'bg-[#ff8e01] hover:bg-emerald-600 shadow-orange-200 dark:shadow-orange-900/40'} disabled:bg-gray-300 disabled:shadow-none flex items-center justify-center gap-2 w-full sm:w-auto`}
                                                                         >
-                                                                            {isRestricted ? (currentEnrollment?.isPaused ? 'LOCKED (PAUSED)' : 'LOCKED (FEE OVERDUE)') : (assignment.status === 'rejected' ? 'RESUBMIT ASSIGNMENT' : 'SUBMIT ASSIGNMENT')}
+                                                                            <Send className="w-4 h-4" />
+                                                                            {isRestricted ? (currentEnrollment?.isPaused ? 'LOCKED' : 'LOCKED') : (assignment.status === 'rejected' ? 'RESUBMIT' : 'SUBMIT ASSIGNMENT')}
                                                                         </button>
                                                                     )}
+                                                                </div>
 
-                                                                    {/* Student's Own Submission Data */}
+                                                                <div className="space-y-6">
                                                                     {(assignment.status === 'submitted' || assignment.status === 'graded') && (
-                                                                        <div className="mt-2 space-y-3 p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                                                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">My Submission</p>
-                                                                            
-                                                                            {assignment.submissionLink && (
-                                                                                <a 
-                                                                                    href={assignment.submissionLink} 
-                                                                                    target="_blank" 
-                                                                                    rel="noopener noreferrer"
-                                                                                    className="flex items-center gap-2 text-xs font-bold text-blue-600 hover:underline truncate"
-                                                                                >
-                                                                                    <LinkIcon className="w-3.5 h-3.5 shrink-0" />
-                                                                                    {assignment.submissionLink}
-                                                                                </a>
-                                                                            )}
-
-                                                                            {assignment.notes && (
-                                                                                <div className="bg-white/60 p-3 rounded-xl border border-slate-200">
-                                                                                    <p className="text-xs text-slate-600 font-medium whitespace-pre-wrap">{assignment.notes}</p>
+                                                                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                                                                            {/* Final Result Box */}
+                                                                            {assignment.status === 'graded' && (
+                                                                                <div className="bg-emerald-50 dark:bg-emerald-900/20 p-4 rounded-2xl border border-emerald-100 dark:border-emerald-800/30 text-center flex flex-col justify-center min-h-[90px]">
+                                                                                    <p className="text-[9px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest mb-1">Final Result</p>
+                                                                                    <p className="text-3xl font-black text-emerald-700 dark:text-emerald-300">{assignment.grade}<span className="text-lg text-emerald-400">/{assignment.totalMarks}</span></p>
                                                                                 </div>
                                                                             )}
 
-                                                                            {assignment.status === 'submitted' && (
-                                                                                <div className="flex items-center gap-2 pt-1">
-                                                                                    <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
-                                                                                    <p className="text-[9px] font-black text-blue-600 uppercase tracking-widest">Verification Pending</p>
+                                                                            {/* Feedback Box */}
+                                                                            {assignment.status === 'graded' && (
+                                                                                <div className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 p-4 rounded-2xl border border-amber-200 dark:border-amber-700/30 shadow-sm relative overflow-hidden min-h-[90px]">
+                                                                                    <MessageCircle className="absolute -right-4 -bottom-4 w-16 h-16 text-amber-100/50 dark:text-amber-900/10 transform rotate-12" />
+                                                                                    <p className="text-[9px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+                                                                                        <MessageCircle className="w-3 h-3" />
+                                                                                        Feedback
+                                                                                    </p>
+                                                                                    <p className="text-[11px] text-gray-800 dark:text-gray-200 italic leading-relaxed whitespace-pre-wrap line-clamp-3">"{assignment.feedback || 'No feedback provided'}"</p>
                                                                                 </div>
                                                                             )}
+
+                                                                            {/* My Submission Box */}
+                                                                            <div className={`p-4 bg-slate-50 dark:bg-slate-900/30 rounded-2xl border border-slate-100 dark:border-slate-800/50 flex flex-col justify-between min-h-[90px] ${assignment.status !== 'graded' ? 'lg:col-span-3' : ''}`}>
+                                                                                <div className="flex items-center justify-between mb-2">
+                                                                                    <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">My Submission</p>
+                                                                                    {assignment.status === 'submitted' && (
+                                                                                        <div className="flex items-center gap-1.5">
+                                                                                            <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+                                                                                            <p className="text-[9px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest">Pending</p>
+                                                                                        </div>
+                                                                                    )}
+                                                                                </div>
+
+                                                                                <div className="space-y-2">
+                                                                                    {assignment.submissionLink && (
+                                                                                        <a
+                                                                                            href={assignment.submissionLink}
+                                                                                            target="_blank"
+                                                                                            rel="noopener noreferrer"
+                                                                                            className="flex items-center gap-2 text-[11px] font-bold text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 p-2 rounded-lg transition-colors border border-transparent hover:border-blue-100 dark:hover:border-blue-800/30"
+                                                                                        >
+                                                                                            <LinkIcon className="w-3.5 h-3.5 shrink-0" />
+                                                                                            <span className="truncate">View My Work</span>
+                                                                                            <ExternalLink className="w-3 h-3 ml-auto opacity-50" />
+                                                                                        </a>
+                                                                                    )}
+
+                                                                                    {assignment.notes && (
+                                                                                        <div className="bg-white/60 dark:bg-black/20 p-2 rounded-xl border border-slate-200 dark:border-slate-800/50">
+                                                                                            <p className="text-[10px] text-slate-600 dark:text-slate-400 font-medium whitespace-pre-wrap leading-tight line-clamp-2">{assignment.notes}</p>
+                                                                                        </div>
+                                                                                    )}
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    )}
+
+                                                                    {assignment.status === 'rejected' && assignment.feedback && (
+                                                                        <div className="bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-900/20 dark:to-rose-900/20 p-5 rounded-2xl border border-red-200 dark:border-red-700/30 shadow-sm relative overflow-hidden">
+                                                                            <MessageCircle className="absolute -right-4 -bottom-4 w-16 h-16 text-red-100/50 dark:text-red-900/10 transform rotate-12" />
+                                                                            <p className="text-[10px] font-black text-red-600 dark:text-red-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+                                                                                <XCircle className="w-3 h-3" />
+                                                                                Rejection Reason
+                                                                            </p>
+                                                                            <p className="text-xs text-gray-800 dark:text-gray-200 italic leading-relaxed whitespace-pre-wrap">"{assignment.feedback}"</p>
                                                                         </div>
                                                                     )}
                                                                 </div>
                                                             </div>
-
-                                                            {selectedAssignment?.id === assignment.id && (
-                                                                <div className="mt-8 pt-8 border-t border-gray-100 animate-in fade-in slide-in-from-top-4 duration-500">
-                                                                    <div className="space-y-5">
-                                                                        <div>
-                                                                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 block ml-1">Submission Link / Proof</label>
-                                                                            <input
-                                                                                type="text"
-                                                                                placeholder="Paste URL here..."
-                                                                                value={submissionUrl}
-                                                                                onChange={(e) => setSubmissionUrl(e.target.value)}
-                                                                                className="w-full px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 font-medium transition-all"
-                                                                            />
-                                                                        </div>
-                                                                        <div>
-                                                                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 block ml-1">Notes for Teacher</label>
-                                                                            <textarea
-                                                                                placeholder="Describe your approach..."
-                                                                                rows="3"
-                                                                                value={submissionText}
-                                                                                onChange={(e) => setSubmissionText(e.target.value)}
-                                                                                onInput={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }}
-                                                                                className="w-full px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 font-medium transition-all resize-none overflow-hidden"
-                                                                            />
-                                                                        </div>
-                                                                        <div className="flex gap-3">
-                                                                            <button onClick={() => setSelectedAssignment(null)} className="flex-1 py-4 text-gray-500 font-black uppercase tracking-widest text-xs hover:bg-gray-100 rounded-2xl transition-all">Cancel</button>
-                                                                            <button
-                                                                                onClick={() => handleSubmit(assignment.id)}
-                                                                                disabled={isSubmitting || isRestricted}
-                                                                                className="flex-1 py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-black uppercase tracking-widest text-xs rounded-2xl shadow-xl shadow-emerald-200 transition-all disabled:bg-gray-300"
-                                                                            >
-                                                                                {isSubmitting ? 'Processing...' : 'Submit Assignment'}
-                                                                            </button>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            )}
                                                         </motion.div>
                                                     );
                                                 })}
                                             </div>
                                         )}
+
+                                        {/* SUBMISSION MODAL POPUP */}
+                                        <AnimatePresence>
+                                            {selectedAssignment && (
+                                                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+                                                    <motion.div 
+                                                        initial={{ opacity: 0 }} 
+                                                        animate={{ opacity: 1 }} 
+                                                        exit={{ opacity: 0 }}
+                                                        onClick={() => setSelectedAssignment(null)}
+                                                        className="fixed inset-0 bg-[#0f172a]/80 backdrop-blur-xl"
+                                                    />
+                                                    <motion.div
+                                                        initial={{ opacity: 0, scale: 0.95, y: 30 }}
+                                                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                                                        exit={{ opacity: 0, scale: 0.95, y: 30 }}
+                                                        className="bg-white dark:bg-[#0f172a] w-full max-w-xl rounded-[3rem] shadow-2xl border border-white/20 dark:border-slate-800 relative z-10 overflow-hidden"
+                                                    >
+                                                        {/* Modal Header */}
+                                                        <div className="bg-emerald-600 p-10 text-white relative overflow-hidden">
+                                                            <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full -mr-24 -mt-24 blur-3xl"></div>
+                                                            <div className="flex items-center gap-5 relative z-10">
+                                                                <div className="w-16 h-16 rounded-[1.5rem] bg-white/20 backdrop-blur-md flex items-center justify-center shadow-lg">
+                                                                    <Send className="w-8 h-8 text-white" />
+                                                                </div>
+                                                                <div>
+                                                                    <h3 className="text-2xl font-black uppercase tracking-tight leading-none mb-2">ASSIGNMENT SUBMIT</h3>
+                                                                    <p className="text-emerald-100 text-[11px] font-black uppercase tracking-widest opacity-90 flex items-center gap-2">
+                                                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-pulse" />
+                                                                        Post your work for review
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                            <button 
+                                                                onClick={() => setSelectedAssignment(null)}
+                                                                className="absolute top-8 right-8 w-10 h-10 rounded-full bg-black/10 hover:bg-black/20 flex items-center justify-center transition-colors text-white"
+                                                            >
+                                                                <X className="w-5 h-5" />
+                                                            </button>
+                                                        </div>
+
+                                                        {/* Modal Body */}
+                                                        <div className="p-10 space-y-8">
+                                                            <div className="space-y-4">
+                                                                <div className="group">
+                                                                    <label className="text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3 block ml-1 group-focus-within:text-[#ff8e01] transition-colors">
+                                                                        Work Link
+                                                                    </label>
+                                                                    <div className="relative">
+                                                                        <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-slate-300 group-focus-within:text-[#ff8e01] transition-colors">
+                                                                            <LinkIcon className="w-5 h-5" />
+                                                                        </div>
+                                                                        <input 
+                                                                            type="text"
+                                                                            placeholder="e.g. GitHub, Google Drive, or Website Link"
+                                                                            value={submissionUrl}
+                                                                            onChange={(e) => setSubmissionUrl(e.target.value)}
+                                                                            className="w-full pl-14 pr-6 py-5 bg-slate-50 dark:bg-black/40 border-2 border-slate-100 dark:border-slate-800 rounded-3xl outline-none focus:ring-8 focus:ring-[#ff8e01]/5 focus:border-[#ff8e01] font-bold transition-all text-sm dark:text-white placeholder:text-slate-400"
+                                                                        />
+                                                                    </div>
+                                                                </div>
+
+                                                                <div className="group">
+                                                                    <label className="text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3 block ml-1 group-focus-within:text-[#ff8e01] transition-colors">
+                                                                        Notes for Teacher
+                                                                    </label>
+                                                                    <div className="relative">
+                                                                        <div className="absolute top-5 left-0 pl-5 pointer-events-none text-slate-300 group-focus-within:text-[#ff8e01] transition-colors">
+                                                                            <FileText className="w-5 h-5" />
+                                                                        </div>
+                                                                        <textarea 
+                                                                            placeholder="Share any specific details about your implementation..."
+                                                                            rows="4"
+                                                                            value={submissionText}
+                                                                            onChange={(e) => setSubmissionText(e.target.value)}
+                                                                            className="w-full pl-14 pr-6 py-5 bg-slate-50 dark:bg-black/40 border-2 border-slate-100 dark:border-slate-800 rounded-3xl outline-none focus:ring-8 focus:ring-[#ff8e01]/5 focus:border-[#ff8e01] font-bold transition-all resize-none text-sm dark:text-white placeholder:text-slate-400 min-h-[140px]"
+                                                                        />
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            <div className="pt-4">
+                                                                <button
+                                                                    onClick={() => handleSubmit(selectedAssignment.id)}
+                                                                    disabled={isSubmitting || isRestricted}
+                                                                    className="w-full py-5 bg-emerald-600 hover:bg-emerald-700 text-white font-black uppercase tracking-widest text-xs rounded-3xl shadow-2xl shadow-emerald-200 dark:shadow-emerald-950/20 transition-all active:scale-[0.98] flex items-center justify-center gap-3 ring-offset-4 ring-offset-white dark:ring-offset-[#0f172a] focus:ring-4 focus:ring-emerald-500/50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                                >
+                                                                    {isSubmitting ? (
+                                                                        <>
+                                                                            <Loader2 className="w-5 h-5 animate-spin" />
+                                                                            UPLOADING...
+                                                                        </>
+                                                                    ) : (
+                                                                        <>
+                                                                            <CheckCircle className="w-5 h-5" />
+                                                                            CONFIRM & SUBMIT WORK
+                                                                        </>
+                                                                    )}
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </motion.div>
+                                                </div>
+                                            )}
+                                        </AnimatePresence>
                                     </div>
                                 ) : activeTab === 'daily_tasks' ? (
                                     /* DAILY LOGS VIEW */
                                     <div className="space-y-6">
-                                        <div className="bg-white rounded-[2.5rem] p-10 border border-gray-100 shadow-sm">
+                                        <div className="bg-white dark:bg-[#1a1f2e] rounded-[2.5rem] p-10 border border-gray-100 dark:border-gray-800 shadow-sm">
                                             <div className="flex items-center justify-between mb-8">
                                                 <div>
-                                                    <h3 className="text-xl font-black text-gray-900 uppercase tracking-tight">Post Daily Log</h3>
+                                                    <h3 className="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tight">Post Daily Log</h3>
                                                 </div>
-                                                <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600">
+                                                <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
                                                     <Plus className="w-6 h-6" />
                                                 </div>
                                             </div>
@@ -974,7 +1066,7 @@ const AssignmentSubmission = () => {
                                                                 onChange={(e) => setNewTaskLink(e.target.value)}
                                                                 disabled={isRestricted || isCompleted}
                                                                 placeholder="URL (GitHub, Drive, Website)"
-                                                                className="w-full pl-14 pr-6 py-4 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 font-bold transition-all disabled:opacity-50"
+                                                                className="w-full pl-14 pr-6 py-4 bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800 rounded-2xl outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 text-gray-900 dark:text-gray-100 font-bold transition-all disabled:opacity-50"
                                                             />
                                                         </div>
                                                     </div>
@@ -991,7 +1083,7 @@ const AssignmentSubmission = () => {
                                                         disabled={isRestricted || isCompleted}
                                                         placeholder="Describe your achievements and challenges today..."
                                                         rows={4}
-                                                        className="daily-log-textarea w-full px-7 py-5 bg-gray-50 border border-[#ff8e01] rounded-3xl outline-none focus:ring-4 focus:ring-[#ff8e01]/20 focus:border-[#ff8e01] font-medium transition-all resize-none overflow-hidden shadow-inner disabled:opacity-50 min-h-[7rem]"
+                                                        className="daily-log-textarea w-full px-7 py-5 bg-gray-50 dark:bg-gray-900/50 border border-[#ff8e01] dark:border-[#ff8e01]/50 rounded-3xl outline-none focus:ring-4 focus:ring-[#ff8e01]/20 focus:border-[#ff8e01] text-gray-900 dark:text-gray-100 font-medium transition-all resize-none overflow-hidden shadow-inner disabled:opacity-50 min-h-[7rem]"
                                                     />
                                                 </div>
 
@@ -1036,7 +1128,7 @@ const AssignmentSubmission = () => {
                                                                     <button onClick={() => { setResubmittingTaskId(task._id); setNewTaskContent(task.content); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="text-[10px] font-black text-emerald-600 underline uppercase tracking-widest">Edit & Re-commit</button>
                                                                 )}
                                                             </div>
-                                                            <div className="bg-gray-50/50 p-5 rounded-2xl border border-gray-100 text-sm italic text-gray-600 font-medium leading-relaxed mb-4 whitespace-pre-wrap">"{task.content}"</div>
+                                                            <div className="bg-gray-50/50 dark:bg-gray-900/30 p-5 rounded-2xl border border-gray-100 dark:border-gray-800 text-sm italic text-gray-600 dark:text-gray-400 font-medium leading-relaxed mb-4 whitespace-pre-wrap">"{task.content}"</div>
                                                             {task.workLink && (
                                                                 <a href={task.workLink} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[10px] font-black text-emerald-600 uppercase hover:bg-emerald-50 w-fit px-3 py-1.5 rounded-lg border border-emerald-100 transition-all">
                                                                     <ExternalLink className="w-3.5 h-3.5" />
@@ -1044,13 +1136,13 @@ const AssignmentSubmission = () => {
                                                                 </a>
                                                             )}
                                                             {task.feedback && (
-                                                                <div className="mt-6 pt-6 border-t border-gray-100">
-                                                                    <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-2">Teacher Evaluation</p>
-                                                                    <p className="text-sm font-semibold italic text-emerald-900">"{task.feedback}"</p>
+                                                                <div className="mt-6 pt-6 border-t border-gray-100 dark:border-gray-800">
+                                                                    <p className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest mb-2">Teacher Evaluation</p>
+                                                                    <p className="text-sm font-semibold italic text-emerald-900 dark:text-emerald-200">"{task.feedback}"</p>
                                                                     {task.marks !== undefined && (
-                                                                        <div className="mt-4 flex items-center justify-between bg-emerald-50 p-4 rounded-xl border border-emerald-100">
-                                                                            <span className="text-xs font-black text-emerald-700 uppercase">Proficiency Met</span>
-                                                                            <span className="text-xl font-black text-emerald-700">{task.marks}<span className="text-xs text-emerald-400">/100</span></span>
+                                                                        <div className="mt-4 flex items-center justify-between bg-emerald-50 dark:bg-emerald-900/20 p-4 rounded-xl border border-emerald-100 dark:border-emerald-700/30">
+                                                                            <span className="text-xs font-black text-emerald-700 dark:text-emerald-400 uppercase">Proficiency Met</span>
+                                                                            <span className="text-xl font-black text-emerald-700 dark:text-emerald-300">{task.marks}<span className="text-xs text-emerald-400 dark:text-emerald-600">/100</span></span>
                                                                         </div>
                                                                     )}
                                                                 </div>
@@ -1091,9 +1183,9 @@ const AssignmentSubmission = () => {
                                     /* TESTS VIEW */
                                     <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm min-h-[400px]">
                                         {selectedCourseId && myCourses.find(c => c._id === selectedCourseId) ? (
-                                            <StudentTestsTab 
-                                                courseId={selectedCourseId} 
-                                                isRestricted={isRestricted} 
+                                            <StudentTestsTab
+                                                courseId={selectedCourseId}
+                                                isRestricted={isRestricted}
                                             />
                                         ) : (
                                             <div className="flex flex-col items-center justify-center h-full py-20 text-gray-400">

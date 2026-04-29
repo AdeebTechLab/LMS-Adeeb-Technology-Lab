@@ -11,6 +11,7 @@ import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
 import { userAPI, settingsAPI, enrollmentAPI, assignmentAPI, feeAPI } from '../../services/api';
 import { generateComprehensiveReport } from '../../utils/reportGenerator';
+import ImageCropper from '../../components/ui/ImageCropper';
 
 const InternsManagement = () => {
     const [searchQuery, setSearchQuery] = useState('');
@@ -32,6 +33,7 @@ const InternsManagement = () => {
     const [enrollFetching, setEnrollFetching] = useState(false);
     const [enrollLoadingId, setEnrollLoadingId] = useState(null);
     const [enrollToast, setEnrollToast] = useState(null);
+    const [cropperSrc, setCropperSrc] = useState(null);
 
     // Installment/Fee Plan States (Integrated from FeeVerification)
     const [isInstallmentModalOpen, setIsInstallmentModalOpen] = useState(false);
@@ -118,6 +120,21 @@ const InternsManagement = () => {
             setIsProcessing(false);
             setConfirmModal({ open: false, action: null, user: null });
         }
+    };
+
+    const handlePhotoChange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onloadend = () => setCropperSrc(reader.result);
+        reader.readAsDataURL(file);
+        e.target.value = '';
+    };
+
+    const handleCropDone = (croppedFile, croppedDataUrl) => {
+        setSelectedFile(croppedFile);
+        setPhotoPreview(croppedDataUrl);
+        setCropperSrc(null);
     };
 
     const handleDelete = async () => {
@@ -1137,13 +1154,7 @@ const InternsManagement = () => {
                                 <input
                                     type="file"
                                     accept="image/*"
-                                    onChange={(e) => {
-                                        const file = e.target.files[0];
-                                        if (file) {
-                                            setSelectedFile(file);
-                                            setPhotoPreview(URL.createObjectURL(file));
-                                        }
-                                    }}
+                                    onChange={handlePhotoChange}
                                     className="absolute inset-0 opacity-0 cursor-pointer"
                                 />
                             </div>
@@ -1576,6 +1587,15 @@ const InternsManagement = () => {
                     </div>
                 </div>
             </Modal>
+
+            {cropperSrc && (
+                <ImageCropper
+                    imageSrc={cropperSrc}
+                    onCrop={handleCropDone}
+                    onCancel={() => setCropperSrc(null)}
+                    accentColor="blue"
+                />
+            )}
         </div>
     );
 };

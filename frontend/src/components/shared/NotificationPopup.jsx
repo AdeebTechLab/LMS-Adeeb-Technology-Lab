@@ -79,27 +79,27 @@ const NotificationPopup = () => {
     const getColorClasses = (type) => {
         switch (type) {
             case 'warning': return {
-                border: isDark ? 'border-amber-800/60' : 'border-amber-200',
-                bg: isDark ? 'bg-amber-900/20' : 'bg-amber-50/80',
-                iconBg: isDark ? 'bg-amber-900/30' : 'bg-amber-100',
+                border: isDark ? 'border-amber-500/30' : 'border-amber-200',
+                bg: isDark ? 'bg-amber-500/10' : 'bg-amber-50/80',
+                iconBg: isDark ? 'bg-amber-500/20' : 'bg-amber-100',
                 bar: 'bg-amber-500'
             };
             case 'success': return {
-                border: isDark ? 'border-[#ff8e01]/30' : 'border-[#ff8e01]/20',
-                bg: isDark ? 'bg-[#ff8e01]/10' : 'bg-[#ff8e01]/5',
-                iconBg: isDark ? 'bg-[#ff8e01]/15' : 'bg-[#ff8e01]/10',
+                border: isDark ? 'border-[#ff8e01]/40' : 'border-[#ff8e01]/20',
+                bg: isDark ? 'bg-[#ff8e01]/15' : 'bg-[#ff8e01]/5',
+                iconBg: isDark ? 'bg-[#ff8e01]/20' : 'bg-[#ff8e01]/10',
                 bar: 'bg-[#ff8e01]'
             };
             case 'error': return {
-                border: isDark ? 'border-rose-800/60' : 'border-rose-200',
-                bg: isDark ? 'bg-rose-900/20' : 'bg-rose-50/80',
-                iconBg: isDark ? 'bg-rose-900/30' : 'bg-rose-100',
+                border: isDark ? 'border-rose-500/30' : 'border-rose-200',
+                bg: isDark ? 'bg-rose-500/10' : 'bg-rose-50/80',
+                iconBg: isDark ? 'bg-rose-500/20' : 'bg-rose-100',
                 bar: 'bg-rose-500'
             };
             default: return {
-                border: isDark ? 'border-blue-800/60' : 'border-blue-200',
-                bg: isDark ? 'bg-blue-900/20' : 'bg-blue-50/80',
-                iconBg: isDark ? 'bg-blue-900/30' : 'bg-blue-100',
+                border: isDark ? 'border-blue-500/30' : 'border-blue-200',
+                bg: isDark ? 'bg-blue-500/10' : 'bg-blue-50/80',
+                iconBg: isDark ? 'bg-blue-500/20' : 'bg-blue-100',
                 bar: 'bg-blue-500'
             };
         }
@@ -137,7 +137,7 @@ const NotificationPopup = () => {
                                         <span className={`text-[10px] font-bold uppercase tracking-widest ${isDark ? 'text-white/40' : 'text-gray-400'}`}>Official Notice</span>
                                     </div>
                                     <h2 className={`text-xl md:text-2xl font-black tracking-tight mt-0.5 ${isDark ? 'text-white' : 'text-slate-900'}`}>Important Announcements</h2>
-                                    <p className={`text-xs font-medium mt-0.5 ${isDark ? 'text-white/50' : 'text-slate-500'}`}>
+                                    <p className={`text-xs font-medium mt-0.5 ${isDark ? 'text-gray-300' : 'text-slate-500'}`}>
                                         You have <span className="text-[#ff8e01] font-bold">{activeNotifications.length}</span> {activeNotifications.length === 1 ? 'notification' : 'notifications'} to review
                                     </p>
                                 </div>
@@ -172,11 +172,11 @@ const NotificationPopup = () => {
                                             </h3>
                                             {notification.isHtml ? (
                                                 <div
-                                                    className={`text-sm md:text-base leading-normal prose prose-sm max-w-none analytics-html-content ${isDark ? 'text-white/70 prose-invert' : 'text-slate-700'} mt-1`}
+                                                    className={`text-sm md:text-base leading-normal prose prose-sm max-w-none announcement-html-content ${isDark ? 'text-gray-200 prose-invert' : 'text-slate-700'} mt-1`}
                                                     dangerouslySetInnerHTML={{ __html: notification.message }}
                                                 />
                                             ) : (
-                                                <div className={`text-sm md:text-base leading-normal whitespace-pre-wrap ${isDark ? 'text-white/70' : 'text-slate-700'} mt-1`}>
+                                                <div className={`text-sm md:text-base leading-normal whitespace-pre-wrap ${isDark ? 'text-gray-300' : 'text-slate-700'} mt-1`}>
                                                     {notification.message?.trim()}
                                                 </div>
                                             )}

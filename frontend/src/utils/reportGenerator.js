@@ -108,7 +108,7 @@ export const generateComprehensiveReport = async (user, enrollments, assignments
         let currentY = y;
 
         for (let day = 1; day <= daysInMonth; day++) {
-            const dateStr = new Date(monthDate.getFullYear(), monthDate.getMonth(), day).toISOString().split('T')[0];
+            const dateStr = format(new Date(monthDate.getFullYear(), monthDate.getMonth(), day), 'yyyy-MM-dd');
             const status = attendanceData[dateStr]; // 'present', 'absent', or undefined
 
             // Draw Box
@@ -252,7 +252,7 @@ export const generateComprehensiveReport = async (user, enrollments, assignments
                     if (!isNaN(date.getTime())) {
                         const key = `${date.getFullYear()}-${date.getMonth()}`;
                         if (!attendanceByMonth[key]) attendanceByMonth[key] = { date, data: {} };
-                        attendanceByMonth[key].data[date.toISOString().split('T')[0]] = record.status;
+                        attendanceByMonth[key].data[format(date, 'yyyy-MM-dd')] = record.status;
                     }
                 });
 

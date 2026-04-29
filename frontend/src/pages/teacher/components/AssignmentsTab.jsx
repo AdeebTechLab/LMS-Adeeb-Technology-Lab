@@ -247,7 +247,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                             setAssignSearchTerm('');
                             setIsCreateModalOpen(true);
                         }}
-                        className="px-4 py-2 bg-[#0f2847] hover:bg-[#0545a7] text-white rounded-xl font-medium transition-all flex items-center gap-2"
+                        className="px-6 py-2.5 bg-[#0f2847] hover:bg-[#ff8e01] text-white rounded-xl font-black text-xs uppercase tracking-widest transition-all flex items-center gap-2 shadow-lg shadow-blue-900/10 active:scale-95"
                     >
                         <Plus className="w-4 h-4" />
                         Create Assignment
@@ -774,7 +774,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                         <button
                             type="submit"
                             disabled={isCreating}
-                            className="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium flex items-center gap-2"
+                            className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-emerald-100 flex items-center gap-2"
                         >
                             {isCreating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
                             Create Assignment
@@ -976,7 +976,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                             <button
                                 type="submit"
                                 disabled={isCreating}
-                                className="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium flex items-center gap-2"
+                                className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-emerald-100 flex items-center gap-2"
                             >
                                 {isCreating ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
                                 Save Changes
@@ -1096,7 +1096,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                                 <button
                                                     type="submit"
                                                     disabled={isGrading}
-                                                    className="flex-1 py-2 bg-emerald-600 text-white text-xs font-black uppercase tracking-widest rounded-xl hover:bg-emerald-700 transition-all font-bold"
+                                                    className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all shadow-lg shadow-emerald-100 active:scale-95"
                                                 >
                                                     {isGrading ? 'SAVING...' : 'SAVE GRADE'}
                                                 </button>
@@ -1104,7 +1104,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                                     type="button"
                                                     onClick={() => handleRejectSubmission()}
                                                     disabled={isGrading}
-                                                    className="px-6 py-2 bg-red-100 text-red-600 text-xs font-black uppercase tracking-widest rounded-xl hover:bg-red-200 transition-all font-bold"
+                                                    className="px-6 py-2 bg-red-100 text-red-600 text-xs font-black uppercase tracking-widest rounded-xl hover:bg-red-200 transition-all font-bold active:scale-95"
                                                 >
                                                     {isGrading ? '...' : 'REJECT'}
                                                 </button>
@@ -1138,7 +1138,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                                             type="button"
                                                             onClick={() => handleRejectSubmission()}
                                                             disabled={isGrading || !rejectFeedback.trim()}
-                                                            className="flex-1 py-2 bg-red-600 text-white text-xs font-black uppercase tracking-widest rounded-xl hover:bg-red-700 transition-all disabled:opacity-50"
+                                                            className="flex-1 py-2 bg-red-600 text-white text-xs font-black uppercase tracking-widest rounded-xl hover:bg-red-700 transition-all disabled:opacity-50 active:scale-95 shadow-lg shadow-red-100"
                                                         >
                                                             {isGrading ? 'REJECTING...' : 'CONFIRM REJECT'}
                                                         </button>

@@ -47,10 +47,13 @@ const StudentAttendanceTab = ({ course }) => {
         // Use local date string for comparison to match visual calendar date
         const dateStr = getLocalDateString(date);
 
-        // Compare with API date (assuming API returns YYYY-MM-DD part matches intended date)
-        // API dates are UTC midnight, so splitting T gives the correct YYYY-MM-DD
-        const record = attendanceData.find(a => a.date?.split('T')[0] === dateStr);
-        return record?.status || null;
+        // Compare with API date by converting it to local date string first
+        const record = attendanceData.find(a => {
+            if (!a.date) return false;
+            const apiDate = new Date(a.date);
+            return getLocalDateString(apiDate) === dateStr;
+        });
+        return record || null;
     };
 
     const generateCalendarDays = () => {
@@ -133,7 +136,8 @@ const StudentAttendanceTab = ({ course }) => {
                     ))}
                     {generateCalendarDays().map((date, index) => {
                         if (!date) return <div key={`empty-${index}`} className="h-10 sm:h-16" />;
-                        const status = getAttendanceForDate(date);
+                        const record = getAttendanceForDate(date);
+                        const status = record?.status || null;
                         const config = status ? getStatusConfig(status) : null;
                         const isToday = date.toDateString() === new Date().toDateString();
 
@@ -143,7 +147,7 @@ const StudentAttendanceTab = ({ course }) => {
                                 initial={{ opacity: 0, scale: 0.9 }}
                                 animate={{ opacity: 1, scale: 1 }}
                                 transition={{ delay: index * 0.01 }}
-                                className={`h-10 sm:h-16 rounded-lg sm:rounded-2xl flex flex-col items-center justify-center relative transition-all ${
+                                className={`h-12 sm:h-20 rounded-lg sm:rounded-2xl flex flex-col items-center justify-center relative transition-all group ${
                                     config ? config.bg : 'bg-gray-50 dark:bg-white/5'
                                 } ${isToday ? 'ring-2 ring-emerald-500 ring-offset-2' : ''}`}
                             >
@@ -151,7 +155,22 @@ const StudentAttendanceTab = ({ course }) => {
                                     {date.getDate()}
                                 </span>
                                 {config && (
-                                    <config.icon className={`w-2 h-2 sm:w-4 sm:h-4 mt-0.5 sm:mt-1 ${config.text}`} />
+                                    <>
+                                        <config.icon className={`w-2 h-2 sm:w-4 sm:h-4 mt-0.5 sm:mt-1 ${config.text}`} />
+                                        {record.markedAt && (
+                                            <div className="absolute inset-x-0 bottom-1 sm:bottom-2 text-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <span className={`text-[7px] sm:text-[9px] font-black uppercase tracking-tighter ${config.text}`}>
+                                                    {new Date(record.markedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                </span>
+                                            </div>
+                                        )}
+                                        {/* Mobile view always shows time if exists but very small */}
+                                        {record.markedAt && (
+                                            <span className={`xs:hidden text-[6px] font-bold mt-0.5 ${config.text}`}>
+                                                {new Date(record.markedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                            </span>
+                                        )}
+                                    </>
                                 )}
                             </motion.div>
                         );

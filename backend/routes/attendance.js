@@ -27,7 +27,8 @@ router.get('/my/:courseId', protect, async (req, res) => {
             const userRecord = a.records.find(r => r.user.toString() === req.user.id);
             return {
                 date: a.date,
-                status: userRecord ? userRecord.status : 'absent'
+                status: userRecord ? userRecord.status : 'absent',
+                markedAt: userRecord ? userRecord.markedAt : null
             };
         });
 

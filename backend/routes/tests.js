@@ -65,7 +65,7 @@ router.post('/', protect, authorize('teacher', 'admin'), async (req, res) => {
     try {
         const { courseId, title, description, questions, duration, dueDate, scheduledAt, assignTo, assignedUsers } = req.body;
 
-        const totalMarks = questions.reduce((sum, q) => sum + (q.marks || 1), 0);
+        const totalMarks = questions.length;
 
         const test = await Test.create({
             course: courseId,
@@ -113,7 +113,7 @@ router.post('/:id/submit', protect, async (req, res) => {
         const processedAnswers = answers.map(ans => {
             const question = test.questions.id(ans.questionId);
             if (question && question.correctOption === ans.selectedOption) {
-                score += (question.marks || 1);
+                score += 1;
             }
             return ans;
         });
@@ -148,7 +148,7 @@ router.put('/:id', protect, authorize('teacher', 'admin'), async (req, res) => {
     try {
         const { title, description, questions, duration, dueDate, scheduledAt, assignTo, assignedUsers } = req.body;
 
-        const totalMarks = questions ? questions.reduce((sum, q) => sum + (q.marks || 1), 0) : 0;
+        const totalMarks = questions ? questions.length : 0;
 
         const updatedData = {
             title,

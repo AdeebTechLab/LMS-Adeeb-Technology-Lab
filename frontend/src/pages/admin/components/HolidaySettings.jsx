@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Sun, Loader2, Check, Calendar } from 'lucide-react';
+import { Sun, Loader2, Check, Calendar, Moon, X, XCircle } from 'lucide-react';
 import { attendanceAPI } from '../../../services/api';
 
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -60,59 +60,93 @@ const HolidaySettings = () => {
         <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm"
+            className="bg-white rounded-[2.5rem] p-8 border border-gray-100 shadow-sm"
         >
-            <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-yellow-100 flex items-center justify-center">
-                        <Calendar className="w-5 h-5 text-yellow-600" />
+            <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-orange-50 flex items-center justify-center">
+                        <Calendar className="w-6 h-6 text-orange-600" />
                     </div>
                     <div>
-                        <h3 className="font-bold text-gray-900">Weekly Off Days</h3>
-                        <p className="text-xs text-gray-500">Set days when attendance won't be marked (applies to all courses)</p>
+                        <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-orange-500 mb-1">Administrative Logic</h2>
+                        <h3 className="text-xl font-black text-gray-900 uppercase tracking-tighter leading-none">Weekly Off Days</h3>
                     </div>
                 </div>
                 {saveSuccess && (
                     <motion.div
                         initial={{ opacity: 0, scale: 0.8 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        className="flex items-center gap-1 text-emerald-600 text-sm font-medium"
+                        className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 text-emerald-600 rounded-full text-[10px] font-black uppercase tracking-widest border border-emerald-100"
                     >
-                        <Check className="w-4 h-4" />
-                        Saved
+                        <Check className="w-3 h-3" />
+                        SYNCED
                     </motion.div>
                 )}
             </div>
 
-            <div className="grid grid-cols-7 gap-2">
+            <div className="grid grid-cols-4 sm:grid-cols-7 gap-4 mb-8">
                 {SHORT_DAY_NAMES.map((day, index) => (
                     <button
                         key={day}
                         onClick={() => toggleDay(index)}
                         disabled={isSaving}
-                        className={`relative p-3 rounded-xl font-bold text-center transition-all ${holidayDays.includes(index)
-                                ? 'bg-yellow-400 text-yellow-900 shadow-md ring-2 ring-yellow-500/30'
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                            } ${isSaving ? 'opacity-50 cursor-not-allowed' : 'active:scale-95 cursor-pointer'}`}
+                        className={`relative py-6 px-2 rounded-[1.5rem] font-black text-center transition-all duration-500 border-2 ${holidayDays.includes(index)
+                                ? 'bg-slate-900 text-white border-slate-900'
+                                : 'bg-white text-gray-300 border-gray-100 hover:border-orange-200 hover:text-orange-500 hover:bg-orange-50/30'
+                            } ${isSaving ? 'opacity-50 cursor-not-allowed' : 'active:scale-90 cursor-pointer group'}`}
                     >
-                        <span className="text-sm">{day}</span>
+                        <div className="flex items-center justify-center gap-2">
+                            {holidayDays.includes(index) ? (
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.5 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                >
+                                    <Moon className="w-4 h-4 text-blue-400 fill-blue-400/20" />
+                                </motion.div>
+                            ) : (
+                                <div className="w-1.5 h-1.5 rounded-full bg-gray-200 group-hover:bg-orange-300 transition-colors" />
+                            )}
+                            <span className={`text-[11px] uppercase tracking-[0.1em] font-black ${holidayDays.includes(index) ? 'opacity-90' : 'text-gray-400'}`}>
+                                {day}
+                            </span>
+                        </div>
+
                         {holidayDays.includes(index) && (
-                            <Sun className="w-3 h-3 absolute top-1 right-1 text-yellow-700" />
+                            <motion.div
+                                initial={{ scale: 0, rotate: -45 }}
+                                animate={{ scale: 1, rotate: 0 }}
+                                className="absolute -top-2 -right-2 w-8 h-8 bg-white rounded-2xl flex items-center justify-center shadow-lg shadow-red-500/20 border-2 border-red-500 z-10"
+                            >
+                                <X className="w-4 h-4 text-red-500" strokeWidth={4} />
+                            </motion.div>
                         )}
                     </button>
                 ))}
             </div>
 
-            <div className="mt-4 bg-yellow-50 rounded-xl p-3 border border-yellow-200">
-                <div className="flex items-start gap-2">
-                    <Sun className="w-4 h-4 text-yellow-600 mt-0.5" />
-                    <div className="text-xs text-yellow-800">
-                        <p className="font-bold mb-1">How it works:</p>
-                        <ul className="space-y-0.5 text-yellow-700">
-                            <li>• Selected days are marked as off days for all courses</li>
-                            <li>• Attendance cannot be marked on these days</li>
-                            <li>• Off days don't count toward total attendance</li>
-                            <li>• Auto-save at 12AM skips these days</li>
+            <div className="bg-slate-50 rounded-3xl p-5 border border-slate-100">
+                <div className="flex items-start gap-4">
+                    <div className="w-8 h-8 rounded-xl bg-white border border-slate-200 flex items-center justify-center shrink-0">
+                        <Sun className="w-4 h-4 text-orange-500" />
+                    </div>
+                    <div className="text-[11px] text-slate-500 font-medium leading-relaxed">
+                        <p className="font-black text-gray-900 uppercase tracking-widest mb-2 flex items-center gap-2">
+                            <span className="w-1.5 h-1.5 rounded-full bg-orange-500"></span>
+                            System Protocols
+                        </p>
+                        <ul className="space-y-2 opacity-80">
+                            <li className="flex items-center gap-2">
+                                <div className="w-1 h-1 rounded-full bg-orange-300"></div>
+                                Selected days are bypassed during global attendance cycles.
+                            </li>
+                            <li className="flex items-center gap-2">
+                                <div className="w-1 h-1 rounded-full bg-orange-300"></div>
+                                No attendance records will be generated for bypassed days.
+                            </li>
+                            <li className="flex items-center gap-2">
+                                <div className="w-1 h-1 rounded-full bg-orange-300"></div>
+                                Statistical calculations exclude these intervals automatically.
+                            </li>
                         </ul>
                     </div>
                 </div>
