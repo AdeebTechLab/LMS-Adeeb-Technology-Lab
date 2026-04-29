@@ -71,14 +71,14 @@ const JobDashboard = () => {
             <motion.div
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl p-8 text-white"
+                className="bg-gradient-to-r from-primary to-primary-dark rounded-2xl p-8 text-white"
             >
                 <div className="flex items-center justify-between">
                     <div>
                         <h1 className="text-3xl font-bold mb-2">
                             Welcome, {user?.name || 'Applicant'}! 👋
                         </h1>
-                        <p className="text-purple-100 text-lg">
+                        <p className="text-primary/10 text-lg">
                             Browse available tasks and track your work!
                         </p>
                     </div>
@@ -94,7 +94,7 @@ const JobDashboard = () => {
                     className="lg:col-span-2 bg-white rounded-2xl p-6 shadow-sm border border-gray-100"
                 >
                     <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
-                        <FileText className="w-5 h-5 text-purple-600" />
+                        <FileText className="w-5 h-5 text-primary" />
                         Task Overview
                     </h2>
 
@@ -111,7 +111,7 @@ const JobDashboard = () => {
                             <p className="text-sm text-gray-500 mb-1">Location</p>
                             <p className="font-semibold text-blue-900 capitalize">{user?.location || 'Not set'}</p>
                         </div>
-                        <div className="p-4 bg-orange-50 rounded-xl">
+                        <div className="p-4 bg-primary/5 rounded-xl">
                             <p className="text-sm text-gray-500 mb-1">Account Status</p>
                             <p className="font-semibold text-orange-900">{user?.isActive ? 'Active' : 'Pending'}</p>
                         </div>
@@ -128,14 +128,14 @@ const JobDashboard = () => {
                     <div className="space-y-3">
                         <button
                             onClick={() => navigate('/job/tasks')}
-                            className="w-full flex items-center gap-3 p-4 bg-purple-50 rounded-xl hover:bg-purple-100 transition-colors"
+                            className="w-full flex items-center gap-3 p-4 bg-purple-50 rounded-xl hover:bg-primary/10 transition-colors"
                         >
-                            <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                                <Briefcase className="w-5 h-5 text-purple-600" />
+                            <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                                <Briefcase className="w-5 h-5 text-primary" />
                             </div>
                             <div className="text-left">
                                 <p className="font-semibold text-purple-900">Browse Tasks</p>
-                                <p className="text-sm text-purple-600">Find available paid tasks</p>
+                                <p className="text-sm text-primary">Find available paid tasks</p>
                             </div>
                         </button>
                         <button
@@ -162,7 +162,7 @@ const JobDashboard = () => {
                 className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100"
             >
                 <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
-                    <Clock className="w-5 h-5 text-purple-600" />
+                    <Clock className="w-5 h-5 text-primary" />
                     Getting Started
                 </h2>
 
@@ -199,8 +199,8 @@ const JobDashboard = () => {
                 className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-2xl p-6 border border-gray-200"
             >
                 <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                        <AlertCircle className="w-6 h-6 text-purple-600" />
+                    <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <AlertCircle className="w-6 h-6 text-primary" />
                     </div>
                     <div>
                         <h3 className="font-semibold text-gray-900 mb-1">Need Help?</h3>
@@ -217,3 +217,6 @@ const JobDashboard = () => {
 };
 
 export default JobDashboard;
+
+
+

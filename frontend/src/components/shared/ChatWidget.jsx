@@ -467,7 +467,7 @@ const ChatWidget = () => {
                         className="mb-4 w-full max-w-[95vw] md:w-[600px] bg-white rounded-[2rem] shadow-2xl border border-gray-100 overflow-hidden flex flex-col h-[800px] max-h-[90vh]"
                     >
                         {/* Header */}
-                        <div className="bg-[#ff8e01] p-4 text-white flex items-center justify-between">
+                        <div className="bg-primary p-4 text-white flex items-center justify-between">
                             <div className="flex items-center gap-4">
                                 {activeChat ? (
                                     <button
@@ -538,7 +538,7 @@ const ChatWidget = () => {
                                                         key={tab.id}
                                                         onClick={() => setActiveTab(tab.id)}
                                                         className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider whitespace-nowrap transition-all ${activeTab === tab.id
-                                                            ? 'bg-[#ff8e01] text-white shadow-md shadow-orange-200'
+                                                            ? 'bg-primary text-white shadow-md shadow-orange-200'
                                                             : 'bg-white text-gray-500 hover:bg-gray-100 border border-gray-100'
                                                             }`}
                                                     >
@@ -634,15 +634,15 @@ const ChatWidget = () => {
                                                                 className="w-full p-5 bg-white rounded-[1.5rem] border border-gray-100 shadow-sm hover:shadow-xl hover:border-orange-100 transition-all flex items-center gap-5 text-left group relative overflow-hidden"
                                                             >
                                                                 {/* Activity Indicator */}
-                                                                <div className="absolute left-0 top-0 bottom-0 w-1 bg-transparent group-hover:bg-[#ff8e01] transition-all" />
+                                                                <div className="absolute left-0 top-0 bottom-0 w-1 bg-transparent group-hover:bg-primary transition-all" />
 
-                                                                <div className="w-14 h-14 bg-gradient-to-br from-orange-50 to-orange-100 rounded-2xl flex items-center justify-center text-[#ff8e01] font-black text-xl shadow-inner text-center">
+                                                                <div className="w-14 h-14 bg-gradient-to-br from-orange-50 to-orange-100 rounded-2xl flex items-center justify-center text-primary font-black text-xl shadow-inner text-center">
                                                                     {(item.userObj?.name || 'U').charAt(0).toUpperCase()}
                                                                 </div>
                                                                 <div className="flex-1 min-w-0">
                                                                     <div className="flex items-center justify-between mb-1.5">
                                                                         <div className="flex items-center gap-2">
-                                                                            <h4 className="font-black text-gray-900 truncate text-base group-hover:text-[#ff8e01] transition-colors">
+                                                                            <h4 className="font-black text-gray-900 truncate text-base group-hover:text-primary transition-colors">
                                                                                 {item.userObj?.name || 'Unknown User'}
                                                                             </h4>
                                                                             <span className="px-2 py-0.5 bg-gray-100 text-[10px] rounded-lg font-bold text-gray-500 uppercase tracking-wider">
@@ -660,7 +660,7 @@ const ChatWidget = () => {
                                                                             {item.lastMessage}
                                                                         </p>
                                                                         {item.unreadCount > 0 && (
-                                                                            <span className="flex-shrink-0 w-6 h-6 bg-[#ff8e01] text-white text-[11px] rounded-xl flex items-center justify-center font-black shadow-lg shadow-orange-200">
+                                                                            <span className="flex-shrink-0 w-6 h-6 bg-primary text-white text-[11px] rounded-xl flex items-center justify-center font-black shadow-lg shadow-orange-200">
                                                                                 {item.unreadCount}
                                                                             </span>
                                                                         )}
@@ -675,7 +675,7 @@ const ChatWidget = () => {
                                     ) : (
                                         <div className="text-center py-10 space-y-6 flex-1 flex flex-col justify-center">
                                             <div className="w-20 h-20 bg-orange-100 rounded-3xl flex items-center justify-center mx-auto shadow-inner">
-                                                <ShieldCheck className="w-10 h-10 text-[#ff8e01]" />
+                                                <ShieldCheck className="w-10 h-10 text-primary" />
                                             </div>
                                             <div>
                                                 <h4 className="text-lg font-bold text-gray-900">Contact Admin</h4>
@@ -686,7 +686,7 @@ const ChatWidget = () => {
                                             <button
                                                 onClick={() => adminUser && startChat(adminUser)}
                                                 disabled={!adminUser}
-                                                className="mx-auto w-40 py-3 bg-[#ff8e01] hover:bg-orange-700 text-white rounded-2xl font-bold shadow-lg shadow-orange-900/10 transition-all flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50"
+                                                className="mx-auto w-40 py-3 bg-primary hover:bg-orange-700 text-white rounded-2xl font-bold shadow-lg shadow-orange-900/10 transition-all flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50"
                                             >
                                                 {adminUser ? (
                                                     <>
@@ -706,7 +706,7 @@ const ChatWidget = () => {
                                     <div className="flex-1 overflow-y-auto p-4 space-y-4">
                                         {isLoading ? (
                                             <div className="flex items-center justify-center h-full">
-                                                <Loader2 className="w-6 h-6 animate-spin text-[#ff8e01]" />
+                                                <Loader2 className="w-6 h-6 animate-spin text-primary" />
                                             </div>
                                         ) : (
                                             messages.map((msg, index) => {
@@ -717,7 +717,7 @@ const ChatWidget = () => {
                                                 return (
                                                     <div key={index} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
                                                         <div className={`max-w-[85%] p-3.5 rounded-2xl text-[15px] shadow-sm leading-relaxed ${isMe
-                                                            ? 'bg-[#ff8e01] text-white rounded-tr-none shadow-orange-100'
+                                                            ? 'bg-primary text-white rounded-tr-none shadow-orange-100'
                                                             : 'bg-white text-gray-800 border border-gray-100 rounded-tl-none pr-6'
                                                             }`}>
                                                             {msg.text}
@@ -744,7 +744,7 @@ const ChatWidget = () => {
                                         <button
                                             type="submit"
                                             disabled={!newMessage.trim()}
-                                            className="w-10 h-10 bg-[#ff8e01] hover:bg-orange-700 text-white rounded-xl flex items-center justify-center transition-all disabled:opacity-50"
+                                            className="w-10 h-10 bg-primary hover:bg-orange-700 text-white rounded-xl flex items-center justify-center transition-all disabled:opacity-50"
                                         >
                                             <Send className="w-4 h-4" />
                                         </button>
@@ -770,10 +770,10 @@ const ChatWidget = () => {
                         className="absolute bottom-20 right-0 w-64 bg-white rounded-2xl shadow-2xl border border-orange-100 p-4 cursor-pointer hover:bg-orange-50 transition-colors z-50 flex items-start gap-3"
                     >
                         <div className="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                            <MessageCircle className="w-5 h-5 text-[#ff8e01]" />
+                            <MessageCircle className="w-5 h-5 text-primary" />
                         </div>
                         <div className="flex-1 min-w-0">
-                            <p className="text-xs font-black text-[#ff8e01] uppercase tracking-widest mb-0.5">{incomingNotify.senderName}</p>
+                            <p className="text-xs font-black text-primary uppercase tracking-widest mb-0.5">{incomingNotify.senderName}</p>
                             <p className="text-sm text-gray-700 truncate font-medium">{incomingNotify.text}</p>
                         </div>
                         <button
@@ -791,7 +791,7 @@ const ChatWidget = () => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setIsOpen(!isOpen)}
-                className={`w-14 h-14 rounded-full shadow-2xl flex items-center justify-center transition-all relative ${isOpen ? 'bg-white text-[#ff8e01] rotate-90' : 'bg-[#ff8e01] text-white'
+                className={`w-14 h-14 rounded-full shadow-2xl flex items-center justify-center transition-all relative ${isOpen ? 'bg-white text-primary rotate-90' : 'bg-primary text-white'
                     }`}
             >
                 {isOpen ? <X className="w-6 h-6" /> : <MessageCircle className="w-6 h-6" />}
@@ -809,3 +809,5 @@ const ChatWidget = () => {
 };
 
 export default ChatWidget;
+
+

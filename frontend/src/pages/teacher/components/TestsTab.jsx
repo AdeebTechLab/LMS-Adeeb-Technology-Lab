@@ -31,7 +31,7 @@ const TestsTab = ({ course, students }) => {
         duration: 30,
         dueDate: '',
         scheduledAt: '',
-        assignTo: 'all',
+        assignTo: 'none',
         assignedUsers: [],
         questions: []
     });
@@ -123,7 +123,7 @@ const TestsTab = ({ course, students }) => {
             duration: 30,
             dueDate: '',
             scheduledAt: '',
-            assignTo: 'all',
+            assignTo: 'none',
             assignedUsers: [],
             questions: []
         });
@@ -278,8 +278,8 @@ const TestsTab = ({ course, students }) => {
             <div className="flex flex-col gap-6">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm">
                     <div className="flex items-center gap-4">
-                        <div className="p-3 bg-orange-50 rounded-2xl">
-                            <Zap className="w-6 h-6 text-[#ff8e01]" />
+                        <div className="p-3 bg-primary/5 rounded-2xl">
+                            <Zap className="w-6 h-6 text-primary" />
                         </div>
                         <div>
                             <h3 className="text-xl font-black text-gray-900 uppercase">Tests & Exams</h3>
@@ -290,10 +290,10 @@ const TestsTab = ({ course, students }) => {
                     <div className="flex items-center gap-3">
                         <button
                             onClick={fetchTests}
-                            className="flex items-center gap-2 px-4 py-2.5 bg-gray-50 text-gray-500 hover:text-[#ff8e01] hover:bg-orange-50 rounded-xl transition-all group font-black text-[10px] uppercase tracking-widest"
+                            className="flex items-center gap-2 px-4 py-2.5 bg-gray-50 text-gray-500 hover:text-primary hover:bg-primary/5 rounded-xl transition-all group font-black text-[10px] uppercase tracking-widest"
                             title="Refresh Tests"
                         >
-                            <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin text-[#ff8e01]' : 'group-active:rotate-180 transition-transform duration-500'}`} />
+                            <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin text-primary' : 'group-active:rotate-180 transition-transform duration-500'}`} />
                             Refresh
                         </button>
                         <button
@@ -313,7 +313,7 @@ const TestsTab = ({ course, students }) => {
                             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                             className="flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-100 rounded-xl text-xs font-black uppercase tracking-widest text-gray-700 hover:bg-gray-50 transition-all shadow-sm"
                         >
-                            <Users className="w-4 h-4 text-[#ff8e01]" />
+                            <Users className="w-4 h-4 text-primary" />
                             {selectedStudentFilter === 'all' ? 'Filter by Student' : `Student: ${selectedStudent?.name}`}
                             <ChevronRight className={`w-4 h-4 transition-transform ${isDropdownOpen ? 'rotate-90' : ''}`} />
                         </button>
@@ -346,7 +346,7 @@ const TestsTab = ({ course, students }) => {
                                                 setStudentSearchTerm('');
                                             }}
                                             className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${selectedStudentFilter === 'all'
-                                                ? 'bg-orange-50 text-[#ff8e01]'
+                                                ? 'bg-primary/5 text-primary'
                                                 : 'text-gray-600 hover:bg-gray-50'
                                                 }`}
                                         >
@@ -365,7 +365,7 @@ const TestsTab = ({ course, students }) => {
                                                     setStudentSearchTerm('');
                                                 }}
                                                 className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${selectedStudentFilter === (student.id || student._id)
-                                                    ? 'bg-orange-50 text-[#ff8e01]'
+                                                    ? 'bg-primary/5 text-primary'
                                                     : 'text-gray-600 hover:bg-gray-50'
                                                     }`}
                                             >
@@ -373,7 +373,7 @@ const TestsTab = ({ course, students }) => {
                                                     {student.photo ? (
                                                         <img src={student.photo} alt="" className="w-6 h-6 rounded-full object-cover" />
                                                     ) : (
-                                                        <div className="w-6 h-6 rounded-full bg-orange-100 flex items-center justify-center text-[8px] text-[#ff8e01]">
+                                                        <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-[8px] text-primary">
                                                             {student.name?.charAt(0)}
                                                         </div>
                                                     )}
@@ -420,12 +420,12 @@ const TestsTab = ({ course, students }) => {
                             layout
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="bg-white rounded-[2.5rem] border border-gray-100 overflow-hidden shadow-sm hover:shadow-xl hover:shadow-orange-100/20 transition-all group"
+                            className="bg-white rounded-[2.5rem] border border-gray-100 overflow-hidden shadow-sm hover:shadow-xl hover:shadow-primary/10/20 transition-all group"
                         >
                             <div className="p-6 space-y-4">
                                 <div className="flex justify-between items-start">
-                                    <div className="p-3 bg-orange-50 rounded-2xl group-hover:bg-[#ff8e01] group-hover:text-white transition-colors">
-                                        <FileText className="w-6 h-6 text-[#ff8e01] group-hover:text-white" />
+                                    <div className="p-3 bg-primary/5 rounded-2xl group-hover:bg-primary group-hover:text-white transition-colors">
+                                        <FileText className="w-6 h-6 text-primary group-hover:text-white" />
                                     </div>
                                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                         <button
@@ -453,11 +453,11 @@ const TestsTab = ({ course, students }) => {
 
                                 <div className="grid grid-cols-2 gap-4 pt-2">
                                     <div className="flex items-center gap-2">
-                                        <Clock className="w-4 h-4 text-[#ff8e01]" />
+                                        <Clock className="w-4 h-4 text-primary" />
                                         <span className="text-[10px] font-black text-gray-600 uppercase tracking-wider">{test.duration} Mins</span>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <List className="w-4 h-4 text-[#ff8e01]" />
+                                        <List className="w-4 h-4 text-primary" />
                                         <span className="text-[10px] font-black text-gray-600 uppercase tracking-wider">{test.questions?.length} MCQs</span>
                                     </div>
                                 </div>
@@ -468,7 +468,7 @@ const TestsTab = ({ course, students }) => {
                                         <div className="flex items-center">
                                             <div className="flex -space-x-2 overflow-hidden">
                                                 {test.submissions?.slice(0, 4).map((sub, i) => (
-                                                    <div key={i} className="inline-block h-7 w-7 rounded-full ring-2 ring-white overflow-hidden bg-orange-100">
+                                                    <div key={i} className="inline-block h-7 w-7 rounded-full ring-2 ring-white overflow-hidden bg-primary/10">
                                                         {sub.user?.photo ? (
                                                             <img src={sub.user.photo} alt="" className="h-full w-full object-cover" />
                                                         ) : (
@@ -521,7 +521,7 @@ const TestsTab = ({ course, students }) => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-4">
                             <h4 className="text-sm font-black text-gray-900 uppercase tracking-wider flex items-center gap-2">
-                                <Type className="w-4 h-4 text-[#ff8e01]" /> Basic Details
+                                <Type className="w-4 h-4 text-primary" /> Basic Details
                             </h4>
                             <div className="space-y-4 bg-gray-50/50 p-6 rounded-[2rem] border border-gray-100">
                                 <div>
@@ -530,7 +530,7 @@ const TestsTab = ({ course, students }) => {
                                         type="text"
                                         value={formData.title}
                                         onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                                        className="w-full px-4 py-3 bg-white border-2 border-white rounded-2xl outline-none focus:border-orange-500 shadow-sm font-bold text-sm"
+                                        className="w-full px-4 py-3 bg-white border-2 border-white rounded-2xl outline-none focus:border-primary shadow-sm font-bold text-sm"
                                         placeholder="Enter test title..."
                                     />
                                 </div>
@@ -539,7 +539,7 @@ const TestsTab = ({ course, students }) => {
                                     <textarea
                                         value={formData.description}
                                         onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                        className="w-full px-4 py-3 bg-white border-2 border-white rounded-2xl outline-none focus:border-orange-500 shadow-sm font-bold text-sm resize-none"
+                                        className="w-full px-4 py-3 bg-white border-2 border-white rounded-2xl outline-none focus:border-primary shadow-sm font-bold text-sm resize-none"
                                         placeholder="Briefly describe this test..."
                                         rows="2"
                                     />
@@ -551,7 +551,7 @@ const TestsTab = ({ course, students }) => {
                                             type="number"
                                             value={formData.duration}
                                             onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
-                                            className="w-full px-4 py-3 bg-white border-2 border-white rounded-2xl outline-none focus:border-orange-500 shadow-sm font-bold text-sm"
+                                            className="w-full px-4 py-3 bg-white border-2 border-white rounded-2xl outline-none focus:border-primary shadow-sm font-bold text-sm"
                                         />
                                     </div>
                                     <div>
@@ -560,7 +560,7 @@ const TestsTab = ({ course, students }) => {
                                             type="date"
                                             value={formData.dueDate}
                                             onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
-                                            className="w-full px-4 py-3 bg-white border-2 border-white rounded-2xl outline-none focus:border-orange-500 shadow-sm font-bold text-sm"
+                                            className="w-full px-4 py-3 bg-white border-2 border-white rounded-2xl outline-none focus:border-primary shadow-sm font-bold text-sm"
                                         />
                                     </div>
                                 </div>
@@ -570,7 +570,7 @@ const TestsTab = ({ course, students }) => {
                                         type="datetime-local"
                                         value={formData.scheduledAt}
                                         onChange={(e) => setFormData({ ...formData, scheduledAt: e.target.value })}
-                                        className="w-full px-4 py-3 bg-white border-2 border-white rounded-2xl outline-none focus:border-orange-500 shadow-sm font-bold text-sm"
+                                        className="w-full px-4 py-3 bg-white border-2 border-white rounded-2xl outline-none focus:border-primary shadow-sm font-bold text-sm"
                                     />
                                     <p className="text-[9px] text-gray-400 mt-1 font-bold italic uppercase">Leave empty to publish immediately</p>
                                 </div>
@@ -579,7 +579,7 @@ const TestsTab = ({ course, students }) => {
 
                         <div className="space-y-4">
                             <h4 className="text-sm font-black text-gray-900 uppercase tracking-wider flex items-center gap-2">
-                                <Users className="w-4 h-4 text-[#ff8e01]" /> Assign To
+                                <Users className="w-4 h-4 text-primary" /> Assign To
                             </h4>
                             <div className="space-y-4 bg-gray-50/50 p-6 rounded-[2.5rem] border border-gray-100">
                                 <div className="flex gap-6">
@@ -588,13 +588,13 @@ const TestsTab = ({ course, students }) => {
                                             <input
                                                 type="radio"
                                                 name="assignTo"
-                                                checked={formData.assignTo === 'all'}
-                                                onChange={() => setFormData({ ...formData, assignTo: 'all', assignedUsers: [] })}
-                                                className="w-5 h-5 appearance-none border-2 border-gray-200 rounded-full checked:border-orange-500 transition-all cursor-pointer"
+                                                checked={formData.assignTo === 'none'}
+                                                onChange={() => setFormData({ ...formData, assignTo: 'none', assignedUsers: [] })}
+                                                className="w-5 h-5 appearance-none border-2 border-gray-200 rounded-full checked:border-primary transition-all cursor-pointer"
                                             />
-                                            {formData.assignTo === 'all' && <div className="absolute w-2.5 h-2.5 bg-orange-500 rounded-full" />}
+                                            {formData.assignTo === 'none' && <div className="absolute w-2.5 h-2.5 bg-primary rounded-full" />}
                                         </div>
-                                        <span className={`text-xs font-black uppercase tracking-widest transition-colors ${formData.assignTo === 'all' ? 'text-[#ff8e01]' : 'text-gray-400'}`}>All Students</span>
+                                        <span className={`text-xs font-black uppercase tracking-widest transition-colors ${formData.assignTo === 'none' ? 'text-primary' : 'text-gray-400'}`}>None (Draft)</span>
                                     </label>
 
                                     <label className="flex items-center gap-2 cursor-pointer group">
@@ -604,11 +604,11 @@ const TestsTab = ({ course, students }) => {
                                                 name="assignTo"
                                                 checked={formData.assignTo === 'selected'}
                                                 onChange={() => setFormData({ ...formData, assignTo: 'selected' })}
-                                                className="w-5 h-5 appearance-none border-2 border-gray-200 rounded-full checked:border-orange-500 transition-all cursor-pointer"
+                                                className="w-5 h-5 appearance-none border-2 border-gray-200 rounded-full checked:border-primary transition-all cursor-pointer"
                                             />
-                                            {formData.assignTo === 'selected' && <div className="absolute w-2.5 h-2.5 bg-orange-500 rounded-full" />}
+                                            {formData.assignTo === 'selected' && <div className="absolute w-2.5 h-2.5 bg-primary rounded-full" />}
                                         </div>
-                                        <span className={`text-xs font-black uppercase tracking-widest transition-colors ${formData.assignTo === 'selected' ? 'text-[#ff8e01]' : 'text-gray-400'}`}>Selected</span>
+                                        <span className={`text-xs font-black uppercase tracking-widest transition-colors ${formData.assignTo === 'selected' ? 'text-primary' : 'text-gray-400'}`}>Selected</span>
                                     </label>
                                 </div>
 
@@ -621,7 +621,7 @@ const TestsTab = ({ course, students }) => {
                                                 placeholder="Search student..."
                                                 value={assignSearchTerm}
                                                 onChange={(e) => setAssignSearchTerm(e.target.value)}
-                                                className="w-full pl-9 pr-3 py-2 bg-white border border-gray-100 rounded-xl text-[10px] font-black uppercase outline-none focus:border-orange-500"
+                                                className="w-full pl-9 pr-3 py-2 bg-white border border-gray-100 rounded-xl text-[10px] font-black uppercase outline-none focus:border-primary"
                                             />
                                         </div>
                                         <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto pr-1 custom-scrollbar">
@@ -630,13 +630,13 @@ const TestsTab = ({ course, students }) => {
                                                     key={student.id || student._id}
                                                     type="button"
                                                     onClick={() => toggleStudentSelection(student.id || student._id)}
-                                                    className={`flex items-center gap-3 p-2 rounded-xl border transition-all ${formData.assignedUsers.includes(student.id || student._id) ? 'bg-orange-50 border-orange-200 text-[#ff8e01]' : 'bg-white border-gray-100 text-gray-400 hover:border-gray-200'}`}
+                                                    className={`flex items-center gap-3 p-2 rounded-xl border transition-all ${formData.assignedUsers.includes(student.id || student._id) ? 'bg-primary/5 border-orange-200 text-primary' : 'bg-white border-gray-100 text-gray-400 hover:border-gray-200'}`}
                                                 >
                                                     <div className="relative shrink-0">
                                                         {student.photo ? (
                                                             <img src={student.photo} alt="" className="w-6 h-6 rounded-full object-cover" />
                                                         ) : (
-                                                            <div className="w-6 h-6 rounded-full bg-orange-100 flex items-center justify-center text-[8px] text-[#ff8e01] font-black uppercase">
+                                                            <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-[8px] text-primary font-black uppercase">
                                                                 {student.name?.charAt(0)}
                                                             </div>
                                                         )}
@@ -655,7 +655,7 @@ const TestsTab = ({ course, students }) => {
                     <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
                         <div className="space-y-4">
                             <h4 className="text-sm font-black text-gray-900 uppercase tracking-wider flex items-center gap-2">
-                                <Zap className="w-4 h-4 text-[#ff8e01]" /> Question Generator
+                                <Zap className="w-4 h-4 text-primary" /> Question Generator
                             </h4>
                             {/* ... Question generator UI ... */}
                             <div className="bg-slate-900 rounded-[2rem] p-6 text-white space-y-4 relative overflow-hidden">
@@ -679,7 +679,7 @@ const TestsTab = ({ course, students }) => {
                                                 value={pasteText}
                                                 onChange={(e) => setPasteText(e.target.value)}
                                                 placeholder="Paste book text, paragraphs, or MCQs here..."
-                                                className="w-full h-40 bg-white/10 border border-white/20 rounded-2xl p-4 text-xs font-medium outline-none focus:border-[#ff8e01] placeholder:text-white/30 resize-none"
+                                                className="w-full h-40 bg-white/10 border border-white/20 rounded-2xl p-4 text-xs font-medium outline-none focus:border-primary placeholder:text-white/30 resize-none"
                                             />
                                             {isGenerating && (
                                                 <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm rounded-2xl flex flex-col items-center justify-center space-y-2 animate-in fade-in duration-300">
@@ -689,7 +689,7 @@ const TestsTab = ({ course, students }) => {
                                             )}
                                         </div>
                                         <div className="flex items-center gap-2 px-2">
-                                            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                                            <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
                                             <p className="text-[9px] font-black uppercase tracking-widest text-white/50">Auto-detect enabled: Just paste to begin</p>
                                         </div>
                                     </div>
@@ -697,7 +697,7 @@ const TestsTab = ({ course, students }) => {
                                     <div className="space-y-4">
                                         <label className="flex flex-col items-center justify-center h-40 border-2 border-dashed border-white/20 rounded-2xl cursor-pointer hover:bg-white/5 transition-all group">
                                             <div className="p-4 bg-white/5 rounded-full mb-2 group-hover:scale-110 transition-transform">
-                                                <Upload className="w-8 h-8 text-[#ff8e01]" />
+                                                <Upload className="w-8 h-8 text-primary" />
                                             </div>
                                             <span className="text-[10px] font-black uppercase text-white/70 tracking-widest">Upload PDF / DOC / TXT</span>
                                             <p className="text-[8px] text-white/30 uppercase mt-1">AI will auto-detect all questions</p>
@@ -714,7 +714,7 @@ const TestsTab = ({ course, students }) => {
                         <div className="space-y-4">
                             <div className="flex items-center justify-between">
                                 <h4 className="text-sm font-black text-gray-900 uppercase tracking-wider flex items-center gap-2">
-                                    <List className="w-4 h-4 text-[#ff8e01]" /> Questions ({formData.questions.length})
+                                    <List className="w-4 h-4 text-primary" /> Questions ({formData.questions.length})
                                 </h4>
                                 <button
                                     onClick={() => setFormData({ ...formData, questions: [] })}
@@ -731,13 +731,13 @@ const TestsTab = ({ course, students }) => {
                                             <Trash2 className="w-4 h-4" />
                                         </button>
                                         <div className="flex gap-4">
-                                            <span className="w-8 h-8 rounded-xl bg-orange-50 text-[#ff8e01] flex items-center justify-center font-black text-xs shrink-0">{idx + 1}</span>
+                                            <span className="w-8 h-8 rounded-xl bg-primary/5 text-primary flex items-center justify-center font-black text-xs shrink-0">{idx + 1}</span>
                                             <div className="space-y-4 flex-1">
                                                 <p className="font-bold text-gray-800 leading-relaxed">{q.question}</p>
                                                 <div className="grid grid-cols-2 gap-3">
                                                     {q.options.map((opt, oIdx) => (
-                                                        <div key={oIdx} className={`px-4 py-2 rounded-xl border flex items-center gap-2 text-xs font-bold ${oIdx === q.correctOption ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-gray-50 border-gray-100 text-gray-500'}`}>
-                                                            <div className={`w-5 h-5 rounded-md flex items-center justify-center text-[10px] ${oIdx === q.correctOption ? 'bg-emerald-500 text-white' : 'bg-gray-200 text-gray-500'}`}>
+                                                        <div key={oIdx} className={`px-4 py-2 rounded-xl border flex items-center gap-2 text-xs font-bold ${oIdx === q.correctOption ? 'bg-primary/5 border-primary text-primary' : 'bg-gray-50 border-gray-100 text-gray-500'}`}>
+                                                            <div className={`w-5 h-5 rounded-md flex items-center justify-center text-[10px] ${oIdx === q.correctOption ? 'bg-primary text-white' : 'bg-gray-200 text-gray-500'}`}>
                                                                 {String.fromCharCode(65 + oIdx)}
                                                             </div>
                                                             {opt}
@@ -760,7 +760,7 @@ const TestsTab = ({ course, students }) => {
                         <button
                             onClick={handleCreateTest}
                             disabled={isSaving || formData.questions.length === 0}
-                            className="px-8 py-2.5 bg-[#ff8e01] text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-[#e67e01] shadow-lg shadow-orange-100 flex items-center gap-2"
+                            className="px-8 py-2.5 bg-primary text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-[#e67e01] shadow-lg shadow-primary/10 flex items-center gap-2"
                         >
                             {isSaving ? <img src="/loading.gif" className="w-5 h-5 brightness-0 invert" alt="loading" /> : <CheckCircle className="w-4 h-4" />}
                             Publish Test
@@ -784,7 +784,7 @@ const TestsTab = ({ course, students }) => {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-4">
                                 <h4 className="text-sm font-black text-gray-900 uppercase tracking-wider flex items-center gap-2">
-                                    <Type className="w-4 h-4 text-[#ff8e01]" /> Basic Details
+                                    <Type className="w-4 h-4 text-primary" /> Basic Details
                                 </h4>
                                 <div className="space-y-4 bg-gray-50/50 p-6 rounded-[2rem] border border-gray-100">
                                     <div>
@@ -793,7 +793,7 @@ const TestsTab = ({ course, students }) => {
                                             type="text"
                                             value={editingTest.title}
                                             onChange={(e) => setEditingTest({ ...editingTest, title: e.target.value })}
-                                            className="w-full px-4 py-3 bg-white border-2 border-white rounded-2xl outline-none focus:border-orange-500 shadow-sm font-bold text-sm"
+                                            className="w-full px-4 py-3 bg-white border-2 border-white rounded-2xl outline-none focus:border-primary shadow-sm font-bold text-sm"
                                         />
                                     </div>
                                     <div>
@@ -801,7 +801,7 @@ const TestsTab = ({ course, students }) => {
                                         <textarea
                                             value={editingTest.description}
                                             onChange={(e) => setEditingTest({ ...editingTest, description: e.target.value })}
-                                            className="w-full px-4 py-3 bg-white border-2 border-white rounded-2xl outline-none focus:border-orange-500 shadow-sm font-bold text-sm resize-none"
+                                            className="w-full px-4 py-3 bg-white border-2 border-white rounded-2xl outline-none focus:border-primary shadow-sm font-bold text-sm resize-none"
                                             rows="2"
                                         />
                                     </div>
@@ -812,7 +812,7 @@ const TestsTab = ({ course, students }) => {
                                                 type="number"
                                                 value={editingTest.duration}
                                                 onChange={(e) => setEditingTest({ ...editingTest, duration: e.target.value })}
-                                                className="w-full px-4 py-3 bg-white border-2 border-white rounded-2xl outline-none focus:border-orange-500 shadow-sm font-bold text-sm"
+                                                className="w-full px-4 py-3 bg-white border-2 border-white rounded-2xl outline-none focus:border-primary shadow-sm font-bold text-sm"
                                             />
                                         </div>
                                         <div>
@@ -821,7 +821,7 @@ const TestsTab = ({ course, students }) => {
                                                 type="date"
                                                 value={editingTest.dueDate ? new Date(editingTest.dueDate).toISOString().split('T')[0] : ''}
                                                 onChange={(e) => setEditingTest({ ...editingTest, dueDate: e.target.value })}
-                                                className="w-full px-4 py-3 bg-white border-2 border-white rounded-2xl outline-none focus:border-orange-500 shadow-sm font-bold text-sm"
+                                                className="w-full px-4 py-3 bg-white border-2 border-white rounded-2xl outline-none focus:border-primary shadow-sm font-bold text-sm"
                                             />
                                         </div>
                                     </div>
@@ -831,7 +831,7 @@ const TestsTab = ({ course, students }) => {
                                             type="datetime-local"
                                             value={editingTest.scheduledAt ? new Date(editingTest.scheduledAt).toISOString().slice(0, 16) : ''}
                                             onChange={(e) => setEditingTest({ ...editingTest, scheduledAt: e.target.value })}
-                                            className="w-full px-4 py-3 bg-white border-2 border-white rounded-2xl outline-none focus:border-orange-500 shadow-sm font-bold text-sm"
+                                            className="w-full px-4 py-3 bg-white border-2 border-white rounded-2xl outline-none focus:border-primary shadow-sm font-bold text-sm"
                                         />
                                     </div>
                                 </div>
@@ -839,7 +839,7 @@ const TestsTab = ({ course, students }) => {
 
                             <div className="space-y-4">
                                 <h4 className="text-sm font-black text-gray-900 uppercase tracking-wider flex items-center gap-2">
-                                    <Users className="w-4 h-4 text-[#ff8e01]" /> Assign To
+                                    <Users className="w-4 h-4 text-primary" /> Assign To
                                 </h4>
                                 <div className="space-y-4 bg-gray-50/50 p-6 rounded-[2.5rem] border border-gray-100">
                                     <div className="flex gap-6">
@@ -848,13 +848,13 @@ const TestsTab = ({ course, students }) => {
                                                 <input
                                                     type="radio"
                                                     name="editAssignTo"
-                                                    checked={editingTest.assignTo === 'all'}
-                                                    onChange={() => setEditingTest({ ...editingTest, assignTo: 'all', assignedUsers: [] })}
-                                                    className="w-5 h-5 appearance-none border-2 border-gray-200 rounded-full checked:border-orange-500 transition-all cursor-pointer"
+                                                    checked={editingTest.assignTo === 'none'}
+                                                    onChange={() => setEditingTest({ ...editingTest, assignTo: 'none', assignedUsers: [] })}
+                                                    className="w-5 h-5 appearance-none border-2 border-gray-200 rounded-full checked:border-primary transition-all cursor-pointer"
                                                 />
-                                                {editingTest.assignTo === 'all' && <div className="absolute w-2.5 h-2.5 bg-orange-500 rounded-full" />}
+                                                {editingTest.assignTo === 'none' && <div className="absolute w-2.5 h-2.5 bg-primary rounded-full" />}
                                             </div>
-                                            <span className={`text-xs font-black uppercase tracking-widest transition-colors ${editingTest.assignTo === 'all' ? 'text-[#ff8e01]' : 'text-gray-400'}`}>All Students</span>
+                                            <span className={`text-xs font-black uppercase tracking-widest transition-colors ${editingTest.assignTo === 'none' ? 'text-primary' : 'text-gray-400'}`}>None (Draft)</span>
                                         </label>
 
                                         <label className="flex items-center gap-2 cursor-pointer group">
@@ -864,11 +864,11 @@ const TestsTab = ({ course, students }) => {
                                                     name="editAssignTo"
                                                     checked={editingTest.assignTo === 'selected'}
                                                     onChange={() => setEditingTest({ ...editingTest, assignTo: 'selected' })}
-                                                    className="w-5 h-5 appearance-none border-2 border-gray-200 rounded-full checked:border-orange-500 transition-all cursor-pointer"
+                                                    className="w-5 h-5 appearance-none border-2 border-gray-200 rounded-full checked:border-primary transition-all cursor-pointer"
                                                 />
-                                                {editingTest.assignTo === 'selected' && <div className="absolute w-2.5 h-2.5 bg-orange-500 rounded-full" />}
+                                                {editingTest.assignTo === 'selected' && <div className="absolute w-2.5 h-2.5 bg-primary rounded-full" />}
                                             </div>
-                                            <span className={`text-xs font-black uppercase tracking-widest transition-colors ${editingTest.assignTo === 'selected' ? 'text-[#ff8e01]' : 'text-gray-400'}`}>Selected</span>
+                                            <span className={`text-xs font-black uppercase tracking-widest transition-colors ${editingTest.assignTo === 'selected' ? 'text-primary' : 'text-gray-400'}`}>Selected</span>
                                         </label>
                                     </div>
 
@@ -881,7 +881,7 @@ const TestsTab = ({ course, students }) => {
                                                     placeholder="Search student..."
                                                     value={assignSearchTerm}
                                                     onChange={(e) => setAssignSearchTerm(e.target.value)}
-                                                    className="w-full pl-9 pr-3 py-2 bg-white border border-gray-100 rounded-xl text-[10px] font-black uppercase outline-none focus:border-orange-500"
+                                                    className="w-full pl-9 pr-3 py-2 bg-white border border-gray-100 rounded-xl text-[10px] font-black uppercase outline-none focus:border-primary"
                                                 />
                                             </div>
                                             <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto pr-1 custom-scrollbar">
@@ -895,13 +895,13 @@ const TestsTab = ({ course, students }) => {
                                                             const newUsers = current.includes(sId) ? current.filter(id => id !== sId) : [...current, sId];
                                                             setEditingTest({ ...editingTest, assignedUsers: newUsers });
                                                         }}
-                                                        className={`flex items-center gap-3 p-2 rounded-xl border transition-all ${editingTest.assignedUsers?.includes(student.id || student._id) ? 'bg-orange-50 border-orange-200 text-[#ff8e01]' : 'bg-white border-gray-100 text-gray-400 hover:border-gray-200'}`}
+                                                        className={`flex items-center gap-3 p-2 rounded-xl border transition-all ${editingTest.assignedUsers?.includes(student.id || student._id) ? 'bg-primary/5 border-orange-200 text-primary' : 'bg-white border-gray-100 text-gray-400 hover:border-gray-200'}`}
                                                     >
                                                         <div className="relative shrink-0">
                                                             {student.photo ? (
                                                                 <img src={student.photo} alt="" className="w-6 h-6 rounded-full object-cover" />
                                                             ) : (
-                                                                <div className="w-6 h-6 rounded-full bg-orange-100 flex items-center justify-center text-[8px] text-[#ff8e01] font-black uppercase">
+                                                                <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-[8px] text-primary font-black uppercase">
                                                                     {student.name?.charAt(0)}
                                                                 </div>
                                                             )}
@@ -920,7 +920,7 @@ const TestsTab = ({ course, students }) => {
                         <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
                             <div className="space-y-4">
                                 <h4 className="text-sm font-black text-gray-900 uppercase tracking-wider flex items-center gap-2">
-                                    <Zap className="w-4 h-4 text-[#ff8e01]" /> Question Generator
+                                    <Zap className="w-4 h-4 text-primary" /> Question Generator
                                 </h4>
                                 <div className="bg-slate-900 rounded-[2rem] p-6 text-white space-y-4 relative overflow-hidden">
                                     <div className="absolute -top-4 -right-4 w-24 h-24 bg-white/5 rounded-full blur-xl" />
@@ -945,7 +945,7 @@ const TestsTab = ({ course, students }) => {
                                                     value={pasteText}
                                                     onChange={(e) => setPasteText(e.target.value)}
                                                     placeholder="Paste book text, paragraphs, or MCQs here..."
-                                                    className="w-full h-40 bg-white/10 border border-white/20 rounded-2xl p-4 text-xs font-medium outline-none focus:border-[#ff8e01] placeholder:text-white/30 resize-none"
+                                                    className="w-full h-40 bg-white/10 border border-white/20 rounded-2xl p-4 text-xs font-medium outline-none focus:border-primary placeholder:text-white/30 resize-none"
                                                 />
                                                 {isGenerating && (
                                                     <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm rounded-2xl flex flex-col items-center justify-center space-y-2 animate-in fade-in duration-300">
@@ -955,7 +955,7 @@ const TestsTab = ({ course, students }) => {
                                                 )}
                                             </div>
                                             <div className="flex items-center gap-2 px-2">
-                                                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                                                <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
                                                 <p className="text-[9px] font-black uppercase tracking-widest text-white/50">Auto-detect enabled: Just paste to begin</p>
                                             </div>
                                         </div>
@@ -963,7 +963,7 @@ const TestsTab = ({ course, students }) => {
                                         <div className="space-y-4">
                                             <label className="flex flex-col items-center justify-center h-40 border-2 border-dashed border-white/20 rounded-2xl cursor-pointer hover:bg-white/5 transition-all group">
                                                 <div className="p-4 bg-white/5 rounded-full mb-2 group-hover:scale-110 transition-transform">
-                                                    <Upload className="w-8 h-8 text-[#ff8e01]" />
+                                                    <Upload className="w-8 h-8 text-primary" />
                                                 </div>
                                                 <span className="text-[10px] font-black uppercase text-white/70 tracking-widest">Upload PDF / DOC / TXT</span>
                                                 <p className="text-[8px] text-white/30 uppercase mt-1">AI will auto-detect all questions</p>
@@ -979,7 +979,7 @@ const TestsTab = ({ course, students }) => {
                         <div className="space-y-4">
                             <div className="flex items-center justify-between">
                                 <h4 className="text-sm font-black text-gray-900 uppercase tracking-wider flex items-center gap-2">
-                                    <List className="w-4 h-4 text-[#ff8e01]" /> Test Questions ({editingTest.questions?.length || 0})
+                                    <List className="w-4 h-4 text-primary" /> Test Questions ({editingTest.questions?.length || 0})
                                 </h4>
                                 <div className="flex gap-2">
                                     <button
@@ -995,7 +995,7 @@ const TestsTab = ({ course, students }) => {
                                                 questions: [...(editingTest.questions || []), newQuestion]
                                             });
                                         }}
-                                        className="text-[10px] font-black text-[#ff8e01] uppercase tracking-widest hover:underline px-3 py-1 bg-orange-50 rounded-lg"
+                                        className="text-[10px] font-black text-primary uppercase tracking-widest hover:underline px-3 py-1 bg-primary/5 rounded-lg"
                                     >+ Add Question</button>
                                 </div>
                             </div>
@@ -1013,7 +1013,7 @@ const TestsTab = ({ course, students }) => {
                                             <Trash2 className="w-4 h-4" />
                                         </button>
                                         <div className="flex gap-4">
-                                            <span className="w-8 h-8 rounded-xl bg-orange-50 text-[#ff8e01] flex items-center justify-center font-black text-xs shrink-0">{idx + 1}</span>
+                                            <span className="w-8 h-8 rounded-xl bg-primary/5 text-primary flex items-center justify-center font-black text-xs shrink-0">{idx + 1}</span>
                                             <div className="space-y-4 flex-1">
                                                 <input
                                                     type="text"
@@ -1023,11 +1023,11 @@ const TestsTab = ({ course, students }) => {
                                                         updatedQuestions[idx].question = e.target.value;
                                                         setEditingTest({ ...editingTest, questions: updatedQuestions });
                                                     }}
-                                                    className="w-full font-bold text-gray-800 leading-relaxed bg-transparent border-b border-dashed border-gray-200 outline-none focus:border-[#ff8e01]"
+                                                    className="w-full font-bold text-gray-800 leading-relaxed bg-transparent border-b border-dashed border-gray-200 outline-none focus:border-primary"
                                                 />
                                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                                     {q.options.map((opt, oIdx) => (
-                                                        <div key={oIdx} className={`px-4 py-2 rounded-xl border flex items-center gap-2 text-xs font-bold ${oIdx === q.correctOption ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-gray-50 border-gray-100 text-gray-500'}`}>
+                                                        <div key={oIdx} className={`px-4 py-2 rounded-xl border flex items-center gap-2 text-xs font-bold ${oIdx === q.correctOption ? 'bg-primary/5 border-primary text-primary' : 'bg-gray-50 border-gray-100 text-gray-500'}`}>
                                                             <button
                                                                 type="button"
                                                                 onClick={() => {
@@ -1035,7 +1035,7 @@ const TestsTab = ({ course, students }) => {
                                                                     updatedQuestions[idx].correctOption = oIdx;
                                                                     setEditingTest({ ...editingTest, questions: updatedQuestions });
                                                                 }}
-                                                                className={`w-5 h-5 rounded-md flex items-center justify-center text-[10px] shrink-0 ${oIdx === q.correctOption ? 'bg-emerald-500 text-white shadow-sm' : 'bg-gray-200 text-gray-500'}`}
+                                                                className={`w-5 h-5 rounded-md flex items-center justify-center text-[10px] shrink-0 ${oIdx === q.correctOption ? 'bg-primary text-white shadow-sm' : 'bg-gray-200 text-gray-500'}`}
                                                             >
                                                                 {String.fromCharCode(65 + oIdx)}
                                                             </button>
@@ -1067,7 +1067,7 @@ const TestsTab = ({ course, students }) => {
                             <button
                                 onClick={handleUpdateTest}
                                 disabled={isSaving}
-                                className="px-8 py-2.5 bg-[#ff8e01] text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-[#e67e01] shadow-lg shadow-orange-100 flex items-center gap-2"
+                                className="px-8 py-2.5 bg-primary text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-[#e67e01] shadow-lg shadow-primary/10 flex items-center gap-2"
                             >
                                 {isSaving ? <img src="/loading.gif" className="w-5 h-5 brightness-0 invert" alt="loading" /> : <CheckCircle className="w-4 h-4" />}
                                 Save Changes
@@ -1086,13 +1086,13 @@ const TestsTab = ({ course, students }) => {
             >
                 <div className="space-y-6">
                     <div className="grid grid-cols-3 gap-4">
-                        <div className="bg-orange-50 p-4 rounded-2xl text-center">
+                        <div className="bg-primary/5 p-4 rounded-2xl text-center">
                             <span className="text-[10px] font-black text-gray-400 uppercase block mb-1">Total MCQs</span>
-                            <span className="text-xl font-black text-[#ff8e01]">{selectedTest?.questions?.length || 0}</span>
+                            <span className="text-xl font-black text-primary">{selectedTest?.questions?.length || 0}</span>
                         </div>
-                        <div className="bg-emerald-50 p-4 rounded-2xl text-center">
+                        <div className="bg-primary/5 p-4 rounded-2xl text-center">
                             <span className="text-[10px] font-black text-gray-400 uppercase block mb-1">Submissions</span>
-                            <span className="text-xl font-black text-emerald-600">{selectedTest?.submissions?.length || 0}</span>
+                            <span className="text-xl font-black text-primary">{selectedTest?.submissions?.length || 0}</span>
                         </div>
                         <div className="bg-slate-50 p-4 rounded-2xl text-center">
                             <span className="text-[10px] font-black text-gray-400 uppercase block mb-1">Duration</span>
@@ -1116,22 +1116,22 @@ const TestsTab = ({ course, students }) => {
                                 </div>
                             ) : (
                                 selectedTest?.submissions?.map((sub, idx) => (
-                                    <div key={idx} className="p-6 flex items-center justify-between hover:bg-orange-50/30 transition-all group">
+                                    <div key={idx} className="p-6 flex items-center justify-between hover:bg-primary/5/30 transition-all group">
                                         <div className="flex items-center gap-5">
                                             <div className="relative">
                                                 <div className="w-14 h-14 rounded-2xl overflow-hidden border-2 border-white shadow-md group-hover:border-orange-200 transition-colors">
                                                     {sub.user?.photo ? (
                                                         <img src={sub.user.photo} alt="" className="w-full h-full object-cover" />
                                                     ) : (
-                                                        <div className="w-full h-full bg-orange-100 flex items-center justify-center text-orange-400 font-black text-lg">
+                                                        <div className="w-full h-full bg-primary/10 flex items-center justify-center text-orange-400 font-black text-lg">
                                                             {sub.user?.name?.charAt(0)}
                                                         </div>
                                                     )}
                                                 </div>
-                                                <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-emerald-500 border-2 border-white rounded-full shadow-sm" />
+                                                <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-primary border-2 border-white rounded-full shadow-sm" />
                                             </div>
                                             <div>
-                                                <p className="text-sm font-black text-gray-900 uppercase tracking-tight group-hover:text-[#ff8e01] transition-colors">{sub.user?.name}</p>
+                                                <p className="text-sm font-black text-gray-900 uppercase tracking-tight group-hover:text-primary transition-colors">{sub.user?.name}</p>
                                                 <div className="flex items-center gap-2 mt-0.5">
                                                     <span className="px-2 py-0.5 bg-slate-100 text-slate-500 rounded-md text-[8px] font-black uppercase tracking-widest">Roll: {sub.user?.rollNo || 'N/A'}</span>
                                                     <span className="w-1 h-1 rounded-full bg-gray-300" />
@@ -1140,13 +1140,13 @@ const TestsTab = ({ course, students }) => {
                                             </div>
                                         </div>
                                         <div className="text-right flex flex-col items-end gap-1">
-                                            <div className="flex items-baseline gap-1.5 bg-emerald-50 px-4 py-2 rounded-2xl border border-emerald-100">
-                                                <span className="text-2xl font-black text-emerald-600">{sub.score}</span>
-                                                <span className="text-[10px] font-black text-emerald-300 uppercase tracking-widest">/ {selectedTest?.totalMarks || selectedTest?.questions?.reduce((acc, q) => acc + (q.marks || 5), 0)}</span>
+                                            <div className="flex items-baseline gap-1.5 bg-primary/5 px-4 py-2 rounded-2xl border border-primary/10">
+                                                <span className="text-2xl font-black text-primary">{sub.score}</span>
+                                                <span className="text-[10px] font-black text-primary uppercase tracking-widest">/ {selectedTest?.totalMarks || selectedTest?.questions?.reduce((acc, q) => acc + (q.marks || 5), 0)}</span>
                                             </div>
                                             <div className="flex items-center gap-1.5 mr-1">
-                                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                                                <span className="text-[9px] font-black text-emerald-600 uppercase tracking-[0.15em]">Passed</span>
+                                                <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                                                <span className="text-[9px] font-black text-primary uppercase tracking-[0.15em]">Passed</span>
                                             </div>
                                         </div>
                                     </div>
@@ -1161,3 +1161,6 @@ const TestsTab = ({ course, students }) => {
 };
 
 export default TestsTab;
+
+
+

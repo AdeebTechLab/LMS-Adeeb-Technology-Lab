@@ -66,7 +66,7 @@ const TeacherDirectory = () => {
         }
         if (user.hasActiveEnrollment) {
             return (
-                <span className="inline-flex items-center gap-1 px-2 py-1 bg-emerald-100 text-emerald-700 rounded-lg text-xs font-bold">
+                <span className="inline-flex items-center gap-1 px-2 py-1 bg-primary/10 text-primary rounded-lg text-xs font-bold">
                     <CheckCircle className="w-3 h-3" />
                     Active
                 </span>
@@ -82,7 +82,7 @@ const TeacherDirectory = () => {
     const getRoleBadge = (role) => {
         const config = {
             student: 'bg-blue-100 text-blue-700',
-            intern: 'bg-purple-100 text-purple-700',
+            intern: 'bg-primary/10 text-purple-700',
             teacher: 'bg-amber-100 text-amber-700'
         };
         return (
@@ -138,7 +138,7 @@ const TeacherDirectory = () => {
                                     onClick={() => setActiveFilter(option.value)}
                                     className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wide transition-all ${
                                         isActive
-                                            ? 'bg-[#ff8e01] text-white shadow-lg shadow-orange-200'
+                                            ? 'bg-primary text-white shadow-lg shadow-orange-200'
                                             : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                                     }`}
                                 >
@@ -154,7 +154,7 @@ const TeacherDirectory = () => {
             {/* Loading */}
             {isLoading ? (
                 <div className="flex items-center justify-center h-64">
-                    <Loader2 className="w-8 h-8 animate-spin text-[#ff8e01]" />
+                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
                     <span className="ml-3 text-gray-600 font-medium">Loading directory...</span>
                 </div>
             ) : filteredUsers.length === 0 ? (
@@ -190,7 +190,7 @@ const TeacherDirectory = () => {
                                         initial={{ opacity: 0 }}
                                         animate={{ opacity: 1 }}
                                         transition={{ delay: index * 0.02 }}
-                                        className="hover:bg-orange-50/50 transition-colors group"
+                                        className="hover:bg-primary/5/50 transition-colors group"
                                     >
                                         {/* Serial Number */}
                                         <td className="px-4 py-3">
@@ -199,7 +199,7 @@ const TeacherDirectory = () => {
 
                                         {/* Roll Number */}
                                         <td className="px-4 py-3">
-                                            <span className="px-3 py-1.5 bg-gradient-to-r from-[#ff8e01] to-orange-500 text-white rounded-lg font-black text-xs shadow-sm">
+                                            <span className="px-3 py-1.5 bg-gradient-to-r from-primary to-primary text-white rounded-lg font-black text-xs shadow-sm">
                                                 {user.rollNo || 'N/A'}
                                             </span>
                                         </td>
@@ -209,7 +209,7 @@ const TeacherDirectory = () => {
                                             <div className="flex items-center gap-3">
                                                 <ProfileAvatar src={user.photo} name={user.name} size="sm" shape="rounded-lg" />
                                                 <div>
-                                                    <p className="font-bold text-gray-900 text-sm group-hover:text-[#ff8e01] transition-colors">
+                                                    <p className="font-bold text-gray-900 text-sm group-hover:text-primary transition-colors">
                                                         {user.name}
                                                     </p>
                                                     <p className="text-[10px] text-gray-400">{user.email}</p>
@@ -266,3 +266,6 @@ const TeacherDirectory = () => {
 };
 
 export default TeacherDirectory;
+
+
+

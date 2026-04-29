@@ -380,7 +380,7 @@ const JobsManagement = () => {
     if (isLoading) {
         return (
             <div className="flex items-center justify-center h-64">
-                <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
                 <span className="ml-2 text-gray-600">Loading job applicants...</span>
             </div>
         );
@@ -409,9 +409,9 @@ const JobsManagement = () => {
                     <div className="relative flex-1 md:flex-none">
                         <button
                             onClick={() => setShowExportOptions(!showExportOptions)}
-                            className="w-full px-4 py-2.5 bg-white border border-purple-100 rounded-xl font-black text-[10px] uppercase tracking-widest text-purple-700 hover:bg-purple-50 transition-all flex items-center justify-center gap-2 shadow-sm"
+                            className="w-full px-4 py-2.5 bg-white border border-primary/10 rounded-xl font-black text-[10px] uppercase tracking-widest text-purple-700 hover:bg-purple-50 transition-all flex items-center justify-center gap-2 shadow-sm"
                         >
-                            <Download className="w-4 h-4 text-purple-600" />
+                            <Download className="w-4 h-4 text-primary" />
                             EXPORT DATA
                         </button>
 
@@ -454,7 +454,7 @@ const JobsManagement = () => {
                         placeholder="Search by name, email, or skills..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-transparent focus:border-purple-500 focus:bg-white rounded-2xl transition-all outline-none text-sm font-medium"
+                        className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-transparent focus:border-primary focus:bg-white rounded-2xl transition-all outline-none text-sm font-medium"
                     />
                 </div>
 
@@ -468,7 +468,7 @@ const JobsManagement = () => {
                             key={tab.id}
                             onClick={() => setFilterStatus(tab.id)}
                             className={`px-3 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-between gap-2 border ${filterStatus === tab.id
-                                ? 'bg-purple-600 text-white border-purple-600 shadow-lg shadow-purple-900/10'
+                                ? 'bg-primary text-white border-primary shadow-lg shadow-purple-900/10'
                                 : 'bg-gray-50 text-gray-500 border-gray-100 hover:bg-gray-100'
                                 }`}
                         >
@@ -543,11 +543,11 @@ const JobsManagement = () => {
 
                                 {/* Skills */}
                                 {user.skills && (
-                                    <div className="flex flex-col sm:flex-row sm:items-center gap-3 bg-purple-50/30 p-3 rounded-xl border border-purple-100/50 flex-1">
+                                    <div className="flex flex-col sm:flex-row sm:items-center gap-3 bg-purple-50/30 p-3 rounded-xl border border-primary/10/50 flex-1">
                                         <p className="text-[9px] font-black text-purple-400 uppercase tracking-widest shrink-0">Expertise</p>
                                         <div className="flex flex-wrap gap-1.5">
                                             {user.skills.split(',').map((skill, idx) => (
-                                                <span key={idx} className="px-2 py-0.5 bg-white text-purple-700 rounded-md text-[10px] font-bold border border-purple-100 shadow-sm">
+                                                <span key={idx} className="px-2 py-0.5 bg-white text-purple-700 rounded-md text-[10px] font-bold border border-primary/10 shadow-sm">
                                                     {skill.trim()}
                                                 </span>
                                             ))}
@@ -560,7 +560,7 @@ const JobsManagement = () => {
                                     <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2 lg:pb-0">
                                         <button
                                             onClick={() => downloadUserPDF(user)}
-                                            className="p-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 rounded-xl border border-emerald-100 transition-all"
+                                            className="p-2.5 bg-primary/5 hover:bg-primary/10 text-primary rounded-xl border border-primary/10 transition-all"
                                             title="Download Profile"
                                         >
                                             <Download className="w-5 h-5" />
@@ -586,7 +586,7 @@ const JobsManagement = () => {
                                         onClick={() => setConfirmModal({ open: true, action: user.isVerified ? 'unverify' : 'verify', user })}
                                         className={`px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all shadow-lg ${user.isVerified
                                                 ? 'bg-amber-500 hover:bg-amber-600 text-white shadow-amber-900/10'
-                                                : 'bg-purple-600 hover:bg-purple-700 text-white shadow-purple-900/10'
+                                                : 'bg-primary hover:bg-purple-700 text-white shadow-purple-900/10'
                                             } flex items-center justify-center gap-2 min-w-[120px] active:scale-95`}
                                     >
                                         {user.isVerified ? <UserX className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
@@ -614,7 +614,7 @@ const JobsManagement = () => {
                         <div className={`p-4 rounded-xl text-center ${confirmModal.action === 'delete' ? 'bg-red-50' :
                             confirmModal.action === 'verify' ? 'bg-purple-50' : 'bg-amber-50'
                             }`}>
-                            {confirmModal.action === 'verify' && <UserCheck className="w-12 h-12 text-purple-600 mx-auto mb-2" />}
+                            {confirmModal.action === 'verify' && <UserCheck className="w-12 h-12 text-primary mx-auto mb-2" />}
                             {confirmModal.action === 'unverify' && <UserX className="w-12 h-12 text-amber-600 mx-auto mb-2" />}
                             {confirmModal.action === 'delete' && <Trash2 className="w-12 h-12 text-red-600 mx-auto mb-2" />}
 
@@ -649,7 +649,7 @@ const JobsManagement = () => {
                                 className={`flex-1 py-3 rounded-xl font-medium flex items-center justify-center gap-2 ${confirmModal.action === 'delete'
                                     ? 'bg-red-600 hover:bg-red-700 text-white'
                                     : confirmModal.action === 'verify'
-                                        ? 'bg-purple-600 hover:bg-purple-700 text-white'
+                                        ? 'bg-primary hover:bg-purple-700 text-white'
                                         : 'bg-amber-500 hover:bg-amber-600 text-white'
                                     }`}
                             >
@@ -680,7 +680,7 @@ const JobsManagement = () => {
                     {/* Profile Picture Section */}
                     <div className="flex flex-col items-center justify-center pb-6 border-b border-gray-100 mb-6">
                         <div className="relative group">
-                            <div className="w-24 h-24 rounded-2xl bg-gray-100 flex items-center justify-center overflow-hidden border-2 border-dashed border-gray-200 group-hover:border-emerald-500 transition-all">
+                            <div className="w-24 h-24 rounded-2xl bg-gray-100 flex items-center justify-center overflow-hidden border-2 border-dashed border-gray-200 group-hover:border-primary transition-all">
                                 {photoPreview ? (
                                     <img src={photoPreview} alt="Preview" className="w-full h-full object-cover" />
                                 ) : (
@@ -696,7 +696,7 @@ const JobsManagement = () => {
                                     className="absolute inset-0 opacity-0 cursor-pointer"
                                 />
                             </div>
-                            <div className="absolute -bottom-2 -right-2 bg-emerald-600 text-white p-1.5 rounded-lg shadow-lg">
+                            <div className="absolute -bottom-2 -right-2 bg-primary text-white p-1.5 rounded-lg shadow-lg">
                                 <Plus className="w-3.5 h-3.5" />
                             </div>
                         </div>
@@ -712,7 +712,7 @@ const JobsManagement = () => {
                                 type="text"
                                 value={editForm.name}
                                 onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none"
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
                                 required
                             />
                         </div>
@@ -722,7 +722,7 @@ const JobsManagement = () => {
                                 type="text"
                                 value={editForm.fatherName}
                                 onChange={(e) => setEditForm({ ...editForm, fatherName: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none"
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
                             />
                         </div>
                         <div className="space-y-2">
@@ -731,7 +731,7 @@ const JobsManagement = () => {
                                 type="email"
                                 value={editForm.email}
                                 onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none"
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
                                 required
                             />
                         </div>
@@ -741,7 +741,7 @@ const JobsManagement = () => {
                                 type="text"
                                 value={editForm.password}
                                 onChange={(e) => setEditForm({ ...editForm, password: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none font-mono"
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-mono"
                                 required
                             />
                         </div>
@@ -751,7 +751,7 @@ const JobsManagement = () => {
                                 type="text"
                                 value={editForm.phone}
                                 onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none"
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
                             />
                         </div>
                         <div className="space-y-2">
@@ -760,7 +760,7 @@ const JobsManagement = () => {
                                 type="text"
                                 value={editForm.cnic}
                                 onChange={(e) => setEditForm({ ...editForm, cnic: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none"
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
                             />
                         </div>
                         <div className="space-y-2">
@@ -769,7 +769,7 @@ const JobsManagement = () => {
                                 type="date"
                                 value={editForm.dob}
                                 onChange={(e) => setEditForm({ ...editForm, dob: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none"
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
                             />
                         </div>
                         <div className="space-y-2">
@@ -777,7 +777,7 @@ const JobsManagement = () => {
                             <select
                                 value={editForm.city}
                                 onChange={(e) => setEditForm({ ...editForm, city: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none"
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
                             >
                                 <option value="">Select City</option>
                                 <option value="Bahawalpur">Bahawalpur</option>
@@ -795,7 +795,7 @@ const JobsManagement = () => {
                                 type="text"
                                 value={editForm.qualification}
                                 onChange={(e) => setEditForm({ ...editForm, qualification: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none"
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
                             />
                         </div>
                         <div className="space-y-2">
@@ -804,7 +804,7 @@ const JobsManagement = () => {
                                 type="text"
                                 value={editForm.teachingExperience}
                                 onChange={(e) => setEditForm({ ...editForm, teachingExperience: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none"
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
                             />
                         </div>
                         <div className="md:col-span-2 space-y-2">
@@ -814,7 +814,7 @@ const JobsManagement = () => {
                                 value={editForm.skills}
                                 onChange={(e) => setEditForm({ ...editForm, skills: e.target.value })}
                                 placeholder="e.g. Photoshop, Web Design, Data Entry"
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none"
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
                             />
                         </div>
                     </div>
@@ -824,7 +824,7 @@ const JobsManagement = () => {
                             value={editForm.experienceDetails}
                             onChange={(e) => setEditForm({ ...editForm, experienceDetails: e.target.value })}
                             rows={2}
-                            className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none"
+                            className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
                         />
                     </div>
 
@@ -836,7 +836,7 @@ const JobsManagement = () => {
                             <select
                                 value={editForm.preferredCity}
                                 onChange={(e) => setEditForm({ ...editForm, preferredCity: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none"
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
                             >
                                 <option value="">Select City</option>
                                 <option value="Bahawalpur">Bahawalpur</option>
@@ -848,7 +848,7 @@ const JobsManagement = () => {
                             <select
                                 value={editForm.preferredMode}
                                 onChange={(e) => setEditForm({ ...editForm, preferredMode: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none"
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
                             >
                                 <option value="">Select Mode</option>
                                 <option value="Physical">Physical</option>
@@ -862,7 +862,7 @@ const JobsManagement = () => {
                                 type="text"
                                 value={editForm.heardAbout}
                                 onChange={(e) => setEditForm({ ...editForm, heardAbout: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none"
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
                             />
                         </div>
                     </div>
@@ -878,7 +878,7 @@ const JobsManagement = () => {
                         <button
                             type="submit"
                             disabled={isProcessing}
-                            className="flex-1 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-medium flex items-center justify-center gap-2"
+                            className="flex-1 py-3 bg-primary hover:bg-purple-700 text-white rounded-xl font-medium flex items-center justify-center gap-2"
                         >
                             {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
                             Update Bio
@@ -900,3 +900,6 @@ const JobsManagement = () => {
 };
 
 export default JobsManagement;
+
+
+

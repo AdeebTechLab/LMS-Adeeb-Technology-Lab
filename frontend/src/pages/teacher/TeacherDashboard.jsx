@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
+import { io } from 'socket.io-client';
 import {
     BookOpen,
     Users,
@@ -28,6 +29,7 @@ import Badge from '../../components/ui/Badge';
 import { BarChart } from '../../components/charts/Charts';
 import { courseAPI, enrollmentAPI, assignmentAPI, dailyTaskAPI, liveClassAPI, certificateAPI } from '../../services/api';
 import { getCourseIcon, getCourseStyle } from '../../utils/courseIcons';
+import BirthdayWish from '../../components/dashboard/BirthdayWish';
 
 
 const TeacherDashboard = () => {
@@ -53,11 +55,42 @@ const TeacherDashboard = () => {
     const [liveCountdowns, setLiveCountdowns] = useState({}); // { [id]: secondsLeft }
     const cleanupIntervalRef = useRef(null);
 
+    const socketRef = useRef(null);
+    const getSocketURL = () => {
+        const rawUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        return rawUrl.replace('/api', '');
+    };
+    const SOCKET_URL = getSocketURL();
+
     useEffect(() => {
         if (user?.id || user?._id) {
             fetchDashboardData();
             fetchActiveLiveClasses();
             fetchMyCertificate();
+
+            // Setup real-time updates
+            socketRef.current = io(SOCKET_URL, { withCredentials: true });
+            const myId = user?.id || user?._id;
+            if (myId) {
+                socketRef.current.emit('join_chat', String(myId));
+            }
+
+            socketRef.current.on('new_submission', (data) => {
+                console.log('📥 New submission received:', data);
+                fetchDashboardData();
+            });
+
+            socketRef.current.on('new_global_message', (data) => {
+                console.log('💬 New message received:', data);
+                fetchDashboardData();
+            });
+
+            socketRef.current.on('live_class_started', () => fetchActiveLiveClasses());
+            socketRef.current.on('live_class_ended', () => fetchActiveLiveClasses());
+
+            return () => {
+                if (socketRef.current) socketRef.current.disconnect();
+            };
         }
     }, [user]);
 
@@ -166,8 +199,8 @@ const TeacherDashboard = () => {
                     title: 'My Courses',
                     value: coursesWithData.length.toString(),
                     icon: BookOpen,
-                    iconBg: 'bg-emerald-100',
-                    iconColor: 'text-emerald-600',
+                    iconBg: 'bg-primary/10',
+                    iconColor: 'text-primary',
                 },
                 {
                     title: 'Total Students',
@@ -187,8 +220,8 @@ const TeacherDashboard = () => {
                     title: 'Active Courses',
                     value: coursesWithData.filter(c => c.status === 'active').length.toString(),
                     icon: CheckCircle,
-                    iconBg: 'bg-purple-100',
-                    iconColor: 'text-purple-600',
+                    iconBg: 'bg-primary/10',
+                    iconColor: 'text-primary',
                 },
             ]);
 
@@ -224,6 +257,7 @@ const TeacherDashboard = () => {
     return (
         <>
             <div className="space-y-6">
+                <BirthdayWish />
                 {/* Welcome Section */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
@@ -276,7 +310,7 @@ const TeacherDashboard = () => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.3 }}
-                        className="lg:col-span-2 bg-white rounded-2xl p-6 border border-[#ff8e01]/20 shadow-sm overflow-visible"
+                        className="lg:col-span-2 bg-white rounded-2xl p-6 border border-primary/20 shadow-sm overflow-visible"
                     >
                         <div className="flex items-center justify-between mb-6">
                             <div>
@@ -299,7 +333,7 @@ const TeacherDashboard = () => {
                                         initial={{ opacity: 0, x: -20 }}
                                         animate={{ opacity: 1, x: 0 }}
                                         transition={{ delay: 0.4 + index * 0.1 }}
-                                        className="p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors cursor-pointer border border-[#ff8e01]/10 hover:border-[#ff8e01]/30 relative"
+                                        className="p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors cursor-pointer border border-primary/10 hover:border-primary/30 relative"
                                     >
                                         {/* Combined Pending Badge */}
                                         {(course.pendingAssignments > 0 || course.unreadMessages > 0) && (
@@ -343,7 +377,7 @@ const TeacherDashboard = () => {
                                         </div>
 
                                         {/* Assignment & Message Stats */}
-                                        <div className="bg-gradient-to-r from-emerald-50/80 to-blue-50/80 rounded-lg p-2 mb-3 border border-emerald-100/50">
+                                        <div className="bg-gradient-to-r from-primary/5/80 to-blue-50/80 rounded-lg p-2 mb-3 border border-primary/10/50">
                                             <div className="flex items-center justify-between text-xs">
                                                 <div className="flex flex-col gap-1">
                                                     {course.pendingAssignments > 0 && (
@@ -359,7 +393,7 @@ const TeacherDashboard = () => {
                                                         </span>
                                                     )}
                                                     {(!course.pendingAssignments && !course.unreadMessages) && (
-                                                        <span className="flex items-center gap-1 text-emerald-600 font-medium">
+                                                        <span className="flex items-center gap-1 text-primary font-medium">
                                                             <CheckCircle className="w-3.5 h-3.5" />
                                                             Up to date
                                                         </span>
@@ -370,7 +404,7 @@ const TeacherDashboard = () => {
 
                                         <button
                                             onClick={() => navigate('/teacher/attendance')}
-                                            className="flex items-center gap-1 text-sm font-medium text-emerald-600 hover:text-emerald-700"
+                                            className="flex items-center gap-1 text-sm font-medium text-primary hover:text-primary"
                                         >
                                             Manage Course <ArrowRight className="w-4 h-4" />
                                         </button>
@@ -385,7 +419,7 @@ const TeacherDashboard = () => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.4 }}
-                        className="bg-white rounded-2xl p-6 border border-[#ff8e01]/20 shadow-sm"
+                        className="bg-white rounded-2xl p-6 border border-primary/20 shadow-sm"
                     >
                         <div className="flex items-center justify-between mb-6">
                             <div>
@@ -402,16 +436,16 @@ const TeacherDashboard = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.5 }}
-                    className="bg-white rounded-2xl p-6 border border-[#ff8e01]/20 shadow-sm"
+                    className="bg-white rounded-2xl p-6 border border-primary/20 shadow-sm"
                 >
                     <h3 className="text-lg font-bold text-gray-900 mb-4">Quick Actions</h3>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <button
                             onClick={() => navigate('/teacher/attendance')}
-                            className="flex items-center gap-4 p-4 bg-emerald-50 rounded-xl hover:bg-emerald-100 transition-colors"
+                            className="flex items-center gap-4 p-4 bg-primary/5 rounded-xl hover:bg-primary/10 transition-colors"
                         >
-                            <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center">
-                                <ClipboardList className="w-6 h-6 text-emerald-600" />
+                            <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center">
+                                <ClipboardList className="w-6 h-6 text-primary" />
                             </div>
                             <div className="text-left">
                                 <p className="font-semibold text-gray-900">Mark Attendance</p>
@@ -431,10 +465,10 @@ const TeacherDashboard = () => {
                             </div>
                         </button>
                         <button
-                            className="flex items-center gap-4 p-4 bg-purple-50 rounded-xl hover:bg-purple-100 transition-colors"
+                            className="flex items-center gap-4 p-4 bg-purple-50 rounded-xl hover:bg-primary/10 transition-colors"
                         >
-                            <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
-                                <TrendingUp className="w-6 h-6 text-purple-600" />
+                            <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center">
+                                <TrendingUp className="w-6 h-6 text-primary" />
                             </div>
                             <div className="text-left">
                                 <p className="font-semibold text-gray-900">View Reports</p>
@@ -450,7 +484,7 @@ const TeacherDashboard = () => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.55 }}
-                        className="bg-gradient-to-r from-[#0f2847] to-[#0545a7] rounded-2xl p-6 border border-emerald-800 text-white"
+                        className="bg-gradient-to-r from-[#0f2847] to-[#0545a7] rounded-2xl p-6 border border-primary text-white"
                     >
                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                             <div className="flex items-center gap-4">
@@ -517,7 +551,7 @@ const TeacherDashboard = () => {
                                         key={lc._id}
                                         className={`flex items-center justify-between p-4 rounded-xl border ${
                                             isExpiringSoon
-                                                ? 'bg-orange-50 border-orange-300 animate-pulse'
+                                                ? 'bg-primary/5 border-orange-300 animate-pulse'
                                                 : 'bg-red-50 border-red-200'
                                         }`}
                                     >
@@ -547,7 +581,7 @@ const TeacherDashboard = () => {
                                                 href={lc.link}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors flex items-center gap-2"
+                                                className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary transition-colors flex items-center gap-2"
                                             >
                                                 <ExternalLink className="w-4 h-4" />
                                                 Open
@@ -601,7 +635,7 @@ const TeacherDashboard = () => {
                                         value={liveClassForm.title}
                                         onChange={(e) => setLiveClassForm({ ...liveClassForm, title: e.target.value })}
                                         placeholder="e.g., Web Development Live Session"
-                                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent"
                                         required
                                     />
                                 </div>
@@ -615,7 +649,7 @@ const TeacherDashboard = () => {
                                         value={liveClassForm.link}
                                         onChange={(e) => setLiveClassForm({ ...liveClassForm, link: e.target.value })}
                                         placeholder="https://meet.google.com/... or Zoom link"
-                                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent"
                                         required
                                     />
                                 </div>
@@ -629,12 +663,12 @@ const TeacherDashboard = () => {
                                         onChange={(e) => setLiveClassForm({ ...liveClassForm, description: e.target.value })}
                                         placeholder="Brief description about the class..."
                                         rows={2}
-                                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none"
+                                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
                                     />
                                 </div>
 
                                 {/* Auto-end timer */}
-                                <div className="bg-orange-50 border border-orange-100 rounded-xl p-4">
+                                <div className="bg-primary/5 border border-primary/10 rounded-xl p-4">
                                     <label className="flex items-center gap-2 text-sm font-semibold text-orange-700 mb-3">
                                         <Timer className="w-4 h-4" />
                                         Auto-End Timer (Optional)
@@ -647,7 +681,7 @@ const TeacherDashboard = () => {
                                                 onClick={() => setLiveClassForm(f => ({ ...f, autoEndMinutes: f.autoEndMinutes === String(min) ? '' : String(min) }))}
                                                 className={`px-3 py-2 rounded-xl text-sm font-semibold transition-all border ${
                                                     liveClassForm.autoEndMinutes === String(min)
-                                                        ? 'bg-orange-500 text-white border-orange-500 shadow-sm'
+                                                        ? 'bg-primary text-white border-primary shadow-sm'
                                                         : 'bg-white text-gray-700 border-gray-200 hover:border-orange-300'
                                                 }`}
                                             >
@@ -665,7 +699,7 @@ const TeacherDashboard = () => {
                                         />
                                     </div>
                                     {liveClassForm.autoEndMinutes ? (
-                                        <p className="text-xs text-orange-600 flex items-center gap-1">
+                                        <p className="text-xs text-primary flex items-center gap-1">
                                             <Timer className="w-3 h-3" />
                                             Class will auto-remove after <strong>{liveClassForm.autoEndMinutes} minute{liveClassForm.autoEndMinutes !== '1' ? 's' : ''}</strong>
                                         </p>
@@ -689,7 +723,7 @@ const TeacherDashboard = () => {
                                                 type="button"
                                                 onClick={() => setLiveClassForm({ ...liveClassForm, visibility: opt.value })}
                                                 className={`px-4 py-3 rounded-xl font-medium transition-all ${liveClassForm.visibility === opt.value
-                                                    ? 'bg-emerald-500 text-white'
+                                                    ? 'bg-primary text-white'
                                                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                                     }`}
                                             >
@@ -732,4 +766,7 @@ const TeacherDashboard = () => {
 };
 
 export default TeacherDashboard;
+
+
+
 

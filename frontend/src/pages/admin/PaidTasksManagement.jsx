@@ -373,7 +373,7 @@ const PaidTasksManagement = () => {
                             setImagePreviews([]);
                             setIsModalOpen(true);
                         }}
-                        className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl transition-all duration-300 font-bold text-xs uppercase tracking-widest shadow-lg shadow-purple-200"
+                        className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2.5 bg-primary hover:bg-purple-700 text-white rounded-xl transition-all duration-300 font-bold text-xs uppercase tracking-widest shadow-lg shadow-purple-200"
                     >
                         <Briefcase className="w-5 h-5" />
                         Create Task
@@ -394,13 +394,13 @@ const PaidTasksManagement = () => {
                 <div className="flex gap-2 bg-gray-100 p-1 rounded-xl w-fit whitespace-nowrap">
                     <button
                         onClick={() => setActiveTab('all')}
-                        className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all ${activeTab === 'all' ? 'bg-white text-purple-600 shadow-sm' : 'text-gray-600'}`}
+                        className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all ${activeTab === 'all' ? 'bg-white text-primary shadow-sm' : 'text-gray-600'}`}
                     >
                         All ({tasks.length})
                     </button>
                     <button
                         onClick={() => setActiveTab('open')}
-                        className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all ${activeTab === 'open' ? 'bg-white text-purple-600 shadow-sm' : 'text-gray-600'}`}
+                        className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all ${activeTab === 'open' ? 'bg-white text-primary shadow-sm' : 'text-gray-600'}`}
                     >
                         Open ({openTasks.length})
                     </button>
@@ -412,7 +412,7 @@ const PaidTasksManagement = () => {
                     </button>
                     <button
                         onClick={() => setActiveTab('completed')}
-                        className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all ${activeTab === 'completed' ? 'bg-white text-emerald-600 shadow-sm' : 'text-gray-600'}`}
+                        className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all ${activeTab === 'completed' ? 'bg-white text-primary shadow-sm' : 'text-gray-600'}`}
                     >
                         Completed ({completedTasks.length})
                     </button>
@@ -441,7 +441,7 @@ const PaidTasksManagement = () => {
                         placeholder="Search tasks..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-transparent focus:border-purple-500 focus:bg-white rounded-xl transition-all outline-none text-sm font-medium"
+                        className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-transparent focus:border-primary focus:bg-white rounded-xl transition-all outline-none text-sm font-medium"
                     />
                 </div>
             </div>
@@ -493,7 +493,7 @@ const PaidTasksManagement = () => {
 
                                         <div className="flex flex-wrap gap-1 mb-4">
                                             {(task.skills || '').split(',').map((skill, i) => (
-                                                <span key={i} className="px-2 py-1 bg-purple-50 text-purple-600 text-xs rounded-md">
+                                                <span key={i} className="px-2 py-1 bg-purple-50 text-primary text-xs rounded-md">
                                                     {skill.trim()}
                                                 </span>
                                             ))}
@@ -504,7 +504,7 @@ const PaidTasksManagement = () => {
                                             <span className="text-xs text-gray-400 font-medium">Completed By:</span>
                                             <div className="flex -space-x-2">
                                                 {(task.assignedTo || []).map((u, i) => (
-                                                    <div key={i} title={u.name} className="w-7 h-7 rounded-full border-2 border-white bg-purple-100 flex items-center justify-center text-[10px] font-bold text-purple-600">
+                                                    <div key={i} title={u.name} className="w-7 h-7 rounded-full border-2 border-white bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary">
                                                         {u.photo ? <img src={u.photo} alt="" className="w-full h-full rounded-full object-cover" /> : u.name?.charAt(0)}
                                                     </div>
                                                 ))}
@@ -602,7 +602,7 @@ const PaidTasksManagement = () => {
                                     </button>
                                     <button
                                         onClick={() => handleEditClick(task)}
-                                        className="px-3 py-1 bg-purple-50 text-purple-600 hover:bg-purple-600 hover:text-white rounded-lg transition-all flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider shadow-sm border border-purple-100"
+                                        className="px-3 py-1 bg-purple-50 text-primary hover:bg-primary hover:text-white rounded-lg transition-all flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider shadow-sm border border-primary/10"
                                         title="Edit Task"
                                     >
                                         <PenSquare className="w-3 h-3" />
@@ -651,7 +651,7 @@ const PaidTasksManagement = () => {
 
                             <div className="flex flex-wrap gap-1 mb-4">
                                 {(task.skills || '').split(',').map((skill, i) => (
-                                    <span key={i} className="px-2 py-1 bg-purple-50 text-purple-600 text-xs rounded-md">
+                                    <span key={i} className="px-2 py-1 bg-purple-50 text-primary text-xs rounded-md">
                                         {skill.trim()}
                                     </span>
                                 ))}
@@ -662,7 +662,7 @@ const PaidTasksManagement = () => {
                                     <Calendar className="w-4 h-4" />
                                     {task.isLifetime ? 'Lifetime' : (task.deadline && new Date(task.deadline).toLocaleDateString())}
                                 </span>
-                                <span className={task.type === 'product' ? "font-bold text-emerald-600" : "font-bold text-purple-600"}>
+                                <span className={task.type === 'product' ? "font-bold text-primary" : "font-bold text-primary"}>
                                     Rs {isNaN(Number(task.budget)) ? task.budget : Number(task.budget).toLocaleString()}
                                 </span>
                             </div>
@@ -693,7 +693,7 @@ const PaidTasksManagement = () => {
                                 {task.status === 'open' && (
                                     <button
                                         onClick={() => handleViewApplicants(task)}
-                                        className="flex-1 py-2 text-sm font-medium text-purple-600 bg-purple-50 hover:bg-purple-100 rounded-xl flex items-center justify-center gap-1"
+                                        className="flex-1 py-2 text-sm font-medium text-primary bg-purple-50 hover:bg-primary/10 rounded-xl flex items-center justify-center gap-1"
                                     >
                                         <Users className="w-4 h-4" />
                                         {task.applicants?.length || 0} Applicants
@@ -714,7 +714,7 @@ const PaidTasksManagement = () => {
                                         </button>
                                         <button
                                             onClick={() => handleVerifyAndPay(task._id)}
-                                            className="px-4 py-2 text-sm font-medium text-emerald-600 bg-emerald-50 hover:bg-emerald-100 rounded-xl flex items-center justify-center gap-1"
+                                            className="px-4 py-2 text-sm font-medium text-primary bg-primary/5 hover:bg-primary/10 rounded-xl flex items-center justify-center gap-1"
                                             title="Complete & Pay Task"
                                         >
                                             <CheckCircle className="w-4 h-4" />
@@ -733,7 +733,7 @@ const PaidTasksManagement = () => {
                                         </button>
                                         <button
                                             onClick={() => handleViewApplicants(task)}
-                                            className="px-4 py-2 text-sm font-medium text-purple-600 bg-purple-50 hover:bg-purple-100 rounded-xl flex items-center justify-center gap-1"
+                                            className="px-4 py-2 text-sm font-medium text-primary bg-purple-50 hover:bg-primary/10 rounded-xl flex items-center justify-center gap-1"
                                             title="View Applicants & Assign More"
                                         >
                                             <Users className="w-4 h-4" />
@@ -741,7 +741,7 @@ const PaidTasksManagement = () => {
                                         </button>
                                         <button
                                             onClick={() => handleVerifyAndPay(task._id)}
-                                            className="px-4 py-2 text-sm font-medium text-emerald-600 bg-emerald-50 hover:bg-emerald-100 rounded-xl flex items-center justify-center gap-1"
+                                            className="px-4 py-2 text-sm font-medium text-primary bg-primary/5 hover:bg-primary/10 rounded-xl flex items-center justify-center gap-1"
                                             title="Complete & Pay Task"
                                         >
                                             <CheckCircle className="w-4 h-4" />
@@ -750,7 +750,7 @@ const PaidTasksManagement = () => {
                                     </div>
                                 )}
                                 {task.status === 'completed' && (
-                                    <div className="flex-1 py-2 text-sm text-center text-emerald-600 bg-emerald-50 rounded-xl flex items-center justify-center gap-1">
+                                    <div className="flex-1 py-2 text-sm text-center text-primary bg-primary/5 rounded-xl flex items-center justify-center gap-1">
                                         <CheckCircle className="w-4 h-4" />
                                         Payment Sent
                                     </div>
@@ -801,7 +801,7 @@ const PaidTasksManagement = () => {
                                         }
                                         e.target.value = ''; // Reset input to allow adding same file again if needed
                                     }}
-                                    className="w-full mt-2 text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 transition-colors"
+                                    className="w-full mt-2 text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-primary/5 file:text-primary hover:file:bg-primary/10 transition-colors"
                                 />
                             </div>
                         </div>
@@ -854,7 +854,7 @@ const PaidTasksManagement = () => {
                                         type="checkbox" 
                                         checked={formData.isLifetime}
                                         onChange={(e) => setFormData({ ...formData, isLifetime: e.target.checked, deadline: e.target.checked ? '' : formData.deadline })}
-                                        className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                                        className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
                                     />
                                     <span className="text-sm text-gray-600">Lifetime (No Deadline)</span>
                                 </label>
@@ -913,7 +913,7 @@ const PaidTasksManagement = () => {
                         <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-3 text-gray-600 hover:bg-gray-100 rounded-xl font-medium">
                             Cancel
                         </button>
-                        <button type="submit" disabled={isLoading} className={`flex-1 py-3 text-white rounded-xl font-medium flex items-center justify-center gap-2 ${formData.type === 'product' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-purple-600 hover:bg-purple-700'}`}>
+                        <button type="submit" disabled={isLoading} className={`flex-1 py-3 text-white rounded-xl font-medium flex items-center justify-center gap-2 ${formData.type === 'product' ? 'bg-primary hover:bg-primary' : 'bg-primary hover:bg-purple-700'}`}>
                             {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : (editingTask ? 'Update ' + (formData.type === 'product' ? 'Item' : 'Task') : 'Create ' + (formData.type === 'product' ? 'Item' : 'Task'))}
                         </button>
                     </div>
@@ -926,7 +926,7 @@ const PaidTasksManagement = () => {
                     <div className="space-y-4">
                         <div className="p-4 bg-gray-50 rounded-2xl">
                             <h3 className="font-black text-gray-900 uppercase tracking-tight">{selectedTask.title}</h3>
-                            <p className="text-xs font-bold text-purple-600 mt-1">Budget: Rs {isNaN(Number(selectedTask.budget)) ? selectedTask.budget : Number(selectedTask.budget).toLocaleString()}</p>
+                            <p className="text-xs font-bold text-primary mt-1">Budget: Rs {isNaN(Number(selectedTask.budget)) ? selectedTask.budget : Number(selectedTask.budget).toLocaleString()}</p>
                         </div>
                         {(!selectedTask.applicants || selectedTask.applicants.length === 0) ? (
                             <div className="text-center py-12">
@@ -938,14 +938,14 @@ const PaidTasksManagement = () => {
                                 {selectedTask.applicants.map((applicant) => {
                                     const isAssigned = isAssignedTo(selectedTask, applicant.user?._id);
                                     return (
-                                        <div key={applicant.user?._id || applicant._id} className={`p-4 rounded-2xl border-2 transition-all ${isAssigned ? 'bg-amber-50 border-amber-200 shadow-sm' : 'bg-white border-gray-100 hover:border-purple-100'}`}>
+                                        <div key={applicant.user?._id || applicant._id} className={`p-4 rounded-2xl border-2 transition-all ${isAssigned ? 'bg-amber-50 border-amber-200 shadow-sm' : 'bg-white border-gray-100 hover:border-primary/10'}`}>
                                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                                                 <div className="flex items-center gap-4">
                                                     <div className="relative">
                                                         {applicant.user?.photo ? (
                                                             <img src={applicant.user.photo} alt="" className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm" />
                                                         ) : (
-                                                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white font-bold text-lg shadow-sm">
+                                                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-indigo-600 flex items-center justify-center text-white font-bold text-lg shadow-sm">
                                                                 {applicant.user?.name?.charAt(0) || '?'}
                                                             </div>
                                                         )}
@@ -976,7 +976,7 @@ const PaidTasksManagement = () => {
                                                 <div className="flex items-center gap-2">
                                                     <button
                                                         onClick={() => setViewingProfile(applicant.user)}
-                                                        className="flex-1 sm:flex-none px-4 py-2 text-purple-600 bg-purple-50 hover:bg-purple-100 text-xs rounded-xl font-black uppercase tracking-widest transition-all"
+                                                        className="flex-1 sm:flex-none px-4 py-2 text-primary bg-purple-50 hover:bg-primary/10 text-xs rounded-xl font-black uppercase tracking-widest transition-all"
                                                     >
                                                         Profile
                                                     </button>
@@ -990,7 +990,7 @@ const PaidTasksManagement = () => {
                                                     ) : (
                                                         <button
                                                             onClick={() => handleAssignTask(selectedTask._id, applicant.user?._id)}
-                                                            className="flex-1 sm:flex-none px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white text-xs rounded-xl font-black uppercase tracking-widest shadow-lg shadow-purple-200 transition-all"
+                                                            className="flex-1 sm:flex-none px-6 py-2 bg-primary hover:bg-purple-700 text-white text-xs rounded-xl font-black uppercase tracking-widest shadow-lg shadow-purple-200 transition-all"
                                                         >
                                                             Assign
                                                         </button>
@@ -1076,7 +1076,7 @@ const PaidTasksManagement = () => {
                             <p className="text-xs text-gray-400 mb-2">Skills</p>
                             <div className="flex flex-wrap gap-2">
                                 {(viewingProfile.skills || 'No skills listed').split(',').map((skill, i) => (
-                                    <span key={i} className="px-3 py-1 bg-purple-100 text-purple-700 text-sm rounded-lg">
+                                    <span key={i} className="px-3 py-1 bg-primary/10 text-purple-700 text-sm rounded-lg">
                                         {skill.trim()}
                                     </span>
                                 ))}
@@ -1154,9 +1154,9 @@ const PaidTasksManagement = () => {
                                         </div>
                                     )}
 
-                                    <div className="bg-emerald-50 p-3 rounded-lg">
-                                        <p className="text-xs font-bold text-emerald-700 uppercase tracking-wider mb-1">Payment Details</p>
-                                        <p className="text-sm font-mono text-emerald-800">{sub.accountDetails}</p>
+                                    <div className="bg-primary/5 p-3 rounded-lg">
+                                        <p className="text-xs font-bold text-primary uppercase tracking-wider mb-1">Payment Details</p>
+                                        <p className="text-sm font-mono text-primary">{sub.accountDetails}</p>
                                     </div>
                                 </div>
                             </div>
@@ -1168,7 +1168,7 @@ const PaidTasksManagement = () => {
                             </button>
                             <button
                                 onClick={() => handleVerifyAndPay(selectedTask._id)}
-                                className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-medium flex items-center justify-center gap-2"
+                                className="flex-1 py-3 bg-primary hover:bg-primary text-white rounded-xl font-medium flex items-center justify-center gap-2"
                             >
                                 <CheckCircle className="w-5 h-5" />
                                 Complete & Pay Task
@@ -1232,3 +1232,6 @@ const PaidTasksManagement = () => {
 };
 
 export default PaidTasksManagement;
+
+
+

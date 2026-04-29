@@ -178,7 +178,7 @@ const GradingSystem = () => {
             </div>
 
             {/* Filters */}
-            <div className="bg-white rounded-2xl p-4 border border-[#ff8e01]/20 shadow-sm">
+            <div className="bg-white rounded-2xl p-4 border border-primary/20 shadow-sm">
                 <div className="flex flex-col md:flex-row md:items-center gap-4">
                     <div className="flex-1 flex items-center bg-gray-50 rounded-xl px-4 py-3">
                         <Search className="w-5 h-5 text-gray-400 mr-3" />
@@ -194,7 +194,7 @@ const GradingSystem = () => {
                     <select
                         value={selectedCourse}
                         onChange={(e) => setSelectedCourse(e.target.value)}
-                        className="px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                        className="px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary"
                     >
                         <option value="all">All Courses</option>
                         {courses.map((course) => (
@@ -223,12 +223,12 @@ const GradingSystem = () => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.1 }}
-                        className="bg-white rounded-2xl p-6 border border-[#ff8e01]/20 shadow-sm"
+                        className="bg-white rounded-2xl p-6 border border-primary/20 shadow-sm"
                     >
                         <div className="flex flex-col lg:flex-row lg:items-center gap-6">
                             {/* Student Info */}
                             <div className="flex items-center gap-4 flex-1">
-                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white font-semibold">
+                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-primary flex items-center justify-center text-white font-semibold">
                                     {submission.student.charAt(0)}
                                 </div>
                                 <div>
@@ -282,7 +282,7 @@ const GradingSystem = () => {
                                         value={grades[submission.id] ?? submission.currentGrade ?? ''}
                                         onChange={(e) => handleGradeChange(submission.id, e.target.value)}
                                         placeholder={`0-${submission.totalMarks}`}
-                                        className="w-24 px-3 py-2 border border-gray-200 rounded-l-lg text-center focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                                        className="w-24 px-3 py-2 border border-gray-200 rounded-l-lg text-center focus:ring-2 focus:ring-primary/20 focus:border-primary"
                                     />
                                     <span className="px-3 py-2 bg-gray-100 border border-l-0 border-gray-200 rounded-r-lg text-gray-500">
                                         /{submission.totalMarks}
@@ -291,7 +291,7 @@ const GradingSystem = () => {
                                 <button
                                     onClick={() => handleSaveGrade(submission)}
                                     disabled={isSaving === submission.id}
-                                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium transition-all flex items-center gap-2 disabled:opacity-50"
+                                    className="px-4 py-2 bg-primary hover:bg-primary text-white rounded-lg font-medium transition-all flex items-center gap-2 disabled:opacity-50"
                                 >
                                     {isSaving === submission.id ? (
                                         <Loader2 className="w-4 h-4 animate-spin" />
@@ -333,3 +333,6 @@ const GradingSystem = () => {
 };
 
 export default GradingSystem;
+
+
+

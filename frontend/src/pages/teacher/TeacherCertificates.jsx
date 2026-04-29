@@ -70,7 +70,7 @@ const TeacherCertificates = () => {
                 animate={{ opacity: 1, y: 0 }}
                 className="flex items-center gap-3"
             >
-                <div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center shadow-lg shadow-orange-200">
+                <div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-primary rounded-xl flex items-center justify-center shadow-lg shadow-orange-200">
                     <Award className="w-5 h-5 text-white" />
                 </div>
                 <div>
@@ -87,7 +87,7 @@ const TeacherCertificates = () => {
                 className="bg-white rounded-3xl border border-gray-100 shadow-xl overflow-hidden"
             >
                 {/* Top Gold Banner */}
-                <div className="bg-gradient-to-r from-amber-500 via-orange-500 to-amber-400 px-8 py-6 text-white flex items-center justify-between">
+                <div className="bg-gradient-to-r from-amber-500 via-primary to-amber-400 px-8 py-6 text-white flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         {/* Teacher Photo or Initial */}
                         <div className="w-16 h-16 rounded-2xl border-2 border-white/30 shadow-lg overflow-hidden bg-white/10 flex items-center justify-center">
@@ -120,15 +120,15 @@ const TeacherCertificates = () => {
                 <div className="p-8 space-y-6">
                     {/* Courses Section */}
                     {selectedCourses.length > 0 && (
-                        <div className="bg-orange-50/50 p-5 rounded-3xl border border-orange-100">
-                            <p className="text-[11px] font-black text-orange-600 uppercase tracking-widest flex items-center gap-2 mb-4">
+                        <div className="bg-primary/5/50 p-5 rounded-3xl border border-primary/10">
+                            <p className="text-[11px] font-black text-primary uppercase tracking-widest flex items-center gap-2 mb-4">
                                 <BookOpen className="w-4 h-4" /> Courses Taught
                             </p>
                             <div className="flex flex-wrap gap-2.5">
                                 {selectedCourses.map((course, i) => (
                                     <div
                                         key={i}
-                                        className="flex items-center gap-2 px-5 py-2.5 bg-orange-500 text-white rounded-xl text-sm font-bold shadow-md shadow-orange-500/20"
+                                        className="flex items-center gap-2 px-5 py-2.5 bg-primary text-white rounded-xl text-sm font-bold shadow-md shadow-primary/20"
                                     >
                                         <CheckCircle className="w-4 h-4 text-white/80" />
                                         {course}
@@ -143,7 +143,7 @@ const TeacherCertificates = () => {
                         {certificate.skills && (
                             <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100">
                                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 flex items-center gap-1.5">
-                                    <CheckCircle className="w-3 h-3 text-emerald-500" /> Skills
+                                    <CheckCircle className="w-3 h-3 text-primary" /> Skills
                                 </p>
                                 <p className="font-semibold text-gray-800 text-sm">{certificate.skills}</p>
                             </div>
@@ -158,7 +158,7 @@ const TeacherCertificates = () => {
                         )}
                         <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100">
                             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 flex items-center gap-1.5">
-                                <Calendar className="w-3 h-3 text-purple-500" /> Issued On
+                                <Calendar className="w-3 h-3 text-primary" /> Issued On
                             </p>
                             <p className="font-semibold text-gray-800 text-sm">{issueDate}</p>
                         </div>
@@ -171,7 +171,7 @@ const TeacherCertificates = () => {
                                 href={certificate.certificateLink}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center gap-3 px-7 py-3.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold rounded-2xl transition-all shadow-lg shadow-orange-200 active:scale-95"
+                                className="inline-flex items-center gap-3 px-7 py-3.5 bg-gradient-to-r from-amber-500 to-primary hover:from-amber-600 hover:to-primary text-white font-bold rounded-2xl transition-all shadow-lg shadow-orange-200 active:scale-95"
                             >
                                 <ExternalLink className="w-5 h-5" />
                                 Open Certificate
@@ -183,8 +183,8 @@ const TeacherCertificates = () => {
                     <div className="pt-4 border-t border-gray-100 flex items-center justify-between text-xs text-gray-400">
                         <span>Adeeb Technology Lab — Official Certificate</span>
                         <div className="flex items-center gap-1.5">
-                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                            <span className="font-semibold text-emerald-600">Verified</span>
+                            <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                            <span className="font-semibold text-primary">Verified</span>
                         </div>
                     </div>
                 </div>
@@ -194,3 +194,6 @@ const TeacherCertificates = () => {
 };
 
 export default TeacherCertificates;
+
+
+

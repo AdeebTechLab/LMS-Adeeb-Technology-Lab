@@ -140,7 +140,7 @@ const NotificationManagement = () => {
                 </div>
                 <button
                     onClick={() => handleOpenModal('create')}
-                    className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-emerald-900/10 flex items-center justify-center gap-2"
+                    className="px-6 py-2.5 bg-primary hover:bg-primary text-white rounded-xl font-bold transition-all shadow-lg shadow-primary/10 flex items-center justify-center gap-2"
                 >
                     <Plus className="w-5 h-5" />
                     Create Notification
@@ -149,7 +149,7 @@ const NotificationManagement = () => {
 
             {isLoading ? (
                 <div className="flex items-center justify-center h-64">
-                    <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
+                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -166,7 +166,7 @@ const NotificationManagement = () => {
                                     className={`bg-white rounded-2xl border border-gray-100 overflow-hidden flex flex-col transition-all shadow-sm hover:shadow-md ${status.dimmed ? 'opacity-60 grayscale-[0.3]' : ''}`}
                                 >
                                     <div className={`h-1.5 w-full ${n.type === 'warning' ? 'bg-amber-400' :
-                                        n.type === 'success' ? 'bg-emerald-500' :
+                                        n.type === 'success' ? 'bg-primary' :
                                             n.type === 'error' ? 'bg-rose-500' : 'bg-blue-500'
                                         }`} />
 
@@ -174,7 +174,7 @@ const NotificationManagement = () => {
                                         <div className="flex items-start justify-between mb-4">
                                             <div className={`p-2 rounded-xl bg-${n.type === 'warning' ? 'amber' : n.type === 'success' ? 'emerald' : n.type === 'error' ? 'rose' : 'blue'}-50`}>
                                                 {n.type === 'warning' ? <AlertCircle className="w-5 h-5 text-amber-600" /> :
-                                                    n.type === 'success' ? <CheckCircle className="w-5 h-5 text-emerald-600" /> :
+                                                    n.type === 'success' ? <CheckCircle className="w-5 h-5 text-primary" /> :
                                                         n.type === 'error' ? <XCircle className="w-5 h-5 text-rose-600" /> : <Info className="w-5 h-5 text-blue-600" />}
                                             </div>
                                             <Badge variant={status.variant}>{status.label}</Badge>
@@ -243,7 +243,7 @@ const NotificationManagement = () => {
                                 required
                                 value={formData.title}
                                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                                className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 outline-none font-bold"
+                                className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 outline-none font-bold"
                                 placeholder="Enter notification title"
                             />
                         </div>
@@ -520,7 +520,7 @@ const NotificationManagement = () => {
                         <button
                             type="submit"
                             disabled={isSaving}
-                            className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-emerald-900/10 flex items-center justify-center gap-2 disabled:opacity-50"
+                            className="flex-1 py-3 bg-primary hover:bg-primary text-white font-bold rounded-xl transition-all shadow-lg shadow-primary/10 flex items-center justify-center gap-2 disabled:opacity-50"
                         >
                             {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
                             {modal.mode === 'create' ? 'Create' : 'Save Changes'}
@@ -533,3 +533,6 @@ const NotificationManagement = () => {
 };
 
 export default NotificationManagement;
+
+
+

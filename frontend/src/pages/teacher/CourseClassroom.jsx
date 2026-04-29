@@ -156,7 +156,7 @@ const CourseClassroom = () => {
                                     onChange={(e) => setNewAnnouncement(e.target.value)}
                                     placeholder="Write an announcement for your students..."
                                     rows={4}
-                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 resize-none"
+                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none"
                                 />
                                 <div className="flex items-center justify-between">
                                     <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
@@ -183,7 +183,7 @@ const CourseClassroom = () => {
                                 className="bg-white rounded-2xl p-6 border border-gray-100"
                             >
                                 <div className="flex items-start gap-4">
-                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white font-medium">
+                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary flex items-center justify-center text-white font-medium">
                                         T
                                     </div>
                                     <div className="flex-1">
@@ -252,7 +252,7 @@ const CourseClassroom = () => {
                                             {assignment.submissions}/{assignment.totalStudents} submitted
                                         </span>
                                     </div>
-                                    <button className="px-4 py-2 text-emerald-600 hover:bg-emerald-50 rounded-lg font-medium transition-colors">
+                                    <button className="px-4 py-2 text-primary hover:bg-primary/5 rounded-lg font-medium transition-colors">
                                         View Submissions
                                     </button>
                                 </div>
@@ -284,7 +284,7 @@ const CourseClassroom = () => {
                                     >
                                         <td className="py-4 px-6">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white font-medium">
+                                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary flex items-center justify-center text-white font-medium">
                                                     {student.name.charAt(0)}
                                                 </div>
                                                 <div>
@@ -303,7 +303,7 @@ const CourseClassroom = () => {
                                             <span className="font-semibold text-gray-900">{student.grade}</span>
                                         </td>
                                         <td className="py-4 px-6">
-                                            <button className="px-4 py-2 text-emerald-600 hover:bg-emerald-50 rounded-lg font-medium transition-colors">
+                                            <button className="px-4 py-2 text-primary hover:bg-primary/5 rounded-lg font-medium transition-colors">
                                                 View Details
                                             </button>
                                         </td>
@@ -319,3 +319,6 @@ const CourseClassroom = () => {
 };
 
 export default CourseClassroom;
+
+
+

@@ -171,8 +171,8 @@ const AttendanceTab = ({ course, students }) => {
     const getStatusButton = (studentId, status, currentMark) => {
         const isActive = currentMark?.status === status;
         const config = status === 'present'
-            ? { bg: isActive ? 'bg-present-fixed !important' : 'bg-gray-100 text-gray-600 hover:bg-present-fixed/20', label: 'P', text: isActive ? 'text-white' : 'text-present-fixed' }
-            : { bg: isActive ? 'bg-absent-fixed !important' : 'bg-gray-100 text-gray-600 hover:bg-absent-fixed/20', label: 'A', text: isActive ? 'text-white' : 'text-absent-fixed' };
+            ? { bg: isActive ? 'bg-present-fixed !important' : 'bg-gray-100 text-gray-600 hover:bg-present-fixed-light', label: 'P', text: isActive ? 'text-white' : 'text-present-fixed' }
+            : { bg: isActive ? 'bg-absent-fixed !important' : 'bg-gray-100 text-gray-600 hover:bg-absent-fixed-light', label: 'A', text: isActive ? 'text-white' : 'text-absent-fixed' };
 
         return (
             <button
@@ -189,13 +189,39 @@ const AttendanceTab = ({ course, students }) => {
     const getRowBgColor = (studentId) => {
         const mark = attendanceMarks[studentId];
         if (!mark) return '';
-        if (mark.status === 'present') return 'bg-present-fixed/5';
-        if (mark.status === 'absent') return 'bg-absent-fixed/5';
+        if (mark.status === 'present') return 'bg-present-fixed-light';
+        if (mark.status === 'absent') return 'bg-absent-fixed-light';
         return '';
     };
 
     return (
         <div className="space-y-6">
+            {/* Quick Summary Row */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div className="bg-present-fixed-light rounded-3xl p-4 border border-present-fixed/10 text-center shadow-sm">
+                    <p className="text-xl sm:text-2xl font-black text-present-fixed">
+                        {Object.values(attendanceMarks).filter(m => m.status === 'present').length}
+                    </p>
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Present Today</p>
+                </div>
+                <div className="bg-absent-fixed-light rounded-3xl p-4 border border-absent-fixed/10 text-center shadow-sm">
+                    <p className="text-xl sm:text-2xl font-black text-absent-fixed">
+                        {Object.values(attendanceMarks).filter(m => m.status === 'absent').length}
+                    </p>
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Absent Today</p>
+                </div>
+                <div className="bg-primary/5 rounded-3xl p-4 border border-primary/10 text-center shadow-sm">
+                    <p className="text-xl sm:text-2xl font-black text-primary">
+                        {students.length - Object.keys(attendanceMarks).length}
+                    </p>
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Unmarked</p>
+                </div>
+                <div className="bg-white rounded-3xl p-4 border border-gray-100 text-center shadow-sm">
+                    <p className="text-xl sm:text-2xl font-black text-gray-900">{students.length}</p>
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Total Students</p>
+                </div>
+            </div>
+
             <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
                 {/* Weekly Off Days Display (Read-only, set by admin) */}
                 {holidayDays.length > 0 && (
@@ -229,7 +255,7 @@ const AttendanceTab = ({ course, students }) => {
                         <div className="flex items-center gap-2">
                             <p className="text-sm text-gray-500 font-medium">{selectedDate === getLocalDateString(new Date()) ? "Current Session" : "Historical Record"}</p>
                             {lastSaved && (
-                                <span className="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded font-bold uppercase animate-pulse">
+                                <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded font-bold uppercase animate-pulse">
                                     Auto-saved {lastSaved.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                                 </span>
                             )}
@@ -239,18 +265,18 @@ const AttendanceTab = ({ course, students }) => {
                         <button 
                             onClick={fetchAttendance}
                             disabled={isLoading}
-                            className="flex items-center gap-2 px-5 py-2.5 bg-emerald-50 text-emerald-600 rounded-xl font-black text-[10px] uppercase tracking-widest border-2 border-emerald-100 hover:border-emerald-500 hover:bg-white hover:shadow-lg hover:shadow-emerald-100 transition-all active:scale-95 disabled:opacity-50"
+                            className="flex items-center gap-2 px-5 py-2.5 bg-primary/5 text-primary rounded-xl font-black text-[10px] uppercase tracking-widest border-2 border-primary/10 hover:border-primary hover:bg-white hover:shadow-lg hover:shadow-primary/10 transition-all active:scale-95 disabled:opacity-50"
                         >
                             <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
                             Refresh Data
                         </button>
                         <div className="relative">
-                            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-600" />
+                            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
                             <input
                                 type="date"
                                 value={selectedDate}
                                 onChange={(e) => setSelectedDate(e.target.value)}
-                                className="pl-9 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-xl text-sm font-bold outline-none focus:ring-2 focus:ring-emerald-500/20 text-gray-700"
+                                className="pl-9 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-xl text-sm font-bold outline-none focus:ring-2 focus:ring-primary/20 text-gray-700"
                             />
                         </div>
                     </div>
@@ -273,11 +299,11 @@ const AttendanceTab = ({ course, students }) => {
                         </div>
                     </div>
                 ) : (
-                    <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex items-center gap-3 mb-6">
-                        <Clock className="w-5 h-5 text-emerald-600" />
+                    <div className="bg-primary/5 border border-primary rounded-xl p-4 flex items-center gap-3 mb-6">
+                        <Clock className="w-5 h-5 text-primary" />
                         <div>
-                            <p className="font-bold text-emerald-900 text-sm">Active Attendance Window</p>
-                            <p className="text-sm text-emerald-700 font-medium">Attendance auto-saves at 12AM. Mark students as P (Present) or A (Absent).</p>
+                            <p className="font-bold text-primary text-sm">Active Attendance Window</p>
+                            <p className="text-sm text-primary font-medium">Attendance auto-saves at 12AM. Mark students as P (Present) or A (Absent).</p>
                         </div>
                     </div>
                 )}
@@ -313,7 +339,7 @@ const AttendanceTab = ({ course, students }) => {
                         <button
                             onClick={handleSave}
                             disabled={isSaving}
-                            className="w-full md:w-auto px-8 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl flex items-center justify-center gap-2 font-bold transition-all shadow-lg shadow-emerald-200"
+                            className="w-full md:w-auto px-8 py-3 bg-primary hover:bg-primary text-white rounded-2xl flex items-center justify-center gap-2 font-bold transition-all shadow-lg shadow-primary"
                         >
                             {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
                             {isSaving ? 'SAVING...' : 'SAVE ATTENDANCE'}
@@ -336,7 +362,7 @@ const AttendanceTab = ({ course, students }) => {
                                 <tr key={student.id} className={`hover:bg-gray-50 transition-colors ${getRowBgColor(student.id)}`}>
                                     <td className="px-4 py-3">
                                         <div className="flex items-center gap-3">
-                                            <ProfileAvatar src={student.photo} name={student.name} size="sm" border={`border ${attendanceMarks[student.id]?.status === 'present' ? 'border-emerald-300' : attendanceMarks[student.id]?.status === 'absent' ? 'border-red-300' : 'border-gray-200'}`} />
+                                            <ProfileAvatar src={student.photo} name={student.name} size="sm" border={`border ${attendanceMarks[student.id]?.status === 'present' ? 'border-primary' : attendanceMarks[student.id]?.status === 'absent' ? 'border-red-300' : 'border-gray-200'}`} />
                                             <div className="text-sm font-medium text-gray-900">{student.name}</div>
                                         </div>
                                     </td>
@@ -361,3 +387,6 @@ const AttendanceTab = ({ course, students }) => {
 };
 
 export default AttendanceTab;
+
+
+

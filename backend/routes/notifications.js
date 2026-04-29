@@ -3,6 +3,7 @@ const router = express.Router();
 const sanitizeHtml = require('sanitize-html');
 const { protect, authorize } = require('../middleware/auth');
 const Notification = require('../models/Notification');
+const { sendToAll, sendToRole } = require('../utils/pushHelper');
 
 // Sanitization options for HTML content - expanded to support CSS styling
 const sanitizeOptions = {
@@ -131,6 +132,22 @@ router.post('/', protect, authorize('admin'), async (req, res) => {
         }
 
         const notification = await Notification.create(notificationData);
+
+        // Send push notifications if active
+        if (notification.isActive) {
+            const payload = {
+                title: 'New Announcement 📢',
+                body: notification.title,
+                icon: '/logo.png',
+                url: '/'
+            };
+
+            if (targetAudience.includes('all')) {
+                sendToAll(payload);
+            } else {
+                targetAudience.forEach(role => sendToRole(role, payload));
+            }
+        }
 
         res.status(201).json({ success: true, data: notification });
     } catch (error) {

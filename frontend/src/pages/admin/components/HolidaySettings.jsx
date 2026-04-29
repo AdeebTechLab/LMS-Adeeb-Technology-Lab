@@ -51,7 +51,7 @@ const HolidaySettings = () => {
     if (isLoading) {
         return (
             <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex items-center justify-center">
-                <Loader2 className="w-6 h-6 animate-spin text-emerald-600" />
+                <Loader2 className="w-6 h-6 animate-spin text-primary" />
             </div>
         );
     }
@@ -64,11 +64,11 @@ const HolidaySettings = () => {
         >
             <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-orange-50 flex items-center justify-center">
-                        <Calendar className="w-6 h-6 text-orange-600" />
+                    <div className="w-12 h-12 rounded-2xl bg-primary/5 flex items-center justify-center">
+                        <Calendar className="w-6 h-6 text-primary" />
                     </div>
                     <div>
-                        <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-orange-500 mb-1">Administrative Logic</h2>
+                        <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-primary mb-1">Administrative Logic</h2>
                         <h3 className="text-xl font-black text-gray-900 uppercase tracking-tighter leading-none">Weekly Off Days</h3>
                     </div>
                 </div>
@@ -76,7 +76,7 @@ const HolidaySettings = () => {
                     <motion.div
                         initial={{ opacity: 0, scale: 0.8 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 text-emerald-600 rounded-full text-[10px] font-black uppercase tracking-widest border border-emerald-100"
+                        className="flex items-center gap-2 px-3 py-1.5 bg-primary/5 text-primary rounded-full text-[10px] font-black uppercase tracking-widest border border-primary/10"
                     >
                         <Check className="w-3 h-3" />
                         SYNCED
@@ -92,7 +92,7 @@ const HolidaySettings = () => {
                         disabled={isSaving}
                         className={`relative py-6 px-2 rounded-[1.5rem] font-black text-center transition-all duration-500 border-2 ${holidayDays.includes(index)
                                 ? 'bg-slate-900 text-white border-slate-900'
-                                : 'bg-white text-gray-300 border-gray-100 hover:border-orange-200 hover:text-orange-500 hover:bg-orange-50/30'
+                                : 'bg-white text-gray-300 border-gray-100 hover:border-orange-200 hover:text-primary hover:bg-primary/5/30'
                             } ${isSaving ? 'opacity-50 cursor-not-allowed' : 'active:scale-90 cursor-pointer group'}`}
                     >
                         <div className="flex items-center justify-center gap-2">
@@ -127,11 +127,11 @@ const HolidaySettings = () => {
             <div className="bg-slate-50 rounded-3xl p-5 border border-slate-100">
                 <div className="flex items-start gap-4">
                     <div className="w-8 h-8 rounded-xl bg-white border border-slate-200 flex items-center justify-center shrink-0">
-                        <Sun className="w-4 h-4 text-orange-500" />
+                        <Sun className="w-4 h-4 text-primary" />
                     </div>
                     <div className="text-[11px] text-slate-500 font-medium leading-relaxed">
                         <p className="font-black text-gray-900 uppercase tracking-widest mb-2 flex items-center gap-2">
-                            <span className="w-1.5 h-1.5 rounded-full bg-orange-500"></span>
+                            <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
                             System Protocols
                         </p>
                         <ul className="space-y-2 opacity-80">
@@ -156,3 +156,6 @@ const HolidaySettings = () => {
 };
 
 export default HolidaySettings;
+
+
+

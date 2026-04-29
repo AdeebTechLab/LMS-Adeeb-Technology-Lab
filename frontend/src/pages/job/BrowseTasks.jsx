@@ -9,6 +9,7 @@ import Modal from '../../components/ui/Modal';
 import { taskAPI } from '../../services/api';
 import { getCategoryIcon, getCategoryColor, getCategoryBg } from '../../utils/taskCategoryIcons';
 import Loader from '../../components/ui/Loader';
+import BirthdayWish from '../../components/dashboard/BirthdayWish';
 
 const BrowseTasks = () => {
     const { user } = useSelector((state) => state.auth);
@@ -242,6 +243,7 @@ const BrowseTasks = () => {
 
     return (
         <div className="space-y-6">
+            <BirthdayWish />
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
@@ -263,25 +265,25 @@ const BrowseTasks = () => {
                 <div className="flex flex-wrap gap-2 bg-gray-100 p-1 rounded-xl w-fit">
                     <button
                         onClick={() => setActiveTab('available')}
-                        className={`px-5 py-2.5 rounded-lg font-medium transition-all ${activeTab === 'available' ? 'bg-white text-purple-600 shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
+                        className={`px-5 py-2.5 rounded-lg font-medium transition-all ${activeTab === 'available' ? 'bg-white text-primary shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
                     >
                         Available ({availableTasks.length})
                     </button>
                     <button
                         onClick={() => setActiveTab('applied')}
-                        className={`px-5 py-2.5 rounded-lg font-medium transition-all ${activeTab === 'applied' ? 'bg-white text-purple-600 shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
+                        className={`px-5 py-2.5 rounded-lg font-medium transition-all ${activeTab === 'applied' ? 'bg-white text-primary shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
                     >
                         My Applications ({appliedTasks.length})
                     </button>
                     <button
                         onClick={() => setActiveTab('assigned')}
-                        className={`px-5 py-2.5 rounded-lg font-medium transition-all ${activeTab === 'assigned' ? 'bg-white text-purple-600 shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
+                        className={`px-5 py-2.5 rounded-lg font-medium transition-all ${activeTab === 'assigned' ? 'bg-white text-primary shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
                     >
                         Assigned ({assignedTasks.length})
                     </button>
                     <button
                         onClick={() => setActiveTab('completed')}
-                        className={`px-5 py-2.5 rounded-lg font-medium transition-all ${activeTab === 'completed' ? 'bg-white text-emerald-600 shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
+                        className={`px-5 py-2.5 rounded-lg font-medium transition-all ${activeTab === 'completed' ? 'bg-white text-primary shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
                     >
                         Completed ({completedTasks.length})
                     </button>
@@ -293,7 +295,7 @@ const BrowseTasks = () => {
                     </button>
                     <button
                         onClick={() => setActiveTab('showcase')}
-                        className={`px-5 py-2.5 rounded-lg font-medium transition-all flex items-center justify-center gap-2 ${activeTab === 'showcase' ? 'bg-white text-emerald-600 shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
+                        className={`px-5 py-2.5 rounded-lg font-medium transition-all flex items-center justify-center gap-2 ${activeTab === 'showcase' ? 'bg-white text-primary shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
                         title="View tasks completed by our jobbers with feedback"
                     >
                         <MessageSquare className="w-4 h-4" />
@@ -378,7 +380,7 @@ const BrowseTasks = () => {
                                 {task.description?.length > 100 && (
                                     <button 
                                         onClick={() => { setSelectedTask(task); setViewModalOpen(true); }}
-                                        className="text-xs text-purple-600 hover:text-purple-700 font-medium mt-1"
+                                        className="text-xs text-primary hover:text-purple-700 font-medium mt-1"
                                     >
                                         Read more
                                     </button>
@@ -388,7 +390,7 @@ const BrowseTasks = () => {
 
                             <div className="flex flex-wrap gap-1 mb-4">
                                 {(task.skills || '').split(',').map((skill, i) => (
-                                    <span key={i} className="px-2 py-1 bg-purple-50 text-purple-600 text-xs rounded-md">
+                                    <span key={i} className="px-2 py-1 bg-purple-50 text-primary text-xs rounded-md">
                                         {skill.trim()}
                                     </span>
                                 ))}
@@ -399,7 +401,7 @@ const BrowseTasks = () => {
                                     <Calendar className="w-4 h-4" />
                                     {task.isLifetime ? 'Lifetime' : (task.deadline && new Date(task.deadline).toLocaleDateString())}
                                 </span>
-                                <span className={task.type === 'product' ? "font-bold text-emerald-600" : "font-bold text-purple-600"}>
+                                <span className={task.type === 'product' ? "font-bold text-primary" : "font-bold text-primary"}>
                                     Rs {isNaN(Number(task.budget)) ? task.budget : Number(task.budget).toLocaleString()}
                                 </span>
                             </div>
@@ -415,7 +417,7 @@ const BrowseTasks = () => {
                                 {!expired && !hasApplied(task) && !assigned && activeTab !== 'showcase' && (
                                     <button
                                         onClick={() => { setSelectedTask(task); setApplyModalOpen(true); }}
-                                        className="w-full py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-medium flex items-center justify-center gap-2"
+                                        className="w-full py-2.5 bg-primary hover:bg-purple-700 text-white rounded-xl font-medium flex items-center justify-center gap-2"
                                     >
                                         <Send className="w-4 h-4" />
                                         Apply Now
@@ -428,7 +430,7 @@ const BrowseTasks = () => {
                                     <div className="flex gap-2">
                                         <button
                                             onClick={() => { setSelectedTask(task); setSubmitModalOpen(true); }}
-                                            className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-medium flex items-center justify-center gap-2"
+                                            className="flex-1 py-2.5 bg-primary hover:bg-primary text-white rounded-xl font-medium flex items-center justify-center gap-2"
                                         >
                                             <Upload className="w-4 h-4" />
                                             Submit
@@ -449,7 +451,7 @@ const BrowseTasks = () => {
                                 )}
                                 {isPaid && (
                                     <div className="flex flex-col gap-2">
-                                        <div className="text-center text-sm text-emerald-600 py-1 flex items-center justify-center gap-1">
+                                        <div className="text-center text-sm text-primary py-1 flex items-center justify-center gap-1">
                                             <CheckCircle className="w-4 h-4" />
                                             Payment Received
                                         </div>
@@ -539,7 +541,7 @@ const BrowseTasks = () => {
                                 onChange={(e) => setFeedbackData({ ...feedbackData, text: e.target.value })}
                                 placeholder="How was your experience working on this task?"
                                 rows={4}
-                                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none"
+                                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary outline-none"
                             />
                         </div>
 
@@ -565,7 +567,7 @@ const BrowseTasks = () => {
                     <div className="space-y-4">
                         <div className="p-4 bg-gray-50 rounded-xl">
                             <h3 className="font-semibold text-gray-900">{selectedTask.title}</h3>
-                            <p className={`text-sm font-medium mt-1 ${selectedTask.type === 'product' ? 'text-emerald-600' : 'text-purple-600'}`}>
+                            <p className={`text-sm font-medium mt-1 ${selectedTask.type === 'product' ? 'text-primary' : 'text-primary'}`}>
                                 {selectedTask.type === 'product' ? 'Price: ' : 'Budget: '} Rs {isNaN(Number(selectedTask.budget)) ? selectedTask.budget : Number(selectedTask.budget).toLocaleString()}
                             </p>
                         </div>
@@ -588,7 +590,7 @@ const BrowseTasks = () => {
                             <button
                                 onClick={handleApply}
                                 disabled={isSubmitting}
-                                className={`flex-1 py-3 text-white rounded-xl font-medium flex items-center justify-center gap-2 disabled:opacity-70 ${selectedTask.type === 'product' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-purple-600 hover:bg-purple-700'}`}
+                                className={`flex-1 py-3 text-white rounded-xl font-medium flex items-center justify-center gap-2 disabled:opacity-70 ${selectedTask.type === 'product' ? 'bg-primary hover:bg-primary' : 'bg-primary hover:bg-purple-700'}`}
                             >
                                 {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : (selectedTask.type === 'product' ? 'Submit Offer' : 'Submit Application')}
                             </button>
@@ -648,7 +650,7 @@ const BrowseTasks = () => {
                             <button
                                 onClick={handleSubmitWork}
                                 disabled={isSubmitting}
-                                className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-medium flex items-center justify-center gap-2 disabled:opacity-70"
+                                className="flex-1 py-3 bg-primary hover:bg-primary text-white rounded-xl font-medium flex items-center justify-center gap-2 disabled:opacity-70"
                             >
                                 {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Submit Work'}
                             </button>
@@ -663,7 +665,7 @@ const BrowseTasks = () => {
                     <div className="space-y-4">
                         <div className="p-4 bg-gray-50 rounded-xl">
                             <h3 className="font-semibold text-gray-900">{selectedTask.title}</h3>
-                            <p className="text-sm text-purple-600 font-medium mt-1">
+                            <p className="text-sm text-primary font-medium mt-1">
                                 Budget: Rs {isNaN(Number(selectedTask.budget)) ? selectedTask.budget : Number(selectedTask.budget).toLocaleString()}
                             </p>
                         </div>
@@ -725,7 +727,7 @@ const BrowseTasks = () => {
                                 <button
                                     key={idx}
                                     onClick={() => setCurrentImageIndex(idx)}
-                                    className={`w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden border-2 transition-all ${currentImageIndex === idx ? 'border-purple-500 scale-105 opacity-100' : 'border-transparent opacity-50 hover:opacity-100'}`}
+                                    className={`w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden border-2 transition-all ${currentImageIndex === idx ? 'border-primary scale-105 opacity-100' : 'border-transparent opacity-50 hover:opacity-100'}`}
                                 >
                                     <img src={img} alt={`Thumbnail ${idx}`} className="w-full h-full object-cover" />
                                 </button>
@@ -739,3 +741,6 @@ const BrowseTasks = () => {
 };
 
 export default BrowseTasks;
+
+
+

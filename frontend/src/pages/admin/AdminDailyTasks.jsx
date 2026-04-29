@@ -128,7 +128,7 @@ const AdminDailyTasks = () => {
                     <select
                         value={selectedCourse || ''}
                         onChange={(e) => setSelectedCourse(e.target.value)}
-                        className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
+                        className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary font-medium"
                     >
                         <option value="" disabled>Select a course</option>
                         {courses.map(c => (
@@ -145,7 +145,7 @@ const AdminDailyTasks = () => {
                             placeholder="Search by name, roll no, content..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
+                            className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary font-medium"
                         />
                     </div>
                 </div>
@@ -153,7 +153,7 @@ const AdminDailyTasks = () => {
 
             {isLoading && tasks.length === 0 && (
                 <div className="flex items-center justify-center py-20">
-                    <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
+                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
                 </div>
             )}
 
@@ -169,7 +169,7 @@ const AdminDailyTasks = () => {
                             <div className="flex flex-col lg:flex-row gap-6">
                                 <div className="flex-1 space-y-4">
                                     <div className="flex items-start gap-4">
-                                        <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold text-lg flex-shrink-0">
+                                        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-lg flex-shrink-0">
                                             {task.user?.photo ? (
                                                 <img src={task.user.photo} alt={task.user.name} className="w-full h-full rounded-full object-cover" />
                                             ) : (
@@ -271,3 +271,6 @@ const AdminDailyTasks = () => {
 };
 
 export default AdminDailyTasks;
+
+
+

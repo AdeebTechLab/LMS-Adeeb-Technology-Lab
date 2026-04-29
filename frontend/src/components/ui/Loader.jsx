@@ -59,3 +59,5 @@ export const ButtonLoader = ({ className = "w-5 h-5" }) => {
 };
 
 export default Loader;
+
+

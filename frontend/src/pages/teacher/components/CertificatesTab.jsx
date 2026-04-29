@@ -19,7 +19,7 @@ const CertificatesTab = ({ course, students }) => {
 
     useEffect(() => {
         setFormData({
-            skills: course.name || '',
+            skills: course.title || course.name || '',
             duration: course.duration || '',
             notes: ''
         });
@@ -84,7 +84,7 @@ const CertificatesTab = ({ course, students }) => {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.05 }}
-                        className="bg-gray-50 rounded-2xl p-4 border border-gray-100 flex items-center justify-between hover:border-emerald-200 transition-all hover:bg-white"
+                        className="bg-gray-50 rounded-2xl p-4 border border-gray-100 flex items-center justify-between hover:border-primary transition-all hover:bg-white"
                     >
                         <div className="flex items-center gap-4">
                             <div className="w-12 h-12 rounded-full bg-white border border-gray-100 flex items-center justify-center overflow-hidden">
@@ -103,7 +103,7 @@ const CertificatesTab = ({ course, students }) => {
                         <div className="flex items-center gap-3">
                             <button
                                 onClick={() => handleRequestClick(student)}
-                                className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-bold transition-all shadow-md shadow-emerald-900/10"
+                                className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary text-white rounded-xl text-sm font-bold transition-all shadow-md shadow-primary/10"
                             >
                                 <Award className="w-4 h-4" />
                                 Request Certificate
@@ -121,17 +121,17 @@ const CertificatesTab = ({ course, students }) => {
                 size="md"
             >
                 <div className="space-y-4">
-                    <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-100 flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center border border-emerald-100">
+                    <div className="p-4 bg-primary/5 rounded-2xl border border-primary/10 flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center border border-primary/10">
                             {selectedStudent?.photo ? (
                                 <img src={selectedStudent.photo} alt="" className="w-full h-full rounded-full object-cover" />
                             ) : (
-                                <User className="w-6 h-6 text-emerald-600" />
+                                <User className="w-6 h-6 text-primary" />
                             )}
                         </div>
                         <div>
-                            <p className="font-bold text-emerald-900">{selectedStudent?.name}</p>
-                            <p className="text-xs text-emerald-600">Recommending for certificate</p>
+                            <p className="font-bold text-primary">{selectedStudent?.name}</p>
+                            <p className="text-xs text-primary">Recommending for certificate</p>
                         </div>
                     </div>
 
@@ -141,7 +141,7 @@ const CertificatesTab = ({ course, students }) => {
                             type="text"
                             value={formData.skills}
                             onChange={(e) => setFormData({ ...formData, skills: e.target.value })}
-                            className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 outline-none"
+                            className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 outline-none"
                             placeholder="Enter specialized skills"
                         />
                     </div>
@@ -152,7 +152,7 @@ const CertificatesTab = ({ course, students }) => {
                             type="text"
                             value={formData.duration}
                             onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
-                            className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 outline-none"
+                            className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 outline-none"
                             placeholder="Course duration"
                         />
                     </div>
@@ -162,7 +162,7 @@ const CertificatesTab = ({ course, students }) => {
                         <textarea
                             value={formData.notes}
                             onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                            className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 outline-none min-h-[100px]"
+                            className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 outline-none min-h-[100px]"
                             placeholder="Reason for recommendation..."
                         />
                     </div>
@@ -177,7 +177,7 @@ const CertificatesTab = ({ course, students }) => {
                         <button
                             onClick={handleSubmitRequest}
                             disabled={isSubmitting}
-                            className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-emerald-900/20 flex items-center justify-center gap-2"
+                            className="flex-1 py-3 bg-primary hover:bg-primary text-white font-bold rounded-xl transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2"
                         >
                             {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
                             Send Request
@@ -190,3 +190,6 @@ const CertificatesTab = ({ course, students }) => {
 };
 
 export default CertificatesTab;
+
+
+

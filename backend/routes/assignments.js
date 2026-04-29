@@ -199,6 +199,39 @@ router.post('/', protect, authorize('teacher', 'admin'), async (req, res) => {
             createdBy: req.user.id
         });
 
+        // Notify students via socket
+        const io = req.app.get('io');
+        if (io) {
+            const notificationData = {
+                type: 'new_assignment',
+                courseId: courseId.toString(),
+                assignmentId: assignment._id.toString(),
+                title: assignment.title
+            };
+
+            if (assignTo === 'all') {
+                // Emit to all students in the course room (not implemented yet, so let's emit to individuals or a course room if we had one)
+                // Since we don't have course-specific rooms yet, let's emit to individual students
+                assignedUsers.forEach(userId => {
+                    io.to(userId.toString()).emit('new_assignment', notificationData);
+                });
+            } else {
+                assignedUsers.forEach(userId => {
+                    io.to(userId.toString()).emit('new_assignment', notificationData);
+                });
+            }
+        }
+
+        // Send push notifications to all assigned users
+        assignedUsers.forEach(userId => {
+            sendPushNotification(userId.toString(), {
+                title: 'New Assignment 📝',
+                body: `A new assignment "${title}" has been posted in your course.`,
+                icon: '/logo.png',
+                url: '/student/assignments'
+            });
+        });
+
         res.status(201).json({ success: true, assignment });
     } catch (error) {
         console.error('Assignment creation error:', error);
@@ -289,6 +322,13 @@ router.post('/:id/submit', protect, uploadSubmission.single('file'), async (req,
                     };
                     for (const teacher of course.teachers) {
                         io.to(teacher._id.toString()).emit('new_submission', submissionData);
+                        // Push notification
+                        sendPushNotification(teacher._id.toString(), {
+                            title: 'Assignment Resubmitted 🔄',
+                            body: `${req.user.name} resubmitted: ${assignment.title}`,
+                            icon: '/logo.png',
+                            url: '/teacher/dashboard'
+                        });
                     }
                 }
             }
@@ -333,6 +373,13 @@ router.post('/:id/submit', protect, uploadSubmission.single('file'), async (req,
                     console.log(`   Room ${teacherRoom} has ${room ? room.size : 0} sockets`);
 
                     io.to(teacherRoom).emit('new_submission', submissionData);
+                    // Push notification
+                    sendPushNotification(teacher._id.toString(), {
+                        title: 'New Submission 📥',
+                        body: `${req.user.name} submitted: ${assignment.title}`,
+                        icon: '/logo.png',
+                        url: '/teacher/dashboard'
+                    });
                 }
             } else {
                 console.log('⚠️ No teachers found for course:', assignment.course);

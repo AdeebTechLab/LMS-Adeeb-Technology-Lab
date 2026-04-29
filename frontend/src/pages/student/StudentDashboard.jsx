@@ -15,8 +15,10 @@ import {
     Trash2,
     Video,
     ExternalLink,
-    MessageSquare
+    MessageSquare,
+    TrendingUp
 } from 'lucide-react';
+import BirthdayWish from '../../components/dashboard/BirthdayWish';
 import StatCard from '../../components/ui/StatCard';
 import Badge from '../../components/ui/Badge';
 import { enrollmentAPI, feeAPI, assignmentAPI, liveClassAPI, chatAPI } from '../../services/api';
@@ -47,8 +49,13 @@ const StudentDashboard = () => {
         fetchDashboardData();
         fetchActiveLiveClasses();
 
-        // Socket connection for live class updates
+        // Socket connection
         socketRef.current = io(SOCKET_URL, { withCredentials: true });
+
+        const myId = user?.id || user?._id;
+        if (myId) {
+            socketRef.current.emit('join_chat', myId);
+        }
 
         socketRef.current.on('live_class_started', () => {
             fetchActiveLiveClasses();
@@ -56,6 +63,21 @@ const StudentDashboard = () => {
 
         socketRef.current.on('live_class_ended', () => {
             fetchActiveLiveClasses();
+        });
+
+        socketRef.current.on('new_assignment', (data) => {
+            console.log('🆕 New assignment received:', data);
+            fetchDashboardData();
+        });
+
+        socketRef.current.on('new_browser_notification', (data) => {
+            console.log('🔔 New notification received:', data);
+            fetchDashboardData();
+        });
+
+        socketRef.current.on('new_global_message', (data) => {
+            console.log('💬 New message received:', data);
+            fetchDashboardData(); // Refetch to update unread counts
         });
 
         return () => {
@@ -184,7 +206,8 @@ const StudentDashboard = () => {
             } catch (e) {
                 console.error('Error fetching assignments:', e);
             }
-            setPendingAssignments(activeAssignments);
+            // Sort by due date (soonest first)
+            setPendingAssignments(activeAssignments.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate)));
 
             // Build stats
             setStats([
@@ -192,8 +215,8 @@ const StudentDashboard = () => {
                     title: 'Enrolled Courses',
                     value: courses.filter(c => !c.isCompleted).length.toString(),
                     icon: BookOpen,
-                    iconBg: 'bg-emerald-100',
-                    iconColor: 'text-emerald-600',
+                    iconBg: 'bg-primary/10',
+                    iconColor: 'text-primary',
                 },
                 {
                     title: 'Pending Assignments',
@@ -207,8 +230,8 @@ const StudentDashboard = () => {
                     title: 'Certificates',
                     value: courses.filter(c => c.isCompleted).length.toString(),
                     icon: CheckCircle,
-                    iconBg: 'bg-orange-100',
-                    iconColor: 'text-[#ff8e01]',
+                    iconBg: 'bg-primary/10',
+                    iconColor: 'text-primary',
                 },
                 {
                     title: 'Pending Fees',
@@ -258,6 +281,7 @@ const StudentDashboard = () => {
     return (
         <>
             <div className="space-y-6">
+                <BirthdayWish />
                 {/* Live Class Banner - Big and Prominent */}
                 <AnimatePresence>
                     {activeLiveClasses.length > 0 && (
@@ -270,7 +294,7 @@ const StudentDashboard = () => {
                             {activeLiveClasses.map((liveClass) => (
                                 <div
                                     key={liveClass._id}
-                                    className="bg-gradient-to-r from-red-600 via-red-500 to-orange-500 rounded-3xl p-6 md:p-8 text-white shadow-2xl shadow-red-200 border-4 border-red-400"
+                                    className="bg-gradient-to-r from-red-600 via-red-500 to-primary rounded-3xl p-6 md:p-8 text-white shadow-2xl shadow-red-200 border-4 border-red-400"
                                 >
                                     {/* Animated Background Pulses */}
                                     <div className="absolute top-0 left-0 w-full h-full overflow-hidden rounded-3xl">
@@ -349,10 +373,10 @@ const StudentDashboard = () => {
                     <motion.div
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        className="bg-orange-50 dark:bg-orange-500/10 border-2 border-[#ff8e01]/20 dark:border-orange-500/30 rounded-2xl p-4 flex items-center justify-between"
+                        className="bg-primary/5 dark:bg-primary/10 border-2 border-primary/20 dark:border-primary/30 rounded-2xl p-4 flex items-center justify-between"
                     >
                         <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 bg-[#ff8e01] rounded-xl flex items-center justify-center text-white shadow-lg shadow-orange-200">
+                            <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center text-white shadow-lg shadow-orange-200">
                                 <Bell className="w-6 h-6 animate-bounce" />
                             </div>
                             <div>
@@ -362,7 +386,7 @@ const StudentDashboard = () => {
                         </div>
                         <button
                             onClick={() => navigate(`/${role}/assignments`)}
-                            className="px-4 py-2 bg-[#ff8e01] text-white text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-[#e67e00] transition-colors shadow-sm"
+                            className="px-4 py-2 bg-primary text-white text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-[#e67e00] transition-colors shadow-sm"
                         >
                             View All
                         </button>
@@ -391,7 +415,7 @@ const StudentDashboard = () => {
                             </button>
                             <button
                                 onClick={() => navigate(`/${role}/courses`)}
-                                className="px-5 py-2.5 bg-[#ff8e01] hover:bg-[#ff8e01]/90 text-white rounded-xl font-black text-[10px] uppercase tracking-widest transition-all duration-300 shadow-lg shadow-orange-900/20"
+                                className="px-5 py-2.5 bg-primary hover:bg-primary/90 text-white rounded-xl font-black text-[10px] uppercase tracking-widest transition-all duration-300 shadow-lg shadow-orange-900/20"
                             >
                                 {role === 'intern' ? 'Browse Skills' : 'Browse Courses'}
                             </button>
@@ -422,27 +446,28 @@ const StudentDashboard = () => {
                         className="lg:col-span-1 space-y-4"
                     >
                         <div className="flex items-center justify-between">
-                            <h3 className="text-lg font-bold text-gray-900 uppercase italic">Active Tasks</h3>
+                            <h3 className="text-lg font-bold text-gray-900 uppercase italic">Pending Assignments</h3>
                             <Badge variant="warning">{pendingAssignments.length}</Badge>
                         </div>
 
                         <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm space-y-4 max-h-[500px] overflow-y-auto">
                             {pendingAssignments.length === 0 ? (
                                 <div className="text-center py-10 opacity-50">
-                                    <CheckCircle className="w-10 h-10 text-emerald-500 mx-auto mb-2" />
+                                    <CheckCircle className="w-10 h-10 text-primary mx-auto mb-2" />
                                     <p className="text-xs font-black uppercase">All Caught Up!</p>
                                 </div>
                             ) : (
                                 pendingAssignments.map((assignment, index) => (
-                                    <div key={assignment._id} className="p-5 bg-gray-50 rounded-2xl border border-gray-100 group hover:border-[#ff8e01]/30 hover:bg-white hover:shadow-xl transition-all">
+                                    <div key={assignment._id} className="p-5 bg-gray-50 rounded-2xl border border-gray-100 group hover:border-primary/30 hover:bg-white hover:shadow-xl transition-all">
                                         <div className="flex items-start justify-between mb-3">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center border border-orange-200">
-                                                    <FileText className="w-5 h-5 text-[#ff8e01]" />
+                                                <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center border border-orange-200">
+                                                    <FileText className="w-5 h-5 text-primary" />
                                                 </div>
-                                                <div>
-                                                    <h4 className="font-black text-gray-900 text-sm group-hover:text-[#ff8e01] transition-colors uppercase italic truncate max-w-[150px]">{assignment.title}</h4>
-<p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mt-0.5 dark:text-gray-500">
+                                                <div className="min-w-0 flex-1">
+                                                    <h4 className="font-black text-gray-900 text-sm group-hover:text-primary transition-colors uppercase italic leading-tight mb-0.5">{assignment.title}</h4>
+                                                    <p className="text-[9px] text-primary font-black uppercase tracking-widest">{assignment.course?.title || 'Assignment'}</p>
+                                                    <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mt-0.5 dark:text-gray-500">
                                                          Due: {new Date(assignment.dueDate).toLocaleDateString(undefined, { day: '2-digit', month: 'short' })}
                                                      </p>
                                                 </div>
@@ -450,7 +475,7 @@ const StudentDashboard = () => {
                                         </div>
                                         <button
                                             onClick={() => navigate(`/${role}/assignments`)}
-                                            className="w-full py-2.5 bg-[#222d38] hover:bg-[#394251] dark:bg-[#ff8e01] dark:hover:bg-[#e67e00] text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-slate-200 dark:shadow-orange-950/20 active:scale-95"
+                                            className="w-full py-2.5 bg-[#222d38] hover:bg-[#394251] dark:bg-primary dark:hover:bg-[#e67e00] text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-slate-200 dark:shadow-orange-950/20 active:scale-95"
                                         >
                                             Submit Now
                                         </button>
@@ -479,7 +504,7 @@ const StudentDashboard = () => {
                                 <p className="text-gray-500 mb-4 font-bold uppercase tracking-widest text-xs">No active enrollments</p>
                                 <button
                                     onClick={() => navigate(`/${role}/courses`)}
-                                    className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-medium"
+                                    className="px-6 py-2.5 bg-primary hover:bg-primary text-white rounded-xl font-medium"
                                 >
                                     {role === 'intern' ? 'Browse Skills' : 'Browse Courses'}
                                 </button>
@@ -514,7 +539,7 @@ const StudentDashboard = () => {
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-start justify-between mb-2">
                                                 <div className="min-w-0">
-                                                    <h4 className="font-bold text-gray-900 truncate group-hover:text-emerald-600 transition-colors">{course.title}</h4>
+                                                    <h4 className="font-bold text-gray-900 truncate group-hover:text-primary transition-colors">{course.title}</h4>
                                                     <p className="text-xs text-gray-400 mt-1 truncate">{course.teacher}</p>
                                                 </div>
 
@@ -538,7 +563,7 @@ const StudentDashboard = () => {
 
                                             <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden mb-3">
                                                 <div
-                                                    className="h-full bg-gradient-to-r from-[#ff8e01] to-orange-400 rounded-full shadow-sm"
+                                                    className="h-full bg-gradient-to-r from-primary to-orange-400 rounded-full shadow-sm"
                                                     style={{ width: `${course.progress}%` }}
                                                 />
                                             </div>
@@ -610,4 +635,7 @@ const StudentDashboard = () => {
 };
 
 export default StudentDashboard;
+
+
+
 

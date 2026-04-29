@@ -5,7 +5,7 @@ import { X, Bell, Info, AlertCircle, CheckCircle, GraduationCap } from 'lucide-r
 const CustomToast = ({ t, title, message, type = 'info', icon: IconComponent }) => {
     const getColors = () => {
         switch (type) {
-            case 'success': return { bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-800', icon: 'text-emerald-500', iconBg: 'bg-emerald-100' };
+            case 'success': return { bg: 'bg-primary', border: 'border-primary', text: 'text-primary', icon: 'text-primary', iconBg: 'bg-primary' };
             case 'error': return { bg: 'bg-rose-50', border: 'border-rose-200', text: 'text-rose-800', icon: 'text-rose-500', iconBg: 'bg-rose-100' };
             case 'warning': return { bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-800', icon: 'text-amber-500', iconBg: 'bg-amber-100' };
             default: return { bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-800', icon: 'text-blue-500', iconBg: 'bg-blue-100' };
@@ -35,10 +35,10 @@ const CustomToast = ({ t, title, message, type = 'info', icon: IconComponent }) 
                     <div className="ml-4 flex-1">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                                <div className="w-5 h-5 rounded-md bg-[#ff8e01]/10 flex items-center justify-center border border-[#ff8e01]/20">
+                                <div className="w-5 h-5 rounded-md bg-primary/10 flex items-center justify-center border border-primary/20">
                                     <img src="/logo.png" alt="Logo" className="w-3 h-3 object-contain" />
                                 </div>
-                                <span className="text-[10px] font-black text-[#ff8e01] uppercase tracking-[0.2em]">LMS Adeeb Tech Lab</span>
+                                <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">LMS Adeeb Tech Lab</span>
                             </div>
                             <button
                                 onClick={() => toast.dismiss(t.id)}
@@ -82,3 +82,5 @@ export const showToast = {
         ));
     }
 };
+
+

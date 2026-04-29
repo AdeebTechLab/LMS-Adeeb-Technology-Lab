@@ -303,14 +303,14 @@ const FeeVerification = () => {
                 <div className="grid grid-cols-2 sm:flex bg-gray-100 p-1 rounded-xl w-full sm:w-auto">
                     <button
                         onClick={() => setActiveTab('pending')}
-                        className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all ${activeTab === 'pending' ? 'bg-white shadow text-emerald-600' : 'text-gray-500 hover:text-gray-700'
+                        className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all ${activeTab === 'pending' ? 'bg-white shadow text-primary' : 'text-gray-500 hover:text-gray-700'
                             }`}
                     >
                         Pending Verification
                     </button>
                     <button
                         onClick={() => setActiveTab('all')}
-                        className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all ${activeTab === 'all' ? 'bg-white shadow text-emerald-600' : 'text-gray-500 hover:text-gray-700'
+                        className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all ${activeTab === 'all' ? 'bg-white shadow text-primary' : 'text-gray-500 hover:text-gray-700'
                             }`}
                     >
                         All Fees & Months
@@ -322,7 +322,7 @@ const FeeVerification = () => {
             <div className="bg-white rounded-2xl p-4 sm:p-6 border border-gray-100 space-y-6">
                 <div className="flex flex-col gap-4">
                     {/* Search */}
-                    <div className="flex-1 flex items-center bg-gray-50 rounded-xl px-4 py-3 border border-transparent focus-within:border-emerald-500/20 focus-within:bg-white transition-all">
+                    <div className="flex-1 flex items-center bg-gray-50 rounded-xl px-4 py-3 border border-transparent focus-within:border-primary/20 focus-within:bg-white transition-all">
                         <Search className="w-5 h-5 text-gray-400 mr-3" />
                         <input
                             type="text"
@@ -353,7 +353,7 @@ const FeeVerification = () => {
                             <button
                                 onClick={() => toggleFilter('role', 'students')}
                                 className={`py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${selectedRoles.includes('students')
-                                    ? 'bg-white text-emerald-600 shadow-sm'
+                                    ? 'bg-white text-primary shadow-sm'
                                     : 'text-gray-500 hover:text-gray-700'
                                     }`}
                             >
@@ -362,7 +362,7 @@ const FeeVerification = () => {
                             <button
                                 onClick={() => toggleFilter('role', 'interns')}
                                 className={`py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${selectedRoles.includes('interns')
-                                    ? 'bg-white text-emerald-600 shadow-sm'
+                                    ? 'bg-white text-primary shadow-sm'
                                     : 'text-gray-500 hover:text-gray-700'
                                     }`}
                             >
@@ -378,7 +378,7 @@ const FeeVerification = () => {
                             <button
                                 onClick={() => toggleFilter('city', 'Islamabad')}
                                 className={`py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${selectedCities.includes('Islamabad')
-                                    ? 'bg-white text-emerald-600 shadow-sm'
+                                    ? 'bg-white text-primary shadow-sm'
                                     : 'text-gray-500 hover:text-gray-700'
                                     }`}
                             >
@@ -387,7 +387,7 @@ const FeeVerification = () => {
                             <button
                                 onClick={() => toggleFilter('city', 'Bahawalpur')}
                                 className={`py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${selectedCities.includes('Bahawalpur')
-                                    ? 'bg-white text-emerald-600 shadow-sm'
+                                    ? 'bg-white text-primary shadow-sm'
                                     : 'text-gray-500 hover:text-gray-700'
                                     }`}
                             >
@@ -450,7 +450,7 @@ const FeeVerification = () => {
                                                     </h3>
                                                     <p className="text-xs text-gray-500 mt-0.5 truncate">
                                                         {fee.course?.title || 'Unknown Course'} ({fee.course?.city || 'N/A'})
-                                                        <span className={`ml-2 px-1.5 py-0.5 rounded-[4px] text-[9px] font-black uppercase tracking-widest ${fee.course?.targetAudience === 'students' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-purple-50 text-purple-600 border border-purple-100'}`}>
+                                                        <span className={`ml-2 px-1.5 py-0.5 rounded-[4px] text-[9px] font-black uppercase tracking-widest ${fee.course?.targetAudience === 'students' ? 'bg-primary/5 text-primary border border-primary/10' : 'bg-purple-50 text-primary border border-primary/10'}`}>
                                                             {fee.course?.targetAudience}
                                                         </span>
                                                     </p>
@@ -467,7 +467,7 @@ const FeeVerification = () => {
                                                     <p className="text-[10px] font-black text-amber-600 uppercase tracking-widest">{inst.status}</p>
                                                 </div>
                                                 <div className="flex items-center gap-2">
-                                                    <button onClick={() => handleViewScreenshot({ ...inst, feeId: fee._id, student: fee.user?.name, course: fee.course?.title })} className="w-10 h-10 sm:w-auto sm:px-4 sm:py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-500/20" title="View Receipt">
+                                                    <button onClick={() => handleViewScreenshot({ ...inst, feeId: fee._id, student: fee.user?.name, course: fee.course?.title })} className="w-10 h-10 sm:w-auto sm:px-4 sm:py-2.5 bg-primary hover:bg-primary text-white rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-primary/20" title="View Receipt">
                                                         <Eye className="w-4 h-4" />
                                                         <span className="hidden sm:inline">View Receipt</span>
                                                     </button>
@@ -526,7 +526,7 @@ const FeeVerification = () => {
                                                 )}
                                                 <div className="min-w-0 flex-1">
                                                     <div className="flex items-center gap-2 mb-0.5">
-                                                        <span className={`px-1.5 py-0.5 rounded-[4px] text-[8px] font-black uppercase tracking-widest ${fee.course?.targetAudience === 'students' ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-purple-50 text-purple-600 border border-purple-200'}`}>
+                                                        <span className={`px-1.5 py-0.5 rounded-[4px] text-[8px] font-black uppercase tracking-widest ${fee.course?.targetAudience === 'students' ? 'bg-primary/5 text-primary border border-primary' : 'bg-purple-50 text-primary border border-purple-200'}`}>
                                                             {fee.course?.targetAudience}
                                                         </span>
                                                     </div>
@@ -605,7 +605,7 @@ const FeeVerification = () => {
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-2 mb-2">
-                                            <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest ${course.targetAudience === 'students' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-purple-50 text-purple-600 border border-purple-100'}`}>
+                                            <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest ${course.targetAudience === 'students' ? 'bg-primary/5 text-primary border border-primary/10' : 'bg-purple-50 text-primary border border-primary/10'}`}>
                                                 {course.targetAudience}
                                             </span>
                                         </div>
@@ -614,7 +614,7 @@ const FeeVerification = () => {
                                         </h3>
                                         <div className="flex items-center justify-between text-gray-500 text-sm">
                                             <span>{course.students} Students Enrolled</span>
-                                            <span className="flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-700 rounded-lg font-bold text-xs capitalize border border-emerald-100">
+                                            <span className="flex items-center gap-1.5 px-3 py-1 bg-primary/5 text-primary rounded-lg font-bold text-xs capitalize border border-primary/10">
                                                 <MapPin className="w-3.5 h-3.5" />
                                                 {course.location}
                                             </span>
@@ -686,7 +686,7 @@ const FeeVerification = () => {
                                                     </h3>
                                                     <p className="text-sm text-gray-500">
                                                         {fee.course?.title || 'Unknown Course'}
-                                                        <span className={`ml-2 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest ${fee.course?.targetAudience === 'students' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-purple-50 text-purple-600 border border-purple-100'}`}>
+                                                        <span className={`ml-2 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest ${fee.course?.targetAudience === 'students' ? 'bg-primary/5 text-primary border border-primary/10' : 'bg-purple-50 text-primary border border-primary/10'}`}>
                                                             {fee.course?.targetAudience}
                                                         </span>
                                                     </p>
@@ -734,7 +734,7 @@ const FeeVerification = () => {
                                 <p className="text-sm font-medium text-gray-900">{selectedInstallment.student}</p>
                                 <p className="text-xs text-gray-500">Slip ID: {selectedInstallment.slipId || 'N/A'}</p>
                             </div>
-                            <span className="text-sm font-bold text-emerald-600">Rs {selectedInstallment.amount?.toLocaleString()}</span>
+                            <span className="text-sm font-bold text-primary">Rs {selectedInstallment.amount?.toLocaleString()}</span>
                         </div>
                         <div className="rounded-lg overflow-hidden border border-gray-200">
                             <img
@@ -756,7 +756,7 @@ const FeeVerification = () => {
                             </button>
                             <button
                                 onClick={() => handleVerify(selectedInstallment.feeId, selectedInstallment._id)}
-                                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg flex items-center gap-2"
+                                className="px-4 py-2 bg-primary hover:bg-primary text-white rounded-lg flex items-center gap-2"
                             >
                                 <CheckCircle className="w-4 h-4" /> Verify Payment
                             </button>
@@ -791,7 +791,7 @@ const FeeVerification = () => {
                                         type="number"
                                         value={inst.amount}
                                         onChange={(e) => handleInstallmentChange(idx, 'amount', e.target.value)}
-                                        className="w-full px-2 py-1.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-sm font-bold"
+                                        className="w-full px-2 py-1.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm font-bold"
                                         placeholder="0"
                                     />
                                 </div>
@@ -801,7 +801,7 @@ const FeeVerification = () => {
                                         type="date"
                                         value={inst.dueDate}
                                         onChange={(e) => handleInstallmentChange(idx, 'dueDate', e.target.value)}
-                                        className="w-full px-2 py-1.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-xs"
+                                        className="w-full px-2 py-1.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary text-xs"
                                     />
                                 </div>
                                 <div className="flex-1">
@@ -836,7 +836,7 @@ const FeeVerification = () => {
                         ))}
                     </div>
 
-                    <button onClick={handleAddInstallmentRow} className="flex items-center gap-2 text-sm text-emerald-600 font-medium hover:underline">
+                    <button onClick={handleAddInstallmentRow} className="flex items-center gap-2 text-sm text-primary font-medium hover:underline">
                         <Plus className="w-4 h-4" /> Add Month Fee
                     </button>
 
@@ -845,7 +845,7 @@ const FeeVerification = () => {
                         <button
                             onClick={handleSaveInstallments}
                             disabled={isProcessing}
-                            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium flex items-center gap-2"
+                            className="px-4 py-2 bg-primary hover:bg-primary text-white rounded-lg font-medium flex items-center gap-2"
                         >
                             {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save Plan'}
                         </button>
@@ -897,3 +897,6 @@ const FeeVerification = () => {
 };
 
 export default FeeVerification;
+
+
+

@@ -280,7 +280,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 >
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 border-2 border-[#ff8e01] rounded-full flex items-center justify-center overflow-hidden">
+                            <div className="w-12 h-12 border-2 border-primary rounded-full flex items-center justify-center overflow-hidden">
                                 <img
                                     src="/logo.png"
                                     alt="Logo"
@@ -294,7 +294,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                             </div>
                             <div>
                                 <h1 className="text-white font-bold text-lg tracking-tight">Adeeb Technology Lab</h1>
-                                <p className="text-[#ff8e01]/70 text-[10px] font-black uppercase tracking-[0.2em]">{getRoleDisplayName()} Portal</p>
+                                <p className="text-primary text-[10px] font-black uppercase tracking-[0.2em]">{getRoleDisplayName()} Portal</p>
                             </div>
                         </div>
                         <button
@@ -323,7 +323,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                                 <p className="text-white font-medium text-sm truncate">
                                     {user?.name || 'User'}
                                 </p>
-                                <p className="text-[#ff8e01] text-[10px] font-black uppercase tracking-widest truncate mt-0.5">
+                                <p className="text-primary text-[10px] font-black uppercase tracking-widest truncate mt-0.5">
                                     {getRoleDisplayName()}
                                 </p>
                             </div>
@@ -351,15 +351,15 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                                         onClick={() => handleSwitchRole(r)}
                                         className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center justify-between ${
                                             r === role 
-                                                ? 'bg-[#ff8e01]/10 text-[#ff8e01] font-bold border-l-2 border-[#ff8e01]' 
+                                                ? 'bg-primary/10 text-primary font-bold border-l-2 border-primary' 
                                                 : 'text-white/70 hover:bg-white/5 hover:text-white font-medium border-l-2 border-transparent'
                                         }`}
                                     >
                                         <div className="flex items-center gap-2">
                                             <span className="capitalize">{r === 'job' ? 'Freelancer' : r} Dashboard</span>
-                                            {isSwitchingRole && r === role && <Loader2 className="w-3 h-3 animate-spin text-[#ff8e01]" />}
+                                            {isSwitchingRole && r === role && <Loader2 className="w-3 h-3 animate-spin text-primary" />}
                                         </div>
-                                        {r === role && <span className="w-1.5 h-1.5 rounded-full bg-[#ff8e01]"></span>}
+                                        {r === role && <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>}
                                     </button>
                                 ))}
                             </motion.div>
@@ -382,7 +382,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                                         const isActive = isPathActive && isStateActive;
 
                                         return `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 group ${isActive
-                                            ? 'bg-[#394251] text-white border-l-4 border-[#ff8e01] shadow-lg shadow-black/20'
+                                            ? 'bg-[#394251] text-white border-l-4 border-primary shadow-lg shadow-black/20'
                                             : 'text-white/60 hover:text-white hover:bg-[#394251]/50'
                                         }`;
                                     }}
@@ -393,7 +393,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                                         <motion.span
                                             initial={{ scale: 0 }}
                                             animate={{ scale: 1 }}
-                                            className="bg-[#ff8e01] text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow-lg shadow-[#ff8e01]/20"
+                                            className="bg-primary text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow-lg shadow-primary/20"
                                         >
                                             {pendingCount}
                                         </motion.span>
@@ -403,7 +403,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                                         <motion.span
                                             initial={{ scale: 0 }}
                                             animate={{ scale: 1 }}
-                                            className="bg-[#ff8e01] text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow-lg shadow-[#ff8e01]/20"
+                                            className="bg-primary text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow-lg shadow-primary/20"
                                             title="Registered (New)"
                                         >
                                             {item.badge}
@@ -449,3 +449,5 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
 };
 
 export default Sidebar;
+
+

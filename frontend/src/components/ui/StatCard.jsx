@@ -6,8 +6,8 @@ const StatCard = ({
     change,
     changeType = 'positive',
     icon: Icon,
-    iconBg = 'bg-emerald-100',
-    iconColor = 'text-emerald-600',
+    iconBg = 'bg-primary',
+    iconColor = 'text-primary',
     className = '',
     onClick,
     subValue,
@@ -29,7 +29,7 @@ const StatCard = ({
                     {change && (
                         <div className="flex items-center mt-2">
                             <span
-                                className={`text-sm font-medium ${changeType === 'positive' ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500 dark:text-red-400'
+                                className={`text-sm font-medium ${changeType === 'positive' ? 'text-primary dark:text-primary' : 'text-red-500 dark:text-red-400'
                                     }`}
                             >
                                 {changeType === 'positive' ? '+' : ''}{change}
@@ -49,3 +49,5 @@ const StatCard = ({
 };
 
 export default StatCard;
+
+

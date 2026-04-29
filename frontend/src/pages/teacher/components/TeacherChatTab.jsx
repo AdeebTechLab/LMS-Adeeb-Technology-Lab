@@ -254,10 +254,10 @@ const TeacherChatTab = ({ course, students, onUnreadCountChange }) => {
                             value={searchQuery}
                             onChange={(e) => handleSearch(e.target.value)}
                             placeholder="Search email..."
-                            className="w-full pl-10 pr-4 py-2 bg-white rounded-xl text-sm border border-gray-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
+                            className="w-full pl-10 pr-4 py-2 bg-white rounded-xl text-sm border border-gray-100 focus:outline-none focus:ring-2 focus:ring-primary transition-all"
                         />
                         {isSearching && (
-                            <Loader2 className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-emerald-500 animate-spin" />
+                            <Loader2 className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-primary animate-spin" />
                         )}
                     </div>
                 </div>
@@ -271,7 +271,7 @@ const TeacherChatTab = ({ course, students, onUnreadCountChange }) => {
                             key={student._id}
                             onClick={() => openChat(student)}
                             className={`w-full flex items-center justify-center sm:justify-start gap-3 p-2 sm:p-3 rounded-xl transition-all ${activeStudent?._id === student._id
-                                    ? 'bg-emerald-100 text-emerald-700 shadow-sm'
+                                    ? 'bg-primary/10 text-primary shadow-sm'
                                     : 'hover:bg-gray-100'
                                 }`}
                         >
@@ -335,11 +335,11 @@ const TeacherChatTab = ({ course, students, onUnreadCountChange }) => {
                                                 className={`flex ${isMe ? 'justify-end' : 'justify-start'} mb-2`}
                                             >
                                                 <div className={`max-w-[70%] px-4 py-2 rounded-2xl ${isMe
-                                                        ? 'bg-emerald-600 text-white rounded-br-md'
+                                                        ? 'bg-primary text-white rounded-br-md'
                                                         : 'bg-white border border-gray-200 text-gray-800 rounded-bl-md'
                                                     }`}>
                                                     <p className="text-sm whitespace-pre-wrap">{msg.text}</p>
-                                                    <p className={`text-[10px] mt-1 ${isMe ? 'text-emerald-200' : 'text-gray-400'}`}>
+                                                    <p className={`text-[10px] mt-1 ${isMe ? 'text-primary' : 'text-gray-400'}`}>
                                                         {formatTime(msg.createdAt)}
                                                     </p>
                                                 </div>
@@ -364,7 +364,7 @@ const TeacherChatTab = ({ course, students, onUnreadCountChange }) => {
                                     value={newMessage}
                                     onChange={(e) => setNewMessage(e.target.value)}
                                     placeholder="Type your message..."
-                                    className="flex-1 px-4 py-3 bg-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                    className="flex-1 px-4 py-3 bg-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                                     onKeyDown={(e) => {
                                         if (e.key === 'Enter' && !e.shiftKey) {
                                             e.preventDefault();
@@ -376,7 +376,7 @@ const TeacherChatTab = ({ course, students, onUnreadCountChange }) => {
                                     type="button"
                                     onClick={() => handleSendMessage()}
                                     disabled={!newMessage.trim() || !activeStudent || isSending}
-                                    className="px-4 py-3 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                    className="px-4 py-3 bg-primary text-white rounded-xl hover:bg-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                 >
                                     {isSending ? (
                                         <Loader2 className="w-5 h-5 animate-spin" />
@@ -399,3 +399,6 @@ const TeacherChatTab = ({ course, students, onUnreadCountChange }) => {
 };
 
 export default TeacherChatTab;
+
+
+

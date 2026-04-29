@@ -32,8 +32,8 @@ const CertificateVerification = () => {
             {/* Header / Hero Section */}
             <div className="bg-[#1a1c23] text-white pt-20 pb-24 px-4 relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0 opacity-20">
-                    <div className="absolute top-10 left-10 w-64 h-64 bg-emerald-500 rounded-full blur-3xl"></div>
-                    <div className="absolute bottom-10 right-10 w-96 h-96 bg-purple-500 rounded-full blur-3xl"></div>
+                    <div className="absolute top-10 left-10 w-64 h-64 bg-primary rounded-full blur-3xl"></div>
+                    <div className="absolute bottom-10 right-10 w-96 h-96 bg-primary rounded-full blur-3xl"></div>
                 </div>
 
                 <div className="max-w-4xl mx-auto relative z-10 text-center">
@@ -43,7 +43,7 @@ const CertificateVerification = () => {
                         transition={{ duration: 0.6 }}
                     >
                         <div className="inline-flex items-center justify-center p-3 bg-white/10 backdrop-blur-md rounded-2xl mb-6 border border-white/10">
-                            <Award className="w-8 h-8 text-emerald-400" />
+                            <Award className="w-8 h-8 text-primary" />
                         </div>
                         <h1 className="text-4xl md:text-5xl font-bold mb-6 tracking-tight">
                             Certificate Verification
@@ -67,13 +67,13 @@ const CertificateVerification = () => {
                                 value={rollNo}
                                 onChange={(e) => setRollNo(e.target.value)}
                                 placeholder="Enter Roll Number (e.g., WEB-2024-001)"
-                                className="w-full px-6 py-4 pl-14 text-lg bg-white text-gray-900 rounded-2xl shadow-xl focus:ring-4 focus:ring-emerald-500/20 focus:outline-none placeholder-gray-400 transition-all font-medium border-0"
+                                className="w-full px-6 py-4 pl-14 text-lg bg-white text-gray-900 rounded-2xl shadow-xl focus:ring-4 focus:ring-primary/20 focus:outline-none placeholder-gray-400 transition-all font-medium border-0"
                             />
                             <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-6 h-6 text-gray-400" />
                             <button
                                 type="submit"
                                 disabled={isLoading || !rollNo.trim()}
-                                className="absolute right-2 top-2 bottom-2 bg-emerald-600 hover:bg-emerald-700 text-white px-6 rounded-xl font-medium transition-all disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2"
+                                className="absolute right-2 top-2 bottom-2 bg-primary hover:bg-primary text-white px-6 rounded-xl font-medium transition-all disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2"
                             >
                                 {isLoading ? (
                                     <Loader2 className="w-5 h-5 animate-spin" />
@@ -114,7 +114,7 @@ const CertificateVerification = () => {
                                 className="space-y-6"
                             >
                                 <div className="text-center mb-8">
-                                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-700 rounded-full text-sm font-bold border border-emerald-100">
+                                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/5 text-primary rounded-full text-sm font-bold border border-primary/10">
                                         <CheckCircle className="w-4 h-4" />
                                         Verified Credentials Found ({certificates.length})
                                     </div>
@@ -160,13 +160,13 @@ const CertificateVerification = () => {
                                                 {/* For teacher certs with multiple courses: show as a list */}
                                                 {cert.selectedCourses && cert.selectedCourses.length > 0 ? (
                                                     <div className="space-y-4">
-                                                        <div className="bg-emerald-50/50 p-5 rounded-3xl border border-emerald-100">
-                                                            <p className="text-[11px] text-emerald-600 mb-3 text-sm font-black uppercase tracking-widest flex items-center gap-2">
+                                                        <div className="bg-primary/5/50 p-5 rounded-3xl border border-primary/10">
+                                                            <p className="text-[11px] text-primary mb-3 text-sm font-black uppercase tracking-widest flex items-center gap-2">
                                                                 <BookOpen className="w-4 h-4" /> Courses Taught
                                                             </p>
                                                             <div className="flex flex-wrap gap-2.5">
                                                                 {cert.selectedCourses.map((course, ci) => (
-                                                                    <span key={ci} className="px-5 py-2.5 bg-emerald-600 text-white rounded-xl text-sm font-bold shadow-md shadow-emerald-600/20 flex items-center gap-2">
+                                                                    <span key={ci} className="px-5 py-2.5 bg-primary text-white rounded-xl text-sm font-bold shadow-md shadow-primary/20 flex items-center gap-2">
                                                                         <CheckCircle className="w-4 h-4 text-white/80" />
                                                                         {course}
                                                                     </span>
@@ -181,7 +181,7 @@ const CertificateVerification = () => {
                                                             <div>
                                                                 <p className="text-sm text-gray-400 mb-1 uppercase tracking-wider font-semibold">Duration</p>
                                                                 <div className="flex items-center gap-2 text-gray-700 font-medium">
-                                                                    <Calendar className="w-4 h-4 text-emerald-500" />
+                                                                    <Calendar className="w-4 h-4 text-primary" />
                                                                     {cert.duration || '—'}
                                                                 </div>
                                                             </div>
@@ -208,7 +208,7 @@ const CertificateVerification = () => {
                                                         <div>
                                                             <p className="text-sm text-gray-400 mb-1 uppercase tracking-wider font-semibold">Duration</p>
                                                             <div className="flex items-center gap-2 text-gray-700 font-medium">
-                                                                <Calendar className="w-4 h-4 text-emerald-500" />
+                                                                <Calendar className="w-4 h-4 text-primary" />
                                                                 {cert.duration}
                                                             </div>
                                                         </div>
@@ -242,3 +242,6 @@ const CertificateVerification = () => {
 
 
 export default CertificateVerification;
+
+
+

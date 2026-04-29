@@ -24,7 +24,7 @@ const ProfileAvatar = ({
     name = '',
     size = 'md',
     className = '',
-    fallbackColor = 'bg-gradient-to-br from-[#ff8e01] to-[#ffab40]',
+    fallbackColor = 'bg-gradient-to-br from-primary to-[#ffab40]',
     shape = 'rounded-full',
     border = 'border border-gray-200',
 }) => {
@@ -55,3 +55,5 @@ const ProfileAvatar = ({
 };
 
 export default ProfileAvatar;
+
+

@@ -849,7 +849,7 @@ const InternsManagement = () => {
                                                         console.error('Error opening fee plan:', e);
                                                     }
                                                 }}
-                                                className="p-2.5 bg-purple-50 hover:bg-purple-100 text-purple-600 rounded-xl border border-purple-100 transition-all"
+                                                className="p-2.5 bg-purple-50 hover:bg-primary/10 text-primary rounded-xl border border-primary/10 transition-all"
                                                 title="Fee Plan"
                                             >
                                                 <Receipt className="w-5 h-5" />
@@ -863,14 +863,14 @@ const InternsManagement = () => {
                                             </button>
                                             <button
                                                 onClick={() => handleDownloadCompleteReport(intern)}
-                                                className="p-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 rounded-xl border border-emerald-100 transition-all"
+                                                className="p-2.5 bg-primary/5 hover:bg-primary/10 text-primary rounded-xl border border-primary/10 transition-all"
                                                 title="Academic Report"
                                             >
                                                 <FileText className="w-5 h-5" />
                                             </button>
                                             <button
                                                 onClick={() => handleOpenEnrollModal(intern)}
-                                                className="p-2.5 bg-orange-50 hover:bg-orange-100 text-orange-600 rounded-xl border border-orange-100 transition-all"
+                                                className="p-2.5 bg-primary/5 hover:bg-primary/10 text-primary rounded-xl border border-primary/10 transition-all"
                                                 title="Pause/Enroll"
                                             >
                                                 <BookOpen className="w-5 h-5" />
@@ -919,7 +919,7 @@ const InternsManagement = () => {
             >
                 <div className="space-y-4">
                     {enrollToast && (
-                        <div className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold ${enrollToast.type === 'success' ? 'bg-emerald-500 text-white' :
+                        <div className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold ${enrollToast.type === 'success' ? 'bg-primary text-white' :
                             enrollToast.type === 'warning' ? 'bg-amber-500 text-white' : 'bg-red-500 text-white'
                             }`}>
                             <AlertCircle className="w-4 h-4 flex-shrink-0" />
@@ -975,7 +975,7 @@ const InternsManagement = () => {
                                             onClick={() => handleToggleInternPause(enrollment)}
                                             disabled={isBusy}
                                             className={`flex items-center gap-2 px-3 py-1.5 rounded-xl font-bold text-xs uppercase tracking-wide transition-all disabled:opacity-50 ${isPaused
-                                                ? 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm'
+                                                ? 'bg-primary hover:bg-primary text-white shadow-sm'
                                                 : 'bg-amber-500 hover:bg-amber-600 text-white shadow-sm'
                                                 }`}
                                         >
@@ -1142,7 +1142,7 @@ const InternsManagement = () => {
                     {/* Profile Picture Section */}
                     <div className="flex flex-col items-center justify-center pb-6 border-b border-gray-100 mb-6">
                         <div className="relative group">
-                            <div className="w-24 h-24 rounded-2xl bg-gray-100 flex items-center justify-center overflow-hidden border-2 border-dashed border-gray-200 group-hover:border-emerald-500 transition-all">
+                            <div className="w-24 h-24 rounded-2xl bg-gray-100 flex items-center justify-center overflow-hidden border-2 border-dashed border-gray-200 group-hover:border-primary transition-all">
                                 {photoPreview ? (
                                     <img src={photoPreview} alt="Preview" className="w-full h-full object-cover" />
                                 ) : (
@@ -1158,7 +1158,7 @@ const InternsManagement = () => {
                                     className="absolute inset-0 opacity-0 cursor-pointer"
                                 />
                             </div>
-                            <div className="absolute -bottom-2 -right-2 bg-emerald-600 text-white p-1.5 rounded-lg shadow-lg">
+                            <div className="absolute -bottom-2 -right-2 bg-primary text-white p-1.5 rounded-lg shadow-lg">
                                 <Plus className="w-3.5 h-3.5" />
                             </div>
                         </div>
@@ -1470,7 +1470,7 @@ const InternsManagement = () => {
                                         type="number"
                                         value={inst.amount}
                                         onChange={(e) => handleInstallmentChange(idx, 'amount', e.target.value)}
-                                        className="w-full px-2 py-1.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-sm font-bold"
+                                        className="w-full px-2 py-1.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm font-bold"
                                         placeholder="0"
                                     />
                                 </div>
@@ -1480,7 +1480,7 @@ const InternsManagement = () => {
                                         type="date"
                                         value={inst.dueDate}
                                         onChange={(e) => handleInstallmentChange(idx, 'dueDate', e.target.value)}
-                                        className="w-full px-2 py-1.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-xs"
+                                        className="w-full px-2 py-1.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary text-xs"
                                     />
                                 </div>
                                 <div className="flex-1">
@@ -1515,7 +1515,7 @@ const InternsManagement = () => {
                         ))}
                     </div>
 
-                    <button onClick={handleAddInstallmentRow} className="flex items-center gap-2 text-sm text-emerald-600 font-medium hover:underline">
+                    <button onClick={handleAddInstallmentRow} className="flex items-center gap-2 text-sm text-primary font-medium hover:underline">
                         <Plus className="w-4 h-4" /> Add Month Fee
                     </button>
 
@@ -1524,7 +1524,7 @@ const InternsManagement = () => {
                         <button
                             onClick={handleSaveInstallments}
                             disabled={isProcessing}
-                            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium flex items-center gap-2"
+                            className="px-4 py-2 bg-primary hover:bg-primary text-white rounded-lg font-medium flex items-center gap-2"
                         >
                             {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save Plan'}
                         </button>
@@ -1578,7 +1578,7 @@ const InternsManagement = () => {
                                 </button>
                                 <button
                                     onClick={() => handleVerifyInstallment(selectedFee?._id || selectedInstallment?.feeId, selectedInstallment?._id)}
-                                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg flex items-center gap-2 font-medium"
+                                    className="px-4 py-2 bg-primary hover:bg-primary text-white rounded-lg flex items-center gap-2 font-medium"
                                 >
                                     <CheckCircle className="w-4 h-4" /> Verify Payment
                                 </button>
@@ -1601,3 +1601,6 @@ const InternsManagement = () => {
 };
 
 export default InternsManagement;
+
+
+

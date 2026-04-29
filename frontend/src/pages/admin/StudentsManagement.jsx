@@ -632,7 +632,7 @@ const StudentsManagement = () => {
                     <button
                         onClick={toggleBioEditing}
                         className={`flex-1 md:flex-none px-4 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all border flex items-center justify-center gap-2 ${allowBioEditing
-                                ? 'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100'
+                                ? 'bg-primary/5 border-primary text-primary hover:bg-primary/10'
                                 : 'bg-red-50 border-red-200 text-red-700 hover:bg-red-100'
                             }`}
                         title={allowBioEditing ? "Bio Editing is Enabled for Users" : "Bio Editing is Disabled for Users"}
@@ -645,7 +645,7 @@ const StudentsManagement = () => {
                             onClick={() => setShowExportOptions(!showExportOptions)}
                             className="w-full px-4 py-2.5 bg-white border border-gray-200 hover:bg-gray-50 rounded-xl transition-all flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-700 shadow-sm"
                         >
-                            <Download className="w-4 h-4 text-emerald-600" />
+                            <Download className="w-4 h-4 text-primary" />
                             EXPORT DATA
                         </button>
 
@@ -658,42 +658,42 @@ const StudentsManagement = () => {
                                     </div>
                                     <button
                                         onClick={() => downloadPDF('full')}
-                                        className="w-full px-4 py-2.5 text-left text-sm font-bold text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 flex items-center gap-3 transition-colors"
+                                        className="w-full px-4 py-2.5 text-left text-sm font-bold text-gray-700 hover:bg-primary/5 hover:text-primary flex items-center gap-3 transition-colors"
                                     >
                                         <FileText className="w-4 h-4" />
                                         Complete Report
                                     </button>
                                     <button
                                         onClick={() => downloadPDF('phone')}
-                                        className="w-full px-4 py-2.5 text-left text-sm font-bold text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 flex items-center gap-3 transition-colors"
+                                        className="w-full px-4 py-2.5 text-left text-sm font-bold text-gray-700 hover:bg-primary/5 hover:text-primary flex items-center gap-3 transition-colors"
                                     >
                                         <Phone className="w-4 h-4" />
                                         Phone Directory
                                     </button>
                                     <button
                                         onClick={() => downloadPDF('email')}
-                                        className="w-full px-4 py-2.5 text-left text-sm font-bold text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 flex items-center gap-3 transition-colors"
+                                        className="w-full px-4 py-2.5 text-left text-sm font-bold text-gray-700 hover:bg-primary/5 hover:text-primary flex items-center gap-3 transition-colors"
                                     >
                                         <Mail className="w-4 h-4" />
                                         Email List
                                     </button>
                                     <button
                                         onClick={() => downloadPDF('guardian')}
-                                        className="w-full px-4 py-2.5 text-left text-sm font-bold text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 flex items-center gap-3 transition-colors"
+                                        className="w-full px-4 py-2.5 text-left text-sm font-bold text-gray-700 hover:bg-primary/5 hover:text-primary flex items-center gap-3 transition-colors"
                                     >
                                         <Users className="w-4 h-4" />
                                         Guardian Info
                                     </button>
                                     <button
                                         onClick={() => downloadPDF('academic')}
-                                        className="w-full px-4 py-2.5 text-left text-sm font-bold text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 flex items-center gap-3 transition-colors"
+                                        className="w-full px-4 py-2.5 text-left text-sm font-bold text-gray-700 hover:bg-primary/5 hover:text-primary flex items-center gap-3 transition-colors"
                                     >
                                         <GraduationCap className="w-4 h-4" />
                                         Academic Info
                                     </button>
                                     <button
                                         onClick={() => downloadPDF('address')}
-                                        className="w-full px-4 py-2.5 text-left text-sm font-bold text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 flex items-center gap-3 transition-colors"
+                                        className="w-full px-4 py-2.5 text-left text-sm font-bold text-gray-700 hover:bg-primary/5 hover:text-primary flex items-center gap-3 transition-colors"
                                     >
                                         <MapPin className="w-4 h-4" />
                                         Address List
@@ -713,7 +713,7 @@ const StudentsManagement = () => {
                         placeholder="Search by name, email, roll no, or CNIC..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-transparent focus:border-emerald-500 focus:bg-white rounded-2xl transition-all outline-none text-sm font-medium"
+                        className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-transparent focus:border-primary focus:bg-white rounded-2xl transition-all outline-none text-sm font-medium"
                     />
                 </div>
 
@@ -766,7 +766,7 @@ const StudentsManagement = () => {
                             key={tab.id}
                             onClick={() => setFilterStatus(tab.id)}
                             className={`px-3 py-2.5 rounded-xl font-black text-[9px] uppercase tracking-widest transition-all flex items-center justify-between gap-2 border ${filterStatus === tab.id
-                                ? 'bg-emerald-600 text-white border-emerald-600 shadow-lg shadow-emerald-900/10'
+                                ? 'bg-primary text-white border-primary shadow-lg shadow-primary/10'
                                 : 'bg-gray-50 text-gray-500 border-gray-100 hover:bg-gray-100'
                                 }`}
                         >
@@ -804,7 +804,7 @@ const StudentsManagement = () => {
                                 <div className="flex flex-col lg:flex-row lg:items-center gap-6">
                                     {/* Student Basic Info */}
                                     <div className="flex items-center gap-4 min-w-0">
-                                        <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center overflow-hidden shrink-0 shadow-lg shadow-emerald-900/10">
+                                        <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-primary to-primary flex items-center justify-center overflow-hidden shrink-0 shadow-lg shadow-primary/10">
                                             {student.photo ? (
                                                 <img src={student.photo} alt={student.name} className="w-full h-full object-cover" />
                                             ) : (
@@ -869,14 +869,14 @@ const StudentsManagement = () => {
                                                         else { setViewFeeModal({ open: true, userId: student._id, studentName: student.name }); setFeeRecords(fees); }
                                                     } catch (e) { console.error(e); }
                                                 }}
-                                                className="p-2.5 bg-purple-50 hover:bg-purple-100 text-purple-600 rounded-xl border border-purple-100 transition-all"
+                                                className="p-2.5 bg-purple-50 hover:bg-primary/10 text-primary rounded-xl border border-primary/10 transition-all"
                                                 title="Fees"
                                             >
                                                 <Receipt className="w-5 h-5" />
                                             </button>
                                             <button
                                                 onClick={() => downloadStudentPDF(student)}
-                                                className="p-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 rounded-xl border border-emerald-100 transition-all"
+                                                className="p-2.5 bg-primary/5 hover:bg-primary/10 text-primary rounded-xl border border-primary/10 transition-all"
                                                 title="PDF"
                                             >
                                                 <Download className="w-5 h-5" />
@@ -916,7 +916,7 @@ const StudentsManagement = () => {
                                             onClick={() => setConfirmModal({ open: true, action: student.isVerified ? 'unverify' : 'verify', user: student })}
                                             className={`px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all shadow-lg ${student.isVerified
                                                 ? 'bg-amber-500 hover:bg-amber-600 text-white shadow-amber-900/10'
-                                                : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-900/10'
+                                                : 'bg-primary hover:bg-primary text-white shadow-primary/10'
                                                 } flex items-center justify-center gap-2 min-w-[120px] active:scale-95`}
                                         >
                                             {student.isVerified ? <UserX className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
@@ -940,7 +940,7 @@ const StudentsManagement = () => {
                 <div className="space-y-4">
                     {/* Toast */}
                     {enrollToast && (
-                        <div className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold ${enrollToast.type === 'success' ? 'bg-emerald-500 text-white' :
+                        <div className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold ${enrollToast.type === 'success' ? 'bg-primary text-white' :
                             enrollToast.type === 'warning' ? 'bg-amber-500 text-white' : 'bg-red-500 text-white'
                             }`}>
                             <AlertCircle className="w-4 h-4 flex-shrink-0" />
@@ -955,7 +955,7 @@ const StudentsManagement = () => {
 
                     {enrollFetching ? (
                         <div className="flex items-center justify-center py-10">
-                            <Loader2 className="w-6 h-6 animate-spin text-emerald-500" />
+                            <Loader2 className="w-6 h-6 animate-spin text-primary" />
                             <span className="ml-2 text-gray-500">Loading enrollments...</span>
                         </div>
                     ) : userEnrollments.length === 0 ? (
@@ -997,7 +997,7 @@ const StudentsManagement = () => {
                                             onClick={() => handleToggleStudentPause(enrollment)}
                                             disabled={isBusy}
                                             className={`flex items-center gap-2 px-3 py-1.5 rounded-xl font-bold text-xs uppercase tracking-wide transition-all disabled:opacity-50 ${isPaused
-                                                ? 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm shadow-emerald-200'
+                                                ? 'bg-primary hover:bg-primary text-white shadow-sm shadow-primary'
                                                 : 'bg-amber-500 hover:bg-amber-600 text-white shadow-sm shadow-amber-200'
                                                 }`}
                                         >
@@ -1039,9 +1039,9 @@ const StudentsManagement = () => {
                 {confirmModal.user && (
                     <div className="space-y-4">
                         <div className={`p-4 rounded-xl text-center ${confirmModal.action === 'delete' ? 'bg-red-50' :
-                            confirmModal.action === 'verify' ? 'bg-emerald-50' : 'bg-amber-50'
+                            confirmModal.action === 'verify' ? 'bg-primary/5' : 'bg-amber-50'
                             }`}>
-                            {confirmModal.action === 'verify' && <UserCheck className="w-12 h-12 text-emerald-600 mx-auto mb-2" />}
+                            {confirmModal.action === 'verify' && <UserCheck className="w-12 h-12 text-primary mx-auto mb-2" />}
                             {confirmModal.action === 'unverify' && <UserX className="w-12 h-12 text-amber-600 mx-auto mb-2" />}
                             {confirmModal.action === 'delete' && <Trash2 className="w-12 h-12 text-red-600 mx-auto mb-2" />}
 
@@ -1076,7 +1076,7 @@ const StudentsManagement = () => {
                                 className={`flex-1 py-3 rounded-xl font-medium flex items-center justify-center gap-2 ${confirmModal.action === 'delete'
                                     ? 'bg-red-600 hover:bg-red-700 text-white'
                                     : confirmModal.action === 'verify'
-                                        ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                                        ? 'bg-primary hover:bg-primary text-white'
                                         : 'bg-amber-500 hover:bg-amber-600 text-white'
                                     }`}
                             >
@@ -1105,7 +1105,7 @@ const StudentsManagement = () => {
                 <div className="space-y-4">
                     {feeLoading ? (
                         <div className="flex items-center justify-center py-12">
-                            <Loader2 className="w-7 h-7 animate-spin text-emerald-600" />
+                            <Loader2 className="w-7 h-7 animate-spin text-primary" />
                             <span className="ml-2 text-gray-500">Loading fee records...</span>
                         </div>
                     ) : (() => {
@@ -1131,7 +1131,7 @@ const StudentsManagement = () => {
                                                 </div>
                                                 <button
                                                     onClick={() => handleManageInstallments(fee)}
-                                                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-2 shadow-sm transition-all"
+                                                    className="px-4 py-2 bg-primary hover:bg-primary text-white rounded-xl text-xs font-bold flex items-center gap-2 shadow-sm transition-all"
                                                 >
                                                     <Calendar className="w-3.5 h-3.5" />
                                                     Manage Plan
@@ -1164,7 +1164,7 @@ const StudentsManagement = () => {
                     {/* Profile Picture Section */}
                     <div className="flex flex-col items-center justify-center pb-6 border-b border-gray-100 mb-6">
                         <div className="relative group">
-                            <div className="w-24 h-24 rounded-2xl bg-gray-100 flex items-center justify-center overflow-hidden border-2 border-dashed border-gray-200 group-hover:border-emerald-500 transition-all">
+                            <div className="w-24 h-24 rounded-2xl bg-gray-100 flex items-center justify-center overflow-hidden border-2 border-dashed border-gray-200 group-hover:border-primary transition-all">
                                 {photoPreview ? (
                                     <img src={photoPreview} alt="Preview" className="w-full h-full object-cover" />
                                 ) : (
@@ -1180,7 +1180,7 @@ const StudentsManagement = () => {
                                     className="absolute inset-0 opacity-0 cursor-pointer"
                                 />
                             </div>
-                            <div className="absolute -bottom-2 -right-2 bg-emerald-600 text-white p-1.5 rounded-lg shadow-lg">
+                            <div className="absolute -bottom-2 -right-2 bg-primary text-white p-1.5 rounded-lg shadow-lg">
                                 <Plus className="w-3.5 h-3.5" />
                             </div>
                         </div>
@@ -1196,7 +1196,7 @@ const StudentsManagement = () => {
                                 type="text"
                                 value={editForm.name}
                                 onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none"
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
                                 required
                             />
                         </div>
@@ -1206,7 +1206,7 @@ const StudentsManagement = () => {
                                 type="text"
                                 value={editForm.fatherName}
                                 onChange={(e) => setEditForm({ ...editForm, fatherName: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none"
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
                             />
                         </div>
                         <div className="space-y-2">
@@ -1215,7 +1215,7 @@ const StudentsManagement = () => {
                                 type="email"
                                 value={editForm.email}
                                 onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none"
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
                                 required
                             />
                         </div>
@@ -1225,7 +1225,7 @@ const StudentsManagement = () => {
                                 type="text"
                                 value={editForm.password}
                                 onChange={(e) => setEditForm({ ...editForm, password: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none font-mono"
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-mono"
                                 required
                             />
                         </div>
@@ -1235,7 +1235,7 @@ const StudentsManagement = () => {
                                 type="text"
                                 value={editForm.phone}
                                 onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none"
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
                             />
                         </div>
                         <div className="space-y-2">
@@ -1244,7 +1244,7 @@ const StudentsManagement = () => {
                                 type="text"
                                 value={editForm.cnic}
                                 onChange={(e) => setEditForm({ ...editForm, cnic: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none"
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
                             />
                         </div>
                         <div className="space-y-2">
@@ -1253,7 +1253,7 @@ const StudentsManagement = () => {
                                 type="date"
                                 value={editForm.dob}
                                 onChange={(e) => setEditForm({ ...editForm, dob: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none"
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
                             />
                         </div>
                         <div className="space-y-2">
@@ -1262,7 +1262,7 @@ const StudentsManagement = () => {
                                 type="text"
                                 value={editForm.age}
                                 onChange={(e) => setEditForm({ ...editForm, age: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none"
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
                             />
                         </div>
                         <div className="space-y-2">
@@ -1270,7 +1270,7 @@ const StudentsManagement = () => {
                             <select
                                 value={editForm.gender}
                                 onChange={(e) => setEditForm({ ...editForm, gender: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none"
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
                             >
                                 <option value="">Select Gender</option>
                                 <option value="Male">Male</option>
@@ -1283,7 +1283,7 @@ const StudentsManagement = () => {
                                 type="text"
                                 value={editForm.rollNo}
                                 onChange={(e) => setEditForm({ ...editForm, rollNo: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none"
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
                             />
                         </div>
                         <div className="space-y-2">
@@ -1292,7 +1292,7 @@ const StudentsManagement = () => {
                                 type="text"
                                 value={editForm.education}
                                 onChange={(e) => setEditForm({ ...editForm, education: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none"
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
                             />
                         </div>
                         <div className="space-y-2">
@@ -1300,7 +1300,7 @@ const StudentsManagement = () => {
                             <select
                                 value={editForm.location}
                                 onChange={(e) => setEditForm({ ...editForm, location: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none"
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
                             >
                                 <option value="">Select Location</option>
                                 <option value="islamabad">Islamabad</option>
@@ -1318,7 +1318,7 @@ const StudentsManagement = () => {
                                 type="text"
                                 value={editForm.guardianName}
                                 onChange={(e) => setEditForm({ ...editForm, guardianName: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none"
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
                             />
                         </div>
                         <div className="space-y-2">
@@ -1327,7 +1327,7 @@ const StudentsManagement = () => {
                                 type="text"
                                 value={editForm.guardianPhone}
                                 onChange={(e) => setEditForm({ ...editForm, guardianPhone: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none"
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
                             />
                         </div>
                         <div className="space-y-2">
@@ -1336,7 +1336,7 @@ const StudentsManagement = () => {
                                 type="text"
                                 value={editForm.guardianOccupation}
                                 onChange={(e) => setEditForm({ ...editForm, guardianOccupation: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none"
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
                             />
                         </div>
                     </div>
@@ -1350,7 +1350,7 @@ const StudentsManagement = () => {
                                 type="text"
                                 value={editForm.city}
                                 onChange={(e) => setEditForm({ ...editForm, city: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none"
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
                             />
                         </div>
                         <div className="space-y-2">
@@ -1359,7 +1359,7 @@ const StudentsManagement = () => {
                                 type="text"
                                 value={editForm.country}
                                 onChange={(e) => setEditForm({ ...editForm, country: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none"
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
                             />
                         </div>
                     </div>
@@ -1369,7 +1369,7 @@ const StudentsManagement = () => {
                             value={editForm.address}
                             onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
                             rows={2}
-                            className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none"
+                            className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
                         />
                     </div>
 
@@ -1381,7 +1381,7 @@ const StudentsManagement = () => {
                             <select
                                 value={editForm.attendType}
                                 onChange={(e) => setEditForm({ ...editForm, attendType: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none"
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
                             >
                                 <option value="">Select Type</option>
                                 <option value="OnSite">Onsite</option>
@@ -1394,7 +1394,7 @@ const StudentsManagement = () => {
                                 type="text"
                                 value={editForm.heardAbout}
                                 onChange={(e) => setEditForm({ ...editForm, heardAbout: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none"
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
                             />
                         </div>
                     </div>
@@ -1410,7 +1410,7 @@ const StudentsManagement = () => {
                         <button
                             type="submit"
                             disabled={isProcessing}
-                            className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-medium flex items-center justify-center gap-2"
+                            className="flex-1 py-3 bg-primary hover:bg-primary text-white rounded-xl font-medium flex items-center justify-center gap-2"
                         >
                             {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
                             Update Bio
@@ -1454,7 +1454,7 @@ const StudentsManagement = () => {
                                         type="number"
                                         value={inst.amount}
                                         onChange={(e) => handleInstallmentChange(idx, 'amount', e.target.value)}
-                                        className="w-full px-2 py-1.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-sm font-bold"
+                                        className="w-full px-2 py-1.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm font-bold"
                                         placeholder="0"
                                     />
                                 </div>
@@ -1464,7 +1464,7 @@ const StudentsManagement = () => {
                                         type="date"
                                         value={inst.dueDate}
                                         onChange={(e) => handleInstallmentChange(idx, 'dueDate', e.target.value)}
-                                        className="w-full px-2 py-1.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-xs"
+                                        className="w-full px-2 py-1.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary text-xs"
                                     />
                                 </div>
                                 <div className="flex-1">
@@ -1499,7 +1499,7 @@ const StudentsManagement = () => {
                         ))}
                     </div>
 
-                    <button onClick={handleAddInstallmentRow} className="flex items-center gap-2 text-sm text-emerald-600 font-medium hover:underline">
+                    <button onClick={handleAddInstallmentRow} className="flex items-center gap-2 text-sm text-primary font-medium hover:underline">
                         <Plus className="w-4 h-4" /> Add Month Fee
                     </button>
 
@@ -1508,7 +1508,7 @@ const StudentsManagement = () => {
                         <button
                             onClick={handleSaveInstallments}
                             disabled={isProcessing}
-                            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium flex items-center gap-2"
+                            className="px-4 py-2 bg-primary hover:bg-primary text-white rounded-lg font-medium flex items-center gap-2"
                         >
                             {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save Plan'}
                         </button>
@@ -1562,7 +1562,7 @@ const StudentsManagement = () => {
                                 </button>
                                 <button
                                     onClick={() => handleVerifyInstallment(selectedFee?._id || selectedInstallment?.feeId, selectedInstallment?._id)}
-                                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg flex items-center gap-2 font-medium"
+                                    className="px-4 py-2 bg-primary hover:bg-primary text-white rounded-lg flex items-center gap-2 font-medium"
                                 >
                                     <CheckCircle className="w-4 h-4" /> Verify Payment
                                 </button>
@@ -1576,3 +1576,6 @@ const StudentsManagement = () => {
 };
 
 export default StudentsManagement;
+
+
+

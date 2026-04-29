@@ -99,8 +99,8 @@ const Login = () => {
                 {/* Gradient Background */}
                 <div className="absolute inset-0 bg-gradient-to-br from-[#1a1a2e] via-[#16213e] to-[#0f0f23]">
                     {/* Animated Background Elements */}
-                    <div className="absolute top-20 left-20 w-72 h-72 bg-purple-500/20 rounded-full blur-3xl animate-pulse-slow"></div>
-                    <div className="absolute bottom-20 right-20 w-96 h-96 bg-orange-500/20 rounded-full blur-3xl animate-pulse-slow delay-300"></div>
+                    <div className="absolute top-20 left-20 w-72 h-72 bg-primary/20 rounded-full blur-3xl animate-pulse-slow"></div>
+                    <div className="absolute bottom-20 right-20 w-96 h-96 bg-primary/20 rounded-full blur-3xl animate-pulse-slow delay-300"></div>
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-pink-500/10 rounded-full blur-3xl animate-float"></div>
                 </div>
 
@@ -116,7 +116,7 @@ const Login = () => {
                     >
                         <div className="relative w-56 h-56 group flex-shrink-0">
                             {/* Outer Glow */}
-                            <div className="absolute -inset-4 bg-emerald-500/20 rounded-3xl blur-2xl group-hover:bg-emerald-500/30 transition-all duration-500"></div>
+                            <div className="absolute -inset-4 bg-primary/20 rounded-3xl blur-2xl group-hover:bg-primary/30 transition-all duration-500"></div>
 
                             {/* Square Glass Container */}
                             <div className="absolute inset-0 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 shadow-2xl overflow-hidden flex items-center justify-center p-6">
@@ -147,7 +147,7 @@ const Login = () => {
                     </motion.div>
 
                     {/* Decorative Lines */}
-                    <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-orange-500/10 to-transparent"></div>
+                    <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-primary/10 to-transparent"></div>
                 </div>
             </motion.div>
 
@@ -188,7 +188,7 @@ const Login = () => {
                         <motion.div
                             initial={{ opacity: 0, y: -10 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="mb-4 p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-700 text-sm font-medium"
+                            className="mb-4 p-4 bg-primary/5 border border-primary rounded-xl text-primary text-sm font-medium"
                         >
                             {window.history.state.usr.message}
                         </motion.div>
@@ -360,4 +360,7 @@ const Login = () => {
 };
 
 export default Login;
+
+
+
 

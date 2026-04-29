@@ -11,8 +11,8 @@ import { updateUser } from '../../features/auth/authSlice';
 
 const InfoField = ({ icon: Icon, label, value, name, type = 'text', editable = true, isEditing, editForm, onChange }) => (
     <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-xl">
-        <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center flex-shrink-0">
-            <Icon className="w-5 h-5 text-emerald-600" />
+        <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+            <Icon className="w-5 h-5 text-primary" />
         </div>
         <div className="flex-1 min-w-0">
             <p className="text-sm text-gray-500 mb-1">{label}</p>
@@ -22,7 +22,7 @@ const InfoField = ({ icon: Icon, label, value, name, type = 'text', editable = t
                     name={name}
                     value={editForm[name] || ''}
                     onChange={onChange}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary"
                 />
             ) : (
                 <p className="font-medium text-gray-900 truncate">{value || 'Not provided'}</p>
@@ -33,8 +33,8 @@ const InfoField = ({ icon: Icon, label, value, name, type = 'text', editable = t
 
 const SelectField = ({ icon: Icon, label, value, name, options, editable = true, isEditing, editForm, onChange }) => (
     <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-xl">
-        <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center flex-shrink-0">
-            <Icon className="w-5 h-5 text-emerald-600" />
+        <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+            <Icon className="w-5 h-5 text-primary" />
         </div>
         <div className="flex-1 min-w-0">
             <p className="text-sm text-gray-500 mb-1">{label}</p>
@@ -43,7 +43,7 @@ const SelectField = ({ icon: Icon, label, value, name, options, editable = true,
                     name={name}
                     value={editForm[name] || ''}
                     onChange={onChange}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white"
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white"
                 >
                     {options.map(opt => (
                         <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -266,7 +266,7 @@ const StudentProfile = () => {
             <motion.div
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-gradient-to-r from-emerald-600 to-teal-600 rounded-2xl p-8 text-white relative overflow-hidden"
+                className="bg-gradient-to-r from-primary to-primary-dark rounded-2xl p-8 text-white relative overflow-hidden"
             >
                 <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
 
@@ -281,7 +281,7 @@ const StudentProfile = () => {
                             )}
                         </div>
                         <button className="absolute -bottom-2 -right-2 w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-lg hover:bg-gray-50 transition-colors">
-                            <Camera className="w-5 h-5 text-emerald-600" />
+                            <Camera className="w-5 h-5 text-primary" />
                         </button>
                     </div>
 
@@ -295,7 +295,7 @@ const StudentProfile = () => {
                                 </span>
                             )}
                         </div>
-                        <p className="text-emerald-100 text-lg mb-3">
+                        <p className="text-white/80 text-lg mb-3">
                             <BookOpen className="w-5 h-5 inline mr-2" />
                             {profileData.course || 'Student'}
                         </p>
@@ -320,7 +320,7 @@ const StudentProfile = () => {
                         {!isEditing ? (
                             <button
                                 onClick={handleEdit}
-                                className="px-6 py-3 bg-white text-emerald-600 font-semibold rounded-xl hover:bg-gray-50 transition-colors flex items-center gap-2"
+                                className="px-6 py-3 bg-white text-primary font-semibold rounded-xl hover:bg-gray-50 transition-colors flex items-center gap-2"
                             >
                                 <Edit2 className="w-4 h-4" />
                                 Edit Profile
@@ -330,7 +330,7 @@ const StudentProfile = () => {
                                 <button
                                     onClick={handleSave}
                                     disabled={isSaving}
-                                    className="px-5 py-3 bg-white text-emerald-600 font-semibold rounded-xl hover:bg-gray-50 transition-colors flex items-center gap-2 disabled:opacity-50"
+                                    className="px-5 py-3 bg-white text-primary font-semibold rounded-xl hover:bg-gray-50 transition-colors flex items-center gap-2 disabled:opacity-50"
                                 >
                                     {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                                     Save
@@ -357,7 +357,7 @@ const StudentProfile = () => {
                     className="bg-white rounded-2xl p-6 border border-gray-100"
                 >
                     <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
-                        <User className="w-5 h-5 text-emerald-600" />
+                        <User className="w-5 h-5 text-primary" />
                         Personal Information
                     </h2>
                     <div className="space-y-4">
@@ -390,7 +390,7 @@ const StudentProfile = () => {
                         className="bg-white rounded-2xl p-6 border border-gray-100"
                     >
                         <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
-                            <GraduationCap className="w-5 h-5 text-emerald-600" />
+                            <GraduationCap className="w-5 h-5 text-primary" />
                             Academic Information
                         </h2>
                         <div className="space-y-4">
@@ -439,7 +439,7 @@ const StudentProfile = () => {
                             className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm"
                         >
                             <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
-                                <Briefcase className="w-5 h-5 text-emerald-600" />
+                                <Briefcase className="w-5 h-5 text-primary" />
                                 Professional / Degree Details
                             </h2>
                             <div className="space-y-4">
@@ -466,7 +466,7 @@ const StudentProfile = () => {
                         className="bg-white rounded-2xl p-6 border border-gray-100"
                     >
                         <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
-                            <Users className="w-5 h-5 text-emerald-600" />
+                            <Users className="w-5 h-5 text-primary" />
                             Guardian Information
                         </h2>
                         <div className="space-y-4">
@@ -485,7 +485,7 @@ const StudentProfile = () => {
                     className="bg-white rounded-2xl p-6 border border-gray-100 lg:col-span-2"
                 >
                     <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
-                        <GraduationCap className="w-5 h-5 text-emerald-600" />
+                        <GraduationCap className="w-5 h-5 text-primary" />
                         Enrolled Courses
                     </h2>
                     {enrollments.length === 0 ? (
@@ -497,13 +497,13 @@ const StudentProfile = () => {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {enrollments.map((enrollment) => (
                                 <div key={enrollment._id} className="flex items-start gap-4 p-4 bg-gray-50 rounded-xl">
-                                    <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                                        <BookOpen className="w-5 h-5 text-emerald-600" />
+                                    <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                                        <BookOpen className="w-5 h-5 text-primary" />
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <p className="font-medium text-gray-900">{enrollment.course?.title || 'Course'}</p>
                                         <p className="text-sm text-gray-500">{enrollment.course?.teacher?.name || 'TBA'}</p>
-                                        <p className="text-xs text-emerald-600 mt-1 capitalize">{enrollment.status || 'enrolled'}</p>
+                                        <p className="text-xs text-primary mt-1 capitalize">{enrollment.status || 'enrolled'}</p>
                                     </div>
                                 </div>
                             ))}
@@ -517,3 +517,6 @@ const StudentProfile = () => {
 };
 
 export default StudentProfile;
+
+
+

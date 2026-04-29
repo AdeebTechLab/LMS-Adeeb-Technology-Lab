@@ -247,7 +247,7 @@ const TeacherRegister = () => {
                 className="hidden lg:flex lg:w-1/2 h-screen sticky top-0 relative overflow-hidden"
             >
                 {/* Gradient Background */}
-                <div className="absolute inset-0 bg-gradient-to-br from-orange-600 via-red-500 to-orange-700">
+                <div className="absolute inset-0 bg-gradient-to-br from-primary via-red-500 to-orange-700">
                     {/* Animated Background Elements */}
                     <div className="absolute top-20 left-20 w-72 h-72 bg-yellow-400/20 rounded-full blur-3xl animate-pulse-slow"></div>
                     <div className="absolute bottom-20 right-20 w-96 h-96 bg-orange-300/20 rounded-full blur-3xl animate-pulse-slow delay-300"></div>
@@ -302,7 +302,7 @@ const TeacherRegister = () => {
                                     <p className="text-xs mt-1 text-white/60">Last Date To Apply: 22/04/2026</p>
                                 </div>
 
-                                <div className="bg-orange-500/20 p-3 rounded-lg border border-orange-500/30">
+                                <div className="bg-primary/20 p-3 rounded-lg border border-primary/30">
                                     <p className="text-sm font-semibold">Type: On-Site / Remote</p>
                                 </div>
 
@@ -352,7 +352,7 @@ const TeacherRegister = () => {
                     >
                         <Link
                             to="/register"
-                            className="inline-flex items-center text-gray-600 hover:text-orange-600 transition-colors font-medium"
+                            className="inline-flex items-center text-gray-600 hover:text-primary transition-colors font-medium"
                         >
                             ← Back
                         </Link>
@@ -370,7 +370,7 @@ const TeacherRegister = () => {
                             Already have an account?{' '}
                             <Link
                                 to="/login"
-                                className="text-orange-600 font-semibold underline hover:text-orange-700 transition-colors"
+                                className="text-primary font-semibold underline hover:text-orange-700 transition-colors"
                             >
                                 Log in
                             </Link>
@@ -389,7 +389,7 @@ const TeacherRegister = () => {
                         {/* Photo Upload */}
                         <div className="flex flex-col items-center mb-6">
                             <div className="relative group">
-                                <div className="w-24 h-24 rounded-2xl bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden transition-all group-hover:border-orange-500">
+                                <div className="w-24 h-24 rounded-2xl bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden transition-all group-hover:border-primary">
                                     {photoPreview ? (
                                         <img src={photoPreview} alt="Preview" className="w-full h-full object-cover" />
                                     ) : (
@@ -430,7 +430,7 @@ const TeacherRegister = () => {
                                     value={formData.name}
                                     onChange={handleChange}
                                     placeholder="Dr. Ahmad Khan"
-                                    className={`w-full px-4 py-3 pl-11 border ${errors.name ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all bg-gray-50/50`}
+                                    className={`w-full px-4 py-3 pl-11 border ${errors.name ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50`}
                                 />
                                 <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                             </div>
@@ -447,7 +447,7 @@ const TeacherRegister = () => {
                                     value={formData.email}
                                     onChange={handleChange}
                                     placeholder="ahmad@example.com"
-                                    className={`w-full px-4 py-3 pl-11 border ${errors.email ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all bg-gray-50/50`}
+                                    className={`w-full px-4 py-3 pl-11 border ${errors.email ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50`}
                                 />
                                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                             </div>
@@ -465,7 +465,7 @@ const TeacherRegister = () => {
                                         value={formData.phone}
                                         onChange={handleChange}
                                         placeholder="0300-1234567"
-                                        className={`w-full px-4 py-3 pl-11 border ${errors.phone ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all bg-gray-50/50`}
+                                        className={`w-full px-4 py-3 pl-11 border ${errors.phone ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50`}
                                     />
                                     <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                                 </div>
@@ -480,7 +480,7 @@ const TeacherRegister = () => {
                                         value={formData.cnic}
                                         onChange={handleCNICChange}
                                         placeholder="31234-5678901-2"
-                                        className={`w-full px-4 py-3 pl-11 border ${errors.cnic ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all bg-gray-50/50`}
+                                        className={`w-full px-4 py-3 pl-11 border ${errors.cnic ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50`}
                                     />
                                     <CreditCard className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                                 </div>
@@ -498,7 +498,7 @@ const TeacherRegister = () => {
                                     value={formData.fatherName}
                                     onChange={handleChange}
                                     placeholder="Father's Name"
-                                    className="w-full px-4 py-3 pl-11 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all bg-gray-50/50"
+                                    className="w-full px-4 py-3 pl-11 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50"
                                 />
                                 <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                             </div>
@@ -514,7 +514,7 @@ const TeacherRegister = () => {
                                         name="dob"
                                         value={formData.dob}
                                         onChange={handleChange}
-                                        className="w-full px-4 py-3 pl-11 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all bg-gray-50/50"
+                                        className="w-full px-4 py-3 pl-11 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50"
                                     />
                                     <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                                 </div>
@@ -528,7 +528,7 @@ const TeacherRegister = () => {
                                         value={formData.age}
                                         readOnly
                                         placeholder="Auto"
-                                        className="w-full px-4 py-3 pl-11 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all bg-gray-50/50"
+                                        className="w-full px-4 py-3 pl-11 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50"
                                     />
                                     <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                                 </div>
@@ -543,7 +543,7 @@ const TeacherRegister = () => {
                                     name="gender"
                                     value={formData.gender}
                                     onChange={handleChange}
-                                    className="w-full px-4 py-3 pl-11 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all bg-gray-50/50 appearance-none cursor-pointer"
+                                    className="w-full px-4 py-3 pl-11 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50 appearance-none cursor-pointer"
                                 >
                                     <option value="">Select Gender</option>
                                     <option value="Male">Male</option>
@@ -562,7 +562,7 @@ const TeacherRegister = () => {
                                     name="qualification"
                                     value={formData.qualification}
                                     onChange={handleChange}
-                                    className={`w-full px-4 py-3 pl-11 border ${errors.qualification ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all bg-gray-50/50 appearance-none cursor-pointer`}
+                                    className={`w-full px-4 py-3 pl-11 border ${errors.qualification ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50 appearance-none cursor-pointer`}
                                 >
                                     <option value="">Select Qualification</option>
                                     {QUALIFICATIONS.map(q => <option key={q} value={q}>{q}</option>)}
@@ -583,7 +583,7 @@ const TeacherRegister = () => {
                                     value={formData.specialization}
                                     onChange={handleChange}
                                     placeholder="e.g., Web Development, Python, Data Science"
-                                    className={`w-full px-4 py-3 pl-11 border ${errors.specialization ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all bg-gray-50/50`}
+                                    className={`w-full px-4 py-3 pl-11 border ${errors.specialization ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50`}
                                 />
                                 <BookOpen className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                             </div>
@@ -601,7 +601,7 @@ const TeacherRegister = () => {
                                         value={formData.experience}
                                         onChange={handleChange}
                                         placeholder="e.g., 5 Years"
-                                        className={`w-full px-4 py-3 pl-11 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all bg-gray-50/50`}
+                                        className={`w-full px-4 py-3 pl-11 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50`}
                                     />
                                     <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                                 </div>
@@ -613,7 +613,7 @@ const TeacherRegister = () => {
                                         name="location"
                                         value={formData.location}
                                         onChange={handleChange}
-                                        className={`w-full px-4 py-3 pl-11 border ${errors.location ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all bg-gray-50/50 appearance-none cursor-pointer`}
+                                        className={`w-full px-4 py-3 pl-11 border ${errors.location ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50 appearance-none cursor-pointer`}
                                     >
                                         <option value="">Select City</option>
                                         {PAKISTAN_CITIES.map(city => <option key={city} value={city}>{city}</option>)}
@@ -631,7 +631,7 @@ const TeacherRegister = () => {
                                             value={formData.otherCity}
                                             onChange={handleChange}
                                             placeholder="Specify your city"
-                                            className={`w-full px-4 py-3 pl-11 border ${errors.otherCity ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all bg-gray-50/50`}
+                                            className={`w-full px-4 py-3 pl-11 border ${errors.otherCity ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50`}
                                         />
                                         <MapPin className="absolute left-4 translate-y-[-2.5rem] w-5 h-5 text-gray-400" />
                                     </div>
@@ -647,7 +647,7 @@ const TeacherRegister = () => {
                                     name="country"
                                     value={formData.country}
                                     onChange={handleChange}
-                                    className={`w-full px-4 py-3 pl-11 border ${errors.country ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all bg-gray-50/50 appearance-none cursor-pointer`}
+                                    className={`w-full px-4 py-3 pl-11 border ${errors.country ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50 appearance-none cursor-pointer`}
                                 >
                                     <option value="">Select Country</option>
                                     {COUNTRIES.map(country => <option key={country} value={country}>{country}</option>)}
@@ -665,7 +665,7 @@ const TeacherRegister = () => {
                                         value={formData.otherCountry}
                                         onChange={handleChange}
                                         placeholder="Specify your country"
-                                        className={`w-full px-4 py-3 pl-11 border ${errors.otherCountry ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all bg-gray-50/50`}
+                                        className={`w-full px-4 py-3 pl-11 border ${errors.otherCountry ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50`}
                                     />
                                     <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                                 </div>
@@ -682,7 +682,7 @@ const TeacherRegister = () => {
                                     value={formData.password}
                                     onChange={handleChange}
                                     placeholder="••••••••"
-                                    className={`w-full px-4 py-3 pl-11 pr-11 border ${errors.password ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all bg-gray-50/50`}
+                                    className={`w-full px-4 py-3 pl-11 pr-11 border ${errors.password ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50`}
                                 />
                                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                                 <button
@@ -706,7 +706,7 @@ const TeacherRegister = () => {
                                     value={formData.confirmPassword}
                                     onChange={handleChange}
                                     placeholder="••••••••"
-                                    className={`w-full px-4 py-3 pl-11 pr-11 border ${errors.confirmPassword ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all bg-gray-50/50`}
+                                    className={`w-full px-4 py-3 pl-11 pr-11 border ${errors.confirmPassword ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50`}
                                 />
                                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                                 <button
@@ -728,7 +728,7 @@ const TeacherRegister = () => {
                                 id="agreeTerms"
                                 checked={formData.agreeTerms}
                                 onChange={handleChange}
-                                className="w-5 h-5 mt-0.5 rounded border-gray-300 text-orange-600 focus:ring-orange-500 cursor-pointer"
+                                className="w-5 h-5 mt-0.5 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
                             />
                             <label htmlFor="agreeTerms" className="ml-2 text-sm text-gray-600 cursor-pointer">
                                 I agree to the{' '}
@@ -750,7 +750,7 @@ const TeacherRegister = () => {
                             transition={{ delay: 0.65 }}
                             type="submit"
                             disabled={isLoading}
-                            className="w-full py-4 mt-4 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 active:scale-95 disabled:opacity-70"
+                            className="w-full py-4 mt-4 bg-primary hover:bg-orange-700 text-white font-bold rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 active:scale-95 disabled:opacity-70"
                         >
                             {isLoading ? (
                                 <>
@@ -769,3 +769,6 @@ const TeacherRegister = () => {
 };
 
 export default TeacherRegister;
+
+
+

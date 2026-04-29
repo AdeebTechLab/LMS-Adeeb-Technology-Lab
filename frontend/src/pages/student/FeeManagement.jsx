@@ -234,10 +234,10 @@ const FeeManagement = () => {
                 <motion.div
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex items-center gap-3"
+                    className="bg-primary/5 border border-primary rounded-xl p-4 flex items-center gap-3"
                 >
-                    <CheckCircle className="w-5 h-5 text-emerald-500" />
-                    <span className="text-emerald-600 font-medium">{successMsg}</span>
+                    <CheckCircle className="w-5 h-5 text-primary" />
+                    <span className="text-primary font-medium">{successMsg}</span>
                 </motion.div>
             )}
 
@@ -271,10 +271,10 @@ const FeeManagement = () => {
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-sm text-gray-500 mb-1">Verified</p>
-                            <p className="text-2xl font-bold text-emerald-600">{totals.verifiedCount}</p>
+                            <p className="text-2xl font-bold text-primary">{totals.verifiedCount}</p>
                         </div>
-                        <div className="p-3 bg-emerald-100 rounded-xl">
-                            <CheckCircle className="w-6 h-6 text-emerald-600" />
+                        <div className="p-3 bg-primary/10 rounded-xl">
+                            <CheckCircle className="w-6 h-6 text-primary" />
                         </div>
                     </div>
                 </motion.div>
@@ -295,7 +295,7 @@ const FeeManagement = () => {
             {/* Course Challan List */}
             <div className="space-y-4 order-1">
                 <div className="flex items-center gap-2 mb-2">
-                    <div className="w-1 h-6 bg-[#ff8e01] rounded-full"></div>
+                    <div className="w-1 h-6 bg-primary rounded-full"></div>
                     <h2 className="text-xl font-bold text-gray-900">Course Challan</h2>
                 </div>
 
@@ -325,7 +325,7 @@ const FeeManagement = () => {
                         {fees.map((fee, feeIndex) => (
                             <motion.div key={fee._id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: feeIndex * 0.1 }} className="bg-white rounded-2xl p-6 border border-gray-100">
                                 <div className="flex items-center gap-4 mb-6 pb-4 border-b border-gray-100">
-                                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center">
+                                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-primary flex items-center justify-center">
                                         <CreditCard className="w-6 h-6 text-white" />
                                     </div>
                                     <div className="flex-1">
@@ -349,7 +349,7 @@ const FeeManagement = () => {
                                         fee.installments.map((inst, index) => {
                                             const isPayable = inst.status === 'pending' || inst.status === 'rejected';
                                             return (
-                                                <div key={inst._id || index} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-gray-50 rounded-xl gap-4 border border-gray-100 hover:border-emerald-100 transition-colors">
+                                                <div key={inst._id || index} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-gray-50 rounded-xl gap-4 border border-gray-100 hover:border-primary/10 transition-colors">
                                                     <div>
                                                         <div className="flex items-center gap-2 mb-1">
                                                             <span className="font-medium text-gray-900">Month {index + 1} Fee</span>
@@ -373,14 +373,14 @@ const FeeManagement = () => {
                                                             <button
                                                                 onClick={() => handlePayClick(fee, inst)}
                                                                 disabled={fee.enrollmentIsPaused}
-                                                                className={`px-4 py-2 ${fee.enrollmentIsPaused ? 'bg-gray-300 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-700'} text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2 shadow-sm`}
+                                                                className={`px-4 py-2 ${fee.enrollmentIsPaused ? 'bg-gray-300 cursor-not-allowed' : 'bg-primary hover:bg-primary'} text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2 shadow-sm`}
                                                             >
                                                                 <Upload className="w-4 h-4" />
                                                                 {fee.enrollmentIsPaused ? 'LOCKED' : 'Pay Now'}
                                                             </button>
                                                         )}
                                                         {inst.status === 'submitted' && (
-                                                            <span className="text-sm text-[#ff8e01] font-medium bg-orange-50 px-3 py-1 rounded-lg">Processing</span>
+                                                            <span className="text-sm text-primary font-medium bg-primary/5 px-3 py-1 rounded-lg">Processing</span>
                                                         )}
                                                     </div>
                                                 </div>
@@ -397,7 +397,7 @@ const FeeManagement = () => {
             {/* Payment Methods Section */}
             <div className="space-y-4 order-2">
                 <div className="flex items-center gap-2 mb-2">
-                    <div className="w-1 h-6 bg-emerald-600 rounded-full"></div>
+                    <div className="w-1 h-6 bg-primary rounded-full"></div>
                     <h2 className="text-xl font-bold text-gray-900">Payment Methods</h2>
                 </div>
 
@@ -405,35 +405,35 @@ const FeeManagement = () => {
                     {/* HBL Card */}
                     <motion.div
                         whileHover={{ y: -5 }}
-                        className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition-all border-l-4 border-l-emerald-600"
+                        className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition-all border-l-4 border-l-primary"
                     >
                         <div className="flex items-center justify-between mb-4">
-                            <div className="p-2 bg-emerald-50 rounded-lg">
-                                <CreditCard className="w-5 h-5 text-emerald-600" />
+                            <div className="p-2 bg-primary/5 rounded-lg">
+                                <CreditCard className="w-5 h-5 text-primary" />
                             </div>
-                            <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest bg-emerald-50 px-2 py-1 rounded-md">Bank Transfer</span>
+                            <span className="text-[10px] font-black text-primary uppercase tracking-widest bg-primary/5 px-2 py-1 rounded-md">Bank Transfer</span>
                         </div>
                         <div className="flex gap-4 items-center justify-between">
                             <div className="space-y-3 flex-1 min-w-0">
                                 <div>
-                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Bank Name</p>
-                                    <p className="font-bold text-gray-900">HBL</p>
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Provider</p>
+                                    <p className="font-bold text-primary text-lg">HBL</p>
                                 </div>
                                 <div>
                                     <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Account Name</p>
-                                    <p className="font-bold text-gray-900 text-lg">Salman</p>
+                                    <p className="font-bold text-gray-900 text-lg">Salman Yasin</p>
                                 </div>
                                 <div className="pt-2">
-                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter mb-1">Account Number</p>
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter mb-1">Transfer Number</p>
                                     <div
                                         onClick={() => {
                                             navigator.clipboard.writeText('14737991982703');
                                             alert('Account number copied!');
                                         }}
-                                        className="bg-gray-50 p-3 rounded-xl border border-gray-100 font-black text-gray-900 text-lg tracking-widest cursor-pointer hover:bg-emerald-50 hover:border-emerald-100 transition-all select-all flex justify-between items-center"
+                                        className="bg-gray-50 p-3 rounded-xl border border-gray-100 font-black text-primary text-2xl tracking-widest cursor-pointer hover:bg-primary/5 hover:border-primary/10 transition-all select-all flex justify-between items-center"
                                     >
                                         14737991982703
-                                        <span className="text-[10px] font-bold text-emerald-600 bg-white px-2 py-1 rounded shadow-sm">COPY</span>
+                                        <span className="text-[10px] font-bold text-primary bg-white px-2 py-1 rounded shadow-sm">COPY</span>
                                     </div>
                                 </div>
                             </div>
@@ -451,35 +451,35 @@ const FeeManagement = () => {
                     {/* JazzCash Card */}
                     <motion.div
                         whileHover={{ y: -5 }}
-                        className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition-all border-l-4 border-l-orange-500"
+                        className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition-all border-l-4 border-l-primary"
                     >
                         <div className="flex items-center justify-between mb-4">
-                            <div className="p-2 bg-orange-50 rounded-lg">
-                                <CreditCard className="w-5 h-5 text-orange-600" />
+                            <div className="p-2 bg-primary/5 rounded-lg">
+                                <CreditCard className="w-5 h-5 text-primary" />
                             </div>
-                            <span className="text-[10px] font-black text-orange-600 uppercase tracking-widest bg-orange-50 px-2 py-1 rounded-md">Mobile Wallet</span>
+                            <span className="text-[10px] font-black text-primary uppercase tracking-widest bg-primary/5 px-2 py-1 rounded-md">Mobile Wallet</span>
                         </div>
                         <div className="flex gap-4 items-center justify-between">
                             <div className="space-y-3 flex-1 min-w-0">
                                 <div>
                                     <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Provider</p>
-                                    <p className="font-bold text-orange-600 text-lg">JAZZCASH</p>
+                                    <p className="font-bold text-primary text-lg">JAZZCASH</p>
                                 </div>
                                 <div>
                                     <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Account Name</p>
                                     <p className="font-bold text-gray-900 text-lg">Salman Yasin</p>
                                 </div>
                                 <div className="pt-2">
-                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter mb-1">Phone Number</p>
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter mb-1">Transfer Number</p>
                                     <div
                                         onClick={() => {
                                             navigator.clipboard.writeText('03092333121');
                                             alert('Number copied!');
                                         }}
-                                        className="bg-gray-50 p-3 rounded-xl border border-gray-100 font-black text-orange-600 text-2xl tracking-widest cursor-pointer hover:bg-orange-50 hover:border-orange-100 transition-all select-all flex justify-between items-center"
+                                        className="bg-gray-50 p-3 rounded-xl border border-gray-100 font-black text-primary text-2xl tracking-widest cursor-pointer hover:bg-primary/5 hover:border-primary/10 transition-all select-all flex justify-between items-center"
                                     >
                                         03092333121
-                                        <span className="text-[10px] font-bold text-orange-600 bg-white px-2 py-1 rounded shadow-sm">COPY</span>
+                                        <span className="text-[10px] font-bold text-primary bg-white px-2 py-1 rounded shadow-sm">COPY</span>
                                     </div>
                                 </div>
                             </div>
@@ -497,35 +497,35 @@ const FeeManagement = () => {
                     {/* Easypaisa Card */}
                     <motion.div
                         whileHover={{ y: -5 }}
-                        className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition-all border-l-4 border-l-emerald-400"
+                        className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition-all border-l-4 border-l-primary"
                     >
                         <div className="flex items-center justify-between mb-4">
-                            <div className="p-2 bg-emerald-50 rounded-lg">
-                                <CreditCard className="w-5 h-5 text-emerald-500" />
+                            <div className="p-2 bg-primary/5 rounded-lg">
+                                <CreditCard className="w-5 h-5 text-primary" />
                             </div>
-                            <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest bg-emerald-50 px-2 py-1 rounded-md">Mobile Wallet</span>
+                            <span className="text-[10px] font-black text-primary uppercase tracking-widest bg-primary/5 px-2 py-1 rounded-md">Mobile Wallet</span>
                         </div>
                         <div className="flex gap-4 items-center justify-between">
                             <div className="space-y-3 flex-1 min-w-0">
                                 <div>
                                     <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Provider</p>
-                                    <p className="font-bold text-emerald-500 text-lg">EASYPAISA</p>
+                                    <p className="font-bold text-primary text-lg">EASYPAISA</p>
                                 </div>
                                 <div>
                                     <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Account Name</p>
                                     <p className="font-bold text-gray-900 text-lg">Salman Yasin</p>
                                 </div>
                                 <div className="pt-2">
-                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter mb-1">Phone Number</p>
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter mb-1">Transfer Number</p>
                                     <div
                                         onClick={() => {
                                             navigator.clipboard.writeText('03441713141');
                                             alert('Number copied!');
                                         }}
-                                        className="bg-gray-50 p-3 rounded-xl border border-gray-100 font-black text-emerald-600 text-2xl tracking-widest cursor-pointer hover:bg-emerald-50 hover:border-emerald-100 transition-all select-all flex justify-between items-center"
+                                        className="bg-gray-50 p-3 rounded-xl border border-gray-100 font-black text-primary text-2xl tracking-widest cursor-pointer hover:bg-primary/5 hover:border-primary/10 transition-all select-all flex justify-between items-center"
                                     >
                                         03441713141
-                                        <span className="text-[10px] font-bold text-emerald-600 bg-white px-2 py-1 rounded shadow-sm">COPY</span>
+                                        <span className="text-[10px] font-bold text-primary bg-white px-2 py-1 rounded shadow-sm">COPY</span>
                                     </div>
                                 </div>
                             </div>
@@ -545,11 +545,11 @@ const FeeManagement = () => {
                 <div className="bg-[#0f2847] rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-4 text-white">
                     <div className="flex items-center gap-3">
                         <div className="p-2 bg-white/10 rounded-lg">
-                            <AlertCircle className="w-5 h-5 text-emerald-400" />
+                            <AlertCircle className="w-5 h-5 text-primary" />
                         </div>
                         <div>
                             <p className="font-bold text-sm">Transfer the amount, take a screenshot, and click "Pay Now" below.</p>
-                            <p className="text-emerald-300/60 text-[10px] uppercase font-bold">Please ensure the Slip ID is correct for verification.</p>
+                            <p className="text-primary/60 text-[10px] uppercase font-bold">Please ensure the Slip ID is correct for verification.</p>
                         </div>
                     </div>
                     <div className="flex gap-2">
@@ -596,7 +596,7 @@ const FeeManagement = () => {
                                     {selectedFee.course?.title}
                                     {selectedFee.course?.city && <span className="text-gray-500 font-normal ml-1">({selectedFee.course?.city})</span>}
                                 </p>
-                                <p className="text-xl font-bold text-emerald-600">Rs {(selectedInstallment.amount || 0).toLocaleString()}</p>
+                                <p className="text-xl font-bold text-primary">Rs {(selectedInstallment.amount || 0).toLocaleString()}</p>
                             </div>
                             <p className="text-sm text-gray-500">Monthly Course Fee</p>
                         </div>
@@ -611,7 +611,7 @@ const FeeManagement = () => {
                                     if (e.target.value.trim()) setShowSlipError(false);
                                 }}
                                 placeholder="Enter the unique ID from your slip"
-                                className={`w-full px-4 py-2 border ${showSlipError ? 'border-red-500 ring-1 ring-red-500' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all`}
+                                className={`w-full px-4 py-2 border ${showSlipError ? 'border-red-500 ring-1 ring-red-500' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all`}
                             />
                             {showSlipError && (
                                 <p className="text-xs text-red-500 mt-1 font-bold italic">
@@ -620,7 +620,7 @@ const FeeManagement = () => {
                             )}
                         </div>
 
-                        <div className="border-2 border-dashed border-gray-200 rounded-xl p-8 text-center hover:border-emerald-400 transition-colors group cursor-pointer relative">
+                        <div className="border-2 border-dashed border-gray-200 rounded-xl p-8 text-center hover:border-primary transition-colors group cursor-pointer relative">
                             {uploadedFile ? (
                                 <div className="space-y-3">
                                     {previewUrl ? (
@@ -636,7 +636,7 @@ const FeeManagement = () => {
                                             </div>
                                         </div>
                                     ) : (
-                                        <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center mx-auto text-emerald-600">
+                                        <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto text-primary">
                                             <FileImage className="w-6 h-6" />
                                         </div>
                                     )}
@@ -650,7 +650,7 @@ const FeeManagement = () => {
                                 </div>
                             ) : (
                                 <label className="cursor-pointer block w-full h-full">
-                                    <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center mx-auto text-gray-400 group-hover:bg-emerald-50 group-hover:text-emerald-500 transition-colors mb-3">
+                                    <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center mx-auto text-gray-400 group-hover:bg-primary/5 group-hover:text-primary transition-colors mb-3">
                                         <Upload className="w-6 h-6" />
                                     </div>
                                     <p className="text-gray-900 font-medium mb-1">Click to upload receipt</p>
@@ -668,7 +668,7 @@ const FeeManagement = () => {
                             <button
                                 onClick={handleSubmitPayment}
                                 disabled={!uploadedFile || isSubmitting}
-                                className="flex-1 py-3 bg-[#0f2847] hover:bg-[#ff8e01] text-white font-medium rounded-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all shadow-lg shadow-orange-900/10"
+                                className="flex-1 py-3 bg-[#0f2847] hover:bg-primary text-white font-medium rounded-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all shadow-lg shadow-orange-900/10"
                             >
                                 {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Submit Payment'}
                             </button>
@@ -717,3 +717,6 @@ const FeeManagement = () => {
 };
 
 export default FeeManagement;
+
+
+

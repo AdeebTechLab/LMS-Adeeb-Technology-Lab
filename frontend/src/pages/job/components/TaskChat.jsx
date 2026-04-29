@@ -111,7 +111,7 @@ const TaskChat = ({ taskId, currentUser }) => {
     if (isFetching) {
         return (
             <div className="flex items-center justify-center h-[400px] bg-gray-50 rounded-2xl border border-gray-100">
-                <Loader2 className="w-6 h-6 animate-spin text-purple-600" />
+                <Loader2 className="w-6 h-6 animate-spin text-primary" />
             </div>
         );
     }
@@ -121,7 +121,7 @@ const TaskChat = ({ taskId, currentUser }) => {
             {/* New Message Notification Banner */}
             {showNewMessageBanner && (
                 <div className="absolute top-2 left-1/2 -translate-x-1/2 z-10 animate-bounce">
-                    <div className="bg-purple-600 text-white px-4 py-2 rounded-full shadow-lg flex items-center gap-2 text-xs font-bold">
+                    <div className="bg-primary text-white px-4 py-2 rounded-full shadow-lg flex items-center gap-2 text-xs font-bold">
                         <Bell className="w-3 h-3" />
                         New message received!
                     </div>
@@ -147,7 +147,7 @@ const TaskChat = ({ taskId, currentUser }) => {
                             <div key={index} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
                                 <div className={`flex items-center gap-1.5 mb-1 px-1`}>
                                     {senderRole === 'admin' ? (
-                                        <ShieldCheck className="w-3 h-3 text-purple-500" />
+                                        <ShieldCheck className="w-3 h-3 text-primary" />
                                     ) : (
                                         <User className="w-3 h-3 text-gray-400" />
                                     )}
@@ -156,7 +156,7 @@ const TaskChat = ({ taskId, currentUser }) => {
                                     </span>
                                 </div>
                                 <div className={`max-w-[80%] p-3 rounded-2xl text-sm shadow-sm ${isMe
-                                    ? 'bg-purple-600 text-white rounded-tr-none'
+                                    ? 'bg-primary text-white rounded-tr-none'
                                     : 'bg-white text-gray-700 border border-gray-100 rounded-tl-none'
                                     }`}>
                                     {msg.text}
@@ -178,12 +178,12 @@ const TaskChat = ({ taskId, currentUser }) => {
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
                     placeholder="Type a message..."
-                    className="flex-1 bg-gray-50 border-none rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-purple-500"
+                    className="flex-1 bg-gray-50 border-none rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-primary"
                 />
                 <button
                     type="submit"
                     disabled={!newMessage.trim() || isSending}
-                    className="w-10 h-10 bg-purple-600 hover:bg-purple-700 text-white rounded-xl flex items-center justify-center transition-all disabled:opacity-50 shadow-md"
+                    className="w-10 h-10 bg-primary hover:bg-purple-700 text-white rounded-xl flex items-center justify-center transition-all disabled:opacity-50 shadow-md"
                 >
                     {isSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                 </button>
@@ -193,3 +193,6 @@ const TaskChat = ({ taskId, currentUser }) => {
 };
 
 export default TaskChat;
+
+
+

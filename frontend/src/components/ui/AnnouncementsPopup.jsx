@@ -193,3 +193,5 @@ const AnnouncementsPopup = ({ autoShow = true }) => {
 };
 
 export default AnnouncementsPopup;
+
+

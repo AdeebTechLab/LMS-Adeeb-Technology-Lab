@@ -72,3 +72,4 @@ export const subscribeToPushNotifications = async () => {
         return false;
     }
 };
+

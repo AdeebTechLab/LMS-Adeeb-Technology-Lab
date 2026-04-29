@@ -5,7 +5,7 @@ import { useSelector } from 'react-redux';
 import { io } from 'socket.io-client';
 import {
     BookOpen, Users, Calendar, ArrowRight, ChevronLeft,
-    FileText, ClipboardList, CheckCircle, Clock, Loader2, User, Search, Filter, MessageCircle, UserCheck, Zap
+    FileText, ClipboardList, CheckCircle, Clock, Loader2, User, Search, Filter, MessageCircle, UserCheck, Zap, MapPin
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import { courseAPI, enrollmentAPI, chatAPI, assignmentAPI, testAPI } from '../../services/api';
@@ -182,7 +182,7 @@ const AttendanceSheet = () => {
         if (searchQuery) {
             const lowerQuery = searchQuery.toLowerCase();
             result = result.filter(course =>
-                course.name.toLowerCase().includes(lowerQuery)
+                (course.title || course.name || '').toLowerCase().includes(lowerQuery)
             );
         }
 
@@ -228,7 +228,7 @@ const AttendanceSheet = () => {
                         email: e.user?.email || '',
                         photo: e.user?.photo || '',
                         role: e.user?.role || 'student',
-                        courseName: course.name,
+                        courseName: course.title || course.name,
                     });
                 }
             });
@@ -451,7 +451,7 @@ const AttendanceSheet = () => {
                             onClick={() => { setSearchMode('courses'); setStudentSearchQuery(''); setFilteredStudents([]); }}
                             className={`px-5 py-2 rounded-lg font-bold text-sm transition-all flex items-center gap-2 ${
                                 searchMode === 'courses'
-                                    ? 'bg-white text-emerald-600 shadow-sm border border-emerald-100'
+                                    ? 'bg-white text-primary shadow-sm border border-primary/10'
                                     : 'text-gray-500 hover:text-gray-700'
                             }`}
                         >
@@ -462,7 +462,7 @@ const AttendanceSheet = () => {
                             onClick={() => { setSearchMode('students'); setSearchQuery(''); }}
                             className={`px-5 py-2 rounded-lg font-bold text-sm transition-all flex items-center gap-2 ${
                                 searchMode === 'students'
-                                    ? 'bg-white text-emerald-600 shadow-sm border border-emerald-100'
+                                    ? 'bg-white text-primary shadow-sm border border-primary/10'
                                     : 'text-gray-500 hover:text-gray-700'
                             }`}
                         >
@@ -483,7 +483,7 @@ const AttendanceSheet = () => {
                             placeholder="Search courses..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-transparent focus:border-emerald-500 focus:bg-white rounded-2xl transition-all outline-none text-sm font-medium"
+                            className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-transparent focus:border-primary focus:bg-white rounded-2xl transition-all outline-none text-sm font-medium"
                         />
                     </div>
 
@@ -503,7 +503,7 @@ const AttendanceSheet = () => {
                                             );
                                         }}
                                         className={`flex-1 px-3 py-2.5 rounded-xl font-bold text-xs transition-all ${selectedCities.includes(city)
-                                            ? 'bg-white text-emerald-600 shadow-md border border-emerald-100'
+                                            ? 'bg-white text-primary shadow-md border border-primary/10'
                                             : 'text-gray-500 hover:text-gray-700 hover:bg-white/50'
                                             }`}
                                     >
@@ -531,7 +531,7 @@ const AttendanceSheet = () => {
                                             );
                                         }}
                                         className={`flex-1 px-3 py-2.5 rounded-xl font-bold text-xs transition-all ${selectedTypes.includes(type.id)
-                                            ? 'bg-white text-emerald-600 shadow-md border border-emerald-100'
+                                            ? 'bg-white text-primary shadow-md border border-primary/10'
                                             : 'text-gray-500 hover:text-gray-700 hover:bg-white/50'
                                             }`}
                                     >
@@ -546,7 +546,7 @@ const AttendanceSheet = () => {
                 /* Student Search Panel */
                 <div className="bg-white rounded-2xl p-4 border border-gray-100">
                     <div className="flex items-center bg-gray-50 rounded-xl px-4 py-3 border border-gray-100">
-                        <Search className="w-5 h-5 text-emerald-500 mr-3" />
+                        <Search className="w-5 h-5 text-primary mr-3" />
                         <input
                             id="student-search-input"
                             type="text"
@@ -596,27 +596,27 @@ const AttendanceSheet = () => {
                                         animate={{ opacity: 1, y: 0 }}
                                         transition={{ delay: idx * 0.05 }}
                                         onClick={() => setSelectedStudent(student)}
-                                        className="bg-white rounded-2xl p-5 border border-gray-100 hover:shadow-lg hover:border-emerald-200 transition-all cursor-pointer group flex items-center gap-4"
+                                        className="bg-white rounded-2xl p-5 border border-gray-100 hover:shadow-lg hover:border-primary transition-all cursor-pointer group flex items-center gap-4"
                                     >
                                         <div className="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 border-2 border-gray-100">
                                             {student.photo ? (
                                                 <img src={student.photo} alt={student.name} className="w-full h-full object-cover" />
                                             ) : (
-                                                <div className="w-full h-full bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-white font-black text-lg">
+                                                <div className="w-full h-full bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center text-white font-black text-lg">
                                                     {(student.name || 'S').charAt(0).toUpperCase()}
                                                 </div>
                                             )}
                                         </div>
                                         <div className="flex-1">
                                             <div className="flex items-center gap-2 flex-wrap">
-                                                <p className="font-bold text-gray-900 group-hover:text-emerald-600 transition-colors">{student.name}</p>
+                                                <p className="font-bold text-gray-900 group-hover:text-primary transition-colors">{student.name}</p>
                                                 {student.rollNo && (
                                                     <span className="text-[10px] font-black text-red-500 bg-red-50 px-2 py-0.5 rounded-lg border border-red-100">
                                                         {student.rollNo}
                                                     </span>
                                                 )}
                                                 <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider ${
-                                                    student.role === 'intern' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
+                                                    student.role === 'intern' ? 'bg-primary/10 text-purple-700' : 'bg-blue-100 text-blue-700'
                                                 }`}>
                                                     {student.role || 'Student'}
                                                 </span>
@@ -624,12 +624,12 @@ const AttendanceSheet = () => {
                                             {student.email && (
                                                 <p className="text-xs text-gray-400 font-medium mt-0.5">{student.email}</p>
                                             )}
-                                            <p className="text-xs text-emerald-600 font-bold mt-1 flex items-center gap-1">
+                                            <p className="text-xs text-primary font-bold mt-1 flex items-center gap-1">
                                                 <BookOpen className="w-3 h-3" />
                                                 {student.courseName}
                                             </p>
                                         </div>
-                                        <div className="flex items-center text-emerald-600 font-bold text-sm">
+                                        <div className="flex items-center text-primary font-bold text-sm">
                                             <span className="text-xs">VIEW WORK</span>
                                             <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
                                         </div>
@@ -647,7 +647,7 @@ const AttendanceSheet = () => {
                         {(searchQuery || selectedCities.length > 0 || selectedTypes.length > 0) ? (
                             <button
                                 onClick={() => { setSearchQuery(''); setSelectedCities([]); setSelectedTypes([]); }}
-                                className="mt-2 text-emerald-600 hover:text-emerald-700 font-medium text-sm"
+                                className="mt-2 text-primary hover:text-primary font-medium text-sm"
                             >
                                 Clear all filters
                             </button>
@@ -658,8 +658,8 @@ const AttendanceSheet = () => {
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {filteredCourses.map((course, index) => {
-                            const CourseIcon = getCourseIcon(course.category, course.name);
-                            const courseStyle = getCourseStyle(course.category, course.name);
+                            const CourseIcon = getCourseIcon(course.category, course.title || course.name);
+                            const courseStyle = getCourseStyle(course.category, course.title || course.name);
                             // Ensure courseId is a string for consistent matching with socket events
                             const courseId = String(course.id || course._id);
                             const notificationCount = submissionNotifications[courseId] || 0;
@@ -671,7 +671,7 @@ const AttendanceSheet = () => {
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: index * 0.1 }}
                                     onClick={() => handleSelectCourse(course)}
-                                    className="bg-white rounded-2xl p-6 border border-gray-100 cursor-pointer hover:shadow-lg hover:border-emerald-200 transition-all group relative"
+                                    className="bg-white rounded-2xl p-6 border border-gray-100 cursor-pointer hover:shadow-lg hover:border-primary transition-all group relative"
                                 >
                                     {/* Pending (ungraded) Submission Count Badge */}
                                     {course.assignmentStats?.pendingGrading > 0 && (
@@ -688,14 +688,14 @@ const AttendanceSheet = () => {
                                                 {course.status}
                                             </Badge>
                                             <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider ${course.targetAudience === 'interns'
-                                                ? 'bg-purple-100 text-purple-700'
+                                                ? 'bg-primary/10 text-purple-700'
                                                 : 'bg-blue-100 text-blue-700'
                                                 }`}>
                                                 {course.targetAudience === 'interns' ? 'Internship' : 'Student'}
                                             </span>
                                         </div>
                                     </div>
-                                    <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-emerald-600 transition-colors uppercase">{course.name}</h3>
+                                    <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-primary transition-colors uppercase">{course.title || course.name}</h3>
                                     <div className="flex items-center gap-4 text-sm text-gray-500 mb-3 font-medium">
                                         <span className="flex items-center gap-1.5">
                                             <Users className="w-4 h-4 text-gray-400" />
@@ -711,10 +711,10 @@ const AttendanceSheet = () => {
 
                                     {/* Assignment Stats */}
                                     {course.assignmentStats && course.assignmentStats.totalAssignments > 0 && (
-                                        <div className="bg-gradient-to-r from-emerald-50 to-blue-50 rounded-xl p-3 mb-4 border border-emerald-100/50">
+                                        <div className="bg-gradient-to-r from-primary/5 to-blue-50 rounded-xl p-3 mb-4 border border-primary/10/50">
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center gap-2">
-                                                    <FileText className="w-4 h-4 text-emerald-600" />
+                                                    <FileText className="w-4 h-4 text-primary" />
                                                     <span className="text-xs font-bold text-gray-700">
                                                         {course.assignmentStats.totalAssignments} Assignment{course.assignmentStats.totalAssignments > 1 ? 's' : ''}
                                                     </span>
@@ -722,8 +722,8 @@ const AttendanceSheet = () => {
                                                 <div className="flex items-center gap-3">
                                                     {course.assignmentStats.gradedSubmissions > 0 && (
                                                         <div className="flex items-center gap-1">
-                                                            <CheckCircle className="w-3.5 h-3.5 text-emerald-500" />
-                                                            <span className="text-xs font-bold text-emerald-600">
+                                                            <CheckCircle className="w-3.5 h-3.5 text-primary" />
+                                                            <span className="text-xs font-bold text-primary">
                                                                 Avg: {course.assignmentStats.avgPercentage}%
                                                             </span>
                                                         </div>
@@ -744,7 +744,7 @@ const AttendanceSheet = () => {
                                         </div>
                                     )}
 
-                                    <div className="flex items-center text-emerald-600 font-bold text-sm">
+                                    <div className="flex items-center text-primary font-bold text-sm">
                                         <span>OPEN DASHBOARD</span>
                                         <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                                     </div>
@@ -767,20 +767,23 @@ const AttendanceSheet = () => {
                             setSelectedCourse(null);
                             navigate('/teacher/attendance');
                         }}
-                        className="flex items-center gap-2 text-emerald-600 hover:text-emerald-700 mb-2 font-bold text-sm tracking-wide"
+                        className="flex items-center gap-2 text-primary hover:text-primary mb-2 font-bold text-sm tracking-wide"
                     >
                         <ChevronLeft className="w-4 h-4" />
                         BACK TO ALL COURSES
                     </button>
-                    <h1 className="text-3xl font-black text-gray-900 uppercase tracking-tight">{selectedCourse.name || 'Course Dashboard'}</h1>
-                    <div className="flex items-center gap-3 mt-1">
-                        <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${selectedCourse.targetAudience === 'interns'
-                            ? 'bg-purple-600 text-white'
-                            : 'bg-emerald-600 text-white'
-                            }`}>
-                            {selectedCourse.targetAudience} Portal
+                    <h1 className="text-3xl font-black text-gray-900 uppercase tracking-tight">{selectedCourse.title || selectedCourse.name || 'Course Dashboard'}</h1>
+                    <div className="flex items-center gap-3 mt-1 flex-wrap">
+                        {(selectedCourse.city || selectedCourse.location) && (
+                            <span className="flex items-center gap-1.5 px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-[10px] font-black uppercase tracking-widest border border-gray-200 shadow-sm">
+                                <MapPin className="w-3 h-3 text-primary" />
+                                {selectedCourse.city || selectedCourse.location}
+                            </span>
+                        )}
+                        <span className="text-gray-400 text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                            <Users className="w-3 h-3" />
+                            {courseStudents.length} Students Active
                         </span>
-                        <span className="text-gray-500 text-sm font-semibold italic">{courseStudents.length} Students Active</span>
                     </div>
                 </div>
                 {/* Book Button */}
@@ -789,7 +792,7 @@ const AttendanceSheet = () => {
                         href={selectedCourse.bookLink}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-2 px-5 py-2.5 bg-[#FF832D] text-white rounded-xl shadow-[0_8px_24px_rgba(255,131,45,0.35)] hover:bg-[#e87526] hover:shadow-[0_10px_28px_rgba(255,131,45,0.45)] transition-all font-bold text-sm uppercase tracking-wide active:scale-95"
+                        className="flex items-center gap-2 px-5 py-2.5 bg-primary text-white rounded-xl shadow-lg shadow-primary/20 hover:bg-primary/90 hover:shadow-xl hover:shadow-primary/30 transition-all font-bold text-sm uppercase tracking-wide active:scale-95"
                     >
                         <BookOpen className="w-5 h-5" />
                         Course Book
@@ -800,11 +803,11 @@ const AttendanceSheet = () => {
             {/* Course Content: Multi-Tab */}
             <div className="space-y-6">
                 {/* Tab Navigation - Responsive Horizontal Scroll */}
-                <div className="flex gap-2 bg-gray-100/80 p-1.5 rounded-2xl w-full overflow-x-auto no-scrollbar border border-[#ff8e01] scroll-smooth">
+                <div className="flex gap-2 bg-gray-100/80 p-1.5 rounded-2xl w-full overflow-x-auto no-scrollbar border border-primary scroll-smooth">
                     <button
                         onClick={() => setActiveTab('daily_tasks')}
                         className={`px-6 sm:px-8 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 whitespace-nowrap shrink-0 ${activeTab === 'daily_tasks'
-                            ? 'bg-white text-[#ff8e01] shadow-sm border border-[#ff8e01]/30'
+                            ? 'bg-white text-primary shadow-sm border border-primary/30'
                             : 'text-gray-500 hover:bg-gray-200 hover:text-gray-900'
                             }`}
                     >
@@ -814,7 +817,7 @@ const AttendanceSheet = () => {
                     <button
                         onClick={() => setActiveTab('assignments')}
                         className={`px-6 sm:px-8 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 whitespace-nowrap shrink-0 ${activeTab === 'assignments'
-                            ? 'bg-white text-[#ff8e01] shadow-sm border border-[#ff8e01]/30'
+                            ? 'bg-white text-primary shadow-sm border border-primary/30'
                             : 'text-gray-500 hover:bg-gray-200 hover:text-gray-900'
                             }`}
                     >
@@ -824,7 +827,7 @@ const AttendanceSheet = () => {
                     <button
                         onClick={() => setActiveTab('tests')}
                         className={`px-8 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 ${activeTab === 'tests'
-                            ? 'bg-white text-[#ff8e01] shadow-sm border border-[#ff8e01]/30'
+                            ? 'bg-white text-primary shadow-sm border border-primary/30'
                             : 'text-gray-500 hover:bg-gray-200 hover:text-gray-900'
                             }`}
                     >
@@ -834,7 +837,7 @@ const AttendanceSheet = () => {
                     <button
                         onClick={() => setActiveTab('attendance')}
                         className={`px-6 sm:px-8 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 whitespace-nowrap shrink-0 ${activeTab === 'attendance'
-                            ? 'bg-white text-[#ff8e01] shadow-sm border border-[#ff8e01]/30'
+                            ? 'bg-white text-primary shadow-sm border border-primary/30'
                             : 'text-gray-500 hover:bg-gray-200 hover:text-gray-900'
                             }`}
                     >
@@ -844,7 +847,7 @@ const AttendanceSheet = () => {
                     <button
                         onClick={() => setActiveTab('students')}
                         className={`px-8 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 ${activeTab === 'students'
-                            ? 'bg-white text-[#ff8e01] shadow-sm border border-[#ff8e01]/30'
+                            ? 'bg-white text-primary shadow-sm border border-primary/30'
                             : 'text-gray-500 hover:bg-gray-200 hover:text-gray-900'
                             }`}
                     >
@@ -854,7 +857,7 @@ const AttendanceSheet = () => {
                     <button
                         onClick={() => setActiveTab('chat')}
                         className={`px-8 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 relative ${activeTab === 'chat'
-                            ? 'bg-white text-[#ff8e01] shadow-sm border border-[#ff8e01]/30'
+                            ? 'bg-white text-primary shadow-sm border border-primary/30'
                             : 'text-gray-500 hover:bg-gray-200 hover:text-gray-900'
                             }`}
                     >
@@ -869,7 +872,7 @@ const AttendanceSheet = () => {
                 </div>
 
                 {/* Tab Content */}
-                <div className="bg-white rounded-3xl p-8 border border-[#ff8e01]/20 shadow-xl shadow-gray-200/50 min-h-[500px]">
+                <div className="bg-white rounded-3xl p-8 border border-primary/20 shadow-xl shadow-gray-200/50 min-h-[500px]">
                     {activeTab === 'daily_tasks' && (
                         <DailyTasksTab course={selectedCourse} students={courseStudents} />
                     )}
@@ -895,3 +898,6 @@ const AttendanceSheet = () => {
 };
 
 export default AttendanceSheet;
+
+
+

@@ -90,14 +90,14 @@ const VerifyCertificate = () => {
                         </div>
                         <div className="text-center">
                             <h2 className="text-white text-3xl font-black tracking-tighter leading-none">Adeeb Technology Lab</h2>
-                            <p className="text-emerald-300 text-[10px] font-black uppercase tracking-[0.4em] mt-2">Empowering Your Tech Journey</p>
+                            <p className="text-primary text-[10px] font-black uppercase tracking-[0.4em] mt-2">Empowering Your Tech Journey</p>
                         </div>
                     </motion.div>
 
                     <motion.div
                         initial={{ opacity: 0, y: -20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/10 backdrop-blur-md rounded-full border border-white/20 text-emerald-300 text-sm font-bold uppercase tracking-widest mb-4"
+                        className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/10 backdrop-blur-md rounded-full border border-white/20 text-primary text-sm font-bold uppercase tracking-widest mb-4"
                     >
                         <Award className="w-4 h-4" />
                         Official Verification Portal
@@ -114,7 +114,7 @@ const VerifyCertificate = () => {
                         initial={{ opacity: 0, y: -20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.2 }}
-                        className="text-emerald-100/80 text-lg max-w-2xl mx-auto font-medium"
+                        className="text-primary/10/80 text-lg max-w-2xl mx-auto font-medium"
                     >
                         The Computer Courses Bahawalpur & Islamabad. Validated security for student credentials powered by Adeeb Technology Lab.
                     </motion.p>
@@ -128,28 +128,28 @@ const VerifyCertificate = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 }}
-                    className="bg-white rounded-3xl p-6 md:p-8 shadow-2xl shadow-emerald-900/10 border border-emerald-50 max-w-4xl mx-auto"
+                    className="bg-white rounded-3xl p-6 md:p-8 shadow-2xl shadow-primary/10 border border-primary/5 max-w-4xl mx-auto"
                 >
                     <div className="space-y-6">
                         <div className="space-y-2">
                             <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Student Roll Number</label>
                             <div className="flex flex-col sm:flex-row gap-3">
                                 <div className="flex-1 relative group">
-                                    <div className="absolute inset-0 bg-emerald-500/5 rounded-2xl group-focus-within:bg-emerald-500/10 transition-colors pointer-events-none" />
-                                    <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-6 h-6 text-emerald-600/50 group-focus-within:text-emerald-600 transition-colors pointer-events-none" />
+                                    <div className="absolute inset-0 bg-primary/5 rounded-2xl group-focus-within:bg-primary/10 transition-colors pointer-events-none" />
+                                    <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-6 h-6 text-primary/50 group-focus-within:text-primary transition-colors pointer-events-none" />
                                     <input
                                         type="text"
                                         placeholder="Enter Registration ID (e.g., 0042)"
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
                                         onKeyPress={handleKeyPress}
-                                        className="w-full pl-14 pr-6 py-4 bg-transparent rounded-2xl border-2 border-emerald-100 focus:border-emerald-500 outline-none transition-all text-xl font-bold placeholder:font-normal placeholder:text-slate-300 text-slate-800 relative z-10"
+                                        className="w-full pl-14 pr-6 py-4 bg-transparent rounded-2xl border-2 border-primary/10 focus:border-primary outline-none transition-all text-xl font-bold placeholder:font-normal placeholder:text-slate-300 text-slate-800 relative z-10"
                                     />
                                 </div>
                                 <button
                                     onClick={handleSearch}
                                     disabled={isSearching}
-                                    className="px-8 py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-lg rounded-2xl transition-all flex items-center justify-center gap-3 shadow-lg shadow-emerald-500/30 active:scale-95 disabled:opacity-50"
+                                    className="px-8 py-4 bg-primary hover:bg-primary text-white font-black text-lg rounded-2xl transition-all flex items-center justify-center gap-3 shadow-lg shadow-primary/30 active:scale-95 disabled:opacity-50"
                                 >
                                     {isSearching ? <Loader2 className="w-6 h-6 animate-spin" /> : <Search className="w-6 h-6" />}
                                     {isSearching ? 'VERIFYING...' : 'VERIFY NOW'}
@@ -161,15 +161,15 @@ const VerifyCertificate = () => {
                         {!hasSearched && (
                             <div className="flex flex-wrap gap-4 pt-2">
                                 <div className="flex items-center gap-2 text-xs font-bold text-slate-400">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                                    <div className="w-1.5 h-1.5 rounded-full bg-primary" />
                                     INSTANT VALIDATION
                                 </div>
                                 <div className="flex items-center gap-2 text-xs font-bold text-slate-400">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                                    <div className="w-1.5 h-1.5 rounded-full bg-primary" />
                                     DIGITAL SIGNATURES
                                 </div>
                                 <div className="flex items-center gap-2 text-xs font-bold text-slate-400">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                                    <div className="w-1.5 h-1.5 rounded-full bg-primary" />
                                     SECURD PREVIEW
                                 </div>
                             </div>
@@ -183,12 +183,12 @@ const VerifyCertificate = () => {
                         <div className="space-y-10">
                             <div className="flex flex-col md:flex-row items-center justify-between gap-4 px-2">
                                 <h2 className="text-2xl font-black text-slate-800 flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl bg-emerald-600 flex items-center justify-center text-white shadow-lg shadow-emerald-600/20">
+                                    <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white shadow-lg shadow-primary/20">
                                         <Award className="w-6 h-6" />
                                     </div>
                                     {certificateGroups[0]?.position === 'Teacher' ? 'TEACHER RECORDS VALIDATED' : 'STUDENT RECORDS VALIDATED'}
                                 </h2>
-                                <div className="px-4 py-2 bg-emerald-50 rounded-full border border-emerald-100 text-emerald-700 text-xs font-bold uppercase tracking-wider">
+                                <div className="px-4 py-2 bg-primary/5 rounded-full border border-primary/10 text-primary text-xs font-bold uppercase tracking-wider">
                                     {certificates.length} {certificates.length === 1 ? 'Certificate' : 'Certificates'} Found
                                 </div>
                             </div>
@@ -203,14 +203,14 @@ const VerifyCertificate = () => {
                                         className="group relative"
                                     >
                                         {/* Background Decoration for each card */}
-                                        <div className="absolute -inset-4 bg-gradient-to-b from-emerald-50/50 to-transparent rounded-[3rem] -z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                                        <div className="absolute -inset-4 bg-gradient-to-b from-primary/5/50 to-transparent rounded-[3rem] -z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
                                         <div className="bg-white rounded-[2.5rem] overflow-hidden border border-slate-100 shadow-xl hover:shadow-2xl transition-all duration-500">
                                             <div className="flex flex-col lg:flex-row">
                                                 {/* Left Panel: Student Profile */}
                                                 <div className="lg:w-80 bg-slate-50/50 p-8 flex flex-col items-center text-center border-b lg:border-b-0 lg:border-r border-slate-100">
                                                     <div className="relative group/photo mb-6">
-                                                        <div className="absolute -inset-2 bg-gradient-to-tr from-emerald-600 to-teal-400 rounded-3xl opacity-20 blur-lg group-hover/photo:opacity-40 transition-opacity" />
+                                                        <div className="absolute -inset-2 bg-gradient-to-tr from-primary to-primary rounded-3xl opacity-20 blur-lg group-hover/photo:opacity-40 transition-opacity" />
                                                         <div className="w-40 h-52 rounded-2xl bg-white border-4 border-white shadow-2xl overflow-hidden relative z-10 transform hover:scale-[1.02] transition-transform duration-500">
                                                             {group.photo ? (
                                                                 <img
@@ -228,18 +228,18 @@ const VerifyCertificate = () => {
                                                             </div>
                                                         </div>
                                                         <div className="absolute -bottom-3 -right-3 w-12 h-12 bg-white rounded-2xl shadow-xl flex items-center justify-center z-20 border border-slate-50">
-                                                            <div className="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center text-white">
+                                                            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white">
                                                                 <CheckCircle className="w-5 h-5" />
                                                             </div>
                                                         </div>
                                                     </div>
 
                                                     <div className="space-y-1 mb-6">
-                                                        <p className="text-[10px] font-black text-emerald-600 uppercase tracking-[0.2em]">Verified Identity</p>
+                                                        <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Verified Identity</p>
                                                         <h3 className="text-2xl font-black text-slate-900 leading-tight">{group.name}</h3>
-                                                        <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-50 border border-emerald-100 rounded-lg shadow-sm">
-                                                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                                                            <p className="text-xs font-bold text-emerald-700 uppercase tracking-tighter">
+                                                        <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/5 border border-primary/10 rounded-lg shadow-sm">
+                                                            <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                                                            <p className="text-xs font-bold text-primary uppercase tracking-tighter">
                                                                 {group.position || 'Student'}
                                                             </p>
                                                         </div>
@@ -258,8 +258,8 @@ const VerifyCertificate = () => {
                                                 <div className="flex-1 p-8 md:p-12 flex flex-col">
                                                     <div className="flex-1">
                                                         <div className="flex items-center gap-4 mb-8">
-                                                            <div className="h-[2px] w-12 bg-emerald-600" />
-                                                            <span className="text-xs font-black text-emerald-600 uppercase tracking-[0.3em]">Course Credentials</span>
+                                                            <div className="h-[2px] w-12 bg-primary" />
+                                                            <span className="text-xs font-black text-primary uppercase tracking-[0.3em]">Course Credentials</span>
                                                         </div>
 
                                                         {/* Loop through courses */}
@@ -269,19 +269,19 @@ const VerifyCertificate = () => {
                                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
                                                                         <div className="space-y-2">
                                                                             <p className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                                                                                <BookOpen className="w-3.5 h-3.5 text-emerald-500" /> Training Program
+                                                                                <BookOpen className="w-3.5 h-3.5 text-primary" /> Training Program
                                                                             </p>
                                                                             <p className="text-2xl font-black text-slate-900 leading-tight">{courseData.course}</p>
                                                                         </div>
                                                                         <div className="space-y-2">
                                                                             <p className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                                                                                <Calendar className="w-3.5 h-3.5 text-emerald-500" /> Completion Date
+                                                                                <Calendar className="w-3.5 h-3.5 text-primary" /> Completion Date
                                                                             </p>
-                                                                            <p className="text-2xl font-black text-emerald-700">{courseData.passoutDate || 'Validated'}</p>
+                                                                            <p className="text-2xl font-black text-primary">{courseData.passoutDate || 'Validated'}</p>
                                                                         </div>
                                                                         <div className="space-y-2">
                                                                             <p className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                                                                                <MapPin className="w-3.5 h-3.5 text-emerald-500" /> Certified At
+                                                                                <MapPin className="w-3.5 h-3.5 text-primary" /> Certified At
                                                                             </p>
                                                                             <p className="text-lg font-bold text-slate-700">{courseData.location || group.location || 'Adeeb Technology Lab'}</p>
                                                                         </div>
@@ -289,8 +289,8 @@ const VerifyCertificate = () => {
                                                                             <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Mastery &amp; Specialization</p>
                                                                             <div className="flex flex-wrap gap-2.5">
                                                                                 {(courseData.skills || '').split(',').filter(s => s.trim()).map((skill, i) => (
-                                                                                    <span key={i} className="px-4 py-2 bg-emerald-50/50 text-emerald-800 rounded-xl text-sm font-bold border border-emerald-100 flex items-center gap-2 hover:bg-emerald-100 transition-colors">
-                                                                                        <CheckCircle className="w-3.5 h-3.5 text-emerald-500" />
+                                                                                    <span key={i} className="px-4 py-2 bg-primary/5/50 text-primary rounded-xl text-sm font-bold border border-primary/10 flex items-center gap-2 hover:bg-primary/10 transition-colors">
+                                                                                        <CheckCircle className="w-3.5 h-3.5 text-primary" />
                                                                                         {skill.trim()}
                                                                                     </span>
                                                                                 ))}
@@ -302,7 +302,7 @@ const VerifyCertificate = () => {
                                                                                     href={courseData.certificateLink}
                                                                                     target="_blank"
                                                                                     rel="noopener noreferrer"
-                                                                                    className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-all shadow-md shadow-emerald-900/10"
+                                                                                    className="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary text-white font-bold rounded-xl transition-all shadow-md shadow-primary/10"
                                                                                 >
                                                                                     <ExternalLink className="w-4 h-4" />
                                                                                     Open Certificate
@@ -327,7 +327,7 @@ const VerifyCertificate = () => {
                         <motion.div
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
-                            className="bg-white rounded-[3rem] p-16 text-center border-2 border-dashed border-emerald-100 max-w-2xl mx-auto shadow-2xl shadow-emerald-900/5"
+                            className="bg-white rounded-[3rem] p-16 text-center border-2 border-dashed border-primary/10 max-w-2xl mx-auto shadow-2xl shadow-primary/5"
                         >
                             <div className="w-24 h-24 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
                                 <XCircle className="w-12 h-12 text-red-500" />
@@ -379,3 +379,6 @@ const VerifyCertificate = () => {
 };
 
 export default VerifyCertificate;
+
+
+

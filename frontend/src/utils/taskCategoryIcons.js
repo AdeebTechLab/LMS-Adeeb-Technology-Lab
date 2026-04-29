@@ -19,10 +19,10 @@ const categoryConfig = {
     'Digital Marketing, Ads': { icon: Megaphone, color: 'text-orange-700', bg: 'bg-orange-100' },
     'Video Editing': { icon: Video, color: 'text-red-700', bg: 'bg-red-100' },
     'Graphic Designer': { icon: PenTool, color: 'text-fuchsia-700', bg: 'bg-fuchsia-100' },
-    'E-Commerce': { icon: ShoppingCart, color: 'text-emerald-700', bg: 'bg-emerald-100' },
+    'E-Commerce': { icon: ShoppingCart, color: 'text-primary', bg: 'bg-primary' },
     'UX/UI Designing': { icon: Layout, color: 'text-indigo-700', bg: 'bg-indigo-100' },
     'Youtuber Course': { icon: Youtube, color: 'text-red-700', bg: 'bg-red-100' },
-    'Home Architecture': { icon: Home, color: 'text-teal-700', bg: 'bg-teal-100' },
+    'Home Architecture': { icon: Home, color: 'text-primary', bg: 'bg-primary' },
     'Web Development': { icon: Globe, color: 'text-blue-700', bg: 'bg-blue-100' },
     'App Development': { icon: Smartphone, color: 'text-green-700', bg: 'bg-green-100' },
     'App Dev Without Coding': { icon: Smartphone, color: 'text-lime-700', bg: 'bg-lime-100' },
@@ -32,7 +32,7 @@ const categoryConfig = {
     'Internet of Thing [IOT]': { icon: Wifi, color: 'text-sky-700', bg: 'bg-sky-100' },
     'Programming': { icon: Terminal, color: 'text-zinc-700', bg: 'bg-zinc-100' },
     'Taxation': { icon: Calculator, color: 'text-stone-700', bg: 'bg-stone-100' },
-    'Trading': { icon: TrendingUp, color: 'text-emerald-700', bg: 'bg-emerald-100' },
+    'Trading': { icon: TrendingUp, color: 'text-primary', bg: 'bg-primary' },
     'Truck Dispatching': { icon: Truck, color: 'text-amber-700', bg: 'bg-amber-100' },
     'Software Development': { icon: Layers, color: 'text-indigo-700', bg: 'bg-indigo-100' }
 };
@@ -77,3 +77,4 @@ export const getCategoryConfig = (category) => {
 };
 
 export default categoryConfig;
+

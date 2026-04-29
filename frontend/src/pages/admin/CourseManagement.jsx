@@ -240,7 +240,7 @@ const CourseManagement = () => {
                             placeholder="Search courses or teachers..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-transparent focus:border-emerald-500 focus:bg-white rounded-2xl transition-all outline-none text-sm font-medium"
+                            className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-transparent focus:border-primary focus:bg-white rounded-2xl transition-all outline-none text-sm font-medium"
                         />
                     </div>
 
@@ -269,7 +269,7 @@ const CourseManagement = () => {
                                     key={type.id}
                                     onClick={() => toggleFilter('role', type.id)}
                                     className={`flex-1 px-3 py-2 rounded-xl font-bold text-xs transition-all ${selectedRoles.includes(type.id)
-                                        ? 'bg-white text-emerald-600 shadow-md border border-emerald-100'
+                                        ? 'bg-white text-primary shadow-md border border-primary/10'
                                         : 'text-gray-500 hover:text-gray-700 hover:bg-white/50'
                                         }`}
                                 >
@@ -288,7 +288,7 @@ const CourseManagement = () => {
                                     key={city}
                                     onClick={() => toggleFilter('city', city)}
                                     className={`flex-1 px-3 py-2 rounded-xl font-bold text-xs transition-all ${selectedCities.includes(city)
-                                        ? 'bg-white text-emerald-600 shadow-md border border-emerald-100'
+                                        ? 'bg-white text-primary shadow-md border border-primary/10'
                                         : 'text-gray-500 hover:text-gray-700 hover:bg-white/50'
                                         }`}
                                 >
@@ -351,7 +351,7 @@ const CourseManagement = () => {
                                             {teacher?.photo ? (
                                                 <img src={teacher.photo} alt={teacher.name} className="w-6 h-6 rounded-full object-cover" />
                                             ) : (
-                                                <div className="w-6 h-6 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-xs font-medium">
+                                                <div className="w-6 h-6 rounded-full bg-gradient-to-br from-primary to-primary flex items-center justify-center text-white text-xs font-medium">
                                                     {teacher?.name?.charAt(0) || 'T'}
                                                 </div>
                                             )}
@@ -386,7 +386,7 @@ const CourseManagement = () => {
                                         Rs {Number(course.originalPrice).toLocaleString()}
                                     </span>
                                 )}
-                                <div className="flex items-center gap-1 font-semibold text-emerald-600">
+                                <div className="flex items-center gap-1 font-semibold text-primary">
                                     <span>{isNaN(Number(course.fee)) ? course.fee : `Rs ${Number(course.fee).toLocaleString()}`}</span>
                                     <span className="text-xs font-normal text-gray-500">/month</span>
                                 </div>
@@ -439,7 +439,7 @@ const CourseManagement = () => {
                             value={formData.title}
                             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                             placeholder="e.g., Web Development Bootcamp"
-                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
+                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                             required
                         />
                     </div>
@@ -454,7 +454,7 @@ const CourseManagement = () => {
                             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                             placeholder="Detailed course description..."
                             rows={3}
-                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all resize-none"
+                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none"
                             required
                         />
                     </div>
@@ -481,12 +481,12 @@ const CourseManagement = () => {
                                                         setFormData({ ...formData, teachers: formData.teachers.filter(id => id !== teacher._id) });
                                                     }
                                                 }}
-                                                className="w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500"
+                                                className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
                                             />
                                             {teacher.photo ? (
                                                 <img src={teacher.photo} alt={teacher.name} className="w-8 h-8 rounded-full object-cover mr-2" />
                                             ) : (
-                                                <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 text-xs font-bold mr-2">
+                                                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-bold mr-2">
                                                     {teacher.name.charAt(0)}
                                                 </div>
                                             )}
@@ -515,7 +515,7 @@ const CourseManagement = () => {
                                 value={formData.fee}
                                 onChange={(e) => setFormData({ ...formData, fee: e.target.value })}
                                 placeholder="15000 or Coming Soon"
-                                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all font-medium"
+                                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium"
                                 required
                             />
                         </div>
@@ -529,7 +529,7 @@ const CourseManagement = () => {
                                 value={formData.originalPrice}
                                 onChange={(e) => setFormData({ ...formData, originalPrice: e.target.value })}
                                 placeholder="20000"
-                                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all bg-gray-50/50"
+                                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50"
                             />
                         </div>
 
@@ -540,7 +540,7 @@ const CourseManagement = () => {
                             <select
                                 value={formData.durationMonths}
                                 onChange={(e) => setFormData({ ...formData, durationMonths: e.target.value })}
-                                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all bg-white"
+                                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-white"
                                 required
                             >
                                 <option value="">Select duration</option>
@@ -566,7 +566,7 @@ const CourseManagement = () => {
                         <select
                             value={formData.targetAudience}
                             onChange={(e) => setFormData({ ...formData, targetAudience: e.target.value })}
-                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all bg-white"
+                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-white"
                             required
                         >
                             <option value="">Select audience</option>
@@ -583,7 +583,7 @@ const CourseManagement = () => {
                         <select
                             value={formData.city}
                             onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all bg-white"
+                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-white"
                             required
                         >
                             <option value="">Select city</option>
@@ -600,7 +600,7 @@ const CourseManagement = () => {
                         <select
                             value={formData.category}
                             onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all bg-white"
+                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-white"
                             required
                         >
                             <option value="">Select category</option>
@@ -639,7 +639,7 @@ const CourseManagement = () => {
                             value={formData.bookLink}
                             onChange={(e) => setFormData({ ...formData, bookLink: e.target.value })}
                             placeholder="https://example.com/course-book.pdf"
-                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all font-mono text-xs"
+                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-mono text-xs"
                         />
                         <p className="text-[10px] text-gray-400 mt-1 italic uppercase tracking-widest font-black">Direct link to course materials</p>
                     </div>
@@ -676,3 +676,6 @@ const CourseManagement = () => {
 };
 
 export default CourseManagement;
+
+
+

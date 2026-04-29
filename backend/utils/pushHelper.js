@@ -59,6 +59,32 @@ const sendPushNotification = async (userId, payload) => {
     }
 };
 
+/**
+ * Send notification to all users with a specific role
+ */
+const sendToRole = async (role, payload) => {
+    try {
+        const users = await User.find({ role, isVerified: true });
+        await Promise.all(users.map(user => sendPushNotification(user._id, payload)));
+    } catch (error) {
+        console.error(`Error sending to role ${role}:`, error);
+    }
+};
+
+/**
+ * Send notification to ALL users
+ */
+const sendToAll = async (payload) => {
+    try {
+        const users = await User.find({ isVerified: true });
+        await Promise.all(users.map(user => sendPushNotification(user._id, payload)));
+    } catch (error) {
+        console.error('Error sending to all users:', error);
+    }
+};
+
 module.exports = {
-    sendPushNotification
+    sendPushNotification,
+    sendToRole,
+    sendToAll
 };

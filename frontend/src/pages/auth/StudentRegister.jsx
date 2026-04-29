@@ -38,7 +38,7 @@ const InputField = ({ label, name, type = 'text', icon: Icon, placeholder, value
                 onChange={onChange}
                 placeholder={placeholder}
                 className={`w-full px-4 py-3 ${Icon ? 'pl-11' : 'px-4'} border ${error ? 'border-red-400' : 'border-gray-200'
-                    } rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all bg-gray-50/50`}
+                    } rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50`}
                 {...props}
             />
         </div>
@@ -56,7 +56,7 @@ const SelectField = ({ label, name, options, placeholder, value, onChange, error
                 value={value}
                 onChange={onChange}
                 className={`w-full px-4 py-3 border ${error ? 'border-red-400' : 'border-gray-200'
-                    } rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all bg-gray-50/50 appearance-none cursor-pointer`}
+                    } rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50 appearance-none cursor-pointer`}
             >
                 <option value="">{placeholder}</option>
                 {options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
@@ -278,10 +278,10 @@ const StudentRegister = () => {
                 className="hidden lg:flex lg:w-1/2 h-screen sticky top-0 relative overflow-hidden"
             >
                 {/* Gradient Background */}
-                <div className="absolute inset-0 bg-gradient-to-br from-emerald-600 via-teal-500 to-emerald-800">
+                <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary to-primary">
                     {/* Animated Background Elements */}
-                    <div className="absolute top-20 left-20 w-72 h-72 bg-emerald-400/20 rounded-full blur-3xl animate-pulse-slow"></div>
-                    <div className="absolute bottom-20 right-20 w-96 h-96 bg-teal-300/20 rounded-full blur-3xl animate-pulse-slow delay-300"></div>
+                    <div className="absolute top-20 left-20 w-72 h-72 bg-primary/20 rounded-full blur-3xl animate-pulse-slow"></div>
+                    <div className="absolute bottom-20 right-20 w-96 h-96 bg-primary/20 rounded-full blur-3xl animate-pulse-slow delay-300"></div>
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-green-400/10 rounded-full blur-3xl animate-float"></div>
                 </div>
 
@@ -339,7 +339,7 @@ const StudentRegister = () => {
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="bg-white/5 p-3 rounded-lg border border-white/5">
                                             <p className="text-xs text-white/60">Status</p>
-                                            <p className="font-bold text-emerald-400">Open</p>
+                                            <p className="font-bold text-primary">Open</p>
                                         </div>
                                         <div className="bg-white/5 p-3 rounded-lg border border-white/5">
                                             <p className="text-xs text-white/60">Last Date</p>
@@ -401,7 +401,7 @@ const StudentRegister = () => {
                         <div className="mb-6">
                             <Link
                                 to="/register"
-                                className="inline-flex items-center text-gray-600 hover:text-emerald-600 transition-colors font-medium"
+                                className="inline-flex items-center text-gray-600 hover:text-primary transition-colors font-medium"
                             >
                                 ← Back
                             </Link>
@@ -411,7 +411,7 @@ const StudentRegister = () => {
                             Already have an account?{' '}
                             <Link
                                 to="/login"
-                                className="text-emerald-600 font-semibold underline hover:text-emerald-700 transition-colors"
+                                className="text-primary font-semibold underline hover:text-primary transition-colors"
                             >
                                 Log in
                             </Link>
@@ -426,7 +426,7 @@ const StudentRegister = () => {
                         {/* Photo Upload */}
                         <div className="flex flex-col items-center mb-6">
                             <div className="relative group">
-                                <div className="w-24 h-24 rounded-2xl bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden transition-all group-hover:border-emerald-500">
+                                <div className="w-24 h-24 rounded-2xl bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden transition-all group-hover:border-primary">
                                     {photoPreview ? (
                                         <img src={photoPreview} alt="Preview" className="w-full h-full object-cover" />
                                     ) : (
@@ -508,7 +508,7 @@ const StudentRegister = () => {
                                     rows={2}
                                     placeholder="Enter your complete address"
                                     className={`w-full px-4 py-3 border ${errors.address ? 'border-red-400' : 'border-gray-200'
-                                        } rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all bg-gray-50/50`}
+                                        } rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50`}
                                 />
                                 {errors.address && <p className="mt-1 text-sm text-red-500">{errors.address}</p>}
                             </div>
@@ -534,7 +534,7 @@ const StudentRegister = () => {
                                         value={formData.password}
                                         onChange={handleChange}
                                         placeholder="Create a password"
-                                        className={`w-full px-4 py-3 border ${errors.password ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all bg-gray-50/50`}
+                                        className={`w-full px-4 py-3 border ${errors.password ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50`}
                                     />
                                     <button
                                         type="button"
@@ -555,7 +555,7 @@ const StudentRegister = () => {
                                         value={formData.confirmPassword}
                                         onChange={handleChange}
                                         placeholder="Confirm your password"
-                                        className={`w-full px-4 py-3 border ${errors.confirmPassword ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all bg-gray-50/50`}
+                                        className={`w-full px-4 py-3 border ${errors.confirmPassword ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50`}
                                     />
                                     <button
                                         type="button"
@@ -578,7 +578,7 @@ const StudentRegister = () => {
                                     name="termsAccepted"
                                     checked={formData.termsAccepted}
                                     onChange={handleChange}
-                                    className="w-5 h-5 mt-0.5 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                                    className="w-5 h-5 mt-0.5 rounded border-gray-300 text-primary focus:ring-primary"
                                 />
                                 <span className="text-sm text-gray-700">I Accept All Terms and Conditions</span>
                             </label>
@@ -589,7 +589,7 @@ const StudentRegister = () => {
                                     name="dataConfirmed"
                                     checked={formData.dataConfirmed}
                                     onChange={handleChange}
-                                    className="w-5 h-5 mt-0.5 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                                    className="w-5 h-5 mt-0.5 rounded border-gray-300 text-primary focus:ring-primary"
                                 />
                                 <span className="text-sm text-gray-700">I confirm that all provided data is correct and I agree to abide by the organisation's requirements if admitted.</span>
                             </label>
@@ -599,7 +599,7 @@ const StudentRegister = () => {
                         <button
                             type="submit"
                             disabled={isLoading || !formData.termsAccepted || !formData.dataConfirmed}
-                            className="w-full py-4 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 active:scale-95"
+                            className="w-full py-4 bg-primary hover:bg-primary disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 active:scale-95"
                         >
                             {isLoading ? (
                                 <>
@@ -620,3 +620,6 @@ const StudentRegister = () => {
 };
 
 export default StudentRegister;
+
+
+

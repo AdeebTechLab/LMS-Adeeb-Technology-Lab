@@ -177,7 +177,7 @@ const CertificateManagement = () => {
                     userId: confirmModal.student._id || confirmModal.student.id,
                     courseId: confirmModal.course._id || confirmModal.course.id,
                     rollNo: editData.rollNo,
-                    skills: confirmModal.course.name,
+                    skills: confirmModal.course.title || confirmModal.course.name,
                     passoutDate: editData.passoutDate,
                     certificateLink: editData.certificateLink
                 });
@@ -208,7 +208,7 @@ const CertificateManagement = () => {
         setEditCertModal({ open: true, certificate: cert, student });
         setEditCertData({
             rollNo: cert?.rollNo || student.rollNo || '',
-            skills: cert?.skills || course.name || '',
+            skills: cert?.skills || course.title || course.name || '',
             duration: cert?.duration || course.duration || '',
             passoutDate: cert?.passoutDate ? getLocalDateString(new Date(cert.passoutDate)) : getLocalDateString(new Date()),
             certificateLink: cert?.certificateLink || ''
@@ -362,7 +362,7 @@ const CertificateManagement = () => {
     if (isLoading) {
         return (
             <div className="flex items-center justify-center h-64">
-                <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
                 <span className="ml-2 text-gray-600">Loading certificates data...</span>
             </div>
         );
@@ -380,12 +380,12 @@ const CertificateManagement = () => {
                 {/* Metrics Grid */}
                 <div className="grid grid-cols-2 gap-3">
                     {/* Students/Interns Metrics */}
-                    <div className="flex flex-col bg-emerald-50 rounded-2xl p-3 border border-emerald-100 min-w-[150px] shadow-sm">
-                        <p className="text-[10px] font-black text-emerald-800 uppercase tracking-widest mb-2 border-b border-emerald-200 pb-1">Students / Interns</p>
+                    <div className="flex flex-col bg-primary/5 rounded-2xl p-3 border border-primary/10 min-w-[150px] shadow-sm">
+                        <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-2 border-b border-primary pb-1">Students / Interns</p>
                         <div className="flex justify-between items-end">
                             <div>
-                                <p className="text-2xl font-black text-emerald-600 leading-none">{studentsCertifiedCount}</p>
-                                <p className="text-[9px] text-emerald-600/80 font-black uppercase tracking-wider mt-1">Assigned</p>
+                                <p className="text-2xl font-black text-primary leading-none">{studentsCertifiedCount}</p>
+                                <p className="text-[9px] text-primary/80 font-black uppercase tracking-wider mt-1">Assigned</p>
                             </div>
                             <div className="text-right">
                                 <p className="text-xl font-bold text-amber-500 leading-none">{studentsPendingCount}</p>
@@ -415,7 +415,7 @@ const CertificateManagement = () => {
             <div className="flex gap-2 bg-gray-100 p-1.5 rounded-2xl w-full sm:w-fit">
                 <button
                     onClick={() => setActiveSection('courses')}
-                    className={`flex-1 sm:flex-none px-5 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${activeSection === 'courses' ? 'bg-white text-emerald-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                    className={`flex-1 sm:flex-none px-5 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${activeSection === 'courses' ? 'bg-white text-primary shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
                 >
                     Students & Interns
                 </button>
@@ -440,7 +440,7 @@ const CertificateManagement = () => {
                                 placeholder="Search by course, student, roll no, CNIC..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-transparent focus:border-emerald-500 focus:bg-white rounded-2xl transition-all outline-none text-sm font-medium"
+                                className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-transparent focus:border-primary focus:bg-white rounded-2xl transition-all outline-none text-sm font-medium"
                             />
                         </div>
 
@@ -469,7 +469,7 @@ const CertificateManagement = () => {
                                         key={type.id}
                                         onClick={() => toggleFilter('type', type.id)}
                                         className={`flex-1 px-3 py-2 rounded-xl font-bold text-xs transition-all ${selectedTypes.includes(type.id)
-                                            ? 'bg-white text-emerald-600 shadow-md border border-emerald-100'
+                                            ? 'bg-white text-primary shadow-md border border-primary/10'
                                             : 'text-gray-500 hover:text-gray-700 hover:bg-white/50'
                                             }`}
                                     >
@@ -488,7 +488,7 @@ const CertificateManagement = () => {
                                         key={city}
                                         onClick={() => toggleFilter('city', city)}
                                         className={`flex-1 px-3 py-2 rounded-xl font-bold text-xs transition-all ${selectedCities.includes(city)
-                                            ? 'bg-white text-emerald-600 shadow-md border border-emerald-100'
+                                            ? 'bg-white text-primary shadow-md border border-primary/10'
                                             : 'text-gray-500 hover:text-gray-700 hover:bg-white/50'
                                             }`}
                                     >
@@ -531,7 +531,7 @@ const CertificateManagement = () => {
                                                 {request.user?.role}
                                             </Badge>
                                         </div>
-                                        <p className="text-sm text-emerald-600 font-black uppercase tracking-tight mb-2">{request.course?.title}</p>
+                                        <p className="text-sm text-primary font-black uppercase tracking-tight mb-2">{request.course?.title}</p>
                                         <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mb-2">
                                             <Badge variant="info" size="xs">
                                                 {request.course?.city || request.course?.location || 'Unknown'}
@@ -558,7 +558,7 @@ const CertificateManagement = () => {
                                         </button>
                                         <button
                                             onClick={() => handleOpenApproveModal(request)}
-                                            className="flex-1 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-black uppercase tracking-widest text-[10px] transition-all shadow-lg shadow-emerald-900/10 flex items-center justify-center gap-2 active:scale-95"
+                                            className="flex-1 px-6 py-3 bg-primary hover:bg-primary text-white rounded-xl font-black uppercase tracking-widest text-[10px] transition-all shadow-lg shadow-primary/10 flex items-center justify-center gap-2 active:scale-95"
                                         >
                                             <Award className="w-4 h-4" />
                                             Approve & Issue
@@ -580,7 +580,7 @@ const CertificateManagement = () => {
                 {/* Courses with Students */}
                 <div className="space-y-4">
                     <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                        <BookOpen className="w-5 h-5 text-emerald-600" />
+                        <BookOpen className="w-5 h-5 text-primary" />
                         Courses & Certificates
                     </h2>
 
@@ -602,11 +602,11 @@ const CertificateManagement = () => {
                                         className="flex items-center justify-between p-4 sm:p-5 cursor-pointer hover:bg-gray-50 transition-colors"
                                     >
                                         <div className="flex items-center gap-4">
-                                            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-emerald-50 flex items-center justify-center shrink-0 shadow-sm border border-emerald-100">
-                                                <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600" />
+                                            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary/5 flex items-center justify-center shrink-0 shadow-sm border border-primary/10">
+                                                <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
                                             </div>
                                             <div className="min-w-0">
-                                                <h3 className="font-black text-gray-900 line-clamp-1 uppercase tracking-tighter text-sm sm:text-base">{course.name}</h3>
+                                                <h3 className="font-black text-gray-900 line-clamp-1 uppercase tracking-tighter text-sm sm:text-base">{course.title || course.name}</h3>
                                                 <div className="flex items-center gap-2 mt-0.5">
                                                     <Badge variant="info" size="xs">
                                                         {course.city}
@@ -657,7 +657,7 @@ const CertificateManagement = () => {
                                                             <td className="px-6 py-4 font-mono text-xs font-bold text-gray-500">{student.rollNo}</td>
                                                             <td className="px-6 py-4 text-xs font-medium">
                                                                 {student.certificateIssued ? (
-                                                                    <div className="flex items-center gap-1 text-emerald-600">
+                                                                    <div className="flex items-center gap-1 text-primary">
                                                                         <CheckCircle className="w-4 h-4" />
                                                                         Certified
                                                                     </div>
@@ -693,13 +693,13 @@ const CertificateManagement = () => {
                                                                                 setConfirmModal({ open: true, student, course });
                                                                                 setEditData({
                                                                                     rollNo: student.rollNo || '',
-                                                                                    skills: course.name || '',
+                                                                                    skills: course.title || course.name || '',
                                                                                     duration: course.duration || '',
                                                                                     passoutDate: new Date().toISOString().split('T')[0],
                                                                                     certificateLink: ''
                                                                                 });
                                                                             }}
-                                                                            className="p-2 hover:bg-emerald-50 text-emerald-600 rounded-lg transition-all"
+                                                                            className="p-2 hover:bg-primary/5 text-primary rounded-lg transition-all"
                                                                             title="Issue Certificate"
                                                                         >
                                                                             <Award className="w-5 h-5" />
@@ -723,7 +723,7 @@ const CertificateManagement = () => {
                                     {(searchQuery || selectedCities.length > 0 || selectedTypes.length > 0) && (
                                         <button
                                             onClick={() => { setSearchQuery(''); setSelectedCities([]); setSelectedTypes([]); }}
-                                            className="mt-2 text-emerald-600 hover:text-emerald-700 font-medium text-sm"
+                                            className="mt-2 text-primary hover:text-primary font-medium text-sm"
                                         >
                                             Clear all filters
                                         </button>
@@ -808,7 +808,7 @@ const CertificateManagement = () => {
                                                     <td className="px-6 py-4 text-xs text-gray-500">{teacher.specialization || '—'}</td>
                                                     <td className="px-6 py-4 text-xs font-medium">
                                                         {teacher.certificateIssued ? (
-                                                            <div className="flex items-center gap-1 text-emerald-600">
+                                                            <div className="flex items-center gap-1 text-primary">
                                                                 <CheckCircle className="w-4 h-4" />
                                                                 Certified
                                                             </div>
@@ -877,22 +877,22 @@ const CertificateManagement = () => {
             >
                 {confirmModal.student && (
                     <div className="space-y-6">
-                        <div className="p-5 bg-emerald-50 rounded-3xl border border-emerald-100 shadow-sm">
+                        <div className="p-5 bg-primary/5 rounded-3xl border border-primary/10 shadow-sm">
                             <div className="flex flex-col sm:flex-row items-center gap-4 mb-4 text-center sm:text-left">
-                                <div className="w-16 h-16 rounded-2xl bg-white border-2 border-emerald-100 flex items-center justify-center overflow-hidden shadow-inner">
+                                <div className="w-16 h-16 rounded-2xl bg-white border-2 border-primary/10 flex items-center justify-center overflow-hidden shadow-inner">
                                     {confirmModal.student.photo ? (
                                         <img src={confirmModal.student.photo} alt="" className="w-full h-full object-cover" />
                                     ) : (
-                                        <User className="w-10 h-10 text-emerald-300" />
+                                        <User className="w-10 h-10 text-primary" />
                                     )}
                                 </div>
                                 <div className="min-w-0">
-                                    <p className="text-xl font-black text-emerald-900 uppercase tracking-tighter leading-none mb-1">{confirmModal.student.name}</p>
-                                    <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">{confirmModal.course?.name || confirmModal.request?.course?.title}</p>
+                                    <p className="text-xl font-black text-primary uppercase tracking-tighter leading-none mb-1">{confirmModal.student.name}</p>
+                                    <p className="text-[10px] font-black text-primary uppercase tracking-widest">{confirmModal.course?.name || confirmModal.request?.course?.title}</p>
                                 </div>
                             </div>
                             {confirmModal.request?.notes && (
-                                <div className="text-[11px] text-emerald-700 italic bg-white/60 p-3 rounded-2xl border border-emerald-100/50 leading-relaxed">
+                                <div className="text-[11px] text-primary italic bg-white/60 p-3 rounded-2xl border border-primary/10/50 leading-relaxed">
                                     <span className="font-black uppercase tracking-widest text-[9px] block mb-1 opacity-50">Teacher Note:</span>
                                     "{confirmModal.request.notes}"
                                 </div>
@@ -906,7 +906,7 @@ const CertificateManagement = () => {
                                     type="text"
                                     value={editData.rollNo}
                                     onChange={(e) => setEditData({ ...editData, rollNo: e.target.value })}
-                                    className="w-full px-4 py-3 bg-gray-50 border border-transparent focus:border-emerald-500 focus:bg-white rounded-2xl transition-all outline-none font-bold text-sm"
+                                    className="w-full px-4 py-3 bg-gray-50 border border-transparent focus:border-primary focus:bg-white rounded-2xl transition-all outline-none font-bold text-sm"
                                     placeholder="Enter Roll Number"
                                 />
                             </div>
@@ -916,7 +916,7 @@ const CertificateManagement = () => {
                                     type="date"
                                     value={editData.passoutDate}
                                     onChange={(e) => setEditData({ ...editData, passoutDate: e.target.value })}
-                                    className="w-full px-4 py-3 bg-gray-50 border border-transparent focus:border-emerald-500 focus:bg-white rounded-2xl transition-all outline-none font-bold text-sm"
+                                    className="w-full px-4 py-3 bg-gray-50 border border-transparent focus:border-primary focus:bg-white rounded-2xl transition-all outline-none font-bold text-sm"
                                 />
                             </div>
                             <div className="sm:col-span-2 space-y-1.5">
@@ -926,7 +926,7 @@ const CertificateManagement = () => {
                                     placeholder="https://cloudinary.com/..."
                                     value={editData.certificateLink}
                                     onChange={(e) => setEditData({ ...editData, certificateLink: e.target.value })}
-                                    className="w-full px-4 py-3 bg-gray-50 border border-transparent focus:border-emerald-500 focus:bg-white rounded-2xl transition-all outline-none text-sm font-medium"
+                                    className="w-full px-4 py-3 bg-gray-50 border border-transparent focus:border-primary focus:bg-white rounded-2xl transition-all outline-none text-sm font-medium"
                                 />
                             </div>
                         </div>
@@ -941,7 +941,7 @@ const CertificateManagement = () => {
                             <button
                                 onClick={handleIssueCertificate}
                                 disabled={isIssuing || !editData.rollNo}
-                                className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-black uppercase tracking-widest text-[10px] rounded-2xl transition-all shadow-lg shadow-emerald-900/10 flex items-center justify-center gap-2 disabled:opacity-50 active:scale-95"
+                                className="flex-1 py-3 bg-primary hover:bg-primary text-white font-black uppercase tracking-widest text-[10px] rounded-2xl transition-all shadow-lg shadow-primary/10 flex items-center justify-center gap-2 disabled:opacity-50 active:scale-95"
                             >
                                 {isIssuing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Award className="w-4 h-4" />}
                                 Issue Certificate
@@ -1178,3 +1178,6 @@ const CertificateManagement = () => {
 };
 
 export default CertificateManagement;
+
+
+

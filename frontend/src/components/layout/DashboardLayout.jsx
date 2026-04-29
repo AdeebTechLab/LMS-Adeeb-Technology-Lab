@@ -86,7 +86,7 @@ const DashboardLayout = () => {
                             if (ungradedCount > 0) {
                                 tasks.push({
                                     _id: `task-${a._id}`,
-                                    title: `${course.name} - ${a.title}`,
+                                    title: `${course.title || course.name} - ${a.title}`,
                                     message: `${ungradedCount} submission(s) pending grading`,
                                     date: a.dueDate,
                                     type: 'task',
@@ -189,7 +189,7 @@ const DashboardLayout = () => {
         const message = (notification.message || '').toLowerCase();
         
         if (title.includes('fee') || title.includes('payment') || title.includes('installment') || message.includes('fee')) {
-            return <CreditCard className="w-4 h-4 text-emerald-500" />;
+            return <CreditCard className="w-4 h-4 text-primary" />;
         }
         if (title.includes('assignment') || title.includes('task') || message.includes('assignment')) {
             return <FileText className="w-4 h-4 text-blue-500" />;
@@ -201,7 +201,7 @@ const DashboardLayout = () => {
             return <Calendar className="w-4 h-4 text-indigo-500" />;
         }
         
-        return <Bell className="w-4 h-4 text-[#ff8e01]" />;
+        return <Bell className="w-4 h-4 text-primary" />;
     };
 
     const formatNotificationTime = (date) => {
@@ -295,7 +295,7 @@ const DashboardLayout = () => {
                                     >
                                         <Bell className="w-5 h-5" />
                                         {unreadCount + pendingTasks.length > 0 && (
-                                            <span className="absolute top-0 right-0 w-4 h-4 bg-[#ff8e01] text-white text-[8px] rounded-full flex items-center justify-center font-bold shadow-sm">
+                                            <span className="absolute top-0 right-0 w-4 h-4 bg-primary text-white text-[8px] rounded-full flex items-center justify-center font-bold shadow-sm">
                                                 {unreadCount + pendingTasks.length}
                                             </span>
                                         )}
@@ -311,7 +311,7 @@ const DashboardLayout = () => {
                                             <div className={`p-4 border-b ${isDark ? 'border-white/10' : 'border-gray-100'}`}>
                                                 <div className="flex items-center justify-between">
                                                     <h3 className={`font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Notifications</h3>
-                                                    <span className="text-[10px] font-black bg-[#ff8e01]/10 text-[#ff8e01] px-2 py-1 rounded-lg uppercase">New</span>
+                                                    <span className="text-[10px] font-black bg-primary/10 text-primary px-2 py-1 rounded-lg uppercase">New</span>
                                                 </div>
                                             </div>
                                             <div className="max-h-[350px] overflow-y-auto no-scrollbar">
@@ -322,10 +322,10 @@ const DashboardLayout = () => {
                                                             navigate(task.path, { state: { tab: 'assignments', assignmentId: task.assignmentId, courseId: task.courseId } });
                                                             setShowNotifications(false);
                                                         }}
-                                                        className={`p-4 border-b cursor-pointer ${isDark ? 'border-white/5 hover:bg-white/5 bg-[#ff8e01]/5' : 'border-gray-50 hover:bg-gray-50 bg-[#ff8e01]/[0.02]'}`}
+                                                        className={`p-4 border-b cursor-pointer ${isDark ? 'border-white/5 hover:bg-white/5 bg-primary/5' : 'border-gray-50 hover:bg-gray-50 bg-primary/[0.02]'}`}
                                                     >
                                                         <p className={`text-sm font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{task.title}</p>
-                                                        <p className="text-[10px] text-[#ff8e01] font-bold mt-1 uppercase">{new Date(task.date).toLocaleDateString()}</p>
+                                                        <p className="text-[10px] text-primary font-bold mt-1 uppercase">{new Date(task.date).toLocaleDateString()}</p>
                                                     </div>
                                                 ))}
                                                 {notifications.length === 0 && pendingTasks.length === 0 && (
@@ -345,7 +345,7 @@ const DashboardLayout = () => {
                                         onClick={() => setShowUserMenu(!showUserMenu)}
                                         className="shrink-0 p-0.5 rounded-xl transition-all"
                                     >
-                                        <ProfileAvatar src={user?.photo} name={user?.name} size="sm" shape="rounded-xl" border="border border-white/20" fallbackColor="bg-gradient-to-br from-[#ff8e01] to-[#ffab40]" />
+                                        <ProfileAvatar src={user?.photo} name={user?.name} size="sm" shape="rounded-xl" border="border border-white/20" fallbackColor="bg-gradient-to-br from-primary to-[#ffab40]" />
                                     </button>
 
                                     {/* Mobile User Dropdown */}
@@ -428,7 +428,7 @@ const DashboardLayout = () => {
                                 onClick={toggleTheme}
                                 title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
                                 className={`relative rounded-xl transition-all duration-300 shadow-md hover:shadow-lg flex items-center justify-center gap-2 overflow-hidden p-2.5 sm:px-3 sm:py-2.5 ${isDark
-                                    ? 'bg-[#ffab40] hover:bg-[#ff8e01] text-white'
+                                    ? 'bg-[#ffab40] hover:bg-primary text-white'
                                     : 'bg-[#222d38] hover:bg-[#1a232c] text-white'
                                     }`}
                             >
@@ -471,7 +471,7 @@ const DashboardLayout = () => {
                                     <Bell className="w-5 h-5" />
                                     <span className="hidden xl:inline text-sm font-semibold">Notif</span>
                                     {unreadCount + pendingTasks.length > 0 && (
-                                        <span className="absolute -top-1 -right-1 w-5 h-5 bg-[#ff8e01] text-white text-[10px] rounded-full flex items-center justify-center font-bold shadow-sm">
+                                        <span className="absolute -top-1 -right-1 w-5 h-5 bg-primary text-white text-[10px] rounded-full flex items-center justify-center font-bold shadow-sm">
                                             {unreadCount + pendingTasks.length}
                                         </span>
                                     )}
@@ -488,17 +488,17 @@ const DashboardLayout = () => {
                                         <div className={`p-4 border-b ${isDark ? 'border-white/10' : 'border-gray-100'}`}>
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center gap-2">
-                                                    <div className="w-8 h-8 rounded-lg bg-[#ff8e01]/10 flex items-center justify-center border border-[#ff8e01]/20 overflow-hidden">
+                                                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20 overflow-hidden">
                                                         <img src="/logo.png" alt="Logo" className="w-5 h-5 object-contain" />
                                                     </div>
                                                     <div>
                                                         <h3 className={`text-sm font-black tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>Notifications</h3>
-                                                        <p className="text-[10px] font-bold text-[#ff8e01] uppercase tracking-widest">Adeeb Tech Lab</p>
+                                                        <p className="text-[10px] font-bold text-primary uppercase tracking-widest">Adeeb Tech Lab</p>
                                                     </div>
                                                 </div>
                                                 <button
                                                     onClick={handleMarkAllRead}
-                                                    className="text-[10px] font-black uppercase tracking-widest text-[#ff8e01] hover:text-[#ffab40] px-2 py-1 rounded-lg hover:bg-[#ff8e01]/5 transition-all"
+                                                    className="text-[10px] font-black uppercase tracking-widest text-primary hover:text-[#ffab40] px-2 py-1 rounded-lg hover:bg-primary/5 transition-all"
                                                 >
                                                     Mark all read
                                                 </button>
@@ -520,19 +520,19 @@ const DashboardLayout = () => {
                                                         setShowNotifications(false);
                                                     }}
                                                     className={`p-4 border-b cursor-pointer transition-colors ${isDark
-                                                        ? 'border-white/5 hover:bg-[#ff8e01]/10 bg-[#ff8e01]/5'
-                                                        : 'border-gray-50 hover:bg-[#ff8e01]/5 bg-[#ff8e01]/[0.02]'
+                                                        ? 'border-white/5 hover:bg-primary/10 bg-primary/5'
+                                                        : 'border-gray-50 hover:bg-primary/5 bg-primary/[0.02]'
                                                     }`}
                                                 >
                                                     <div className="flex items-start gap-3">
-                                                        <div className="p-2 bg-[#ff8e01]/10 rounded-lg shrink-0">
-                                                            <ClipboardList className="w-4 h-4 text-[#ff8e01]" />
+                                                        <div className="p-2 bg-primary/10 rounded-lg shrink-0">
+                                                            <ClipboardList className="w-4 h-4 text-primary" />
                                                         </div>
                                                         <div className="flex-1">
                                                             <p className={`text-sm font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
                                                                 {task.title}
                                                             </p>
-                                                            <p className={`text-[10px] mt-1 font-bold uppercase tracking-wider ${isDark ? 'text-[#ff8e01]/70' : 'text-[#ff8e01]'}`}>
+                                                            <p className={`text-[10px] mt-1 font-bold uppercase tracking-wider ${isDark ? 'text-primary/70' : 'text-primary'}`}>
                                                                 {new Date(task.date).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}
                                                             </p>
                                                         </div>
@@ -551,13 +551,13 @@ const DashboardLayout = () => {
                                                         key={notification._id}
                                                         onClick={() => handleNotificationClick(notification)}
                                                         className={`p-4 border-b cursor-pointer transition-colors ${isDark
-                                                                ? `border-white/5 hover:bg-white/5 ${!notification.isRead ? 'bg-[#ff8e01]/10' : ''}`
-                                                                : `border-gray-50 hover:bg-gray-50 ${!notification.isRead ? 'bg-[#ff8e01]/5' : ''}`
+                                                                ? `border-white/5 hover:bg-white/5 ${!notification.isRead ? 'bg-primary/10' : ''}`
+                                                                : `border-gray-50 hover:bg-gray-50 ${!notification.isRead ? 'bg-primary/5' : ''}`
                                                             }`}
                                                     >
                                                         <div className="flex items-start gap-3">
                                                             <div
-                                                                className={`w-2 h-2 rounded-full mt-2 ${!notification.isRead ? 'bg-[#ff8e01]' : isDark ? 'bg-white/20' : 'bg-gray-300'}`}
+                                                                className={`w-2 h-2 rounded-full mt-2 ${!notification.isRead ? 'bg-primary' : isDark ? 'bg-white/20' : 'bg-gray-300'}`}
                                                             />
                                                             <div className="flex-1">
                                                                 <div className="flex items-center justify-between gap-2">
@@ -595,7 +595,7 @@ const DashboardLayout = () => {
                                     onClick={() => setShowUserMenu(!showUserMenu)}
                                     className={`flex items-center gap-3 p-1.5 rounded-xl transition-colors ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`}
                                 >
-                                    <ProfileAvatar src={user?.photo} name={user?.name} size="sm" shape="rounded-xl" border="border border-white/20" fallbackColor="bg-gradient-to-br from-[#ff8e01] to-[#ffab40]" />
+                                    <ProfileAvatar src={user?.photo} name={user?.name} size="sm" shape="rounded-xl" border="border border-white/20" fallbackColor="bg-gradient-to-br from-primary to-[#ffab40]" />
                                     <div className="hidden md:block text-left">
                                         <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
                                             {user?.name || 'User'}
@@ -695,3 +695,5 @@ const DashboardLayout = () => {
 };
 
 export default DashboardLayout;
+
+

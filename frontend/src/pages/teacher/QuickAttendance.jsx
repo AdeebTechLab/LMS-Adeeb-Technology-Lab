@@ -79,7 +79,7 @@ const QuickAttendance = () => {
                                 rollNo: e.user?.rollNo || 'N/A',
                                 photo: e.user?.photo || '',
                                 courseId: course._id,
-                                courseName: course.name,
+                                courseName: course.title || course.name,
                                 audience: course.targetAudience,
                                 location: course.location || 'N/A',
                                 attendType: e.user?.attendType || 'Physical'
@@ -166,7 +166,7 @@ const QuickAttendance = () => {
 
             // Header Section
             doc.setFontSize(22);
-            doc.setTextColor(16, 185, 129); // Emerald-500
+            doc.setTextColor(16, 185, 129); // primary
             doc.text('LMS ADEEB TECH LAB', 14, 20);
             
             doc.setFontSize(14);
@@ -301,7 +301,7 @@ const QuickAttendance = () => {
                             }
                         });
                     } catch (err) {
-                        console.warn(`Could not fetch attendance for ${course.name} on ${date}`);
+                        console.warn(`Could not fetch attendance for ${course.title || course.name} on ${date}`);
                     }
                 }
             }
@@ -407,7 +407,7 @@ const QuickAttendance = () => {
     if (isLoading) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
-                <Loader2 className="w-12 h-12 text-emerald-500 animate-spin" />
+                <Loader2 className="w-12 h-12 text-primary animate-spin" />
                 <p className="text-gray-500 font-bold uppercase tracking-widest text-sm">Initializing Active Attendance...</p>
             </div>
         );
@@ -417,19 +417,19 @@ const QuickAttendance = () => {
         <div className="w-full px-4 md:px-6 lg:px-8 space-y-6 pb-20">
             {/* Premium Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-6 sm:p-8 rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden relative group">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-50 rounded-full -mr-32 -mt-32 opacity-50 group-hover:scale-110 transition-transform duration-700"></div>
+                <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -mr-32 -mt-32 opacity-50 group-hover:scale-110 transition-transform duration-700"></div>
                 
                 <div className="relative z-10">
                     <button 
                         onClick={() => navigate('/teacher/dashboard')}
-                        className="flex items-center gap-2 text-emerald-600 hover:text-emerald-700 font-black text-[10px] uppercase tracking-[0.2em] mb-4"
+                        className="flex items-center gap-2 text-primary hover:text-primary font-black text-[10px] uppercase tracking-[0.2em] mb-4"
                     >
                         <ChevronLeft className="w-4 h-4" />
                         Back to Portal
                     </button>
                     <h1 className="text-3xl font-black text-gray-900 uppercase tracking-tighter leading-none mb-2">Active Attendance</h1>
                     <p className="text-gray-500 text-xs font-bold uppercase tracking-widest flex items-center gap-2">
-                        <Users className="w-4 h-4 text-emerald-500" />
+                        <Users className="w-4 h-4 text-primary" />
                         Fast marking for {students.length} active students
                     </p>
                 </div>
@@ -444,7 +444,7 @@ const QuickAttendance = () => {
                     </button>
                     <button
                         onClick={handleDownloadPDF}
-                        className="flex items-center justify-center gap-3 bg-white text-emerald-600 px-6 py-3.5 rounded-2xl font-black uppercase tracking-widest text-xs border-2 border-emerald-100 shadow-sm hover:border-emerald-500 hover:shadow-lg hover:shadow-emerald-100 transition-all active:scale-95"
+                        className="flex items-center justify-center gap-3 bg-white text-primary px-6 py-3.5 rounded-2xl font-black uppercase tracking-widest text-xs border-2 border-primary/10 shadow-sm hover:border-primary hover:shadow-lg hover:shadow-primary/10 transition-all active:scale-95"
                     >
                         <Download className="w-5 h-5" />
                         Download Today
@@ -452,13 +452,13 @@ const QuickAttendance = () => {
                     <div className="flex flex-col items-end">
                         <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 mr-1">Selection Date</label>
                         <div className="relative">
-                            <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-500" />
+                            <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
                             <input 
                                 type="date"
                                 value={selectedDate}
                                 max={getLocalDateString(new Date())}
                                 onChange={(e) => setSelectedDate(e.target.value)}
-                                className="pl-12 pr-6 py-3.5 bg-gray-50 border-2 border-transparent focus:border-emerald-500 focus:bg-white rounded-2xl text-sm font-black outline-none transition-all cursor-pointer shadow-sm"
+                                className="pl-12 pr-6 py-3.5 bg-gray-50 border-2 border-transparent focus:border-primary focus:bg-white rounded-2xl text-sm font-black outline-none transition-all cursor-pointer shadow-sm"
                             />
                         </div>
                     </div>
@@ -488,14 +488,14 @@ const QuickAttendance = () => {
                     {/* Search Bar - Sleek Design */}
                     <div className="relative flex-1 w-full group">
                         <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                            <Search className="w-4 h-4 text-gray-400 group-focus-within:text-emerald-500 transition-colors" />
+                            <Search className="w-4 h-4 text-gray-400 group-focus-within:text-primary transition-colors" />
                         </div>
                         <input 
                             type="text"
                             placeholder="Search by name or roll number..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-11 pr-4 py-3.5 bg-gray-50/50 border border-gray-100 focus:border-emerald-500/30 focus:bg-white focus:ring-4 focus:ring-emerald-500/5 rounded-2xl text-sm font-bold outline-none transition-all placeholder:text-gray-400"
+                            className="w-full pl-11 pr-4 py-3.5 bg-gray-50/50 border border-gray-100 focus:border-primary/30 focus:bg-white focus:ring-4 focus:ring-primary/5 rounded-2xl text-sm font-bold outline-none transition-all placeholder:text-gray-400"
                         />
                     </div>
 
@@ -503,11 +503,11 @@ const QuickAttendance = () => {
                     <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
                         {/* Course Filter */}
                         <div className="relative flex-1 lg:w-48">
-                            <Filter className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3 h-3 text-emerald-500" />
+                            <Filter className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3 h-3 text-primary" />
                             <select 
                                 value={filterCourse}
                                 onChange={(e) => setFilterCourse(e.target.value)}
-                                className="w-full pl-9 pr-8 py-3 bg-gray-50/50 border border-gray-100 rounded-xl text-[9px] font-black uppercase tracking-widest outline-none focus:border-emerald-500/30 focus:bg-white transition-all cursor-pointer appearance-none"
+                                className="w-full pl-9 pr-8 py-3 bg-gray-50/50 border border-gray-100 rounded-xl text-[9px] font-black uppercase tracking-widest outline-none focus:border-primary/30 focus:bg-white transition-all cursor-pointer appearance-none"
                             >
                                 <option value="all">All Courses</option>
                                 {courses.map(c => (
@@ -518,11 +518,11 @@ const QuickAttendance = () => {
 
                         {/* Location Filter */}
                         <div className="relative flex-1 lg:w-40">
-                            <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3 h-3 text-emerald-500" />
+                            <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3 h-3 text-primary" />
                             <select 
                                 value={filterLocation}
                                 onChange={(e) => setFilterLocation(e.target.value)}
-                                className="w-full pl-9 pr-8 py-3 bg-gray-50/50 border border-gray-100 rounded-xl text-[9px] font-black uppercase tracking-widest outline-none focus:border-emerald-500/30 focus:bg-white transition-all cursor-pointer appearance-none"
+                                className="w-full pl-9 pr-8 py-3 bg-gray-50/50 border border-gray-100 rounded-xl text-[9px] font-black uppercase tracking-widest outline-none focus:border-primary/30 focus:bg-white transition-all cursor-pointer appearance-none"
                             >
                                 <option value="all">All Locations</option>
                                 <option value="Bahawalpur">Bahawalpur</option>
@@ -532,11 +532,11 @@ const QuickAttendance = () => {
 
                         {/* Category Filter */}
                         <div className="relative flex-1 lg:w-36">
-                            <GraduationCap className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3 h-3 text-emerald-500" />
+                            <GraduationCap className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3 h-3 text-primary" />
                             <select 
                                 value={filterCategory}
                                 onChange={(e) => setFilterCategory(e.target.value)}
-                                className="w-full pl-9 pr-8 py-3 bg-gray-50/50 border border-gray-100 rounded-xl text-[9px] font-black uppercase tracking-widest outline-none focus:border-emerald-500/30 focus:bg-white transition-all cursor-pointer appearance-none"
+                                className="w-full pl-9 pr-8 py-3 bg-gray-50/50 border border-gray-100 rounded-xl text-[9px] font-black uppercase tracking-widest outline-none focus:border-primary/30 focus:bg-white transition-all cursor-pointer appearance-none"
                             >
                                 <option value="all">All Categories</option>
                                 <option value="students">Students</option>
@@ -549,16 +549,16 @@ const QuickAttendance = () => {
                 {/* Status Chips - Interactive Filtering */}
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 pt-4 border-t border-gray-50">
                     <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 rounded-full border border-gray-100">
-                        <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                        <div className="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
                         <span className="text-[9px] font-black text-gray-500 uppercase tracking-[0.15em]">Quick Status Filter</span>
                     </div>
                     
                     <div className="flex flex-wrap items-center gap-2">
                         {[
                             { id: 'all', label: 'All Students', icon: Users, baseColor: 'gray', activeClass: 'bg-gray-900 border-gray-900 text-white shadow-gray-200' },
-                            { id: 'present', label: 'Present', icon: UserCheck, baseColor: 'emerald', activeClass: 'bg-emerald-600 border-emerald-600 text-white shadow-emerald-100' },
-                            { id: 'absent', label: 'Absent', icon: UserX, baseColor: 'rose', activeClass: 'bg-rose-600 border-rose-600 text-white shadow-rose-100' },
-                            { id: 'not_marked', label: 'Not Marked', icon: Clock, baseColor: 'amber', activeClass: 'bg-amber-500 border-amber-500 text-white shadow-amber-100' }
+                            { id: 'present', label: 'Present', icon: UserCheck, baseColor: 'emerald', activeClass: 'bg-present-fixed border-present-fixed text-white shadow-emerald-100' },
+                            { id: 'absent', label: 'Absent', icon: UserX, baseColor: 'rose', activeClass: 'bg-absent-fixed border-absent-fixed text-white shadow-rose-100' },
+                            { id: 'not_marked', label: 'Not Marked', icon: Clock, baseColor: 'amber', activeClass: 'bg-norecord-fixed border-norecord-fixed text-white shadow-slate-100' }
                         ].map(btn => (
                             <button
                                 key={btn.id}
@@ -585,7 +585,7 @@ const QuickAttendance = () => {
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className="bg-emerald-600 border-b border-emerald-700">
+                            <tr className="bg-primary border-b border-primary">
                                 <th className="px-6 py-5 text-[10px] font-black text-white/90 uppercase tracking-[0.2em] text-center w-12">#</th>
                                 <th className="px-8 py-5 text-[10px] font-black text-white/90 uppercase tracking-[0.2em]">Student Details</th>
                                 <th className="px-6 py-5 text-[10px] font-black text-white/90 uppercase tracking-[0.2em]">Roll Number</th>
@@ -610,8 +610,8 @@ const QuickAttendance = () => {
                                             exit={{ opacity: 0 }}
                                             transition={{ delay: index * 0.01 }}
                                             className={`group transition-colors ${
-                                                currentMark?.status === 'present' ? 'bg-emerald-50/30' : 
-                                                currentMark?.status === 'absent' ? 'bg-rose-50/30' : 
+                                                currentMark?.status === 'present' ? 'bg-present-fixed-light' : 
+                                                currentMark?.status === 'absent' ? 'bg-absent-fixed-light' : 
                                                 'hover:bg-gray-50/50'
                                             }`}
                                         >
@@ -628,11 +628,11 @@ const QuickAttendance = () => {
                                                             name={student.name} 
                                                             size="lg" 
                                                             shape="rounded-xl"
-                                                            border={currentMark?.status === 'present' ? 'border-emerald-500' : currentMark?.status === 'absent' ? 'border-rose-500' : 'border-gray-100'} 
+                                                            border={currentMark?.status === 'present' ? 'border-primary' : currentMark?.status === 'absent' ? 'border-rose-500' : 'border-gray-100'} 
                                                         />
                                                     </div>
                                                     <div className="min-w-0">
-                                                        <h3 className="text-sm font-black text-gray-900 uppercase tracking-tight group-hover:text-emerald-600 transition-colors">{student.name}</h3>
+                                                        <h3 className="text-sm font-black text-gray-900 uppercase tracking-tight group-hover:text-primary transition-colors">{student.name}</h3>
                                                     </div>
                                                 </div>
                                             </td>
@@ -650,7 +650,7 @@ const QuickAttendance = () => {
                                             <td className="px-6 py-4">
                                                 <span className={`text-[9px] px-2 py-1 rounded-md font-black uppercase tracking-widest border ${
                                                     student.audience === 'interns' 
-                                                    ? 'bg-purple-50 text-purple-600 border-purple-100' 
+                                                    ? 'bg-purple-50 text-primary border-primary/10' 
                                                     : 'bg-blue-50 text-blue-600 border-blue-100'
                                                 }`}>
                                                     {student.audience === 'interns' ? 'Intern' : 'Student'}
@@ -659,7 +659,7 @@ const QuickAttendance = () => {
                                             <td className="px-6 py-4">
                                                     {(student.attendType || '').toLowerCase().includes('online')
                                                     ? <span className="bg-rose-50 text-rose-600 border-rose-200 text-[10px] px-3 py-1.5 rounded-lg font-black uppercase tracking-widest border shadow-sm">Remote</span>
-                                                    : <span className="bg-emerald-50 text-emerald-600 border-emerald-200 text-[10px] px-3 py-1.5 rounded-lg font-black uppercase tracking-widest border shadow-sm">OnSite</span>
+                                                    : <span className="bg-primary/5 text-primary border-primary text-[10px] px-3 py-1.5 rounded-lg font-black uppercase tracking-widest border shadow-sm">OnSite</span>
                                                 }
                                             </td>
                                             <td className="px-8 py-4">
@@ -669,8 +669,8 @@ const QuickAttendance = () => {
                                                         onClick={() => handleMark(student, 'present')}
                                                         className={`px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-[0.15em] transition-all flex items-center justify-center gap-2 border-2 ${
                                                             currentMark?.status === 'present'
-                                                            ? 'bg-emerald-600 border-emerald-600 text-white shadow-lg shadow-emerald-200'
-                                                            : 'bg-white border-gray-100 text-gray-400 hover:border-emerald-500 hover:text-emerald-600'
+                                                            ? 'bg-present-fixed border-present-fixed text-white shadow-lg shadow-present-fixed/20'
+                                                            : 'bg-white border-gray-100 text-gray-400 hover:border-present-fixed hover:text-present-fixed'
                                                         } disabled:opacity-30 disabled:cursor-not-allowed active:scale-95`}
                                                     >
                                                         Present
@@ -680,8 +680,8 @@ const QuickAttendance = () => {
                                                         onClick={() => handleMark(student, 'absent')}
                                                         className={`px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-[0.15em] transition-all flex items-center justify-center gap-2 border-2 ${
                                                             currentMark?.status === 'absent'
-                                                            ? 'bg-rose-600 border-rose-600 text-white shadow-lg shadow-rose-200'
-                                                            : 'bg-white border-gray-100 text-gray-400 hover:border-rose-500 hover:text-rose-600'
+                                                            ? 'bg-absent-fixed border-absent-fixed text-white shadow-lg shadow-absent-fixed/20'
+                                                            : 'bg-white border-gray-100 text-gray-400 hover:border-absent-fixed hover:text-absent-fixed'
                                                         } disabled:opacity-30 disabled:cursor-not-allowed active:scale-95`}
                                                     >
                                                         Absent
@@ -715,7 +715,7 @@ const QuickAttendance = () => {
                         </div>
                         <div className="w-px h-8 bg-white/10"></div>
                         <div className="flex flex-col">
-                            <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Present</span>
+                            <span className="text-[10px] font-black text-primary uppercase tracking-widest">Present</span>
                             <span className="text-xl font-black text-white leading-none">
                                 {Object.values(attendanceMarks).filter(v => v?.status === 'present').length}
                             </span>
@@ -724,7 +724,7 @@ const QuickAttendance = () => {
                     
                     <button 
                         onClick={() => navigate('/teacher/dashboard')}
-                        className="px-8 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-lg shadow-emerald-500/20 active:scale-95 flex items-center gap-3"
+                        className="px-8 py-3 bg-primary hover:bg-primary text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-lg shadow-primary/20 active:scale-95 flex items-center gap-3"
                     >
                         <CheckCircle className="w-5 h-5" />
                         Finish Marking
@@ -771,7 +771,7 @@ const QuickAttendance = () => {
                                                 type="date"
                                                 value={rangeStart}
                                                 onChange={(e) => setRangeStart(e.target.value)}
-                                                className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:border-emerald-500 rounded-2xl font-black text-sm outline-none transition-all"
+                                                className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:border-primary rounded-2xl font-black text-sm outline-none transition-all"
                                             />
                                         </div>
                                         <div className="space-y-2">
@@ -781,16 +781,16 @@ const QuickAttendance = () => {
                                                 value={rangeEnd}
                                                 max={getLocalDateString(new Date())}
                                                 onChange={(e) => setRangeEnd(e.target.value)}
-                                                className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:border-emerald-500 rounded-2xl font-black text-sm outline-none transition-all"
+                                                className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:border-primary rounded-2xl font-black text-sm outline-none transition-all"
                                             />
                                         </div>
                                     </div>
 
-                                    <div className="bg-emerald-50 p-4 rounded-2xl flex items-center gap-4">
-                                        <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-600">
+                                    <div className="bg-primary/5 p-4 rounded-2xl flex items-center gap-4">
+                                        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
                                             <AlertCircle className="w-5 h-5" />
                                         </div>
-                                        <p className="text-[10px] font-bold text-emerald-800 uppercase leading-relaxed">
+                                        <p className="text-[10px] font-bold text-primary uppercase leading-relaxed">
                                             Report will include summary for all students in this range.
                                         </p>
                                     </div>
@@ -798,7 +798,7 @@ const QuickAttendance = () => {
                                     <button
                                         disabled={isGeneratingRange}
                                         onClick={handleDownloadRangePDF}
-                                        className="w-full py-5 bg-gray-900 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-xl hover:bg-emerald-600 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-3"
+                                        className="w-full py-5 bg-gray-900 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-xl hover:bg-primary transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-3"
                                     >
                                         {isGeneratingRange ? (
                                             <>
@@ -823,3 +823,6 @@ const QuickAttendance = () => {
 };
 
 export default QuickAttendance;
+
+
+

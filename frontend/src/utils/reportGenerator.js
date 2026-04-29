@@ -178,7 +178,7 @@ export const generateComprehensiveReport = async (user, enrollments, assignments
 
     // Fallback if no photo or failed to load
     if (!photoAdded) {
-        doc.setFillColor(16, 185, 129); // Emerald-500
+        doc.setFillColor(16, 185, 129); // primary
         doc.rect(pageWidth - 54, y, 40, 40, 'F');
         doc.setTextColor(255, 255, 255);
         doc.setFontSize(24);
@@ -539,3 +539,4 @@ export const generateComprehensiveReport = async (user, enrollments, assignments
     // Save
     doc.save(`${user.name.replace(/\s+/g, '_')}_Report.pdf`);
 };
+

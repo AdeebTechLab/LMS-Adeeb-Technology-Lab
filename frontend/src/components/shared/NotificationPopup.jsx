@@ -50,7 +50,7 @@ const NotificationPopup = () => {
         const message = (notification.message || '').toLowerCase();
 
         if (title.includes('fee') || title.includes('payment') || title.includes('installment') || message.includes('fee')) {
-            return <CreditCard className="w-8 h-8 text-emerald-500" />;
+            return <CreditCard className="w-8 h-8 text-primary" />;
         }
         if (title.includes('assignment') || title.includes('task') || message.includes('assignment')) {
             return <FileText className="w-8 h-8 text-blue-500" />;
@@ -62,7 +62,7 @@ const NotificationPopup = () => {
             return <Calendar className="w-8 h-8 text-indigo-500" />;
         }
         if (title.includes('urgent') || title.includes('important') || title.includes('attention')) {
-            return <Zap className="w-8 h-8 text-[#ff8e01]" />;
+            return <Zap className="w-8 h-8 text-primary" />;
         }
         if (title.includes('holiday') || title.includes('closed') || title.includes('off')) {
             return <Megaphone className="w-8 h-8 text-rose-500" />;
@@ -70,9 +70,9 @@ const NotificationPopup = () => {
 
         switch (notification.type) {
             case 'warning': return <AlertCircle className="w-8 h-8 text-amber-500" />;
-            case 'success': return <CheckCircle className="w-8 h-8 text-emerald-500" />;
+            case 'success': return <CheckCircle className="w-8 h-8 text-primary" />;
             case 'error': return <AlertCircle className="w-8 h-8 text-rose-500" />;
-            default: return <Bell className="w-8 h-8 text-[#ff8e01]" />;
+            default: return <Bell className="w-8 h-8 text-primary" />;
         }
     };
 
@@ -85,10 +85,10 @@ const NotificationPopup = () => {
                 bar: 'bg-amber-500'
             };
             case 'success': return {
-                border: isDark ? 'border-[#ff8e01]/40' : 'border-[#ff8e01]/20',
-                bg: isDark ? 'bg-[#ff8e01]/15' : 'bg-[#ff8e01]/5',
-                iconBg: isDark ? 'bg-[#ff8e01]/20' : 'bg-[#ff8e01]/10',
-                bar: 'bg-[#ff8e01]'
+                border: isDark ? 'border-primary/40' : 'border-primary/20',
+                bg: isDark ? 'bg-primary/15' : 'bg-primary/5',
+                iconBg: isDark ? 'bg-primary/20' : 'bg-primary/10',
+                bar: 'bg-primary'
             };
             case 'error': return {
                 border: isDark ? 'border-rose-500/30' : 'border-rose-200',
@@ -118,7 +118,7 @@ const NotificationPopup = () => {
                         {/* Header */}
                         <div className={`p-4 md:p-5 pb-3 border-b flex items-center justify-between flex-shrink-0 ${isDark ? 'border-white/10' : 'border-slate-100'}`}>
                             <div className="flex items-center gap-3">
-                                <div className={`p-1.5 rounded-xl border border-[#ff8e01]/30 flex items-center justify-center overflow-hidden w-12 h-12 md:w-14 md:h-14 ${isDark ? 'bg-white/5' : 'bg-gray-50'}`}>
+                                <div className={`p-1.5 rounded-xl border border-primary/30 flex items-center justify-center overflow-hidden w-12 h-12 md:w-14 md:h-14 ${isDark ? 'bg-white/5' : 'bg-gray-50'}`}>
                                     <img
                                         src="/logo.png"
                                         alt="Logo"
@@ -128,17 +128,17 @@ const NotificationPopup = () => {
                                             e.target.nextSibling.style.display = 'block';
                                         }}
                                     />
-                                    <GraduationCap className="w-16 h-16 text-[#ff8e01] hidden" />
+                                    <GraduationCap className="w-16 h-16 text-primary hidden" />
                                 </div>
                                 <div>
                                     <div className="flex items-center gap-2">
-                                        <h1 className="text-[#ff8e01] font-black text-[10px] uppercase tracking-[0.2em]">LMS Adeeb Tech Lab</h1>
+                                        <h1 className="text-primary font-black text-[10px] uppercase tracking-[0.2em]">LMS Adeeb Tech Lab</h1>
                                         <div className="h-1 w-1 rounded-full bg-gray-400" />
                                         <span className={`text-[10px] font-bold uppercase tracking-widest ${isDark ? 'text-white/40' : 'text-gray-400'}`}>Official Notice</span>
                                     </div>
                                     <h2 className={`text-xl md:text-2xl font-black tracking-tight mt-0.5 ${isDark ? 'text-white' : 'text-slate-900'}`}>Important Announcements</h2>
                                     <p className={`text-xs font-medium mt-0.5 ${isDark ? 'text-gray-300' : 'text-slate-500'}`}>
-                                        You have <span className="text-[#ff8e01] font-bold">{activeNotifications.length}</span> {activeNotifications.length === 1 ? 'notification' : 'notifications'} to review
+                                        You have <span className="text-primary font-bold">{activeNotifications.length}</span> {activeNotifications.length === 1 ? 'notification' : 'notifications'} to review
                                     </p>
                                 </div>
                             </div>
@@ -193,3 +193,5 @@ const NotificationPopup = () => {
 };
 
 export default NotificationPopup;
+
+

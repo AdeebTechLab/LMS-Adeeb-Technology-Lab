@@ -162,13 +162,13 @@ const MarksSheet = () => {
 
     const getGrade = (percentage) => {
         if (!percentage || isNaN(percentage)) return { grade: 'N/A', color: 'text-gray-400' };
-        if (percentage >= 90) return { grade: 'A+', color: 'text-emerald-600' };
-        if (percentage >= 85) return { grade: 'A', color: 'text-emerald-600' };
+        if (percentage >= 90) return { grade: 'A+', color: 'text-primary' };
+        if (percentage >= 85) return { grade: 'A', color: 'text-primary' };
         if (percentage >= 80) return { grade: 'B+', color: 'text-blue-600' };
         if (percentage >= 75) return { grade: 'B', color: 'text-blue-600' };
         if (percentage >= 70) return { grade: 'C+', color: 'text-amber-600' };
         if (percentage >= 65) return { grade: 'C', color: 'text-amber-600' };
-        if (percentage >= 60) return { grade: 'D', color: 'text-orange-600' };
+        if (percentage >= 60) return { grade: 'D', color: 'text-primary' };
         return { grade: 'F', color: 'text-red-600' };
     };
 
@@ -211,13 +211,13 @@ const MarksSheet = () => {
     }
 
     const GRADE_SCALE = [
-        { grade: 'A+', range: '90–100', color: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
-        { grade: 'A', range: '85–89', color: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+        { grade: 'A+', range: '90–100', color: 'bg-primary/5 text-primary border-primary' },
+        { grade: 'A', range: '85–89', color: 'bg-primary/5 text-primary border-primary' },
         { grade: 'B+', range: '80–84', color: 'bg-blue-50 text-blue-700 border-blue-200' },
         { grade: 'B', range: '75–79', color: 'bg-blue-50 text-blue-700 border-blue-200' },
         { grade: 'C+', range: '70–74', color: 'bg-amber-50 text-amber-700 border-amber-200' },
         { grade: 'C', range: '65–69', color: 'bg-amber-50 text-amber-700 border-amber-200' },
-        { grade: 'D', range: '60–64', color: 'bg-orange-50 text-orange-700 border-orange-200' },
+        { grade: 'D', range: '60–64', color: 'bg-primary/5 text-orange-700 border-orange-200' },
         { grade: 'F', range: '0–59', color: 'bg-red-50 text-red-700 border-red-200' },
     ];
 
@@ -286,16 +286,16 @@ const MarksSheet = () => {
                         <p className="text-gray-400 text-[8px] sm:text-[10px] font-black uppercase tracking-widest mb-1">Graded Assessments</p>
                         <p className="text-2xl sm:text-3xl font-black text-gray-900">{totalAssignmentsCount + totalTestsCount}</p>
                     </div>
-                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-emerald-50 rounded-xl flex items-center justify-center shrink-0 ml-2">
-                        <FileText className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600" />
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary/5 rounded-xl flex items-center justify-center shrink-0 ml-2">
+                        <FileText className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
                     </div>
                 </div>
             </div>
 
             {/* Course Selector Step - High Visibility */}
-            <div className="bg-[#f8fafc] p-4 sm:p-8 rounded-3xl border-2 border-emerald-500/20 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl shadow-emerald-900/5">
+            <div className="bg-[#f8fafc] p-4 sm:p-8 rounded-3xl border-2 border-primary/20 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl shadow-primary/5">
                 <div className="flex items-center gap-4 w-full md:w-auto">
-                    <div className="p-3 sm:p-4 bg-emerald-600 rounded-2xl shadow-lg shadow-emerald-200 shrink-0">
+                    <div className="p-3 sm:p-4 bg-primary rounded-2xl shadow-lg shadow-primary shrink-0">
                         <GraduationCap className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
                     </div>
                     <div>
@@ -307,7 +307,7 @@ const MarksSheet = () => {
                     <select
                         value={selectedCourseId}
                         onChange={(e) => setSelectedCourseId(e.target.value)}
-                        className={`w-full px-4 sm:px-6 py-3 sm:py-4 bg-white border-2 rounded-2xl outline-none transition-all font-black text-sm sm:text-lg uppercase tracking-tight appearance-none cursor-pointer ${!selectedCourseId ? 'border-amber-400 text-amber-600 animate-pulse ring-4 ring-amber-400/10' : 'border-emerald-500 text-emerald-600'
+                        className={`w-full px-4 sm:px-6 py-3 sm:py-4 bg-white border-2 rounded-2xl outline-none transition-all font-black text-sm sm:text-lg uppercase tracking-tight appearance-none cursor-pointer ${!selectedCourseId ? 'border-amber-400 text-amber-600 animate-pulse ring-4 ring-amber-400/10' : 'border-primary text-primary'
                             }`}
                     >
                         <option value="">-- Choose Course Here --</option>
@@ -316,7 +316,7 @@ const MarksSheet = () => {
                         ))}
                     </select>
                     <div className="absolute right-4 sm:right-6 top-1/2 -translate-y-1/2 pointer-events-none">
-                        <div className={`w-2 h-2 sm:w-3 sm:h-3 border-r-2 border-b-2 rotate-45 ${!selectedCourseId ? 'border-amber-400' : 'border-emerald-600'}`}></div>
+                        <div className={`w-2 h-2 sm:w-3 sm:h-3 border-r-2 border-b-2 rotate-45 ${!selectedCourseId ? 'border-amber-400' : 'border-primary'}`}></div>
                     </div>
                 </div>
             </div>
@@ -402,10 +402,10 @@ const MarksSheet = () => {
                                     <div>
                                         <div className="flex items-center justify-between mb-6 px-2">
                                             <div className="flex items-center gap-3">
-                                                <div className="p-2 bg-emerald-50 rounded-lg"><RefreshCw className="w-5 h-5 text-emerald-600" /></div>
+                                                <div className="p-2 bg-primary/5 rounded-lg"><RefreshCw className="w-5 h-5 text-primary" /></div>
                                                 <h4 className="font-black text-gray-900 uppercase tracking-widest">Daily work logs</h4>
                                             </div>
-                                            {dailyAvgMarks && <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-100 uppercase">Work Log Avg Score: {dailyAvgMarks}/100</span>}
+                                            {dailyAvgMarks && <span className="text-[10px] font-black text-primary bg-primary/5 px-3 py-1.5 rounded-xl border border-primary/10 uppercase">Work Log Avg Score: {dailyAvgMarks}/100</span>}
                                         </div>
                                         {dailyTaskGrades.length > 0 ? (
                                             <div className="overflow-x-auto no-scrollbar rounded-2xl border border-gray-100">
@@ -448,10 +448,10 @@ const MarksSheet = () => {
                                                 <>
                                                     <div className="flex items-center justify-between mb-6 px-2">
                                                         <div className="flex items-center gap-3">
-                                                            <div className="p-2 bg-orange-50 rounded-lg"><Zap className="w-5 h-5 text-[#ff8e01]" /></div>
+                                                            <div className="p-2 bg-primary/5 rounded-lg"><Zap className="w-5 h-5 text-primary" /></div>
                                                             <h4 className="font-black text-gray-900 uppercase tracking-widest">Tests & Exams</h4>
                                                         </div>
-                                                        {testAvg && <span className="text-[10px] font-black text-[#ff8e01] bg-orange-50 px-3 py-1.5 rounded-xl border border-orange-100 uppercase">Test Avg: {testAvg}%</span>}
+                                                        {testAvg && <span className="text-[10px] font-black text-primary bg-primary/5 px-3 py-1.5 rounded-xl border border-primary/10 uppercase">Test Avg: {testAvg}%</span>}
                                                     </div>
                                                     {testGrades.length > 0 ? (
                                                         <div className="overflow-x-auto no-scrollbar rounded-2xl border border-gray-100">
@@ -506,3 +506,6 @@ const MarksSheet = () => {
 };
 
 export default MarksSheet;
+
+
+

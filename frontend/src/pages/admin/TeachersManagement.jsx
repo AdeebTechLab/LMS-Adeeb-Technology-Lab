@@ -477,9 +477,9 @@ const TeachersManagement = () => {
                     <div className="relative flex-1 md:flex-none">
                         <button
                             onClick={() => setShowExportOptions(!showExportOptions)}
-                            className="w-full px-4 py-2.5 bg-white border border-emerald-100 rounded-xl font-black text-[10px] uppercase tracking-widest text-emerald-700 hover:bg-emerald-50 transition-all flex items-center justify-center gap-2 shadow-sm"
+                            className="w-full px-4 py-2.5 bg-white border border-primary/10 rounded-xl font-black text-[10px] uppercase tracking-widest text-primary hover:bg-primary/5 transition-all flex items-center justify-center gap-2 shadow-sm"
                         >
-                            <Download className="w-4 h-4 text-emerald-600" />
+                            <Download className="w-4 h-4 text-primary" />
                             EXPORT DATA
                         </button>
 
@@ -500,7 +500,7 @@ const TeachersManagement = () => {
                                         <button
                                             key={opt.id}
                                             onClick={() => downloadPDF(opt.id)}
-                                            className="w-full px-4 py-2.5 text-left text-[11px] font-bold text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 flex items-center gap-3 transition-colors"
+                                            className="w-full px-4 py-2.5 text-left text-[11px] font-bold text-gray-700 hover:bg-primary/5 hover:text-primary flex items-center gap-3 transition-colors"
                                         >
                                             <opt.icon className="w-4 h-4" />
                                             {opt.label}
@@ -522,7 +522,7 @@ const TeachersManagement = () => {
                         placeholder="Search by name, email, or CNIC..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-transparent focus:border-emerald-500 focus:bg-white rounded-2xl transition-all outline-none text-sm font-medium"
+                        className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-transparent focus:border-primary focus:bg-white rounded-2xl transition-all outline-none text-sm font-medium"
                     />
                 </div>
 
@@ -561,7 +561,7 @@ const TeachersManagement = () => {
                             key={tab.id}
                             onClick={() => setFilterStatus(tab.id)}
                             className={`px-3 py-2.5 rounded-xl font-black text-[9px] uppercase tracking-widest transition-all flex items-center justify-between gap-2 border ${filterStatus === tab.id
-                                ? 'bg-emerald-600 text-white border-emerald-600 shadow-lg shadow-emerald-900/10'
+                                ? 'bg-primary text-white border-primary shadow-lg shadow-primary/10'
                                 : 'bg-gray-50 text-gray-500 border-gray-100 hover:bg-gray-100'
                                 }`}
                         >
@@ -661,14 +661,14 @@ const TeachersManagement = () => {
                                         )}
                                         <button
                                             onClick={() => downloadTeacherPDF(teacher)}
-                                            className="p-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 rounded-xl border border-emerald-100 transition-all"
+                                            className="p-2.5 bg-primary/5 hover:bg-primary/10 text-primary rounded-xl border border-primary/10 transition-all"
                                             title="PDF"
                                         >
                                             <Download className="w-5 h-5" />
                                         </button>
                                         <button
                                             onClick={() => openPauseModal(teacher)}
-                                            className="p-2.5 bg-orange-50 hover:bg-orange-100 text-orange-600 rounded-xl border border-orange-100 transition-all"
+                                            className="p-2.5 bg-primary/5 hover:bg-primary/10 text-primary rounded-xl border border-primary/10 transition-all"
                                             title="Pause"
                                         >
                                             <PauseCircle className="w-5 h-5" />
@@ -694,7 +694,7 @@ const TeachersManagement = () => {
                                         onClick={() => setConfirmModal({ open: true, action: teacher.isVerified ? 'unverify' : 'verify', teacher })}
                                         className={`px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all shadow-lg ${teacher.isVerified
                                             ? 'bg-amber-500 hover:bg-amber-600 text-white shadow-amber-900/10'
-                                            : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-900/10'
+                                            : 'bg-primary hover:bg-primary text-white shadow-primary/10'
                                             } flex items-center justify-center gap-2 min-w-[120px] active:scale-95`}
                                     >
                                         {teacher.isVerified ? <UserX className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
@@ -707,7 +707,7 @@ const TeachersManagement = () => {
                             <div className="mt-4 pt-4 border-t border-gray-50 grid grid-cols-1 sm:grid-cols-3 gap-4">
                                 {teacher.specialization && (
                                     <div className="flex items-center gap-2.5 px-3 py-2 bg-gray-50/50 rounded-xl border border-gray-100">
-                                        <GraduationCap className="w-4 h-4 text-emerald-500" />
+                                        <GraduationCap className="w-4 h-4 text-primary" />
                                         <div>
                                             <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Skills</p>
                                             <p className="text-[11px] font-bold text-gray-700 truncate">{teacher.specialization}</p>
@@ -716,7 +716,7 @@ const TeachersManagement = () => {
                                 )}
                                 {teacher.experience && (
                                     <div className="flex items-center gap-2.5 px-3 py-2 bg-gray-50/50 rounded-xl border border-gray-100">
-                                        <Calendar className="w-4 h-4 text-orange-500" />
+                                        <Calendar className="w-4 h-4 text-primary" />
                                         <div>
                                             <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Experience</p>
                                             <p className="text-[11px] font-bold text-gray-700 truncate">{teacher.experience} Years</p>
@@ -749,9 +749,9 @@ const TeachersManagement = () => {
                 {confirmModal.teacher && (
                     <div className="space-y-4">
                         <div className={`p-4 rounded-xl text-center ${confirmModal.action === 'delete' ? 'bg-red-50' :
-                            confirmModal.action === 'verify' ? 'bg-emerald-50' : 'bg-amber-50'
+                            confirmModal.action === 'verify' ? 'bg-primary/5' : 'bg-amber-50'
                             }`}>
-                            {confirmModal.action === 'verify' && <UserCheck className="w-12 h-12 text-emerald-600 mx-auto mb-2" />}
+                            {confirmModal.action === 'verify' && <UserCheck className="w-12 h-12 text-primary mx-auto mb-2" />}
                             {confirmModal.action === 'unverify' && <UserX className="w-12 h-12 text-amber-600 mx-auto mb-2" />}
                             {confirmModal.action === 'delete' && <Trash2 className="w-12 h-12 text-red-600 mx-auto mb-2" />}
 
@@ -791,7 +791,7 @@ const TeachersManagement = () => {
                                 className={`flex-1 py-3 rounded-xl font-medium flex items-center justify-center gap-2 ${confirmModal.action === 'delete'
                                     ? 'bg-red-600 hover:bg-red-700 text-white'
                                     : confirmModal.action === 'verify'
-                                        ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                                        ? 'bg-primary hover:bg-primary text-white'
                                         : 'bg-amber-500 hover:bg-amber-600 text-white'
                                     }`}
                             >
@@ -822,7 +822,7 @@ const TeachersManagement = () => {
                     <p className="text-sm text-gray-500">Select a course to pause or resume this teacher's access.</p>
                     {loadingCourses ? (
                         <div className="flex items-center justify-center py-10">
-                            <Loader2 className="w-6 h-6 animate-spin text-emerald-600" />
+                            <Loader2 className="w-6 h-6 animate-spin text-primary" />
                             <span className="ml-2 text-gray-500">Loading courses...</span>
                         </div>
                     ) : teacherCourses.length === 0 ? (
@@ -842,21 +842,21 @@ const TeachersManagement = () => {
                                     <div
                                         key={course._id}
                                         className={`flex items-center justify-between p-3 rounded-xl border transition-all ${isPaused
-                                            ? 'bg-orange-50 border-orange-200'
+                                            ? 'bg-primary/5 border-orange-200'
                                             : 'bg-gray-50 border-gray-100'
                                             }`}
                                     >
                                         <div className="flex items-center gap-3">
-                                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isPaused ? 'bg-orange-100' : 'bg-emerald-100'
+                                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isPaused ? 'bg-primary/10' : 'bg-primary/10'
                                                 }`}>
-                                                <BookOpen className={`w-4 h-4 ${isPaused ? 'text-orange-600' : 'text-emerald-600'
+                                                <BookOpen className={`w-4 h-4 ${isPaused ? 'text-primary' : 'text-primary'
                                                     }`} />
                                             </div>
                                             <div>
                                                 <p className="font-bold text-sm text-gray-900 truncate max-w-[180px]">{course.title}</p>
                                                 <p className="text-[10px] text-gray-400 uppercase font-black tracking-wider">
                                                     {course.targetAudience} • {course.city}
-                                                    {isPaused && <span className="ml-2 text-orange-600">⏸ PAUSED</span>}
+                                                    {isPaused && <span className="ml-2 text-primary">⏸ PAUSED</span>}
                                                 </p>
                                             </div>
                                         </div>
@@ -864,8 +864,8 @@ const TeachersManagement = () => {
                                             onClick={() => isPaused ? handleResumeTeacher(course._id) : handlePauseTeacher(course._id)}
                                             disabled={isBusy}
                                             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold text-xs uppercase tracking-wide transition-all disabled:opacity-50 ${isPaused
-                                                ? 'bg-emerald-500 hover:bg-emerald-600 text-white'
-                                                : 'bg-orange-500 hover:bg-orange-600 text-white'
+                                                ? 'bg-primary hover:bg-primary text-white'
+                                                : 'bg-primary hover:bg-primary text-white'
                                                 }`}
                                         >
                                             {isBusy ? (
@@ -922,8 +922,8 @@ const TeachersManagement = () => {
                                     file:mr-4 file:py-2 file:px-4
                                     file:rounded-xl file:border-0
                                     file:text-xs file:font-semibold
-                                    file:bg-emerald-600 file:text-white
-                                    hover:file:bg-emerald-700
+                                    file:bg-primary file:text-white
+                                    hover:file:bg-primary
                                     cursor-pointer"
                             />
                         </div>
@@ -937,7 +937,7 @@ const TeachersManagement = () => {
                                 value={editForm.rollNo}
                                 onChange={(e) => setEditForm({ ...editForm, rollNo: e.target.value })}
                                 placeholder="e.g. TCH-2024-001"
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none font-mono"
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-mono"
                             />
                         </div>
                         <div className="space-y-2">
@@ -946,7 +946,7 @@ const TeachersManagement = () => {
                                 type="text"
                                 value={editForm.name}
                                 onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none"
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
                                 required
                             />
                         </div>
@@ -956,7 +956,7 @@ const TeachersManagement = () => {
                                 type="text"
                                 value={editForm.fatherName}
                                 onChange={(e) => setEditForm({ ...editForm, fatherName: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none"
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
                             />
                         </div>
                         <div className="space-y-2">
@@ -965,7 +965,7 @@ const TeachersManagement = () => {
                                 type="email"
                                 value={editForm.email}
                                 onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none"
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
                                 required
                             />
                         </div>
@@ -975,7 +975,7 @@ const TeachersManagement = () => {
                                 type="text"
                                 value={editForm.password}
                                 onChange={(e) => setEditForm({ ...editForm, password: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none font-mono"
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-mono"
                                 required
                             />
                         </div>
@@ -985,7 +985,7 @@ const TeachersManagement = () => {
                                 type="text"
                                 value={editForm.phone}
                                 onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none"
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
                             />
                         </div>
                         <div className="space-y-2">
@@ -994,7 +994,7 @@ const TeachersManagement = () => {
                                 type="text"
                                 value={editForm.cnic}
                                 onChange={(e) => setEditForm({ ...editForm, cnic: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none"
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
                             />
                         </div>
                         <div className="space-y-2">
@@ -1003,7 +1003,7 @@ const TeachersManagement = () => {
                                 type="date"
                                 value={editForm.dob}
                                 onChange={(e) => setEditForm({ ...editForm, dob: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none"
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
                             />
                         </div>
                         <div className="space-y-2">
@@ -1011,7 +1011,7 @@ const TeachersManagement = () => {
                             <select
                                 value={editForm.gender}
                                 onChange={(e) => setEditForm({ ...editForm, gender: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none"
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
                             >
                                 <option value="">Select Gender</option>
                                 <option value="Male">Male</option>
@@ -1029,7 +1029,7 @@ const TeachersManagement = () => {
                                 type="text"
                                 value={editForm.qualification}
                                 onChange={(e) => setEditForm({ ...editForm, qualification: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none"
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
                             />
                         </div>
                         <div className="space-y-2">
@@ -1038,7 +1038,7 @@ const TeachersManagement = () => {
                                 type="text"
                                 value={editForm.specialization}
                                 onChange={(e) => setEditForm({ ...editForm, specialization: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none"
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
                             />
                         </div>
                         <div className="space-y-2">
@@ -1047,7 +1047,7 @@ const TeachersManagement = () => {
                                 type="text"
                                 value={editForm.department}
                                 onChange={(e) => setEditForm({ ...editForm, department: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none"
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
                             />
                         </div>
                         <div className="space-y-2">
@@ -1056,7 +1056,7 @@ const TeachersManagement = () => {
                                 type="text"
                                 value={editForm.experience}
                                 onChange={(e) => setEditForm({ ...editForm, experience: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none"
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
                             />
                         </div>
                     </div>
@@ -1069,7 +1069,7 @@ const TeachersManagement = () => {
                             <select
                                 value={editForm.location}
                                 onChange={(e) => setEditForm({ ...editForm, location: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none"
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
                             >
                                 <option value="">Select Location</option>
                                 <option value="islamabad">Islamabad</option>
@@ -1083,7 +1083,7 @@ const TeachersManagement = () => {
                             value={editForm.address}
                             onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
                             rows={2}
-                            className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none"
+                            className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
                         />
                     </div>
                     <div className="flex gap-3 pt-4">
@@ -1097,7 +1097,7 @@ const TeachersManagement = () => {
                         <button
                             type="submit"
                             disabled={isProcessing}
-                            className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-medium flex items-center justify-center gap-2"
+                            className="flex-1 py-3 bg-primary hover:bg-primary text-white rounded-xl font-medium flex items-center justify-center gap-2"
                         >
                             {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
                             Update Bio
@@ -1119,3 +1119,6 @@ const TeachersManagement = () => {
 };
 
 export default TeachersManagement;
+
+
+

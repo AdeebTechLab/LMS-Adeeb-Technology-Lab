@@ -8,8 +8,8 @@ const themes = [
         id: 'orange',
         name: 'Adeeb Classic',
         color: '#ff8e01',
-        preview: 'bg-[#ff8e01]',
-        bgLight: 'bg-orange-50',
+        preview: 'bg-primary',
+        bgLight: 'bg-primary/5',
         description: 'Official Brand Identity'
     },
     {
@@ -103,7 +103,7 @@ const Settings = () => {
                     </div>
                     <button
                         onClick={toggleTheme}
-                        className={`relative w-14 h-8 rounded-full transition-colors duration-300 focus:outline-none ${isDark ? 'bg-[#ff8e01]' : 'bg-gray-200'}`}
+                        className={`relative w-14 h-8 rounded-full transition-colors duration-300 focus:outline-none ${isDark ? 'bg-primary' : 'bg-gray-200'}`}
                     >
                         <motion.div
                             animate={{ x: isDark ? 26 : 4 }}
@@ -184,3 +184,6 @@ const Settings = () => {
 };
 
 export default Settings;
+
+
+

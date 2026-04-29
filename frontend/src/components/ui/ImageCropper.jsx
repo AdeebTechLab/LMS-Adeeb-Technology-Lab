@@ -230,7 +230,7 @@ const ImageCropper = ({ imageSrc, onCrop, onCancel, accentColor = 'emerald' }) =
                         step="0.01"
                         value={zoom}
                         onChange={(e) => setZoom(parseFloat(e.target.value))}
-                        className="flex-1 accent-emerald-600 h-1.5 cursor-pointer"
+                        className="flex-1 accent-primary h-1.5 cursor-pointer"
                     />
                     <ZoomIn className="w-4 h-4 text-gray-400 flex-shrink-0" />
                     <span className="text-xs text-gray-500 w-10 text-right">{Math.round(zoom * 100)}%</span>
@@ -256,7 +256,7 @@ const ImageCropper = ({ imageSrc, onCrop, onCancel, accentColor = 'emerald' }) =
                     <button
                         type="button"
                         onClick={handleConfirm}
-                        className="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold transition-colors flex items-center justify-center gap-2 shadow-lg"
+                        className="flex-1 py-2.5 rounded-xl bg-primary hover:bg-primary text-white text-sm font-bold transition-colors flex items-center justify-center gap-2 shadow-lg"
                     >
                         <Check className="w-4 h-4" />
                         Use Photo
@@ -268,3 +268,5 @@ const ImageCropper = ({ imageSrc, onCrop, onCancel, accentColor = 'emerald' }) =
 };
 
 export default ImageCropper;
+
+

@@ -194,18 +194,18 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
         return (
             <div className="fixed inset-0 z-[3000] bg-[#f8fafc] flex flex-col h-[100dvh] w-screen overflow-hidden font-sans select-none overscroll-none">
                 {/* Header with Title and Timer */}
-                <div className="shrink-0 p-4 sm:p-5 bg-white/80 backdrop-blur-md border-b border-orange-50 flex items-center justify-between sticky top-0 z-[100] shadow-sm">
+                <div className="shrink-0 p-4 sm:p-5 bg-white/80 backdrop-blur-md border-b border-primary/5 flex items-center justify-between sticky top-0 z-[100] shadow-sm">
                     <div className="flex items-center gap-5">
                         <div className="relative group">
-                            <div className="absolute inset-0 bg-[#ff8e01] rounded-2xl blur-lg opacity-10" />
-                            <div className="relative p-2.5 rounded-2xl bg-gradient-to-br from-[#ff8e01] to-[#ffa534] shadow-md">
+                            <div className="absolute inset-0 bg-primary rounded-2xl blur-lg opacity-10" />
+                            <div className="relative p-2.5 rounded-2xl bg-gradient-to-br from-primary to-[#ffa534] shadow-md">
                                 <Zap className="w-5 h-5 text-white" />
                             </div>
                         </div>
                         <div className="flex flex-col">
                             <h3 className="text-base font-black text-slate-900 uppercase tracking-tighter leading-none mb-1">{selectedTest.title}</h3>
                             <div className="flex items-center gap-2">
-                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
                                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Active Session</span>
                             </div>
                         </div>
@@ -225,7 +225,7 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
                     <div className="flex items-center gap-6">
                         <div className="hidden sm:flex flex-col items-end">
                             <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Status</span>
-                            <span className="text-[10px] font-black text-[#ff8e01] uppercase leading-none">In Progress</span>
+                            <span className="text-[10px] font-black text-primary uppercase leading-none">In Progress</span>
                         </div>
                     </div>
                 </div>
@@ -240,7 +240,7 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
                                     <motion.div 
                                         initial={{ width: 0 }}
                                         animate={{ width: `${progress}%` }}
-                                        className="h-full bg-gradient-to-r from-[#ff8e01] to-[#ffa534] rounded-full shadow-lg"
+                                        className="h-full bg-gradient-to-r from-primary to-[#ffa534] rounded-full shadow-lg"
                                     />
                                 </div>
                                 <span className="text-[10px] font-black text-slate-800 tabular-nums">{Math.round(progress)}%</span>
@@ -257,9 +257,9 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
                                     }}
                                     className={`w-10 h-10 rounded-xl font-black text-xs transition-all border-2 ${
                                         currentQuestionIndex === i
-                                        ? 'bg-[#ff8e01] border-[#ff8e01] text-white shadow-xl shadow-orange-100 scale-110 z-10'
+                                        ? 'bg-primary border-primary text-white shadow-xl shadow-primary/10 scale-110 z-10'
                                         : answers[shuffledQuestions[i]._id] !== undefined
-                                        ? 'bg-orange-50 border-orange-100 text-[#ff8e01]'
+                                        ? 'bg-primary/5 border-primary/10 text-primary'
                                         : 'bg-white border-slate-100 text-slate-300 hover:border-slate-200'
                                     }`}
                                 >
@@ -279,10 +279,10 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
                                     x: { type: "spring", stiffness: 100, damping: 20 },
                                     opacity: { duration: 0.5 }
                                 }}
-                                className="bg-white p-8 sm:p-12 rounded-[3rem] border-2 border-orange-100 shadow-xl shadow-orange-100/20 space-y-10 relative overflow-hidden"
+                                className="bg-white p-8 sm:p-12 rounded-[3rem] border-2 border-primary/10 shadow-xl shadow-primary/10/20 space-y-10 relative overflow-hidden"
                             >
                                 {/* Background Accent */}
-                                <div className="absolute top-0 right-0 w-32 h-32 bg-orange-50/20 rounded-bl-[5rem] -mr-10 -mt-10" />
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5/20 rounded-bl-[5rem] -mr-10 -mt-10" />
 
                                 <div className="space-y-4 relative">
                                     <span className="px-4 py-1.5 rounded-full bg-slate-900 text-white text-[9px] font-black uppercase tracking-[0.2em]">
@@ -300,14 +300,14 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
                                             onClick={() => setAnswers({...answers, [currentQuestion._id]: opt.originalIndex})}
                                             className={`group p-5 rounded-[2rem] text-left border-2 transition-all flex items-center gap-6 ${
                                                 answers[currentQuestion._id] === opt.originalIndex
-                                                ? 'border-[#ff8e01] bg-white shadow-xl shadow-orange-100/50 translate-x-2'
-                                                : 'border-slate-50 bg-slate-50/50 hover:border-orange-100 hover:bg-white hover:translate-x-1'
+                                                ? 'border-primary bg-white shadow-xl shadow-primary/10/50 translate-x-2'
+                                                : 'border-slate-50 bg-slate-50/50 hover:border-primary/10 hover:bg-white hover:translate-x-1'
                                             }`}
                                         >
                                             <div className={`w-10 h-10 shrink-0 rounded-2xl border-2 flex items-center justify-center font-black text-base transition-all ${
                                                 answers[currentQuestion._id] === opt.originalIndex
-                                                ? 'bg-[#ff8e01] border-[#ff8e01] text-white shadow-lg shadow-orange-200'
-                                                : 'bg-white border-slate-100 text-slate-400 group-hover:border-orange-50 group-hover:text-[#ff8e01]'
+                                                ? 'bg-primary border-primary text-white shadow-lg shadow-orange-200'
+                                                : 'bg-white border-slate-100 text-slate-400 group-hover:border-primary/5 group-hover:text-primary'
                                             }`}>
                                                 {String.fromCharCode(65 + oIdx)}
                                             </div>
@@ -356,7 +356,7 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
                                     setDirection(1);
                                     setCurrentQuestionIndex(prev => prev + 1);
                                 }}
-                                className="px-8 py-3 bg-[#ff8e01] text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-[#e67e01] transition-all shadow-lg flex items-center gap-3 group"
+                                className="px-8 py-3 bg-primary text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-[#e67e01] transition-all shadow-lg flex items-center gap-3 group"
                             >
                                 Next Question
                                 <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -381,9 +381,9 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
                                 </div>
 
                                 <div className="flex-1 flex justify-end">
-                                    <div className="px-4 py-2 bg-orange-50 rounded-xl flex items-center gap-2">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-[#ff8e01] animate-pulse" />
-                                        <span className="text-[10px] font-black text-[#ff8e01] uppercase tracking-widest">Test Completed</span>
+                                    <div className="px-4 py-2 bg-primary/5 rounded-xl flex items-center gap-2">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                                        <span className="text-[10px] font-black text-primary uppercase tracking-widest">Test Completed</span>
                                     </div>
                                 </div>
                             </div>
@@ -392,7 +392,7 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
                                 <div className="max-w-5xl mx-auto space-y-8 pb-12">
                                     {/* Final Score Card at Top */}
                                     <div className="bg-gradient-to-br from-slate-900 to-slate-800 p-8 sm:p-10 rounded-[3rem] text-center shadow-2xl shadow-slate-200 relative overflow-hidden">
-                                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#ff8e01] to-transparent" />
+                                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent" />
                                         <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] block mb-3">Final Performance Score</span>
                                         <div className="flex items-baseline justify-center gap-2 mb-6">
                                             <span className="text-6xl font-black text-white leading-none">{testResult.score}</span>
@@ -401,7 +401,7 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
                                         
                                         <div className="flex items-center justify-center gap-8 py-5 border-y border-slate-700/50 mb-6">
                                             <div className="text-center">
-                                                <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest block mb-1">Correct</span>
+                                                <span className="text-[10px] font-black text-primary uppercase tracking-widest block mb-1">Correct</span>
                                                 <span className="text-xl font-black text-white">{(testResult?.questions || []).filter(q => testResult.userAnswers?.[q._id] === q.correctOption).length}</span>
                                             </div>
                                             <div className="w-px h-6 bg-slate-700" />
@@ -418,7 +418,7 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
                                                 setTestResult(null);
                                                 setShowReview(false);
                                             }}
-                                            className="w-full py-4 bg-[#ff8e01] text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-orange-900/20 hover:bg-[#e67e01] transition-all"
+                                            className="w-full py-4 bg-primary text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-orange-900/20 hover:bg-[#e67e01] transition-all"
                                         >
                                             Return to Dashboard
                                         </button>
@@ -432,14 +432,14 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
                                                 <div className="flex items-center gap-6">
                                                     <div className="relative shrink-0">
                                                         <div className={`w-16 h-16 rounded-[1.5rem] flex items-center justify-center shadow-lg bg-white border-2 ${
-                                                            isCorrect ? 'border-emerald-100' : 'border-red-100'
+                                                            isCorrect ? 'border-primary/10' : 'border-red-100'
                                                         }`}>
-                                                            <span className={`text-2xl font-black ${isCorrect ? 'text-emerald-500' : 'text-red-500'}`}>
+                                                            <span className={`text-2xl font-black ${isCorrect ? 'text-primary' : 'text-red-500'}`}>
                                                                 {idx + 1}
                                                             </span>
                                                         </div>
                                                         <div className={`absolute -top-2 -right-2 w-8 h-8 rounded-full border-2 border-white flex items-center justify-center shadow-sm ${
-                                                            isCorrect ? 'bg-emerald-500' : 'bg-red-500'
+                                                            isCorrect ? 'bg-primary' : 'bg-red-500'
                                                         }`}>
                                                             {isCorrect ? (
                                                                 <CheckCircle className="w-4 h-4 text-white" />
@@ -466,9 +466,9 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
                                                         let iconColor = 'bg-slate-100 text-slate-400';
 
                                                         if (isCorrectOption) {
-                                                            bgColor = 'bg-emerald-50 border-emerald-200';
-                                                            textColor = 'text-emerald-700';
-                                                            iconColor = 'bg-emerald-500 text-white';
+                                                            bgColor = 'bg-primary/5 border-primary';
+                                                            textColor = 'text-primary';
+                                                            iconColor = 'bg-primary text-white';
                                                         } else if (isUserSelection && !isCorrect) {
                                                             bgColor = 'bg-red-50 border-red-200';
                                                             textColor = 'text-red-700';
@@ -485,7 +485,7 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
                                                                 </div>
                                                                 <span className={`font-bold ${textColor}`}>{opt}</span>
                                                                 {isCorrectOption && (
-                                                                    <CheckCircle className="w-5 h-5 text-emerald-500 ml-auto" />
+                                                                    <CheckCircle className="w-5 h-5 text-primary ml-auto" />
                                                                 )}
                                                                 {isUserSelection && !isCorrect && (
                                                                     <AlertCircle className="w-5 h-5 text-red-500 ml-auto" />
@@ -534,8 +534,8 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
                                 className="bg-white border-2 border-gray-100 rounded-3xl p-6 transition-all group"
                             >
                                 <div className="flex items-start justify-between mb-4">
-                                    <div className="p-3 rounded-2xl bg-orange-50">
-                                        <Zap className="w-6 h-6 text-[#ff8e01]" />
+                                    <div className="p-3 rounded-2xl bg-primary/5">
+                                        <Zap className="w-6 h-6 text-primary" />
                                     </div>
                                     <Badge variant={isCompleted ? 'success' : 'warning'}>
                                         {isCompleted ? 'Completed' : 'Pending'}
@@ -555,19 +555,19 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
                                 <p className="text-sm text-gray-500 mb-6 line-clamp-2">{test.description || 'No instructions provided'}</p>
                                 
                                 {isCompleted ? (
-                                    <div className="bg-emerald-50 rounded-2xl p-4 border border-emerald-100 flex items-center justify-between">
+                                    <div className="bg-primary/5 rounded-2xl p-4 border border-primary/10 flex items-center justify-between">
                                         <div className="flex items-center gap-3">
                                             <div className="p-2 bg-white rounded-xl">
-                                                <Award className="w-5 h-5 text-emerald-500" />
+                                                <Award className="w-5 h-5 text-primary" />
                                             </div>
                                             <div>
-                                                <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Your Score</p>
-                                                <p className="text-xl font-black text-emerald-700 leading-none">{submission.score} / {test.totalMarks}</p>
+                                                <p className="text-[10px] font-black text-primary uppercase tracking-widest">Your Score</p>
+                                                <p className="text-xl font-black text-primary leading-none">{submission.score} / {test.totalMarks}</p>
                                             </div>
                                         </div>
                                         <div className="text-right">
-                                            <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Percentage</p>
-                                            <p className="text-xl font-black text-emerald-700 leading-none">
+                                            <p className="text-[10px] font-black text-primary uppercase tracking-widest">Percentage</p>
+                                            <p className="text-xl font-black text-primary leading-none">
                                                 {Math.round((submission.score / test.totalMarks) * 100)}%
                                             </p>
                                         </div>
@@ -576,7 +576,7 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
                                     <div className="space-y-4">
                                         <div className="grid grid-cols-2 gap-3">
                                             <div className="flex items-center gap-2 text-xs font-bold text-gray-600 bg-gray-50 p-2 rounded-xl">
-                                                <Clock className="w-3.5 h-3.5 text-[#ff8e01]" />
+                                                <Clock className="w-3.5 h-3.5 text-primary" />
                                                 {test.duration} Mins
                                             </div>
                                             <div className="flex items-center gap-2 text-xs font-bold text-gray-600 bg-gray-50 p-2 rounded-xl">
@@ -586,7 +586,7 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
                                         </div>
                                         <button 
                                             onClick={() => handleStartTest(test)}
-                                            className="w-full py-4 bg-[#ff8e01] text-white rounded-2xl font-black text-sm uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-[#e67e01] transition-all shadow-lg shadow-orange-100"
+                                            className="w-full py-4 bg-primary text-white rounded-2xl font-black text-sm uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-[#e67e01] transition-all shadow-lg shadow-primary/10"
                                         >
                                             <PlayCircle className="w-5 h-5" />
                                             Start Test Now
@@ -603,3 +603,6 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
 };
 
 export default StudentTestsTab;
+
+
+

@@ -189,7 +189,7 @@ const JobCourses = () => {
                                     {course.status}
                                 </Badge>
                             </div>
-                            <h3 className="text-xl font-semibold text-gray-900 mb-2">{course.name}</h3>
+                            <h3 className="text-xl font-semibold text-gray-900 mb-2">{course.title || course.name}</h3>
                             <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">
                                 <span className="flex items-center gap-1">
                                     <Users className="w-4 h-4" />
@@ -200,7 +200,7 @@ const JobCourses = () => {
                                     {new Date(course.startDate).toLocaleDateString()}
                                 </span>
                             </div>
-                            <div className="flex items-center text-purple-600 font-medium">
+                            <div className="flex items-center text-primary font-medium">
                                 <span>Manage Course</span>
                                 <ArrowRight className="w-4 h-4 ml-2" />
                             </div>
@@ -237,7 +237,7 @@ const JobCourses = () => {
                 <button
                     onClick={() => { setActiveTab('assignments'); setSelectedAssignment(null); }}
                     className={`px-6 py-2.5 rounded-lg font-medium transition-all ${activeTab === 'assignments'
-                        ? 'bg-white text-purple-600 shadow-sm'
+                        ? 'bg-white text-primary shadow-sm'
                         : 'text-gray-600 hover:text-gray-900'
                         }`}
                 >
@@ -247,7 +247,7 @@ const JobCourses = () => {
                 <button
                     onClick={() => { setActiveTab('dailywork'); setSelectedAssignment(null); }}
                     className={`px-6 py-2.5 rounded-lg font-medium transition-all ${activeTab === 'dailywork'
-                        ? 'bg-white text-purple-600 shadow-sm'
+                        ? 'bg-white text-primary shadow-sm'
                         : 'text-gray-600 hover:text-gray-900'
                         }`}
                 >
@@ -262,7 +262,7 @@ const JobCourses = () => {
                     <div className="flex justify-end">
                         <button
                             onClick={() => setShowNewAssignment(true)}
-                            className="px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-medium flex items-center gap-2"
+                            className="px-5 py-2.5 bg-primary hover:bg-purple-700 text-white rounded-xl font-medium flex items-center gap-2"
                         >
                             <ClipboardList className="w-4 h-4" />
                             Create Assignment
@@ -283,19 +283,19 @@ const JobCourses = () => {
                                     placeholder="Assignment Title"
                                     value={newAssignment.title}
                                     onChange={(e) => setNewAssignment({ ...newAssignment, title: e.target.value })}
-                                    className="px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500"
+                                    className="px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary"
                                 />
                                 <input
                                     type="date"
                                     value={newAssignment.dueDate}
                                     onChange={(e) => setNewAssignment({ ...newAssignment, dueDate: e.target.value })}
-                                    className="px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500"
+                                    className="px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary"
                                 />
                                 <textarea
                                     placeholder="Description"
                                     value={newAssignment.description}
                                     onChange={(e) => setNewAssignment({ ...newAssignment, description: e.target.value })}
-                                    className="px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 md:col-span-2"
+                                    className="px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary md:col-span-2"
                                     rows={2}
                                 />
                                 <input
@@ -303,7 +303,7 @@ const JobCourses = () => {
                                     placeholder="Total Marks"
                                     value={newAssignment.totalMarks}
                                     onChange={(e) => setNewAssignment({ ...newAssignment, totalMarks: e.target.value })}
-                                    className="px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500"
+                                    className="px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary"
                                 />
                             </div>
 
@@ -318,7 +318,7 @@ const JobCourses = () => {
                                             value="all"
                                             checked={newAssignment.assignTo === 'all'}
                                             onChange={() => setNewAssignment({ ...newAssignment, assignTo: 'all', selectedInterns: [] })}
-                                            className="w-4 h-4 text-purple-600"
+                                            className="w-4 h-4 text-primary"
                                         />
                                         <span className="text-gray-700">All Interns ({interns.length})</span>
                                     </label>
@@ -329,7 +329,7 @@ const JobCourses = () => {
                                             value="selected"
                                             checked={newAssignment.assignTo === 'selected'}
                                             onChange={() => setNewAssignment({ ...newAssignment, assignTo: 'selected' })}
-                                            className="w-4 h-4 text-purple-600"
+                                            className="w-4 h-4 text-primary"
                                         />
                                         <span className="text-gray-700">Selected Interns</span>
                                     </label>
@@ -343,7 +343,7 @@ const JobCourses = () => {
                                                 <label
                                                     key={intern.id}
                                                     className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all ${newAssignment.selectedInterns.includes(intern.id)
-                                                            ? 'bg-purple-100 border-2 border-purple-400'
+                                                            ? 'bg-primary/10 border-2 border-purple-400'
                                                             : 'bg-white border border-gray-200 hover:border-purple-200'
                                                         }`}
                                                 >
@@ -351,7 +351,7 @@ const JobCourses = () => {
                                                         type="checkbox"
                                                         checked={newAssignment.selectedInterns.includes(intern.id)}
                                                         onChange={() => toggleInternSelection(intern.id)}
-                                                        className="w-4 h-4 text-purple-600 rounded"
+                                                        className="w-4 h-4 text-primary rounded"
                                                     />
                                                     <div>
                                                         <p className="text-sm font-medium text-gray-900">{intern.name}</p>
@@ -361,7 +361,7 @@ const JobCourses = () => {
                                             ))}
                                         </div>
                                         {newAssignment.selectedInterns.length > 0 && (
-                                            <p className="text-xs text-purple-600 mt-2">
+                                            <p className="text-xs text-primary mt-2">
                                                 {newAssignment.selectedInterns.length} intern(s) selected
                                             </p>
                                         )}
@@ -377,7 +377,7 @@ const JobCourses = () => {
                                 </button>
                                 <button
                                     onClick={handleCreateAssignment}
-                                    className="px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-medium"
+                                    className="px-5 py-2.5 bg-primary hover:bg-purple-700 text-white rounded-xl font-medium"
                                 >
                                     Create
                                 </button>
@@ -452,7 +452,7 @@ const JobCourses = () => {
                                 return (
                                     <div key={intern.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
                                         <div className="flex items-center gap-4">
-                                            <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-semibold">
+                                            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold">
                                                 {intern.name.charAt(0)}
                                             </div>
                                             <div>
@@ -506,7 +506,7 @@ const JobCourses = () => {
                             return (
                                 <div key={intern.id} className="border border-gray-100 rounded-xl p-4">
                                     <div className="flex items-center gap-4 mb-4">
-                                        <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-semibold">
+                                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold">
                                             {intern.name.charAt(0)}
                                         </div>
                                         <div>
@@ -558,3 +558,6 @@ const JobCourses = () => {
 };
 
 export default JobCourses;
+
+
+

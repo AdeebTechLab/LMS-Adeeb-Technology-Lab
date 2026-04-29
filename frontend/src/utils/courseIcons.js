@@ -61,7 +61,7 @@ export const getCourseColor = (category, title = '') => {
     if (term.includes('cloud') || term.includes('devops') || term.includes('iot')) return 'text-cyan-700 bg-cyan-100 border-cyan-200';
     if (term.includes('mark') || term.includes('seo') || term.includes('aad') || term.includes('trading')) return 'text-orange-700 bg-orange-100 border-orange-200';
     if (term.includes('video') || term.includes('youtub')) return 'text-rose-700 bg-rose-100 border-rose-200';
-    if (term.includes('finance') || term.includes('tax') || term.includes('commerce')) return 'text-emerald-700 bg-emerald-100 border-emerald-200';
+    if (term.includes('finance') || term.includes('tax') || term.includes('commerce')) return 'text-primary bg-primary border-primary';
     if (term.includes('truck') || term.includes('archit')) return 'text-amber-700 bg-amber-100 border-amber-200';
     if (term.includes('freelanc')) return 'text-indigo-700 bg-indigo-100 border-indigo-200';
 
@@ -102,7 +102,7 @@ export const getCourseStyle = (category, title = '') => {
     } else if (term.includes('video') || term.includes('youtub')) {
         style = { icon: Video, text: 'text-rose-600', bg: 'bg-rose-50', border: 'border-rose-100', gradient: 'from-rose-500 to-pink-600' };
     } else if (term.includes('finance') || term.includes('tax') || term.includes('commerce') || term.includes('money')) {
-        style = { icon: DollarSign, text: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100', gradient: 'from-emerald-500 to-teal-500' };
+        style = { icon: DollarSign, text: 'text-primary', bg: 'bg-primary', border: 'border-primary', gradient: 'from-primary to-primary' };
     } else if (term.includes('office') || term.includes('freelanc')) {
         style = { icon: Briefcase, text: 'text-slate-600', bg: 'bg-slate-50', border: 'border-slate-100', gradient: 'from-slate-700 to-gray-800' };
     } else if (term.includes('truck')) {
@@ -113,3 +113,4 @@ export const getCourseStyle = (category, title = '') => {
 
     return style;
 };
+

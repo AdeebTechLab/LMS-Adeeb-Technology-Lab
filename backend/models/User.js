@@ -109,6 +109,17 @@ const userSchema = new mongoose.Schema({
             p256dh: String,
             auth: String
         }
+    }],
+    birthdayWishes: [{
+        from: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User'
+        },
+        year: Number,
+        createdAt: {
+            type: Date,
+            default: Date.now
+        }
     }]
 }, {
     timestamps: true

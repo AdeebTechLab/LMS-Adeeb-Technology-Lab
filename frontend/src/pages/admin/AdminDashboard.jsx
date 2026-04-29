@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { io } from 'socket.io-client';
 import {
     DollarSign,
     Users,
@@ -30,6 +31,7 @@ import { BarChart, DoughnutChart } from '../../components/charts/Charts';
 import { statsAPI, feeAPI } from '../../services/api';
 import HolidaySettings from './components/HolidaySettings';
 import Loader, { ButtonLoader } from '../../components/ui/Loader';
+import BirthdayWish from '../../components/dashboard/BirthdayWish';
 
 const AdminDashboard = () => {
     const navigate = useNavigate();
@@ -56,6 +58,21 @@ const AdminDashboard = () => {
     const [isDownloading, setIsDownloading] = useState(false);
     const [slipModal, setSlipModal] = useState({ open: false, url: null, student: '' });
     const dashboardRef = useRef(null);
+
+    useEffect(() => {
+        // Setup real-time updates
+        const getSocketURL = () => {
+            const rawUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+            return rawUrl.replace('/api', '');
+        };
+        const socket = io(getSocketURL(), { withCredentials: true });
+
+        socket.on('new_submission', () => fetchStats());
+        socket.on('new_assignment', () => fetchStats());
+        socket.on('new_global_message', () => fetchStats());
+
+        return () => socket.disconnect();
+    }, []);
 
     useEffect(() => {
         fetchStats();
@@ -211,7 +228,7 @@ const AdminDashboard = () => {
             accessor: 'student',
             render: (row) => (
                 <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-[#ff8e01] flex items-center justify-center text-white text-[10px] font-black italic">
+                    <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-[10px] font-black italic">
                         {row.student.charAt(0)}
                     </div>
                     <span className="font-bold text-gray-900 text-xs uppercase tracking-tighter">{row.student}</span>
@@ -280,13 +297,14 @@ const AdminDashboard = () => {
     }
 
     return (
-        <div className="space-y-6 p-4 bg-slate-50 min-h-screen" ref={dashboardRef}>
+        <div className="flex-1 space-y-8 p-4 md:p-8 pt-6" ref={dashboardRef}>
+            <BirthdayWish />
             {/* PDF-only Header (Visible only during capture or if we use specific CSS) */}
-            <div className="hidden show-in-pdf mb-8 border-b-4 border-[#ff8e01] pb-6">
+            <div className="hidden show-in-pdf mb-8 border-b-2 border-primary pb-4">
                 <div className="flex justify-between items-end">
                     <div>
                         <h1 className="text-4xl font-black text-gray-900 uppercase tracking-tighter">LMS Performance Report</h1>
-                        <p className="text-[#ff8e01] font-black uppercase tracking-[0.4em] text-sm mt-2">Adeeb Technology Lab • Management Portal</p>
+                        <p className="text-primary font-black uppercase tracking-[0.4em] text-sm mt-2">Adeeb Technology Lab • Management Portal</p>
                     </div>
                     <div className="text-right">
                         <p className="text-xs font-black text-gray-400 uppercase tracking-widest">Report Generated</p>
@@ -303,21 +321,21 @@ const AdminDashboard = () => {
                 <div className="grid grid-cols-2 sm:grid-cols-4 lg:flex gap-3 sm:gap-4 no-pdf">
                     <button
                         onClick={() => navigate('/admin/directory')}
-                        className="flex items-center justify-center gap-2 bg-white text-gray-700 px-3 py-2.5 sm:px-6 sm:py-3 rounded-xl sm:rounded-2xl font-black uppercase tracking-widest text-[10px] sm:text-xs border border-gray-200 shadow-sm hover:border-[#ff8e01] hover:text-[#ff8e01] transition-all active:scale-95"
+                        className="flex items-center justify-center gap-2 bg-white text-gray-700 px-3 py-2.5 sm:px-6 sm:py-3 rounded-xl sm:rounded-2xl font-black uppercase tracking-widest text-[10px] sm:text-xs border border-gray-200 shadow-sm hover:border-primary hover:text-primary transition-all active:scale-95"
                     >
                         <BookOpen className="w-4 h-4 hidden sm:block" />
                         Unified Directory
                     </button>
                     <button
                         onClick={() => navigate('/admin/teacher-directory')}
-                        className="flex items-center justify-center gap-2 bg-white text-gray-700 px-3 py-2.5 sm:px-6 sm:py-3 rounded-xl sm:rounded-2xl font-black uppercase tracking-widest text-[10px] sm:text-xs border border-gray-200 shadow-sm hover:border-[#ff8e01] hover:text-[#ff8e01] transition-all active:scale-95"
+                        className="flex items-center justify-center gap-2 bg-white text-gray-700 px-3 py-2.5 sm:px-6 sm:py-3 rounded-xl sm:rounded-2xl font-black uppercase tracking-widest text-[10px] sm:text-xs border border-gray-200 shadow-sm hover:border-primary hover:text-primary transition-all active:scale-95"
                     >
                         <Users className="w-4 h-4 hidden sm:block" />
                         Teacher Directory
                     </button>
                     <button
                         onClick={() => window.open('/verify', '_blank')}
-                        className="flex items-center justify-center gap-2 bg-white text-gray-700 px-3 py-2.5 sm:px-6 sm:py-3 rounded-xl sm:rounded-2xl font-black uppercase tracking-widest text-[10px] sm:text-xs border border-gray-200 shadow-sm hover:border-[#ff8e01] hover:text-[#ff8e01] transition-all active:scale-95"
+                        className="flex items-center justify-center gap-2 bg-white text-gray-700 px-3 py-2.5 sm:px-6 sm:py-3 rounded-xl sm:rounded-2xl font-black uppercase tracking-widest text-[10px] sm:text-xs border border-gray-200 shadow-sm hover:border-primary hover:text-primary transition-all active:scale-95"
                     >
                         <CheckCircle className="w-4 h-4 hidden sm:block" />
                         Verify Certificate
@@ -325,7 +343,7 @@ const AdminDashboard = () => {
                     <button
                         onClick={handleDownloadPDF}
                         disabled={isDownloading}
-                        className="flex items-center justify-center gap-2 bg-[#ff8e01] text-white px-3 py-2.5 sm:px-6 sm:py-3 rounded-xl sm:rounded-2xl font-black uppercase tracking-widest text-[10px] sm:text-xs shadow-lg shadow-orange-200 hover:shadow-orange-300 transition-all active:scale-95 disabled:opacity-50"
+                        className="flex items-center justify-center gap-2 bg-primary text-white px-3 py-2.5 sm:px-6 sm:py-3 rounded-xl sm:rounded-2xl font-black uppercase tracking-widest text-[10px] sm:text-xs shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all active:scale-95 disabled:opacity-50"
                     >
                         {isDownloading ? (
                             <ButtonLoader />
@@ -342,17 +360,17 @@ const AdminDashboard = () => {
                 <div className="xl:col-span-2 space-y-6">
                     {/* Revenue Section */}
                     <div className="bg-white rounded-[2.5rem] p-8 border border-gray-100 shadow-sm relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-orange-50 rounded-full -mr-32 -mt-32 opacity-50 group-hover:scale-110 transition-transform duration-700"></div>
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -mr-32 -mt-32 opacity-50 group-hover:scale-110 transition-transform duration-700"></div>
                         <div className="relative z-10">
                             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
                                 <div>
-                                    <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-orange-500 dark:text-orange-400 mb-1">Financial Intelligence</h2>
+                                    <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-primary dark:text-primary mb-1">Financial Intelligence</h2>
                                     <h3 className="text-3xl font-black text-gray-900 dark:text-white uppercase tracking-tighter leading-none">Total Revenue</h3>
                                 </div>
                                 <div className="flex flex-col md:items-end gap-3">
                                     <div className="flex items-center gap-4">
-                                        <div className="flex items-center gap-2 bg-white p-2.5 rounded-2xl border-2 border-orange-100 shadow-sm hover:border-orange-300 transition-colors">
-                                            <Calendar className="w-5 h-5 text-orange-500 ml-2" />
+                                        <div className="flex items-center gap-2 bg-white p-2.5 rounded-2xl border-2 border-primary/10 shadow-sm hover:border-primary/30 transition-colors">
+                                            <Calendar className="w-5 h-5 text-primary ml-2" />
                                             <select
                                                 value={dateRangeType}
                                                 onChange={(e) => setDateRangeType(e.target.value)}
@@ -369,8 +387,8 @@ const AdminDashboard = () => {
                                     </div>
 
                                     {dateRangeType === 'custom' && (
-                                        <div className="flex items-center gap-3 bg-white p-2.5 rounded-2xl border-2 border-orange-100 shadow-sm hover:border-orange-300 transition-colors">
-                                            <span className="text-[10px] font-black text-orange-400 uppercase tracking-widest pl-2">Custom Range</span>
+                                        <div className="flex items-center gap-3 bg-white p-2.5 rounded-2xl border-2 border-primary/10 shadow-sm hover:border-primary/30 transition-colors">
+                                            <span className="text-[10px] font-black text-primary uppercase tracking-widest pl-2">Custom Range</span>
                                             <input
                                                 type="date"
                                                 name="startDate"
@@ -378,7 +396,7 @@ const AdminDashboard = () => {
                                                 onChange={handleFilterChange}
                                                 className="bg-transparent border-none text-xs font-black focus:ring-0 cursor-pointer w-32"
                                             />
-                                            <ArrowRight className="w-4 h-4 text-orange-300" />
+                                            <ArrowRight className="w-4 h-4 text-primary/30" />
                                             <input
                                                 type="date"
                                                 name="endDate"
@@ -395,7 +413,7 @@ const AdminDashboard = () => {
                                 <span className="text-3xl sm:text-7xl font-black text-gray-900 dark:text-white tracking-tighter drop-shadow-sm">
                                     Rs {data?.totalRevenue.toLocaleString()}
                                 </span>
-                                <div className="flex items-center gap-2 px-4 py-2 bg-emerald-100 text-emerald-700 rounded-2xl border-2 border-emerald-200 shadow-sm">
+                                <div className="flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-2xl border-2 border-primary/20 shadow-sm">
                                     <TrendingUp className="w-5 h-5" />
                                     <span className="text-xs font-black uppercase tracking-widest">Growth Plan Active</span>
                                 </div>
@@ -416,21 +434,21 @@ const AdminDashboard = () => {
                             <div className="text-3xl font-black text-gray-900 tracking-tighter">{data?.studentStats.total}</div>
                             <p className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest mt-1">Total Students</p>
                         </div>
-                        <div className="bg-white rounded-[2rem] p-6 border border-gray-100 shadow-sm group hover:border-emerald-100 transition-colors">
-                            <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600 mb-4 group-hover:scale-110 transition-transform">
+                        <div className="bg-white rounded-[2rem] p-6 border border-gray-100 shadow-sm group hover:border-primary/10 transition-colors">
+                            <div className="w-12 h-12 rounded-2xl bg-primary/5 flex items-center justify-center text-primary mb-4 group-hover:scale-110 transition-transform">
                                 <CheckCircle className="w-6 h-6" />
                             </div>
                             <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1">Active Learning</h4>
                             <div className="text-3xl font-black text-gray-900 tracking-tighter">{data?.studentStats.registered}</div>
-                            <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mt-1">Registered (Active)</p>
+                            <p className="text-[10px] font-bold text-primary uppercase tracking-widest mt-1">Registered (Active)</p>
                         </div>
-                        <div className="bg-white rounded-[2rem] p-6 border border-gray-100 shadow-sm group hover:border-orange-100 transition-colors">
-                            <div className="w-12 h-12 rounded-2xl bg-orange-50 flex items-center justify-center text-orange-600 mb-4 group-hover:scale-110 transition-transform">
+                        <div className="bg-white rounded-[2rem] p-6 border border-gray-100 shadow-sm group hover:border-primary/10 transition-colors">
+                            <div className="w-12 h-12 rounded-2xl bg-primary/5 flex items-center justify-center text-primary mb-4 group-hover:scale-110 transition-transform">
                                 <GraduationCap className="w-6 h-6" />
                             </div>
                             <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1">Alumni Network</h4>
                             <div className="text-3xl font-black text-gray-900 tracking-tighter">{data?.studentStats.passout}</div>
-                            <p className="text-[10px] font-bold text-orange-600 uppercase tracking-widest mt-1">Passout Graduates</p>
+                            <p className="text-[10px] font-bold text-primary uppercase tracking-widest mt-1">Passout Graduates</p>
                         </div>
                     </div>
 
@@ -442,7 +460,7 @@ const AdminDashboard = () => {
                 <div className="bg-white rounded-[2.5rem] p-8 border border-gray-100 shadow-sm">
                     <div className="flex items-center justify-between mb-8">
                         <div>
-                            <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-orange-500 mb-1">Verification Helix</h2>
+                            <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-primary mb-1">Verification Helix</h2>
                             <h3 className="text-xl font-black text-gray-900 uppercase tracking-tighter leading-none">Fee Distribution</h3>
                         </div>
                         <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center">
@@ -453,11 +471,11 @@ const AdminDashboard = () => {
                         <DoughnutChart data={doughnutChartData} height={256} />
                     </div>
                     <div className="space-y-4">
-                        <div className="flex items-center justify-between p-4 bg-emerald-50 rounded-2xl border border-emerald-100/50">
-                            <span className="text-[10px] font-black text-emerald-700 uppercase tracking-widest">Verified</span>
-                            <span className="font-black text-emerald-800">{data?.feeStatus.verified}</span>
+                        <div className="flex items-center justify-between p-4 bg-primary/5 rounded-2xl border border-primary/10/50">
+                            <span className="text-[10px] font-black text-primary uppercase tracking-widest">Verified</span>
+                            <span className="font-black text-primary">{data?.feeStatus.verified}</span>
                         </div>
-                        <div className="flex items-center justify-between p-4 bg-orange-50 rounded-2xl border border-orange-100/50">
+                        <div className="flex items-center justify-between p-4 bg-primary/5 rounded-2xl border border-primary/10/50">
                             <span className="text-[10px] font-black text-orange-700 uppercase tracking-widest">Submissions</span>
                             <span className="font-black text-orange-800">{data?.feeStatus.pending}</span>
                         </div>
@@ -473,17 +491,17 @@ const AdminDashboard = () => {
             <div className="space-y-4 pt-4">
                 <div className="flex items-end justify-between px-2">
                     <div>
-                        <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-orange-500 mb-1">Financial Stream</h2>
+                        <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-primary mb-1">Financial Stream</h2>
                         <h3 className="text-2xl font-black text-gray-900 uppercase tracking-tighter leading-none">Recent Fee Submissions</h3>
                     </div>
                     <button
                         onClick={() => setShowFullHistory(!showFullHistory)}
-                        className="flex items-center gap-3 group cursor-pointer bg-white px-6 py-3 rounded-2xl border-2 border-gray-100 shadow-sm hover:border-[#ff8e01] transition-all active:scale-95 no-pdf"
+                        className="flex items-center gap-3 group cursor-pointer bg-white px-6 py-3 rounded-2xl border-2 border-gray-100 shadow-sm hover:border-primary transition-all active:scale-95 no-pdf"
                     >
-                        <span className="text-xs font-black uppercase tracking-[0.2em] text-gray-500 group-hover:text-[#ff8e01] transition-colors">
+                        <span className="text-xs font-black uppercase tracking-[0.2em] text-gray-500 group-hover:text-primary transition-colors">
                             {showFullHistory ? 'Collapse History' : 'Execute View All'}
                         </span>
-                        <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center group-hover:bg-[#ff8e01] group-hover:text-white group-hover:rotate-45 transition-all duration-500">
+                        <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center group-hover:bg-primary group-hover:text-white group-hover:rotate-45 transition-all duration-500">
                             <ArrowUpRight className="w-6 h-6" />
                         </div>
                     </button>
@@ -529,4 +547,8 @@ const AdminDashboard = () => {
 };
 
 export default AdminDashboard;
+
+
+
+
 

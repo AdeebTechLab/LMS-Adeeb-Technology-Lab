@@ -12,8 +12,8 @@ import ProfileAvatar from '../../components/ui/ProfileAvatar';
 
 const InfoField = ({ icon: Icon, label, value, name, type = 'text', editable = true, isEditing, editForm, onChange }) => (
     <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-xl">
-        <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center flex-shrink-0">
-            <Icon className="w-5 h-5 text-orange-600" />
+        <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+            <Icon className="w-5 h-5 text-primary" />
         </div>
         <div className="flex-1 min-w-0">
             <p className="text-sm text-gray-500 mb-1">{label}</p>
@@ -23,7 +23,7 @@ const InfoField = ({ icon: Icon, label, value, name, type = 'text', editable = t
                     name={name}
                     value={editForm[name] || ''}
                     onChange={onChange}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary"
                 />
             ) : (
                 <p className="font-medium text-gray-900 truncate">{value || 'Not provided'}</p>
@@ -147,8 +147,8 @@ const TeacherProfile = () => {
 
     const stats = [
         { label: 'My Courses', value: myCourses.length.toString(), icon: BookOpen, color: 'bg-blue-100 text-blue-600' },
-        { label: 'Active Students', value: totalStudents.toString(), icon: User, color: 'bg-emerald-100 text-emerald-600' },
-        { label: 'Classes This Month', value: '0', icon: GraduationCap, color: 'bg-purple-100 text-purple-600' },
+        { label: 'Active Students', value: totalStudents.toString(), icon: User, color: 'bg-primary/10 text-primary' },
+        { label: 'Classes This Month', value: '0', icon: GraduationCap, color: 'bg-primary/10 text-primary' },
     ];
 
     if (isLoading) {
@@ -166,7 +166,7 @@ const TeacherProfile = () => {
             <motion.div
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-gradient-to-r from-orange-600 to-red-600 rounded-2xl p-8 text-white relative overflow-hidden"
+                className="bg-gradient-to-r from-primary to-primary-dark rounded-2xl p-8 text-white relative overflow-hidden"
             >
                 <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
 
@@ -177,14 +177,14 @@ const TeacherProfile = () => {
                             <ProfileAvatar src={user?.photo} name={profileData.fullName || 'T'} size="2xl" shape="rounded-none" border="" fallbackColor="bg-white/20" />
                         </div>
                         <button className="absolute -bottom-2 -right-2 w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-lg hover:bg-gray-50 transition-colors">
-                            <Camera className="w-5 h-5 text-orange-600" />
+                            <Camera className="w-5 h-5 text-primary" />
                         </button>
                     </div>
 
                     {/* Basic Info */}
                     <div className="flex-1 text-center md:text-left">
                         <h1 className="text-3xl font-bold mb-2">{profileData.fullName || user?.name}</h1>
-                        <p className="text-orange-100 text-lg mb-3">
+                        <p className="text-primary/10 text-lg mb-3">
                             <GraduationCap className="w-5 h-5 inline mr-2" />
                             Teacher
                         </p>
@@ -209,7 +209,7 @@ const TeacherProfile = () => {
                         {!isEditing ? (
                             <button
                                 onClick={handleEdit}
-                                className="px-6 py-3 bg-white text-orange-600 font-semibold rounded-xl hover:bg-gray-50 transition-colors flex items-center gap-2"
+                                className="px-6 py-3 bg-white text-primary font-semibold rounded-xl hover:bg-gray-50 transition-colors flex items-center gap-2"
                             >
                                 <Edit2 className="w-4 h-4" />
                                 Edit Profile
@@ -219,7 +219,7 @@ const TeacherProfile = () => {
                                 <button
                                     onClick={handleSave}
                                     disabled={isSaving}
-                                    className="px-5 py-3 bg-white text-orange-600 font-semibold rounded-xl hover:bg-gray-50 transition-colors flex items-center gap-2 disabled:opacity-50"
+                                    className="px-5 py-3 bg-white text-primary font-semibold rounded-xl hover:bg-gray-50 transition-colors flex items-center gap-2 disabled:opacity-50"
                                 >
                                     {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                                     Save
@@ -245,7 +245,7 @@ const TeacherProfile = () => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.1 }}
-                        className={`bg-white rounded-xl p-4 sm:p-6 border border-[#ff8e01]/20 shadow-sm ${index === 2 ? 'col-span-2 lg:col-span-1' : ''}`}
+                        className={`bg-white rounded-xl p-4 sm:p-6 border border-primary/20 shadow-sm ${index === 2 ? 'col-span-2 lg:col-span-1' : ''}`}
                     >
                         <div className="flex items-center justify-between">
                             <div>
@@ -266,10 +266,10 @@ const TeacherProfile = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
-                    className="bg-white rounded-2xl p-6 border border-[#ff8e01]/20 shadow-sm"
+                    className="bg-white rounded-2xl p-6 border border-primary/20 shadow-sm"
                 >
                     <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
-                        <User className="w-5 h-5 text-orange-600" />
+                        <User className="w-5 h-5 text-primary" />
                         Personal Information
                     </h2>
                     <div className="space-y-4">
@@ -294,10 +294,10 @@ const TeacherProfile = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 }}
-                    className="bg-white rounded-2xl p-6 border border-[#ff8e01]/20 shadow-sm"
+                    className="bg-white rounded-2xl p-6 border border-primary/20 shadow-sm"
                 >
                     <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
-                        <BookOpen className="w-5 h-5 text-orange-600" />
+                        <BookOpen className="w-5 h-5 text-primary" />
                         My Courses
                     </h2>
                     {myCourses.length === 0 ? (
@@ -311,13 +311,13 @@ const TeacherProfile = () => {
                                 const CourseIcon = getCourseIcon(course.category, course.title);
                                 return (
                                     <div key={course._id} className="flex items-start gap-4 p-4 bg-gray-50 rounded-xl">
-                                        <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                                            <CourseIcon className="w-5 h-5 text-orange-600" />
+                                        <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                                            <CourseIcon className="w-5 h-5 text-primary" />
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <p className="font-medium text-gray-900">{course.title}</p>
                                             <p className="text-sm text-gray-500">{course.enrolledCount || 0} students enrolled</p>
-                                            <p className="text-xs text-orange-600 mt-1 capitalize">{course.duration || 'Ongoing'}</p>
+                                            <p className="text-xs text-primary mt-1 capitalize">{course.duration || 'Ongoing'}</p>
                                         </div>
                                     </div>
                                 );
@@ -332,3 +332,7 @@ const TeacherProfile = () => {
 };
 
 export default TeacherProfile;
+
+
+
+

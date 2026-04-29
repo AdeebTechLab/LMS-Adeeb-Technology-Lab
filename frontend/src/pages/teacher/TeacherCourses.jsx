@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useSelector } from 'react-redux';
+import { io } from 'socket.io-client';
 
 import {
     BookOpen, Users, Calendar, ArrowRight, ChevronLeft,
@@ -12,6 +13,7 @@ import Badge from '../../components/ui/Badge';
 import { courseAPI, liveClassAPI } from '../../services/api';
 import StatCard from '../../components/ui/StatCard';
 import { getCourseIcon, getCourseStyle } from '../../utils/courseIcons';
+import BirthdayWish from '../../components/dashboard/BirthdayWish';
 
 
 
@@ -48,9 +50,41 @@ const TeacherCourses = ({ isDashboard = false }) => {
     const [activeLiveClasses, setActiveLiveClasses] = useState([]);
     const [isCreatingLiveClass, setIsCreatingLiveClass] = useState(false);
 
+    const socketRef = useRef(null);
+    const getSocketURL = () => {
+        const rawUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        return rawUrl.replace('/api', '');
+    };
+    const SOCKET_URL = getSocketURL();
+
     useEffect(() => {
         fetchMyCourses();
         fetchActiveLiveClasses();
+
+        // Setup real-time updates
+        socketRef.current = io(SOCKET_URL, { withCredentials: true });
+
+        const myId = user?.id || user?._id;
+        if (myId) {
+            socketRef.current.emit('join_chat', String(myId));
+        }
+
+        socketRef.current.on('new_submission', (data) => {
+            console.log('📥 New submission received:', data);
+            fetchMyCourses();
+        });
+
+        socketRef.current.on('new_global_message', (data) => {
+            console.log('💬 New message received:', data);
+            fetchMyCourses();
+        });
+
+        socketRef.current.on('live_class_started', () => fetchActiveLiveClasses());
+        socketRef.current.on('live_class_ended', () => fetchActiveLiveClasses());
+
+        return () => {
+            if (socketRef.current) socketRef.current.disconnect();
+        };
     }, []);
 
     // Start countdown ticks for active live classes that have a timer
@@ -127,7 +161,7 @@ const TeacherCourses = ({ isDashboard = false }) => {
         if (searchQuery) {
             const lowerQuery = searchQuery.toLowerCase();
             result = result.filter(course =>
-                course.name.toLowerCase().includes(lowerQuery)
+                (course.title || '').toLowerCase().includes(lowerQuery)
             );
         }
 
@@ -223,6 +257,7 @@ const TeacherCourses = ({ isDashboard = false }) => {
     return (
         <>
             <div className="space-y-6">
+                <BirthdayWish />
                 <div className="flex items-center justify-between gap-4">
                     <div>
                         <h1 className="text-2xl font-bold text-gray-900">{isDashboard ? 'Pending Tasks Dashboard' : 'My Courses'}</h1>
@@ -246,7 +281,7 @@ const TeacherCourses = ({ isDashboard = false }) => {
                     <motion.div
                         initial={{ opacity: 0, y: -10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="bg-gradient-to-r from-red-500 to-orange-500 rounded-2xl p-4 text-white"
+                        className="bg-gradient-to-r from-red-500 to-primary rounded-2xl p-4 text-white"
                     >
                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                             <div className="flex items-center gap-3">
@@ -310,8 +345,8 @@ const TeacherCourses = ({ isDashboard = false }) => {
                         title="Active Now"
                         value={summaryStats.activeStudents}
                         icon={CheckCircle}
-                        iconBg="bg-emerald-50"
-                        iconColor="text-emerald-600"
+                        iconBg="bg-primary/5"
+                        iconColor="text-primary"
                         onClick={() => navigate('/teacher/quick-attendance')}
                     />
                     <StatCard
@@ -325,8 +360,8 @@ const TeacherCourses = ({ isDashboard = false }) => {
                         title="Today's Present"
                         value={summaryStats.todayPresent}
                         icon={User}
-                        iconBg="bg-emerald-50"
-                        iconColor="text-emerald-700"
+                        iconBg="bg-primary/5"
+                        iconColor="text-primary"
                         onClick={() => navigate('/teacher/quick-attendance', { state: { initialFilter: 'present' } })}
                     />
                     <StatCard
@@ -349,7 +384,7 @@ const TeacherCourses = ({ isDashboard = false }) => {
                             placeholder="Search courses..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-transparent focus:border-emerald-500 focus:bg-white rounded-2xl transition-all outline-none text-sm font-medium"
+                            className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-transparent focus:border-primary focus:bg-white rounded-2xl transition-all outline-none text-sm font-medium"
                         />
                     </div>
 
@@ -369,7 +404,7 @@ const TeacherCourses = ({ isDashboard = false }) => {
                                             );
                                         }}
                                         className={`flex-1 px-3 py-2.5 rounded-xl font-bold text-xs transition-all ${selectedCities.includes(city)
-                                            ? 'bg-white text-emerald-600 shadow-md border border-emerald-100'
+                                            ? 'bg-white text-primary shadow-md border border-primary/10'
                                             : 'text-gray-500 hover:text-gray-700 hover:bg-white/50'
                                             }`}
                                     >
@@ -397,7 +432,7 @@ const TeacherCourses = ({ isDashboard = false }) => {
                                             );
                                         }}
                                         className={`flex-1 px-3 py-2.5 rounded-xl font-bold text-xs transition-all ${selectedTypes.includes(type.id)
-                                            ? 'bg-white text-emerald-600 shadow-md border border-emerald-100'
+                                            ? 'bg-white text-primary shadow-md border border-primary/10'
                                             : 'text-gray-500 hover:text-gray-700 hover:bg-white/50'
                                             }`}
                                     >
@@ -416,7 +451,7 @@ const TeacherCourses = ({ isDashboard = false }) => {
                         {(searchQuery || selectedCities.length > 0 || selectedTypes.length > 0) && (
                             <button
                                 onClick={() => { setSearchQuery(''); setSelectedCities([]); setSelectedTypes([]); }}
-                                className="mt-2 text-emerald-600 hover:text-emerald-700 font-medium text-sm"
+                                className="mt-2 text-primary hover:text-primary font-medium text-sm"
                             >
                                 Clear all filters
                             </button>
@@ -425,8 +460,8 @@ const TeacherCourses = ({ isDashboard = false }) => {
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-3 pr-3">
                         {filteredCourses.map((course, index) => {
-                            const CourseIcon = getCourseIcon(course.category, course.name);
-                            const courseStyle = getCourseStyle(course.category, course.name);
+                            const CourseIcon = getCourseIcon(course.category, course.title || course.name);
+                            const courseStyle = getCourseStyle(course.category, course.title || course.name);
 
                             return (
                                 <motion.div
@@ -435,7 +470,7 @@ const TeacherCourses = ({ isDashboard = false }) => {
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: index * 0.1 }}
                                     onClick={() => handleSelectCourse(course)}
-                                    className="bg-white rounded-3xl p-6 border border-[#ff8e01]/20 cursor-pointer hover:shadow-xl hover:border-[#ff8e01]/50 transition-all group relative"
+                                    className="bg-white rounded-3xl p-6 border border-primary/20 cursor-pointer hover:shadow-xl hover:border-primary/50 transition-all group relative"
                                 >
                                     {/* Combined Pending Badge */}
                                     {(course.pendingAssignments > 0 || course.unreadMessages > 0) && (
@@ -456,7 +491,7 @@ const TeacherCourses = ({ isDashboard = false }) => {
 
                                     <div className="relative z-10">
                                         <div className="flex items-start justify-between mb-6">
-                                            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center bg-gradient-to-br ${courseStyle.gradient} shadow-lg shadow-emerald-900/10`}>
+                                            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center bg-gradient-to-br ${courseStyle.gradient} shadow-lg shadow-primary/10`}>
                                                 <CourseIcon className="w-7 h-7 text-white" />
                                             </div>
                                             <div className="flex flex-col items-end gap-2">
@@ -464,7 +499,7 @@ const TeacherCourses = ({ isDashboard = false }) => {
                                                     {course.status.toUpperCase()}
                                                 </Badge>
                                                 <span className={`text-[10px] px-2 py-1 rounded-lg font-black uppercase tracking-widest ${course.targetAudience === 'interns'
-                                                    ? 'bg-purple-100 text-purple-700'
+                                                    ? 'bg-primary/10 text-purple-700'
                                                     : 'bg-blue-100 text-blue-700'
                                                     }`}>
                                                     {course.targetAudience === 'interns' ? 'Internship' : 'Student'}
@@ -472,7 +507,7 @@ const TeacherCourses = ({ isDashboard = false }) => {
                                             </div>
                                         </div>
 
-                                        <h3 className="text-xl font-black text-gray-900 mb-2 uppercase tracking-tight group-hover:text-emerald-700 transition-colors line-clamp-1">{course.name}</h3>
+                                        <h3 className="text-xl font-black text-gray-900 mb-2 uppercase tracking-tight group-hover:text-primary transition-colors line-clamp-1">{course.title || course.name}</h3>
 
                                         <div className="grid grid-cols-2 gap-4 mb-6">
                                             <div className="space-y-3">
@@ -480,7 +515,7 @@ const TeacherCourses = ({ isDashboard = false }) => {
                                                     <Users className="w-4 h-4 text-gray-400" />
                                                     <span>{course.internCount} Total</span>
                                                 </div>
-                                                <div className="flex items-center gap-2 text-sm text-emerald-600 font-bold">
+                                                <div className="flex items-center gap-2 text-sm text-primary font-bold">
                                                     <CheckCircle className="w-4 h-4" />
                                                     <span>{course.activeStudents} Active</span>
                                                 </div>
@@ -497,13 +532,16 @@ const TeacherCourses = ({ isDashboard = false }) => {
                                             </div>
                                             <div className="bg-gray-50 rounded-2xl p-3 border border-gray-100">
                                                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 border-b border-gray-200 pb-1">Today's Attendance</p>
-                                                <div className="flex items-center justify-between mb-1.5">
-                                                    <span className="text-xs font-bold text-gray-500">Present</span>
-                                                    <span className="text-sm font-black text-emerald-600">{course.presentCount}</span>
-                                                </div>
                                                 <div className="flex items-center justify-between">
-                                                    <span className="text-xs font-bold text-gray-500">Absent</span>
-                                                    <span className="text-sm font-black text-red-500">{course.absentCount}</span>
+                                                    <div className="flex flex-col">
+                                                        <span className="text-xs font-bold text-gray-500">Present</span>
+                                                        <span className="text-sm font-black text-present-fixed">{course.presentCount || 0}</span>
+                                                    </div>
+                                                    <div className="w-px h-6 bg-gray-100"></div>
+                                                    <div className="flex flex-col">
+                                                        <span className="text-xs font-bold text-gray-500">Absent</span>
+                                                        <span className="text-sm font-black text-absent-fixed">{course.absentCount || 0}</span>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -513,7 +551,7 @@ const TeacherCourses = ({ isDashboard = false }) => {
                                                 <Calendar className="w-3.5 h-3.5" />
                                                 {course.city || course.location}
                                             </div>
-                                            <div className="flex items-center text-emerald-600 font-black text-xs uppercase tracking-widest group-hover:translate-x-1 transition-transform">
+                                            <div className="flex items-center text-primary font-black text-xs uppercase tracking-widest group-hover:translate-x-1 transition-transform">
                                                 <span>Manage Portal</span>
                                                 <ArrowRight className="w-4 h-4 ml-2" />
                                             </div>
@@ -558,7 +596,7 @@ const TeacherCourses = ({ isDashboard = false }) => {
                                         value={liveClassForm.title}
                                         onChange={(e) => setLiveClassForm({ ...liveClassForm, title: e.target.value })}
                                         placeholder="e.g., Web Development Live Session"
-                                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent"
                                         required
                                     />
                                 </div>
@@ -572,7 +610,7 @@ const TeacherCourses = ({ isDashboard = false }) => {
                                         value={liveClassForm.link}
                                         onChange={(e) => setLiveClassForm({ ...liveClassForm, link: e.target.value })}
                                         placeholder="https://meet.google.com/... or Zoom link"
-                                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent"
                                         required
                                     />
                                 </div>
@@ -586,12 +624,12 @@ const TeacherCourses = ({ isDashboard = false }) => {
                                         onChange={(e) => setLiveClassForm({ ...liveClassForm, description: e.target.value })}
                                         placeholder="Brief description about the class..."
                                         rows={2}
-                                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none"
+                                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
                                     />
                                 </div>
 
                                 {/* Auto-end timer */}
-                                <div className="bg-orange-50 border border-orange-100 rounded-xl p-4">
+                                <div className="bg-primary/5 border border-primary/10 rounded-xl p-4">
                                     <label className="flex items-center gap-2 text-sm font-semibold text-orange-700 mb-3">
                                         <Timer className="w-4 h-4" />
                                         Auto-End Timer (Optional)
@@ -604,7 +642,7 @@ const TeacherCourses = ({ isDashboard = false }) => {
                                                 onClick={() => setLiveClassForm(f => ({ ...f, autoEndMinutes: f.autoEndMinutes === String(min) ? '' : String(min) }))}
                                                 className={`px-3 py-2 rounded-xl text-sm font-semibold transition-all border ${
                                                     liveClassForm.autoEndMinutes === String(min)
-                                                        ? 'bg-orange-500 text-white border-orange-500 shadow-sm'
+                                                        ? 'bg-primary text-white border-primary shadow-sm'
                                                         : 'bg-white text-gray-700 border-gray-200 hover:border-orange-300'
                                                 }`}
                                             >
@@ -622,7 +660,7 @@ const TeacherCourses = ({ isDashboard = false }) => {
                                         />
                                     </div>
                                     {liveClassForm.autoEndMinutes ? (
-                                        <p className="text-xs text-orange-600 flex items-center gap-1">
+                                        <p className="text-xs text-primary flex items-center gap-1">
                                             <Timer className="w-3 h-3" />
                                             Class will auto-remove after <strong>{liveClassForm.autoEndMinutes} minute{liveClassForm.autoEndMinutes !== '1' ? 's' : ''}</strong>
                                         </p>
@@ -646,7 +684,7 @@ const TeacherCourses = ({ isDashboard = false }) => {
                                                 type="button"
                                                 onClick={() => setLiveClassForm({ ...liveClassForm, visibility: opt.value })}
                                                 className={`px-4 py-3 rounded-xl font-medium transition-all ${liveClassForm.visibility === opt.value
-                                                    ? 'bg-emerald-500 text-white'
+                                                    ? 'bg-primary text-white'
                                                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                                     }`}
                                             >
@@ -687,3 +725,6 @@ const TeacherCourses = ({ isDashboard = false }) => {
 };
 
 export default TeacherCourses;
+
+
+

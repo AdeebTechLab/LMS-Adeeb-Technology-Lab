@@ -36,7 +36,7 @@ const InputField = ({ label, name, type = 'text', icon: Icon, placeholder, value
                 onChange={onChange}
                 placeholder={placeholder}
                 className={`w-full px-4 py-3 ${Icon ? 'pl-11' : ''} border ${error ? 'border-red-400' : 'border-gray-200'
-                    } rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all bg-gray-50/50`}
+                    } rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50`}
                 {...props}
             />
             {Icon && <Icon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />}
@@ -54,7 +54,7 @@ const SelectField = ({ label, name, options, placeholder, value, onChange, error
                 value={value}
                 onChange={onChange}
                 className={`w-full px-4 py-3 border ${error ? 'border-red-400' : 'border-gray-200'
-                    } rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all bg-gray-50/50 appearance-none cursor-pointer`}
+                    } rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50 appearance-none cursor-pointer`}
             >
                 <option value="">{placeholder}</option>
                 {options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
@@ -254,7 +254,7 @@ const JobRegister = () => {
                 className="hidden lg:flex lg:w-1/2 h-screen sticky top-0 relative overflow-hidden"
             >
                 {/* Gradient Background */}
-                <div className="absolute inset-0 bg-gradient-to-br from-purple-600 via-fuchsia-500 to-purple-800">
+                <div className="absolute inset-0 bg-gradient-to-br from-primary via-fuchsia-500 to-purple-800">
                     {/* Animated Background Elements */}
                     <div className="absolute top-20 left-20 w-72 h-72 bg-purple-400/20 rounded-full blur-3xl animate-pulse-slow"></div>
                     <div className="absolute bottom-20 right-20 w-96 h-96 bg-fuchsia-300/20 rounded-full blur-3xl animate-pulse-slow delay-300"></div>
@@ -300,12 +300,12 @@ const JobRegister = () => {
                         >
                             <div className="space-y-6 text-white/90 pb-4">
                                 {/* Status Banner */}
-                                <div className="bg-emerald-500/20 backdrop-blur-sm rounded-xl p-4 border border-emerald-500/30">
+                                <div className="bg-primary/20 backdrop-blur-sm rounded-xl p-4 border border-primary/30">
                                     <div className="flex justify-between items-center mb-2">
                                         <h3 className="text-lg font-bold">Jobs Application Form</h3>
-                                        <span className="px-2 py-1 bg-emerald-500 text-white text-xs font-bold rounded">Open</span>
+                                        <span className="px-2 py-1 bg-primary text-white text-xs font-bold rounded">Open</span>
                                     </div>
-                                    <p className="text-sm font-semibold text-emerald-400">Applications are currently open!</p>
+                                    <p className="text-sm font-semibold text-primary">Applications are currently open!</p>
                                     <p className="text-xs mt-1 text-white/60">Last Date To Apply: Always Open</p>
                                 </div>
 
@@ -355,7 +355,7 @@ const JobRegister = () => {
                         <div className="mb-6">
                             <Link
                                 to="/register"
-                                className="inline-flex items-center text-gray-600 hover:text-purple-600 transition-colors font-medium"
+                                className="inline-flex items-center text-gray-600 hover:text-primary transition-colors font-medium"
                             >
                                 ← Back
                             </Link>
@@ -365,7 +365,7 @@ const JobRegister = () => {
                             Already have an account?{' '}
                             <Link
                                 to="/login"
-                                className="text-purple-600 font-semibold underline hover:text-purple-700 transition-colors"
+                                className="text-primary font-semibold underline hover:text-purple-700 transition-colors"
                             >
                                 Log in
                             </Link>
@@ -386,7 +386,7 @@ const JobRegister = () => {
                         {/* Photo Upload */}
                         <div className="flex flex-col items-center mb-6">
                             <div className="relative group">
-                                <div className="w-24 h-24 rounded-2xl bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden transition-all group-hover:border-purple-500">
+                                <div className="w-24 h-24 rounded-2xl bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden transition-all group-hover:border-primary">
                                     {photoPreview ? (
                                         <img src={photoPreview} alt="Preview" className="w-full h-full object-cover" />
                                     ) : (
@@ -419,7 +419,7 @@ const JobRegister = () => {
 
                         {/* Personal Information */}
                         <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-2 border-b flex items-center gap-2">
-                            <User className="w-5 h-5 text-purple-600" /> Personal Information
+                            <User className="w-5 h-5 text-primary" /> Personal Information
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
                             <InputField label="Full Name *" name="fullName" icon={User} placeholder="Your full name" value={formData.fullName} onChange={handleChange} error={errors.fullName} />
@@ -442,7 +442,7 @@ const JobRegister = () => {
 
                         {/* Professional Details */}
                         <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-2 border-b flex items-center gap-2">
-                            <Briefcase className="w-5 h-5 text-purple-600" /> Professional Details
+                            <Briefcase className="w-5 h-5 text-primary" /> Professional Details
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
                             <InputField label="Highest Qualification *" name="qualification" placeholder="e.g. M.Sc Computer Science" value={formData.qualification} onChange={handleChange} error={errors.qualification} />
@@ -455,7 +455,7 @@ const JobRegister = () => {
                                     onChange={handleChange}
                                     rows={3}
                                     placeholder="Write about your experience..."
-                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all bg-gray-50/50"
+                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50"
                                 />
                             </div>
                             <div className="md:col-span-2">
@@ -465,7 +465,7 @@ const JobRegister = () => {
                                         <label
                                             key={skill}
                                             className={`px-4 py-2 rounded-full border cursor-pointer transition-all text-sm ${formData.skills.includes(skill)
-                                                ? 'bg-purple-100 border-purple-500 text-purple-700'
+                                                ? 'bg-primary/10 border-primary text-purple-700'
                                                 : 'bg-gray-50 border-gray-200 text-gray-600 hover:border-gray-300'
                                                 }`}
                                         >
@@ -492,7 +492,7 @@ const JobRegister = () => {
 
                         {/* Preferences & Attachments */}
                         <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-2 border-b flex items-center gap-2">
-                            <FileText className="w-5 h-5 text-purple-600" /> Preferences & Attachments
+                            <FileText className="w-5 h-5 text-primary" /> Preferences & Attachments
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
                             <InputField label="CV/Resume URL (Drive/Dropbox)" name="cvUrl" type="url" icon={FileText} placeholder="https://drive.google.com/..." value={formData.cvUrl} onChange={handleChange} error={errors.cvUrl} />
@@ -515,7 +515,7 @@ const JobRegister = () => {
                                         value={formData.password}
                                         onChange={handleChange}
                                         placeholder="Create a password"
-                                        className={`w-full px-4 py-3 border ${errors.password ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all bg-gray-50/50`}
+                                        className={`w-full px-4 py-3 border ${errors.password ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50`}
                                     />
                                     <button
                                         type="button"
@@ -536,7 +536,7 @@ const JobRegister = () => {
                                         value={formData.confirmPassword}
                                         onChange={handleChange}
                                         placeholder="Confirm password"
-                                        className={`w-full px-4 py-3 border ${errors.confirmPassword ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all bg-gray-50/50`}
+                                        className={`w-full px-4 py-3 border ${errors.confirmPassword ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50`}
                                     />
                                     <button
                                         type="button"
@@ -558,7 +558,7 @@ const JobRegister = () => {
                                     name="termsAccepted"
                                     checked={formData.termsAccepted}
                                     onChange={handleChange}
-                                    className="w-5 h-5 mt-0.5 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                                    className="w-5 h-5 mt-0.5 rounded border-gray-300 text-primary focus:ring-primary"
                                 />
                                 <span className="text-sm text-gray-700">I Accept All Terms and Conditions</span>
                             </label>
@@ -568,7 +568,7 @@ const JobRegister = () => {
                         <button
                             type="submit"
                             disabled={isLoading || !formData.termsAccepted}
-                            className="w-full py-4 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 active:scale-95"
+                            className="w-full py-4 bg-primary hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 active:scale-95"
                         >
                             {isLoading ? (
                                 <>
@@ -589,4 +589,7 @@ const JobRegister = () => {
 };
 
 export default JobRegister;
+
+
+
 

@@ -139,8 +139,8 @@ const InternDashboard = () => {
                     title: 'Enrolled Programs',
                     value: courses.filter(c => c.isActive && !c.isCompleted).length.toString(),
                     icon: BookOpen,
-                    iconBg: 'bg-emerald-100',
-                    iconColor: 'text-emerald-600',
+                    iconBg: 'bg-primary/10',
+                    iconColor: 'text-primary',
                 },
                 {
                     title: 'Pending Assignments',
@@ -154,8 +154,8 @@ const InternDashboard = () => {
                     title: 'Certificates',
                     value: courses.filter(c => c.isCompleted).length.toString(),
                     icon: CheckCircle,
-                    iconBg: 'bg-orange-100',
-                    iconColor: 'text-[#ff8e01]',
+                    iconBg: 'bg-primary/10',
+                    iconColor: 'text-primary',
                 },
                 {
                     title: 'Pending Fees',
@@ -198,7 +198,7 @@ const InternDashboard = () => {
                         {activeLiveClasses.map((liveClass) => (
                             <div
                                 key={liveClass._id}
-                                className="bg-gradient-to-r from-red-600 via-red-500 to-orange-500 rounded-3xl p-6 md:p-8 text-white shadow-2xl shadow-red-200 border-4 border-red-400"
+                                className="bg-gradient-to-r from-red-600 via-red-500 to-primary rounded-3xl p-6 md:p-8 text-white shadow-2xl shadow-red-200 border-4 border-red-400"
                             >
                                 {/* Animated Background Pulses */}
                                 <div className="absolute top-0 left-0 w-full h-full overflow-hidden rounded-3xl">
@@ -258,10 +258,10 @@ const InternDashboard = () => {
                 <motion.div
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="bg-orange-50 border-2 border-[#ff8e01]/20 rounded-2xl p-4 flex items-center justify-between"
+                    className="bg-primary/5 border-2 border-primary/20 rounded-2xl p-4 flex items-center justify-between"
                 >
                     <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-[#ff8e01] rounded-xl flex items-center justify-center text-white shadow-lg shadow-orange-200">
+                        <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center text-white shadow-lg shadow-orange-200">
                             <Bell className="w-6 h-6 animate-bounce" />
                         </div>
                         <div>
@@ -271,7 +271,7 @@ const InternDashboard = () => {
                     </div>
                     <button
                         onClick={() => navigate(`/${role}/assignments`)}
-                        className="px-4 py-2 bg-[#ff8e01] text-white text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-[#e67e00] transition-colors shadow-sm"
+                        className="px-4 py-2 bg-primary text-white text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-[#e67e00] transition-colors shadow-sm"
                     >
                         Review Now
                     </button>
@@ -331,14 +331,14 @@ const InternDashboard = () => {
                             </div>
                         ) : (
                             pendingAssignments.map((assignment) => (
-                                <div key={assignment._id} className="p-5 bg-gray-50 rounded-2xl border border-gray-100 group hover:border-[#ff8e01]/30 hover:bg-white hover:shadow-xl transition-all">
+                                <div key={assignment._id} className="p-5 bg-gray-50 rounded-2xl border border-gray-100 group hover:border-primary/30 hover:bg-white hover:shadow-xl transition-all">
                                     <div className="flex items-start justify-between mb-3">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 bg-orange-50 rounded-xl flex items-center justify-center border border-orange-100 group-hover:bg-[#ff8e01] transition-colors">
-                                                <Clock className="w-5 h-5 text-[#ff8e01] group-hover:text-white" />
+                                            <div className="w-10 h-10 bg-primary/5 rounded-xl flex items-center justify-center border border-primary/10 group-hover:bg-primary transition-colors">
+                                                <Clock className="w-5 h-5 text-primary group-hover:text-white" />
                                             </div>
                                             <div>
-                                                <h4 className="font-black text-gray-900 text-sm group-hover:text-[#ff8e01] transition-colors uppercase italic truncate max-w-[150px]">{assignment.title}</h4>
+                                                <h4 className="font-black text-gray-900 text-sm group-hover:text-primary transition-colors uppercase italic truncate max-w-[150px]">{assignment.title}</h4>
                                                 <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mt-0.5">
                                                     Deadline: {new Date(assignment.dueDate).toLocaleDateString(undefined, { day: '2-digit', month: 'short' })}
                                                 </p>
@@ -378,14 +378,14 @@ const InternDashboard = () => {
                                     </div>
                                 )}
                                 <div className="flex items-center gap-5">
-                                    <div className="w-12 h-12 bg-orange-50 rounded-2xl flex items-center justify-center border border-orange-100 group-hover:bg-[#ff8e01] transition-colors">
+                                    <div className="w-12 h-12 bg-primary/5 rounded-2xl flex items-center justify-center border border-primary/10 group-hover:bg-primary transition-colors">
                                         {(() => {
                                             const Icon = getCourseIcon(enrollment.course?.category, enrollment.course?.title);
-                                            return <Icon className="w-6 h-6 text-[#ff8e01] group-hover:text-white transition-colors" />;
+                                            return <Icon className="w-6 h-6 text-primary group-hover:text-white transition-colors" />;
                                         })()}
                                     </div>
                                     <div>
-                                        <h3 className="font-bold text-gray-900 uppercase tracking-tight group-hover:text-[#ff8e01] transition-colors">{enrollment.course?.title || 'Program'}</h3>
+                                        <h3 className="font-bold text-gray-900 uppercase tracking-tight group-hover:text-primary transition-colors">{enrollment.course?.title || 'Program'}</h3>
                                         <p className="text-xs text-gray-400 font-bold uppercase tracking-widest mt-1 italic">
                                             {enrollment.course?.durationMonths
                                                 ? `${enrollment.course.durationMonths} ${enrollment.course.durationMonths === 1 ? 'Month' : 'Months'}`
@@ -404,7 +404,7 @@ const InternDashboard = () => {
                                     ) : (
                                         <button
                                             onClick={(e) => { e.stopPropagation(); navigate(`/${role}/assignments`, { state: { courseId: enrollment.id } }); }}
-                                            className="px-6 py-2.5 text-[10px] font-black uppercase tracking-widest text-[#ff8e01] bg-orange-50 rounded-xl hover:bg-orange-100 transition-all active:scale-95"
+                                            className="px-6 py-2.5 text-[10px] font-black uppercase tracking-widest text-primary bg-primary/5 rounded-xl hover:bg-primary/10 transition-all active:scale-95"
                                         >
                                             Portal
                                         </button>
@@ -420,3 +420,6 @@ const InternDashboard = () => {
 };
 
 export default InternDashboard;
+
+
+

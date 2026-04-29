@@ -45,7 +45,7 @@ const StudentsTab = ({ course }) => {
         <div className="space-y-6">
             {/* Header stats */}
             <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-700 rounded-xl border border-emerald-100">
+                <div className="flex items-center gap-2 px-4 py-2 bg-primary/5 text-primary rounded-xl border border-primary/10">
                     <UserCheck className="w-4 h-4" />
                     <span className="font-bold text-sm">{activeCount} Active</span>
                 </div>
@@ -58,7 +58,7 @@ const StudentsTab = ({ course }) => {
                 <button 
                     onClick={fetchEnrollments}
                     disabled={isLoading}
-                    className="flex items-center gap-2 px-5 py-2.5 bg-emerald-50 text-emerald-600 rounded-xl font-black text-[10px] uppercase tracking-widest border-2 border-emerald-100 hover:border-emerald-500 hover:bg-white hover:shadow-lg hover:shadow-emerald-100 transition-all active:scale-95 disabled:opacity-50"
+                    className="flex items-center gap-2 px-5 py-2.5 bg-primary/5 text-primary rounded-xl font-black text-[10px] uppercase tracking-widest border-2 border-primary/10 hover:border-primary hover:bg-white hover:shadow-lg hover:shadow-primary/10 transition-all active:scale-95 disabled:opacity-50"
                 >
                     <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
                     Refresh Students
@@ -92,7 +92,7 @@ const StudentsTab = ({ course }) => {
                                     {student.photo ? (
                                         <img src={student.photo} alt={student.name} className="w-full h-full object-cover" />
                                     ) : (
-                                        <div className="w-full h-full bg-gradient-to-br from-emerald-400 to-blue-500 flex items-center justify-center text-white font-bold text-sm">
+                                        <div className="w-full h-full bg-gradient-to-br from-primary to-blue-500 flex items-center justify-center text-white font-bold text-sm">
                                             {(student.name || 'S').charAt(0).toUpperCase()}
                                         </div>
                                     )}
@@ -130,3 +130,6 @@ const StudentsTab = ({ course }) => {
 };
 
 export default StudentsTab;
+
+
+

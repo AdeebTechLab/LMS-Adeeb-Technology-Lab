@@ -223,11 +223,11 @@ const BrowseCourses = () => {
             )}
 
             {/* Tabs */}
-            <div className="flex gap-2 mb-6 bg-gray-100/80 p-1.5 rounded-2xl w-fit border border-[#ff8e01]">
+            <div className="flex gap-2 mb-6 bg-gray-100/80 p-1.5 rounded-2xl w-fit border border-primary">
                 <button
                     onClick={() => setActiveTab('available')}
                     className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${activeTab === 'available'
-                        ? 'bg-white text-[#ff8e01] shadow-sm border border-[#ff8e01]'
+                        ? 'bg-white text-primary shadow-sm border border-primary'
                         : 'text-gray-600 hover:bg-gray-200 hover:text-gray-900'
                         }`}
                 >
@@ -236,7 +236,7 @@ const BrowseCourses = () => {
                 <button
                     onClick={() => setActiveTab('enrolled')}
                     className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${activeTab === 'enrolled'
-                        ? 'bg-white text-[#ff8e01] shadow-sm border border-[#ff8e01]'
+                        ? 'bg-white text-primary shadow-sm border border-primary'
                         : 'text-gray-600 hover:bg-gray-200 hover:text-gray-900'
                         }`}
                 >
@@ -245,7 +245,7 @@ const BrowseCourses = () => {
                 <button
                     onClick={() => setActiveTab('completed')}
                     className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${activeTab === 'completed'
-                        ? 'bg-white text-[#ff8e01] shadow-sm border border-[#ff8e01]'
+                        ? 'bg-white text-primary shadow-sm border border-primary'
                         : 'text-gray-600 hover:bg-gray-200 hover:text-gray-900'
                         }`}
                 >
@@ -255,7 +255,7 @@ const BrowseCourses = () => {
 
             {/* Search and Filters */}
             <div className="bg-white rounded-2xl p-4 border border-gray-100 flex flex-col gap-4 z-50 relative">
-                <div className="w-full flex items-center bg-gray-50 rounded-xl px-4 py-2 border border-gray-100 focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-500/20 transition-all">
+                <div className="w-full flex items-center bg-gray-50 rounded-xl px-4 py-2 border border-gray-100 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 transition-all">
                     <Search className="w-5 h-5 text-gray-400 mr-3" />
                     <input
                         type="text"
@@ -280,7 +280,7 @@ const BrowseCourses = () => {
                                         }
                                     }}
                                     className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${isSelected
-                                        ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-200'
+                                        ? 'bg-primary text-white shadow-lg shadow-primary'
                                         : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                                         }`}
                                 >
@@ -358,7 +358,7 @@ const BrowseCourses = () => {
                                 {course.description?.length > 100 && (
                                     <button 
                                         onClick={() => { setSelectedCourse(course); setViewModalOpen(true); }}
-                                        className="text-xs text-emerald-600 hover:text-emerald-700 font-medium mt-1 mb-4"
+                                        className="text-xs text-primary hover:text-primary font-medium mt-1 mb-4"
                                     >
                                         Read more
                                     </button>
@@ -384,7 +384,7 @@ const BrowseCourses = () => {
                                                                     className="w-9 h-9 rounded-full object-cover border-2 border-gray-100"
                                                                 />
                                                             ) : (
-                                                                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-xs font-bold border-2 border-gray-100">
+                                                                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-primary flex items-center justify-center text-white text-xs font-bold border-2 border-gray-100">
                                                                     {teacher?.name?.charAt(0)?.toUpperCase() || 'T'}
                                                                 </div>
                                                             )}
@@ -429,7 +429,7 @@ const BrowseCourses = () => {
                                     <div className="mb-4 p-3 bg-purple-50 rounded-xl">
                                         <div className="flex items-center justify-between">
                                             <span className="text-sm text-gray-600">Final Grade</span>
-                                            <span className="font-bold text-purple-600">{enrollment.grade} ({enrollment.percentage}%)</span>
+                                            <span className="font-bold text-primary">{enrollment.grade} ({enrollment.percentage}%)</span>
                                         </div>
                                     </div>
                                 )}
@@ -442,7 +442,7 @@ const BrowseCourses = () => {
                                                 Rs {Number(course.originalPrice).toLocaleString()}
                                             </span>
                                         )}
-                                        <div className={`flex items-center gap-1 font-bold text-lg ${course.originalPrice && !isNaN(parseFloat(course.originalPrice)) && parseFloat(course.originalPrice) > parseFloat(course.fee) ? 'text-emerald-600' : 'text-gray-900'}`}>
+                                        <div className={`flex items-center gap-1 font-bold text-lg ${course.originalPrice && !isNaN(parseFloat(course.originalPrice)) && parseFloat(course.originalPrice) > parseFloat(course.fee) ? 'text-primary' : 'text-gray-900'}`}>
                                             {isNaN(Number(course.fee)) ? course.fee : `Rs ${Number(course.fee).toLocaleString()}`}
                                             <span className="text-xs font-normal text-gray-500">/month</span>
                                         </div>
@@ -451,7 +451,7 @@ const BrowseCourses = () => {
                                     {status === 'available' && (
                                         <button
                                             onClick={() => handleEnrollClick(course)}
-                                            className="px-4 py-2 bg-[#0f2847] hover:bg-[#ff8e01] text-white rounded-lg font-medium transition-all"
+                                            className="px-4 py-2 bg-[#0f2847] hover:bg-primary text-white rounded-lg font-medium transition-all"
                                         >
                                             Enroll Now
                                         </button>
@@ -492,14 +492,14 @@ const BrowseCourses = () => {
                                                         href={certificate.certificateLink}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
-                                                        className="px-3 py-2 bg-purple-100 text-purple-600 rounded-lg font-medium text-sm hover:bg-purple-200 transition-all"
+                                                        className="px-3 py-2 bg-primary/10 text-primary rounded-lg font-medium text-sm hover:bg-purple-200 transition-all"
                                                     >
                                                         View
                                                     </a>
                                                     <a
                                                         href={certificate.certificateLink}
                                                         download
-                                                        className="px-3 py-2 bg-purple-600 text-white rounded-lg font-medium text-sm hover:bg-purple-700 transition-all"
+                                                        className="px-3 py-2 bg-primary text-white rounded-lg font-medium text-sm hover:bg-purple-700 transition-all"
                                                     >
                                                         Download
                                                     </a>
@@ -546,7 +546,7 @@ const BrowseCourses = () => {
                             </div>
                         </div>
 
-                        <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-100">
+                        <div className="p-4 bg-primary/5 rounded-xl border border-primary/10">
                             <div className="flex items-center justify-between mb-2">
                                 <span className="text-gray-600">Course Fee</span>
                                 <div className="flex flex-col items-end">
@@ -555,7 +555,7 @@ const BrowseCourses = () => {
                                             Rs {Number(selectedCourse.originalPrice).toLocaleString()}
                                         </span>
                                     )}
-                                    <span className="text-2xl font-bold text-emerald-600">
+                                    <span className="text-2xl font-bold text-primary">
                                         {isNaN(Number(selectedCourse.fee)) ? selectedCourse.fee : `Rs ${Number(selectedCourse.fee).toLocaleString()}`}
                                     </span>
                                 </div>
@@ -575,7 +575,7 @@ const BrowseCourses = () => {
                             <button
                                 onClick={handleConfirmEnroll}
                                 disabled={isEnrolling}
-                                className="flex-1 py-3 bg-[#0f2847] hover:bg-[#ff8e01] text-white font-medium rounded-xl flex items-center justify-center gap-2 disabled:opacity-70"
+                                className="flex-1 py-3 bg-[#0f2847] hover:bg-primary text-white font-medium rounded-xl flex items-center justify-center gap-2 disabled:opacity-70"
                             >
                                 {isEnrolling ? (
                                     <>
@@ -636,7 +636,7 @@ const BrowseCourses = () => {
             >
                 {selectedCourse && (
                     <div className="space-y-4">
-                        <div className="p-4 bg-emerald-50 rounded-xl">
+                        <div className="p-4 bg-primary/5 rounded-xl">
                             <h3 className="font-semibold text-gray-900 mb-2">{selectedCourse.title}</h3>
                             <div className="flex items-center gap-4 text-sm text-gray-500">
                                 <span className="flex items-center gap-1">
@@ -667,3 +667,6 @@ const BrowseCourses = () => {
 };
 
 export default BrowseCourses;
+
+
+

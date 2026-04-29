@@ -110,7 +110,7 @@ const DailyTasksTab = ({ course, students = [] }) => {
                 <button 
                     onClick={fetchTasks}
                     disabled={isLoading}
-                    className="flex items-center gap-2 px-5 py-2.5 bg-emerald-50 text-emerald-600 rounded-xl font-black text-[10px] uppercase tracking-widest border-2 border-emerald-100 hover:border-emerald-500 hover:bg-white hover:shadow-lg hover:shadow-emerald-100 transition-all active:scale-95 disabled:opacity-50"
+                    className="flex items-center gap-2 px-5 py-2.5 bg-primary/5 text-primary rounded-xl font-black text-[10px] uppercase tracking-widest border-2 border-primary/10 hover:border-primary hover:bg-white hover:shadow-lg hover:shadow-primary/10 transition-all active:scale-95 disabled:opacity-50"
                 >
                     <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
                     Refresh Logs
@@ -128,9 +128,9 @@ const DailyTasksTab = ({ course, students = [] }) => {
                     <div className="relative min-w-[260px]">
                         <button
                             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                            className={`w-full flex items-center justify-between px-4 py-3 bg-white border-2 rounded-xl transition-all ${isDropdownOpen ? 'border-emerald-500 ring-4 ring-emerald-500/10' : 'border-gray-100 hover:border-gray-200'}`}>
+                            className={`w-full flex items-center justify-between px-4 py-3 bg-white border-2 rounded-xl transition-all ${isDropdownOpen ? 'border-primary ring-4 ring-primary/10' : 'border-gray-100 hover:border-gray-200'}`}>
                             <div className="flex items-center gap-2">
-                                <Users className="w-4 h-4 text-emerald-600" />
+                                <Users className="w-4 h-4 text-primary" />
                                 <span className="text-sm font-bold text-gray-700">
                                     {selectedStudentFilter === 'all' ? 'All Students' : (students.find(s => String(s.id || s._id) === String(selectedStudentFilter))?.name || 'Select Student')}
                                 </span>
@@ -148,7 +148,7 @@ const DailyTasksTab = ({ course, students = [] }) => {
                                             placeholder="Search student name..."
                                             value={studentSearchTerm}
                                             onChange={(e) => setStudentSearchTerm(e.target.value)}
-                                            className="w-full pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm outline-none focus:border-emerald-500 transition-all font-medium"
+                                            className="w-full pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm outline-none focus:border-primary transition-all font-medium"
                                             onClick={(e) => e.stopPropagation()}
                                             autoFocus
                                         />
@@ -157,7 +157,7 @@ const DailyTasksTab = ({ course, students = [] }) => {
                                 <div className="max-h-60 overflow-y-auto p-2 space-y-1 custom-scrollbar">
                                     <button
                                         onClick={() => { setSelectedStudentFilter('all'); setIsDropdownOpen(false); setStudentSearchTerm(''); }}
-                                        className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${selectedStudentFilter === 'all' ? 'bg-emerald-50 text-emerald-700' : 'text-gray-600 hover:bg-gray-50'}`}>
+                                        className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${selectedStudentFilter === 'all' ? 'bg-primary/5 text-primary' : 'text-gray-600 hover:bg-gray-50'}`}>
                                         View All Students
                                     </button>
 
@@ -167,12 +167,12 @@ const DailyTasksTab = ({ course, students = [] }) => {
                                         <button
                                             key={student.id || student._id}
                                             onClick={() => { setSelectedStudentFilter(student.id || student._id); setIsDropdownOpen(false); setStudentSearchTerm(''); }}
-                                            className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${String(selectedStudentFilter) === String(student.id || student._id) ? 'bg-emerald-50 text-emerald-700' : 'text-gray-600 hover:bg-gray-50'}`}>
+                                            className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${String(selectedStudentFilter) === String(student.id || student._id) ? 'bg-primary/5 text-primary' : 'text-gray-600 hover:bg-gray-50'}`}>
                                             <div className="flex items-center gap-3">
                                                 {student.photo ? (
                                                     <img src={student.photo} alt={student.name} className="w-6 h-6 rounded-full object-cover" />
                                                 ) : (
-                                                    <div className="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center text-[10px] text-emerald-700">{student.name.charAt(0)}</div>
+                                                    <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] text-primary">{student.name.charAt(0)}</div>
                                                 )}
                                                 {student.name}
                                             </div>
@@ -232,15 +232,15 @@ const DailyTasksTab = ({ course, students = [] }) => {
                                 <div className="flex items-start justify-between gap-4">
                                     <div className="flex items-start gap-4 flex-1">
                                         {task.user?.photo ? (
-                                            <img src={task.user.photo} alt={task.user.name} className="w-12 h-12 rounded-full object-cover border border-emerald-100" />
+                                            <img src={task.user.photo} alt={task.user.name} className="w-12 h-12 rounded-full object-cover border border-primary/10" />
                                         ) : (
-                                            <div className="w-12 h-12 rounded-full bg-emerald-50 flex items-center justify-center text-base font-bold text-emerald-600 border border-emerald-100">
+                                            <div className="w-12 h-12 rounded-full bg-primary/5 flex items-center justify-center text-base font-bold text-primary border border-primary/10">
                                                 {task.user?.name?.charAt(0)}
                                             </div>
                                         )}
                                         <div className="flex-1">
                                             <div className="flex items-center gap-2 mb-1">
-                                                <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-100 uppercase tracking-tight">
+                                                <span className="text-[10px] font-black text-primary bg-primary/5 px-2 py-0.5 rounded-lg border border-primary/10 uppercase tracking-tight">
                                                     {task.user?.role === 'intern' ? 'LOG' : 'CLASS'} #{logNumber}
                                                 </span>
                                                 <h4 className="font-bold text-gray-900">{task.user?.name}</h4>
@@ -249,7 +249,7 @@ const DailyTasksTab = ({ course, students = [] }) => {
                                                         {task.user?.rollNo}
                                                     </span>
                                                 )}
-                                                <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border ${task.user?.role === 'intern' ? 'bg-purple-50 text-purple-600 border-purple-100' : 'bg-blue-50 text-blue-600 border-blue-100'
+                                                <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border ${task.user?.role === 'intern' ? 'bg-purple-50 text-primary border-primary/10' : 'bg-blue-50 text-blue-600 border-blue-100'
                                                     }`}>
                                                     {task.user?.role || 'student'}
                                                 </span>
@@ -265,7 +265,7 @@ const DailyTasksTab = ({ course, students = [] }) => {
                                                         href={task.workLink}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
-                                                        className="flex items-center gap-2 text-sm text-emerald-600 font-bold hover:underline bg-emerald-50 w-fit px-3 py-2 rounded-xl border border-emerald-100"
+                                                        className="flex items-center gap-2 text-sm text-primary font-bold hover:underline bg-primary/5 w-fit px-3 py-2 rounded-xl border border-primary/10"
                                                     >
                                                         <ExternalLink className="w-4 h-4" />
                                                         SUBMITTED WORK LINK
@@ -295,7 +295,7 @@ const DailyTasksTab = ({ course, students = [] }) => {
                                                 <button
                                                     onClick={() => handleVerifyClick(task)}
                                                     disabled={isSubmitting}
-                                                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-black uppercase tracking-widest transition-all shadow-md active:scale-95 disabled:opacity-50"
+                                                    className="px-4 py-2 bg-primary hover:bg-primary text-white rounded-lg text-xs font-black uppercase tracking-widest transition-all shadow-md active:scale-95 disabled:opacity-50"
                                                 >
                                                     {isSubmitting ? '...' : 'VERIFY'}
                                                 </button>
@@ -337,3 +337,6 @@ const DailyTasksTab = ({ course, students = [] }) => {
 };
 
 export default DailyTasksTab;
+
+
+

@@ -21,3 +21,4 @@ import StudentCourseView from './pages/student/StudentCourseView';
     {/* ... existing routes */}
     <Route path="course/:id" element={<StudentCourseView />} />
 </Route>
+

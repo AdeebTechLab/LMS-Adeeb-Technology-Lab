@@ -26,7 +26,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
         dueDate: '',
         publishDate: '', // Scheduling time
         totalMarks: 100,
-        assignTo: 'all', // all | selected
+        assignTo: 'none', // all | selected | none
         assignedUsers: [] // Array of student IDs
     });
     const [isCreating, setIsCreating] = useState(false);
@@ -72,7 +72,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                 dueDate: '',
                 publishDate: '',
                 totalMarks: 100,
-                assignTo: 'all',
+                assignTo: 'none',
                 assignedUsers: []
             });
             alert('Assignment created successfully!');
@@ -227,7 +227,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                     <button
                         onClick={fetchAssignments}
                         disabled={isLoading}
-                        className="flex items-center gap-2 px-5 py-2.5 bg-emerald-50 text-emerald-600 rounded-xl font-black text-[10px] uppercase tracking-widest border-2 border-emerald-100 hover:border-emerald-500 hover:bg-white hover:shadow-lg hover:shadow-emerald-100 transition-all active:scale-95 disabled:opacity-50"
+                        className="flex items-center gap-2 px-5 py-2.5 bg-primary/5 text-primary rounded-xl font-black text-[10px] uppercase tracking-widest border-2 border-primary/10 hover:border-primary hover:bg-white hover:shadow-lg hover:shadow-primary/10 transition-all active:scale-95 disabled:opacity-50"
                     >
                         <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
                         Refresh List
@@ -241,13 +241,13 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                 dueDate: '',
                                 publishDate: '',
                                 totalMarks: 100,
-                                assignTo: 'all',
+                                assignTo: 'none',
                                 assignedUsers: []
                             });
                             setAssignSearchTerm('');
                             setIsCreateModalOpen(true);
                         }}
-                        className="px-6 py-2.5 bg-[#0f2847] hover:bg-[#ff8e01] text-white rounded-xl font-black text-xs uppercase tracking-widest transition-all flex items-center gap-2 shadow-lg shadow-blue-900/10 active:scale-95"
+                        className="px-6 py-2.5 bg-[#0f2847] hover:bg-primary text-white rounded-xl font-black text-xs uppercase tracking-widest transition-all flex items-center gap-2 shadow-lg shadow-blue-900/10 active:scale-95"
                     >
                         <Plus className="w-4 h-4" />
                         Create Assignment
@@ -266,11 +266,11 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                     <div className="relative min-w-[300px]">
                         <button
                             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                            className={`w-full flex items-center justify-between px-4 py-3 bg-white border-2 rounded-xl transition-all ${isDropdownOpen ? 'border-emerald-500 ring-4 ring-emerald-500/10' : 'border-gray-100 hover:border-gray-200'
+                            className={`w-full flex items-center justify-between px-4 py-3 bg-white border-2 rounded-xl transition-all ${isDropdownOpen ? 'border-primary ring-4 ring-primary/10' : 'border-gray-100 hover:border-gray-200'
                                 }`}
                         >
                             <div className="flex items-center gap-2">
-                                <Users className="w-4 h-4 text-emerald-600" />
+                                <Users className="w-4 h-4 text-primary" />
                                 <span className="text-sm font-bold text-gray-700">
                                     {selectedStudentFilter === 'all'
                                         ? 'All Students (View All Assignments)'
@@ -294,7 +294,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                             placeholder="Search student name..."
                                             value={studentSearchTerm}
                                             onChange={(e) => setStudentSearchTerm(e.target.value)}
-                                            className="w-full pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm outline-none focus:border-emerald-500 transition-all font-medium"
+                                            className="w-full pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm outline-none focus:border-primary transition-all font-medium"
                                             onClick={(e) => e.stopPropagation()}
                                             autoFocus
                                         />
@@ -308,7 +308,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                             setStudentSearchTerm('');
                                         }}
                                         className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${selectedStudentFilter === 'all'
-                                            ? 'bg-emerald-50 text-emerald-700'
+                                            ? 'bg-primary/5 text-primary'
                                             : 'text-gray-600 hover:bg-gray-50'
                                             }`}
                                     >
@@ -329,7 +329,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                                     setStudentSearchTerm('');
                                                 }}
                                                 className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${selectedStudentFilter === student.id
-                                                    ? 'bg-emerald-50 text-emerald-700'
+                                                    ? 'bg-primary/5 text-primary'
                                                     : 'text-gray-600 hover:bg-gray-50'
                                                     }`}
                                             >
@@ -337,7 +337,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                                     {student.photo ? (
                                                         <img src={student.photo} alt={student.name} className="w-6 h-6 rounded-full object-cover" />
                                                     ) : (
-                                                        <div className="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center text-[10px] text-emerald-700">
+                                                        <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] text-primary">
                                                             {student.name.charAt(0)}
                                                         </div>
                                                     )}
@@ -428,7 +428,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                         <div className="text-right">
                                             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Submissions</p>
                                             <div className="flex items-center gap-1">
-                                                <span className="text-xl font-black text-emerald-600">{submissionCount}</span>
+                                                <span className="text-xl font-black text-primary">{submissionCount}</span>
                                                 <span className="text-sm text-gray-400">/</span>
                                                 <span className="text-xl font-black text-red-500">{assignment.assignTo === 'all' ? (students?.length || '?') : (assignment.assignedUsers?.length || 0)}</span>
                                             </div>
@@ -456,13 +456,13 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                         <motion.div
                                             initial={{ opacity: 0, height: 0 }}
                                             animate={{ opacity: 1, height: 'auto' }}
-                                            className="mb-4 p-4 bg-emerald-50/50 rounded-2xl border border-emerald-100 flex items-center justify-between gap-4"
+                                            className="mb-4 p-4 bg-primary/5/50 rounded-2xl border border-primary/10 flex items-center justify-between gap-4"
                                         >
                                             <div className="flex items-center gap-3">
                                                 {spotlightSubmission.user?.photo ? (
                                                     <img src={spotlightSubmission.user.photo} alt="" className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm" />
                                                 ) : (
-                                                    <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 font-bold text-sm border-2 border-white shadow-sm">
+                                                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm border-2 border-white shadow-sm">
                                                         {spotlightSubmission.user?.name?.charAt(0)}
                                                     </div>
                                                 )}
@@ -474,7 +474,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                                                 {spotlightSubmission.user?.rollNo}
                                                             </span>
                                                         )}
-                                                        <span className={`text-[8px] font-black uppercase px-1.5 py-0.5 rounded-full border ${spotlightSubmission.user?.role === 'intern' ? 'bg-purple-50 text-purple-600 border-purple-100' : 'bg-blue-50 text-blue-600 border-blue-100'}`}>
+                                                        <span className={`text-[8px] font-black uppercase px-1.5 py-0.5 rounded-full border ${spotlightSubmission.user?.role === 'intern' ? 'bg-purple-50 text-primary border-primary/10' : 'bg-blue-50 text-blue-600 border-blue-100'}`}>
                                                             {spotlightSubmission.user?.role || 'student'}
                                                         </span>
                                                     </div>
@@ -491,7 +491,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                                         {spotlightSubmission.status?.toUpperCase() || 'SUBMITTED'}
                                                     </Badge>
                                                     {spotlightSubmission.marks !== undefined && spotlightSubmission.marks !== null && (
-                                                        <p className="text-sm font-black text-emerald-600 mt-1">
+                                                        <p className="text-sm font-black text-primary mt-1">
                                                             {spotlightSubmission.marks}
                                                             <span className="text-[10px] text-gray-400 font-bold"> / {assignment.totalMarks}</span>
                                                         </p>
@@ -515,12 +515,12 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                                             {sub.user?.photo ? (
                                                                 <img src={sub.user.photo} alt="" className="w-7 h-7 rounded-full object-cover border border-gray-100" />
                                                             ) : (
-                                                                <div className="w-7 h-7 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 font-bold text-[10px]">
+                                                                <div className="w-7 h-7 rounded-full bg-primary/5 flex items-center justify-center text-primary font-bold text-[10px]">
                                                                     {sub.user?.name?.charAt(0)}
                                                                 </div>
                                                             )}
                                                             <div className="min-w-0">
-                                                                <p className="text-[11px] font-bold text-gray-900 truncate group-hover:text-emerald-600 transition-colors">{sub.user?.name}</p>
+                                                                <p className="text-[11px] font-bold text-gray-900 truncate group-hover:text-primary transition-colors">{sub.user?.name}</p>
                                                                 <div className="flex items-center gap-1.5">
                                                                     {sub.user?.rollNo && (
                                                                         <span className="text-[9px] font-black text-red-500/70">{sub.user?.rollNo}</span>
@@ -532,7 +532,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                                             </div>
                                                         </div>
                                                         <div className="text-right shrink-0">
-                                                            <div className={`text-[9px] font-black px-2 py-0.5 rounded-lg border ${sub.status === 'graded' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
+                                                            <div className={`text-[9px] font-black px-2 py-0.5 rounded-lg border ${sub.status === 'graded' ? 'bg-primary/5 text-primary border-primary/10' :
                                                                     sub.status === 'rejected' ? 'bg-red-50 text-red-600 border-red-100' :
                                                                         'bg-amber-50 text-amber-600 border-amber-100'
                                                                 }`}>
@@ -560,7 +560,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                         </div>
                                         <button
                                             onClick={() => handleViewSubmissions(assignment)}
-                                            className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-lg active:scale-95"
+                                            className="px-6 py-2.5 bg-primary hover:bg-primary text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-lg active:scale-95"
                                         >
                                             {isFullyGraded ? 'REVIEW GRADES' : 'GRADE SUBMISSIONS'}
                                         </button>
@@ -591,7 +591,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                             type="text"
                             value={newAssignment.title}
                             onChange={(e) => setNewAssignment({ ...newAssignment, title: e.target.value })}
-                            className="w-full px-4 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20"
+                            className="w-full px-4 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-primary/20"
                             required
                         />
                     </div>
@@ -600,7 +600,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                         <textarea
                             value={newAssignment.description}
                             onChange={(e) => setNewAssignment({ ...newAssignment, description: e.target.value })}
-                            className="w-full px-4 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20"
+                            className="w-full px-4 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-primary/20"
                             rows="3"
                         />
                     </div>
@@ -611,7 +611,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                 type="date"
                                 value={newAssignment.dueDate}
                                 onChange={(e) => setNewAssignment({ ...newAssignment, dueDate: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20"
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-primary/20"
                                 required
                             />
                         </div>
@@ -621,7 +621,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                 type="number"
                                 value={newAssignment.totalMarks}
                                 onChange={(e) => setNewAssignment({ ...newAssignment, totalMarks: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20"
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-primary/20"
                                 required
                             />
                         </div>
@@ -635,7 +635,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                             type="datetime-local"
                             value={newAssignment.publishDate}
                             onChange={(e) => setNewAssignment({ ...newAssignment, publishDate: e.target.value })}
-                            className="w-full px-4 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20"
+                            className="w-full px-4 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-primary/20"
                         />
                         <p className="text-[10px] text-gray-400 mt-1 uppercase font-bold tracking-tighter italic">Leave empty to publish immediately</p>
                     </div>
@@ -648,11 +648,11 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                 <input
                                     type="radio"
                                     name="assignTo"
-                                    checked={newAssignment.assignTo === 'all'}
-                                    onChange={() => setNewAssignment({ ...newAssignment, assignTo: 'all', assignedUsers: [] })}
-                                    className="text-emerald-600 focus:ring-emerald-500"
+                                    checked={newAssignment.assignTo === 'none'}
+                                    onChange={() => setNewAssignment({ ...newAssignment, assignTo: 'none', assignedUsers: [] })}
+                                    className="text-primary focus:ring-primary"
                                 />
-                                <span className="text-sm text-gray-600">All Students</span>
+                                <span className="text-sm text-gray-600 italic">None (Draft)</span>
                             </label>
                             <label className="flex items-center gap-2 cursor-pointer">
                                 <input
@@ -660,7 +660,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                     name="assignTo"
                                     checked={newAssignment.assignTo === 'selected'}
                                     onChange={() => setNewAssignment({ ...newAssignment, assignTo: 'selected' })}
-                                    className="text-emerald-600 focus:ring-emerald-500"
+                                    className="text-primary focus:ring-primary"
                                 />
                                 <span className="text-sm text-gray-600">Selected Students</span>
                             </label>
@@ -677,7 +677,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                             placeholder="Search by name or reg no..."
                                             value={assignSearchTerm}
                                             onChange={(e) => setAssignSearchTerm(e.target.value)}
-                                            className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all"
+                                            className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
                                         />
                                     </div>
                                     <button
@@ -693,7 +693,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                             visibleStudents.forEach(s => newSelection.add(s.id || s._id));
                                             setNewAssignment({ ...newAssignment, assignedUsers: Array.from(newSelection) });
                                         }}
-                                        className="px-3 py-2 text-xs font-bold text-emerald-600 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition-colors whitespace-nowrap"
+                                        className="px-3 py-2 text-xs font-bold text-primary bg-primary/5 hover:bg-primary/10 rounded-lg transition-colors whitespace-nowrap"
                                     >
                                         Select All
                                     </button>
@@ -725,14 +725,14 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                                         setNewAssignment({ ...newAssignment, assignedUsers: current.filter(id => id !== sId) });
                                                     }
                                                 }}
-                                                className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 border-gray-300"
+                                                className="w-4 h-4 rounded text-primary focus:ring-primary border-gray-300"
                                             />
                                             <div className="flex-1 flex items-center justify-between">
                                                 <div className="flex items-center gap-3">
                                                     {student.photo ? (
                                                         <img src={student.photo} alt={student.name} className="w-8 h-8 rounded-full object-cover" />
                                                     ) : (
-                                                        <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-xs font-bold">
+                                                        <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold">
                                                             {student.name?.charAt(0)}
                                                         </div>
                                                     )}
@@ -742,7 +742,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                                     </div>
                                                 </div>
                                                 {newAssignment.assignedUsers?.includes(student.id || student._id) && (
-                                                    <CheckCircle className="w-4 h-4 text-emerald-500" />
+                                                    <CheckCircle className="w-4 h-4 text-primary" />
                                                 )}
                                             </div>
                                         </label>
@@ -755,7 +755,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                     <span className="text-xs text-gray-400">
                                         {students?.length} total students
                                     </span>
-                                    <span className="text-xs font-bold text-emerald-600">
+                                    <span className="text-xs font-bold text-primary">
                                         {newAssignment.assignedUsers?.length || 0} selected
                                     </span>
                                 </div>
@@ -774,7 +774,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                         <button
                             type="submit"
                             disabled={isCreating}
-                            className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-emerald-100 flex items-center gap-2"
+                            className="px-6 py-2.5 bg-primary hover:bg-primary text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-primary/10 flex items-center gap-2"
                         >
                             {isCreating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
                             Create Assignment
@@ -797,7 +797,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                 type="text"
                                 value={editingAssignment.title}
                                 onChange={(e) => setEditingAssignment({ ...editingAssignment, title: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20"
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-primary/20"
                                 required
                             />
                         </div>
@@ -806,7 +806,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                             <textarea
                                 value={editingAssignment.description}
                                 onChange={(e) => setEditingAssignment({ ...editingAssignment, description: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20"
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-primary/20"
                                 rows="3"
                             />
                         </div>
@@ -817,7 +817,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                     type="date"
                                     value={editingAssignment.dueDate}
                                     onChange={(e) => setEditingAssignment({ ...editingAssignment, dueDate: e.target.value })}
-                                    className="w-full px-4 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20"
+                                    className="w-full px-4 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-primary/20"
                                     required
                                 />
                             </div>
@@ -827,7 +827,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                     type="number"
                                     value={editingAssignment.totalMarks}
                                     onChange={(e) => setEditingAssignment({ ...editingAssignment, totalMarks: e.target.value })}
-                                    className="w-full px-4 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20"
+                                    className="w-full px-4 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-primary/20"
                                     required
                                 />
                             </div>
@@ -841,7 +841,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                 type="datetime-local"
                                 value={editingAssignment.publishDate}
                                 onChange={(e) => setEditingAssignment({ ...editingAssignment, publishDate: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20"
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-primary/20"
                             />
                             <p className="text-[10px] text-gray-400 mt-1 uppercase font-bold tracking-tighter italic">Leave empty to publish immediately</p>
                         </div>
@@ -854,11 +854,11 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                     <input
                                         type="radio"
                                         name="editAssignTo"
-                                        checked={editingAssignment.assignTo === 'all'}
-                                        onChange={() => setEditingAssignment({ ...editingAssignment, assignTo: 'all', assignedUsers: [] })}
-                                        className="text-emerald-600 focus:ring-emerald-500"
+                                        checked={editingAssignment.assignTo === 'none'}
+                                        onChange={() => setEditingAssignment({ ...editingAssignment, assignTo: 'none', assignedUsers: [] })}
+                                        className="text-primary focus:ring-primary"
                                     />
-                                    <span className="text-sm text-gray-600">All Students</span>
+                                    <span className="text-sm text-gray-600 italic">None (Draft)</span>
                                 </label>
                                 <label className="flex items-center gap-2 cursor-pointer">
                                     <input
@@ -866,7 +866,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                         name="editAssignTo"
                                         checked={editingAssignment.assignTo === 'selected'}
                                         onChange={() => setEditingAssignment({ ...editingAssignment, assignTo: 'selected' })}
-                                        className="text-emerald-600 focus:ring-emerald-500"
+                                        className="text-primary focus:ring-primary"
                                     />
                                     <span className="text-sm text-gray-600">Selected Students</span>
                                 </label>
@@ -883,7 +883,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                                 placeholder="Search by name or reg no..."
                                                 value={assignSearchTerm}
                                                 onChange={(e) => setAssignSearchTerm(e.target.value)}
-                                                className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all"
+                                                className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
                                             />
                                         </div>
                                         <button
@@ -898,7 +898,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                                 visibleStudents.forEach(s => newSelection.add(s.id || s._id));
                                                 setEditingAssignment({ ...editingAssignment, assignedUsers: Array.from(newSelection) });
                                             }}
-                                            className="px-3 py-2 text-xs font-bold text-emerald-600 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition-colors whitespace-nowrap"
+                                            className="px-3 py-2 text-xs font-bold text-primary bg-primary/5 hover:bg-primary/10 rounded-lg transition-colors whitespace-nowrap"
                                         >
                                             Select All
                                         </button>
@@ -930,14 +930,14 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                                             setEditingAssignment({ ...editingAssignment, assignedUsers: current.filter(id => id !== sId) });
                                                         }
                                                     }}
-                                                    className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 border-gray-300"
+                                                    className="w-4 h-4 rounded text-primary focus:ring-primary border-gray-300"
                                                 />
                                                 <div className="flex-1 flex items-center justify-between">
                                                     <div className="flex items-center gap-3">
                                                         {student.photo ? (
                                                             <img src={student.photo} alt={student.name} className="w-8 h-8 rounded-full object-cover" />
                                                         ) : (
-                                                            <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-xs font-bold">
+                                                            <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold">
                                                                 {student.name?.charAt(0)}
                                                             </div>
                                                         )}
@@ -947,7 +947,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                                         </div>
                                                     </div>
                                                     {editingAssignment.assignedUsers?.includes(student.id || student._id) && (
-                                                        <CheckCircle className="w-4 h-4 text-emerald-500" />
+                                                        <CheckCircle className="w-4 h-4 text-primary" />
                                                     )}
                                                 </div>
                                             </label>
@@ -957,7 +957,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                         <span className="text-xs text-gray-400">
                                             {students?.length} total students
                                         </span>
-                                        <span className="text-xs font-bold text-emerald-600">
+                                        <span className="text-xs font-bold text-primary">
                                             {editingAssignment.assignedUsers?.length || 0} selected
                                         </span>
                                     </div>
@@ -976,7 +976,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                             <button
                                 type="submit"
                                 disabled={isCreating}
-                                className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-emerald-100 flex items-center gap-2"
+                                className="px-6 py-2.5 bg-primary hover:bg-primary text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-primary/10 flex items-center gap-2"
                             >
                                 {isCreating ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
                                 Save Changes
@@ -1002,7 +1002,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                         {submission.user?.photo ? (
                                             <img src={submission.user.photo} alt={submission.user?.name} className="w-8 h-8 rounded-full object-cover" />
                                         ) : (
-                                            <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-xs font-bold text-emerald-700">
+                                            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary">
                                                 {submission.user?.name?.charAt(0)}
                                             </div>
                                         )}
@@ -1014,7 +1014,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                                         {submission.user?.rollNo}
                                                     </span>
                                                 )}
-                                                <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border ${submission.user?.role === 'intern' ? 'bg-purple-50 text-purple-600 border-purple-100' : 'bg-blue-50 text-blue-600 border-blue-100'}`}>
+                                                <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border ${submission.user?.role === 'intern' ? 'bg-purple-50 text-primary border-primary/10' : 'bg-blue-50 text-blue-600 border-blue-100'}`}>
                                                     {submission.user?.role || 'student'}
                                                 </span>
                                             </div>
@@ -1027,7 +1027,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                     {submission.status === 'graded' ? (
                                         <div className="text-right">
                                             <Badge variant="success">Graded</Badge>
-                                            <p className="text-lg font-bold text-emerald-600 mt-1">{submission.marks}<span className="text-xs text-emerald-400">/{selectedAssignment.totalMarks}</span></p>
+                                            <p className="text-lg font-bold text-primary mt-1">{submission.marks}<span className="text-xs text-primary">/{selectedAssignment.totalMarks}</span></p>
                                         </div>
                                     ) : submission.status === 'rejected' ? (
                                         <Badge variant="error">Rejected</Badge>
@@ -1074,7 +1074,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                                             placeholder="0"
                                                             value={gradeMarks}
                                                             onChange={(e) => setGradeMarks(e.target.value)}
-                                                            className="w-full px-4 py-2 text-sm border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20 font-bold"
+                                                            className="w-full px-4 py-2 text-sm border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 font-bold"
                                                             max={selectedAssignment.totalMarks}
                                                             required
                                                         />
@@ -1088,7 +1088,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                                     placeholder="Enter feedback for the student..."
                                                     value={gradeFeedback}
                                                     onChange={(e) => setGradeFeedback(e.target.value)}
-                                                    className="w-full px-4 py-2 text-sm border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20 resize-none font-medium"
+                                                    className="w-full px-4 py-2 text-sm border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 resize-none font-medium"
                                                     rows="2"
                                                 />
                                             </div>
@@ -1096,7 +1096,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                                 <button
                                                     type="submit"
                                                     disabled={isGrading}
-                                                    className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all shadow-lg shadow-emerald-100 active:scale-95"
+                                                    className="flex-1 py-2.5 bg-primary hover:bg-primary text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all shadow-lg shadow-primary/10 active:scale-95"
                                                 >
                                                     {isGrading ? 'SAVING...' : 'SAVE GRADE'}
                                                 </button>
@@ -1162,7 +1162,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                                         setGradeMarks(submission.marks || '');
                                                         setGradeFeedback(submission.feedback || '');
                                                     }}
-                                                    className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-emerald-200 active:scale-95"
+                                                    className="flex-1 py-2.5 bg-primary hover:bg-primary text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-primary active:scale-95"
                                                 >
                                                     {submission.marks ? 'EDIT GRADE' : 'GRADE SUBMISSION'}
                                                 </button>
@@ -1219,3 +1219,6 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
 };
 
 export default AssignmentsTab;
+
+
+
