@@ -557,7 +557,7 @@ const QuickAttendance = () => {
                             placeholder="Search by name or roll number..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-11 pr-4 py-3.5 bg-gray-50/50 border border-gray-100 focus:border-primary/30 focus:bg-white focus:ring-4 focus:ring-primary/5 rounded-2xl text-sm font-bold outline-none transition-all placeholder:text-gray-400"
+                            className="w-full pl-11 pr-4 py-3.5 !bg-gray-50/50 dark:!bg-white/5 border border-gray-100 focus:border-primary/30 focus:!bg-white dark:focus:!bg-white/10 focus:ring-4 focus:ring-primary/5 rounded-2xl text-sm font-bold outline-none transition-all placeholder:text-gray-400 dark:text-white"
                         />
                     </div>
 
@@ -730,10 +730,10 @@ const QuickAttendance = () => {
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4">
-                                                <span className={`text-[9px] px-2 py-1 rounded-md font-black uppercase tracking-widest border ${student.audience === 'interns'
-                                                    ? 'bg-purple-50 text-primary border-primary/10'
-                                                    : 'bg-blue-50 text-blue-600 border-blue-100'
-                                                    }`}>
+                                                <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider ${student.audience === 'interns'
+                                                    ? 'bg-purple-100 text-purple-700'
+                                                    : 'bg-blue-100 text-blue-700'
+                                                }`}>
                                                     {student.audience === 'interns' ? 'Intern' : 'Student'}
                                                 </span>
                                             </td>

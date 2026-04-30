@@ -263,7 +263,7 @@ const BrowseCourses = () => {
                         placeholder="Search courses or teachers..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="bg-transparent border-none outline-none w-full text-gray-700 placeholder:text-gray-400"
+                        className="!bg-transparent border-none outline-none w-full text-gray-700 dark:text-white/90 placeholder:text-gray-400 dark:placeholder:text-white/30 font-medium"
                     />
                 </div>
                 {!(role === 'student' || role === 'intern') && (

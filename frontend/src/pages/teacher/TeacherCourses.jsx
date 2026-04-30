@@ -34,7 +34,11 @@ const TeacherCourses = ({ isDashboard = false }) => {
     });
 
     // Filter States
+    const [searchMode, setSearchMode] = useState('courses'); // courses | students
     const [searchQuery, setSearchQuery] = useState('');
+    const [studentSearchQuery, setStudentSearchQuery] = useState('');
+    const [allStudents, setAllStudents] = useState([]); 
+    const [filteredStudents, setFilteredStudents] = useState([]);
     const [selectedCities, setSelectedCities] = useState([]);
     const [selectedTypes, setSelectedTypes] = useState([]);
 
@@ -153,6 +157,49 @@ const TeacherCourses = ({ isDashboard = false }) => {
         }
     };
 
+    // Build all-students list when courses are loaded
+    useEffect(() => {
+        if (myCourses.length === 0) return;
+        const seen = new Set();
+        const students = [];
+        myCourses.forEach(course => {
+            (course.enrollments || []).forEach(e => {
+                const uid = String(e.user?._id || e.user);
+                if (!seen.has(uid) && e.user?.name) {
+                    seen.add(uid);
+                    students.push({
+                        id: uid,
+                        _id: uid,
+                        name: e.user?.name || 'Student',
+                        rollNo: e.user?.rollNo || '',
+                        email: e.user?.email || '',
+                        photo: e.user?.photo || '',
+                        role: e.user?.role || 'student',
+                        courseName: course.title || course.name,
+                        course: course,
+                    });
+                }
+            });
+        });
+        setAllStudents(students);
+    }, [myCourses]);
+
+    // Filter students when query changes
+    useEffect(() => {
+        if (!studentSearchQuery.trim()) {
+            setFilteredStudents([]);
+            return;
+        }
+        const q = studentSearchQuery.toLowerCase();
+        setFilteredStudents(
+            allStudents.filter(s =>
+                s.name.toLowerCase().includes(q) ||
+                (s.rollNo && s.rollNo.toLowerCase().includes(q)) ||
+                (s.email && s.email.toLowerCase().includes(q))
+            )
+        );
+    }, [studentSearchQuery, allStudents]);
+
     // Effect to apply filters whenever courses or filter states change
     useEffect(() => {
         let result = myCourses;
@@ -257,8 +304,8 @@ const TeacherCourses = ({ isDashboard = false }) => {
     return (
         <>
             <div className="space-y-6">
-                <BirthdayWish />
-                <div className="flex items-center justify-between gap-4">
+                {isDashboard && <BirthdayWish />}
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
                         <h1 className="text-2xl font-bold text-gray-900">{isDashboard ? 'Pending Tasks Dashboard' : 'My Courses'}</h1>
                         <p className="text-gray-500">
@@ -267,13 +314,37 @@ const TeacherCourses = ({ isDashboard = false }) => {
                                 : 'Overview of all your assigned courses'}
                         </p>
                     </div>
-                    <button
-                        onClick={() => setShowLiveClassModal(true)}
-                        className="px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl font-medium transition-all duration-300 flex items-center gap-2 shadow-lg shadow-red-200"
-                    >
-                        <Video className="w-5 h-5" />
-                        Start Live Class
-                    </button>
+                    <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-xl border border-gray-200">
+                            <button
+                                onClick={() => { setSearchMode('courses'); setStudentSearchQuery(''); setFilteredStudents([]); }}
+                                className={`px-4 py-2 rounded-lg font-bold text-xs transition-all flex items-center gap-2 ${searchMode === 'courses'
+                                        ? 'bg-white text-primary shadow-sm border border-primary/10'
+                                        : 'text-gray-500 hover:text-gray-700'
+                                    }`}
+                            >
+                                <BookOpen className="w-4 h-4" />
+                                Courses
+                            </button>
+                            <button
+                                onClick={() => { setSearchMode('students'); setSearchQuery(''); }}
+                                className={`px-4 py-2 rounded-lg font-bold text-xs transition-all flex items-center gap-2 ${searchMode === 'students'
+                                        ? 'bg-white text-primary shadow-sm border border-primary/10'
+                                        : 'text-gray-500 hover:text-gray-700'
+                                    }`}
+                            >
+                                <Users className="w-4 h-4" />
+                                Search Student
+                            </button>
+                        </div>
+                        <button
+                            onClick={() => setShowLiveClassModal(true)}
+                            className="px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl font-medium transition-all duration-300 flex items-center gap-2 shadow-lg shadow-red-200"
+                        >
+                            <Video className="w-5 h-5" />
+                            Start Live Class
+                        </button>
+                    </div>
                 </div>
 
                 {/* Active Live Classes Banner */}
@@ -325,126 +396,225 @@ const TeacherCourses = ({ isDashboard = false }) => {
                 )}
 
                 {/* Summary Stats */}
-                <div className="grid grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6 gap-3 sm:gap-4">
-                    <StatCard
-                        title="Total Courses"
-                        value={summaryStats.totalCourses}
-                        icon={BookOpen}
-                        iconBg="bg-blue-50"
-                        iconColor="text-blue-600"
-                        onClick={() => navigate('/teacher/attendance')}
-                    />
-                    <StatCard
-                        title="Total Students"
-                        value={summaryStats.totalStudents}
-                        icon={Users}
-                        iconBg="bg-indigo-50"
-                        iconColor="text-indigo-600"
-                    />
-                    <StatCard
-                        title="Active Now"
-                        value={summaryStats.activeStudents}
-                        icon={CheckCircle}
-                        iconBg="bg-primary/5"
-                        iconColor="text-primary"
-                        onClick={() => navigate('/teacher/quick-attendance')}
-                    />
-                    <StatCard
-                        title="Pending Gradings"
-                        value={summaryStats.pendingAssignments}
-                        icon={FileText}
-                        iconBg="bg-amber-50"
-                        iconColor="text-amber-600"
-                    />
-                    <StatCard
-                        title="Today's Present"
-                        value={summaryStats.todayPresent}
-                        icon={User}
-                        iconBg="bg-primary/5"
-                        iconColor="text-primary"
-                        onClick={() => navigate('/teacher/quick-attendance', { state: { initialFilter: 'present' } })}
-                    />
-                    <StatCard
-                        title="Today's Absent"
-                        value={summaryStats.todayAbsent}
-                        icon={X}
-                        iconBg="bg-red-50"
-                        iconColor="text-red-600"
-                        onClick={() => navigate('/teacher/quick-attendance', { state: { initialFilter: 'absent' } })}
-                    />
-                </div>
-
-                {/* Filters and Search */}
-                <div className="bg-white rounded-3xl p-4 sm:p-6 border border-gray-100 shadow-sm space-y-4">
-                    {/* Search Bar */}
-                    <div className="relative">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                        <input
-                            type="text"
-                            placeholder="Search courses..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-transparent focus:border-primary focus:bg-white rounded-2xl transition-all outline-none text-sm font-medium"
+                {isDashboard && (
+                    <div className="grid grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6 gap-3 sm:gap-4">
+                        <StatCard
+                            title="Total Courses"
+                            value={summaryStats.totalCourses}
+                            icon={BookOpen}
+                            iconBg="bg-blue-50"
+                            iconColor="text-blue-600"
+                            onClick={() => navigate('/teacher/courses')}
+                        />
+                        <StatCard
+                            title="Total Students"
+                            value={summaryStats.totalStudents}
+                            icon={Users}
+                            iconBg="bg-indigo-50"
+                            iconColor="text-indigo-600"
+                        />
+                        <StatCard
+                            title="Active Now"
+                            value={summaryStats.activeStudents}
+                            icon={CheckCircle}
+                            iconBg="bg-primary/5"
+                            iconColor="text-primary"
+                            onClick={() => navigate('/teacher/quick-attendance')}
+                        />
+                        <StatCard
+                            title="Pending Gradings"
+                            value={summaryStats.pendingAssignments}
+                            icon={FileText}
+                            iconBg="bg-amber-50"
+                            iconColor="text-amber-600"
+                        />
+                        <StatCard
+                            title="Today's Present"
+                            value={summaryStats.todayPresent}
+                            icon={User}
+                            iconBg="bg-primary/5"
+                            iconColor="text-primary"
+                            onClick={() => navigate('/teacher/quick-attendance', { state: { initialFilter: 'present' } })}
+                        />
+                        <StatCard
+                            title="Today's Absent"
+                            value={summaryStats.todayAbsent}
+                            icon={X}
+                            iconBg="bg-red-50"
+                            iconColor="text-red-600"
+                            onClick={() => navigate('/teacher/quick-attendance', { state: { initialFilter: 'absent' } })}
                         />
                     </div>
+                )}
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {/* City Filters */}
-                        <div className="space-y-2">
-                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Location</p>
-                            <div className="flex items-center gap-2 bg-gray-50 p-1.5 rounded-2xl">
-                                {['Bahawalpur', 'Islamabad'].map((city) => (
-                                    <button
-                                        key={city}
-                                        onClick={() => {
-                                            setSelectedCities(prev =>
-                                                prev.includes(city)
-                                                    ? prev.filter(c => c !== city)
-                                                    : [...prev, city]
-                                            );
-                                        }}
-                                        className={`flex-1 px-3 py-2.5 rounded-xl font-bold text-xs transition-all ${selectedCities.includes(city)
-                                            ? 'bg-white text-primary shadow-md border border-primary/10'
-                                            : 'text-gray-500 hover:text-gray-700 hover:bg-white/50'
-                                            }`}
-                                    >
-                                        {city}
-                                    </button>
-                                ))}
-                            </div>
+
+
+                {/* Filters and Search */}
+                {searchMode === 'courses' ? (
+                    <div className="bg-white rounded-3xl p-4 sm:p-6 border border-gray-100 shadow-sm space-y-4">
+                        {/* Search Bar */}
+                        <div className="relative">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                            <input
+                                type="text"
+                                placeholder="Search courses..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="w-full pl-12 pr-4 py-3.5 !bg-gray-50/50 dark:!bg-white/5 border border-transparent focus:border-primary focus:!bg-white dark:focus:!bg-white/10 rounded-2xl transition-all outline-none text-sm font-medium dark:text-white"
+                            />
                         </div>
 
-                        {/* Type Filters */}
-                        <div className="space-y-2">
-                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Category</p>
-                            <div className="flex items-center gap-2 bg-gray-50 p-1.5 rounded-2xl">
-                                {[
-                                    { id: 'students', label: 'Student' },
-                                    { id: 'interns', label: 'Intern' }
-                                ].map((type) => (
-                                    <button
-                                        key={type.id}
-                                        onClick={() => {
-                                            setSelectedTypes(prev =>
-                                                prev.includes(type.id)
-                                                    ? prev.filter(t => t !== type.id)
-                                                    : [...prev, type.id]
-                                            );
-                                        }}
-                                        className={`flex-1 px-3 py-2.5 rounded-xl font-bold text-xs transition-all ${selectedTypes.includes(type.id)
-                                            ? 'bg-white text-primary shadow-md border border-primary/10'
-                                            : 'text-gray-500 hover:text-gray-700 hover:bg-white/50'
-                                            }`}
-                                    >
-                                        {type.label}
-                                    </button>
-                                ))}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {/* City Filters */}
+                            <div className="space-y-2">
+                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Location</p>
+                                <div className="flex items-center gap-2 bg-gray-50 p-1.5 rounded-2xl">
+                                    {['Bahawalpur', 'Islamabad'].map((city) => (
+                                        <button
+                                            key={city}
+                                            onClick={() => {
+                                                setSelectedCities(prev =>
+                                                    prev.includes(city)
+                                                        ? prev.filter(c => c !== city)
+                                                        : [...prev, city]
+                                                );
+                                            }}
+                                            className={`flex-1 px-3 py-2.5 rounded-xl font-bold text-xs transition-all ${selectedCities.includes(city)
+                                                ? 'bg-white text-primary shadow-md border border-primary/10'
+                                                : 'text-gray-500 hover:text-gray-700 hover:bg-white/50'
+                                                }`}
+                                        >
+                                            {city}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Type Filters */}
+                            <div className="space-y-2">
+                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Category</p>
+                                <div className="flex items-center gap-2 bg-gray-50 p-1.5 rounded-2xl">
+                                    {[
+                                        { id: 'students', label: 'Student' },
+                                        { id: 'interns', label: 'Intern' }
+                                    ].map((type) => (
+                                        <button
+                                            key={type.id}
+                                            onClick={() => {
+                                                setSelectedTypes(prev =>
+                                                    prev.includes(type.id)
+                                                        ? prev.filter(t => t !== type.id)
+                                                        : [...prev, type.id]
+                                                );
+                                            }}
+                                            className={`flex-1 px-3 py-2.5 rounded-xl font-bold text-xs transition-all ${selectedTypes.includes(type.id)
+                                                ? 'bg-white text-primary shadow-md border border-primary/10'
+                                                : 'text-gray-500 hover:text-gray-700 hover:bg-white/50'
+                                                }`}
+                                        >
+                                            {type.label}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                ) : (
+                    /* Student Search Panel */
+                    <div className="bg-white rounded-3xl p-4 sm:p-6 border border-gray-100 shadow-sm">
+                        <div className="relative flex items-center bg-gray-50/50 dark:!bg-white/5 rounded-2xl px-4 py-3.5 border border-transparent focus-within:border-primary focus-within:bg-white dark:focus-within:bg-white/10 transition-all">
+                            <Search className="w-5 h-5 text-gray-400 mr-3" />
+                            <input
+                                type="text"
+                                placeholder="Search student by name, roll no, or email..."
+                                value={studentSearchQuery}
+                                onChange={(e) => setStudentSearchQuery(e.target.value)}
+                                className="bg-transparent border-none outline-none w-full text-gray-700 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/30 font-medium"
+                                autoFocus
+                            />
+                            {studentSearchQuery && (
+                                <button
+                                    onClick={() => { setStudentSearchQuery(''); setFilteredStudents([]); }}
+                                    className="ml-2 text-gray-400 hover:text-gray-600 font-bold text-xs"
+                                >✕</button>
+                            )}
+                        </div>
+                    </div>
+                )}
 
-                {filteredCourses.length === 0 ? (
+                {/* Course List / Student Search Results */}
+                {searchMode === 'students' ? (
+                    <div className="space-y-3">
+                        {studentSearchQuery.trim() && (
+                            <p className="text-xs text-gray-400 font-bold uppercase tracking-widest px-1">
+                                {filteredStudents.length} result{filteredStudents.length !== 1 ? 's' : ''} found
+                            </p>
+                        )}
+                        
+                        {!studentSearchQuery.trim() ? (
+                            <div className="bg-white rounded-3xl p-12 border border-gray-100 text-center shadow-sm">
+                                <Users className="w-12 h-12 text-gray-200 mx-auto mb-4" />
+                                <p className="text-gray-500 font-medium">Type a student name or roll number to search</p>
+                                <p className="text-sm text-gray-400 mt-1">Search across all your assigned courses</p>
+                            </div>
+                        ) : filteredStudents.length === 0 ? (
+                            <div className="bg-white rounded-3xl p-12 border border-gray-100 text-center shadow-sm">
+                                <Search className="w-12 h-12 text-gray-200 mx-auto mb-4" />
+                                <p className="text-gray-500 font-medium">No students found matching "{studentSearchQuery}"</p>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 gap-3">
+                                {filteredStudents.map((student, idx) => (
+                                    <motion.div
+                                        key={student.id}
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: idx * 0.05 }}
+                                        onClick={() => handleSelectCourse(student.course)}
+                                        className="bg-white rounded-3xl p-5 border border-gray-100 hover:shadow-lg hover:border-primary transition-all cursor-pointer group flex items-center gap-4 shadow-sm"
+                                    >
+                                        <div className="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 border-2 border-gray-100">
+                                            {student.photo ? (
+                                                <img src={student.photo} alt={student.name} className="w-full h-full object-cover" />
+                                            ) : (
+                                                <div className="w-full h-full bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center text-white font-black text-lg">
+                                                    {(student.name || 'S').charAt(0).toUpperCase()}
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="flex-1">
+                                            <div className="flex items-center gap-2 flex-wrap">
+                                                <p className="font-bold text-gray-900 group-hover:text-primary transition-colors">{student.name}</p>
+                                                {student.rollNo && (
+                                                    <span className="text-[10px] font-black text-red-500 bg-red-50 px-2 py-0.5 rounded-lg border border-red-100">
+                                                        {student.rollNo}
+                                                    </span>
+                                                )}
+                                                <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider ${student.role === 'intern' 
+                                                    ? 'bg-purple-100 text-purple-700' 
+                                                    : 'bg-blue-100 text-blue-700'
+                                                }`}>
+                                                    {student.role || 'Student'}
+                                                </span>
+                                            </div>
+                                            {student.email && (
+                                                <p className="text-xs text-gray-400 font-medium mt-0.5">{student.email}</p>
+                                            )}
+                                            <p className="text-xs text-primary font-bold mt-1 flex items-center gap-1">
+                                                <BookOpen className="w-3 h-3" />
+                                                {student.courseName}
+                                            </p>
+                                        </div>
+                                        <div className="flex items-center text-primary font-bold text-sm">
+                                            <span className="text-xs">OPEN COURSE</span>
+                                            <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+                                        </div>
+                                    </motion.div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                ) : filteredCourses.length === 0 ? (
                     <div className="bg-white rounded-2xl p-12 border border-gray-100 text-center">
                         <BookOpen className="w-12 h-12 text-gray-300 mx-auto mb-4" />
                         <p className="text-gray-500">No courses match your filters</p>
@@ -487,7 +657,7 @@ const TeacherCourses = ({ isDashboard = false }) => {
                                             )}
                                         </div>
                                     )}
-                                    <div className={`absolute top-0 right-0 w-32 h-32 opacity-10 rounded-full -mr-16 -mt-16 transition-colors ${courseStyle.bg}`} />
+
 
                                     <div className="relative z-10">
                                         <div className="flex items-start justify-between mb-6">
@@ -495,13 +665,11 @@ const TeacherCourses = ({ isDashboard = false }) => {
                                                 <CourseIcon className="w-7 h-7 text-white" />
                                             </div>
                                             <div className="flex flex-col items-end gap-2">
-                                                <Badge variant={course.status === 'active' ? 'success' : 'warning'}>
-                                                    {course.status.toUpperCase()}
-                                                </Badge>
-                                                <span className={`text-[10px] px-2 py-1 rounded-lg font-black uppercase tracking-widest ${course.targetAudience === 'interns'
-                                                    ? 'bg-primary/10 text-purple-700'
+                                                {/* Status badge removed */}
+                                                <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider ${course.targetAudience === 'interns'
+                                                    ? 'bg-purple-100 text-purple-700'
                                                     : 'bg-blue-100 text-blue-700'
-                                                    }`}>
+                                                }`}>
                                                     {course.targetAudience === 'interns' ? 'Internship' : 'Student'}
                                                 </span>
                                             </div>

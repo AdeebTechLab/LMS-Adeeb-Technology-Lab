@@ -240,7 +240,7 @@ const CourseManagement = () => {
                             placeholder="Search courses or teachers..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-transparent focus:border-primary focus:bg-white rounded-2xl transition-all outline-none text-sm font-medium"
+                            className="w-full pl-12 pr-4 py-3.5 !bg-gray-50/50 dark:!bg-white/5 border border-transparent focus:border-primary focus:!bg-white dark:focus:!bg-white/10 rounded-2xl transition-all outline-none text-sm font-medium dark:text-white"
                         />
                     </div>
 

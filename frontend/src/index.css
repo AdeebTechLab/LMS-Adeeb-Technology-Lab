@@ -681,12 +681,13 @@ body {
   border-color: #252b3b !important;
 }
 
+/* Dark mode input overrides - allowing for transparency and custom backgrounds */
 .dark input,
 .dark textarea,
 .dark select {
-  background-color: #252b3b !important;
-  border-color: #2d3548 !important;
-  color: #f1f5f9 !important;
+  background-color: #252b3b;
+  border-color: #2d3548;
+  color: #f1f5f9;
 }
 
 /* Dark mode shadow overrides - make them deeper and less "muddy" */

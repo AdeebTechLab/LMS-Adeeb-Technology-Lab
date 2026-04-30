@@ -24,7 +24,8 @@ import DailyTasksTab from './components/DailyTasksTab';
 import AssignmentsTab from './components/AssignmentsTab';
 import TeacherChatTab from './components/TeacherChatTab';
 import StudentsTab from './components/StudentsTab';
-import StudentWorkView from './components/StudentWorkView';
+// import StudentWorkView from './components/StudentWorkView';
+
 import TestsTab from './components/TestsTab';
 
 const AttendanceSheet = () => {
@@ -50,7 +51,8 @@ const AttendanceSheet = () => {
     const [studentSearchQuery, setStudentSearchQuery] = useState('');
     const [allStudents, setAllStudents] = useState([]); // all students across teacher's courses
     const [filteredStudents, setFilteredStudents] = useState([]);
-    const [selectedStudent, setSelectedStudent] = useState(null);
+    // const [selectedStudent, setSelectedStudent] = useState(null);
+
     // Track last-opened timestamp per courseId so recently opened courses float to top
     const [recentCourses, setRecentCourses] = useState(() => {
         try {
@@ -240,6 +242,7 @@ const AttendanceSheet = () => {
                         photo: e.user?.photo || '',
                         role: e.user?.role || 'student',
                         courseName: course.title || course.name,
+                        course: course,
                     });
                 }
             });
@@ -439,14 +442,8 @@ const AttendanceSheet = () => {
     }
 
     // Student Work View
-    if (selectedStudent) {
-        return (
-            <StudentWorkView
-                student={selectedStudent}
-                onBack={() => setSelectedStudent(null)}
-            />
-        );
-    }
+    // Removed StudentWorkView logic as per user request to open course instead of viewing student work.
+
 
     if (!selectedCourse) {
         // Course Selection List
@@ -454,7 +451,7 @@ const AttendanceSheet = () => {
             <div className="space-y-6">
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900">Attendance & Logs</h1>
+                        <h1 className="text-2xl font-bold text-gray-900">Course Attendance</h1>
                         <p className="text-gray-500">Manage your students, assignments and daily tasks</p>
                     </div>
                     {/* Mode Toggle */}
@@ -488,13 +485,13 @@ const AttendanceSheet = () => {
                         {/* Search Bar */}
                         <div className="relative">
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                            <input
-                                type="text"
-                                placeholder="Search courses..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-transparent focus:border-primary focus:bg-white rounded-2xl transition-all outline-none text-sm font-medium"
-                            />
+                                <input
+                                    type="text"
+                                    placeholder="Search courses..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="w-full pl-12 pr-4 py-3.5 !bg-gray-50/50 dark:!bg-white/5 border border-transparent focus:border-primary focus:!bg-white dark:focus:!bg-white/10 rounded-2xl transition-all outline-none text-sm font-medium"
+                                />
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -563,7 +560,7 @@ const AttendanceSheet = () => {
                                 placeholder="Search student by name, roll no, or email..."
                                 value={studentSearchQuery}
                                 onChange={(e) => setStudentSearchQuery(e.target.value)}
-                                className="bg-transparent border-none outline-none w-full text-gray-700 placeholder-gray-400 font-medium"
+                                className="!bg-transparent border-none outline-none w-full text-gray-700 dark:text-white/90 placeholder-gray-400 dark:placeholder:text-white/30 font-medium"
                                 autoFocus
                             />
                             {studentSearchQuery && (
@@ -605,7 +602,7 @@ const AttendanceSheet = () => {
                                         initial={{ opacity: 0, y: 10 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         transition={{ delay: idx * 0.05 }}
-                                        onClick={() => setSelectedStudent(student)}
+                                        onClick={() => handleSelectCourse(student.course)}
                                         className="bg-white rounded-2xl p-5 border border-gray-100 hover:shadow-lg hover:border-primary transition-all cursor-pointer group flex items-center gap-4"
                                     >
                                         <div className="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 border-2 border-gray-100">
@@ -625,8 +622,10 @@ const AttendanceSheet = () => {
                                                         {student.rollNo}
                                                     </span>
                                                 )}
-                                                <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider ${student.role === 'intern' ? 'bg-primary/10 text-purple-700' : 'bg-blue-100 text-blue-700'
-                                                    }`}>
+                                                <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider ${student.role === 'intern' 
+                                                    ? 'bg-purple-100 text-purple-700' 
+                                                    : 'bg-blue-100 text-blue-700'
+                                                }`}>
                                                     {student.role || 'Student'}
                                                 </span>
                                             </div>
@@ -639,7 +638,7 @@ const AttendanceSheet = () => {
                                             </p>
                                         </div>
                                         <div className="flex items-center text-primary font-bold text-sm">
-                                            <span className="text-xs">VIEW WORK</span>
+                                            <span className="text-xs">OPEN COURSE</span>
                                             <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
                                         </div>
                                     </motion.div>
@@ -693,11 +692,9 @@ const AttendanceSheet = () => {
                                             <CourseIcon className="w-7 h-7 text-white" />
                                         </div>
                                         <div className="flex flex-col items-end gap-2">
-                                            <Badge variant={course.status === 'active' ? 'success' : 'warning'}>
-                                                {course.status}
-                                            </Badge>
+                                            {/* Status badge removed as per user request */}
                                             <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider ${course.targetAudience === 'interns'
-                                                ? 'bg-primary/10 text-purple-700'
+                                                ? 'bg-purple-100 text-purple-700'
                                                 : 'bg-blue-100 text-blue-700'
                                                 }`}>
                                                 {course.targetAudience === 'interns' ? 'Internship' : 'Student'}
@@ -774,7 +771,7 @@ const AttendanceSheet = () => {
                     <button
                         onClick={() => {
                             setSelectedCourse(null);
-                            navigate('/teacher/attendance');
+                            navigate('/teacher/courses');
                         }}
                         className="flex items-center gap-2 text-primary hover:text-primary mb-2 font-bold text-sm tracking-wide"
                     >

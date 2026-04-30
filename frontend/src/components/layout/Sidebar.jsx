@@ -198,7 +198,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             teacher: [
                 { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/teacher/dashboard', submissionBadge: teacherSubmissionCount },
                 { id: 'profile', label: 'My Profile', icon: User, path: '/teacher/profile' },
-                { id: 'attendance', label: 'My Courses', icon: BookOpen, path: '/teacher/attendance' },
+                { id: 'attendance', label: 'My Courses', icon: BookOpen, path: '/teacher/courses' },
                 { id: 'certificates', label: 'Certificates', icon: Award, path: '/teacher/certificates' },
             ],
             student: [
