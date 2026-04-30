@@ -393,11 +393,10 @@ const StudentDashboard = () => {
                     </motion.div>
                 )}
 
-                {/* Welcome Section */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-gradient-to-r from-[#222d38] to-[#394251] rounded-2xl p-6 text-white shadow-xl"
+                    className="bg-gradient-to-r from-[var(--bg-sidebar)] to-[var(--bg-sidebar-light)] rounded-2xl p-6 text-white shadow-xl"
                 >
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                         <div>
@@ -475,7 +474,7 @@ const StudentDashboard = () => {
                                         </div>
                                         <button
                                             onClick={() => navigate(`/${role}/assignments`)}
-                                            className="w-full py-2.5 bg-[#222d38] hover:bg-[#394251] dark:bg-primary dark:hover:bg-[#e67e00] text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-slate-200 dark:shadow-orange-950/20 active:scale-95"
+                                            className="w-full py-2.5 bg-[var(--bg-sidebar)] hover:bg-[var(--bg-sidebar-light)] dark:bg-primary dark:hover:bg-[#e67e00] text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-slate-200 dark:shadow-orange-950/20 active:scale-95"
                                         >
                                             Submit Now
                                         </button>

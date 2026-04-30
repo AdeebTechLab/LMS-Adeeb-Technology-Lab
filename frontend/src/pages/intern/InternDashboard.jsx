@@ -278,11 +278,10 @@ const InternDashboard = () => {
                 </motion.div>
             )}
 
-            {/* Welcome Header */}
             <motion.div
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-gradient-to-r from-[#222d38] to-[#394251] rounded-2xl p-8 text-white shadow-xl"
+                className="bg-gradient-to-r from-[var(--bg-sidebar)] to-[var(--bg-sidebar-light)] rounded-2xl p-8 text-white shadow-xl"
             >
                 <div className="flex items-center justify-between">
                     <div>
@@ -347,7 +346,7 @@ const InternDashboard = () => {
                                     </div>
                                     <button
                                         onClick={() => navigate(`/${role}/assignments`)}
-                                        className="w-full py-2.5 bg-[#222d38] hover:bg-[#394251] text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg active:scale-95"
+                                        className="w-full py-2.5 bg-[var(--bg-sidebar)] hover:bg-[var(--bg-sidebar-light)] text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg active:scale-95"
                                     >
                                         Go to Submission
                                     </button>

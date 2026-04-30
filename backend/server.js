@@ -176,8 +176,8 @@ if (!mongoUri) {
         readPreference: 'primaryPreferred',
         w: 'majority'
     })
-    .then(() => console.log('✅ MongoDB connected'))
-    .catch((err) => console.error('❌ MongoDB error:', err.message));
+        .then(() => console.log('✅ MongoDB connected'))
+        .catch((err) => console.error('❌ MongoDB error:', err.message));
 }
 
 // Keep MongoDB connection alive

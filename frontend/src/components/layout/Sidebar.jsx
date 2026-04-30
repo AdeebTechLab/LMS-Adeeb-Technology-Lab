@@ -259,13 +259,12 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 )}
             </AnimatePresence>
 
-            {/* Sidebar */}
             <aside
-                className={`fixed lg:relative top-0 left-0 z-[999] h-screen w-[280px] bg-[#222d38] flex flex-col transition-transform duration-300 ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+                className={`fixed lg:relative top-0 left-0 z-[999] h-screen w-[280px] bg-[var(--bg-sidebar)] flex flex-col transition-transform duration-300 ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
                     }`}
             >
                 <div
-                    className="p-6 border-b border-white/10 cursor-pointer hover:bg-white/[0.02] transition-colors"
+                    className="p-6 border-b border-[var(--border-sidebar)] cursor-pointer hover:bg-white/[0.02] transition-colors"
                     onClick={() => {
                         const defaultPages = {
                             admin: '/admin/dashboard',
@@ -293,7 +292,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                                 <GraduationCap className="w-6 h-6 text-white hidden" />
                             </div>
                             <div>
-                                <h1 className="text-white font-bold text-lg tracking-tight">Adeeb Technology Lab</h1>
+                                <h1 className="text-[var(--text-sidebar)] font-bold text-lg tracking-tight">Adeeb Technology Lab</h1>
                                 <p className="text-primary text-[10px] font-black uppercase tracking-[0.2em]">{getRoleDisplayName()} Portal</p>
                             </div>
                         </div>
@@ -309,18 +308,17 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                     </div>
                 </div>
 
-                {/* User Info with Role Switcher */}
                 <div className="relative mx-4 mt-4">
                     <div 
-                        className={`p-4 bg-white/5 rounded-xl border border-white/5 shadow-inner transition-colors ${availableRoles.length > 1 ? 'cursor-pointer hover:bg-white/10' : ''}`}
+                        className={`p-4 bg-[var(--bg-sidebar-light)]/40 rounded-xl border border-[var(--border-sidebar)] shadow-inner transition-colors ${availableRoles.length > 1 ? 'cursor-pointer hover:bg-[var(--bg-sidebar-light)]/60' : ''}`}
                         onClick={() => {
                             if (availableRoles.length > 1) setShowRoleMenu(!showRoleMenu);
                         }}
                     >
                         <div className="flex items-center gap-3">
-                            <ProfileAvatar src={user?.photo} name={user?.name} size="md" border="border border-white/10" fallbackColor="bg-gradient-to-br from-[#394251] to-[#222d38]" />
+                            <ProfileAvatar src={user?.photo} name={user?.name} size="md" border="border border-[var(--border-sidebar)]" fallbackColor="bg-gradient-to-br from-[var(--bg-sidebar-light)] to-[var(--bg-sidebar)]" />
                             <div className="flex-1 min-w-0">
-                                <p className="text-white font-medium text-sm truncate">
+                                <p className="text-[var(--text-sidebar)] font-medium text-sm truncate">
                                     {user?.name || 'User'}
                                 </p>
                                 <p className="text-primary text-[10px] font-black uppercase tracking-widest truncate mt-0.5">
@@ -328,7 +326,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                                 </p>
                             </div>
                             {availableRoles.length > 1 && (
-                                <ChevronDown className={`w-4 h-4 text-white/30 transition-transform ${showRoleMenu ? 'rotate-180' : ''}`} />
+                                <ChevronDown className={`w-4 h-4 text-[var(--text-sidebar-muted)] transition-transform ${showRoleMenu ? 'rotate-180' : ''}`} />
                             )}
                         </div>
                     </div>
@@ -339,10 +337,10 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                                 initial={{ opacity: 0, y: -10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: -10 }}
-                                className="absolute top-full left-0 right-0 mt-2 bg-[#222d38] border border-white/10 rounded-xl overflow-hidden shadow-xl z-50 py-2"
+                                className="absolute top-full left-0 right-0 mt-2 bg-[var(--bg-sidebar-dark)] border border-[var(--border-sidebar)] rounded-xl overflow-hidden shadow-xl z-50 py-2"
                             >
-                                <div className="px-4 py-2 border-b border-white/10 mb-2 flex items-center justify-between">
-                                    <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">Switch Profile</span>
+                                <div className="px-4 py-2 border-b border-[var(--border-sidebar)] mb-2 flex items-center justify-between">
+                                    <span className="text-[10px] font-black text-[var(--text-sidebar-muted)] uppercase tracking-widest">Switch Profile</span>
                                 </div>
                                 {availableRoles.map(r => (
                                     <button
@@ -352,7 +350,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                                         className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center justify-between ${
                                             r === role 
                                                 ? 'bg-primary/10 text-primary font-bold border-l-2 border-primary' 
-                                                : 'text-white/70 hover:bg-white/5 hover:text-white font-medium border-l-2 border-transparent'
+                                                : 'text-[var(--text-sidebar-muted)] hover:bg-white/5 hover:text-[var(--text-sidebar)] font-medium border-l-2 border-transparent'
                                         }`}
                                     >
                                         <div className="flex items-center gap-2">
@@ -382,8 +380,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                                         const isActive = isPathActive && isStateActive;
 
                                         return `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 group ${isActive
-                                            ? 'bg-[#394251] text-white border-l-4 border-primary shadow-lg shadow-black/20'
-                                            : 'text-white/60 hover:text-white hover:bg-[#394251]/50'
+                                            ? 'bg-[var(--bg-sidebar-light)] text-[var(--text-sidebar)] border-l-4 border-primary shadow-lg shadow-black/20'
+                                            : 'text-[var(--text-sidebar-muted)] hover:text-[var(--text-sidebar)] hover:bg-[var(--bg-sidebar-light)]/50'
                                         }`;
                                     }}
                                 >
@@ -427,10 +425,10 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 </nav>
 
                 {/* Bottom Section */}
-                <div className="p-4 border-t border-white/10">
+                <div className="p-4 border-t border-[var(--border-sidebar)]">
                     <NavLink
                         to={`/${role}/settings`}
-                        className="flex items-center gap-3 px-4 py-3 rounded-xl text-white/60 hover:text-white hover:bg-white/5 transition-all duration-200"
+                        className="flex items-center gap-3 px-4 py-3 rounded-xl text-[var(--text-sidebar-muted)] hover:text-[var(--text-sidebar)] hover:bg-white/5 transition-all duration-200"
                     >
                         <Settings className="w-5 h-5" />
                         <span className="font-medium">Settings</span>

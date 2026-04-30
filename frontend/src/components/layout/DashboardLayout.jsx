@@ -220,7 +220,7 @@ const DashboardLayout = () => {
     };
 
     return (
-        <div className={`h-screen flex overflow-hidden transition-colors duration-300 ${isDark ? 'bg-[#0f1117]' : 'bg-[#F8FAFC]'}`}>
+        <div className={`h-screen flex overflow-hidden transition-colors duration-300 ${isDark ? 'bg-[#0f1117]' : 'bg-[var(--bg-main)]'}`}>
             {/* Sidebar - Fixed */}
             <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
 
@@ -244,7 +244,7 @@ const DashboardLayout = () => {
             {/* Main Content - Scrollable */}
             <div className="flex-1 flex flex-col h-screen overflow-hidden">
                 {/* Header */}
-                <header className={`border-b sticky top-0 z-40 transition-colors duration-300 ${isDark ? 'bg-[#1a1f2e] border-white/10' : 'bg-white border-gray-100'}`}>
+                <header className={`border-b sticky top-0 z-40 transition-colors duration-300 ${isDark ? 'bg-[var(--bg-sidebar)] border-white/10' : 'bg-[var(--bg-card)] border-gray-100'}`}>
                     <div className="px-4 sm:px-6 py-3 sm:py-4 w-full min-w-0 flex flex-col lg:flex-row lg:items-center gap-3 sm:gap-4">
                         {/* Top row for mobile: Menu + Title + Actions */}
                         <div className="flex items-center justify-between w-full lg:w-auto gap-4">
@@ -269,7 +269,7 @@ const DashboardLayout = () => {
                                 <button
                                     type="button"
                                     onClick={() => window.location.reload()}
-                                    className="rounded-xl transition-all duration-200 bg-[#222d38] hover:bg-[#1a232c] text-white shadow-sm p-2.5"
+                                    className="rounded-xl transition-all duration-200 bg-[var(--bg-sidebar-dark)] hover:bg-[var(--bg-sidebar)] text-white shadow-sm p-2.5"
                                     title="Refresh Page"
                                 >
                                     <RefreshCw className="w-5 h-5 shrink-0" />
@@ -280,8 +280,8 @@ const DashboardLayout = () => {
                                     type="button"
                                     onClick={toggleTheme}
                                     className={`relative rounded-xl transition-all duration-300 shadow-sm flex items-center justify-center overflow-hidden p-2.5 ${isDark
-                                        ? 'bg-[#ffab40] text-white'
-                                        : 'bg-[#222d38] text-white'
+                                        ? 'bg-primary'
+                                        : 'bg-[var(--bg-sidebar)] text-white'
                                         }`}
                                 >
                                     {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
@@ -306,7 +306,7 @@ const DashboardLayout = () => {
                                         <motion.div
                                             initial={{ opacity: 0, y: 10 }}
                                             animate={{ opacity: 1, y: 0 }}
-                                            className={`absolute right-[-60px] sm:right-0 mt-3 w-72 sm:w-80 rounded-2xl shadow-2xl border overflow-hidden z-[100] transition-colors duration-200 ${isDark ? 'bg-[#1a1f2e] border-white/10' : 'bg-white border-gray-100'}`}
+                                            className={`absolute right-[-60px] sm:right-0 mt-3 w-72 sm:w-80 rounded-2xl shadow-2xl border overflow-hidden z-[100] transition-colors duration-200 ${isDark ? 'bg-[var(--bg-sidebar)] border-white/10' : 'bg-white border-gray-100'}`}
                                         >
                                             <div className={`p-4 border-b ${isDark ? 'border-white/10' : 'border-gray-100'}`}>
                                                 <div className="flex items-center justify-between">
@@ -353,7 +353,7 @@ const DashboardLayout = () => {
                                         <motion.div
                                             initial={{ opacity: 0, y: 10 }}
                                             animate={{ opacity: 1, y: 0 }}
-                                            className={`absolute right-0 mt-3 w-56 rounded-2xl shadow-2xl border overflow-hidden z-[100] transition-colors duration-200 ${isDark ? 'bg-[#1a1f2e] border-white/10' : 'bg-white border-gray-100'}`}
+                                            className={`absolute right-0 mt-3 w-56 rounded-2xl shadow-2xl border overflow-hidden z-[100] transition-colors duration-200 ${isDark ? 'bg-[var(--bg-sidebar)] border-white/10' : 'bg-white border-gray-100'}`}
                                         >
                                             <div className="p-4 border-b border-gray-100">
                                                 <p className={`text-sm font-bold truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>{user?.name}</p>
@@ -415,7 +415,7 @@ const DashboardLayout = () => {
                             <button
                                 type="button"
                                 onClick={() => window.location.reload()}
-                                className="rounded-xl transition-all duration-200 bg-[#222d38] hover:bg-[#1a232c] text-white shadow-md hover:shadow-lg flex items-center justify-center gap-2 p-2.5 sm:px-3 sm:py-2.5"
+                                className="rounded-xl transition-all duration-200 bg-[var(--bg-sidebar)] hover:bg-[var(--bg-sidebar-dark)] text-white shadow-md hover:shadow-lg flex items-center justify-center gap-2 p-2.5 sm:px-3 sm:py-2.5"
                                 title="Refresh Page"
                             >
                                 <RefreshCw className="w-5 h-5 shrink-0" />
@@ -428,8 +428,8 @@ const DashboardLayout = () => {
                                 onClick={toggleTheme}
                                 title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
                                 className={`relative rounded-xl transition-all duration-300 shadow-md hover:shadow-lg flex items-center justify-center gap-2 overflow-hidden p-2.5 sm:px-3 sm:py-2.5 ${isDark
-                                    ? 'bg-[#ffab40] hover:bg-primary text-white'
-                                    : 'bg-[#222d38] hover:bg-[#1a232c] text-white'
+                                    ? 'bg-primary text-white'
+                                    : 'bg-[var(--bg-sidebar)] text-white'
                                     }`}
                             >
                                 <AnimatePresence mode="wait" initial={false}>
@@ -483,7 +483,7 @@ const DashboardLayout = () => {
                                         initial={{ opacity: 0, y: 10 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         exit={{ opacity: 0, y: 10 }}
-                                        className={`absolute right-0 mt-2 w-80 rounded-2xl shadow-xl border overflow-hidden z-[60] transition-colors duration-200 ${isDark ? 'bg-[#1a1f2e] border-white/10' : 'bg-white border-gray-100'}`}
+                                        className={`absolute right-0 mt-2 w-80 rounded-2xl shadow-xl border overflow-hidden z-[60] transition-colors duration-200 ${isDark ? 'bg-[var(--bg-sidebar)] border-white/10' : 'bg-white border-gray-100'}`}
                                     >
                                         <div className={`p-4 border-b ${isDark ? 'border-white/10' : 'border-gray-100'}`}>
                                             <div className="flex items-center justify-between">
@@ -610,7 +610,7 @@ const DashboardLayout = () => {
                                     <motion.div
                                         initial={{ opacity: 0, y: 10 }}
                                         animate={{ opacity: 1, y: 0 }}
-                                        className={`absolute right-0 mt-2 w-56 rounded-2xl shadow-xl border overflow-hidden z-[60] transition-colors duration-200 ${isDark ? 'bg-[#1a1f2e] border-white/10' : 'bg-white border-gray-100'}`}
+                                        className={`absolute right-0 mt-2 w-56 rounded-2xl shadow-xl border overflow-hidden z-[60] transition-colors duration-200 ${isDark ? 'bg-[var(--bg-sidebar)] border-white/10' : 'bg-white border-gray-100'}`}
                                     >
                                         <div className="p-2">
                                             <button 
@@ -666,7 +666,7 @@ const DashboardLayout = () => {
                 </header>
 
                 {/* Page Content */}
-                <main className={`flex-1 p-6 overflow-y-auto overflow-x-hidden transition-colors duration-300 ${isDark ? 'bg-[#0f1117]' : 'bg-[#F8FAFC]'}`}>
+                <main className={`flex-1 p-6 overflow-y-auto overflow-x-hidden transition-colors duration-300 ${isDark ? 'bg-[#0f1117]' : 'bg-[var(--bg-main)]'}`}>
                     <motion.div
                         key={location.pathname}
                         initial={{ opacity: 0, y: 20 }}

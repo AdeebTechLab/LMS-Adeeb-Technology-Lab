@@ -19,12 +19,8 @@ const BrowseCourses = () => {
     const navigate = useNavigate();
     const { role, user } = useSelector((state) => state.auth);
     const [searchQuery, setSearchQuery] = useState('');
-    const [selectedCities, setSelectedCities] = useState(
-        (role === 'student' || role === 'intern') && user?.location 
-            ? [user.location.charAt(0).toUpperCase() + user.location.slice(1).toLowerCase()] 
-            : []
-    );
-    const [activeTab, setActiveTab] = useState('enrolled');
+    const [selectedCities, setSelectedCities] = useState([]);
+    const [activeTab, setActiveTab] = useState('available');
     const [isEnrollModalOpen, setIsEnrollModalOpen] = useState(false);
     const [viewModalOpen, setViewModalOpen] = useState(false);
     const [withdrawModal, setWithdrawModal] = useState({ open: false, enrollmentId: null, courseTitle: '' });
@@ -77,9 +73,14 @@ const BrowseCourses = () => {
     };
 
     // Separate courses by enrollment status
-    // const availableCourses = courses.filter(c => getEnrollmentStatus(c._id) === 'available'); // Removed to show all
-    const enrolledCourses = courses.filter(c => getEnrollmentStatus(c._id) === 'enrolled');
-    const completedCourses = courses.filter(c => getEnrollmentStatus(c._id) === 'completed');
+    // Use myEnrollments directly to ensure all user's courses are shown regardless of audience filters
+    const enrolledCourses = myEnrollments
+        .filter(e => e.status === 'enrolled' && e.course)
+        .map(e => ({ ...e.course, enrolledStatus: 'enrolled' }));
+        
+    const completedCourses = myEnrollments
+        .filter(e => e.status === 'completed' && e.course)
+        .map(e => ({ ...e.course, enrolledStatus: 'completed' }));
 
     const getCurrentCourses = () => {
         switch (activeTab) {
