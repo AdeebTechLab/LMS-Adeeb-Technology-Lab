@@ -382,7 +382,8 @@ const AttendanceSheet = () => {
             email: e.user?.email || '',
             photo: e.user?.photo || '',
             role: e.user?.role || 'intern',
-            enrolledAt: e.enrolledAt
+            enrolledAt: e.enrolledAt,
+            lastSeen: e.user?.lastSeen
         }));
 
         console.log('Selected course eligible students:', studentsList);

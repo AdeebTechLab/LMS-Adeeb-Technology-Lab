@@ -344,7 +344,7 @@ router.put('/:id/complete', protect, authorize('admin'), async (req, res) => {
 router.get('/all', protect, authorize('admin', 'teacher'), async (req, res) => {
     try {
         const enrollments = await Enrollment.find()
-            .populate('user', 'name email rollNo role photo')
+            .populate('user', 'name email rollNo role photo lastSeen')
             .populate('course', 'title city durationMonths')
             .sort('-createdAt');
 

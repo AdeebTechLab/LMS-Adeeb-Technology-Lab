@@ -31,7 +31,7 @@ const TestsTab = ({ course, students }) => {
         duration: 30,
         dueDate: '',
         scheduledAt: '',
-        assignTo: 'none',
+        assignTo: 'all',
         assignedUsers: [],
         questions: []
     });
@@ -123,7 +123,7 @@ const TestsTab = ({ course, students }) => {
             duration: 30,
             dueDate: '',
             scheduledAt: '',
-            assignTo: 'none',
+            assignTo: 'all',
             assignedUsers: [],
             questions: []
         });
@@ -588,6 +588,20 @@ const TestsTab = ({ course, students }) => {
                                             <input
                                                 type="radio"
                                                 name="assignTo"
+                                                checked={formData.assignTo === 'all'}
+                                                onChange={() => setFormData({ ...formData, assignTo: 'all', assignedUsers: [] })}
+                                                className="w-5 h-5 appearance-none border-2 border-gray-200 rounded-full checked:border-primary transition-all cursor-pointer"
+                                            />
+                                            {formData.assignTo === 'all' && <div className="absolute w-2.5 h-2.5 bg-primary rounded-full" />}
+                                        </div>
+                                        <span className={`text-xs font-black uppercase tracking-widest transition-colors ${formData.assignTo === 'all' ? 'text-primary' : 'text-gray-400'}`}>All Students</span>
+                                    </label>
+
+                                    <label className="flex items-center gap-2 cursor-pointer group">
+                                        <div className="relative flex items-center justify-center">
+                                            <input
+                                                type="radio"
+                                                name="assignTo"
                                                 checked={formData.assignTo === 'none'}
                                                 onChange={() => setFormData({ ...formData, assignTo: 'none', assignedUsers: [] })}
                                                 className="w-5 h-5 appearance-none border-2 border-gray-200 rounded-full checked:border-primary transition-all cursor-pointer"
@@ -843,6 +857,20 @@ const TestsTab = ({ course, students }) => {
                                 </h4>
                                 <div className="space-y-4 bg-gray-50/50 p-6 rounded-[2.5rem] border border-gray-100">
                                     <div className="flex gap-6">
+                                        <label className="flex items-center gap-2 cursor-pointer group">
+                                            <div className="relative flex items-center justify-center">
+                                                <input
+                                                    type="radio"
+                                                    name="editAssignTo"
+                                                    checked={editingTest.assignTo === 'all'}
+                                                    onChange={() => setEditingTest({ ...editingTest, assignTo: 'all', assignedUsers: [] })}
+                                                    className="w-5 h-5 appearance-none border-2 border-gray-200 rounded-full checked:border-primary transition-all cursor-pointer"
+                                                />
+                                                {editingTest.assignTo === 'all' && <div className="absolute w-2.5 h-2.5 bg-primary rounded-full" />}
+                                            </div>
+                                            <span className={`text-xs font-black uppercase tracking-widest transition-colors ${editingTest.assignTo === 'all' ? 'text-primary' : 'text-gray-400'}`}>All Students</span>
+                                        </label>
+
                                         <label className="flex items-center gap-2 cursor-pointer group">
                                             <div className="relative flex items-center justify-center">
                                                 <input

@@ -26,7 +26,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
         dueDate: '',
         publishDate: '', // Scheduling time
         totalMarks: 100,
-        assignTo: 'none', // all | selected | none
+        assignTo: 'all', // all | selected | none
         assignedUsers: [] // Array of student IDs
     });
     const [isCreating, setIsCreating] = useState(false);
@@ -72,7 +72,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                 dueDate: '',
                 publishDate: '',
                 totalMarks: 100,
-                assignTo: 'none',
+                assignTo: 'all',
                 assignedUsers: []
             });
             alert('Assignment created successfully!');
@@ -241,8 +241,8 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                 dueDate: '',
                                 publishDate: '',
                                 totalMarks: 100,
-                                assignTo: 'none',
-                                assignedUsers: []
+                                assignedUsers: [],
+                                assignTo: 'all'
                             });
                             setAssignSearchTerm('');
                             setIsCreateModalOpen(true);
@@ -648,6 +648,16 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                 <input
                                     type="radio"
                                     name="assignTo"
+                                    checked={newAssignment.assignTo === 'all'}
+                                    onChange={() => setNewAssignment({ ...newAssignment, assignTo: 'all', assignedUsers: [] })}
+                                    className="text-primary focus:ring-primary"
+                                />
+                                <span className="text-sm text-gray-600">All Students</span>
+                            </label>
+                            <label className="flex items-center gap-2 cursor-pointer">
+                                <input
+                                    type="radio"
+                                    name="assignTo"
                                     checked={newAssignment.assignTo === 'none'}
                                     onChange={() => setNewAssignment({ ...newAssignment, assignTo: 'none', assignedUsers: [] })}
                                     className="text-primary focus:ring-primary"
@@ -850,6 +860,16 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">Assign To</label>
                             <div className="flex gap-4 mb-3">
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                    <input
+                                        type="radio"
+                                        name="editAssignTo"
+                                        checked={editingAssignment.assignTo === 'all'}
+                                        onChange={() => setEditingAssignment({ ...editingAssignment, assignTo: 'all', assignedUsers: [] })}
+                                        className="text-primary focus:ring-primary"
+                                    />
+                                    <span className="text-sm text-gray-600">All Students</span>
+                                </label>
                                 <label className="flex items-center gap-2 cursor-pointer">
                                     <input
                                         type="radio"

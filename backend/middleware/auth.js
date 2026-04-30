@@ -16,6 +16,12 @@ const protect = async (req, res, next) => {
                 return res.status(401).json({ success: false, message: 'User not found' });
             }
 
+            // Update lastSeen (debounced to 5 mins)
+            const now = new Date();
+            if (!req.user.lastSeen || (now - req.user.lastSeen) > 5 * 60 * 1000) {
+                User.findByIdAndUpdate(req.user._id, { lastSeen: now }).catch(err => console.error('Error updating lastSeen:', err));
+            }
+
             console.log(`🔐 Auth OK: ${req.user.name} (${req.user.role}) - ${req.method} ${req.originalUrl}`);
             next();
         } catch (error) {

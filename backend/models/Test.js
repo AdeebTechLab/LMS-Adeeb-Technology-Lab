@@ -72,7 +72,7 @@ const testSchema = new mongoose.Schema({
     },
     assignTo: {
         type: String,
-        enum: ['all', 'selected'],
+        enum: ['all', 'selected', 'none'],
         default: 'all'
     },
     assignedUsers: [{

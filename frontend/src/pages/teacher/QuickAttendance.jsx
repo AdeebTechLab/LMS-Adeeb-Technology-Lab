@@ -22,6 +22,28 @@ const getLocalDateString = (date) => {
     return `${year}-${month}-${day}`;
 };
 
+const formatLastSeen = (lastSeen) => {
+    if (!lastSeen) return 'Never';
+    const lastSeenDate = new Date(lastSeen);
+    const now = new Date();
+    const diffInMs = now - lastSeenDate;
+    const diffInMins = Math.floor(diffInMs / 1000 / 60);
+
+    if (diffInMins < 5) return 'Online';
+    if (diffInMins < 60) return `${diffInMins}m ago`;
+    const diffInHours = Math.floor(diffInMins / 60);
+    if (diffInHours < 24) return `${diffInHours}h ago`;
+    return format(lastSeenDate, 'dd MMM');
+};
+
+const getStatusColor = (lastSeen) => {
+    if (!lastSeen) return 'bg-gray-300';
+    const diffInMins = Math.floor((new Date() - new Date(lastSeen)) / 1000 / 60);
+    if (diffInMins < 5) return 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.6)]';
+    if (diffInMins < 60) return 'bg-amber-400';
+    return 'bg-gray-400';
+};
+
 const QuickAttendance = () => {
     const navigate = useNavigate();
     const location = useLocation();
@@ -82,7 +104,8 @@ const QuickAttendance = () => {
                                 courseName: course.title || course.name,
                                 audience: course.targetAudience,
                                 location: course.location || 'N/A',
-                                attendType: e.user?.attendType || 'Physical'
+                                attendType: e.user?.attendType || 'Physical',
+                                lastSeen: e.user?.lastSeen
                             });
                         }
                     }
@@ -633,6 +656,12 @@ const QuickAttendance = () => {
                                                     </div>
                                                     <div className="min-w-0">
                                                         <h3 className="text-sm font-black text-gray-900 uppercase tracking-tight group-hover:text-primary transition-colors">{student.name}</h3>
+                                                        <div className="flex items-center gap-2 mt-0.5">
+                                                            <div className={`w-2 h-2 rounded-full ${getStatusColor(student.lastSeen)}`}></div>
+                                                            <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">
+                                                                {formatLastSeen(student.lastSeen)}
+                                                            </span>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </td>

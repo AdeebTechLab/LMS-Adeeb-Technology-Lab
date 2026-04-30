@@ -16,6 +16,31 @@ const getLocalDateString = (date) => {
 // Day names
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
+// Import format for date-fns
+import { format } from 'date-fns';
+
+const formatLastSeen = (lastSeen) => {
+    if (!lastSeen) return 'Never';
+    const lastSeenDate = new Date(lastSeen);
+    const now = new Date();
+    const diffInMs = now - lastSeenDate;
+    const diffInMins = Math.floor(diffInMs / 1000 / 60);
+
+    if (diffInMins < 5) return 'Online';
+    if (diffInMins < 60) return `${diffInMins}m ago`;
+    const diffInHours = Math.floor(diffInMins / 60);
+    if (diffInHours < 24) return `${diffInHours}h ago`;
+    return format(lastSeenDate, 'dd MMM');
+};
+
+const getStatusColor = (lastSeen) => {
+    if (!lastSeen) return 'bg-gray-300';
+    const diffInMins = Math.floor((new Date() - new Date(lastSeen)) / 1000 / 60);
+    if (diffInMins < 5) return 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.6)]';
+    if (diffInMins < 60) return 'bg-amber-400';
+    return 'bg-gray-400';
+};
+
 const AttendanceTab = ({ course, students }) => {
     const [selectedDate, setSelectedDate] = useState(getLocalDateString(new Date()));
     const [attendanceMarks, setAttendanceMarks] = useState({});
@@ -363,7 +388,15 @@ const AttendanceTab = ({ course, students }) => {
                                     <td className="px-4 py-3">
                                         <div className="flex items-center gap-3">
                                             <ProfileAvatar src={student.photo} name={student.name} size="sm" border={`border ${attendanceMarks[student.id]?.status === 'present' ? 'border-primary' : attendanceMarks[student.id]?.status === 'absent' ? 'border-red-300' : 'border-gray-200'}`} />
-                                            <div className="text-sm font-medium text-gray-900">{student.name}</div>
+                                            <div>
+                                                <div className="text-sm font-black text-gray-900 uppercase tracking-tight">{student.name}</div>
+                                                <div className="flex items-center gap-1.5 mt-0.5">
+                                                    <div className={`w-1.5 h-1.5 rounded-full ${getStatusColor(student.lastSeen)}`}></div>
+                                                    <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">
+                                                        {formatLastSeen(student.lastSeen)}
+                                                    </span>
+                                                </div>
+                                            </div>
                                         </div>
                                     </td>
                                     <td className="px-4 py-3 font-mono text-sm text-gray-500">{student.rollNo}</td>
