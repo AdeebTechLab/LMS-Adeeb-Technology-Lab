@@ -133,25 +133,36 @@ const AttendanceSheet = () => {
             }
         });
 
+        // Listen for user status updates
+        socketRef.current.on('user_status_update', (data) => {
+            setCourseStudents(prev => prev.map(s => {
+                if (s.id === data.userId || s.id === String(data.userId)) {
+                    return { ...s, lastSeen: data.lastSeen };
+                }
+                return s;
+            }));
+        });
+
         // Listen for new assignment submissions
         socketRef.current.on('new_submission', (data) => {
             console.log('📥 Received new_submission event:', data);
             if (data.courseId) {
                 const courseIdStr = String(data.courseId);
-                console.log('📌 Adding notification for course:', courseIdStr);
-                setSubmissionNotifications(prev => {
-                    const updated = {
-                        ...prev,
-                        [courseIdStr]: (prev[courseIdStr] || 0) + 1
-                    };
-                    console.log('📊 Updated notifications:', updated);
-                    return updated;
-                });
+                setSubmissionNotifications(prev => ({
+                    ...prev,
+                    [courseIdStr]: (prev[courseIdStr] || 0) + 1
+                }));
             }
         });
 
+        // Force re-render every minute to update "Online" / "Xm ago" status
+        const statusInterval = setInterval(() => {
+            setCourseStudents(prev => [...prev]);
+        }, 60000);
+
         return () => {
             if (socketRef.current) socketRef.current.disconnect();
+            clearInterval(statusInterval);
         };
     }, [user]);
 
@@ -450,22 +461,20 @@ const AttendanceSheet = () => {
                     <div className="flex items-center gap-2 bg-gray-100 p-1 rounded-xl border border-gray-200">
                         <button
                             onClick={() => { setSearchMode('courses'); setStudentSearchQuery(''); setFilteredStudents([]); }}
-                            className={`px-5 py-2 rounded-lg font-bold text-sm transition-all flex items-center gap-2 ${
-                                searchMode === 'courses'
+                            className={`px-5 py-2 rounded-lg font-bold text-sm transition-all flex items-center gap-2 ${searchMode === 'courses'
                                     ? 'bg-white text-primary shadow-sm border border-primary/10'
                                     : 'text-gray-500 hover:text-gray-700'
-                            }`}
+                                }`}
                         >
                             <BookOpen className="w-4 h-4" />
                             Courses
                         </button>
                         <button
                             onClick={() => { setSearchMode('students'); setSearchQuery(''); }}
-                            className={`px-5 py-2 rounded-lg font-bold text-sm transition-all flex items-center gap-2 ${
-                                searchMode === 'students'
+                            className={`px-5 py-2 rounded-lg font-bold text-sm transition-all flex items-center gap-2 ${searchMode === 'students'
                                     ? 'bg-white text-primary shadow-sm border border-primary/10'
                                     : 'text-gray-500 hover:text-gray-700'
-                            }`}
+                                }`}
                         >
                             <User className="w-4 h-4" />
                             Search Student
@@ -475,99 +484,99 @@ const AttendanceSheet = () => {
 
                 {/* Filters and Search */}
                 {searchMode === 'courses' ? (
-                <div className="bg-white rounded-3xl p-4 sm:p-6 border border-gray-100 shadow-sm space-y-4">
-                    {/* Search Bar */}
-                    <div className="relative">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                        <input
-                            type="text"
-                            placeholder="Search courses..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-transparent focus:border-primary focus:bg-white rounded-2xl transition-all outline-none text-sm font-medium"
-                        />
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {/* City Filters */}
-                        <div className="space-y-2">
-                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Location</p>
-                            <div className="flex items-center gap-2 bg-gray-50 p-1.5 rounded-2xl">
-                                {['Bahawalpur', 'Islamabad'].map((city) => (
-                                    <button
-                                        key={city}
-                                        onClick={() => {
-                                            setSelectedCities(prev =>
-                                                prev.includes(city)
-                                                    ? prev.filter(c => c !== city)
-                                                    : [...prev, city]
-                                            );
-                                        }}
-                                        className={`flex-1 px-3 py-2.5 rounded-xl font-bold text-xs transition-all ${selectedCities.includes(city)
-                                            ? 'bg-white text-primary shadow-md border border-primary/10'
-                                            : 'text-gray-500 hover:text-gray-700 hover:bg-white/50'
-                                            }`}
-                                    >
-                                        {city}
-                                    </button>
-                                ))}
-                            </div>
+                    <div className="bg-white rounded-3xl p-4 sm:p-6 border border-gray-100 shadow-sm space-y-4">
+                        {/* Search Bar */}
+                        <div className="relative">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                            <input
+                                type="text"
+                                placeholder="Search courses..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-transparent focus:border-primary focus:bg-white rounded-2xl transition-all outline-none text-sm font-medium"
+                            />
                         </div>
 
-                        {/* Type Filters */}
-                        <div className="space-y-2">
-                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Category</p>
-                            <div className="flex items-center gap-2 bg-gray-50 p-1.5 rounded-2xl">
-                                {[
-                                    { id: 'students', label: 'Student' },
-                                    { id: 'interns', label: 'Intern' }
-                                ].map((type) => (
-                                    <button
-                                        key={type.id}
-                                        onClick={() => {
-                                            setSelectedTypes(prev =>
-                                                prev.includes(type.id)
-                                                    ? prev.filter(t => t !== type.id)
-                                                    : [...prev, type.id]
-                                            );
-                                        }}
-                                        className={`flex-1 px-3 py-2.5 rounded-xl font-bold text-xs transition-all ${selectedTypes.includes(type.id)
-                                            ? 'bg-white text-primary shadow-md border border-primary/10'
-                                            : 'text-gray-500 hover:text-gray-700 hover:bg-white/50'
-                                            }`}
-                                    >
-                                        {type.label}
-                                    </button>
-                                ))}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {/* City Filters */}
+                            <div className="space-y-2">
+                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Location</p>
+                                <div className="flex items-center gap-2 bg-gray-50 p-1.5 rounded-2xl">
+                                    {['Bahawalpur', 'Islamabad'].map((city) => (
+                                        <button
+                                            key={city}
+                                            onClick={() => {
+                                                setSelectedCities(prev =>
+                                                    prev.includes(city)
+                                                        ? prev.filter(c => c !== city)
+                                                        : [...prev, city]
+                                                );
+                                            }}
+                                            className={`flex-1 px-3 py-2.5 rounded-xl font-bold text-xs transition-all ${selectedCities.includes(city)
+                                                ? 'bg-white text-primary shadow-md border border-primary/10'
+                                                : 'text-gray-500 hover:text-gray-700 hover:bg-white/50'
+                                                }`}
+                                        >
+                                            {city}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Type Filters */}
+                            <div className="space-y-2">
+                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Category</p>
+                                <div className="flex items-center gap-2 bg-gray-50 p-1.5 rounded-2xl">
+                                    {[
+                                        { id: 'students', label: 'Student' },
+                                        { id: 'interns', label: 'Intern' }
+                                    ].map((type) => (
+                                        <button
+                                            key={type.id}
+                                            onClick={() => {
+                                                setSelectedTypes(prev =>
+                                                    prev.includes(type.id)
+                                                        ? prev.filter(t => t !== type.id)
+                                                        : [...prev, type.id]
+                                                );
+                                            }}
+                                            className={`flex-1 px-3 py-2.5 rounded-xl font-bold text-xs transition-all ${selectedTypes.includes(type.id)
+                                                ? 'bg-white text-primary shadow-md border border-primary/10'
+                                                : 'text-gray-500 hover:text-gray-700 hover:bg-white/50'
+                                                }`}
+                                        >
+                                            {type.label}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
                 ) : (
-                /* Student Search Panel */
-                <div className="bg-white rounded-2xl p-4 border border-gray-100">
-                    <div className="flex items-center bg-gray-50 rounded-xl px-4 py-3 border border-gray-100">
-                        <Search className="w-5 h-5 text-primary mr-3" />
-                        <input
-                            id="student-search-input"
-                            type="text"
-                            placeholder="Search student by name, roll no, or email..."
-                            value={studentSearchQuery}
-                            onChange={(e) => setStudentSearchQuery(e.target.value)}
-                            className="bg-transparent border-none outline-none w-full text-gray-700 placeholder-gray-400 font-medium"
-                            autoFocus
-                        />
-                        {studentSearchQuery && (
-                            <button
-                                onClick={() => { setStudentSearchQuery(''); setFilteredStudents([]); }}
-                                className="ml-2 text-gray-400 hover:text-gray-600 font-bold text-xs"
-                            >✕</button>
-                        )}
+                    /* Student Search Panel */
+                    <div className="bg-white rounded-2xl p-4 border border-gray-100">
+                        <div className="flex items-center bg-gray-50 rounded-xl px-4 py-3 border border-gray-100">
+                            <Search className="w-5 h-5 text-primary mr-3" />
+                            <input
+                                id="student-search-input"
+                                type="text"
+                                placeholder="Search student by name, roll no, or email..."
+                                value={studentSearchQuery}
+                                onChange={(e) => setStudentSearchQuery(e.target.value)}
+                                className="bg-transparent border-none outline-none w-full text-gray-700 placeholder-gray-400 font-medium"
+                                autoFocus
+                            />
+                            {studentSearchQuery && (
+                                <button
+                                    onClick={() => { setStudentSearchQuery(''); setFilteredStudents([]); }}
+                                    className="ml-2 text-gray-400 hover:text-gray-600 font-bold text-xs"
+                                >✕</button>
+                            )}
+                        </div>
+                        <p className="text-xs text-gray-400 font-medium mt-2 ml-1">
+                            {allStudents.length} students across {myCourses.length} course{myCourses.length !== 1 ? 's' : ''}
+                        </p>
                     </div>
-                    <p className="text-xs text-gray-400 font-medium mt-2 ml-1">
-                        {allStudents.length} students across {myCourses.length} course{myCourses.length !== 1 ? 's' : ''}
-                    </p>
-                </div>
                 )}
 
                 {/* Student Search Results */}
@@ -616,9 +625,8 @@ const AttendanceSheet = () => {
                                                         {student.rollNo}
                                                     </span>
                                                 )}
-                                                <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider ${
-                                                    student.role === 'intern' ? 'bg-primary/10 text-purple-700' : 'bg-blue-100 text-blue-700'
-                                                }`}>
+                                                <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider ${student.role === 'intern' ? 'bg-primary/10 text-purple-700' : 'bg-blue-100 text-blue-700'
+                                                    }`}>
                                                     {student.role || 'Student'}
                                                 </span>
                                             </div>

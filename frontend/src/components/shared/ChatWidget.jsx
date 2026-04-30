@@ -229,9 +229,17 @@ const ChatWidget = () => {
 
         window.addEventListener('openChatWidget', handleToggleChat);
 
+        // Heartbeat logic to keep status updated in real-time
+        const heartbeatInterval = setInterval(() => {
+            if (socketRef.current && myId) {
+                socketRef.current.emit('heartbeat', myId);
+            }
+        }, 30000); // Pulse every 30 seconds
+
         return () => {
             socketRef.current?.disconnect();
             window.removeEventListener('openChatWidget', handleToggleChat);
+            clearInterval(heartbeatInterval);
         };
     }, [shouldShow, user?.role, (user.id || user._id)]);
 

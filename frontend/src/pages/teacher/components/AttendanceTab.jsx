@@ -20,23 +20,26 @@ const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 import { format } from 'date-fns';
 
 const formatLastSeen = (lastSeen) => {
-    if (!lastSeen) return 'Never';
+    if (!lastSeen) return 'Offline';
     const lastSeenDate = new Date(lastSeen);
     const now = new Date();
     const diffInMs = now - lastSeenDate;
     const diffInMins = Math.floor(diffInMs / 1000 / 60);
 
-    if (diffInMins < 5) return 'Online';
-    if (diffInMins < 60) return `${diffInMins}m ago`;
+    // Only show Online if active in the last 3 minutes AND not in the future (due to clock skew)
+    if (diffInMins >= 0 && diffInMins < 3) return 'Online';
+    if (diffInMins >= 0 && diffInMins < 60) return `${diffInMins}m ago`;
     const diffInHours = Math.floor(diffInMins / 60);
-    if (diffInHours < 24) return `${diffInHours}h ago`;
+    if (diffInHours >= 0 && diffInHours < 24) return `${diffInHours}h ago`;
+    const diffInDays = Math.floor(diffInHours / 24);
+    if (diffInDays > 90) return 'Offline';
     return format(lastSeenDate, 'dd MMM');
 };
 
 const getStatusColor = (lastSeen) => {
     if (!lastSeen) return 'bg-gray-300';
     const diffInMins = Math.floor((new Date() - new Date(lastSeen)) / 1000 / 60);
-    if (diffInMins < 5) return 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.6)]';
+    if (diffInMins < 3) return 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.6)]';
     if (diffInMins < 60) return 'bg-amber-400';
     return 'bg-gray-400';
 };
@@ -287,7 +290,7 @@ const AttendanceTab = ({ course, students }) => {
                         </div>
                     </div>
                     <div className="flex items-center gap-3">
-                        <button 
+                        <button
                             onClick={fetchAttendance}
                             disabled={isLoading}
                             className="flex items-center gap-2 px-5 py-2.5 bg-primary/5 text-primary rounded-xl font-black text-[10px] uppercase tracking-widest border-2 border-primary/10 hover:border-primary hover:bg-white hover:shadow-lg hover:shadow-primary/10 transition-all active:scale-95 disabled:opacity-50"
@@ -387,14 +390,35 @@ const AttendanceTab = ({ course, students }) => {
                                 <tr key={student.id} className={`hover:bg-gray-50 transition-colors ${getRowBgColor(student.id)}`}>
                                     <td className="px-4 py-3">
                                         <div className="flex items-center gap-3">
-                                            <ProfileAvatar src={student.photo} name={student.name} size="sm" border={`border ${attendanceMarks[student.id]?.status === 'present' ? 'border-primary' : attendanceMarks[student.id]?.status === 'absent' ? 'border-red-300' : 'border-gray-200'}`} />
+                                            <div className="relative">
+                                                <ProfileAvatar 
+                                                    src={student.photo} 
+                                                    name={student.name} 
+                                                    size="sm" 
+                                                    border={formatLastSeen(student.lastSeen) === 'Online' ? 'online-avatar-glow' : `border ${attendanceMarks[student.id]?.status === 'present' ? 'border-primary' : attendanceMarks[student.id]?.status === 'absent' ? 'border-red-300' : 'border-gray-200'}`} 
+                                                />
+                                                {formatLastSeen(student.lastSeen) === 'Online' && (
+                                                    <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 rounded-full border border-white flex items-center justify-center z-10">
+                                                        <div className="absolute w-full h-full rounded-full bg-green-500 animate-status-ping opacity-75"></div>
+                                                        <div className="relative w-1 h-1 rounded-full bg-white"></div>
+                                                    </div>
+                                                )}
+                                            </div>
                                             <div>
                                                 <div className="text-sm font-black text-gray-900 uppercase tracking-tight">{student.name}</div>
                                                 <div className="flex items-center gap-1.5 mt-0.5">
-                                                    <div className={`w-1.5 h-1.5 rounded-full ${getStatusColor(student.lastSeen)}`}></div>
-                                                    <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">
-                                                        {formatLastSeen(student.lastSeen)}
-                                                    </span>
+                                                    {formatLastSeen(student.lastSeen) === 'Online' ? (
+                                                        <div className="flex items-center gap-1 bg-green-500/10 px-1.5 py-0.5 rounded border border-green-500/20">
+                                                            <span className="text-[8px] font-black text-green-600 uppercase tracking-wider">Active</span>
+                                                        </div>
+                                                    ) : (
+                                                        <>
+                                                            <div className={`w-1.5 h-1.5 rounded-full ${getStatusColor(student.lastSeen)} opacity-60`}></div>
+                                                            <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">
+                                                                {formatLastSeen(student.lastSeen)}
+                                                            </span>
+                                                        </>
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>

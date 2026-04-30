@@ -109,7 +109,7 @@ const TeacherDashboard = () => {
                 });
                 // Remove expired ones from UI (backend cleanup happens via polling)
                 if (expired.length > 0) {
-                    liveClassAPI.cleanupExpired().catch(() => {});
+                    liveClassAPI.cleanupExpired().catch(() => { });
                     return updated.filter(lc => !expired.includes(lc._id));
                 }
                 return updated;
@@ -267,26 +267,26 @@ const TeacherDashboard = () => {
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                         <div>
                             <h2 className="text-2xl font-bold mb-2">Welcome back, {user?.name || 'Teacher'}!</h2>
-                                <p className="text-white/70">
-                                    You have {myCourses.length} courses with {totalStudents} students enrolled.
-                                </p>
-                            </div>
-                            <div className="flex gap-2 sm:gap-3 flex-wrap">
-                                <button
-                                    onClick={() => setShowLiveClassModal(true)}
-                                    className="px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl font-medium transition-all duration-300 flex items-center gap-2"
-                                >
-                                    <Video className="w-4 h-4" />
-                                    Start Live Class
-                                </button>
-                                <button
-                                    onClick={() => navigate('/teacher/attendance')}
-                                    className="px-5 py-2.5 bg-white hover:bg-white/90 text-[#0f2847] rounded-xl font-medium transition-all duration-300"
-                                >
-                                    Mark Attendance
-                                </button>
-                            </div>
+                            <p className="text-white/70">
+                                You have {myCourses.length} courses with {totalStudents} students enrolled.
+                            </p>
                         </div>
+                        <div className="flex gap-2 sm:gap-3 flex-wrap">
+                            <button
+                                onClick={() => setShowLiveClassModal(true)}
+                                className="px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl font-medium transition-all duration-300 flex items-center gap-2"
+                            >
+                                <Video className="w-4 h-4" />
+                                Start Live Class
+                            </button>
+                            <button
+                                onClick={() => navigate('/teacher/attendance')}
+                                className="px-5 py-2.5 bg-white hover:bg-white/90 text-[#0f2847] rounded-xl font-medium transition-all duration-300"
+                            >
+                                Mark Attendance
+                            </button>
+                        </div>
+                    </div>
                 </motion.div>
 
                 {/* Stats Grid */}
@@ -549,11 +549,10 @@ const TeacherDashboard = () => {
                                 return (
                                     <div
                                         key={lc._id}
-                                        className={`flex items-center justify-between p-4 rounded-xl border ${
-                                            isExpiringSoon
+                                        className={`flex items-center justify-between p-4 rounded-xl border ${isExpiringSoon
                                                 ? 'bg-primary/5 border-orange-300 animate-pulse'
                                                 : 'bg-red-50 border-red-200'
-                                        }`}
+                                            }`}
                                     >
                                         <div className="flex items-center gap-3">
                                             <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
@@ -564,13 +563,12 @@ const TeacherDashboard = () => {
                                                         Visible to: {lc.visibility === 'all' ? 'All Students & Interns' : lc.visibility === 'student' ? 'Students Only' : 'Interns Only'}
                                                     </p>
                                                     {hasTimer && secondsLeft !== null && (
-                                                        <span className={`flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-full ${
-                                                            isExpiringSoon
+                                                        <span className={`flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-full ${isExpiringSoon
                                                                 ? 'bg-orange-200 text-orange-700'
                                                                 : 'bg-red-100 text-red-600'
-                                                        }`}>
+                                                            }`}>
                                                             <Timer className="w-3 h-3" />
-                                                            {`${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`} left
+                                                            {`${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`} left
                                                         </span>
                                                     )}
                                                 </div>
@@ -679,11 +677,10 @@ const TeacherDashboard = () => {
                                                 key={min}
                                                 type="button"
                                                 onClick={() => setLiveClassForm(f => ({ ...f, autoEndMinutes: f.autoEndMinutes === String(min) ? '' : String(min) }))}
-                                                className={`px-3 py-2 rounded-xl text-sm font-semibold transition-all border ${
-                                                    liveClassForm.autoEndMinutes === String(min)
+                                                className={`px-3 py-2 rounded-xl text-sm font-semibold transition-all border ${liveClassForm.autoEndMinutes === String(min)
                                                         ? 'bg-primary text-white border-primary shadow-sm'
                                                         : 'bg-white text-gray-700 border-gray-200 hover:border-orange-300'
-                                                }`}
+                                                    }`}
                                             >
                                                 {min} min
                                             </button>

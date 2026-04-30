@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSelector } from 'react-redux';
-import { 
-    CheckCircle, X, Search, Calendar, ChevronLeft, 
+import {
+    CheckCircle, X, Search, Calendar, ChevronLeft,
     Loader2, Users, Save, AlertCircle, RefreshCw,
     UserCheck, UserX, Clock, Filter, Download, MapPin, GraduationCap
 } from 'lucide-react';
@@ -14,6 +14,7 @@ import { showToast } from '../../utils/customToast';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { format, differenceInDays, addDays, isBefore, parseISO } from 'date-fns';
+import { io } from 'socket.io-client';
 
 const getLocalDateString = (date) => {
     const year = date.getFullYear();
@@ -23,23 +24,26 @@ const getLocalDateString = (date) => {
 };
 
 const formatLastSeen = (lastSeen) => {
-    if (!lastSeen) return 'Never';
+    if (!lastSeen) return 'Offline';
     const lastSeenDate = new Date(lastSeen);
     const now = new Date();
     const diffInMs = now - lastSeenDate;
     const diffInMins = Math.floor(diffInMs / 1000 / 60);
 
-    if (diffInMins < 5) return 'Online';
-    if (diffInMins < 60) return `${diffInMins}m ago`;
+    // Only show Online if active in the last 3 minutes AND not in the future (due to clock skew)
+    if (diffInMins >= 0 && diffInMins < 3) return 'Online';
+    if (diffInMins >= 0 && diffInMins < 60) return `${diffInMins}m ago`;
     const diffInHours = Math.floor(diffInMins / 60);
-    if (diffInHours < 24) return `${diffInHours}h ago`;
+    if (diffInHours >= 0 && diffInHours < 24) return `${diffInHours}h ago`;
+    const diffInDays = Math.floor(diffInHours / 24);
+    if (diffInDays > 90) return 'Offline';
     return format(lastSeenDate, 'dd MMM');
 };
 
 const getStatusColor = (lastSeen) => {
     if (!lastSeen) return 'bg-gray-300';
     const diffInMins = Math.floor((new Date() - new Date(lastSeen)) / 1000 / 60);
-    if (diffInMins < 5) return 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.6)]';
+    if (diffInMins < 3) return 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.6)]';
     if (diffInMins < 60) return 'bg-amber-400';
     return 'bg-gray-400';
 };
@@ -60,6 +64,13 @@ const QuickAttendance = () => {
     const [filterCategory, setFilterCategory] = useState('all');
     const [courses, setCourses] = useState([]);
     const [holidayDays, setHolidayDays] = useState([]);
+    const socketRef = useRef(null);
+
+    const getSocketURL = () => {
+        const rawUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        return rawUrl.replace('/api', '');
+    };
+    const SOCKET_URL = getSocketURL();
 
     // Range Report States
     const [showRangeModal, setShowRangeModal] = useState(false);
@@ -69,6 +80,34 @@ const QuickAttendance = () => {
 
     useEffect(() => {
         fetchInitialData();
+
+        // Setup Socket connection
+        socketRef.current = io(SOCKET_URL, { withCredentials: true });
+
+        if (user?.id || user?._id) {
+            socketRef.current.emit('join_chat', String(user.id || user._id));
+        }
+
+        socketRef.current.on('user_status_update', (data) => {
+            setStudents(prev => prev.map(s => {
+                if (s.id === data.userId || s.id === String(data.userId)) {
+                    return { ...s, lastSeen: data.lastSeen };
+                }
+                return s;
+            }));
+        });
+
+        // Force re-render every minute to update "Online" / "Xm ago" status
+        const statusInterval = setInterval(() => {
+            setStudents(prev => [...prev]);
+        }, 60000);
+
+        return () => {
+            if (socketRef.current) {
+                socketRef.current.disconnect();
+            }
+            clearInterval(statusInterval);
+        };
     }, []);
 
     useEffect(() => {
@@ -148,12 +187,12 @@ const QuickAttendance = () => {
     const handleMark = async (student, status) => {
         const markKey = `${student.courseId}-${student.id}`;
         const defaultMode = (student.attendType || '').toLowerCase().includes('online') ? 'online' : 'onsite';
-        
+
         // Optimistic UI Update
         const oldData = attendanceMarks[markKey];
-        setAttendanceMarks(prev => ({ 
-            ...prev, 
-            [markKey]: { status, mode: defaultMode } 
+        setAttendanceMarks(prev => ({
+            ...prev,
+            [markKey]: { status, mode: defaultMode }
         }));
 
         try {
@@ -191,11 +230,11 @@ const QuickAttendance = () => {
             doc.setFontSize(22);
             doc.setTextColor(16, 185, 129); // primary
             doc.text('LMS ADEEB TECH LAB', 14, 20);
-            
+
             doc.setFontSize(14);
             doc.setTextColor(100, 116, 139); // Slate-500
             doc.text('Attendance Report', 14, 30);
-            
+
             doc.setFontSize(10);
             doc.text(`Session Date: ${dateStr}`, 14, 38);
             doc.text(`Generated On: ${timestamp}`, 14, 44);
@@ -220,14 +259,14 @@ const QuickAttendance = () => {
                 startY: 55,
                 head: [['#', 'Student Name', 'Roll Number', 'Course', 'Category', 'Mode', 'Status']],
                 body: tableRows,
-                headStyles: { 
-                    fillColor: [16, 185, 129], 
+                headStyles: {
+                    fillColor: [16, 185, 129],
                     textColor: [255, 255, 255],
                     fontSize: 10,
                     fontStyle: 'bold',
                     halign: 'center'
                 },
-                styles: { 
+                styles: {
                     fontSize: 9,
                     cellPadding: 4,
                     valign: 'middle'
@@ -268,11 +307,11 @@ const QuickAttendance = () => {
             doc.setFontSize(24);
             doc.setTextColor(16, 185, 129);
             doc.text('LMS ADEEB TECH LAB', 14, 20);
-            
+
             doc.setFontSize(14);
             doc.setTextColor(100, 116, 139);
             doc.text('Detailed Attendance Matrix Report', 14, 30);
-            
+
             doc.setFontSize(10);
             doc.text(`Period: ${startStr} to ${endStr}`, 14, 38);
             doc.text(`Generated On: ${timestamp}`, 14, 44);
@@ -289,15 +328,15 @@ const QuickAttendance = () => {
             // Student Summary Object with daily marks
             const summary = {};
             students.forEach(s => {
-                summary[s.id] = { 
-                    name: s.name, 
-                    rollNo: s.rollNo, 
+                summary[s.id] = {
+                    name: s.name,
+                    rollNo: s.rollNo,
                     course: s.courseName,
                     location: s.location,
                     daily: {}, // Will store date: status
-                    present: 0, 
-                    absent: 0, 
-                    totalDays: 0 
+                    present: 0,
+                    absent: 0,
+                    totalDays: 0
                 };
             });
 
@@ -331,16 +370,16 @@ const QuickAttendance = () => {
 
             // Build Matrix Columns
             const dateHeaders = dateRange.filter(d => !holidayDays.includes(parseISO(d).getDay()))
-                                       .map(d => format(parseISO(d), 'dd/MM'));
-            
+                .map(d => format(parseISO(d), 'dd/MM'));
+
             const tableHead = [['#', 'Student Name', 'Roll No', 'Course', 'Location', ...dateHeaders, 'Pres', 'Abs', '%']];
 
             const tableRows = Object.values(summary).map((s, idx) => {
                 const dailyMarks = dateRange.filter(d => !holidayDays.includes(parseISO(d).getDay()))
-                                           .map(d => s.daily[d] || '-');
-                
+                    .map(d => s.daily[d] || '-');
+
                 const percent = s.totalDays > 0 ? ((s.present / s.totalDays) * 100).toFixed(0) : '0';
-                
+
                 return [
                     idx + 1,
                     (s.name || 'UNKNOWN').toUpperCase(),
@@ -359,14 +398,14 @@ const QuickAttendance = () => {
                 head: tableHead,
                 body: tableRows,
                 theme: 'grid',
-                headStyles: { 
-                    fillColor: [16, 185, 129], 
+                headStyles: {
+                    fillColor: [16, 185, 129],
                     fontSize: 6.5,
                     halign: 'center',
                     valign: 'middle'
                 },
-                styles: { 
-                    fontSize: 6.5, 
+                styles: {
+                    fontSize: 6.5,
                     cellPadding: 1.2,
                     halign: 'center',
                     valign: 'middle',
@@ -404,19 +443,19 @@ const QuickAttendance = () => {
     };
 
     const filteredStudents = students.filter(s => {
-        const matchesSearch = s.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                             s.rollNo.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesSearch = s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            s.rollNo.toLowerCase().includes(searchQuery.toLowerCase());
         const matchesCourse = filterCourse === 'all' || s.courseId === filterCourse;
         const matchesLocation = filterLocation === 'all' || s.location?.toLowerCase() === filterLocation.toLowerCase();
         const matchesCategory = filterCategory === 'all' || s.audience?.toLowerCase() === filterCategory.toLowerCase();
-        
+
         const markKey = `${s.courseId}-${s.id}`;
         const currentData = attendanceMarks[markKey];
         const currentMark = currentData?.status;
-        const matchesStatus = filterStatus === 'all' || 
-                             (filterStatus === 'present' && currentMark === 'present') ||
-                             (filterStatus === 'absent' && currentMark === 'absent') ||
-                             (filterStatus === 'not_marked' && !currentMark);
+        const matchesStatus = filterStatus === 'all' ||
+            (filterStatus === 'present' && currentMark === 'present') ||
+            (filterStatus === 'absent' && currentMark === 'absent') ||
+            (filterStatus === 'not_marked' && !currentMark);
 
         return matchesSearch && matchesCourse && matchesLocation && matchesCategory && matchesStatus;
     });
@@ -441,9 +480,9 @@ const QuickAttendance = () => {
             {/* Premium Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-6 sm:p-8 rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden relative group">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -mr-32 -mt-32 opacity-50 group-hover:scale-110 transition-transform duration-700"></div>
-                
+
                 <div className="relative z-10">
-                    <button 
+                    <button
                         onClick={() => navigate('/teacher/dashboard')}
                         className="flex items-center gap-2 text-primary hover:text-primary font-black text-[10px] uppercase tracking-[0.2em] mb-4"
                     >
@@ -476,7 +515,7 @@ const QuickAttendance = () => {
                         <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 mr-1">Selection Date</label>
                         <div className="relative">
                             <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
-                            <input 
+                            <input
                                 type="date"
                                 value={selectedDate}
                                 max={getLocalDateString(new Date())}
@@ -490,7 +529,7 @@ const QuickAttendance = () => {
 
             {/* Warning if Holiday */}
             {isDateHoliday() && (
-                <motion.div 
+                <motion.div
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="bg-amber-50 border border-amber-200 p-4 rounded-2xl flex items-center gap-4"
@@ -513,7 +552,7 @@ const QuickAttendance = () => {
                         <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                             <Search className="w-4 h-4 text-gray-400 group-focus-within:text-primary transition-colors" />
                         </div>
-                        <input 
+                        <input
                             type="text"
                             placeholder="Search by name or roll number..."
                             value={searchQuery}
@@ -527,7 +566,7 @@ const QuickAttendance = () => {
                         {/* Course Filter */}
                         <div className="relative flex-1 lg:w-48">
                             <Filter className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3 h-3 text-primary" />
-                            <select 
+                            <select
                                 value={filterCourse}
                                 onChange={(e) => setFilterCourse(e.target.value)}
                                 className="w-full pl-9 pr-8 py-3 bg-gray-50/50 border border-gray-100 rounded-xl text-[9px] font-black uppercase tracking-widest outline-none focus:border-primary/30 focus:bg-white transition-all cursor-pointer appearance-none"
@@ -542,7 +581,7 @@ const QuickAttendance = () => {
                         {/* Location Filter */}
                         <div className="relative flex-1 lg:w-40">
                             <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3 h-3 text-primary" />
-                            <select 
+                            <select
                                 value={filterLocation}
                                 onChange={(e) => setFilterLocation(e.target.value)}
                                 className="w-full pl-9 pr-8 py-3 bg-gray-50/50 border border-gray-100 rounded-xl text-[9px] font-black uppercase tracking-widest outline-none focus:border-primary/30 focus:bg-white transition-all cursor-pointer appearance-none"
@@ -556,7 +595,7 @@ const QuickAttendance = () => {
                         {/* Category Filter */}
                         <div className="relative flex-1 lg:w-36">
                             <GraduationCap className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3 h-3 text-primary" />
-                            <select 
+                            <select
                                 value={filterCategory}
                                 onChange={(e) => setFilterCategory(e.target.value)}
                                 className="w-full pl-9 pr-8 py-3 bg-gray-50/50 border border-gray-100 rounded-xl text-[9px] font-black uppercase tracking-widest outline-none focus:border-primary/30 focus:bg-white transition-all cursor-pointer appearance-none"
@@ -575,7 +614,7 @@ const QuickAttendance = () => {
                         <div className="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
                         <span className="text-[9px] font-black text-gray-500 uppercase tracking-[0.15em]">Quick Status Filter</span>
                     </div>
-                    
+
                     <div className="flex flex-wrap items-center gap-2">
                         {[
                             { id: 'all', label: 'All Students', icon: Users, baseColor: 'gray', activeClass: 'bg-gray-900 border-gray-900 text-white shadow-gray-200' },
@@ -586,11 +625,10 @@ const QuickAttendance = () => {
                             <button
                                 key={btn.id}
                                 onClick={() => setFilterStatus(btn.id)}
-                                className={`flex items-center gap-2.5 px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all border shadow-sm ${
-                                    filterStatus === btn.id
+                                className={`flex items-center gap-2.5 px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all border shadow-sm ${filterStatus === btn.id
                                     ? `${btn.activeClass} shadow-lg scale-105`
                                     : `bg-white border-gray-100 text-gray-500 hover:border-${btn.baseColor}-200 hover:bg-${btn.baseColor}-50/50 hover:text-${btn.baseColor}-600`
-                                }`}
+                                    }`}
                             >
                                 <btn.icon className={`w-3.5 h-3.5 ${filterStatus === btn.id ? 'opacity-100' : 'opacity-60'}`} />
                                 {btn.label}
@@ -623,7 +661,7 @@ const QuickAttendance = () => {
                                 {filteredStudents.map((student, index) => {
                                     const markKey = `${student.courseId}-${student.id}`;
                                     const currentMark = attendanceMarks[markKey];
-                                    
+
                                     return (
                                         <motion.tr
                                             key={markKey}
@@ -632,11 +670,10 @@ const QuickAttendance = () => {
                                             animate={{ opacity: 1 }}
                                             exit={{ opacity: 0 }}
                                             transition={{ delay: index * 0.01 }}
-                                            className={`group transition-colors ${
-                                                currentMark?.status === 'present' ? 'bg-present-fixed-light' : 
-                                                currentMark?.status === 'absent' ? 'bg-absent-fixed-light' : 
-                                                'hover:bg-gray-50/50'
-                                            }`}
+                                            className={`group transition-colors ${currentMark?.status === 'present' ? 'bg-present-fixed-light' :
+                                                currentMark?.status === 'absent' ? 'bg-absent-fixed-light' :
+                                                    'hover:bg-gray-50/50'
+                                                }`}
                                         >
                                             <td className="px-6 py-4 text-center">
                                                 <span className="text-xs font-black text-gray-400">
@@ -646,21 +683,37 @@ const QuickAttendance = () => {
                                             <td className="px-8 py-4">
                                                 <div className="flex items-center gap-4">
                                                     <div className="relative">
-                                                        <ProfileAvatar 
-                                                            src={student.photo} 
-                                                            name={student.name} 
-                                                            size="lg" 
+                                                        <ProfileAvatar
+                                                            src={student.photo}
+                                                            name={student.name}
+                                                            size="lg"
                                                             shape="rounded-xl"
-                                                            border={currentMark?.status === 'present' ? 'border-primary' : currentMark?.status === 'absent' ? 'border-rose-500' : 'border-gray-100'} 
+                                                            border={formatLastSeen(student.lastSeen) === 'Online' ? 'online-avatar-glow' : currentMark?.status === 'present' ? 'border-primary' : currentMark?.status === 'absent' ? 'border-rose-500' : 'border-gray-100'}
                                                         />
+                                                        {formatLastSeen(student.lastSeen) === 'Online' && (
+                                                            <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-white flex items-center justify-center shadow-sm z-10">
+                                                                <div className="absolute w-full h-full rounded-full bg-green-500 animate-status-ping opacity-75"></div>
+                                                                <div className="relative w-1.5 h-1.5 rounded-full bg-white"></div>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                     <div className="min-w-0">
                                                         <h3 className="text-sm font-black text-gray-900 uppercase tracking-tight group-hover:text-primary transition-colors">{student.name}</h3>
                                                         <div className="flex items-center gap-2 mt-0.5">
-                                                            <div className={`w-2 h-2 rounded-full ${getStatusColor(student.lastSeen)}`}></div>
-                                                            <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">
-                                                                {formatLastSeen(student.lastSeen)}
-                                                            </span>
+                                                            {formatLastSeen(student.lastSeen) === 'Online' ? (
+                                                                <div className="flex items-center gap-1.5 px-2 py-0.5 bg-green-500/10 border border-green-500/20 rounded-lg backdrop-blur-sm">
+                                                                    <span className="text-[9px] font-black text-green-600 uppercase tracking-[0.1em]">
+                                                                        Active Now
+                                                                    </span>
+                                                                </div>
+                                                            ) : (
+                                                                <div className="flex items-center gap-1.5">
+                                                                    <div className={`w-1.5 h-1.5 rounded-full ${getStatusColor(student.lastSeen)} opacity-60`}></div>
+                                                                    <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">
+                                                                        {formatLastSeen(student.lastSeen)}
+                                                                    </span>
+                                                                </div>
+                                                            )}
                                                         </div>
                                                     </div>
                                                 </div>
@@ -677,16 +730,15 @@ const QuickAttendance = () => {
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4">
-                                                <span className={`text-[9px] px-2 py-1 rounded-md font-black uppercase tracking-widest border ${
-                                                    student.audience === 'interns' 
-                                                    ? 'bg-purple-50 text-primary border-primary/10' 
+                                                <span className={`text-[9px] px-2 py-1 rounded-md font-black uppercase tracking-widest border ${student.audience === 'interns'
+                                                    ? 'bg-purple-50 text-primary border-primary/10'
                                                     : 'bg-blue-50 text-blue-600 border-blue-100'
-                                                }`}>
+                                                    }`}>
                                                     {student.audience === 'interns' ? 'Intern' : 'Student'}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4">
-                                                    {(student.attendType || '').toLowerCase().includes('online')
+                                                {(student.attendType || '').toLowerCase().includes('online')
                                                     ? <span className="bg-rose-50 text-rose-600 border-rose-200 text-[10px] px-3 py-1.5 rounded-lg font-black uppercase tracking-widest border shadow-sm">Remote</span>
                                                     : <span className="bg-primary/5 text-primary border-primary text-[10px] px-3 py-1.5 rounded-lg font-black uppercase tracking-widest border shadow-sm">OnSite</span>
                                                 }
@@ -696,22 +748,20 @@ const QuickAttendance = () => {
                                                     <button
                                                         disabled={isDateHoliday()}
                                                         onClick={() => handleMark(student, 'present')}
-                                                        className={`px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-[0.15em] transition-all flex items-center justify-center gap-2 border-2 ${
-                                                            currentMark?.status === 'present'
+                                                        className={`px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-[0.15em] transition-all flex items-center justify-center gap-2 border-2 ${currentMark?.status === 'present'
                                                             ? 'bg-present-fixed border-present-fixed text-white shadow-lg shadow-present-fixed/20'
                                                             : 'bg-white border-gray-100 text-gray-400 hover:border-present-fixed hover:text-present-fixed'
-                                                        } disabled:opacity-30 disabled:cursor-not-allowed active:scale-95`}
+                                                            } disabled:opacity-30 disabled:cursor-not-allowed active:scale-95`}
                                                     >
                                                         Present
                                                     </button>
                                                     <button
                                                         disabled={isDateHoliday()}
                                                         onClick={() => handleMark(student, 'absent')}
-                                                        className={`px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-[0.15em] transition-all flex items-center justify-center gap-2 border-2 ${
-                                                            currentMark?.status === 'absent'
+                                                        className={`px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-[0.15em] transition-all flex items-center justify-center gap-2 border-2 ${currentMark?.status === 'absent'
                                                             ? 'bg-absent-fixed border-absent-fixed text-white shadow-lg shadow-absent-fixed/20'
                                                             : 'bg-white border-gray-100 text-gray-400 hover:border-absent-fixed hover:text-absent-fixed'
-                                                        } disabled:opacity-30 disabled:cursor-not-allowed active:scale-95`}
+                                                            } disabled:opacity-30 disabled:cursor-not-allowed active:scale-95`}
                                                     >
                                                         Absent
                                                     </button>
@@ -750,8 +800,8 @@ const QuickAttendance = () => {
                             </span>
                         </div>
                     </div>
-                    
-                    <button 
+
+                    <button
                         onClick={() => navigate('/teacher/dashboard')}
                         className="px-8 py-3 bg-primary hover:bg-primary text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-lg shadow-primary/20 active:scale-95 flex items-center gap-3"
                     >
@@ -764,15 +814,15 @@ const QuickAttendance = () => {
             <AnimatePresence>
                 {showRangeModal && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-                        <motion.div 
+                        <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             onClick={() => !isGeneratingRange && setShowRangeModal(false)}
                             className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm"
                         ></motion.div>
-                        
-                        <motion.div 
+
+                        <motion.div
                             initial={{ opacity: 0, scale: 0.95, y: 20 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -784,7 +834,7 @@ const QuickAttendance = () => {
                                         <h2 className="text-2xl font-black text-gray-900 uppercase tracking-tighter">Export Range</h2>
                                         <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Select dates for summary report</p>
                                     </div>
-                                    <button 
+                                    <button
                                         onClick={() => setShowRangeModal(false)}
                                         className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 hover:text-rose-500 transition-colors"
                                     >
@@ -796,7 +846,7 @@ const QuickAttendance = () => {
                                     <div className="grid grid-cols-1 gap-4">
                                         <div className="space-y-2">
                                             <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Start Date</label>
-                                            <input 
+                                            <input
                                                 type="date"
                                                 value={rangeStart}
                                                 onChange={(e) => setRangeStart(e.target.value)}
@@ -805,7 +855,7 @@ const QuickAttendance = () => {
                                         </div>
                                         <div className="space-y-2">
                                             <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">End Date</label>
-                                            <input 
+                                            <input
                                                 type="date"
                                                 value={rangeEnd}
                                                 max={getLocalDateString(new Date())}

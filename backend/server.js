@@ -68,11 +68,40 @@ app.set('io', io);
 io.on('connection', (socket) => {
     console.log('🔌 New client connected');
 
-    socket.on('join_chat', (userId) => {
+    socket.on('join_chat', async (userId) => {
         const room = userId.toString();
         socket.join(room);
         socket.userId = room; // Store user identifier on socket
         console.log(`👤 User joined personal chat room: ${room}`);
+
+        // Update status in real-time
+        try {
+            const User = require('./models/User');
+            const user = await User.findByIdAndUpdate(userId, { lastSeen: new Date() }, { new: true });
+            if (user) {
+                io.emit('user_status_update', {
+                    userId: user._id.toString(),
+                    lastSeen: user.lastSeen
+                });
+            }
+        } catch (err) {
+            console.error('Error updating lastSeen on join_chat:', err);
+        }
+    });
+
+    socket.on('heartbeat', async (userId) => {
+        try {
+            const User = require('./models/User');
+            const user = await User.findByIdAndUpdate(userId, { lastSeen: new Date() }, { new: true });
+            if (user) {
+                io.emit('user_status_update', {
+                    userId: user._id.toString(),
+                    lastSeen: user.lastSeen
+                });
+            }
+        } catch (err) {
+            console.error('Error in heartbeat socket event:', err);
+        }
     });
 
     socket.on('send_global_message', async (data) => {
