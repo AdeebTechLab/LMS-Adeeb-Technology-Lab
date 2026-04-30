@@ -59,22 +59,18 @@ const BirthdayWish = () => {
     };
 
     const handleWish = async (id, hasWished) => {
+        if (hasWished) return; // Prevent multiple wishes if clicked again somehow
+        
         try {
             setWishingId(id);
-            if (hasWished) {
-                // Un-wish
-                const res = await api.delete(`/users/${id}/wish`);
-                if (res.data.success) fetchBirthdays();
-            } else {
-                // Wish
-                const res = await api.post(`/users/${id}/wish`);
-                if (res.data.success) {
-                    fetchBirthdays();
-                    createConfetti(); // Celebration on wish!
-                }
+            // Wish only - no un-wish
+            const res = await api.post(`/users/${id}/wish`);
+            if (res.data.success) {
+                fetchBirthdays();
+                createConfetti(); // Celebration on wish!
             }
         } catch (error) {
-            console.error('Error toggling wish:', error);
+            console.error('Error sending wish:', error);
         } finally {
             setWishingId(null);
         }
@@ -178,8 +174,11 @@ const BirthdayWish = () => {
                     <div className="flex-1 w-full max-w-2xl">
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             {birthdays.map((person, index) => {
-                                const hasWished = person.birthdayWishes?.some(w => (w.from?._id || w.from) === (user?.id || user?._id));
-                                const wishCount = person.birthdayWishes?.length || 0;
+                                const currentYear = new Date().getFullYear();
+                                const hasWished = person.birthdayWishes?.some(w => 
+                                    (w.from?._id || w.from) === (user?.id || user?._id) && w.year === currentYear
+                                );
+                                const wishCount = person.birthdayWishes?.filter(w => w.year === currentYear).length || 0;
 
                                 return (
                                     <motion.div 
@@ -219,11 +218,11 @@ const BirthdayWish = () => {
 
                                             <button
                                                 onClick={() => handleWish(person._id, hasWished)}
-                                                disabled={wishingId === person._id}
-                                                className={`flex-1 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2 ${
+                                                disabled={wishingId === person._id || hasWished}
+                                                className={`flex-1 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${
                                                     hasWished 
-                                                    ? 'bg-white/20 text-white border border-white/10 hover:bg-white/30' 
-                                                    : 'bg-white text-primary shadow-lg shadow-black/10 hover:shadow-xl'
+                                                    ? 'bg-white/10 text-white/50 border border-white/5 cursor-default' 
+                                                    : 'bg-white text-primary shadow-lg shadow-black/10 hover:shadow-xl active:scale-95'
                                                 }`}
                                             >
                                                 {wishingId === person._id ? (

@@ -104,35 +104,6 @@ router.post('/:id/wish', protect, async (req, res) => {
     }
 });
 
-// @route   DELETE /api/users/:id/wish
-// @desc    Remove birthday wish from a user (syncs across same email)
-// @access  Private
-router.delete('/:id/wish', protect, async (req, res) => {
-    try {
-        const targetUser = await User.findById(req.params.id);
-        if (!targetUser) return res.status(404).json({ success: false, message: 'User not found' });
-        
-        const currentYear = moment().year();
-        const userEmail = targetUser.email;
-        
-        // Find all users with this email to sync the removal
-        const usersToUpdate = await User.find({ email: userEmail });
-        
-        for (const user of usersToUpdate) {
-            if (user.birthdayWishes) {
-                user.birthdayWishes = user.birthdayWishes.filter(
-                    w => !(w.from && w.from.toString() === req.user.id && w.year === currentYear)
-                );
-                await user.save();
-            }
-        }
-        
-        res.json({ success: true, message: 'Wish removed successfully!' });
-    } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
-    }
-});
-
 // @route   GET /api/users
 // @desc    Get all users (admin only)
 // @access  Private/Admin
@@ -509,73 +480,6 @@ router.put('/change-password-by-email', protect, authorize('admin'), async (req,
         }
 
         res.json({ success: true, message: `Password updated successfully for ${users.length} account(s) matching ${email}` });
-    } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
-    }
-});
-
-// @route   GET /api/users/birthdays
-// @desc    Get users with birthdays in the current window (6 days)
-// @access  Private
-router.get('/birthdays', protect, async (req, res) => {
-    try {
-        const users = await User.find({ 
-            dob: { $exists: true, $ne: null },
-            isVerified: true 
-        }).select('name photo dob role birthdayWishes rollNo');
-        
-        const birthdayPeople = users.filter(user => {
-            const dob = moment.utc(user.dob);
-            const birthMonth = dob.month();
-            const birthDay = dob.date();
-            
-            const today = moment().tz('Asia/Karachi').startOf('day');
-            
-            // Check three years (prev, current, next) to handle year-end crossovers correctly
-            const yearsToCheck = [today.year() - 1, today.year(), today.year() + 1];
-            
-            return yearsToCheck.some(year => {
-                const birthDate = moment().tz('Asia/Karachi').year(year).month(birthMonth).date(birthDay).startOf('day');
-                const startWindow = moment(birthDate).subtract(1, 'days').startOf('day');
-                const endWindow = moment(birthDate).add(1, 'days').endOf('day');
-                return today.isBetween(startWindow, endWindow, null, '[]');
-            });
-        });
-        
-        res.json({ success: true, data: birthdayPeople });
-    } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
-    }
-});
-
-// @route   POST /api/users/:id/wish
-// @desc    Wish a user happy birthday
-// @access  Private
-router.post('/:id/wish', protect, async (req, res) => {
-    try {
-        const targetUser = await User.findById(req.params.id);
-        if (!targetUser) return res.status(404).json({ success: false, message: 'User not found' });
-        
-        const currentYear = moment().year();
-        
-        // Check if already wished this year
-        const alreadyWished = targetUser.birthdayWishes && targetUser.birthdayWishes.some(
-            w => w.from && w.from.toString() === req.user.id && w.year === currentYear
-        );
-        
-        if (alreadyWished) {
-            return res.status(400).json({ success: false, message: 'You already wished them!' });
-        }
-        
-        if (!targetUser.birthdayWishes) targetUser.birthdayWishes = [];
-        
-        targetUser.birthdayWishes.push({
-            from: req.user.id,
-            year: currentYear
-        });
-        
-        await targetUser.save();
-        res.json({ success: true, message: 'Wish sent!' });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
