@@ -149,15 +149,30 @@ const AssignmentSubmission = () => {
 
             if (validCourseId) {
                 const enroll = myEnrollments.find(e => (e.course?._id || e.course) === validCourseId);
+                const isFirstPaid = enroll?.isActive === true || enroll?.installments?.[0]?.status === 'verified';
+                
+                if (!isFirstPaid) {
+                    setSelectedCourseId('');
+                    localStorage.removeItem('submission_selectedCourse');
+                    navigate(`/${role}/fees`);
+                    return;
+                }
+                
                 setSelectedEnrollment(enroll);
                 fetchDailyTasks(validCourseId);
             } else if (internCourses.length > 0) {
-                // Find first "active" or just first one
-                const firstAvailable = internCourses.find(c => c.isActive) || internCourses[0];
-                setSelectedCourseId(firstAvailable._id);
-                setSelectedEnrollment(firstAvailable.enrollment);
-                if (firstAvailable.isActive) {
-                    fetchDailyTasks(firstAvailable._id);
+                // Find first "active" or verified course
+                const firstAvailable = internCourses.find(c => c.isActive || c.isFirstMonthVerified);
+                if (firstAvailable) {
+                    setSelectedCourseId(firstAvailable._id);
+                    setSelectedEnrollment(firstAvailable.enrollment);
+                    if (firstAvailable.isActive) {
+                        fetchDailyTasks(firstAvailable._id);
+                    }
+                } else {
+                    // No paid/active courses, ensure no course is selected
+                    setSelectedCourseId('');
+                    localStorage.removeItem('submission_selectedCourse');
                 }
             }
         } catch (error) {
@@ -378,6 +393,15 @@ const AssignmentSubmission = () => {
                 const isValidCourse = enrolledCourses.some(c => c._id === selectedCourseId);
                 if (isValidCourse) {
                     const enroll = myEnrollments.find(e => (e.course?._id || e.course) === selectedCourseId);
+                    const isFirstPaid = enroll?.isActive === true || enroll?.installments?.[0]?.status === 'verified';
+                    
+                    if (!isFirstPaid) {
+                        setSelectedCourseId('');
+                        localStorage.removeItem('submission_selectedCourse');
+                        navigate(`/${role}/fees`);
+                        return;
+                    }
+                    
                     setSelectedEnrollment(enroll);
                 } else {
                     // Invalid course ID, clear it
@@ -593,7 +617,7 @@ const AssignmentSubmission = () => {
                                         </div>
                                         <div className="mt-8 pt-4 border-t border-gray-50 flex items-center justify-between relative z-10">
                                             <div className="flex items-center gap-2 text-primary font-black text-xs tracking-widest uppercase">
-                                                ENTER DASHBOARD
+                                                {isBlocked ? 'Pay Fee to Enter' : 'Enter Dashboard'}
                                                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                                             </div>
                                         </div>
