@@ -516,7 +516,11 @@ const StudentDashboard = () => {
                                         whileHover={{ y: -4 }}
                                         className="bg-white p-4 rounded-2xl border border-gray-100 flex gap-4 hover:shadow-md transition-all cursor-pointer group relative"
                                         onClick={() => {
-                                            navigate(`/${role}/assignments`, { state: { courseId: course.id, tab: course.unreadMessages > 0 ? 'chat' : 'assignments' } });
+                                            if (!course.isFirstMonthVerified) {
+                                                navigate(`/${role}/fees`);
+                                            } else {
+                                                navigate(`/${role}/assignments`, { state: { courseId: course.id, tab: course.unreadMessages > 0 ? 'chat' : 'assignments' } });
+                                            }
                                         }}
                                     >
                                         {course.unreadMessages > 0 && (

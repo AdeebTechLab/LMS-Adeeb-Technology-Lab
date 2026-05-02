@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     CheckCircle, Clock, Calendar, Search, Filter, AlertCircle, XCircle, ChevronLeft, ChevronRight,
@@ -22,7 +22,8 @@ const SOCKET_URL = getSocketURL();
 
 // Portal for submissions and work logs
 const AssignmentSubmission = () => {
-    const { user } = useSelector((state) => state.auth);
+    const navigate = useNavigate();
+    const { user, role } = useSelector((state) => state.auth);
     const location = useLocation();
     const [isLoading, setIsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -412,7 +413,7 @@ const AssignmentSubmission = () => {
         const isFirstPaid = enroll?.isActive === true || enroll?.installments?.[0]?.status === 'verified';
 
         if (!isFirstPaid) {
-            alert('Your enrollment for this course is pending fee verification. Please ensure your first month\'s fee is paid and verified.');
+            navigate(`/${role}/fees`);
             return;
         }
 
@@ -938,9 +939,9 @@ const AssignmentSubmission = () => {
                                         <AnimatePresence>
                                             {selectedAssignment && (
                                                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
-                                                    <motion.div 
-                                                        initial={{ opacity: 0 }} 
-                                                        animate={{ opacity: 1 }} 
+                                                    <motion.div
+                                                        initial={{ opacity: 0 }}
+                                                        animate={{ opacity: 1 }}
                                                         exit={{ opacity: 0 }}
                                                         onClick={() => setSelectedAssignment(null)}
                                                         className="fixed inset-0 bg-[#0f172a]/80 backdrop-blur-xl"
@@ -966,7 +967,7 @@ const AssignmentSubmission = () => {
                                                                     </p>
                                                                 </div>
                                                             </div>
-                                                            <button 
+                                                            <button
                                                                 onClick={() => setSelectedAssignment(null)}
                                                                 className="absolute top-8 right-8 w-10 h-10 rounded-full bg-black/10 hover:bg-black/20 flex items-center justify-center transition-colors text-white"
                                                             >
@@ -985,7 +986,7 @@ const AssignmentSubmission = () => {
                                                                         <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-slate-300 group-focus-within:text-primary transition-colors">
                                                                             <LinkIcon className="w-5 h-5" />
                                                                         </div>
-                                                                        <input 
+                                                                        <input
                                                                             type="text"
                                                                             placeholder="e.g. GitHub, Google Drive, or Website Link"
                                                                             value={submissionUrl}
@@ -1003,7 +1004,7 @@ const AssignmentSubmission = () => {
                                                                         <div className="absolute top-5 left-0 pl-5 pointer-events-none text-slate-300 group-focus-within:text-primary transition-colors">
                                                                             <FileText className="w-5 h-5" />
                                                                         </div>
-                                                                        <textarea 
+                                                                        <textarea
                                                                             placeholder="Share any specific details about your implementation..."
                                                                             rows="4"
                                                                             value={submissionText}

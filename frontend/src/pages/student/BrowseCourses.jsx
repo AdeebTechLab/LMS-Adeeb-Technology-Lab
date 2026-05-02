@@ -75,8 +75,8 @@ const BrowseCourses = () => {
     // Separate courses by enrollment status
     // Use myEnrollments directly to ensure all user's courses are shown regardless of audience filters
     const enrolledCourses = myEnrollments
-        .filter(e => e.status === 'enrolled' && e.course)
-        .map(e => ({ ...e.course, enrolledStatus: 'enrolled' }));
+        .filter(e => (e.status === 'enrolled' || e.status === 'pending') && e.course)
+        .map(e => ({ ...e.course, enrolledStatus: e.status }));
         
     const completedCourses = myEnrollments
         .filter(e => e.status === 'completed' && e.course)
