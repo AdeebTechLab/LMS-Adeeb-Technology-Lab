@@ -150,14 +150,14 @@ const AssignmentSubmission = () => {
             if (validCourseId) {
                 const enroll = myEnrollments.find(e => (e.course?._id || e.course) === validCourseId);
                 const isFirstPaid = enroll?.isActive === true || enroll?.installments?.[0]?.status === 'verified';
-                
+
                 if (!isFirstPaid) {
                     setSelectedCourseId('');
                     localStorage.removeItem('submission_selectedCourse');
                     navigate(`/${role}/fees`);
                     return;
                 }
-                
+
                 setSelectedEnrollment(enroll);
                 fetchDailyTasks(validCourseId);
             } else if (internCourses.length > 0) {
@@ -394,14 +394,14 @@ const AssignmentSubmission = () => {
                 if (isValidCourse) {
                     const enroll = myEnrollments.find(e => (e.course?._id || e.course) === selectedCourseId);
                     const isFirstPaid = enroll?.isActive === true || enroll?.installments?.[0]?.status === 'verified';
-                    
+
                     if (!isFirstPaid) {
                         setSelectedCourseId('');
                         localStorage.removeItem('submission_selectedCourse');
                         navigate(`/${role}/fees`);
                         return;
                     }
-                    
+
                     setSelectedEnrollment(enroll);
                 } else {
                     // Invalid course ID, clear it
