@@ -124,7 +124,7 @@ router.get('/teacher/dashboard', protect, authorize('teacher', 'admin'), async (
             const courseId = course._id.toString();
             const courseEnrollments = enrollmentMap[courseId] || [];
             const totalStudents = courseEnrollments.length;
-            const activeStudents = courseEnrollments.filter(e => e.isActive && e.status !== 'completed').length;
+            const activeStudents = courseEnrollments.filter(e => e.isActive && e.status !== 'completed' && !e.isPaused).length;
 
             return {
                 id: course._id,

@@ -134,6 +134,26 @@ router.get('/admin-dashboard', protect, authorize('admin'), async (req, res) => 
             });
         });
 
+        // 4. [NEW] Essential Management Stats
+        const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+        
+        const [
+            pendingStudents,
+            pendingInterns,
+            pendingTeachers,
+            activeNow,
+            recentUsers
+        ] = await Promise.all([
+            User.countDocuments({ role: 'student', isVerified: false }),
+            User.countDocuments({ role: 'intern', isVerified: false }),
+            User.countDocuments({ role: 'teacher', isVerified: false }),
+            User.countDocuments({ lastSeen: { $gte: fiveMinutesAgo } }),
+            User.find({ role: { $ne: 'admin' } })
+                .sort({ createdAt: -1 })
+                .limit(5)
+                .select('name email role photo createdAt')
+        ]);
+
         res.json({
             success: true,
             data: {
@@ -148,6 +168,16 @@ router.get('/admin-dashboard', protect, authorize('admin'), async (req, res) => 
                     verified: verifiedCount,
                     pending: pendingCount,
                     rejected: rejectedCount
+                },
+                managementPulse: {
+                    pendingApprovals: {
+                        students: pendingStudents,
+                        interns: pendingInterns,
+                        teachers: pendingTeachers,
+                        total: pendingStudents + pendingInterns + pendingTeachers
+                    },
+                    activeNow,
+                    recentRegistrations: recentUsers
                 }
             }
         });

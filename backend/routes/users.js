@@ -13,10 +13,48 @@ const { sendPushNotification } = require('../utils/pushHelper');
 // @access  Private
 router.get('/birthdays', protect, async (req, res) => {
     try {
-        const users = await User.find({ 
-            dob: { $exists: true, $ne: null },
-            isVerified: true 
-        }).select('name email photo dob role birthdayWishes rollNo');
+        const users = await User.aggregate([
+            {
+                $match: {
+                    dob: { $exists: true, $ne: null },
+                    isVerified: true
+                }
+            },
+            {
+                $lookup: {
+                    from: 'enrollments',
+                    localField: '_id',
+                    foreignField: 'user',
+                    as: 'enrollmentData'
+                }
+            },
+            {
+                $match: {
+                    $or: [
+                        { role: 'teacher' },
+                        { role: 'admin' },
+                        { role: 'job' },
+                        {
+                            role: { $in: ['student', 'intern'] },
+                            enrollmentData: {
+                                $elemMatch: { status: { $in: ['enrolled', 'pending'] } }
+                            }
+                        }
+                    ]
+                }
+            },
+            {
+                $project: {
+                    name: 1,
+                    email: 1,
+                    photo: 1,
+                    dob: 1,
+                    role: 1,
+                    birthdayWishes: 1,
+                    rollNo: 1
+                }
+            }
+        ]);
         
         const birthdayPeople = users.filter(user => {
             const dob = moment.utc(user.dob);
@@ -42,7 +80,7 @@ router.get('/birthdays', protect, async (req, res) => {
         for (const person of birthdayPeople) {
             if (!uniquePeopleMap.has(person.email)) {
                 // First time seeing this email
-                const personObj = person.toObject();
+                const personObj = { ...person }; // Aggregation returns plain objects
                 personObj.roles = [person.role]; // Store roles in an array
                 uniquePeopleMap.set(person.email, personObj);
             } else {

@@ -61,7 +61,7 @@ const QuickAttendance = () => {
     const [filterCourse, setFilterCourse] = useState('all');
     const [filterStatus, setFilterStatus] = useState(location.state?.initialFilter || 'all');
     const [filterLocation, setFilterLocation] = useState('all');
-    const [filterCategory, setFilterCategory] = useState('all');
+    const [filterCategory, setFilterCategory] = useState(location.state?.initialCategory || 'all');
     const [courses, setCourses] = useState([]);
     const [holidayDays, setHolidayDays] = useState([]);
     const socketRef = useRef(null);
@@ -492,7 +492,7 @@ const QuickAttendance = () => {
                     <h1 className="text-3xl font-black text-gray-900 uppercase tracking-tighter leading-none mb-2">Active Attendance</h1>
                     <p className="text-gray-500 text-xs font-bold uppercase tracking-widest flex items-center gap-2">
                         <Users className="w-4 h-4 text-primary" />
-                        Fast marking for {students.length} active students
+                        Fast marking for {filteredStudents.length} {filterCategory === 'all' ? 'active members' : filterCategory}
                     </p>
                 </div>
 
@@ -789,8 +789,10 @@ const QuickAttendance = () => {
                 <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-6 py-4 bg-gray-900/90 backdrop-blur-xl rounded-[2rem] border border-white/10 shadow-2xl flex items-center gap-8">
                     <div className="flex items-center gap-4">
                         <div className="flex flex-col">
-                            <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Marked</span>
-                            <span className="text-xl font-black text-white leading-none">{Object.keys(attendanceMarks).length} / {students.length}</span>
+                            <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Progress</span>
+                            <span className="text-xl font-black text-white leading-none">
+                                {filteredStudents.filter(s => attendanceMarks[`${s.courseId}-${s.id}`]?.status).length} / {filteredStudents.length}
+                            </span>
                         </div>
                         <div className="w-px h-8 bg-white/10"></div>
                         <div className="flex flex-col">

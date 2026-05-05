@@ -7,7 +7,7 @@ import { io } from 'socket.io-client';
 import {
     BookOpen, Users, Calendar, ArrowRight, ChevronLeft,
     FileText, ClipboardList, CheckCircle, Clock, Loader2, User, Award, X, Search,
-    Video, ExternalLink, StopCircle, Timer, MessageSquare
+    Video, ExternalLink, StopCircle, Timer, MessageSquare, GraduationCap
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import { courseAPI, liveClassAPI } from '../../services/api';
@@ -26,8 +26,8 @@ const TeacherCourses = ({ isDashboard = false }) => {
     // const [courseStudents, setCourseStudents] = useState([]); // Unused now
     const [summaryStats, setSummaryStats] = useState({
         totalCourses: 0,
-        totalStudents: 0,
         activeStudents: 0,
+        activeInterns: 0,
         pendingAssignments: 0,
         todayPresent: 0,
         todayAbsent: 0
@@ -257,22 +257,23 @@ const TeacherCourses = ({ isDashboard = false }) => {
                 });
             });
 
-            const totalActive = coursesWithData.reduce((acc, c) => acc + (c.activeStudents || 0), 0);
+            const totalActiveStudents = coursesWithData
+                .filter(c => c.targetAudience === 'students')
+                .reduce((acc, c) => acc + (c.activeStudents || 0), 0);
+            
+            const totalActiveInterns = coursesWithData
+                .filter(c => c.targetAudience === 'interns')
+                .reduce((acc, c) => acc + (c.activeStudents || 0), 0);
+
             const totalPending = coursesWithData.reduce((acc, c) => acc + (c.pendingAssignments || 0), 0);
             const totalUnreadMessages = coursesWithData.reduce((acc, c) => acc + (c.unreadMessages || 0), 0);
             const todayPresent = coursesWithData.reduce((acc, c) => acc + (c.presentCount || 0), 0);
             const todayAbsent = coursesWithData.reduce((acc, c) => acc + (c.absentCount || 0), 0);
 
-            console.log('[TeacherDashboard] Stats:', {
-                courses: coursesWithData.length,
-                uniqueStudents: uniqueStudentIds.size,
-                pending: totalPending
-            });
-
             setSummaryStats({
                 totalCourses: coursesWithData.length,
-                totalStudents: uniqueStudentIds.size,
-                activeStudents: totalActive,
+                activeStudents: totalActiveStudents,
+                activeInterns: totalActiveInterns,
                 pendingAssignments: totalPending + totalUnreadMessages,
                 todayPresent,
                 todayAbsent,
@@ -399,7 +400,7 @@ const TeacherCourses = ({ isDashboard = false }) => {
                 {isDashboard && (
                     <div className="grid grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6 gap-3 sm:gap-4">
                         <StatCard
-                            title="Total Courses"
+                            title="Active Courses"
                             value={summaryStats.totalCourses}
                             icon={BookOpen}
                             iconBg="bg-blue-50"
@@ -407,19 +408,20 @@ const TeacherCourses = ({ isDashboard = false }) => {
                             onClick={() => navigate('/teacher/courses')}
                         />
                         <StatCard
-                            title="Total Students"
-                            value={summaryStats.totalStudents}
+                            title="Active Students"
+                            value={summaryStats.activeStudents}
                             icon={Users}
-                            iconBg="bg-indigo-50"
-                            iconColor="text-indigo-600"
+                            iconBg="bg-blue-50"
+                            iconColor="text-blue-600"
+                            onClick={() => navigate('/teacher/quick-attendance', { state: { initialCategory: 'students' } })}
                         />
                         <StatCard
-                            title="Active Now"
-                            value={summaryStats.activeStudents}
-                            icon={CheckCircle}
-                            iconBg="bg-primary/5"
-                            iconColor="text-primary"
-                            onClick={() => navigate('/teacher/quick-attendance')}
+                            title="Active Interns"
+                            value={summaryStats.activeInterns}
+                            icon={GraduationCap}
+                            iconBg="bg-purple-50"
+                            iconColor="text-purple-600"
+                            onClick={() => navigate('/teacher/quick-attendance', { state: { initialCategory: 'interns' } })}
                         />
                         <StatCard
                             title="Pending Gradings"

@@ -1,26 +1,33 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
     Users, Search, ChevronLeft, Loader2,
     Award, BookOpen, Phone, CreditCard, Mail, GraduationCap,
-    CheckCircle, XCircle
+    CheckCircle, XCircle, Clock
 } from 'lucide-react';
 import { directoryAPI } from '../../services/api';
 
 const FILTER_OPTIONS = [
     { value: 'all', label: 'All', icon: Users },
     { value: 'active', label: 'Active', icon: CheckCircle },
+    { value: 'pending', label: 'Pending', icon: Clock },
     { value: 'certified', label: 'Certified', icon: Award },
     { value: 'not-registered', label: 'Not Registered', icon: XCircle }
 ];
 
 const StudentDirectory = () => {
     const navigate = useNavigate();
+    const location = useLocation();
+    
+    // Get filter from URL query param if exists
+    const queryParams = new URLSearchParams(location.search);
+    const urlFilter = queryParams.get('filter');
+
     const [isLoading, setIsLoading] = useState(true);
     const [users, setUsers] = useState([]);
     const [filteredUsers, setFilteredUsers] = useState([]);
-    const [activeFilter, setActiveFilter] = useState('all');
+    const [activeFilter, setActiveFilter] = useState(urlFilter || 'all');
     const [searchQuery, setSearchQuery] = useState('');
 
     useEffect(() => {

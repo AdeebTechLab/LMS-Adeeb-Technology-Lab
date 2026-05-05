@@ -19,7 +19,11 @@ import {
     ArrowRight,
     Download,
     BookOpen,
-    Trash2
+    Trash2,
+    Activity,
+    UserCheck,
+    Zap,
+    UserPlus
 } from 'lucide-react';
 import Modal from '../../components/ui/Modal';
 import html2canvas from 'html2canvas';
@@ -299,6 +303,49 @@ const AdminDashboard = () => {
     return (
         <div className="flex-1 space-y-8 p-4 md:p-8 pt-6" ref={dashboardRef}>
             <BirthdayWish />
+
+            {/* Management Pulse - NEW Essential Section */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="bg-gradient-to-br from-primary/10 to-transparent p-4 rounded-3xl border border-primary/20 flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-2xl bg-primary/20 flex items-center justify-center text-primary">
+                        <Activity className="w-5 h-5 animate-pulse" />
+                    </div>
+                    <div>
+                        <p className="text-[9px] font-black uppercase tracking-widest text-primary/60">Live Now</p>
+                        <p className="text-lg font-black text-gray-900">{data?.managementPulse?.activeNow || 0} Members Online</p>
+                    </div>
+                </div>
+                <div 
+                    onClick={() => navigate('/admin/directory?filter=pending')}
+                    className="bg-white p-4 rounded-3xl border border-gray-100 flex items-center gap-4 cursor-pointer hover:border-primary/30 transition-all group"
+                >
+                    <div className="w-10 h-10 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-500 group-hover:scale-110 transition-transform">
+                        <UserCheck className="w-5 h-5" />
+                    </div>
+                    <div>
+                        <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">Pending Approvals</p>
+                        <p className="text-lg font-black text-gray-900">{data?.managementPulse?.pendingApprovals?.total || 0} Users Awaiting</p>
+                    </div>
+                </div>
+                <div className="bg-white p-4 rounded-3xl border border-gray-100 flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-500">
+                        <Zap className="w-5 h-5" />
+                    </div>
+                    <div>
+                        <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">Server Status</p>
+                        <p className="text-lg font-black text-gray-900">Optimal Performance</p>
+                    </div>
+                </div>
+                <div className="bg-white p-4 rounded-3xl border border-gray-100 flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-2xl bg-green-50 flex items-center justify-center text-green-500">
+                        <CheckCircle className="w-5 h-5" />
+                    </div>
+                    <div>
+                        <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">Data Sync</p>
+                        <p className="text-lg font-black text-gray-900">Real-time Connected</p>
+                    </div>
+                </div>
+            </div>
             {/* PDF-only Header (Visible only during capture or if we use specific CSS) */}
             <div className="hidden show-in-pdf mb-8 border-b-2 border-primary pb-4">
                 <div className="flex justify-between items-end">
@@ -426,13 +473,13 @@ const AdminDashboard = () => {
 
                     {/* Student Stats Section */}
                     <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                        <div className="bg-white rounded-[2rem] p-6 border border-gray-100 shadow-sm group hover:border-indigo-100 transition-colors">
-                            <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 mb-4 group-hover:scale-110 transition-transform">
+                        <div className="bg-white rounded-[2rem] p-6 border border-gray-100 shadow-sm group hover:border-primary/10 transition-colors">
+                            <div className="w-12 h-12 rounded-2xl bg-primary/5 flex items-center justify-center text-primary mb-4 group-hover:scale-110 transition-transform">
                                 <Users className="w-6 h-6" />
                             </div>
                             <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1">Global Database</h4>
                             <div className="text-3xl font-black text-gray-900 tracking-tighter">{data?.studentStats.total}</div>
-                            <p className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest mt-1">Total Students</p>
+                            <p className="text-[10px] font-bold text-primary uppercase tracking-widest mt-1">Total Students</p>
                         </div>
                         <div className="bg-white rounded-[2rem] p-6 border border-gray-100 shadow-sm group hover:border-primary/10 transition-colors">
                             <div className="w-12 h-12 rounded-2xl bg-primary/5 flex items-center justify-center text-primary mb-4 group-hover:scale-110 transition-transform">
@@ -456,33 +503,78 @@ const AdminDashboard = () => {
                     <HolidaySettings />
                 </div>
 
-                {/* Fee Status Graph (Sidebar-like) */}
-                <div className="bg-white rounded-[2.5rem] p-8 border border-gray-100 shadow-sm">
-                    <div className="flex items-center justify-between mb-8">
-                        <div>
-                            <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-primary mb-1">Verification Helix</h2>
-                            <h3 className="text-xl font-black text-gray-900 uppercase tracking-tighter leading-none">Fee Distribution</h3>
+                {/* Fee Status Graph & Recent Registrations */}
+                <div className="space-y-6">
+                    <div className="bg-white rounded-[2.5rem] p-8 border border-gray-100 shadow-sm">
+                        <div className="flex items-center justify-between mb-8">
+                            <div>
+                                <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-primary mb-1">Verification Helix</h2>
+                                <h3 className="text-xl font-black text-gray-900 uppercase tracking-tighter leading-none">Fee Distribution</h3>
+                            </div>
+                            <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center">
+                                <Filter className="w-4 h-4 text-slate-400" />
+                            </div>
                         </div>
-                        <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center">
-                            <Filter className="w-4 h-4 text-slate-400" />
+                        <div className="relative h-64 mb-8">
+                            <DoughnutChart data={doughnutChartData} height={256} />
+                        </div>
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between p-4 bg-primary/5 rounded-2xl border border-primary/10/50">
+                                <span className="text-[10px] font-black text-primary uppercase tracking-widest">Verified</span>
+                                <span className="font-black text-primary">{data?.feeStatus.verified}</span>
+                            </div>
+                            <div className="flex items-center justify-between p-4 bg-primary/5 rounded-2xl border border-primary/10/50">
+                                <span className="text-[10px] font-black text-orange-700 uppercase tracking-widest">Submissions</span>
+                                <span className="font-black text-orange-800">{data?.feeStatus.pending}</span>
+                            </div>
+                            <div className="flex items-center justify-between p-4 bg-red-50 rounded-2xl border border-red-100/50">
+                                <span className="text-[10px] font-black text-red-700 uppercase tracking-widest">Rejected</span>
+                                <span className="font-black text-red-800">{data?.feeStatus.rejected}</span>
+                            </div>
                         </div>
                     </div>
-                    <div className="relative h-64 mb-8">
-                        <DoughnutChart data={doughnutChartData} height={256} />
-                    </div>
-                    <div className="space-y-4">
-                        <div className="flex items-center justify-between p-4 bg-primary/5 rounded-2xl border border-primary/10/50">
-                            <span className="text-[10px] font-black text-primary uppercase tracking-widest">Verified</span>
-                            <span className="font-black text-primary">{data?.feeStatus.verified}</span>
+
+                    {/* Recent Registrations Feed - NEW Essential Section */}
+                    <div className="bg-white rounded-[2.5rem] p-8 border border-gray-100 shadow-sm overflow-hidden">
+                        <div className="flex items-center justify-between mb-6">
+                            <div>
+                                <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-primary mb-1">Onboarding Stream</h2>
+                                <h3 className="text-xl font-black text-gray-900 uppercase tracking-tighter leading-none">Recent Enrollments</h3>
+                            </div>
+                            <UserPlus className="w-5 h-5 text-gray-300" />
                         </div>
-                        <div className="flex items-center justify-between p-4 bg-primary/5 rounded-2xl border border-primary/10/50">
-                            <span className="text-[10px] font-black text-orange-700 uppercase tracking-widest">Submissions</span>
-                            <span className="font-black text-orange-800">{data?.feeStatus.pending}</span>
+                        <div className="space-y-4">
+                            {data?.managementPulse?.recentRegistrations?.map((regUser, idx) => (
+                                <div key={regUser._id || idx} className="flex items-center justify-between group/user">
+                                    <div className="flex items-center gap-3">
+                                        {regUser.photo ? (
+                                            <img src={regUser.photo} className="w-10 h-10 rounded-xl object-cover border-2 border-gray-50" />
+                                        ) : (
+                                            <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-[10px] font-black text-gray-400 group-hover/user:bg-primary/10 group-hover/user:text-primary transition-colors">
+                                                {regUser.name.charAt(0)}
+                                            </div>
+                                        )}
+                                        <div>
+                                            <p className="text-xs font-black text-gray-900 uppercase tracking-tight">{regUser.name}</p>
+                                            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">{regUser.role}</p>
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-[9px] font-black text-gray-300 uppercase">{new Date(regUser.createdAt).toLocaleDateString()}</p>
+                                        <div className="w-1.5 h-1.5 rounded-full bg-primary/30 ml-auto mt-1" />
+                                    </div>
+                                </div>
+                            ))}
+                            {data?.managementPulse?.recentRegistrations?.length === 0 && (
+                                <p className="text-center text-gray-400 text-[10px] py-4 uppercase font-bold tracking-widest">No Recent Signups</p>
+                            )}
                         </div>
-                        <div className="flex items-center justify-between p-4 bg-red-50 rounded-2xl border border-red-100/50">
-                            <span className="text-[10px] font-black text-red-700 uppercase tracking-widest">Rejected</span>
-                            <span className="font-black text-red-800">{data?.feeStatus.rejected}</span>
-                        </div>
+                        <button 
+                            onClick={() => navigate('/admin/directory')}
+                            className="w-full mt-6 py-3 bg-gray-50 hover:bg-primary/5 text-[9px] font-black text-gray-500 hover:text-primary rounded-xl uppercase tracking-[0.2em] transition-all"
+                        >
+                            View Unified Directory
+                        </button>
                     </div>
                 </div>
             </div>

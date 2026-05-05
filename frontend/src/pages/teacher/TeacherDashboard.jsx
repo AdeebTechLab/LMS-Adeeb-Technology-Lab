@@ -22,7 +22,8 @@ import {
     StopCircle,
     Award,
     Timer,
-    MessageSquare
+    MessageSquare,
+    GraduationCap
 } from 'lucide-react';
 import StatCard from '../../components/ui/StatCard';
 import Badge from '../../components/ui/Badge';
@@ -188,7 +189,13 @@ const TeacherDashboard = () => {
             const totalStudentsCount = coursesWithData.reduce((sum, c) => sum + (c.internCount || 0), 0);
             const totalPendingAssignments = coursesWithData.reduce((sum, c) => sum + (c.pendingAssignments || 0), 0);
             const totalUnreadMessages = coursesWithData.reduce((sum, c) => sum + (c.unreadMessages || 0), 0);
-            const totalPendingReviews = totalPendingAssignments + totalUnreadMessages;
+            const activeStudentsCount = coursesWithData
+                .filter(c => c.targetAudience === 'students')
+                .reduce((sum, c) => sum + (c.activeStudents || 0), 0);
+            
+            const activeInternsCount = coursesWithData
+                .filter(c => c.targetAudience === 'interns')
+                .reduce((sum, c) => sum + (c.activeStudents || 0), 0);
 
             setMyCourses(coursesWithData);
             setTotalStudents(totalStudentsCount);
@@ -196,18 +203,27 @@ const TeacherDashboard = () => {
             // Build stats
             setStats([
                 {
-                    title: 'My Courses',
+                    title: 'Active Courses',
                     value: coursesWithData.length.toString(),
                     icon: BookOpen,
                     iconBg: 'bg-primary/10',
                     iconColor: 'text-primary',
                 },
                 {
-                    title: 'Total Students',
-                    value: totalStudentsCount.toString(),
+                    title: 'Active Students',
+                    value: activeStudentsCount.toString(),
                     icon: Users,
                     iconBg: 'bg-blue-100',
                     iconColor: 'text-blue-600',
+                    onClick: () => navigate('/teacher/quick-attendance', { state: { initialCategory: 'students' } })
+                },
+                {
+                    title: 'Active Interns',
+                    value: activeInternsCount.toString(),
+                    icon: GraduationCap,
+                    iconBg: 'bg-purple-100',
+                    iconColor: 'text-purple-600',
+                    onClick: () => navigate('/teacher/quick-attendance', { state: { initialCategory: 'interns' } })
                 },
                 {
                     title: 'Pending Reviews',
@@ -215,13 +231,6 @@ const TeacherDashboard = () => {
                     icon: ClipboardList,
                     iconBg: 'bg-amber-100',
                     iconColor: 'text-amber-600',
-                },
-                {
-                    title: 'Active Courses',
-                    value: coursesWithData.filter(c => c.status === 'active').length.toString(),
-                    icon: CheckCircle,
-                    iconBg: 'bg-primary/10',
-                    iconColor: 'text-primary',
                 },
             ]);
 
@@ -268,7 +277,7 @@ const TeacherDashboard = () => {
                         <div>
                             <h2 className="text-2xl font-bold mb-2">Welcome back, {user?.name || 'Teacher'}!</h2>
                             <p className="text-white/70">
-                                You have {myCourses.length} courses with {totalStudents} students enrolled.
+                                You have {myCourses.length} active courses under your management.
                             </p>
                         </div>
                         <div className="flex gap-2 sm:gap-3 flex-wrap">
