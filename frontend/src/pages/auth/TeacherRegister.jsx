@@ -2,11 +2,12 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
-    Eye, EyeOff, Mail, Lock, User, ArrowLeft, Loader2, GraduationCap, MapPin, ChevronDown,
+    Eye, EyeOff, Mail, Lock, User, ArrowLeft, GraduationCap, MapPin, ChevronDown,
     CreditCard, BookOpen, Phone, Briefcase, Calendar, Camera, Upload, X
 } from 'lucide-react';
 import { authAPI } from '../../services/api';
 import ImageCropper from '../../components/ui/ImageCropper';
+import { ButtonLoader } from '../../components/ui/Loader';
 import { PAKISTAN_CITIES, COUNTRIES } from '../../utils/locations';
 
 const CITIES = PAKISTAN_CITIES;
@@ -752,14 +753,9 @@ const TeacherRegister = () => {
                             disabled={isLoading}
                             className="w-full py-4 mt-4 bg-primary hover:bg-orange-700 text-white font-bold rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 active:scale-95 disabled:opacity-70"
                         >
-                            {isLoading ? (
-                                <>
-                                    <Loader2 className="w-5 h-5 animate-spin" />
-                                    <span>Creating Account...</span>
-                                </>
-                            ) : (
-                                <span>Create Account</span>
-                            )}
+                            <ButtonLoader isLoading={isLoading}>
+                                {isLoading ? 'Creating Account...' : 'Create Account'}
+                            </ButtonLoader>
                         </motion.button>
                     </form>
                 </div>

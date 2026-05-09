@@ -5,9 +5,10 @@ import { useSelector } from 'react-redux';
 import { io } from 'socket.io-client';
 import {
     BookOpen, Users, Calendar, ArrowRight, ChevronLeft,
-    FileText, ClipboardList, CheckCircle, Clock, Loader2, User, Search, Filter, MessageCircle, UserCheck, Zap, MapPin
+    FileText, ClipboardList, CheckCircle, Clock, User, Search, Filter, MessageCircle, UserCheck, Zap, MapPin
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
+import Loader from '../../components/ui/Loader';
 import { courseAPI, enrollmentAPI, chatAPI, assignmentAPI, testAPI } from '../../services/api';
 
 const getSocketURL = () => {
@@ -434,10 +435,7 @@ const AttendanceSheet = () => {
 
     if (isLoading) {
         return (
-            <div className="flex flex-col items-center justify-center h-64 gap-3">
-                <img src="/loading.gif" alt="Loading" className="w-20 h-20 object-contain" />
-                <span className="text-gray-600 font-medium">Loading courses...</span>
-            </div>
+            <Loader message="Loading courses..." />
         );
     }
 

@@ -5,10 +5,11 @@ import { useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { io } from 'socket.io-client';
 import {
-    CreditCard, Upload, Clock, CheckCircle, AlertCircle, FileText, Loader2, FileImage, Trash2, X, Eye
+    CreditCard, Upload, Clock, CheckCircle, AlertCircle, FileText, FileImage, Trash2, X, Eye
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
+import Loader, { ButtonLoader } from '../../components/ui/Loader';
 import { feeAPI, enrollmentAPI } from '../../services/api';
 
 const FeeManagement = () => {
@@ -251,10 +252,7 @@ const FeeManagement = () => {
 
     if (isFetching) {
         return (
-            <div className="flex flex-col items-center justify-center h-64 gap-3">
-                <img src="/loading.gif" alt="Loading" className="w-20 h-20 object-contain" />
-                <span className="text-gray-600 font-medium">Loading fees...</span>
-            </div>
+            <Loader message="Loading fees..." />
         );
     }
 
@@ -728,13 +726,14 @@ const FeeManagement = () => {
                             <button onClick={() => { setIsUploadModalOpen(false); setUploadedFile(null); setPreviewUrl(null); setSlipId(''); }} className="flex-1 py-3 text-gray-600 font-medium hover:bg-gray-100 rounded-xl transition-colors">
                                 Cancel
                             </button>
-                            <button
+                            <ButtonLoader
                                 onClick={handleSubmitPayment}
-                                disabled={!uploadedFile || isSubmitting}
+                                isLoading={isSubmitting}
+                                disabled={!uploadedFile}
                                 className="flex-1 py-3 bg-[#0f2847] hover:bg-primary text-white font-medium rounded-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all shadow-lg shadow-orange-900/10"
                             >
-                                {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Submit Payment'}
-                            </button>
+                                Submit Payment
+                            </ButtonLoader>
                         </div>
                     </div>
                 )}

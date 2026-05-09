@@ -4,12 +4,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useSelector } from 'react-redux';
 import {
     CheckCircle, X, Search, Calendar, ChevronLeft,
-    Loader2, Users, Save, AlertCircle, RefreshCw,
+    Users, Save, AlertCircle, RefreshCw,
     UserCheck, UserX, Clock, Filter, Download, MapPin, GraduationCap
 } from 'lucide-react';
 import { courseAPI, attendanceAPI } from '../../services/api';
 import ProfileAvatar from '../../components/ui/ProfileAvatar';
 import Badge from '../../components/ui/Badge';
+import Loader, { ButtonLoader } from '../../components/ui/Loader';
 import { showToast } from '../../utils/customToast';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -468,10 +469,7 @@ const QuickAttendance = () => {
 
     if (isLoading) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
-                <Loader2 className="w-12 h-12 text-primary animate-spin" />
-                <p className="text-gray-500 font-bold uppercase tracking-widest text-sm">Initializing Active Attendance...</p>
-            </div>
+            <Loader message="Initializing Active Attendance..." />
         );
     }
 
@@ -882,10 +880,7 @@ const QuickAttendance = () => {
                                         className="w-full py-5 bg-gray-900 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-xl hover:bg-primary transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-3"
                                     >
                                         {isGeneratingRange ? (
-                                            <>
-                                                <Loader2 className="w-5 h-5 animate-spin" />
-                                                Processing Data...
-                                            </>
+                                            <ButtonLoader />
                                         ) : (
                                             <>
                                                 <Download className="w-5 h-5" />

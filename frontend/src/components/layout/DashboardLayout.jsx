@@ -64,11 +64,7 @@ const DashboardLayout = () => {
         return () => clearInterval(interval);
     }, [role, user]);
 
-    useEffect(() => {
-        setIsPageLoading(true);
-        const timer = setTimeout(() => setIsPageLoading(false), 600);
-        return () => clearTimeout(timer);
-    }, [location.pathname]);
+
 
     const fetchPendingTasks = async () => {
         if (!user) return;
@@ -227,19 +223,7 @@ const DashboardLayout = () => {
             {/* Notification Popup */}
             <NotificationPopup />
 
-            {/* Page Transition Loader */}
-            <AnimatePresence>
-                {isPageLoading && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[9999] flex items-center justify-center bg-white/60 dark:bg-[#0f1117]/60 backdrop-blur-md"
-                    >
-                        <Loader message="LMS Adeeb Tech Lab is Loading..." size="lg" />
-                    </motion.div>
-                )}
-            </AnimatePresence>
+
 
             {/* Main Content - Scrollable */}
             <div className="flex-1 flex flex-col h-screen overflow-hidden">

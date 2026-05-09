@@ -3,8 +3,9 @@ import { motion } from 'framer-motion';
 import { useSelector } from 'react-redux';
 import { io } from 'socket.io-client';
 import {
-    MessageCircle, Send, User, Loader2, GraduationCap
+    MessageCircle, Send, User, GraduationCap
 } from 'lucide-react';
+import Loader, { ButtonLoader } from '../../../components/ui/Loader';
 import { chatAPI } from '../../../services/api';
 import ProfileAvatar from '../../../components/ui/ProfileAvatar';
 
@@ -180,10 +181,7 @@ const StudentChatTab = ({ course, isRestricted }) => {
 
     if (isLoading) {
         return (
-            <div className="flex flex-col items-center justify-center py-24 gap-4">
-                <img src="/loading.gif" alt="Loading" className="w-24 h-24 object-contain" />
-                <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] animate-pulse">Initializing Secure Chat...</p>
-            </div>
+            <Loader message="Initializing Secure Chat..." />
         );
     }
 
@@ -316,18 +314,13 @@ const StudentChatTab = ({ course, isRestricted }) => {
                                         }
                                     }}
                                 />
-                                <button
-                                    type="button"
+                                <ButtonLoader
                                     onClick={() => handleSendMessage()}
-                                    disabled={!newMessage.trim() || !activeTeacher || isSending || isRestricted}
+                                    isLoading={isSending}
+                                    disabled={!newMessage.trim() || !activeTeacher || isRestricted}
+                                    icon={<Send className="w-5 h-5" />}
                                     className="px-4 py-3 bg-primary text-white rounded-xl hover:bg-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                                >
-                                    {isSending ? (
-                                        <Loader2 className="w-5 h-5 animate-spin" />
-                                    ) : (
-                                        <Send className="w-5 h-5" />
-                                    )}
-                                </button>
+                                />
                             </div>
                         </form>
                     </>

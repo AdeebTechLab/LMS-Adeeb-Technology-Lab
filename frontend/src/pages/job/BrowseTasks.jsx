@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useSelector } from 'react-redux';
 import {
-    Search, Calendar, Briefcase, CheckCircle, Send, Upload, CreditCard, Loader2, AlertCircle, Link, Trash2, MessageSquare, ChevronLeft, ChevronRight, X
+    Search, Calendar, Briefcase, CheckCircle, Send, Upload, CreditCard, AlertCircle, Link, Trash2, MessageSquare, ChevronLeft, ChevronRight, X
 } from 'lucide-react';
+import { ButtonLoader } from '../../components/ui/Loader';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
 import { taskAPI } from '../../services/api';
@@ -435,15 +436,13 @@ const BrowseTasks = () => {
                                             <Upload className="w-4 h-4" />
                                             Submit
                                         </button>
-                                        <button
-                                            onClick={() => handleDeleteTask(task._id)}
-                                            disabled={isDeleting === task._id}
-                                            className="px-4 py-2.5 bg-red-50 text-red-600 hover:bg-red-600 hover:text-white rounded-xl transition-all disabled:opacity-50 flex items-center gap-2 font-medium"
-                                            title="Permanently Delete Project"
+                                        <ButtonLoader
+                                            variant="danger"
+                                            isLoading={isDeleting === task._id}
+                                            icon={<Trash2 className="w-4 h-4" />}
                                         >
-                                            {isDeleting === task._id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
                                             Delete
-                                        </button>
+                                        </ButtonLoader>
                                     </div>
                                 )}
                                 {submitted && !isPaid && (
@@ -549,13 +548,14 @@ const BrowseTasks = () => {
                             <button onClick={() => setFeedbackModalOpen(false)} className="flex-1 py-3 text-gray-600 hover:bg-gray-100 rounded-xl font-medium">
                                 Cancel
                             </button>
-                            <button
+                            <ButtonLoader
                                 onClick={handleFeedbackSubmit}
-                                disabled={isSubmitting || !feedbackData.text.trim()}
+                                isLoading={isSubmitting}
+                                disabled={!feedbackData.text.trim()}
                                 className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium flex items-center justify-center gap-2 disabled:opacity-50"
                             >
-                                {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Submit Feedback'}
-                            </button>
+                                Submit Feedback
+                            </ButtonLoader>
                         </div>
                     </div>
                 )}
@@ -587,13 +587,13 @@ const BrowseTasks = () => {
                             <button onClick={() => setApplyModalOpen(false)} className="flex-1 py-3 text-gray-600 hover:bg-gray-100 rounded-xl font-medium">
                                 Cancel
                             </button>
-                            <button
+                            <ButtonLoader
                                 onClick={handleApply}
-                                disabled={isSubmitting}
+                                isLoading={isSubmitting}
                                 className={`flex-1 py-3 text-white rounded-xl font-medium flex items-center justify-center gap-2 disabled:opacity-70 ${selectedTask.type === 'product' ? 'bg-primary hover:bg-primary' : 'bg-primary hover:bg-purple-700'}`}
                             >
-                                {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : (selectedTask.type === 'product' ? 'Submit Offer' : 'Submit Application')}
-                            </button>
+                                {selectedTask.type === 'product' ? 'Submit Offer' : 'Submit Application'}
+                            </ButtonLoader>
                         </div>
                     </div>
                 )}
@@ -647,13 +647,13 @@ const BrowseTasks = () => {
                             <button onClick={() => setSubmitModalOpen(false)} className="flex-1 py-3 text-gray-600 hover:bg-gray-100 rounded-xl font-medium">
                                 Cancel
                             </button>
-                            <button
+                            <ButtonLoader
                                 onClick={handleSubmitWork}
-                                disabled={isSubmitting}
+                                isLoading={isSubmitting}
                                 className="flex-1 py-3 bg-primary hover:bg-primary text-white rounded-xl font-medium flex items-center justify-center gap-2 disabled:opacity-70"
                             >
-                                {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Submit Work'}
-                            </button>
+                                Submit Work
+                            </ButtonLoader>
                         </div>
                     </div>
                 )}

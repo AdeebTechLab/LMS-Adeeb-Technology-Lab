@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import {
-    Calendar, GraduationCap, Loader2, CheckCircle, Clock, BookOpen, Edit2, Save, Download,
+    Calendar, GraduationCap, CheckCircle, Clock, BookOpen, Edit2, Save, Download,
     FileText, Users, Search, User, Mail, Phone, MapPin, UserCheck, UserX, Trash2, Receipt, Camera, Upload, Plus, Shield,
     PauseCircle, PlayCircle, AlertCircle
 } from 'lucide-react';
+import Loader, { ButtonLoader } from '../../components/ui/Loader';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import Badge from '../../components/ui/Badge';
@@ -620,10 +620,7 @@ const InternsManagement = () => {
 
     if (isLoading && interns.length === 0) {
         return (
-            <div className="flex items-center justify-center h-64">
-                <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-                <span className="ml-2 text-gray-600">Loading interns...</span>
-            </div>
+            <Loader message="Loading interns..." />
         );
     }
 
@@ -945,8 +942,7 @@ const InternsManagement = () => {
 
                     {enrollFetching ? (
                         <div className="flex items-center justify-center py-10">
-                            <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
-                            <span className="ml-2 text-gray-500">Loading enrollments...</span>
+                            <Loader message="Loading enrollments..." />
                         </div>
                     ) : userEnrollments.length === 0 ? (
                         <div className="text-center py-10">
@@ -991,14 +987,9 @@ const InternsManagement = () => {
                                                 : 'bg-amber-500 hover:bg-amber-600 text-white shadow-sm'
                                                 }`}
                                         >
-                                            {isBusy ? (
-                                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                            ) : isPaused ? (
-                                                <PlayCircle className="w-3.5 h-3.5" />
-                                            ) : (
-                                                <PauseCircle className="w-3.5 h-3.5" />
-                                            )}
-                                            {isBusy ? '...' : isPaused ? 'Resume' : 'Pause'}
+                                            <ButtonLoader isLoading={isBusy} icon={isPaused ? <PlayCircle className="w-3.5 h-3.5" /> : <PauseCircle className="w-3.5 h-3.5" />}>
+                                                {isPaused ? 'Resume' : 'Pause'}
+                                            </ButtonLoader>
                                         </button>
                                     </div>
                                 );
@@ -1057,31 +1048,30 @@ const InternsManagement = () => {
                                 className="flex-1 py-3 text-gray-600 hover:bg-gray-100 rounded-xl font-medium"
                             >
                                 Cancel
-                            </button>
-                            <button
-                                onClick={
-                                    confirmModal.action === 'verify' ? handleVerify :
-                                        confirmModal.action === 'unverify' ? handleUnverify : handleDelete
-                                }
-                                disabled={isProcessing}
-                                className={`flex-1 py-3 rounded-xl font-medium flex items-center justify-center gap-2 ${confirmModal.action === 'delete'
-                                    ? 'bg-red-600 hover:bg-red-700 text-white'
-                                    : confirmModal.action === 'verify'
-                                        ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                                        : 'bg-amber-500 hover:bg-amber-600 text-white'
-                                    }`}
-                            >
-                                {isProcessing ? (
-                                    <Loader2 className="w-5 h-5 animate-spin" />
-                                ) : (
-                                    <>
-                                        {confirmModal.action === 'verify' && <UserCheck className="w-5 h-5" />}
-                                        {confirmModal.action === 'unverify' && <UserX className="w-5 h-5" />}
-                                        {confirmModal.action === 'delete' && <Trash2 className="w-5 h-5" />}
-                                    </>
-                                )}
-                                Confirm
-                            </button>
+                            </button>                                <button
+                                    onClick={
+                                        confirmModal.action === 'verify' ? handleVerify :
+                                            confirmModal.action === 'unverify' ? handleUnverify : handleDelete
+                                    }
+                                    disabled={isProcessing}
+                                    className={`flex-1 py-3 rounded-xl font-medium flex items-center justify-center gap-2 ${confirmModal.action === 'delete'
+                                        ? 'bg-red-600 hover:bg-red-700 text-white'
+                                        : confirmModal.action === 'verify'
+                                            ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                                            : 'bg-amber-500 hover:bg-amber-600 text-white'
+                                        }`}
+                                >
+                                    <ButtonLoader
+                                        isLoading={isProcessing}
+                                        icon={
+                                            confirmModal.action === 'verify' ? <UserCheck className="w-5 h-5" /> :
+                                                confirmModal.action === 'unverify' ? <UserX className="w-5 h-5" /> : <Trash2 className="w-5 h-5" />
+                                        }
+                                    >
+                                        Confirm
+                                    </ButtonLoader>
+                                </button>
+
                         </div>
                     </div>
                 )}
@@ -1096,8 +1086,7 @@ const InternsManagement = () => {
                 <div className="space-y-4">
                     {feeLoading ? (
                         <div className="flex items-center justify-center py-12">
-                            <Loader2 className="w-7 h-7 animate-spin text-blue-600" />
-                            <span className="ml-2 text-gray-500">Loading fee records...</span>
+                            <Loader message="Loading fee records..." />
                         </div>
                     ) : (
                         <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-1">
@@ -1459,8 +1448,9 @@ const InternsManagement = () => {
                             disabled={isProcessing}
                             className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium flex items-center justify-center gap-2"
                         >
-                            {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
-                            Update Bio
+                            <ButtonLoader isLoading={isProcessing} icon={<Save className="w-5 h-5" />}>
+                                Update Bio
+                            </ButtonLoader>
                         </button>
                     </div>
                 </form>
@@ -1547,7 +1537,9 @@ const InternsManagement = () => {
                             disabled={isProcessing}
                             className="px-4 py-2 bg-primary hover:bg-primary text-white rounded-lg font-medium flex items-center gap-2"
                         >
-                            {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save Plan'}
+                            <ButtonLoader isLoading={isProcessing}>
+                                Save Plan
+                            </ButtonLoader>
                         </button>
                     </div>
                 </div>

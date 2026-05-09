@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { FileText, CheckCircle, Clock, Search, RefreshCw, ExternalLink, Trash2, Users, ChevronDown, Check, X } from 'lucide-react';
 import Badge from '../../../components/ui/Badge';
+import Loader from '../../../components/ui/Loader';
 import api from '../../../services/api';
 
 const DailyTasksTab = ({ course, students = [] }) => {
@@ -94,10 +95,7 @@ const DailyTasksTab = ({ course, students = [] }) => {
 
     if (isLoading && tasks.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center py-20 gap-3">
-                <img src="/loading.gif" alt="Loading" className="w-16 h-16 object-contain" />
-                <span className="text-gray-500 font-medium">Loading submissions...</span>
-            </div>
+            <Loader message="Loading submissions..." />
         );
     }
 

@@ -1,16 +1,14 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import {
-    Search, UserCheck, UserX, Trash2, User, Mail, Phone, MapPin,
-    Calendar, GraduationCap, Loader2, CheckCircle, XCircle, Clock, Shield, Edit2, Save, Download,
+    Calendar, GraduationCap, CheckCircle, XCircle, Clock, Shield, Edit2, Save, Download,
     FileText, Users, PauseCircle, PlayCircle, BookOpen
 } from 'lucide-react';
+import Loader, { ButtonLoader } from '../../components/ui/Loader';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
 import { userAPI, settingsAPI, courseAPI } from '../../services/api';
-import Loader from '../../components/ui/Loader';
 import ImageCropper from '../../components/ui/ImageCropper';
 
 const TeachersManagement = () => {
@@ -782,30 +780,29 @@ const TeachersManagement = () => {
                             >
                                 Cancel
                             </button>
-                            <button
-                                onClick={
-                                    confirmModal.action === 'verify' ? handleVerify :
-                                        confirmModal.action === 'unverify' ? handleUnverify : handleDelete
-                                }
-                                disabled={isProcessing}
-                                className={`flex-1 py-3 rounded-xl font-medium flex items-center justify-center gap-2 ${confirmModal.action === 'delete'
-                                    ? 'bg-red-600 hover:bg-red-700 text-white'
-                                    : confirmModal.action === 'verify'
-                                        ? 'bg-primary hover:bg-primary text-white'
-                                        : 'bg-amber-500 hover:bg-amber-600 text-white'
-                                    }`}
-                            >
-                                {isProcessing ? (
-                                    <Loader2 className="w-5 h-5 animate-spin" />
-                                ) : (
-                                    <>
-                                        {confirmModal.action === 'verify' && <UserCheck className="w-5 h-5" />}
-                                        {confirmModal.action === 'unverify' && <UserX className="w-5 h-5" />}
-                                        {confirmModal.action === 'delete' && <Trash2 className="w-5 h-5" />}
-                                    </>
-                                )}
-                                Confirm
-                            </button>
+                                <button
+                                    onClick={
+                                        confirmModal.action === 'verify' ? handleVerify :
+                                            confirmModal.action === 'unverify' ? handleUnverify : handleDelete
+                                    }
+                                    disabled={isProcessing}
+                                    className={`flex-1 py-3 rounded-xl font-medium flex items-center justify-center gap-2 ${confirmModal.action === 'delete'
+                                        ? 'bg-red-600 hover:bg-red-700 text-white'
+                                        : confirmModal.action === 'verify'
+                                            ? 'bg-primary hover:bg-primary text-white'
+                                            : 'bg-amber-500 hover:bg-amber-600 text-white'
+                                        }`}
+                                >
+                                    <ButtonLoader
+                                        isLoading={isProcessing}
+                                        icon={
+                                            confirmModal.action === 'verify' ? <UserCheck className="w-5 h-5" /> :
+                                                confirmModal.action === 'unverify' ? <UserX className="w-5 h-5" /> : <Trash2 className="w-5 h-5" />
+                                        }
+                                    >
+                                        Confirm
+                                    </ButtonLoader>
+                                </button>
                         </div>
                     </div>
                 )}
@@ -822,8 +819,7 @@ const TeachersManagement = () => {
                     <p className="text-sm text-gray-500">Select a course to pause or resume this teacher's access.</p>
                     {loadingCourses ? (
                         <div className="flex items-center justify-center py-10">
-                            <Loader2 className="w-6 h-6 animate-spin text-primary" />
-                            <span className="ml-2 text-gray-500">Loading courses...</span>
+                            <Loader message="Loading courses..." />
                         </div>
                     ) : teacherCourses.length === 0 ? (
                         <div className="text-center py-10">
@@ -868,14 +864,9 @@ const TeachersManagement = () => {
                                                 : 'bg-primary hover:bg-primary text-white'
                                                 }`}
                                         >
-                                            {isBusy ? (
-                                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                            ) : isPaused ? (
-                                                <PlayCircle className="w-3.5 h-3.5" />
-                                            ) : (
-                                                <PauseCircle className="w-3.5 h-3.5" />
-                                            )}
-                                            {isBusy ? '...' : isPaused ? 'Resume' : 'Pause'}
+                                            <ButtonLoader isLoading={isBusy} icon={isPaused ? <PlayCircle className="w-3.5 h-3.5" /> : <PauseCircle className="w-3.5 h-3.5" />}>
+                                                {isPaused ? 'Resume' : 'Pause'}
+                                            </ButtonLoader>
                                         </button>
                                     </div>
                                 );
@@ -1099,8 +1090,9 @@ const TeachersManagement = () => {
                             disabled={isProcessing}
                             className="flex-1 py-3 bg-primary hover:bg-primary text-white rounded-xl font-medium flex items-center justify-center gap-2"
                         >
-                            {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
-                            Update Bio
+                            <ButtonLoader isLoading={isProcessing} icon={<Save className="w-5 h-5" />}>
+                                Update Bio
+                            </ButtonLoader>
                         </button>
                     </div>
                 </form>

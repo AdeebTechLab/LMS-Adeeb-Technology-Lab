@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { CheckCircle, XCircle, Clock, Calendar, ChevronLeft, ChevronRight, Loader2, TrendingUp } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, Calendar, ChevronLeft, ChevronRight, TrendingUp } from 'lucide-react';
+import Loader from '../../../components/ui/Loader';
 import Badge from '../../../components/ui/Badge';
 import { attendanceAPI } from '../../../services/api';
 
@@ -69,10 +70,7 @@ const StudentAttendanceTab = ({ course }) => {
     };
 
     if (isLoading) return (
-        <div className="flex flex-col items-center justify-center py-20 gap-4">
-            <img src="/loading.gif" alt="Loading" className="w-24 h-24 object-contain" />
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest animate-pulse">Fetching Attendance Records...</p>
-        </div>
+        <Loader message="Fetching Attendance Records..." />
     );
 
     return (

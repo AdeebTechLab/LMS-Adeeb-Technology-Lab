@@ -3,11 +3,12 @@ import { motion } from 'framer-motion';
 import { useSelector, useDispatch } from 'react-redux';
 import {
     User, Mail, Phone, MapPin, Calendar, CreditCard,
-    Edit2, Save, X, Camera, BookOpen, GraduationCap, Users, Loader2, Clock,
+    Edit2, Save, X, Camera, BookOpen, GraduationCap, Users, Clock,
     FileText, Briefcase, Globe, Award, Link as LinkIcon
 } from 'lucide-react';
 import { authAPI, enrollmentAPI, settingsAPI } from '../../services/api';
 import { updateUser } from '../../features/auth/authSlice';
+import Loader, { ButtonLoader } from '../../components/ui/Loader';
 
 const InfoField = ({ icon: Icon, label, value, name, type = 'text', editable = true, isEditing, editForm, onChange }) => (
     <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-xl">
@@ -332,7 +333,7 @@ const StudentProfile = () => {
                                     disabled={isSaving}
                                     className="px-5 py-3 bg-white text-primary font-semibold rounded-xl hover:bg-gray-50 transition-colors flex items-center gap-2 disabled:opacity-50"
                                 >
-                                    {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                                    {isSaving ? <ButtonLoader /> : <Save className="w-4 h-4" />}
                                     Save
                                 </button>
                                 <button

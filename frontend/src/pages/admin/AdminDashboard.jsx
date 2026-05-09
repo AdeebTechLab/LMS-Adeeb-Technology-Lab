@@ -398,12 +398,9 @@ const AdminDashboard = () => {
                         disabled={isDownloading}
                         className="flex items-center justify-center gap-2 bg-primary text-white px-3 py-2.5 sm:px-6 sm:py-3 rounded-xl sm:rounded-2xl font-black uppercase tracking-widest text-[10px] sm:text-xs shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all active:scale-95 disabled:opacity-50"
                     >
-                        {isDownloading ? (
-                            <ButtonLoader />
-                        ) : (
-                            <Download className="w-4 h-4 hidden sm:block" />
-                        )}
-                        {isDownloading ? 'Generating...' : 'Download Report'}
+                        <ButtonLoader isLoading={isDownloading} icon={<Download className="w-4 h-4 hidden sm:block" />}>
+                            {isDownloading ? 'Generating...' : 'Download Report'}
+                        </ButtonLoader>
                     </button>
                 </div>
             </div>
@@ -436,7 +433,7 @@ const AdminDashboard = () => {
                                                 <option value="custom">Custom Range</option>
                                             </select>
                                         </div>
-                                        {isLoading && <ButtonLoader className="w-6 h-6" />}
+                                        {isLoading && <ButtonLoader isLoading={true} className="w-6 h-6" />}
                                     </div>
 
                                     {dateRangeType === 'custom' && (

@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Award, Calendar, CheckCircle, AlertCircle, Loader2, ArrowRight, ExternalLink, BookOpen } from 'lucide-react';
+import { Search, Award, Calendar, CheckCircle, AlertCircle, ArrowRight, ExternalLink, BookOpen } from 'lucide-react';
 import { certificateAPI } from '../../services/api';
+import { ButtonLoader } from '../../components/ui/Loader';
 
 const CertificateVerification = () => {
     const [rollNo, setRollNo] = useState('');
@@ -82,16 +83,13 @@ const CertificateVerification = () => {
                                 disabled={isLoading || !rollNo.trim()}
                                 className="absolute right-2 top-2 bottom-2 bg-primary hover:bg-primary text-white px-6 rounded-xl font-medium transition-all disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2"
                             >
-                                {isLoading ? (
-                                    <Loader2 className="w-5 h-5 animate-spin" />
-                                ) : (
-                                    <>
-                                        Verify <ArrowRight className="w-4 h-4" />
-                                    </>
-                                )}
+                                <ButtonLoader isLoading={isLoading}>
+                                    Verify <ArrowRight className="w-4 h-4" />
+                                </ButtonLoader>
                             </button>
                         </form>
                     </motion.div>
+
                 </div>
             </div>
 

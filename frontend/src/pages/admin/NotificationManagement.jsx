@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
     Bell, Plus, Calendar, Clock, Trash2, Edit2,
-    CheckCircle, XCircle, AlertCircle, Info, Loader2, Save, X
+    CheckCircle, XCircle, AlertCircle, Info, Save, X
 } from 'lucide-react';
+import Loader, { ButtonLoader } from '../../components/ui/Loader';
 import { notificationAPI } from '../../services/api';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
@@ -148,9 +148,7 @@ const NotificationManagement = () => {
             </div>
 
             {isLoading ? (
-                <div className="flex items-center justify-center h-64">
-                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                </div>
+                <Loader message="Loading notifications..." />
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <AnimatePresence>
@@ -522,8 +520,9 @@ const NotificationManagement = () => {
                             disabled={isSaving}
                             className="flex-1 py-3 bg-primary hover:bg-primary text-white font-bold rounded-xl transition-all shadow-lg shadow-primary/10 flex items-center justify-center gap-2 disabled:opacity-50"
                         >
-                            {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
-                            {modal.mode === 'create' ? 'Create' : 'Save Changes'}
+                            <ButtonLoader isLoading={isSaving} icon={<Save className="w-5 h-5" />}>
+                                {modal.mode === 'create' ? 'Create' : 'Save Changes'}
+                            </ButtonLoader>
                         </button>
                     </div>
                 </form>

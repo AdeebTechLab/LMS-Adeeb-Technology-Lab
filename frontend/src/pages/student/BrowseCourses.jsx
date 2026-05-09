@@ -3,10 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useSelector } from 'react-redux';
 import {
-    Search, BookOpen, Users, Star, Clock, CheckCircle, Calendar, Award, Loader2, AlertCircle, Upload, Trash2, Filter, Eye, Heart
+    Search, BookOpen, Users, Star, Clock, CheckCircle, Calendar, Award, AlertCircle, Upload, Trash2, Filter, Eye, Heart
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
+import Loader, { ButtonLoader } from '../../components/ui/Loader';
 import { courseAPI, enrollmentAPI, certificateAPI } from '../../services/api';
 import { getCourseIcon, getCourseColor, getCourseStyle } from '../../utils/courseIcons';
 
@@ -195,12 +196,7 @@ const BrowseCourses = () => {
     };
 
     if (isFetching) {
-        return (
-            <div className="flex flex-col items-center justify-center h-64 gap-3">
-                <img src="/loading.gif" alt="Loading" className="w-20 h-20 object-contain" />
-                <span className="text-gray-600 font-medium">Loading courses...</span>
-            </div>
-        );
+        return <Loader message="Loading courses..." />;
     }
 
     return (
@@ -578,19 +574,15 @@ const BrowseCourses = () => {
                                 disabled={isEnrolling}
                                 className="flex-1 py-3 bg-[#0f2847] hover:bg-primary text-white font-medium rounded-xl flex items-center justify-center gap-2 disabled:opacity-70"
                             >
-                                {isEnrolling ? (
-                                    <>
-                                        <Loader2 className="w-5 h-5 animate-spin" />
-                                        Enrolling...
-                                    </>
-                                ) : (
-                                    'Confirm Enrollment'
-                                )}
+                                <ButtonLoader isLoading={isEnrolling}>
+                                    Confirm Enrollment
+                                </ButtonLoader>
                             </button>
                         </div>
                     </div>
                 )}
             </Modal>
+
 
             {/* Withdraw Modal */}
             <Modal

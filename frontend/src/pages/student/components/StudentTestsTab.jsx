@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
     Zap, Clock, CheckCircle, FileText, 
-    ChevronRight, Loader2, AlertCircle, PlayCircle, Award, X
+    ChevronRight, AlertCircle, PlayCircle, Award, X
 } from 'lucide-react';
+import Loader, { ButtonLoader } from '../../../components/ui/Loader';
 import { testAPI } from '../../../services/api';
 import Badge from '../../../components/ui/Badge';
 
@@ -177,12 +178,7 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
 
     if (isLoading) {
         return (
-            <div className="flex flex-col items-center justify-center h-64 space-y-4">
-                <img src="/loading.gif" alt="Loading" className="w-32 h-32 object-contain" />
-                <p className="text-gray-400 font-black uppercase tracking-widest text-xs animate-pulse">
-                    {isTakingTest ? 'Preparing your test...' : 'Loading Tests...'}
-                </p>
-            </div>
+            <Loader message={isTakingTest ? 'Preparing your test...' : 'Loading Tests...'} />
         );
     }
 
@@ -338,18 +334,19 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
                         </button>
 
                         {currentQuestionIndex === shuffledQuestions.length - 1 ? (
-                            <button 
+                            <ButtonLoader
                                 onClick={handleSubmitTest}
-                                disabled={isSubmitting || Object.keys(answers).length < shuffledQuestions.length}
+                                isLoading={isSubmitting}
+                                disabled={Object.keys(answers).length < shuffledQuestions.length}
                                 className={`px-8 py-3 rounded-xl font-black text-xs uppercase tracking-widest transition-all shadow-lg flex items-center gap-3 group ${
                                     Object.keys(answers).length < shuffledQuestions.length
                                     ? 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
                                     : 'bg-slate-900 text-white hover:bg-black'
                                 }`}
+                                icon={<CheckCircle className="w-4 h-4" />}
                             >
-                                {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
                                 Finish Test
-                            </button>
+                            </ButtonLoader>
                         ) : (
                             <button 
                                 onClick={() => {

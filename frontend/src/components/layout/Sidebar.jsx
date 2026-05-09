@@ -22,11 +22,11 @@ import {
     Award,
     Bell,
     FolderOpen,
-    Loader2,
 } from 'lucide-react';
 import { logout, loginSuccess } from '../../features/auth/authSlice';
 import { userAPI, authAPI } from '../../services/api';
 import ProfileAvatar from '../ui/ProfileAvatar';
+import Loader, { ButtonLoader } from '../ui/Loader';
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
     const navigate = useNavigate();
@@ -342,24 +342,24 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                                 <div className="px-4 py-2 border-b border-[var(--border-sidebar)] mb-2 flex items-center justify-between">
                                     <span className="text-[10px] font-black text-[var(--text-sidebar-muted)] uppercase tracking-widest">Switch Profile</span>
                                 </div>
-                                {availableRoles.map(r => (
-                                    <button
-                                        key={r}
-                                        disabled={isSwitchingRole}
-                                        onClick={() => handleSwitchRole(r)}
-                                        className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center justify-between ${
-                                            r === role 
-                                                ? 'bg-primary/10 text-primary font-bold border-l-2 border-primary' 
-                                                : 'text-[var(--text-sidebar-muted)] hover:bg-white/5 hover:text-[var(--text-sidebar)] font-medium border-l-2 border-transparent'
-                                        }`}
-                                    >
-                                        <div className="flex items-center gap-2">
-                                            <span className="capitalize">{r === 'job' ? 'Freelancer' : r} Dashboard</span>
-                                            {isSwitchingRole && r === role && <Loader2 className="w-3 h-3 animate-spin text-primary" />}
-                                        </div>
-                                        {r === role && <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>}
-                                    </button>
-                                ))}
+                                        {availableRoles.map(r => (
+                                            <button
+                                                key={r}
+                                                disabled={isSwitchingRole}
+                                                onClick={() => handleSwitchRole(r)}
+                                                className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center justify-between ${
+                                                    r === role 
+                                                        ? 'bg-primary/10 text-primary font-bold border-l-2 border-primary' 
+                                                        : 'text-[var(--text-sidebar-muted)] hover:bg-white/5 hover:text-[var(--text-sidebar)] font-medium border-l-2 border-transparent'
+                                                }`}
+                                            >
+                                                <div className="flex items-center gap-2">
+                                                    <span className="capitalize">{r === 'job' ? 'Freelancer' : r} Dashboard</span>
+                                                    {isSwitchingRole && r === role && <ButtonLoader className="w-3 h-3" />}
+                                                </div>
+                                                {r === role && <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>}
+                                            </button>
+                                        ))}
                             </motion.div>
                         )}
                     </AnimatePresence>

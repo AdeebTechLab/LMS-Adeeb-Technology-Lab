@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useSelector } from 'react-redux';
 import {
-    Search, Award, BookOpen, Users, CheckCircle, ChevronDown, ChevronRight, User, Loader2, XCircle, FileText, ClipboardList, Calendar, Edit2, Trash2, Filter, X
+    Search, Award, BookOpen, Users, CheckCircle, ChevronDown, ChevronRight, User, XCircle, FileText, ClipboardList, Calendar, Edit2, Trash2, Filter, X
 } from 'lucide-react';
+import Loader, { ButtonLoader } from '../../components/ui/Loader';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
 import { courseAPI, enrollmentAPI, certificateAPI } from '../../services/api';
@@ -361,10 +362,7 @@ const CertificateManagement = () => {
 
     if (isLoading) {
         return (
-            <div className="flex items-center justify-center h-64">
-                <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                <span className="ml-2 text-gray-600">Loading certificates data...</span>
-            </div>
+            <Loader message="Loading certificates data..." />
         );
     }
 
@@ -943,8 +941,9 @@ const CertificateManagement = () => {
                                 disabled={isIssuing || !editData.rollNo}
                                 className="flex-1 py-3 bg-primary hover:bg-primary text-white font-black uppercase tracking-widest text-[10px] rounded-2xl transition-all shadow-lg shadow-primary/10 flex items-center justify-center gap-2 disabled:opacity-50 active:scale-95"
                             >
-                                {isIssuing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Award className="w-4 h-4" />}
-                                Issue Certificate
+                                <ButtonLoader isLoading={isIssuing} icon={<Award className="w-4 h-4" />}>
+                                    Issue Certificate
+                                </ButtonLoader>
                             </button>
                         </div>
                     </div>
@@ -1036,8 +1035,9 @@ const CertificateManagement = () => {
                                 disabled={isIssuing}
                                 className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-blue-900/10 flex items-center justify-center gap-2 disabled:opacity-50"
                             >
-                                {isIssuing ? <Loader2 className="w-5 h-5 animate-spin" /> : <Calendar className="w-5 h-5" />}
-                                Update Certificate
+                                <ButtonLoader isLoading={isIssuing} icon={<Calendar className="w-5 h-5" />}>
+                                    Update Certificate
+                                </ButtonLoader>
                             </button>
                         </div>
                     </div>
@@ -1166,8 +1166,9 @@ const CertificateManagement = () => {
                                 disabled={isIssuing || !teacherCertData.rollNo}
                                 className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-blue-900/10 flex items-center justify-center gap-2 disabled:opacity-50"
                             >
-                                {isIssuing ? <Loader2 className="w-5 h-5 animate-spin" /> : <Award className="w-5 h-5" />}
-                                Issue Certificate
+                                <ButtonLoader isLoading={isIssuing} icon={<Award className="w-5 h-5" />}>
+                                    Issue Certificate
+                                </ButtonLoader>
                             </button>
                         </div>
                     </div>

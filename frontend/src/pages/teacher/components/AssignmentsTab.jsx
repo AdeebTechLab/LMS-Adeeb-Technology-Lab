@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { FileText, Plus, Calendar, MoreHorizontal, Users, RefreshCw, Loader2, CheckCircle, Clock, X, Upload, Edit2, Search, ChevronDown, Check } from 'lucide-react';
+import { FileText, Plus, Calendar, MoreHorizontal, Users, RefreshCw, CheckCircle, Clock, X, Upload, Edit2, Search, ChevronDown, Check } from 'lucide-react';
 import api, { assignmentAPI } from '../../../services/api';
 import Modal from '../../../components/ui/Modal';
 import Badge from '../../../components/ui/Badge';
+import Loader, { ButtonLoader } from '../../../components/ui/Loader';
 
 const AssignmentsTab = ({ course, students }) => { // Accept students prop
     const [assignments, setAssignments] = useState([]);
@@ -406,10 +407,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
             </div>
 
             {isLoading && assignments.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 gap-3">
-                    <img src="/loading.gif" alt="Loading" className="w-16 h-16 object-contain" />
-                    <span className="text-gray-500 font-medium">Loading assignments...</span>
-                </div>
+                <Loader message="Loading assignments..." />
             ) : (
                 <div className="space-y-4">
                     {assignments
@@ -814,7 +812,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                             disabled={isCreating}
                             className="px-6 py-2.5 bg-primary hover:bg-primary text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-primary/10 flex items-center gap-2"
                         >
-                            {isCreating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                            {isCreating ? <ButtonLoader /> : <Plus className="w-4 h-4" />}
                             Create Assignment
                         </button>
                     </div>
@@ -1026,7 +1024,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                 disabled={isCreating}
                                 className="px-6 py-2.5 bg-primary hover:bg-primary text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-primary/10 flex items-center gap-2"
                             >
-                                {isCreating ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
+                                {isCreating ? <ButtonLoader /> : <CheckCircle className="w-4 h-4" />}
                                 Save Changes
                             </button>
                         </div>
