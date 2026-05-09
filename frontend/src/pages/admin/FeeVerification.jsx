@@ -554,7 +554,8 @@ const FeeVerification = () => {
                                                         onClick={() => {
                                                             const phone = fee.user.phone.replace(/[^0-9]/g, '');
                                                             const formattedPhone = phone.startsWith('0') ? '92' + phone.substring(1) : phone;
-                                                            const msg = `Assalam-o-Alaikum ${fee.user.name},\n\nThis is a reminder from *The Computer Courses ${fee.course?.city || 'Bahawalpur'}* regarding your course fee for *${fee.course?.title}*.\n\n*Status:* Pending\n*Amount:* Rs ${inst.amount?.toLocaleString()}\n*Due Date:* ${formatDate(inst.dueDate)}\n\nPlease submit your fee and upload the receipt on the portal.\n\nThank you!`;
+                                                            const portalLink = "http://lms-adeeb-technology-lab.vercel.app/";
+                                                            const msg = `Assalam-o-Alaikum ${fee.user.name},\n\nThis is a reminder from *The Computer Courses ${fee.course?.city || 'Bahawalpur'}* regarding your course fee for *${fee.course?.title}*.\n\n*Status:* Pending\n*Amount:* Rs ${inst.amount?.toLocaleString()}\n*Due Date:* ${formatDate(inst.dueDate)}\n\nPlease submit your fee and upload the receipt on the portal: ${portalLink}\n\nThank you!`;
                                                             window.open(`https://wa.me/${formattedPhone}?text=${encodeURIComponent(msg)}`, '_blank');
                                                         }}
                                                         className="px-3 py-1.5 bg-[#25D366] hover:bg-[#128C7E] text-white rounded-lg text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 transition-all shadow-sm shadow-green-200"
@@ -565,18 +566,27 @@ const FeeVerification = () => {
                                                         </svg>
                                                         Reminder
                                                     </button>
-                                                    <button
-                                                        onClick={() => {
-                                                            const subject = encodeURIComponent(`Fee Payment Reminder - ${fee.course?.title || 'The Computer Courses'}`);
-                                                            const body = encodeURIComponent(`Assalam-o-Alaikum ${fee.user.name},\n\nThis is a reminder from The Computer Courses ${fee.course?.city || 'Bahawalpur'} regarding your course fee for ${fee.course?.title}.\n\nStatus: Pending\nAmount: Rs ${inst.amount?.toLocaleString()}\nDue Date: ${formatDate(inst.dueDate)}\n\nPlease submit your fee and upload the receipt on the portal.\n\nThank you!`);
-                                                            window.location.href = `mailto:${fee.user.email}?subject=${subject}&body=${body}`;
-                                                        }}
-                                                        className="px-3 py-1.5 bg-sky-500 hover:bg-sky-600 text-white rounded-lg text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 transition-all shadow-sm shadow-sky-100"
-                                                        title="Send Email Reminder"
-                                                    >
-                                                        <Mail className="w-3.5 h-3.5" />
-                                                        Email
-                                                    </button>
+                                                    {fee.user?.email ? (
+                                                        <a
+                                                            href={`https://mail.google.com/mail/?view=cm&fs=1&to=${fee.user.email}&su=${encodeURIComponent(`Fee Payment Reminder - ${fee.course?.title || 'The Computer Courses'}`)}&body=${encodeURIComponent(`Assalam-o-Alaikum ${fee.user.name},\n\nThis is a reminder from The Computer Courses ${fee.course?.city || 'Bahawalpur'} regarding your course fee for ${fee.course?.title}.\n\nStatus: Pending\nAmount: Rs ${inst.amount?.toLocaleString()}\nDue Date: ${formatDate(inst.dueDate)}\n\nPlease submit your fee and upload the receipt on the portal: http://lms-adeeb-technology-lab.vercel.app/\n\nThank you!`)}`}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="px-3 py-1.5 bg-sky-500 hover:bg-sky-600 text-white rounded-lg text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 transition-all shadow-sm shadow-sky-100"
+                                                            title="Send Gmail Reminder"
+                                                        >
+                                                            <Mail className="w-3.5 h-3.5" />
+                                                            Email
+                                                        </a>
+                                                    ) : (
+                                                        <button
+                                                            onClick={() => alert('Student email address not found.')}
+                                                            className="px-3 py-1.5 bg-gray-400 text-white rounded-lg text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 cursor-not-allowed"
+                                                            title="Email Missing"
+                                                        >
+                                                            <Mail className="w-3.5 h-3.5" />
+                                                            Email
+                                                        </button>
+                                                    )}
                                                     <button
                                                         onClick={() => handleDeleteInstallment(fee._id, inst._id)}
                                                         className="p-2 text-red-400 hover:text-red-600 hover:bg-red-100 rounded-lg transition-all"
