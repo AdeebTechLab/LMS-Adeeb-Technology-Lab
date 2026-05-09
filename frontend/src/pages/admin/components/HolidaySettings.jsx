@@ -125,9 +125,9 @@ const HolidaySettings = () => {
                 ))}
             </div>
 
-            <div className="bg-slate-50 rounded-3xl p-5 border border-slate-100">
+            <div className="bg-slate-50 dark:bg-transparent rounded-3xl p-5 border border-slate-100 dark:border-slate-800">
                 <div className="flex items-start gap-4">
-                    <div className="w-8 h-8 rounded-xl bg-white border border-slate-200 flex items-center justify-center shrink-0">
+                    <div className="w-8 h-8 rounded-xl bg-white dark:bg-transparent border border-slate-200 dark:border-slate-700 flex items-center justify-center shrink-0">
                         <Sun className="w-4 h-4 text-primary" />
                     </div>
                     <div className="text-[11px] text-slate-500 font-medium leading-relaxed">

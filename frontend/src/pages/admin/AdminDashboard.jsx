@@ -312,42 +312,42 @@ const AdminDashboard = () => {
 
             {/* Management Pulse - NEW Essential Section */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="bg-gradient-to-br from-primary/10 to-transparent p-4 rounded-3xl border border-primary/20 flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-2xl bg-primary/20 flex items-center justify-center text-primary">
+                <div className="bg-white p-4 rounded-3xl border border-gray-100 flex items-center gap-4 hover:border-primary/30 transition-all group cursor-pointer">
+                    <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
                         <Activity className="w-5 h-5 animate-pulse" />
                     </div>
                     <div>
-                        <p className="text-[9px] font-black uppercase tracking-widest text-primary/60">Live Now</p>
+                        <p className="text-[9px] font-black uppercase tracking-widest text-gray-400 group-hover:text-primary/70 transition-colors">Live Now</p>
                         <p className="text-lg font-black text-gray-900">{(liveCount !== null ? liveCount : data?.managementPulse?.activeNow) || 0} Members Online</p>
                     </div>
                 </div>
                 <div 
                     onClick={() => navigate('/admin/directory?filter=pending')}
-                    className="bg-white p-4 rounded-3xl border border-gray-100 flex items-center gap-4 cursor-pointer hover:border-primary/30 transition-all group"
+                    className="bg-white p-4 rounded-3xl border border-gray-100 flex items-center gap-4 hover:border-primary/30 transition-all group cursor-pointer"
                 >
-                    <div className="w-10 h-10 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-500 group-hover:scale-110 transition-transform">
+                    <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
                         <UserCheck className="w-5 h-5" />
                     </div>
                     <div>
-                        <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">Pending Approvals</p>
+                        <p className="text-[9px] font-black uppercase tracking-widest text-gray-400 group-hover:text-primary/70 transition-colors">Pending Approvals</p>
                         <p className="text-lg font-black text-gray-900">{data?.managementPulse?.pendingApprovals?.total || 0} Users Awaiting</p>
                     </div>
                 </div>
-                <div className="bg-white p-4 rounded-3xl border border-gray-100 flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-500">
+                <div className="bg-white p-4 rounded-3xl border border-gray-100 flex items-center gap-4 hover:border-primary/30 transition-all group cursor-pointer">
+                    <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
                         <Zap className="w-5 h-5" />
                     </div>
                     <div>
-                        <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">Server Status</p>
+                        <p className="text-[9px] font-black uppercase tracking-widest text-gray-400 group-hover:text-primary/70 transition-colors">Server Status</p>
                         <p className="text-lg font-black text-gray-900">Optimal Performance</p>
                     </div>
                 </div>
-                <div className="bg-white p-4 rounded-3xl border border-gray-100 flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-2xl bg-green-50 flex items-center justify-center text-green-500">
+                <div className="bg-white p-4 rounded-3xl border border-gray-100 flex items-center gap-4 hover:border-primary/30 transition-all group cursor-pointer">
+                    <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
                         <CheckCircle className="w-5 h-5" />
                     </div>
                     <div>
-                        <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">Data Sync</p>
+                        <p className="text-[9px] font-black uppercase tracking-widest text-gray-400 group-hover:text-primary/70 transition-colors">Data Sync</p>
                         <p className="text-lg font-black text-gray-900">Real-time Connected</p>
                     </div>
                 </div>
@@ -463,7 +463,7 @@ const AdminDashboard = () => {
                                 <span className="text-3xl sm:text-7xl font-black text-gray-900 dark:text-white tracking-tighter drop-shadow-sm">
                                     Rs {data?.totalRevenue.toLocaleString()}
                                 </span>
-                                <div className="flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-2xl border-2 border-primary/20 shadow-sm">
+                                <div className="flex items-center gap-2 px-4 py-2 text-primary rounded-2xl">
                                     <TrendingUp className="w-5 h-5" />
                                     <span className="text-xs font-black uppercase tracking-widest">Growth Plan Active</span>
                                 </div>
@@ -504,6 +504,52 @@ const AdminDashboard = () => {
 
                     {/* Weekly Off Days Settings */}
                     <HolidaySettings />
+
+                    {/* Active Users - Online Now */}
+                    <div className="bg-white rounded-[2.5rem] p-8 border border-gray-100 shadow-sm mt-6">
+                        <div className="flex items-center justify-between mb-6">
+                            <div>
+                                <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-primary mb-1">Live Network</h2>
+                                <h3 className="text-xl font-black text-gray-900 uppercase tracking-tighter leading-none">Active Members</h3>
+                            </div>
+                            <div className="flex items-center gap-2 bg-primary/10 px-3 py-1.5 rounded-xl border border-primary/20">
+                                <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+                                <span className="text-[10px] font-black text-primary uppercase">{data?.managementPulse?.activeUsers?.length || 0} Online</span>
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                            {data?.managementPulse?.activeUsers?.map((user) => (
+                                <div key={user._id} className="flex items-center gap-3 p-3 rounded-2xl border border-gray-100 hover:border-primary/30 hover:bg-primary/5 transition-all group">
+                                    <div className="relative shrink-0">
+                                        {user.photo ? (
+                                            <img src={user.photo} className="w-12 h-12 rounded-xl object-cover shadow-sm border border-gray-200" />
+                                        ) : (
+                                            <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center font-black text-primary text-sm shadow-sm group-hover:bg-primary group-hover:text-white transition-colors">
+                                                {user.name.charAt(0).toUpperCase()}
+                                            </div>
+                                        )}
+                                        <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-center justify-between gap-2 mb-0.5">
+                                            <h4 className="font-bold text-sm text-gray-900 group-hover:text-primary transition-colors truncate">{user.name}</h4>
+                                            <Badge variant={user.role === 'teacher' ? 'warning' : user.role === 'intern' ? 'primary' : 'info'} size="xs" className="shrink-0">
+                                                {user.role}
+                                            </Badge>
+                                        </div>
+                                        <p className="text-[10px] text-gray-400 font-bold tracking-widest truncate">{user.email}</p>
+                                    </div>
+                                </div>
+                            ))}
+                            {!data?.managementPulse?.activeUsers?.length && (
+                                <div className="col-span-full text-center py-10 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+                                    <Activity className="w-8 h-8 text-gray-300 mx-auto mb-3" />
+                                    <p className="text-xs font-black text-gray-400 uppercase tracking-widest">No Active Users Detected</p>
+                                    <p className="text-[10px] font-bold text-gray-400 tracking-wider mt-1">All members are currently offline</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
                 </div>
 
                 {/* Fee Status Graph & Recent Registrations */}

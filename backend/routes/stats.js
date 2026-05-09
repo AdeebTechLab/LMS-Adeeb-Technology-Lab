@@ -141,13 +141,13 @@ router.get('/admin-dashboard', protect, authorize('admin'), async (req, res) => 
             pendingStudents,
             pendingInterns,
             pendingTeachers,
-            activeNow,
+            activeUsers,
             recentUsers
         ] = await Promise.all([
             User.countDocuments({ role: 'student', isVerified: false }),
             User.countDocuments({ role: 'intern', isVerified: false }),
             User.countDocuments({ role: 'teacher', isVerified: false }),
-            User.countDocuments({ lastSeen: { $gte: fiveMinutesAgo } }),
+            User.find({ lastSeen: { $gte: fiveMinutesAgo } }).select('name email role photo lastSeen').sort({ lastSeen: -1 }),
             User.find({ role: { $ne: 'admin' } })
                 .sort({ createdAt: -1 })
                 .limit(5)
@@ -176,7 +176,8 @@ router.get('/admin-dashboard', protect, authorize('admin'), async (req, res) => 
                         teachers: pendingTeachers,
                         total: pendingStudents + pendingInterns + pendingTeachers
                     },
-                    activeNow,
+                    activeNow: activeUsers.length,
+                    activeUsers: activeUsers,
                     recentRegistrations: recentUsers
                 }
             }
