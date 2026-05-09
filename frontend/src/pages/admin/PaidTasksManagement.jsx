@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import {
     Search, Calendar, CheckCircle, Eye, Users, Briefcase, AlertCircle, Link, Trash2, PenSquare, MessageSquare, Star, X, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import Loader, { ButtonLoader } from '../../components/ui/Loader';
