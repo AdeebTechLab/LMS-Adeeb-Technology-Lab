@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
     Search, UserCheck, UserX, Trash2, User, Mail, Phone, MapPin,
-    Calendar, GraduationCap, Loader2, CheckCircle, XCircle, Clock, Edit2, Save, Download,
+    Calendar, GraduationCap, CheckCircle, XCircle, Clock, Edit2, Save, Download,
     FileText, Users, BookOpen, Shield, Receipt, Camera, Upload, Plus, PauseCircle, PlayCircle, AlertCircle
 } from 'lucide-react';
 import { jsPDF } from 'jspdf';
@@ -11,7 +11,7 @@ import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
 import { userAPI, settingsAPI, enrollmentAPI, assignmentAPI, feeAPI } from '../../services/api';
 import { generateComprehensiveReport } from '../../utils/reportGenerator';
-import Loader from '../../components/ui/Loader';
+import Loader, { ButtonLoader } from '../../components/ui/Loader';
 import ImageCropper from '../../components/ui/ImageCropper';
 
 const StudentsManagement = () => {
@@ -967,7 +967,7 @@ const StudentsManagement = () => {
 
                     {enrollFetching ? (
                         <div className="flex items-center justify-center py-10">
-                            <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                            <ButtonLoader />
                             <span className="ml-2 text-gray-500">Loading enrollments...</span>
                         </div>
                     ) : userEnrollments.length === 0 ? (
@@ -1014,7 +1014,7 @@ const StudentsManagement = () => {
                                                 }`}
                                         >
                                             {isBusy ? (
-                                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                                <ButtonLoader />
                                             ) : isPaused ? (
                                                 <PlayCircle className="w-3.5 h-3.5" />
                                             ) : (
@@ -1093,7 +1093,7 @@ const StudentsManagement = () => {
                                     }`}
                             >
                                 {isProcessing ? (
-                                    <Loader2 className="w-5 h-5 animate-spin" />
+                                    <ButtonLoader />
                                 ) : (
                                     <>
                                         {confirmModal.action === 'verify' && <UserCheck className="w-5 h-5" />}
@@ -1117,7 +1117,7 @@ const StudentsManagement = () => {
                 <div className="space-y-4">
                     {feeLoading ? (
                         <div className="flex items-center justify-center py-12">
-                            <Loader2 className="w-7 h-7 animate-spin text-primary" />
+                            <ButtonLoader />
                             <span className="ml-2 text-gray-500">Loading fee records...</span>
                         </div>
                     ) : (() => {
@@ -1433,7 +1433,7 @@ const StudentsManagement = () => {
                             disabled={isProcessing}
                             className="flex-1 py-3 bg-primary hover:bg-primary text-white rounded-xl font-medium flex items-center justify-center gap-2"
                         >
-                            {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+                            {isProcessing ? <ButtonLoader /> : <Save className="w-5 h-5" />}
                             Update Bio
                         </button>
                     </div>
@@ -1531,7 +1531,7 @@ const StudentsManagement = () => {
                             disabled={isProcessing}
                             className="px-4 py-2 bg-primary hover:bg-primary text-white rounded-lg font-medium flex items-center gap-2"
                         >
-                            {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save Plan'}
+                            {isProcessing ? <ButtonLoader /> : 'Save Plan'}
                         </button>
                     </div>
                 </div>

@@ -1,7 +1,12 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+<<<<<<< HEAD
 import { Search, Award, CheckCircle, XCircle, AlertCircle, Calendar, User, ShieldCheck, Download, FileText, BookOpen, MapPin, Briefcase, GraduationCap, ExternalLink } from 'lucide-react';
 import Loader, { ButtonLoader } from '../../components/ui/Loader';
+=======
+import { Search, User, XCircle, Award, CheckCircle, ShieldCheck, Download, FileText, BookOpen, Calendar, MapPin, Briefcase, GraduationCap, ExternalLink } from 'lucide-react';
+import { ButtonLoader } from '../../components/ui/Loader';
+>>>>>>> 3079364b313251fa7fc7eaad21dc212596252aa2
 import { certificateAPI } from '../../services/api';
 
 const VerifyCertificate = () => {
@@ -147,15 +152,21 @@ const VerifyCertificate = () => {
                                         className="w-full pl-14 pr-6 py-4 bg-transparent rounded-2xl border-2 border-primary/10 focus:border-primary outline-none transition-all text-xl font-bold placeholder:font-normal placeholder:text-slate-300 text-slate-800 relative z-10"
                                     />
                                 </div>
-                                <button
+                                <ButtonLoader
                                     onClick={handleSearch}
-                                    disabled={isSearching}
+                                    isLoading={isSearching}
                                     className="px-8 py-4 bg-primary hover:bg-primary text-white font-black text-lg rounded-2xl transition-all flex items-center justify-center gap-3 shadow-lg shadow-primary/30 active:scale-95 disabled:opacity-50"
+                                    icon={<Search className="w-6 h-6" />}
                                 >
+<<<<<<< HEAD
                                     <ButtonLoader isLoading={isSearching}>
                                         {isSearching ? 'VERIFYING...' : 'VERIFY NOW'}
                                     </ButtonLoader>
                                 </button>
+=======
+                                    VERIFY NOW
+                                </ButtonLoader>
+>>>>>>> 3079364b313251fa7fc7eaad21dc212596252aa2
                             </div>
                         </div>
 

@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Users, PauseCircle, Loader2, UserCheck, RefreshCw } from 'lucide-react';
+import { Users, PauseCircle, UserCheck, RefreshCw } from 'lucide-react';
 import { enrollmentAPI } from '../../../services/api';
+import Loader from '../../../components/ui/Loader';
 
 const StudentsTab = ({ course }) => {
     const [enrollments, setEnrollments] = useState([]);
@@ -30,12 +31,7 @@ const StudentsTab = ({ course }) => {
     };
 
     if (isLoading && enrollments.length === 0) {
-        return (
-            <div className="flex flex-col items-center justify-center py-20 gap-3">
-                <img src="/loading.gif" alt="Loading" className="w-16 h-16 object-contain" />
-                <span className="text-gray-500 font-medium">Loading students...</span>
-            </div>
-        );
+        return <Loader message="Loading students..." />;
     }
 
     const pausedCount = enrollments.filter(e => e.isPaused).length;

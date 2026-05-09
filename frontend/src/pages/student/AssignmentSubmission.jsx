@@ -21,763 +21,261 @@ const getSocketURL = () => {
 
 const SOCKET_URL = getSocketURL();
 
-// Portal for submissions and work logs
 const AssignmentSubmission = () => {
-    const navigate = useNavigate();
     const { user, role } = useSelector((state) => state.auth);
     const location = useLocation();
+    const navigate = useNavigate();
+
+    const [myCourses, setMyCourses] = useState([]);
+    const [selectedCourseId, setSelectedCourseId] = useState(location.state?.courseId || null);
+    const [activeTab, setActiveTab] = useState(location.state?.tab || 'assignments');
+    const [assignments, setAssignments] = useState([]);
+    const [dailyTasks, setDailyTasks] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [assignments, setAssignments] = useState([]);
     const [selectedAssignment, setSelectedAssignment] = useState(null);
     const [submissionUrl, setSubmissionUrl] = useState('');
     const [submissionText, setSubmissionText] = useState('');
-
-    // Tabs for Interns
-    const [activeTab, setActiveTab] = useState(location.state?.tab || 'assignments'); // assignments | daily_tasks
-    const [myCourses, setMyCourses] = useState([]);
-    const [selectedCourseId, setSelectedCourseId] = useState('');
-    const [enrollments, setEnrollments] = useState([]);
-    const [selectedEnrollment, setSelectedEnrollment] = useState(null);
-    const [dailyTasks, setDailyTasks] = useState([]);
+    const [newTaskLink, setNewTaskLink] = useState('');
     const [newTaskContent, setNewTaskContent] = useState('');
     const [resubmittingTaskId, setResubmittingTaskId] = useState(null);
-    const [chatUnreadCount, setChatUnreadCount] = useState(0);
-    const [feeOverdue, setFeeOverdue] = useState({ hasOverdue: false, overdueInstallment: null });
+    const [currentEnrollment, setCurrentEnrollment] = useState(null);
     const socketRef = useRef();
-    const activeTabRef = useRef(activeTab);
 
-    // Keep ref in sync with activeTab
     useEffect(() => {
-        activeTabRef.current = activeTab;
-        // Clear unread when switching to chat tab
-        if (activeTab === 'chat') {
-            setChatUnreadCount(0);
-        }
-    }, [activeTab]);
-
-    // Fetch initial unread count and setup socket
-    useEffect(() => {
-        const fetchUnreadCount = async () => {
-            try {
-                const res = await chatAPI.getStudentCourses();
-                const courses = res.data.data || [];
-                const totalUnread = courses.reduce((sum, c) => sum + (c.totalUnread || 0), 0);
-                setChatUnreadCount(totalUnread);
-            } catch (error) {
-                console.error('Error fetching unread count:', error);
-            }
-        };
-
-        fetchUnreadCount();
-
-        // Setup socket for real-time notifications
+        fetchMyCourses();
         socketRef.current = io(SOCKET_URL, { withCredentials: true });
-        const myId = user?.id || user?._id;
-        if (myId) {
-            socketRef.current.emit('join_chat', myId);
-        }
-
-        socketRef.current.on('new_global_message', (data) => {
-            // Only count if it's a course message and we're not on chat tab
-            if (data.course || data.courseId) {
-                const senderId = String(data.senderId || data.sender?._id || data.sender);
-                const myIdStr = String(user?.id || user?._id);
-                // If message is from someone else (teacher sending to us)
-                if (senderId !== myIdStr && activeTabRef.current !== 'chat') {
-                    setChatUnreadCount(prev => prev + 1);
-                }
-            }
-        });
-
+        
         return () => {
             if (socketRef.current) socketRef.current.disconnect();
         };
-    }, [user]);
+    }, []);
 
-    useEffect(() => {
-        // Restore tab and selected course from location state or localStorage
-        const stateTab = location.state?.tab;
-        const stateCourse = location.state?.courseId;
-        const savedTab = localStorage.getItem('submission_activeTab');
-        const savedCourse = localStorage.getItem('submission_selectedCourse');
-
-        if (stateTab) setActiveTab(stateTab);
-        else if (savedTab) setActiveTab(savedTab);
-
-        if (stateCourse) setSelectedCourseId(stateCourse);
-        else if (savedCourse) setSelectedCourseId(savedCourse);
-    }, [location.state]);
-
-    useEffect(() => {
-        if (activeTab === 'assignments') {
-            fetchAssignments();
-        } else {
-            fetchInternData();
-        }
-    }, [activeTab]);
-
-    const fetchInternData = async () => {
-        if (myCourses.length === 0) setIsLoading(true);
-        try {
-            const enrollRes = await enrollmentAPI.getMy();
-            const myEnrollments = enrollRes.data.data || [];
-            setEnrollments(myEnrollments);
-
-            const internCourses = myEnrollments
-                .map(e => ({
-                    ...e.course,
-                    isActive: e.isActive,
-                    isFirstMonthVerified: e.installments?.[0]?.status === 'verified',
-                    isCompleted: e.status === 'completed',
-                    enrollment: e
-                }))
-                .filter(c => !!c._id); // Ensure course exists
-
-            setMyCourses(internCourses);
-
-            // Validate selectedCourseId against enrolled courses
-            let validCourseId = selectedCourseId;
-            if (selectedCourseId) {
-                // Check if the selected course is in the user's enrolled courses
-                const isValidCourse = internCourses.some(c => c._id === selectedCourseId);
-                if (!isValidCourse) {
-                    console.log('Selected course not found in enrollments, resetting...');
-                    validCourseId = null;
-                    localStorage.removeItem('submission_selectedCourse');
-                }
-            }
-
-            if (validCourseId) {
-                const enroll = myEnrollments.find(e => (e.course?._id || e.course) === validCourseId);
-                const isFirstPaid = enroll?.isActive === true || enroll?.installments?.[0]?.status === 'verified';
-
-                if (!isFirstPaid) {
-                    setSelectedCourseId('');
-                    localStorage.removeItem('submission_selectedCourse');
-                    navigate(`/${role}/fees`);
-                    return;
-                }
-
-                setSelectedEnrollment(enroll);
-                fetchDailyTasks(validCourseId);
-            } else if (internCourses.length > 0) {
-                // Find first "active" or verified course
-                const firstAvailable = internCourses.find(c => c.isActive || c.isFirstMonthVerified);
-                if (firstAvailable) {
-                    setSelectedCourseId(firstAvailable._id);
-                    setSelectedEnrollment(firstAvailable.enrollment);
-                    if (firstAvailable.isActive) {
-                        fetchDailyTasks(firstAvailable._id);
-                    }
-                } else {
-                    // No paid/active courses, ensure no course is selected
-                    setSelectedCourseId('');
-                    localStorage.removeItem('submission_selectedCourse');
-                }
-            }
-        } catch (error) {
-            console.error('Error fetching intern courses:', error);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const fetchDailyTasks = async (courseId) => {
-        try {
-            const res = await dailyTaskAPI.getMy(courseId);
-            const serverTasks = res.data.data || [];
-
-            // Merge with any locally cached pending tasks to avoid vanishing entries
-            try {
-                const key = `dailyTasks_cache_${courseId}`;
-                const cached = JSON.parse(localStorage.getItem(key) || '[]');
-                // Keep cached tasks that are not present on server (by _id)
-                const merged = [
-                    ...serverTasks,
-                    ...cached.filter(ct => !serverTasks.find(st => String(st._id) === String(ct._id)))
-                ];
-                setDailyTasks(merged);
-            } catch (e) {
-                setDailyTasks(serverTasks);
-            }
-        } catch (error) {
-            console.error('Error fetching daily tasks:', error);
-        }
-    };
-
-    const handleCourseChange = (courseId) => {
-        setSelectedCourseId(courseId);
-        fetchDailyTasks(courseId);
-        checkFeeStatus(courseId);
-    };
-
-    // Check fee status for selected course
-    const checkFeeStatus = async (courseId) => {
-        if (!courseId) return;
-        try {
-            const res = await feeAPI.checkStatus(courseId);
-            setFeeOverdue({
-                hasOverdue: res.data.hasOverdue || false,
-                overdueInstallment: res.data.overdueInstallment || null
-            });
-        } catch (error) {
-            console.error('Error checking fee status:', error);
-            setFeeOverdue({ hasOverdue: false, overdueInstallment: null });
-        }
-    };
-
-    // Check fee status when course is selected
     useEffect(() => {
         if (selectedCourseId) {
-            checkFeeStatus(selectedCourseId);
+            fetchCourseData();
         }
     }, [selectedCourseId]);
 
-    // Cleanup cached items that exist on server after fetching
-    useEffect(() => {
-        if (!selectedCourseId) return;
+    const fetchMyCourses = async () => {
+        setIsLoading(true);
         try {
-            const key = `dailyTasks_cache_${selectedCourseId}`;
-            const cached = JSON.parse(localStorage.getItem(key) || '[]');
-            if (!cached.length) return;
-            // When dailyTasks updates from server, remove cached entries that now exist on server
-            const toKeep = cached.filter(c => !dailyTasks.find(s => String(s._id) === String(c._id)));
-            if (toKeep.length !== cached.length) {
-                localStorage.setItem(key, JSON.stringify(toKeep));
-            }
-        } catch (e) { }
-    }, [dailyTasks, selectedCourseId]);
-
-    // Persist selected course and active tab to localStorage so view survives refresh
-    useEffect(() => {
-        try {
-            if (activeTab) localStorage.setItem('submission_activeTab', activeTab);
-            if (selectedCourseId) localStorage.setItem('submission_selectedCourse', selectedCourseId);
-        } catch (e) { }
-    }, [activeTab, selectedCourseId]);
-
-    // New state for work link
-    const [newTaskLink, setNewTaskLink] = useState('');
-
-    const handleSubmitDailyTask = async (e) => {
-        e.preventDefault();
-        if (!newTaskContent.trim() || !selectedCourseId) return;
-
-        // Validate that the selected course is in user's enrollments
-        const enroll = enrollments.find(e => (e.course?._id || e.course) === selectedCourseId);
-        if (!enroll) {
-            alert('Invalid course selected. Please refresh the page and try again.');
-            localStorage.removeItem('submission_selectedCourse');
-            return;
-        }
-
-        // Check restriction using fee status from API
-        if (feeOverdue.hasOverdue) {
-            alert(`You have an overdue fee payment (Installment #${feeOverdue.overdueInstallment?.installmentNumber || '?'}, ${feeOverdue.overdueInstallment?.daysPastDue || 0} days overdue). Please pay your installment to submit daily tasks.`);
-            return;
-        }
-
-        // Check first payment verification
-        const isBlocked = enroll.installments?.[0]?.status !== 'verified';
-
-        if (isBlocked) {
-            alert('Access to this course is blocked until your first payment is verified.');
-            return;
-        }
-
-        setIsSubmitting(true);
-        try {
-            const res = await dailyTaskAPI.submit({
-                courseId: selectedCourseId,
-                content: newTaskContent,
-                workLink: newTaskLink,
-                taskId: resubmittingTaskId
-            });
-            // ... (rest of logic same)
-
-            if (resubmittingTaskId) {
-                setDailyTasks(prev => prev.map(t => t._id === resubmittingTaskId ? res.data.data : t));
-                setResubmittingTaskId(null);
-            } else {
-                setDailyTasks([res.data.data, ...dailyTasks]);
-            }
-
-            // Ensure server-sourced data is used on next reload
-            try { await fetchDailyTasks(selectedCourseId); } catch (e) { }
-
-            // Cache the submitted task locally so it remains visible after refresh
-            try {
-                const key = `dailyTasks_cache_${selectedCourseId}`;
-                const cached = JSON.parse(localStorage.getItem(key) || '[]');
-                const newTask = res.data.data;
-                // Replace if exists or prepend
-                const updated = [newTask, ...cached.filter(t => String(t._id) !== String(newTask._id))];
-                localStorage.setItem(key, JSON.stringify(updated));
-            } catch (e) { console.error('Cache save failed', e); }
-
-            setNewTaskContent('');
-            setNewTaskLink('');
-            alert(`Daily task log ${resubmittingTaskId ? 'updated' : 'submitted'} successfully!`);
-        } catch (error) {
-            console.error('Error submitting daily task:', error);
-            alert('Failed to submit daily task');
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
-
-    const fetchAssignments = async () => {
-        if (assignments.length === 0) setIsLoading(true);
-        try {
-            const response = await assignmentAPI.getMy();
-            const data = response.data.assignments || [];
-
-            // Transform assignments to include user's submission status
-            const transformedAssignments = data.map(assignment => {
-                const mySubmission = assignment.submissions?.find(
-                    s => (s.user?._id || s.user) === (user?._id || user?.id)
-                );
-
-                let status = 'pending';
-                if (mySubmission) {
-                    if (mySubmission.status === 'rejected') {
-                        status = 'rejected';
-                    } else if (mySubmission.marks !== undefined && mySubmission.marks !== null) {
-                        status = 'graded';
-                    } else {
-                        status = 'submitted';
-                    }
-                } else if (new Date(assignment.dueDate) < new Date()) {
-                    status = 'overdue';
-                }
-
-                return {
-                    id: assignment._id,
-                    _id: assignment._id,
-                    createdAt: assignment.createdAt, // Keep for sorting
-                    courseId: assignment.course?._id || assignment.course,
-                    title: assignment.title,
-                    course: assignment.course?.title || 'Course',
-                    description: assignment.description,
-                    deadline: assignment.dueDate,
-                    status,
-                    submittedAt: mySubmission?.submittedAt || null,
-                    submissionLink: mySubmission?.fileUrl || null,
-                    grade: mySubmission?.marks ?? null, // Use ?? to allow 0
-                    totalMarks: assignment.totalMarks || 100,
-                    feedback: mySubmission?.feedback || null,
-                    notes: mySubmission?.notes || null
-                };
-            });
-
-            // Sort by createdAt descending (Newest first)
-            setAssignments(transformedAssignments.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
-
-            // Fetch enrollments to get course IDs and active status
-            const enrollRes = await enrollmentAPI.getMy();
-            const myEnrollments = enrollRes.data.data || [];
-            setEnrollments(myEnrollments);
-
-            const enrolledCourses = myEnrollments.map(e => ({
+            const res = await enrollmentAPI.getMy();
+            const enrollments = res.data.data || [];
+            // Filter only verified and active/completed courses
+            const activeEnrollments = enrollments.filter(e => e.status === 'enrolled' || e.status === 'completed');
+            setMyCourses(activeEnrollments.map(e => ({
                 ...e.course,
+                enrollmentStatus: e.status,
+                isPaused: e.isPaused,
                 isActive: e.isActive,
-                isFirstMonthVerified: e.installments?.[0]?.status === 'verified',
-                isCompleted: e.status === 'completed',
-                enrollment: e
-            })).filter(c => !!c && !!c._id);
-
-            setMyCourses(enrolledCourses);
-
-            // Validate selectedCourseId - if it doesn't match any enrolled course, reset it
-            if (selectedCourseId) {
-                const isValidCourse = enrolledCourses.some(c => c._id === selectedCourseId);
-                if (isValidCourse) {
-                    const enroll = myEnrollments.find(e => (e.course?._id || e.course) === selectedCourseId);
-                    const isFirstPaid = enroll?.isActive === true || enroll?.installments?.[0]?.status === 'verified';
-
-                    if (!isFirstPaid) {
-                        setSelectedCourseId('');
-                        localStorage.removeItem('submission_selectedCourse');
-                        navigate(`/${role}/fees`);
-                        return;
-                    }
-
-                    setSelectedEnrollment(enroll);
-                } else {
-                    // Invalid course ID, clear it
-                    console.log('Invalid selectedCourseId in assignments, clearing...');
-                    setSelectedCourseId('');
-                    localStorage.removeItem('submission_selectedCourse');
-                }
-            }
-
+                enrollmentId: e._id
+            })));
         } catch (error) {
-            console.error('Error fetching assignments:', error);
+            console.error('Error fetching courses:', error);
         } finally {
             setIsLoading(false);
         }
     };
 
-    // Auto-select specific assignment if passed in state
-    useEffect(() => {
-        if (location.state?.assignmentId && assignments.length > 0) {
-            const assignment = assignments.find(a => String(a._id || a.id) === String(location.state.assignmentId));
-            if (assignment) {
-                setSelectedAssignment(assignment);
-                // Also ensure we are on the assignments tab
-                if (activeTab !== 'assignments') setActiveTab('assignments');
-            }
+    const fetchCourseData = async () => {
+        setIsLoading(true);
+        try {
+            const [assignRes, dailyRes, enrollmentRes] = await Promise.all([
+                assignmentAPI.getByCourse(selectedCourseId),
+                dailyTaskAPI.getMy(selectedCourseId),
+                enrollmentAPI.getMy()
+            ]);
+            setAssignments(assignRes.data.assignments || []);
+            setDailyTasks(dailyRes.data.tasks || []);
+            
+            const enroll = enrollmentRes.data.data.find(e => (e.course?._id || e.course) === selectedCourseId);
+            setCurrentEnrollment(enroll);
+        } catch (error) {
+            console.error('Error fetching course data:', error);
+        } finally {
+            setIsLoading(false);
         }
-    }, [assignments, location.state?.assignmentId]);
-
-    const handleCourseSelect = (courseId) => {
-        const enroll = enrollments.find(e => (e.course?._id || e.course) === courseId);
-        // isActive is reliably set to true by the backend when first fee is verified.
-        // Also check installments[0].status as a fallback.
-        const isFirstPaid = enroll?.isActive === true || enroll?.installments?.[0]?.status === 'verified';
-
-        if (!isFirstPaid) {
-            navigate(`/${role}/fees`);
-            return;
-        }
-
-        setSelectedCourseId(courseId);
-        setSelectedEnrollment(enroll);
-        if (activeTab === 'daily_tasks') {
-            fetchDailyTasks(courseId);
-        }
-    };
-
-    // Filter assignments by course if one is selected
-    const filteredAssignments = selectedCourseId
-        ? assignments.filter(a => a.courseId === selectedCourseId)
-        : assignments;
-
-    const getStatusConfig = (status, deadline) => {
-        const isOverdue = new Date(deadline) < new Date() && status === 'pending';
-        if (isOverdue) {
-            return { variant: 'error', icon: AlertCircle, label: 'Overdue', color: 'text-red-600' };
-        }
-        switch (status) {
-            case 'submitted':
-                return { variant: 'info', icon: Clock, label: 'Submitted', color: 'text-blue-600' };
-            case 'graded':
-                return { variant: 'success', icon: CheckCircle, label: 'Graded', color: 'text-primary' };
-            case 'overdue':
-                return { variant: 'error', icon: AlertCircle, label: 'Overdue', color: 'text-red-600' };
-            case 'rejected':
-                return { variant: 'error', icon: XCircle, label: 'Rejected', color: 'text-red-600' };
-            default:
-                return { variant: 'warning', icon: Clock, label: 'Pending', color: 'text-amber-600' };
-        }
-    };
-
-    const formatDate = (dateString) => {
-        return new Date(dateString).toLocaleDateString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-        });
-    };
-
-    const getTimeRemaining = (deadline) => {
-        const now = new Date();
-        const due = new Date(deadline);
-        const diff = due - now;
-
-        if (diff < 0) return 'Overdue';
-
-        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-
-        if (days > 0) return `${days} days, ${hours} hours left`;
-        if (hours > 0) return `${hours} hours left`;
-        return 'Due soon';
     };
 
     const handleSubmit = async (assignmentId) => {
-        // Check for overdue fee payment
-        if (feeOverdue.hasOverdue) {
-            alert(`You have an overdue fee payment (Installment #${feeOverdue.overdueInstallment?.installmentNumber || '?'}, ${feeOverdue.overdueInstallment?.daysPastDue || 0} days overdue). Please pay your installment to submit assignments.`);
-            return;
-        }
-
-        if (!submissionUrl && !submissionText) {
-            alert('Please provide a submission URL or notes');
-            return;
-        }
-
+        if (!submissionUrl.trim() && !submissionText.trim()) return;
         setIsSubmitting(true);
         try {
-            const formData = new FormData();
-            if (submissionUrl) {
-                formData.append('fileUrl', submissionUrl);
-            }
-            if (submissionText) {
-                formData.append('notes', submissionText);
-            }
-
-            await assignmentAPI.submit(assignmentId, formData);
-
-            // Update local state
-            setAssignments(prev => prev.map(a =>
-                a.id === assignmentId
-                    ? { ...a, status: 'submitted', submittedAt: new Date().toISOString(), submissionLink: submissionUrl }
-                    : a
-            ));
-
+            await assignmentAPI.submit(assignmentId, {
+                submissionLink: submissionUrl,
+                notes: submissionText
+            });
             setSelectedAssignment(null);
             setSubmissionUrl('');
             setSubmissionText('');
+            fetchCourseData();
         } catch (error) {
-            console.error('Error submitting assignment:', error);
+            console.error('Submission failed:', error);
             alert(error.response?.data?.message || 'Failed to submit assignment');
         } finally {
             setIsSubmitting(false);
         }
     };
 
-    const isDeadlinePassed = (deadline) => {
-        return new Date(deadline) < new Date();
+    const handleSubmitDailyTask = async (e) => {
+        e.preventDefault();
+        if (!newTaskContent.trim()) return;
+        setIsSubmitting(true);
+        try {
+            if (resubmittingTaskId) {
+                // Update logic if needed, or just submit new
+                await dailyTaskAPI.submit({
+                    courseId: selectedCourseId,
+                    content: newTaskContent,
+                    workLink: newTaskLink
+                });
+                setResubmittingTaskId(null);
+            } else {
+                await dailyTaskAPI.submit({
+                    courseId: selectedCourseId,
+                    content: newTaskContent,
+                    workLink: newTaskLink
+                });
+            }
+            setNewTaskContent('');
+            setNewTaskLink('');
+            fetchCourseData();
+        } catch (error) {
+            console.error('Daily log failed:', error);
+            alert(error.response?.data?.message || 'Failed to post daily log');
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
-    // No more early return for isLoading to prevent "full page reload" feeling
+    const isDeadlinePassed = (deadline) => new Date(deadline) < new Date();
+    
+    const formatDate = (date) => new Date(date).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+    });
 
+    const getTimeRemaining = (deadline) => {
+        const diff = new Date(deadline) - new Date();
+        if (diff < 0) return 'Deadline Passed';
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+        if (days > 0) return `${days}d ${hours}h remaining`;
+        return `${hours}h remaining`;
+    };
+
+    const getStatusConfig = (status, deadline) => {
+        if (status === 'graded') return { label: 'Graded', variant: 'success' };
+        if (status === 'submitted') return { label: 'Submitted', variant: 'info' };
+        if (status === 'rejected') return { label: 'Rejected', variant: 'danger' };
+        if (isDeadlinePassed(deadline)) return { label: 'Overdue', variant: 'danger' };
+        return { label: 'Pending', variant: 'warning' };
+    };
+
+    const isRestricted = currentEnrollment?.isPaused || !currentEnrollment?.isActive;
+    const isCompleted = currentEnrollment?.status === 'completed';
+
+    const filteredAssignments = assignments; // Add filtering logic if needed
+
+    if (isLoading && !selectedCourseId) {
+        return <Loader message="Loading your workspaces..." />;
+    }
 
     return (
         <div className="space-y-6">
-            {/* Course Selection View - shows when no course is selected */}
             {!selectedCourseId ? (
-                <>
-                    {/* Header for Course Selection */}
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <div>
-                            <h1 className="text-2xl font-bold text-gray-900">Submission Portal</h1>
-                            <p className="text-gray-500">Submit your work and view teacher feedback</p>
-                        </div>
+                /* COURSE SELECTION VIEW */
+                <div className="space-y-8">
+                    <div>
+                        <h1 className="text-3xl font-black text-gray-900 dark:text-white uppercase tracking-tighter italic">Course Portal</h1>
+                        <p className="text-gray-500 font-bold text-xs uppercase tracking-widest mt-1">Select a workspace to manage your tasks and progress</p>
                     </div>
 
-                    {/* COURSE DISCOVERY VIEW */}
-                    <div className="space-y-6">
-                        <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm text-center mb-8">
-                            <GraduationCap className="w-12 h-12 text-primary mx-auto mb-4" />
-                            <h2 className="text-2xl font-black text-gray-900 uppercase tracking-tight">Your Registered Courses</h2>
-                            <p className="text-gray-500 font-medium max-w-md mx-auto">Select a course to view its specific assignments, daily work logs and track your progress.</p>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {myCourses.map((course, idx) => {
-                                const isRestricted = !course.isActive;
-                                // isActive is reliably set to true on fee verification
-                                const isFirstPaid = course.isActive === true || course.enrollment?.installments?.[0]?.status === 'verified' || course.isFirstMonthVerified;
-                                const isBlocked = !isFirstPaid;
-
-                                return (
-                                    <motion.div
-                                        key={course._id}
-                                        initial={{ opacity: 0, y: 20 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ delay: idx * 0.1 }}
-                                        onClick={() => handleCourseSelect(course._id)}
-                                        className="bg-white rounded-[2rem] p-6 border border-gray-100 shadow-sm hover:shadow-2xl hover:border-primary transition-all cursor-pointer group relative overflow-hidden flex flex-col h-full"
-                                    >
-                                        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                                        <div className="flex items-start justify-between mb-4 relative z-10">
-                                            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center text-white shadow-lg shadow-primary group-hover:scale-110 transition-transform">
-                                                <BookOpen className="w-7 h-7" />
-                                            </div>
-                                            <div className="flex flex-col items-end gap-2">
-                                                {course.isCompleted ? (
-                                                    <Badge variant="success">Completed</Badge>
-                                                ) : isBlocked ? (
-                                                    <Badge variant="warning">Verification Pending</Badge>
-                                                ) : isRestricted ? (
-                                                    <Badge variant="danger">Restricted</Badge>
-                                                ) : (
-                                                    <Badge variant="success">Active</Badge>
-                                                )}
-                                            </div>
-                                        </div>
-                                        <div className="flex-1 relative z-10">
-                                            <h3 className="text-xl font-black text-gray-900 uppercase tracking-tighter group-hover:text-primary transition-colors leading-tight mb-2">{course.title}</h3>
-                                            <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500 font-bold uppercase tracking-widest">
-                                                <span className="flex items-center gap-1">
-                                                    <Calendar className="w-3.5 h-3.5" />
-                                                    {course.startDate ? new Date(course.startDate).toLocaleDateString() : 'Date not set'}
-                                                </span>
-                                                {(course.city || course.location) && (
-                                                    <span className="flex items-center gap-1 text-[10px]">
-                                                        <MapPin className="w-3.5 h-3.5" />
-                                                        {course.city || course.location}
-                                                    </span>
-                                                )}
-                                            </div>
-                                        </div>
-                                        <div className="mt-8 pt-4 border-t border-gray-50 flex items-center justify-between relative z-10">
-                                            <div className="flex items-center gap-2 text-primary font-black text-xs tracking-widest uppercase">
-                                                {isBlocked ? 'Pay Fee to Enter' : 'Enter Dashboard'}
-                                                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                                            </div>
-                                        </div>
-                                    </motion.div>
-                                );
-                            })}
-                        </div>
-                    </div>
-                </>
-            ) : (
-                /* SELECTED COURSE VIEW - Teacher Portal Style */
-                <div className="space-y-6">
-                    {/* Course Header - Teacher Portal Style */}
-                    <div className="flex flex-col gap-4">
-                        <div className="flex items-center justify-between gap-4">
-                            <button
-                                onClick={() => setSelectedCourseId('')}
-                                className="flex items-center gap-2 text-primary hover:text-[#e67e00] font-bold text-xs sm:text-sm tracking-wide"
-                            >
-                                <ChevronLeft className="w-4 h-4" />
-                                <span className="hidden xs:inline">BACK TO ALL COURSES</span>
-                                <span className="xs:hidden">BACK</span>
-                            </button>
-
-                            {/* Course Book Button - Moved up for mobile */}
-                            {myCourses.find(c => c._id === selectedCourseId)?.bookLink && (
-                                <a
-                                    href={myCourses.find(c => c._id === selectedCourseId).bookLink}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-2 px-3 sm:px-6 py-2 sm:py-3 bg-primary text-white rounded-xl shadow-lg shadow-primary/20 hover:bg-primary/90 hover:shadow-xl hover:shadow-primary/30 transition-all font-bold text-[10px] sm:text-sm uppercase tracking-wide active:scale-95 shrink-0"
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {myCourses.length === 0 ? (
+                            <div className="col-span-full py-20 bg-white rounded-[2.5rem] border-2 border-dashed border-gray-100 text-center">
+                                <BookOpen className="w-16 h-16 text-gray-200 mx-auto mb-4" />
+                                <h3 className="text-xl font-bold text-gray-400 uppercase tracking-widest">No Active Courses</h3>
+                                <p className="text-gray-400 text-sm mt-2">Enroll in a course to start your journey</p>
+                                <button onClick={() => navigate(`/${role}/courses`)} className="mt-6 px-8 py-3 bg-primary text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-xl shadow-orange-200">Browse Courses</button>
+                            </div>
+                        ) : (
+                            myCourses.map((course) => (
+                                <motion.div
+                                    key={course._id}
+                                    whileHover={{ y: -8, scale: 1.02 }}
+                                    onClick={() => setSelectedCourseId(course._id)}
+                                    className="bg-white dark:bg-slate-900/40 p-8 rounded-[2.5rem] border border-gray-100 dark:border-slate-800 shadow-sm hover:shadow-2xl hover:border-primary transition-all cursor-pointer group"
                                 >
-                                    <BookOpen className="w-4 h-4 sm:w-5 sm:h-5" />
-                                    Course Book
-                                </a>
-                            )}
-                        </div>
-
-                        <div>
-                            <h1 className="text-2xl sm:text-3xl font-black text-gray-900 uppercase tracking-tight leading-tight">
-                                {myCourses.find(c => c._id === selectedCourseId)?.title || 'Course Dashboard'}
-                            </h1>
-                            <div className="flex items-center gap-3 mt-1">
-                                <span className={`px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-wider ${user?.role === 'intern'
-                                    ? 'bg-primary text-white'
-                                    : 'bg-primary text-white'
-                                    }`}>
-                                    {user?.role === 'intern' ? 'Interns Portal' : 'Students Portal'}
-                                </span>
-                                {selectedEnrollment && selectedEnrollment.status === 'completed' && (
-                                    <span className="text-primary text-xs sm:text-sm font-semibold italic flex items-center gap-1">
-                                        <CheckCircle className="w-4 h-4" /> Course Completed
-                                    </span>
-                                )}
-                            </div>
-                        </div>
+                                    <div className="flex items-center gap-4 mb-6">
+                                        <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary border border-orange-100">
+                                            <GraduationCap className="w-8 h-8" />
+                                        </div>
+                                        <div>
+                                            <Badge variant={course.enrollmentStatus === 'completed' ? 'success' : 'info'}>{course.enrollmentStatus.toUpperCase()}</Badge>
+                                            <h3 className="font-black text-gray-900 dark:text-white text-xl mt-1 group-hover:text-primary transition-colors">{course.title}</h3>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center justify-between pt-6 border-t border-gray-50 dark:border-slate-800/50">
+                                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Enter Workspace</span>
+                                        <div className="w-10 h-10 rounded-full bg-gray-50 dark:bg-slate-800 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-all">
+                                            <ArrowRight className="w-5 h-5" />
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            ))
+                        )}
                     </div>
-
-                    {/* Fee Overdue Warning */}
-                    {feeOverdue.hasOverdue && (
-                        <div className="bg-red-50 border border-red-200 px-4 py-3 rounded-xl flex items-center justify-between gap-3 text-red-600 mb-4">
-                            <div className="flex items-center gap-3">
-                                <AlertCircle className="w-5 h-5 flex-shrink-0" />
-                                <div className="flex flex-col">
-                                    <span className="text-sm font-bold uppercase tracking-tight">Payment Overdue - Submissions Locked</span>
-                                    <span className="text-[11px] font-medium opacity-90 leading-tight">Installment #{feeOverdue.overdueInstallment?.installmentNumber} is {feeOverdue.overdueInstallment?.daysPastDue} days overdue. Please clear your dues to continue.</span>
-                                </div>
-                            </div>
-                            <Link 
-                                to="/student/fees" 
-                                className="px-4 py-1.5 bg-primary text-white text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-primary/90 transition-all shadow-sm hover:shadow-md whitespace-nowrap active:scale-95"
+                </div>
+            ) : (
+                /* WORKSPACE VIEW */
+                <div className="space-y-6">
+                    {/* Course Header */}
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900/40 p-6 rounded-[2rem] border border-gray-100 dark:border-slate-800 shadow-sm">
+                        <div className="flex items-center gap-4">
+                            <button
+                                onClick={() => setSelectedCourseId(null)}
+                                className="w-12 h-12 rounded-2xl bg-gray-50 dark:bg-slate-800 flex items-center justify-center text-gray-400 hover:text-primary hover:bg-primary/5 transition-all"
                             >
-                                Pay Now
-                            </Link>
-                        </div>
-                    )}
-
-                    {/* Paused Warning */}
-                    {(() => {
-                        const currentEnrollment = enrollments.find(e => (e.course?._id || e.course) === selectedCourseId);
-                        if (!currentEnrollment?.isPaused) return null;
-                        return (
-                            <div className="bg-amber-50 border-2 border-amber-300 px-5 py-4 rounded-2xl flex items-start gap-4">
-                                <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                    <AlertCircle className="w-5 h-5 text-amber-600" />
-                                </div>
-                                <div>
-                                    <p className="text-sm font-black text-amber-800 uppercase tracking-wide">Account Temporarily Paused</p>
-                                    <p className="text-xs text-amber-700 font-medium mt-1 leading-relaxed">
-                                        Your access to this course has been paused by your teacher. Assignments, daily task submissions, and fee installments are blocked until your teacher resumes your access. Please contact your teacher for more information.
-                                    </p>
+                                <ChevronLeft className="w-6 h-6" />
+                            </button>
+                            <div>
+                                <h2 className="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tight">{myCourses.find(c => c._id === selectedCourseId)?.title}</h2>
+                                <div className="flex items-center gap-3 mt-1">
+                                    <Badge variant="primary" size="sm">Workspace ACTIVE</Badge>
+                                    {isRestricted && <Badge variant="danger" size="sm">PORTAL LOCKED</Badge>}
                                 </div>
                             </div>
-                        );
-                    })()}
+                        </div>
 
-                    {/* Tab Navigation - Responsive Horizontal Scroll */}
-                    <div className="flex gap-2 bg-gray-100/80 p-1.5 rounded-2xl w-full overflow-x-auto no-scrollbar border border-primary scroll-smooth">
-                        <button
-                            onClick={() => setActiveTab('daily_tasks')}
-                            className={`px-6 sm:px-8 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 whitespace-nowrap shrink-0 ${activeTab === 'daily_tasks'
-                                ? 'bg-white text-primary shadow-sm border border-primary'
-                                : 'text-gray-500 hover:bg-gray-200 hover:text-gray-900'
-                                }`}
-                        >
-                            <ClipboardList className="w-4 h-4" />
-                            {user?.role === 'intern' ? 'Daily Tasks' : 'Class Logs'}
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('assignments')}
-                            className={`px-6 sm:px-8 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 whitespace-nowrap shrink-0 ${activeTab === 'assignments'
-                                ? 'bg-white text-primary shadow-sm border border-primary'
-                                : 'text-gray-500 hover:bg-gray-200 hover:text-gray-900'
-                                }`}
-                        >
-                            <FileText className="w-4 h-4" />
-                            Assignments
-                        </button>
-
-                        <button
-                            onClick={() => setActiveTab('tests')}
-                            className={`px-6 sm:px-8 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 whitespace-nowrap shrink-0 ${activeTab === 'tests'
-                                ? 'bg-white text-primary shadow-sm border border-primary'
-                                : 'text-gray-500 hover:bg-gray-200 hover:text-gray-900'
-                                }`}
-                        >
-                            <Zap className="w-4 h-4" />
-                            Tests
-                        </button>
-
-                        <button
-                            onClick={() => setActiveTab('attendance')}
-                            className={`px-6 sm:px-8 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 whitespace-nowrap shrink-0 ${activeTab === 'attendance'
-                                ? 'bg-white text-primary shadow-sm border border-primary'
-                                : 'text-gray-500 hover:bg-gray-200 hover:text-gray-900'
-                                }`}
-                        >
-                            <Clock className="w-4 h-4" />
-                            Attendance
-                        </button>
-
-                        <button
-                            onClick={() => setActiveTab('chat')}
-                            className={`px-6 sm:px-8 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 relative whitespace-nowrap shrink-0 ${activeTab === 'chat'
-                                ? 'bg-white text-primary shadow-sm border border-primary'
-                                : 'text-gray-500 hover:bg-gray-200 hover:text-gray-900'
-                                }`}
-                        >
-                            <MessageCircle className="w-4 h-4" />
-                            Chat
-                            {chatUnreadCount > 0 && activeTab !== 'chat' && (
-                                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center animate-pulse">
-                                    {chatUnreadCount > 9 ? '9+' : chatUnreadCount}
-                                </span>
-                            )}
-                        </button>
+                        {/* Tabs */}
+                        <div className="flex items-center gap-1.5 p-1.5 bg-gray-50 dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 w-fit">
+                            {[
+                                { id: 'assignments', label: 'Tasks', icon: FileText },
+                                { id: 'daily_tasks', label: 'Logs', icon: ClipboardList },
+                                { id: 'attendance', label: 'Attendance', icon: Calendar },
+                                { id: 'chat', label: 'Chat', icon: MessageCircle },
+                                { id: 'tests', label: 'Tests', icon: Zap },
+                            ].map((tab) => (
+                                <button
+                                    key={tab.id}
+                                    onClick={() => setActiveTab(tab.id)}
+                                    className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === tab.id
+                                        ? 'bg-primary text-white shadow-lg shadow-orange-200 dark:shadow-none'
+                                        : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-200'
+                                        }`}
+                                >
+                                    <tab.icon className="w-4 h-4" />
+                                    <span className="hidden sm:inline">{tab.label}</span>
+                                </button>
+                            ))}
+                        </div>
                     </div>
 
                     {/* Tab Content */}
+<<<<<<< HEAD
                     {(() => {
                         const isCompleted = selectedEnrollment && selectedEnrollment.status === 'completed';
                         const currentEnrollment = enrollments.find(e => (e.course?._id || e.course) === selectedCourseId);
@@ -808,8 +306,36 @@ const AssignmentSubmission = () => {
                                                     </div>
                                                 </div>
                                             ))}
+=======
+                    <div className="min-h-[500px]">
+                        {isLoading ? (
+                            <div className="h-[400px]">
+                                <Loader message="Synchronizing Workspace..." />
+                            </div>
+                        ) : activeTab === 'assignments' ? (
+                            /* ASSIGNMENTS VIEW */
+                            <div className="space-y-8">
+                                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                                    {[
+                                        { label: 'Total', icon: FileText, count: filteredAssignments.length, color: 'text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-800/30' },
+                                        { label: 'Completed', icon: CheckCircle, count: filteredAssignments.filter((a) => a.status === 'graded').length, color: 'text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-800/30' },
+                                        { label: 'Pending', icon: Clock, count: filteredAssignments.filter((a) => a.status === 'pending' && !isDeadlinePassed(a.deadline)).length, color: 'text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-800/30' },
+                                        { label: 'Overdue', icon: AlertCircle, count: filteredAssignments.filter((a) => a.status === 'overdue' || (a.status === 'pending' && isDeadlinePassed(a.deadline))).length, color: 'text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border-red-100 dark:border-red-800/30' },
+                                    ].map((stat) => (
+                                        <div key={stat.label} className={`${stat.color} rounded-2xl p-4 border flex items-center justify-between shadow-sm`}>
+                                            <div>
+                                                <span className="text-[10px] font-black uppercase tracking-widest opacity-70 block mb-1">{stat.label}</span>
+                                                <p className="text-2xl font-black leading-none">{stat.count}</p>
+                                            </div>
+                                            <div className={`p-2 rounded-xl bg-white/50 dark:bg-black/20 backdrop-blur-sm`}>
+                                                <stat.icon className="w-5 h-5 opacity-80" />
+                                            </div>
+>>>>>>> 3079364b313251fa7fc7eaad21dc212596252aa2
                                         </div>
+                                    ))}
+                                </div>
 
+<<<<<<< HEAD
                                         {filteredAssignments.length === 0 ? (
                                             <div className="bg-white rounded-2xl p-12 border border-gray-100 text-center">
                                                 <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
@@ -1202,34 +728,237 @@ const AssignmentSubmission = () => {
                                                 <p className="text-lg font-bold">Select a course to start chatting</p>
                                             </div>
                                         )}
+=======
+                                {filteredAssignments.length === 0 ? (
+                                    <div className="bg-white dark:bg-slate-900/40 rounded-[2.5rem] p-20 border border-gray-100 dark:border-slate-800 text-center">
+                                        <FileText className="w-20 h-20 text-gray-200 mx-auto mb-6" />
+                                        <h3 className="text-2xl font-black text-gray-400 uppercase tracking-widest">No Assignments Found</h3>
+                                        <p className="text-gray-400 font-medium mt-2">Check back later for new tasks</p>
+>>>>>>> 3079364b313251fa7fc7eaad21dc212596252aa2
                                     </div>
                                 ) : (
-                                    /* TESTS VIEW */
-                                    <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm min-h-[400px]">
-                                        {selectedCourseId && myCourses.find(c => c._id === selectedCourseId) ? (
-                                            <StudentTestsTab
-                                                courseId={selectedCourseId}
-                                                isRestricted={isRestricted}
-                                            />
-                                        ) : (
-                                            <div className="flex flex-col items-center justify-center h-full py-20 text-gray-400">
-                                                <Zap className="w-16 h-16 mb-4 opacity-50 text-primary" />
-                                                <p className="text-lg font-bold">Select a course to view tests</p>
-                                            </div>
-                                        )}
+                                    <div className="space-y-6">
+                                        {filteredAssignments.map((assignment, index) => {
+                                            const canSubmit = !isDeadlinePassed(assignment.deadline) && assignment.status === 'pending' && !isRestricted && !isCompleted;
+                                            const statusConfig = getStatusConfig(assignment.status, assignment.deadline);
+
+                                            return (
+                                                <motion.div
+                                                    key={assignment.id}
+                                                    initial={{ opacity: 0, y: 10 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    className={`bg-white dark:bg-slate-900/40 rounded-[2.5rem] p-8 border border-gray-100 dark:border-slate-800 shadow-sm transition-all hover:shadow-2xl hover:border-primary dark:hover:border-primary/50 group relative overflow-hidden ${assignment.status === 'graded' ? 'opacity-95' : ''}`}
+                                                >
+                                                    <div className={`absolute top-0 right-0 w-40 h-40 rounded-full -mr-20 -mt-20 blur-3xl opacity-10 transition-opacity group-hover:opacity-20 ${assignment.status === 'graded' ? 'bg-primary' : assignment.status === 'overdue' ? 'bg-red-500' : 'bg-amber-500'}`}></div>
+
+                                                    <div className="flex flex-col h-full relative z-10">
+                                                        <div className="flex items-start justify-between mb-6">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg ${assignment.status === 'graded' ? 'bg-primary' : assignment.status === 'submitted' ? 'bg-blue-600' : 'bg-[#0f2847]'}`}>
+                                                                    <FileText className="w-6 h-6" />
+                                                                </div>
+                                                                <div>
+                                                                    <span className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest block mb-1">TASK #{index + 1}</span>
+                                                                    <h3 className="font-black text-gray-900 dark:text-white text-lg uppercase tracking-tight group-hover:text-primary transition-colors">{assignment.title}</h3>
+                                                                </div>
+                                                            </div>
+                                                            <Badge variant={statusConfig.variant}>{statusConfig.label.toUpperCase()}</Badge>
+                                                        </div>
+
+                                                        <p className="text-sm text-gray-500 dark:text-gray-400 font-medium leading-relaxed mb-6 whitespace-pre-wrap">
+                                                            {assignment.description}
+                                                        </p>
+
+                                                        <div className="mt-auto pt-6 border-t border-gray-50 dark:border-slate-800/50 flex flex-col sm:flex-row items-center justify-between gap-4">
+                                                            <div className="flex flex-wrap items-center gap-3">
+                                                                <div className="flex items-center gap-3 px-4 py-2.5 bg-primary/5 dark:bg-primary/10 rounded-2xl border border-primary/10 dark:border-primary/30">
+                                                                    <Calendar className="w-4 h-4 text-primary" />
+                                                                    <div>
+                                                                        <p className="text-[9px] font-black text-primary/60 uppercase tracking-widest leading-none mb-1">Target Date</p>
+                                                                        <p className="text-xs font-black text-gray-700 dark:text-gray-300 uppercase tracking-tight">{formatDate(assignment.deadline)}</p>
+                                                                    </div>
+                                                                </div>
+                                                                {canSubmit && (
+                                                                    <div className="flex items-center gap-2 px-4 py-2.5 bg-amber-50 dark:bg-amber-900/10 rounded-2xl border border-amber-100 animate-pulse">
+                                                                        <Clock className="w-4 h-4 text-amber-500" />
+                                                                        <span className="text-[10px] font-black text-amber-600 uppercase tracking-widest">
+                                                                            {getTimeRemaining(assignment.deadline)}
+                                                                        </span>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+
+                                                            {(canSubmit || assignment.status === 'rejected') && selectedAssignment?.id !== assignment.id && (
+                                                                <button
+                                                                    onClick={() => {
+                                                                        setSelectedAssignment(assignment);
+                                                                        setSubmissionUrl(assignment.submissionLink || '');
+                                                                        setSubmissionText(assignment.notes || '');
+                                                                    }}
+                                                                    disabled={isRestricted}
+                                                                    className={`px-8 py-3.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all text-white shadow-xl hover:shadow-2xl hover:scale-[1.03] active:scale-[0.98] ${assignment.status === 'rejected' ? 'bg-red-600 hover:bg-red-700' : 'bg-primary hover:bg-[#e67e00]'} disabled:bg-gray-300 flex items-center justify-center gap-2 w-full sm:w-auto`}
+                                                                >
+                                                                    <Send className="w-4 h-4" />
+                                                                    {isRestricted ? 'PORTAL LOCKED' : (assignment.status === 'rejected' ? 'RESUBMIT' : 'SUBMIT WORK')}
+                                                                </button>
+                                                            )}
+                                                        </div>
+
+                                                        {/* Results/Feedback Display */}
+                                                        {(assignment.status === 'submitted' || assignment.status === 'graded') && (
+                                                            <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-4">
+                                                                {assignment.status === 'graded' && (
+                                                                    <div className="bg-primary/5 dark:bg-primary/20 p-4 rounded-2xl border border-primary/10 text-center">
+                                                                        <p className="text-[9px] font-black text-primary uppercase tracking-widest mb-1">Final Result</p>
+                                                                        <p className="text-3xl font-black text-primary">{assignment.grade}<span className="text-lg">/{assignment.totalMarks}</span></p>
+                                                                    </div>
+                                                                )}
+                                                                {assignment.status === 'graded' && assignment.feedback && (
+                                                                    <div className="lg:col-span-2 bg-amber-50 dark:bg-amber-900/10 p-4 rounded-2xl border border-amber-100">
+                                                                        <p className="text-[9px] font-black text-amber-600 uppercase tracking-widest mb-2 flex items-center gap-2"><MessageCircle className="w-3 h-3" /> Teacher Feedback</p>
+                                                                        <p className="text-[11px] text-gray-800 dark:text-gray-200 italic">"{assignment.feedback}"</p>
+                                                                    </div>
+                                                                )}
+                                                                <div className={`p-4 bg-slate-50 dark:bg-slate-900/30 rounded-2xl border border-slate-100 ${assignment.status !== 'graded' ? 'lg:col-span-3' : ''}`}>
+                                                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">My Submission</p>
+                                                                    {assignment.submissionLink && (
+                                                                        <a href={assignment.submissionLink} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[11px] font-bold text-blue-600 hover:underline">
+                                                                            <LinkIcon className="w-3.5 h-3.5" /> View Submitted Work
+                                                                        </a>
+                                                                    )}
+                                                                    {assignment.notes && <p className="text-[10px] text-slate-600 mt-2 italic">"{assignment.notes}"</p>}
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                        {assignment.status === 'rejected' && assignment.feedback && (
+                                                            <div className="mt-6 bg-red-50 dark:bg-red-900/10 p-5 rounded-2xl border border-red-200">
+                                                                <p className="text-[10px] font-black text-red-600 uppercase tracking-widest mb-2 flex items-center gap-2"><XCircle className="w-3 h-3" /> Rejection Reason</p>
+                                                                <p className="text-xs text-red-800 dark:text-red-200 font-medium">"{assignment.feedback}"</p>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </motion.div>
+                                            );
+                                        })}
                                     </div>
                                 )}
-                            </>
-                        );
-                    })()}
-                </div>
 
+                                {/* SUBMISSION MODAL */}
+                                <AnimatePresence>
+                                    {selectedAssignment && (
+                                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+                                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setSelectedAssignment(null)} className="fixed inset-0 bg-[#0f172a]/80 backdrop-blur-xl" />
+                                            <motion.div initial={{ opacity: 0, scale: 0.95, y: 30 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 30 }} className="bg-white dark:bg-[#0f172a] w-full max-w-xl rounded-[3rem] shadow-2xl border border-white/20 relative z-10 overflow-hidden">
+                                                <div className="bg-primary p-10 text-white relative">
+                                                    <h3 className="text-2xl font-black uppercase tracking-tight leading-none mb-2">Submit Assignment</h3>
+                                                    <p className="text-white/70 text-xs font-bold uppercase tracking-widest">Share your work link and notes for evaluation</p>
+                                                    <button onClick={() => setSelectedAssignment(null)} className="absolute top-8 right-8 w-10 h-10 rounded-full bg-black/10 hover:bg-black/20 flex items-center justify-center text-white"><X className="w-5 h-5" /></button>
+                                                </div>
+                                                <div className="p-10 space-y-8">
+                                                    <div className="space-y-4">
+                                                        <div>
+                                                            <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-3 block">Work Link</label>
+                                                            <input type="text" placeholder="e.g. GitHub, Drive, or Portfolio Link" value={submissionUrl} onChange={(e) => setSubmissionUrl(e.target.value)} className="w-full px-6 py-5 bg-slate-50 dark:bg-black/40 border-2 border-slate-100 dark:border-slate-800 rounded-3xl outline-none focus:border-primary font-bold transition-all text-sm" />
+                                                        </div>
+                                                        <div>
+                                                            <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-3 block">Notes</label>
+                                                            <textarea placeholder="Any additional notes for the teacher..." rows="4" value={submissionText} onChange={(e) => setSubmissionText(e.target.value)} className="w-full px-6 py-5 bg-slate-50 dark:bg-black/40 border-2 border-slate-100 dark:border-slate-800 rounded-3xl outline-none focus:border-primary font-bold transition-all resize-none text-sm" />
+                                                        </div>
+                                                    </div>
+                                                    <button onClick={() => handleSubmit(selectedAssignment.id)} disabled={isSubmitting} className="w-full py-5 bg-primary text-white font-black uppercase tracking-widest text-xs rounded-3xl shadow-2xl transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-3">
+                                                        <ButtonLoader isLoading={isSubmitting}>CONFIRM SUBMISSION</ButtonLoader>
+                                                    </button>
+                                                </div>
+                                            </motion.div>
+                                        </div>
+                                    )}
+                                </AnimatePresence>
+                            </div>
+                        ) : activeTab === 'daily_tasks' ? (
+                            /* DAILY LOGS VIEW */
+                            <div className="space-y-8">
+                                <div className="bg-white dark:bg-slate-900/40 rounded-[2.5rem] p-10 border border-gray-100 dark:border-slate-800 shadow-sm">
+                                    <div className="flex items-center justify-between mb-8">
+                                        <h3 className="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tight">Post Daily Activity Log</h3>
+                                        <Plus className="w-6 h-6 text-primary" />
+                                    </div>
+                                    <form onSubmit={handleSubmitDailyTask} className="space-y-6">
+                                        <div>
+                                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2.5 block ml-1">Live Work Link (Optional)</label>
+                                            <input type="text" value={newTaskLink} onChange={(e) => setNewTaskLink(e.target.value)} disabled={isRestricted || isCompleted} placeholder="URL (GitHub, Drive, Website)" className="w-full px-6 py-4 bg-gray-50 dark:bg-black/40 border border-gray-100 dark:border-slate-800 rounded-2xl outline-none focus:border-primary font-bold transition-all text-sm disabled:opacity-50" />
+                                        </div>
+                                        <div>
+                                            <textarea value={newTaskContent} onChange={(e) => setNewTaskContent(e.target.value)} disabled={isRestricted || isCompleted} placeholder="Describe what you worked on today, your achievements, and any challenges..." rows={4} className="w-full px-6 py-5 bg-gray-50 dark:bg-black/40 border border-primary rounded-3xl outline-none focus:ring-4 focus:ring-primary/10 transition-all resize-none text-sm font-medium disabled:opacity-50 min-h-[120px]" />
+                                        </div>
+                                        <button type="submit" disabled={isSubmitting || !newTaskContent.trim() || isRestricted || isCompleted} className="w-full py-6 bg-primary text-white rounded-[1.5rem] font-black text-lg tracking-widest uppercase shadow-2xl transition-all active:scale-[0.98] flex items-center justify-center gap-3 disabled:grayscale disabled:opacity-50">
+                                            <ButtonLoader isLoading={isSubmitting} icon={<Send className="w-6 h-6" />}>
+                                                {isCompleted ? 'WORK LOG ARCHIVED' : (isRestricted ? 'PORTAL LOCKED' : (resubmittingTaskId ? 'UPDATE LOG ENTRY' : 'COMMIT DAILY LOG'))}
+                                            </ButtonLoader>
+                                        </button>
+                                    </form>
+                                </div>
+
+                                <div className="space-y-4">
+                                    <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] text-center my-10">Activity History</h4>
+                                    {dailyTasks.length === 0 ? (
+                                        <div className="py-20 text-center bg-gray-50/50 rounded-[2.5rem] border-2 border-dashed border-gray-100">
+                                            <Clock className="w-12 h-12 text-gray-200 mx-auto mb-4" />
+                                            <p className="text-gray-400 font-bold uppercase tracking-widest text-[10px]">No historical data found</p>
+                                        </div>
+                                    ) : (
+                                        [...dailyTasks].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).map((task, idx) => (
+                                            <motion.div key={task._id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: idx * 0.05 }} className="bg-white dark:bg-slate-900/40 p-7 rounded-3xl border border-gray-100 dark:border-slate-800 shadow-sm relative overflow-hidden">
+                                                <div className="flex justify-between items-start mb-6">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="bg-gray-50 dark:bg-slate-800 px-3 py-1.5 rounded-xl border border-gray-100 dark:border-slate-700">
+                                                            <p className="text-[10px] font-black text-gray-900 dark:text-white leading-none">{new Date(task.date || task.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
+                                                        </div>
+                                                        <Badge variant={task.status === 'verified' ? 'success' : 'warning'}>{task.status.toUpperCase()}</Badge>
+                                                    </div>
+                                                    {task.status === 'rejected' && (
+                                                        <button onClick={() => { setResubmittingTaskId(task._id); setNewTaskContent(task.content); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="text-[10px] font-black text-primary underline uppercase tracking-widest">Edit & Re-commit</button>
+                                                    )}
+                                                </div>
+                                                <div className="bg-gray-50/50 dark:bg-black/20 p-5 rounded-2xl border border-gray-100 dark:border-slate-800 text-sm italic text-gray-600 dark:text-gray-400 font-medium leading-relaxed mb-4 whitespace-pre-wrap">"{task.content}"</div>
+                                                {task.workLink && <a href={task.workLink} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[10px] font-black text-primary uppercase hover:bg-primary/5 w-fit px-3 py-1.5 rounded-lg border border-primary/10 transition-all"><ExternalLink className="w-3.5 h-3.5" /> View Work</a>}
+                                                {task.feedback && (
+                                                    <div className="mt-6 pt-6 border-t border-gray-100 dark:border-slate-800">
+                                                        <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-2">Teacher Evaluation</p>
+                                                        <p className="text-sm font-semibold italic text-primary">"{task.feedback}"</p>
+                                                        {task.marks !== undefined && (
+                                                            <div className="mt-4 flex items-center justify-between bg-primary/5 p-4 rounded-xl border border-primary/10">
+                                                                <span className="text-xs font-black text-primary uppercase tracking-tight">Proficiency Level</span>
+                                                                <span className="text-xl font-black text-primary">{task.marks}<span className="text-xs">/100</span></span>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </motion.div>
+                                        ))
+                                    )}
+                                </div>
+                            </div>
+                        ) : activeTab === 'attendance' ? (
+                            /* ATTENDANCE VIEW */
+                            <div className="bg-white dark:bg-slate-900/40 rounded-[2.5rem] p-8 border border-gray-100 dark:border-slate-800 shadow-sm min-h-[400px]">
+                                <StudentAttendanceTab course={myCourses.find(c => c._id === selectedCourseId)} />
+                            </div>
+                        ) : activeTab === 'chat' ? (
+                            /* CHAT VIEW */
+                            <div className="bg-white dark:bg-slate-900/40 rounded-[2.5rem] p-6 border border-gray-100 dark:border-slate-800 shadow-sm min-h-[500px]">
+                                <StudentChatTab course={myCourses.find(c => c._id === selectedCourseId)} isRestricted={false} />
+                            </div>
+                        ) : (
+                            /* TESTS VIEW */
+                            <div className="bg-white dark:bg-slate-900/40 rounded-[2.5rem] p-8 border border-gray-100 dark:border-slate-800 shadow-sm min-h-[400px]">
+                                <StudentTestsTab courseId={selectedCourseId} isRestricted={isRestricted} />
+                            </div>
+                        )}
+                    </div>
+                </div>
             )}
         </div>
     );
 };
 
 export default AssignmentSubmission;
-
-
-

@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Mail, ArrowLeft, Loader2, CheckCircle, AlertCircle, GraduationCap } from 'lucide-react';
+import { Mail, ArrowLeft, CheckCircle, AlertCircle, GraduationCap } from 'lucide-react';
 import { authAPI } from '../../services/api';
 import WhatsAppWidget from '../../components/shared/WhatsAppWidget';
+import { ButtonLoader } from '../../components/ui/Loader';
 
 const ForgotPassword = () => {
     const [email, setEmail] = useState('');
@@ -120,14 +121,9 @@ const ForgotPassword = () => {
                                 disabled={loading}
                                 className="w-full bg-gradient-to-r from-blue-500 to-primary text-white py-3 rounded-lg font-semibold hover:from-blue-600 hover:to-primary transition flex items-center justify-center gap-2 disabled:opacity-50"
                             >
-                                {loading ? (
-                                    <>
-                                        <Loader2 className="w-5 h-5 animate-spin" />
-                                        Sending...
-                                    </>
-                                ) : (
-                                    'Send Reset Link'
-                                )}
+                                <ButtonLoader isLoading={loading}>
+                                    {loading ? 'Sending...' : 'Send Reset Link'}
+                                </ButtonLoader>
                             </button>
                         </form>
                     )}

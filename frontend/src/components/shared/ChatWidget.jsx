@@ -4,8 +4,9 @@ import { useSelector } from 'react-redux';
 import { io } from 'socket.io-client';
 import {
     MessageCircle, X, Send, User, ShieldCheck,
-    Bell, ChevronLeft, Loader2, Search, Trash2
+    Bell, ChevronLeft, Search, Trash2
 } from 'lucide-react';
+import Loader, { ButtonLoader } from '../ui/Loader';
 import { chatAPI, userAPI } from '../../services/api';
 
 const getSocketURL = () => {
@@ -702,7 +703,7 @@ const ChatWidget = () => {
                                                         Chat Now
                                                     </>
                                                 ) : (
-                                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                                    <ButtonLoader />
                                                 )}
                                             </button>
                                         </div>
@@ -713,9 +714,7 @@ const ChatWidget = () => {
                                 <div className="flex flex-col h-full">
                                     <div className="flex-1 overflow-y-auto p-4 space-y-4">
                                         {isLoading ? (
-                                            <div className="flex items-center justify-center h-full">
-                                                <Loader2 className="w-6 h-6 animate-spin text-primary" />
-                                            </div>
+                                            <Loader message="Loading messages..." size="sm" />
                                         ) : (
                                             messages.map((msg, index) => {
                                                 const myId = (user.id || user._id).toString();

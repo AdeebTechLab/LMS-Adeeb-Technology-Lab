@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    Zap, Plus, Trash2, Clock, CheckCircle, FileText,
-    ChevronRight, Loader2, Upload, AlertCircle, Eye, Users,
-    Type, Clipboard, List, X, Search, Edit2, RefreshCw, MoreHorizontal
+    ClipboardList, Plus, FileText, CheckCircle, Clock,
+    Trash2, Edit2, PlayCircle, Eye, AlertCircle, X, ChevronRight,
+    RefreshCw, Upload, Zap, Users, Type, List, Search
 } from 'lucide-react';
 import { testAPI } from '../../../services/api';
 import Badge from '../../../components/ui/Badge';
 import Modal from '../../../components/ui/Modal';
+import Loader, { ButtonLoader } from '../../../components/ui/Loader';
+import { showToast } from '../../../utils/customToast';
 
 const TestsTab = ({ course, students }) => {
     const [tests, setTests] = useState([]);
@@ -65,7 +67,7 @@ const TestsTab = ({ course, students }) => {
     const handleCreateTest = async (e) => {
         e.preventDefault();
         if (formData.questions.length === 0) {
-            alert("Please add at least one question.");
+            showToast.error("Please add at least one question.");
             return;
         }
 
@@ -78,10 +80,10 @@ const TestsTab = ({ course, students }) => {
             await fetchTests();
             setIsCreateModalOpen(false);
             resetForm();
-            alert('Test published successfully!');
+            showToast.success('Test published successfully!');
         } catch (error) {
             console.error('Error creating test:', error);
-            alert(error.response?.data?.message || 'Failed to create test');
+            showToast.error(error.response?.data?.message || 'Failed to create test');
         } finally {
             setIsSaving(false);
         }
@@ -95,10 +97,10 @@ const TestsTab = ({ course, students }) => {
             await fetchTests();
             setIsEditModalOpen(false);
             setEditingTest(null);
-            alert('Test updated successfully!');
+            showToast.success('Test updated successfully!');
         } catch (error) {
             console.error('Error updating test:', error);
-            alert('Failed to update test');
+            showToast.error('Failed to update test');
         } finally {
             setIsSaving(false);
         }
@@ -109,10 +111,10 @@ const TestsTab = ({ course, students }) => {
         try {
             await testAPI.delete(id);
             setTests(prev => prev.filter(t => t._id !== id));
-            alert('Test deleted successfully');
+            showToast.success('Test deleted successfully');
         } catch (error) {
             console.error('Error deleting test:', error);
-            alert('Failed to delete test');
+            showToast.error('Failed to delete test');
         }
     };
 
@@ -135,9 +137,8 @@ const TestsTab = ({ course, students }) => {
         if (!file) return;
 
         setIsGenerating(true);
-        // Simulate parsing the entire file and detecting all questions
         setTimeout(() => {
-            const detectedCount = Math.floor(Math.random() * 5) + 5; // Simulate finding 5-10 questions
+            const detectedCount = Math.floor(Math.random() * 5) + 5; 
             const generatedQuestions = Array.from({ length: detectedCount }, (_, i) => ({
                 question: `[Auto-Parsed] Question ${i + 1} from ${file.name.split('.')[0]} content...`,
                 options: ["Option A", "Option B", "Option C", "Option D"],
@@ -159,17 +160,16 @@ const TestsTab = ({ course, students }) => {
 
             setIsGenerating(false);
             e.target.value = '';
-            alert(`Successfully detected and added ${detectedCount} questions from ${file.name}`);
+            showToast.success(`Successfully detected and added ${detectedCount} questions from ${file.name}`);
         }, 2000);
     };
 
-    // Auto-parse paste text with debounce
     useEffect(() => {
         if (!pasteText.trim()) return;
 
         const timer = setTimeout(() => {
             handleParsePaste();
-        }, 800); // Wait for 800ms after user stops pasting/typing
+        }, 800);
 
         return () => clearTimeout(timer);
     }, [pasteText]);
@@ -187,13 +187,11 @@ const TestsTab = ({ course, students }) => {
                     const cleanBlock = block.trim();
                     if (!cleanBlock) return;
                     
-                    // 1. Detect Question Text
                     const qMatch = cleanBlock.match(/(?:Q[:.]|Question[:.]|\d+[:.])\s*(.*?)(?=[A-D][)|.]|Ans[:.]|Answer[:.]|Correct[:.]|Key[:.]|$)/is);
                     const questionText = qMatch ? qMatch[1].trim() : cleanBlock.split('\n')[0].replace(/(?:Q[:.]|Question[:.]|\d+[:.])\s*/i, '').trim();
 
                     if (!questionText) return;
 
-                    // 2. Detect Options
                     const options = [];
                     const aMatch = cleanBlock.match(/A[)|.]\s*(.*?)(?=[B-D][)|.]|Ans[:.]|Answer[:.]|Correct[:.]|Key[:.]|$)/is);
                     const bMatch = cleanBlock.match(/B[)|.]\s*(.*?)(?=[C-D][)|.]|Ans[:.]|Answer[:.]|Correct[:.]|Key[:.]|$)/is);
@@ -205,12 +203,11 @@ const TestsTab = ({ course, students }) => {
                     if (cMatch) options.push(cMatch[1].trim().split('\n')[0]);
                     if (dMatch) options.push(dMatch[1].trim().split('\n')[0]);
 
-                    // 3. Detect Correct Answer
                     const ansMatch = cleanBlock.match(/(?:Ans|Correct|Answer|Key)[:.\s(]+([A-D])/i);
                     let correctOption = 0;
                     if (ansMatch) {
                         const char = ansMatch[1].toUpperCase();
-                        correctOption = char.charCodeAt(0) - 65; // A=0, B=1, C=2, D=3
+                        correctOption = char.charCodeAt(0) - 65;
                     }
 
                     if (options.length >= 2) {
@@ -237,7 +234,7 @@ const TestsTab = ({ course, students }) => {
                     }
                     setPasteText('');
                 } else {
-                    alert("Format not recognized. Use: Q. Question? A) Opt 1 B) Opt 2 Ans: B");
+                    showToast.error("Format not recognized. Use: Q. Question? A) Opt 1 B) Opt 2 Ans: B");
                 }
             } catch (err) {
                 console.error("Parse Error:", err);
@@ -278,17 +275,11 @@ const TestsTab = ({ course, students }) => {
     const selectedStudent = students?.find(s => s.id === selectedStudentFilter || s._id === selectedStudentFilter);
 
     if (isLoading) {
-        return (
-            <div className="flex flex-col items-center justify-center h-80 space-y-6">
-                <img src="/loading.gif" alt="Loading" className="w-32 h-32 object-contain" />
-                <p className="text-gray-400 font-black uppercase tracking-widest text-xs animate-pulse">Loading Tests...</p>
-            </div>
-        );
+        return <Loader message="Accessing test repository..." />;
     }
 
     return (
         <div className="space-y-6">
-            {/* Header - Matching Assignments Style */}
             <div className="flex flex-col gap-6">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm">
                     <div className="flex items-center gap-4">
@@ -321,7 +312,6 @@ const TestsTab = ({ course, students }) => {
                     </div>
                 </div>
 
-                {/* Quick Stats Summary Row */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                     <div className="bg-primary/5 rounded-3xl p-6 border border-primary/10 text-center shadow-sm hover:shadow-md transition-all">
                         <p className="text-2xl sm:text-3xl font-black text-primary">{tests.length}</p>
@@ -345,7 +335,6 @@ const TestsTab = ({ course, students }) => {
                     </div>
                 </div>
 
-                {/* Student Filter Section */}
                 <div className="flex items-center gap-3">
                     <div className="relative">
                         <button
@@ -438,11 +427,9 @@ const TestsTab = ({ course, students }) => {
                     )}
                 </div>
 
-                {/* Overlay to close dropdown */}
                 {isDropdownOpen && <div className="fixed inset-0 z-[55]" onClick={() => setIsDropdownOpen(false)} />}
             </div>
 
-            {/* Test Cards Grid */}
             {filteredTests.length === 0 ? (
                 <div className="bg-white rounded-[2.5rem] p-16 text-center border-2 border-dashed border-gray-100 flex flex-col items-center">
                     <div className="p-6 bg-gray-50 rounded-full mb-6">
@@ -560,7 +547,6 @@ const TestsTab = ({ course, students }) => {
                 </div>
             )}
 
-            {/* Create Test Modal */}
             <Modal
                 isOpen={isCreateModalOpen}
                 onClose={() => setIsCreateModalOpen(false)}
@@ -721,7 +707,6 @@ const TestsTab = ({ course, students }) => {
                             <h4 className="text-sm font-black text-gray-900 uppercase tracking-wider flex items-center gap-2">
                                 <Zap className="w-4 h-4 text-primary" /> Question Generator
                             </h4>
-                            {/* ... Question generator UI ... */}
                             <div className="bg-slate-900 rounded-[2rem] p-6 text-white space-y-4 relative overflow-hidden">
                                 <div className="absolute -top-4 -right-4 w-24 h-24 bg-white/5 rounded-full blur-xl" />
 
@@ -769,7 +754,7 @@ const TestsTab = ({ course, students }) => {
                                             )}
                                             {isGenerating && (
                                                 <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm rounded-2xl flex flex-col items-center justify-center space-y-2 animate-in fade-in duration-300">
-                                                    <img src="/loading.gif" className="w-12 h-12 brightness-0 invert" alt="loading" />
+                                                    <Loader />
                                                     <span className="text-[10px] font-black uppercase tracking-widest text-white">Auto-Parsing...</span>
                                                 </div>
                                             )}
@@ -795,7 +780,6 @@ const TestsTab = ({ course, students }) => {
                         </div>
                     </div>
 
-                    {/* Questions List */}
                     {formData.questions.length > 0 && (
                         <div className="space-y-4">
                             <div className="flex items-center justify-between">
@@ -874,14 +858,13 @@ const TestsTab = ({ course, students }) => {
                             disabled={isSaving || formData.questions.length === 0}
                             className="px-8 py-2.5 bg-primary text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-[#e67e01] shadow-lg shadow-primary/10 flex items-center gap-2"
                         >
-                            {isSaving ? <img src="/loading.gif" className="w-5 h-5 brightness-0 invert" alt="loading" /> : <CheckCircle className="w-4 h-4" />}
+                            {isSaving ? <ButtonLoader /> : <CheckCircle className="w-4 h-4" />}
                             Publish Test
                         </button>
                     </div>
                 </div>
             </Modal>
 
-            {/* Edit Test Modal */}
             <Modal
                 isOpen={isEditModalOpen}
                 onClose={() => {
@@ -1081,7 +1064,7 @@ const TestsTab = ({ course, students }) => {
                                                 )}
                                                 {isGenerating && (
                                                     <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm rounded-2xl flex flex-col items-center justify-center space-y-2 animate-in fade-in duration-300">
-                                                        <img src="/loading.gif" className="w-12 h-12 brightness-0 invert" alt="loading" />
+                                                        <Loader />
                                                         <span className="text-[10px] font-black uppercase tracking-widest text-white">Auto-Parsing...</span>
                                                     </div>
                                                 )}
@@ -1107,7 +1090,6 @@ const TestsTab = ({ course, students }) => {
                             </div>
                         </div>
 
-                        {/* Questions List for Editing */}
                         <div className="space-y-4">
                             <div className="flex items-center justify-between">
                                 <h4 className="text-sm font-black text-gray-900 uppercase tracking-wider flex items-center gap-2">
@@ -1207,7 +1189,7 @@ const TestsTab = ({ course, students }) => {
                                 disabled={isSaving}
                                 className="px-8 py-2.5 bg-primary text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-[#e67e01] shadow-lg shadow-primary/10 flex items-center gap-2"
                             >
-                                {isSaving ? <img src="/loading.gif" className="w-5 h-5 brightness-0 invert" alt="loading" /> : <CheckCircle className="w-4 h-4" />}
+                                {isSaving ? <ButtonLoader /> : <CheckCircle className="w-4 h-4" />}
                                 Save Changes
                             </button>
                         </div>

@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import {
     Search, UserCheck, UserX, Trash2, User, Mail, Phone, MapPin,
-    Briefcase, Loader2, CheckCircle, Clock, Star, FileText, Edit2, Save, Camera, Upload, Plus, Shield, Download
+    Briefcase, CheckCircle, Clock, Star, FileText, Edit2, Save, Camera, Upload, Plus, Shield, Download
 } from 'lucide-react';
+import Loader, { ButtonLoader } from '../../components/ui/Loader';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import Badge from '../../components/ui/Badge';
@@ -379,10 +379,7 @@ const JobsManagement = () => {
 
     if (isLoading) {
         return (
-            <div className="flex items-center justify-center h-64">
-                <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                <span className="ml-2 text-gray-600">Loading job applicants...</span>
-            </div>
+            <Loader message="Loading job applicants..." />
         );
     }
 
@@ -653,16 +650,15 @@ const JobsManagement = () => {
                                         : 'bg-amber-500 hover:bg-amber-600 text-white'
                                     }`}
                             >
-                                {isProcessing ? (
-                                    <Loader2 className="w-5 h-5 animate-spin" />
-                                ) : (
-                                    <>
-                                        {confirmModal.action === 'verify' && <UserCheck className="w-5 h-5" />}
-                                        {confirmModal.action === 'unverify' && <UserX className="w-5 h-5" />}
-                                        {confirmModal.action === 'delete' && <Trash2 className="w-5 h-5" />}
-                                    </>
-                                )}
-                                Confirm
+                                <ButtonLoader
+                                    isLoading={isProcessing}
+                                    icon={
+                                        confirmModal.action === 'verify' ? <UserCheck className="w-5 h-5" /> :
+                                            confirmModal.action === 'unverify' ? <UserX className="w-5 h-5" /> : <Trash2 className="w-5 h-5" />
+                                    }
+                                >
+                                    Confirm
+                                </ButtonLoader>
                             </button>
                         </div>
                     </div>
@@ -880,8 +876,9 @@ const JobsManagement = () => {
                             disabled={isProcessing}
                             className="flex-1 py-3 bg-primary hover:bg-purple-700 text-white rounded-xl font-medium flex items-center justify-center gap-2"
                         >
-                            {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
-                            Update Bio
+                            <ButtonLoader isLoading={isProcessing} icon={<Save className="w-5 h-5" />}>
+                                Update Bio
+                            </ButtonLoader>
                         </button>
                     </div>
                 </form>

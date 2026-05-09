@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { useSelector } from 'react-redux';
 import { io } from 'socket.io-client';
 import {
-    MessageCircle, Send, User, Loader2, GraduationCap
+    MessageCircle, Send, User, GraduationCap
 } from 'lucide-react';
 import Loader, { ButtonLoader } from '../../../components/ui/Loader';
 import { chatAPI } from '../../../services/api';
@@ -180,9 +180,15 @@ const StudentChatTab = ({ course, isRestricted }) => {
     }, {});
 
     if (isLoading) {
+<<<<<<< HEAD
         return <div className="flex flex-col items-center justify-center h-full py-20 gap-4">
                         <Loader />
                     </div>;
+=======
+        return (
+            <Loader message="Initializing Secure Chat..." />
+        );
+>>>>>>> 3079364b313251fa7fc7eaad21dc212596252aa2
     }
 
     if (teachers.length === 0) {
@@ -314,18 +320,13 @@ const StudentChatTab = ({ course, isRestricted }) => {
                                         }
                                     }}
                                 />
-                                <button
-                                    type="button"
+                                <ButtonLoader
                                     onClick={() => handleSendMessage()}
-                                    disabled={!newMessage.trim() || !activeTeacher || isSending || isRestricted}
+                                    isLoading={isSending}
+                                    disabled={!newMessage.trim() || !activeTeacher || isRestricted}
+                                    icon={<Send className="w-5 h-5" />}
                                     className="px-4 py-3 bg-primary text-white rounded-xl hover:bg-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                                >
-                                    {isSending ? (
-                                        <Loader2 className="w-5 h-5 animate-spin" />
-                                    ) : (
-                                        <Send className="w-5 h-5" />
-                                    )}
-                                </button>
+                                />
                             </div>
                         </form>
                     </>

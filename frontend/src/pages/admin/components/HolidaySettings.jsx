@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Sun, Loader2, Check, Calendar, Moon, X, XCircle } from 'lucide-react';
+import { Sun, Check, Calendar, Moon, X, XCircle } from 'lucide-react';
 import { attendanceAPI } from '../../../services/api';
+import { Loader } from '../../ui/Loader';
 
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const SHORT_DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -51,7 +52,7 @@ const HolidaySettings = () => {
     if (isLoading) {
         return (
             <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex items-center justify-center">
-                <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                <Loader />
             </div>
         );
     }

@@ -178,9 +178,13 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
 
     if (isLoading) {
         return (
+<<<<<<< HEAD
             <div className="flex flex-col items-center justify-center h-full py-20 gap-4">
                 <Loader />
             </div>
+=======
+            <Loader message={isTakingTest ? 'Preparing your test...' : 'Loading Tests...'} />
+>>>>>>> 3079364b313251fa7fc7eaad21dc212596252aa2
         );
     }
 
@@ -336,11 +340,24 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
                         </button>
 
                         {currentQuestionIndex === shuffledQuestions.length - 1 ? (
+<<<<<<< HEAD
                             <ButtonLoader 
                                 isLoading={isSubmitting}
                                 onClick={handleSubmitTest}
                                 disabled={Object.keys(answers).length < shuffledQuestions.length}
                                 className="px-8 py-3 bg-slate-900 text-white rounded-xl font-black text-xs uppercase tracking-widest transition-all shadow-lg hover:bg-black disabled:bg-slate-200 disabled:text-slate-400"
+=======
+                            <ButtonLoader
+                                onClick={handleSubmitTest}
+                                isLoading={isSubmitting}
+                                disabled={Object.keys(answers).length < shuffledQuestions.length}
+                                className={`px-8 py-3 rounded-xl font-black text-xs uppercase tracking-widest transition-all shadow-lg flex items-center gap-3 group ${
+                                    Object.keys(answers).length < shuffledQuestions.length
+                                    ? 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
+                                    : 'bg-slate-900 text-white hover:bg-black'
+                                }`}
+                                icon={<CheckCircle className="w-4 h-4" />}
+>>>>>>> 3079364b313251fa7fc7eaad21dc212596252aa2
                             >
                                 Finish Test
                             </ButtonLoader>

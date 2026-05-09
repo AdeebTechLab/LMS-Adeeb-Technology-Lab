@@ -3,12 +3,16 @@ import { motion } from 'framer-motion';
 import {
     Search, Calendar, CheckCircle, Eye, Users, Briefcase, AlertCircle, Link, Trash2, PenSquare, MessageSquare, Star, X, ChevronLeft, ChevronRight
 } from 'lucide-react';
+import Loader, { ButtonLoader } from '../../components/ui/Loader';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
 import { taskAPI, userNotificationAPI } from '../../services/api';
 import { useSelector } from 'react-redux';
 import { getCategoryIcon, getCategoryColor, getCategoryBg } from '../../utils/taskCategoryIcons';
+<<<<<<< HEAD
 import Loader, { ButtonLoader } from '../../components/ui/Loader';
+=======
+>>>>>>> 3079364b313251fa7fc7eaad21dc212596252aa2
 
 const PaidTasksManagement = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -591,9 +595,22 @@ const PaidTasksManagement = () => {
                                         </span>
                                     )}
                                     <Badge variant={statusConfig.variant}>{statusConfig.label}</Badge>
+<<<<<<< HEAD
                                     <ButtonLoader isLoading={isDeleting === task._id} onClick={() => handleDeleteTask(task._id)} variant="danger" icon={<Trash2 className="w-3 h-3" />}>
                                         Delete
                                     </ButtonLoader>
+=======
+                                    <button
+                                        onClick={() => handleDeleteTask(task._id)}
+                                        disabled={isDeleting === task._id}
+                                        className="px-3 py-1 bg-red-50 text-red-600 hover:bg-red-600 hover:text-white rounded-lg transition-all disabled:opacity-50 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider shadow-sm border border-red-100"
+                                        title="Permanently Delete Task"
+                                    >
+                                        <ButtonLoader isLoading={isDeleting === task._id} icon={<Trash2 className="w-3 h-3" />}>
+                                            Delete
+                                        </ButtonLoader>
+                                    </button>
+>>>>>>> 3079364b313251fa7fc7eaad21dc212596252aa2
                                     <button
                                         onClick={() => handleEditClick(task)}
                                         className="px-3 py-1 bg-purple-50 text-primary hover:bg-primary hover:text-white rounded-lg transition-all flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider shadow-sm border border-primary/10"
@@ -907,9 +924,17 @@ const PaidTasksManagement = () => {
                         <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-3 text-gray-600 hover:bg-gray-100 rounded-xl font-medium">
                             Cancel
                         </button>
+<<<<<<< HEAD
                         <ButtonLoader isLoading={isLoading} type="submit" className="flex-1 py-3 text-white rounded-xl font-medium">
                             {editingTask ? 'Update ' + (formData.type === 'product' ? 'Item' : 'Task') : 'Create ' + (formData.type === 'product' ? 'Item' : 'Task')}
                         </ButtonLoader>
+=======
+                        <button type="submit" disabled={isLoading} className={`flex-1 py-3 text-white rounded-xl font-medium flex items-center justify-center gap-2 ${formData.type === 'product' ? 'bg-primary hover:bg-primary' : 'bg-primary hover:bg-purple-700'}`}>
+                            <ButtonLoader isLoading={isLoading}>
+                                {editingTask ? 'Update ' + (formData.type === 'product' ? 'Item' : 'Task') : 'Create ' + (formData.type === 'product' ? 'Item' : 'Task')}
+                            </ButtonLoader>
+                        </button>
+>>>>>>> 3079364b313251fa7fc7eaad21dc212596252aa2
                     </div>
                 </form>
             </Modal>
@@ -1210,9 +1235,21 @@ const PaidTasksManagement = () => {
                         <button onClick={() => setEditingFeedback(null)} className="flex-1 py-3 text-gray-600 hover:bg-gray-100 rounded-xl font-medium">
                             Cancel
                         </button>
+<<<<<<< HEAD
                         <ButtonLoader isLoading={isSavingFeedback} onClick={handleSaveFeedback} disabled={!editFeedbackData.text.trim()} className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium">
                             Save Changes
                         </ButtonLoader>
+=======
+                        <button
+                            onClick={handleSaveFeedback}
+                            disabled={isSavingFeedback || !editFeedbackData.text.trim()}
+                            className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium flex items-center justify-center gap-2 disabled:opacity-50"
+                        >
+                            <ButtonLoader isLoading={isSavingFeedback}>
+                                Save Changes
+                            </ButtonLoader>
+                        </button>
+>>>>>>> 3079364b313251fa7fc7eaad21dc212596252aa2
                     </div>
                 </div>
             </Modal>

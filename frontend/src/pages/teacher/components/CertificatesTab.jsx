@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Award, User, Loader2, CheckCircle, Clock as ClockIcon, FileText, Send } from 'lucide-react';
+import { Award, User, CheckCircle, Clock as ClockIcon, FileText, Send } from 'lucide-react';
 import Badge from '../../../components/ui/Badge';
 import Modal from '../../../components/ui/Modal';
 import { certificateAPI } from '../../../services/api';
+import Loader, { ButtonLoader } from '../../../components/ui/Loader';
 
 const CertificatesTab = ({ course, students }) => {
     const [requests, setRequests] = useState([]);
@@ -60,12 +61,7 @@ const CertificatesTab = ({ course, students }) => {
     };
 
     if (isLoading) {
-        return (
-            <div className="flex flex-col items-center justify-center h-64 gap-3">
-                <img src="/loading.gif" alt="Loading" className="w-16 h-16 object-contain" />
-                <span className="text-gray-500 font-medium">Loading requests...</span>
-            </div>
-        );
+        return <Loader message="Loading requests..." />;
     }
 
     return (
@@ -179,7 +175,7 @@ const CertificatesTab = ({ course, students }) => {
                             disabled={isSubmitting}
                             className="flex-1 py-3 bg-primary hover:bg-primary text-white font-bold rounded-xl transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2"
                         >
-                            {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
+                            {isSubmitting ? <ButtonLoader /> : <Send className="w-5 h-5" />}
                             Send Request
                         </button>
                     </div>

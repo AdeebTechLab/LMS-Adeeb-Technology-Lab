@@ -5,7 +5,11 @@ import {
     User, Mail, Phone, MapPin, Briefcase,
     Edit2, Save, X, Camera, FileText, Award, Star
 } from 'lucide-react';
+<<<<<<< HEAD
 import Loader, { ButtonLoader } from '../../components/ui/Loader';
+=======
+import { ButtonLoader } from '../../components/ui/Loader';
+>>>>>>> 3079364b313251fa7fc7eaad21dc212596252aa2
 import { authAPI, taskAPI, settingsAPI } from '../../services/api';
 import { updateUser } from '../../features/auth/authSlice';
 
@@ -203,6 +207,7 @@ const JobProfile = () => {
                             </button>
                         ) : (
                             <div className="flex gap-2">
+<<<<<<< HEAD
                                 <ButtonLoader 
                                     isLoading={isSaving}
                                     onClick={handleSave}
@@ -210,6 +215,10 @@ const JobProfile = () => {
                                 >
                                     <Save className="w-4 h-4" />
                                     Save Changes
+=======
+                                <ButtonLoader isLoading={isSaving} icon={<Save className="w-4 h-4" />}>
+                                    Save
+>>>>>>> 3079364b313251fa7fc7eaad21dc212596252aa2
                                 </ButtonLoader>
                                 <button
                                     onClick={handleCancel}

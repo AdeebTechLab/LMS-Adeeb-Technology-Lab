@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    ChevronLeft, Loader2, FileText, ClipboardList, User,
+    ChevronLeft, FileText, ClipboardList, User,
     CheckCircle, Clock, XCircle, ExternalLink, Upload,
     BookOpen, Tag, Calendar, AlertCircle
 } from 'lucide-react';
 import { assignmentAPI, enrollmentAPI, attendanceAPI, dailyTaskAPI } from '../../../services/api';
 import api from '../../../services/api';
 import Badge from '../../../components/ui/Badge';
+import Loader from '../../../components/ui/Loader';
 
 const TAB_ASSIGNMENTS = 'assignments';
 const TAB_DAILY_TASKS = 'daily_tasks';
@@ -196,10 +197,7 @@ const StudentWorkView = ({ student, onBack }) => {
             {/* Tab Content */}
             <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-xl shadow-gray-200/50 min-h-[400px]">
                 {isLoading ? (
-                    <div className="flex flex-col items-center justify-center py-24 gap-3">
-                        <img src="/loading.gif" alt="Loading" className="w-16 h-16 object-contain" />
-                        <span className="text-gray-500 font-medium">Loading student work...</span>
-                    </div>
+                    <Loader message="Loading student work..." />
                 ) : (
                     <AnimatePresence mode="wait">
                         {activeTab === TAB_ASSIGNMENTS && (

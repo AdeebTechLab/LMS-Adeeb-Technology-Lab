@@ -3,12 +3,13 @@ import { motion } from 'framer-motion';
 import { useSelector, useDispatch } from 'react-redux';
 import {
     User, Mail, Phone, MapPin, CreditCard,
-    Edit2, Save, X, Camera, BookOpen, GraduationCap, Briefcase, Loader2
+    Edit2, Save, X, Camera, BookOpen, GraduationCap, Briefcase
 } from 'lucide-react';
 import { authAPI, courseAPI, settingsAPI } from '../../services/api';
 import { updateUser } from '../../features/auth/authSlice';
 import { getCourseIcon } from '../../utils/courseIcons';
 import ProfileAvatar from '../../components/ui/ProfileAvatar';
+import Loader, { ButtonLoader } from '../../components/ui/Loader';
 
 const InfoField = ({ icon: Icon, label, value, name, type = 'text', editable = true, isEditing, editForm, onChange }) => (
     <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-xl">
@@ -153,10 +154,7 @@ const TeacherProfile = () => {
 
     if (isLoading) {
         return (
-            <div className="flex flex-col items-center justify-center h-64 gap-3">
-                <img src="/loading.gif" alt="Loading" className="w-20 h-20 object-contain" />
-                <span className="text-gray-600 font-medium">Loading profile...</span>
-            </div>
+            <Loader message="Loading profile..." />
         );
     }
 
@@ -221,7 +219,7 @@ const TeacherProfile = () => {
                                     disabled={isSaving}
                                     className="px-5 py-3 bg-white text-primary font-semibold rounded-xl hover:bg-gray-50 transition-colors flex items-center gap-2 disabled:opacity-50"
                                 >
-                                    {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                                    {isSaving ? <ButtonLoader /> : <Save className="w-4 h-4" />}
                                     Save
                                 </button>
                                 <button

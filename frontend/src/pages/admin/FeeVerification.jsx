@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
-    Search, Eye, CheckCircle, XCircle, Clock, AlertCircle, Loader2,
+    Search, Eye, CheckCircle, XCircle, Clock, AlertCircle,
     Plus, Trash2, Calendar, DollarSign, FileText, ArrowLeft, MapPin, Users, CheckCircle2, Mail
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
 import { feeAPI } from '../../services/api';
 import { showToast } from '../../utils/customToast';
-import Loader from '../../components/ui/Loader';
+import Loader, { ButtonLoader } from '../../components/ui/Loader';
 
 const FeeVerification = () => {
     const [activeTab, setActiveTab] = useState('pending');
@@ -892,7 +892,7 @@ const FeeVerification = () => {
                             disabled={isProcessing}
                             className="px-4 py-2 bg-primary hover:bg-primary text-white rounded-lg font-medium flex items-center gap-2"
                         >
-                            {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save Plan'}
+                            {isProcessing ? <ButtonLoader /> : 'Save Plan'}
                         </button>
                     </div>
                 </div>
@@ -931,7 +931,7 @@ const FeeVerification = () => {
                             disabled={isProcessing}
                             className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium flex items-center gap-2"
                         >
-                            {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                            {isProcessing ? <ButtonLoader /> : <Trash2 className="w-4 h-4" />}
                             Confirm Delete
                         </button>
                     </div>

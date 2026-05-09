@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Clock, Search, Lock, AlertCircle, Save, Loader2, Download, Calendar, Sun, RefreshCw } from 'lucide-react';
+import { Clock, Search, Lock, AlertCircle, Save, Download, Calendar, Sun, RefreshCw } from 'lucide-react';
 import Badge from '../../../components/ui/Badge';
 import ProfileAvatar from '../../../components/ui/ProfileAvatar';
 import { attendanceAPI } from '../../../services/api';
+import Loader, { ButtonLoader } from '../../../components/ui/Loader';
 
 // Utility function to get local date string in YYYY-MM-DD format
 const getLocalDateString = (date) => {
@@ -369,7 +370,7 @@ const AttendanceTab = ({ course, students }) => {
                             disabled={isSaving}
                             className="w-full md:w-auto px-8 py-3 bg-primary hover:bg-primary text-white rounded-2xl flex items-center justify-center gap-2 font-bold transition-all shadow-lg shadow-primary"
                         >
-                            {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+                            {isSaving ? <ButtonLoader /> : <Save className="w-5 h-5" />}
                             {isSaving ? 'SAVING...' : 'SAVE ATTENDANCE'}
                         </button>
                     )}

@@ -7,10 +7,10 @@ import {
     Clock,
     ExternalLink,
     Save,
-    Loader2,
     FileText
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
+import Loader, { ButtonLoader } from '../../components/ui/Loader';
 import { courseAPI, assignmentAPI } from '../../services/api';
 
 const GradingSystem = () => {
@@ -159,12 +159,7 @@ const GradingSystem = () => {
     };
 
     if (isLoading) {
-        return (
-            <div className="flex flex-col items-center justify-center h-64 gap-3">
-                <img src="/loading.gif" alt="Loading" className="w-20 h-20 object-contain" />
-                <span className="text-gray-600 font-medium">Loading submissions...</span>
-            </div>
-        );
+        return <Loader message="Analyzing grading records..." />;
     }
 
     return (
@@ -294,7 +289,7 @@ const GradingSystem = () => {
                                     className="px-4 py-2 bg-primary hover:bg-primary text-white rounded-lg font-medium transition-all flex items-center gap-2 disabled:opacity-50"
                                 >
                                     {isSaving === submission.id ? (
-                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                        <ButtonLoader />
                                     ) : (
                                         <Save className="w-4 h-4" />
                                     )}

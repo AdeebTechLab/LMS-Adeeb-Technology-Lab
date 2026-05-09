@@ -3,14 +3,14 @@ import { motion } from 'framer-motion';
 
 const Loader = ({ message = 'Loading...', size = 'md' }) => {
     const sizeClasses = {
-        sm: 'w-16 h-16',
-        md: 'w-32 h-32',
-        lg: 'w-48 h-48',
-        xl: 'w-64 h-64'
+        sm: 'w-24 h-24',
+        md: 'w-28 h-28',
+        lg: 'w-28 h-28',
+        xl: 'w-32 h-32'
     };
 
     return (
-        <div className="flex flex-col items-center justify-center p-8 min-h-[200px] w-full">
+        <div className="flex flex-col items-center justify-center p-8 min-h-[60vh] w-full h-full flex-1">
             <motion.div
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -47,14 +47,27 @@ export const FullScreenLoader = ({ message = 'Loading Data...' }) => {
     );
 };
 
-export const ButtonLoader = ({ className = "w-5 h-5" }) => {
+export const ButtonLoader = ({ isLoading, icon, children, className = "w-5 h-5", white = true }) => {
+    if (!isLoading) return (
+        <>
+            {icon && <span className="inline-block mr-2">{icon}</span>}
+            {children}
+        </>
+    );
+    
     return (
-        <img 
-            src="/loading.gif" 
-            alt="..." 
-            className={`${className} object-contain inline-block brightness-200`}
-            style={{ filter: 'brightness(2) contrast(1.2)' }}
-        />
+        <div className="flex items-center justify-center gap-2">
+            <img 
+                src="/loading.gif" 
+                alt="Loading..." 
+                className={`${className} object-contain inline-block transition-all`}
+                style={{ 
+                    filter: white ? 'brightness(0) invert(1)' : 'none',
+                    opacity: 0.9
+                }}
+            />
+            {children && <span className="opacity-70">{children}</span>}
+        </div>
     );
 };
 

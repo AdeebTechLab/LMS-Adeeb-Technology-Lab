@@ -14,7 +14,6 @@ import {
     MoreHorizontal,
     FileText,
     TrendingUp,
-    Loader2,
     Calendar,
     Video,
     X,
@@ -27,6 +26,7 @@ import {
 } from 'lucide-react';
 import StatCard from '../../components/ui/StatCard';
 import Badge from '../../components/ui/Badge';
+import Loader, { ButtonLoader } from '../../components/ui/Loader';
 import { BarChart } from '../../components/charts/Charts';
 import { courseAPI, enrollmentAPI, assignmentAPI, dailyTaskAPI, liveClassAPI, certificateAPI } from '../../services/api';
 import { getCourseIcon, getCourseStyle } from '../../utils/courseIcons';
@@ -256,10 +256,7 @@ const TeacherDashboard = () => {
 
     if (isLoading) {
         return (
-            <div className="flex flex-col items-center justify-center h-64 gap-3">
-                <img src="/loading.gif" alt="Loading" className="w-20 h-20 object-contain" />
-                <span className="text-gray-600 font-medium">Loading dashboard...</span>
-            </div>
+            <Loader message="Loading dashboard..." />
         );
     }
 
@@ -755,7 +752,7 @@ const TeacherDashboard = () => {
                                     className="flex-1 px-4 py-3 bg-red-500 text-white rounded-xl font-medium hover:bg-red-600 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
                                 >
                                     {isCreatingLiveClass ? (
-                                        <Loader2 className="w-5 h-5 animate-spin" />
+                                        <ButtonLoader />
                                     ) : (
                                         <Video className="w-5 h-5" />
                                     )}

@@ -2,11 +2,12 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
-    Users, Search, ChevronLeft, Loader2,
+    Users, Search, ChevronLeft,
     Award, BookOpen, Phone, CreditCard, Mail, GraduationCap,
     CheckCircle, XCircle, Clock
 } from 'lucide-react';
 import { directoryAPI } from '../../services/api';
+import Loader from '../../components/ui/Loader';
 
 const FILTER_OPTIONS = [
     { value: 'all', label: 'All', icon: Users },
@@ -168,10 +169,7 @@ const StudentDirectory = () => {
 
             {/* Loading */}
             {isLoading ? (
-                <div className="flex items-center justify-center h-64">
-                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                    <span className="ml-3 text-gray-600 font-medium">Loading directory...</span>
-                </div>
+                <Loader message="Loading directory..." />
             ) : filteredUsers.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-64 bg-white rounded-2xl border border-gray-100">
                     <Users className="w-16 h-16 text-gray-300 mb-4" />

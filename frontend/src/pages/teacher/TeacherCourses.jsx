@@ -6,7 +6,7 @@ import { io } from 'socket.io-client';
 
 import {
     BookOpen, Users, Calendar, ArrowRight, ChevronLeft,
-    FileText, ClipboardList, CheckCircle, Clock, Loader2, User, Award, X, Search,
+    FileText, ClipboardList, CheckCircle, Clock, User, Award, X, Search,
     Video, ExternalLink, StopCircle, Timer, MessageSquare, GraduationCap
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
@@ -14,6 +14,7 @@ import { courseAPI, liveClassAPI } from '../../services/api';
 import StatCard from '../../components/ui/StatCard';
 import { getCourseIcon, getCourseStyle } from '../../utils/courseIcons';
 import BirthdayWish from '../../components/dashboard/BirthdayWish';
+import Loader, { ButtonLoader } from '../../components/ui/Loader';
 
 
 
@@ -294,10 +295,7 @@ const TeacherCourses = ({ isDashboard = false }) => {
 
     if (isLoading) {
         return (
-            <div className="flex flex-col items-center justify-center h-64 gap-3">
-                <img src="/loading.gif" alt="Loading" className="w-20 h-20 object-contain" />
-                <span className="text-gray-600 font-medium">Loading Dashboard...</span>
-            </div>
+            <Loader message="Loading Dashboard..." />
         );
     }
 
@@ -877,7 +875,7 @@ const TeacherCourses = ({ isDashboard = false }) => {
                                         className="flex-1 px-4 py-3 bg-red-500 text-white rounded-xl font-medium hover:bg-red-600 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
                                     >
                                         {isCreatingLiveClass ? (
-                                            <Loader2 className="w-5 h-5 animate-spin" />
+                                            <ButtonLoader />
                                         ) : (
                                             <Video className="w-5 h-5" />
                                         )}

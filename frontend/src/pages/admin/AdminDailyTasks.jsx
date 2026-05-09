@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Calendar, Search, Loader2, Clock, MapPin, CheckCircle, Trash2, Edit3, Save, X, ExternalLink, Activity } from 'lucide-react';
+import { Calendar, Search, Clock, MapPin, CheckCircle, Trash2, Edit3, Save, X, ExternalLink, Activity } from 'lucide-react';
+import Loader, { ButtonLoader } from '../../components/ui/Loader';
 import Badge from '../../components/ui/Badge';
 import { courseAPI, dailyTaskAPI } from '../../services/api';
 
@@ -116,8 +117,9 @@ const AdminDailyTasks = () => {
                         onClick={() => selectedCourse && fetchTasks(selectedCourse)}
                         className="flex items-center gap-2 px-3 py-1.5 hover:bg-gray-100 rounded-lg text-gray-500 transition-all active:scale-95"
                     >
-                        <Loader2 className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-                        <span className="text-xs font-bold uppercase tracking-wider">Refresh</span>
+                        <ButtonLoader isLoading={isLoading} icon={<Activity className="w-4 h-4" />}>
+                            Refresh
+                        </ButtonLoader>
                     </button>
                 </div>
             </div>
@@ -153,7 +155,7 @@ const AdminDailyTasks = () => {
 
             {isLoading && tasks.length === 0 && (
                 <div className="flex items-center justify-center py-20">
-                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                    <Loader />
                 </div>
             )}
 
@@ -230,7 +232,9 @@ const AdminDailyTasks = () => {
                                                         disabled={isSubmitting}
                                                         className="px-4 py-2 bg-indigo-600 text-white hover:bg-indigo-700 rounded-lg text-sm font-medium flex items-center gap-2"
                                                     >
-                                                        {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Save
+                                                        <ButtonLoader isLoading={isSubmitting} icon={<Save className="w-4 h-4" />}>
+                                                            Save
+                                                        </ButtonLoader>
                                                     </button>
                                                     <button 
                                                         onClick={() => setEditingTask(null)}

@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Award, ExternalLink, BookOpen, Calendar, Clock, User, CheckCircle, Loader2 } from 'lucide-react';
+import { Award, ExternalLink, BookOpen, Calendar, Clock, User, CheckCircle } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import { certificateAPI } from '../../services/api';
+import Loader, { ButtonLoader } from '../../components/ui/Loader';
 
 const TeacherCertificates = () => {
     const { user } = useSelector((state) => state.auth);
@@ -30,10 +31,7 @@ const TeacherCertificates = () => {
 
     if (isLoading) {
         return (
-            <div className="flex flex-col items-center justify-center h-64 gap-3">
-                <img src="/loading.gif" alt="Loading" className="w-20 h-20 object-contain" />
-                <span className="text-gray-600 font-medium">Loading certificates...</span>
-            </div>
+            <Loader message="Loading certificates..." />
         );
     }
 
