@@ -65,6 +65,9 @@ const io = require('socket.io')(server, {
 
 app.set('io', io);
 
+// Track active users
+const activeUserSockets = new Map(); // socket.id -> userId
+
 io.on('connection', (socket) => {
     console.log('🔌 New client connected');
 
@@ -72,7 +75,13 @@ io.on('connection', (socket) => {
         const room = userId.toString();
         socket.join(room);
         socket.userId = room; // Store user identifier on socket
-        console.log(`👤 User joined personal chat room: ${room}`);
+        activeUserSockets.set(socket.id, room);
+        
+        // Broadcast unique active users count
+        const uniqueUsers = new Set(activeUserSockets.values()).size;
+        io.emit('active_users_count', uniqueUsers);
+        
+        console.log(`👤 User joined personal chat room: ${room} | Active: ${uniqueUsers}`);
 
         // Update status in real-time
         try {
@@ -129,7 +138,10 @@ io.on('connection', (socket) => {
     });
 
     socket.on('disconnect', () => {
-        console.log('🔌 Client disconnected');
+        activeUserSockets.delete(socket.id);
+        const uniqueUsers = new Set(activeUserSockets.values()).size;
+        io.emit('active_users_count', uniqueUsers);
+        console.log('🔌 Client disconnected | Active:', uniqueUsers);
     });
 });
 

@@ -293,6 +293,18 @@ const StudentsManagement = () => {
             setIsProcessing(false);
         }
     };
+    const handleDeleteFeeRecord = async (feeId) => {
+        if (!window.confirm('WARNING: This will permanently delete this student\'s enrollment and all their fee records for this course. This action cannot be undone. Continue?')) return;
+        try {
+            await feeAPI.delete(feeId);
+            setFeeRecords(prev => prev.filter(f => f._id !== feeId));
+            // Refresh student list to update enrollment counts
+            fetchStudents();
+        } catch (err) {
+            console.error('Error deleting fee record:', err);
+            alert('Failed to delete record');
+        }
+    };
     // ----------------------------------------------------------
 
     const getStudentStatus = (s) => {
@@ -1129,13 +1141,22 @@ const StudentsManagement = () => {
                                                         Total Course Fee: <span className="text-gray-900 font-bold">Rs {(fee.totalFee || 0).toLocaleString()}</span>
                                                     </p>
                                                 </div>
-                                                <button
-                                                    onClick={() => handleManageInstallments(fee)}
-                                                    className="px-4 py-2 bg-primary hover:bg-primary text-white rounded-xl text-xs font-bold flex items-center gap-2 shadow-sm transition-all"
-                                                >
-                                                    <Calendar className="w-3.5 h-3.5" />
-                                                    Manage Plan
-                                                </button>
+                                                <div className="flex items-center gap-2">
+                                                    <button
+                                                        onClick={() => handleDeleteFeeRecord(fee._id)}
+                                                        className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors border border-gray-100 shadow-sm"
+                                                        title="Permanently remove this course enrollment"
+                                                    >
+                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleManageInstallments(fee)}
+                                                        className="px-4 py-2 bg-primary hover:bg-primary text-white rounded-xl text-xs font-bold flex items-center gap-2 shadow-sm transition-all"
+                                                    >
+                                                        <Calendar className="w-3.5 h-3.5" />
+                                                        Manage Plan
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
                                     ))}

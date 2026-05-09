@@ -554,7 +554,7 @@ const FeeVerification = () => {
                                                         onClick={() => {
                                                             const phone = fee.user.phone.replace(/[^0-9]/g, '');
                                                             const formattedPhone = phone.startsWith('0') ? '92' + phone.substring(1) : phone;
-                                                            const msg = `Assalam-o-Alaikum ${fee.user.name},\n\nThis is a reminder from *Adeeb Technology Lab* regarding your course fee for *${fee.course?.title}*.\n\n*Status:* Pending\n*Amount:* Rs ${inst.amount?.toLocaleString()}\n*Due Date:* ${formatDate(inst.dueDate)}\n\nPlease submit your fee and upload the receipt on the portal.\n\nThank you!`;
+                                                            const msg = `Assalam-o-Alaikum ${fee.user.name},\n\nThis is a reminder from *The Computer Courses ${fee.course?.city || 'Bahawalpur'}* regarding your course fee for *${fee.course?.title}*.\n\n*Status:* Pending\n*Amount:* Rs ${inst.amount?.toLocaleString()}\n*Due Date:* ${formatDate(inst.dueDate)}\n\nPlease submit your fee and upload the receipt on the portal.\n\nThank you!`;
                                                             window.open(`https://wa.me/${formattedPhone}?text=${encodeURIComponent(msg)}`, '_blank');
                                                         }}
                                                         className="px-3 py-1.5 bg-[#25D366] hover:bg-[#128C7E] text-white rounded-lg text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 transition-all shadow-sm shadow-green-200"
@@ -567,8 +567,8 @@ const FeeVerification = () => {
                                                     </button>
                                                     <button
                                                         onClick={() => {
-                                                            const subject = encodeURIComponent(`Fee Payment Reminder - ${fee.course?.title || 'Adeeb Technology Lab'}`);
-                                                            const body = encodeURIComponent(`Assalam-o-Alaikum ${fee.user.name},\n\nThis is a reminder from Adeeb Technology Lab regarding your course fee for ${fee.course?.title}.\n\nStatus: Pending\nAmount: Rs ${inst.amount?.toLocaleString()}\nDue Date: ${formatDate(inst.dueDate)}\n\nPlease submit your fee and upload the receipt on the portal.\n\nThank you!`);
+                                                            const subject = encodeURIComponent(`Fee Payment Reminder - ${fee.course?.title || 'The Computer Courses'}`);
+                                                            const body = encodeURIComponent(`Assalam-o-Alaikum ${fee.user.name},\n\nThis is a reminder from The Computer Courses ${fee.course?.city || 'Bahawalpur'} regarding your course fee for ${fee.course?.title}.\n\nStatus: Pending\nAmount: Rs ${inst.amount?.toLocaleString()}\nDue Date: ${formatDate(inst.dueDate)}\n\nPlease submit your fee and upload the receipt on the portal.\n\nThank you!`);
                                                             window.location.href = `mailto:${fee.user.email}?subject=${subject}&body=${body}`;
                                                         }}
                                                         className="px-3 py-1.5 bg-sky-500 hover:bg-sky-600 text-white rounded-lg text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 transition-all shadow-sm shadow-sky-100"

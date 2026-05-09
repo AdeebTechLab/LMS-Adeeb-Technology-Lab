@@ -61,6 +61,7 @@ const AdminDashboard = () => {
     const [showFullHistory, setShowFullHistory] = useState(false);
     const [isDownloading, setIsDownloading] = useState(false);
     const [slipModal, setSlipModal] = useState({ open: false, url: null, student: '' });
+    const [liveCount, setLiveCount] = useState(null);
     const dashboardRef = useRef(null);
 
     useEffect(() => {
@@ -70,10 +71,15 @@ const AdminDashboard = () => {
             return rawUrl.replace('/api', '');
         };
         const socket = io(getSocketURL(), { withCredentials: true });
+        
+        const user = JSON.parse(localStorage.getItem('user'));
+        const myId = user?.id || user?._id;
+        if (myId) socket.emit('join_chat', myId);
 
         socket.on('new_submission', () => fetchStats());
         socket.on('new_assignment', () => fetchStats());
         socket.on('new_global_message', () => fetchStats());
+        socket.on('active_users_count', (count) => setLiveCount(count));
 
         return () => socket.disconnect();
     }, []);
@@ -312,7 +318,7 @@ const AdminDashboard = () => {
                     </div>
                     <div>
                         <p className="text-[9px] font-black uppercase tracking-widest text-primary/60">Live Now</p>
-                        <p className="text-lg font-black text-gray-900">{data?.managementPulse?.activeNow || 0} Members Online</p>
+                        <p className="text-lg font-black text-gray-900">{(liveCount !== null ? liveCount : data?.managementPulse?.activeNow) || 0} Members Online</p>
                     </div>
                 </div>
                 <div 
