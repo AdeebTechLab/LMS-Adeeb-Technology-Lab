@@ -227,7 +227,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                     <button
                         onClick={fetchAssignments}
                         disabled={isLoading}
-                        className="flex items-center gap-2 px-5 py-2.5 bg-primary/5 text-primary rounded-xl font-black text-[10px] uppercase tracking-widest border-2 border-primary/10 hover:border-primary hover:bg-white hover:shadow-lg hover:shadow-primary/10 transition-all active:scale-95 disabled:opacity-50"
+                        className="flex items-center gap-2 px-5 py-2.5 bg-primary/5 text-primary rounded-xl font-black text-[10px] uppercase tracking-widest transition-all active:scale-95 disabled:opacity-50"
                     >
                         <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
                         Refresh List
@@ -247,11 +247,39 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                             setAssignSearchTerm('');
                             setIsCreateModalOpen(true);
                         }}
-                        className="px-6 py-2.5 bg-[#0f2847] hover:bg-primary text-white rounded-xl font-black text-xs uppercase tracking-widest transition-all flex items-center gap-2 shadow-lg shadow-blue-900/10 active:scale-95"
+                        className="px-6 py-2.5 bg-primary hover:bg-primary/90 text-white rounded-xl font-black text-xs uppercase tracking-widest transition-all flex items-center gap-2 shadow-lg shadow-primary/10 active:scale-95"
                     >
                         <Plus className="w-4 h-4" />
                         Create Assignment
                     </button>
+                </div>
+            </div>
+
+            {/* Quick Stats Summary Row */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div className="bg-primary/5 rounded-3xl p-6 border border-primary/10 text-center shadow-sm hover:shadow-md transition-all">
+                    <p className="text-2xl sm:text-3xl font-black text-primary">{assignments.length}</p>
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Total Assignments</p>
+                </div>
+                <div className="bg-green-50 dark:bg-green-500/10 rounded-3xl p-6 border border-green-100 dark:border-green-500/20 text-center shadow-sm hover:shadow-md transition-all">
+                    <p className="text-2xl sm:text-3xl font-black text-green-600 dark:text-green-400">
+                        {assignments.reduce((acc, a) => acc + (a.submissions?.length || 0), 0)}
+                    </p>
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Total Submissions</p>
+                </div>
+                <div className="bg-amber-50 dark:bg-amber-500/10 rounded-3xl p-6 border border-amber-100 dark:border-amber-500/20 text-center shadow-sm hover:shadow-md transition-all">
+                    <p className="text-2xl sm:text-3xl font-black text-amber-600 dark:text-amber-400">
+                        {assignments.reduce((acc, a) => {
+                            const submissions = a.submissions || [];
+                            const gradedCount = submissions.filter(s => s.status === 'graded' || s.status === 'rejected').length;
+                            return acc + (submissions.length - gradedCount);
+                        }, 0)}
+                    </p>
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Pending Marks</p>
+                </div>
+                <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 border border-gray-100 dark:border-gray-700 text-center shadow-sm hover:shadow-md transition-all">
+                    <p className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-gray-100">{students.length}</p>
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Total Students</p>
                 </div>
             </div>
 

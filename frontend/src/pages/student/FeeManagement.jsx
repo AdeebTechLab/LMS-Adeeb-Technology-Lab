@@ -1,9 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { io } from 'socket.io-client';
 import {
-    CreditCard, Upload, Clock, CheckCircle, AlertCircle, FileText, Loader2, FileImage, Trash2, X
+    CreditCard, Upload, Clock, CheckCircle, AlertCircle, FileText, Loader2, FileImage, Trash2, X, Eye
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
@@ -34,20 +36,51 @@ const FeeManagement = () => {
         easypaisa: 'https://res.cloudinary.com/adeeb-tech-lab/image/upload/v1776804616/easypaisa_yr7gux.png'
     };
 
+    const socketRef = useRef(null);
+    const { user } = useSelector((state) => state.auth);
+
+    const getSocketURL = () => {
+        const rawUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        return rawUrl.replace('/api', '');
+    };
+
     useEffect(() => {
         fetchFees();
-    }, []);
 
-    // (No periodic polling — rely on existing refresh and submitted-payment polling)
+        // Initialize socket
+        const SOCKET_URL = getSocketURL();
+        socketRef.current = io(SOCKET_URL, { withCredentials: true });
+
+        const myId = user?.id || user?._id;
+        if (myId) {
+            socketRef.current.emit('join_chat', myId);
+        }
+
+        socketRef.current.on('fee_updated', () => {
+            console.log('🔄 Fee update received via socket. Refreshing...');
+            fetchFees();
+        });
+
+        socketRef.current.on('new_browser_notification', () => {
+            fetchFees();
+        });
+
+        return () => {
+            if (socketRef.current) {
+                socketRef.current.disconnect();
+            }
+        };
+    }, []);
 
     // Poll for updates while there are submitted payments awaiting verification
     useEffect(() => {
         let interval = null;
         const hasSubmitted = fees.some(fee => (fee.installments || []).some(i => i.status === 'submitted'));
         if (hasSubmitted) {
+            // Still keeping polling as a fallback, but sockets are primary
             interval = setInterval(() => {
                 fetchFees();
-            }, 8000);
+            }, 15000); // Increased interval since sockets are active
         }
         return () => clearInterval(interval);
     }, [fees]);
@@ -176,6 +209,20 @@ const FeeManagement = () => {
         }
     };
 
+    const getImageUrl = (url) => {
+        if (!url) return '';
+        try {
+            const cleanUrl = String(url).trim();
+            if (cleanUrl.toLowerCase().startsWith('http') || cleanUrl.toLowerCase().startsWith('data:')) {
+                return cleanUrl;
+            }
+            const baseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace(/\/api\/?$/, '');
+            return `${baseUrl}/${cleanUrl.replace(/\\/g, '/').replace(/^\//, '')}`;
+        } catch (e) {
+            return url;
+        }
+    };
+
     // Calculate totals from installments
     const getTotals = () => {
         let pending = 0;
@@ -239,58 +286,56 @@ const FeeManagement = () => {
                     <CheckCircle className="w-5 h-5 text-primary" />
                     <span className="text-primary font-medium">{successMsg}</span>
                 </motion.div>
-            )}
-
-            {/* Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-2xl p-6 border border-gray-100">
+            )}            {/* Summary Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm group hover:border-primary/20 transition-all">
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-sm text-gray-500 mb-1">Total Pending</p>
-                            <p className="text-2xl font-bold text-red-600">Rs {totals.pending.toLocaleString()}</p>
+                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Total Pending</p>
+                            <p className="text-xl font-black text-gray-900">Rs {totals.pending.toLocaleString()}</p>
                         </div>
-                        <div className="p-3 bg-red-100 rounded-xl">
-                            <AlertCircle className="w-6 h-6 text-red-600" />
+                        <div className="w-12 h-12 rounded-2xl bg-primary/5 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                            <AlertCircle className="w-6 h-6" />
                         </div>
                     </div>
                 </motion.div>
 
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-white rounded-2xl p-6 border border-gray-100">
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm group hover:border-primary/20 transition-all">
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-sm text-gray-500 mb-1">Under Review</p>
-                            <p className="text-2xl font-bold text-blue-600">{totals.underReviewCount}</p>
+                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Under Review</p>
+                            <p className="text-xl font-black text-gray-900">{totals.underReviewCount}</p>
                         </div>
-                        <div className="p-3 bg-blue-100 rounded-xl">
-                            <Clock className="w-6 h-6 text-blue-600" />
+                        <div className="w-12 h-12 rounded-2xl bg-primary/5 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                            <Clock className="w-6 h-6" />
                         </div>
                     </div>
                 </motion.div>
 
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-white rounded-2xl p-6 border border-gray-100">
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm group hover:border-primary/20 transition-all">
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-sm text-gray-500 mb-1">Verified</p>
-                            <p className="text-2xl font-bold text-primary">{totals.verifiedCount}</p>
+                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Verified</p>
+                            <p className="text-xl font-black text-gray-900">{totals.verifiedCount}</p>
                         </div>
-                        <div className="p-3 bg-primary/10 rounded-xl">
-                            <CheckCircle className="w-6 h-6 text-primary" />
+                        <div className="w-12 h-12 rounded-2xl bg-primary/5 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                            <CheckCircle className="w-6 h-6" />
                         </div>
                     </div>
                 </motion.div>
 
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="bg-white rounded-2xl p-6 border border-gray-100">
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm group hover:border-primary/20 transition-all">
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-sm text-gray-500 mb-1">Submitted Total</p>
-                            <p className="text-2xl font-bold text-indigo-600">Rs {totals.submittedAmount.toLocaleString()}</p>
+                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Submitted Total</p>
+                            <p className="text-xl font-black text-gray-900">Rs {totals.submittedAmount.toLocaleString()}</p>
                         </div>
-                        <div className="p-3 bg-indigo-50 rounded-xl">
-                            <FileText className="w-6 h-6 text-indigo-600" />
+                        <div className="w-12 h-12 rounded-2xl bg-primary/5 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                            <FileText className="w-6 h-6" />
                         </div>
                     </div>
                 </motion.div>
-            </div>
+            </div>iv>
 
             {/* Course Challan List */}
             <div className="space-y-4 order-1">
@@ -347,41 +392,53 @@ const FeeManagement = () => {
                                         </div>
                                     ) : (
                                         fee.installments.map((inst, index) => {
-                                            const isPayable = inst.status === 'pending' || inst.status === 'rejected';
+                                            const isOverdue = inst.status === 'overdue' || (inst.status === 'pending' && inst.dueDate && new Date(inst.dueDate) < new Date());
+                                            const isPayable = inst.status === 'pending' || inst.status === 'rejected' || inst.status === 'overdue';
                                             return (
-                                                <div key={inst._id || index} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-gray-50 rounded-xl gap-4 border border-gray-100 hover:border-primary/10 transition-colors">
+                                                <div key={inst._id || index} className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl gap-4 border transition-colors ${isOverdue ? 'bg-red-50 border-red-100 hover:border-red-200' : 'bg-gray-50 border-gray-100 hover:border-primary/10'}`}>
                                                     <div>
                                                         <div className="flex items-center gap-2 mb-1">
                                                             <span className="font-medium text-gray-900">Month {index + 1} Fee</span>
                                                             <Badge variant={
                                                                 inst.status === 'verified' ? 'success' :
                                                                     inst.status === 'submitted' ? 'info' :
-                                                                        inst.status === 'rejected' ? 'danger' : 'warning'
+                                                                        (inst.status === 'rejected' || isOverdue) ? 'danger' : 'warning'
                                                             }>
-                                                                {inst.status}
+                                                                {isOverdue && inst.status === 'pending' ? 'OVERDUE' : inst.status}
                                                             </Badge>
                                                         </div>
                                                         <div className="flex gap-4 text-sm text-gray-500">
-                                                            <span>Due: {inst.dueDate ? new Date(inst.dueDate).toLocaleDateString() : 'TBA'}</span>
+                                                            <span className={isOverdue ? 'text-red-600 font-bold' : ''}>Due: {inst.dueDate ? new Date(inst.dueDate).toLocaleDateString() : 'TBA'}</span>
                                                             {inst.slipId && <span>Slip ID: {inst.slipId}</span>}
                                                         </div>
                                                     </div>
 
                                                     <div className="flex items-center gap-4">
-                                                        <span className="font-bold text-gray-900 text-lg">Rs {(inst.amount || 0).toLocaleString()}</span>
-                                                        {isPayable && (
-                                                            <button
-                                                                onClick={() => handlePayClick(fee, inst)}
-                                                                disabled={fee.enrollmentIsPaused}
-                                                                className={`px-4 py-2 ${fee.enrollmentIsPaused ? 'bg-gray-300 cursor-not-allowed' : 'bg-primary hover:bg-primary'} text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2 shadow-sm`}
-                                                            >
-                                                                <Upload className="w-4 h-4" />
-                                                                {fee.enrollmentIsPaused ? 'LOCKED' : 'Pay Now'}
-                                                            </button>
-                                                        )}
-                                                        {inst.status === 'submitted' && (
-                                                            <span className="text-sm text-primary font-medium bg-primary/5 px-3 py-1 rounded-lg">Processing</span>
-                                                        )}
+                                                        <span className={`font-bold text-lg ${isOverdue ? 'text-red-700' : 'text-gray-900'}`}>Rs {(inst.amount || 0).toLocaleString()}</span>
+                                                        <div className="flex items-center gap-2">
+                                                            {inst.receiptUrl && (
+                                                                <button
+                                                                    onClick={() => setQrPreview({ open: true, src: getImageUrl(inst.receiptUrl), title: 'Your Payment Receipt' })}
+                                                                    className="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors border border-blue-100 shadow-sm active:scale-90"
+                                                                    title="View Uploaded Receipt"
+                                                                >
+                                                                    <Eye className="w-4 h-4" />
+                                                                </button>
+                                                            )}
+                                                            {isPayable && (
+                                                                <button
+                                                                    onClick={() => handlePayClick(fee, inst)}
+                                                                    disabled={fee.enrollmentIsPaused}
+                                                                    className={`px-4 py-2 ${fee.enrollmentIsPaused ? 'bg-gray-300 cursor-not-allowed' : 'bg-primary hover:bg-primary/90'} text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2 shadow-sm active:scale-95`}
+                                                                >
+                                                                    <Upload className="w-4 h-4" />
+                                                                    {fee.enrollmentIsPaused ? 'LOCKED' : (isOverdue ? 'Pay Late Fee' : 'Pay Now')}
+                                                                </button>
+                                                            )}
+                                                            {inst.status === 'submitted' && (
+                                                                <span className="text-sm text-primary font-medium bg-primary/5 px-3 py-1 rounded-lg">Processing</span>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                 </div>
                                             );
@@ -405,138 +462,144 @@ const FeeManagement = () => {
                     {/* HBL Card */}
                     <motion.div
                         whileHover={{ y: -5 }}
-                        className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition-all border-l-4 border-l-primary"
+                        className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-all border-l-4 border-l-primary flex flex-col h-full"
                     >
-                        <div className="flex items-center justify-between mb-4">
-                            <div className="p-2 bg-primary/5 rounded-lg">
+                        <div className="flex items-center justify-between mb-6">
+                            <div className="p-2.5 bg-primary/5 rounded-xl">
                                 <CreditCard className="w-5 h-5 text-primary" />
                             </div>
                             <span className="text-[10px] font-black text-primary uppercase tracking-widest bg-primary/5 px-2 py-1 rounded-md">Bank Transfer</span>
                         </div>
-                        <div className="flex gap-4 items-center justify-between">
-                            <div className="space-y-3 flex-1 min-w-0">
+                        
+                        <div className="flex items-center justify-between gap-4 mb-6">
+                            <div className="space-y-4">
                                 <div>
                                     <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Provider</p>
-                                    <p className="font-bold text-primary text-lg">HBL</p>
+                                    <p className="font-black text-primary text-xl">HBL</p>
                                 </div>
                                 <div>
                                     <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Account Name</p>
                                     <p className="font-bold text-gray-900 text-lg">Salman Yasin</p>
                                 </div>
-                                <div className="pt-2">
-                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter mb-1">Transfer Number</p>
-                                    <div
-                                        onClick={() => {
-                                            navigator.clipboard.writeText('14737991982703');
-                                            alert('Account number copied!');
-                                        }}
-                                        className="bg-gray-50 p-3 rounded-xl border border-gray-100 font-black text-primary text-2xl tracking-widest cursor-pointer hover:bg-primary/5 hover:border-primary/10 transition-all select-all flex justify-between items-center"
-                                    >
-                                        14737991982703
-                                        <span className="text-[10px] font-bold text-primary bg-white px-2 py-1 rounded shadow-sm">COPY</span>
-                                    </div>
-                                </div>
                             </div>
                             <button
                                 type="button"
                                 onClick={() => setQrPreview({ open: true, src: QR_LINKS.hbl, title: 'HBL QR Code' })}
-                                className="w-24 h-24 rounded-xl overflow-hidden border border-gray-200 bg-gray-50 hover:scale-105 transition-transform shadow-sm flex-shrink-0"
+                                className="w-28 h-28 rounded-2xl overflow-hidden border border-gray-200 bg-gray-50 hover:scale-105 transition-transform shadow-sm flex-shrink-0 p-1.5"
                                 title="Open HBL QR"
                             >
-                                <img src={QR_LINKS.hbl} alt="HBL QR" className="w-full h-full object-cover" />
+                                <img src={QR_LINKS.hbl} alt="HBL QR" className="w-full h-full object-contain" />
                             </button>
+                        </div>
+
+                        <div className="mt-auto">
+                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter mb-2">Transfer Number</p>
+                            <div
+                                onClick={() => {
+                                    navigator.clipboard.writeText('14737991982703');
+                                    alert('Account number copied!');
+                                }}
+                                className="bg-gray-50 p-4 rounded-2xl border border-gray-100 font-black text-primary text-2xl tracking-widest cursor-pointer hover:bg-primary/5 hover:border-primary/20 transition-all select-all flex justify-between items-center group/copy"
+                            >
+                                <span>14737991982703</span>
+                                <span className="text-[10px] font-black text-primary bg-white px-3 py-1.5 rounded-xl shadow-sm border border-primary/10 group-hover/copy:bg-primary group-hover/copy:text-white transition-colors">COPY</span>
+                            </div>
                         </div>
                     </motion.div>
 
                     {/* JazzCash Card */}
                     <motion.div
                         whileHover={{ y: -5 }}
-                        className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition-all border-l-4 border-l-primary"
+                        className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-all border-l-4 border-l-primary flex flex-col h-full"
                     >
-                        <div className="flex items-center justify-between mb-4">
-                            <div className="p-2 bg-primary/5 rounded-lg">
+                        <div className="flex items-center justify-between mb-6">
+                            <div className="p-2.5 bg-primary/5 rounded-xl">
                                 <CreditCard className="w-5 h-5 text-primary" />
                             </div>
                             <span className="text-[10px] font-black text-primary uppercase tracking-widest bg-primary/5 px-2 py-1 rounded-md">Mobile Wallet</span>
                         </div>
-                        <div className="flex gap-4 items-center justify-between">
-                            <div className="space-y-3 flex-1 min-w-0">
+
+                        <div className="flex items-center justify-between gap-4 mb-6">
+                            <div className="space-y-4">
                                 <div>
                                     <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Provider</p>
-                                    <p className="font-bold text-primary text-lg">JAZZCASH</p>
+                                    <p className="font-black text-primary text-xl">JAZZCASH</p>
                                 </div>
                                 <div>
                                     <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Account Name</p>
                                     <p className="font-bold text-gray-900 text-lg">Salman Yasin</p>
                                 </div>
-                                <div className="pt-2">
-                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter mb-1">Transfer Number</p>
-                                    <div
-                                        onClick={() => {
-                                            navigator.clipboard.writeText('03092333121');
-                                            alert('Number copied!');
-                                        }}
-                                        className="bg-gray-50 p-3 rounded-xl border border-gray-100 font-black text-primary text-2xl tracking-widest cursor-pointer hover:bg-primary/5 hover:border-primary/10 transition-all select-all flex justify-between items-center"
-                                    >
-                                        03092333121
-                                        <span className="text-[10px] font-bold text-primary bg-white px-2 py-1 rounded shadow-sm">COPY</span>
-                                    </div>
-                                </div>
                             </div>
                             <button
                                 type="button"
                                 onClick={() => setQrPreview({ open: true, src: QR_LINKS.jazzcash, title: 'JazzCash QR Code' })}
-                                className="w-24 h-24 rounded-xl overflow-hidden border border-gray-200 bg-gray-50 hover:scale-105 transition-transform shadow-sm flex-shrink-0"
+                                className="w-28 h-28 rounded-2xl overflow-hidden border border-gray-200 bg-gray-50 hover:scale-105 transition-transform shadow-sm flex-shrink-0 p-1.5"
                                 title="Open JazzCash QR"
                             >
-                                <img src={QR_LINKS.jazzcash} alt="JazzCash QR" className="w-full h-full object-cover" />
+                                <img src={QR_LINKS.jazzcash} alt="JazzCash QR" className="w-full h-full object-contain" />
                             </button>
+                        </div>
+
+                        <div className="mt-auto">
+                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter mb-2">Transfer Number</p>
+                            <div
+                                onClick={() => {
+                                    navigator.clipboard.writeText('03092333121');
+                                    alert('Number copied!');
+                                }}
+                                className="bg-gray-50 p-4 rounded-2xl border border-gray-100 font-black text-primary text-2xl tracking-widest cursor-pointer hover:bg-primary/5 hover:border-primary/20 transition-all select-all flex justify-between items-center group/copy"
+                            >
+                                <span>03092333121</span>
+                                <span className="text-[10px] font-black text-primary bg-white px-3 py-1.5 rounded-xl shadow-sm border border-primary/10 group-hover/copy:bg-primary group-hover/copy:text-white transition-colors">COPY</span>
+                            </div>
                         </div>
                     </motion.div>
 
                     {/* Easypaisa Card */}
                     <motion.div
                         whileHover={{ y: -5 }}
-                        className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition-all border-l-4 border-l-primary"
+                        className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-all border-l-4 border-l-primary flex flex-col h-full"
                     >
-                        <div className="flex items-center justify-between mb-4">
-                            <div className="p-2 bg-primary/5 rounded-lg">
+                        <div className="flex items-center justify-between mb-6">
+                            <div className="p-2.5 bg-primary/5 rounded-xl">
                                 <CreditCard className="w-5 h-5 text-primary" />
                             </div>
                             <span className="text-[10px] font-black text-primary uppercase tracking-widest bg-primary/5 px-2 py-1 rounded-md">Mobile Wallet</span>
                         </div>
-                        <div className="flex gap-4 items-center justify-between">
-                            <div className="space-y-3 flex-1 min-w-0">
+
+                        <div className="flex items-center justify-between gap-4 mb-6">
+                            <div className="space-y-4">
                                 <div>
                                     <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Provider</p>
-                                    <p className="font-bold text-primary text-lg">EASYPAISA</p>
+                                    <p className="font-black text-primary text-xl">EASYPAISA</p>
                                 </div>
                                 <div>
                                     <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Account Name</p>
                                     <p className="font-bold text-gray-900 text-lg">Salman Yasin</p>
                                 </div>
-                                <div className="pt-2">
-                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter mb-1">Transfer Number</p>
-                                    <div
-                                        onClick={() => {
-                                            navigator.clipboard.writeText('03441713141');
-                                            alert('Number copied!');
-                                        }}
-                                        className="bg-gray-50 p-3 rounded-xl border border-gray-100 font-black text-primary text-2xl tracking-widest cursor-pointer hover:bg-primary/5 hover:border-primary/10 transition-all select-all flex justify-between items-center"
-                                    >
-                                        03441713141
-                                        <span className="text-[10px] font-bold text-primary bg-white px-2 py-1 rounded shadow-sm">COPY</span>
-                                    </div>
-                                </div>
                             </div>
                             <button
                                 type="button"
                                 onClick={() => setQrPreview({ open: true, src: QR_LINKS.easypaisa, title: 'Easypaisa QR Code' })}
-                                className="w-24 h-24 rounded-xl overflow-hidden border border-gray-200 bg-gray-50 hover:scale-105 transition-transform shadow-sm flex-shrink-0"
+                                className="w-28 h-28 rounded-2xl overflow-hidden border border-gray-200 bg-gray-50 hover:scale-105 transition-transform shadow-sm flex-shrink-0 p-1.5"
                                 title="Open Easypaisa QR"
                             >
-                                <img src={QR_LINKS.easypaisa} alt="Easypaisa QR" className="w-full h-full object-cover" />
+                                <img src={QR_LINKS.easypaisa} alt="Easypaisa QR" className="w-full h-full object-contain" />
                             </button>
+                        </div>
+
+                        <div className="mt-auto">
+                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter mb-2">Transfer Number</p>
+                            <div
+                                onClick={() => {
+                                    navigator.clipboard.writeText('03441713141');
+                                    alert('Number copied!');
+                                }}
+                                className="bg-gray-50 p-4 rounded-2xl border border-gray-100 font-black text-primary text-2xl tracking-widest cursor-pointer hover:bg-primary/5 hover:border-primary/20 transition-all select-all flex justify-between items-center group/copy"
+                            >
+                                <span>03441713141</span>
+                                <span className="text-[10px] font-black text-primary bg-white px-3 py-1.5 rounded-xl shadow-sm border border-primary/10 group-hover/copy:bg-primary group-hover/copy:text-white transition-colors">COPY</span>
+                            </div>
                         </div>
                     </motion.div>
                 </div>

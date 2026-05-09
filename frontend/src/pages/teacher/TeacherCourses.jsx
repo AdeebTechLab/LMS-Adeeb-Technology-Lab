@@ -204,11 +204,11 @@ const TeacherCourses = ({ isDashboard = false }) => {
     useEffect(() => {
         let result = myCourses;
 
-        // 1. Search Filter (Title)
+        // 1. Search Filter (Title or Name)
         if (searchQuery) {
             const lowerQuery = searchQuery.toLowerCase();
             result = result.filter(course =>
-                (course.title || '').toLowerCase().includes(lowerQuery)
+                (course.title || course.name || '').toLowerCase().includes(lowerQuery)
             );
         }
 
@@ -238,7 +238,7 @@ const TeacherCourses = ({ isDashboard = false }) => {
 
             console.log('[TeacherDashboard] Loaded', coursesWithData.length, 'courses via optimized API');
 
-            setMyCourses(coursesWithData);
+            // setMyCourses(coursesWithData); // REMOVED redundant call
 
             // Calculate overall summary
             const uniqueStudentIds = new Set();
@@ -248,8 +248,7 @@ const TeacherCourses = ({ isDashboard = false }) => {
                 ? coursesWithData.filter(c => (c.pendingAssignments || 0) > 0 || (c.unreadMessages || 0) > 0)
                 : coursesWithData;
 
-            // Stats should always reflect ALL courses for accuracy, or just current view? 
-            // User said "Total Courses" etc. so we keep the calculation on coursesWithData
+            // Stats should always reflect ALL courses for accuracy
             coursesWithData.forEach(c => {
                 (c.enrollments || []).forEach(e => {
                     const uid = e.user?._id || e.student?._id || e.user || e.student;
@@ -279,7 +278,7 @@ const TeacherCourses = ({ isDashboard = false }) => {
                 todayAbsent,
             });
 
-            // Set the filtered courses to state
+            // Set the final list of courses
             setMyCourses(displayCourses);
         } catch (error) {
             console.error('Error fetching courses:', error);

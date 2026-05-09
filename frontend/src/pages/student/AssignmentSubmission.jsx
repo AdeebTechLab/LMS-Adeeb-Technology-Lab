@@ -678,12 +678,20 @@ const AssignmentSubmission = () => {
 
                     {/* Fee Overdue Warning */}
                     {feeOverdue.hasOverdue && (
-                        <div className="bg-red-50 border border-red-200 px-4 py-3 rounded-xl flex items-center gap-3 text-red-600">
-                            <AlertCircle className="w-5 h-5 flex-shrink-0" />
-                            <div className="flex flex-col">
-                                <span className="text-sm font-bold">Payment Overdue - Submissions Disabled</span>
-                                <span className="text-xs font-medium">Installment #{feeOverdue.overdueInstallment?.installmentNumber} is {feeOverdue.overdueInstallment?.daysPastDue} days overdue. Please pay to unlock submissions.</span>
+                        <div className="bg-red-50 border border-red-200 px-4 py-3 rounded-xl flex items-center justify-between gap-3 text-red-600 mb-4">
+                            <div className="flex items-center gap-3">
+                                <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                                <div className="flex flex-col">
+                                    <span className="text-sm font-bold uppercase tracking-tight">Payment Overdue - Submissions Locked</span>
+                                    <span className="text-[11px] font-medium opacity-90 leading-tight">Installment #{feeOverdue.overdueInstallment?.installmentNumber} is {feeOverdue.overdueInstallment?.daysPastDue} days overdue. Please clear your dues to continue.</span>
+                                </div>
                             </div>
+                            <Link 
+                                to="/student/fees" 
+                                className="px-4 py-1.5 bg-primary text-white text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-primary/90 transition-all shadow-sm hover:shadow-md whitespace-nowrap active:scale-95"
+                            >
+                                Pay Now
+                            </Link>
                         </div>
                     )}
 

@@ -25,7 +25,7 @@ router.get('/course/:courseId', protect, async (req, res) => {
         // If student, filter out answers from questions to prevent cheating
         if (req.user.role === 'student' || req.user.role === 'intern') {
             const userId = req.user.id.toString();
-            
+
             const studentTests = tests.filter(test => {
                 const isAssigned = test.assignTo === 'all' || test.assignedUsers?.some(id => id.toString() === userId);
                 const isPublished = !test.scheduledAt || new Date(test.scheduledAt) <= new Date();
@@ -39,7 +39,7 @@ router.get('/course/:courseId', protect, async (req, res) => {
                     const subUserId = (s.user._id || s.user).toString();
                     return subUserId === userId;
                 });
-                
+
                 // Remove correctOption from questions if user hasn't submitted yet
                 if (testObj.submissions.length === 0) {
                     testObj.questions = testObj.questions.map(q => {
@@ -129,8 +129,8 @@ router.post('/:id/submit', protect, async (req, res) => {
         test.submissions.push(submission);
         await test.save();
 
-        res.json({ 
-            success: true, 
+        res.json({
+            success: true,
             message: 'Test submitted and graded successfully',
             score,
             totalMarks: test.totalMarks,
@@ -181,7 +181,7 @@ router.delete('/:id', protect, authorize('teacher', 'admin'), async (req, res) =
     try {
         const test = await Test.findById(req.params.id);
         if (!test) return res.status(404).json({ success: false, message: 'Test not found' });
-        
+
         await test.deleteOne();
         res.json({ success: true, message: 'Test deleted' });
     } catch (error) {

@@ -215,22 +215,22 @@ const StudentDashboard = () => {
                     title: 'Enrolled Courses',
                     value: courses.filter(c => !c.isCompleted).length.toString(),
                     icon: BookOpen,
-                    iconBg: 'bg-primary/10',
+                    iconBg: 'bg-primary/5',
                     iconColor: 'text-primary',
                 },
                 {
                     title: 'Pending Assignments',
                     value: activeAssignments.length.toString(),
                     icon: Clock,
-                    iconBg: 'bg-amber-100',
-                    iconColor: 'text-amber-600',
+                    iconBg: 'bg-primary/5',
+                    iconColor: 'text-primary',
                     onClick: () => navigate(`/${role}/assignments`)
                 },
                 {
                     title: 'Certificates',
                     value: courses.filter(c => c.isCompleted).length.toString(),
                     icon: CheckCircle,
-                    iconBg: 'bg-primary/10',
+                    iconBg: 'bg-primary/5',
                     iconColor: 'text-primary',
                 },
                 {
@@ -238,8 +238,8 @@ const StudentDashboard = () => {
                     value: totalPendingInstallments > 0 ? `${totalPendingInstallments} Pending` : 'All Clear',
                     subValue: totalPendingAmount > 0 ? `(Rs ${totalPendingAmount.toLocaleString()})` : '',
                     icon: CreditCard,
-                    iconBg: totalPendingInstallments > 0 ? 'bg-red-100' : 'bg-green-100',
-                    iconColor: totalPendingInstallments > 0 ? 'text-red-600' : 'text-green-600',
+                    iconBg: 'bg-primary/5',
+                    iconColor: 'text-primary',
                     onClick: () => navigate(`/${role}/fees`)
                 },
             ]);

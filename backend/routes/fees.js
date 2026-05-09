@@ -209,6 +209,7 @@ router.put('/:feeId/installments/:installmentId/verify', protect, authorize('adm
                 message: notifPayload.body,
                 url: notifPayload.url
             });
+            io.to(studentId).emit('fee_updated');
         }
 
         // Web push notification
@@ -265,6 +266,17 @@ router.put('/:feeId/installments/:installmentId/reject', protect, authorize('adm
                 }
             }
         );
+
+        // Socket notification for real-time refresh
+        const io = req.app.get('io');
+        if (io) {
+            io.to(fee.user.toString()).emit('fee_updated');
+            io.to(fee.user.toString()).emit('new_browser_notification', {
+                title: 'Payment Rejected ❌',
+                message: `Your payment for "${fee.course?.title || 'Course'}" was rejected. Please re-upload.`,
+                url: '/student/fees'
+            });
+        }
 
         res.json({ success: true, fee, message: 'Payment rejected. Student can now re-upload.' });
     } catch (error) {
@@ -365,6 +377,12 @@ router.post('/:id/installments', protect, authorize('admin'), async (req, res) =
                 message: `A new fee challan has been generated for "${cTitle}". Please review your fee plan.`,
                 url: '/student/dashboard'
             });
+        }
+
+        // Socket notification for real-time refresh
+        const io = req.app.get('io');
+        if (io) {
+            io.to(fee.user.toString()).emit('fee_updated');
         }
 
         res.json({ success: true, fee });

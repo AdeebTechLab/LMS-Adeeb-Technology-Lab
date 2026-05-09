@@ -181,30 +181,44 @@ const TestsTab = ({ course, students }) => {
         setTimeout(() => {
             try {
                 const questions = [];
-                const rawBlocks = pasteText.split(/(?=Q[:.])/g);
+                const rawBlocks = pasteText.split(/(?:^|\n)(?=Q[:.]|Question[:.]|\d+[:.])/gi);
 
                 rawBlocks.forEach(block => {
-                    if (!block.trim()) return;
-                    const qMatch = block.match(/Q[:.]\s*(.*?)(?=[A-D][)|.])/s);
-                    const questionText = qMatch ? qMatch[1].trim() : block.split('\n')[0].replace(/Q[:.]\s*/, '').trim();
+                    const cleanBlock = block.trim();
+                    if (!cleanBlock) return;
+                    
+                    // 1. Detect Question Text
+                    const qMatch = cleanBlock.match(/(?:Q[:.]|Question[:.]|\d+[:.])\s*(.*?)(?=[A-D][)|.]|Ans[:.]|Answer[:.]|Correct[:.]|Key[:.]|$)/is);
+                    const questionText = qMatch ? qMatch[1].trim() : cleanBlock.split('\n')[0].replace(/(?:Q[:.]|Question[:.]|\d+[:.])\s*/i, '').trim();
 
+                    if (!questionText) return;
+
+                    // 2. Detect Options
                     const options = [];
-                    const aMatch = block.match(/A[)|.]\s*(.*)/);
-                    const bMatch = block.match(/B[)|.]\s*(.*)/);
-                    const cMatch = block.match(/C[)|.]\s*(.*)/);
-                    const dMatch = block.match(/D[)|.]\s*(.*)/);
+                    const aMatch = cleanBlock.match(/A[)|.]\s*(.*?)(?=[B-D][)|.]|Ans[:.]|Answer[:.]|Correct[:.]|Key[:.]|$)/is);
+                    const bMatch = cleanBlock.match(/B[)|.]\s*(.*?)(?=[C-D][)|.]|Ans[:.]|Answer[:.]|Correct[:.]|Key[:.]|$)/is);
+                    const cMatch = cleanBlock.match(/C[)|.]\s*(.*?)(?=D[)|.]|Ans[:.]|Answer[:.]|Correct[:.]|Key[:.]|$)/is);
+                    const dMatch = cleanBlock.match(/D[)|.]\s*(.*?)(?=Ans[:.]|Answer[:.]|Correct[:.]|Key[:.]|$)/is);
 
-                    if (aMatch) options.push(aMatch[1].split('\n')[0].trim());
-                    if (bMatch) options.push(bMatch[1].split('\n')[0].trim());
-                    if (cMatch) options.push(cMatch[1].split('\n')[0].trim());
-                    if (dMatch) options.push(dMatch[1].split('\n')[0].trim());
+                    if (aMatch) options.push(aMatch[1].trim().split('\n')[0]);
+                    if (bMatch) options.push(bMatch[1].trim().split('\n')[0]);
+                    if (cMatch) options.push(cMatch[1].trim().split('\n')[0]);
+                    if (dMatch) options.push(dMatch[1].trim().split('\n')[0]);
+
+                    // 3. Detect Correct Answer
+                    const ansMatch = cleanBlock.match(/(?:Ans|Correct|Answer|Key)[:.\s(]+([A-D])/i);
+                    let correctOption = 0;
+                    if (ansMatch) {
+                        const char = ansMatch[1].toUpperCase();
+                        correctOption = char.charCodeAt(0) - 65; // A=0, B=1, C=2, D=3
+                    }
 
                     if (options.length >= 2) {
                         questions.push({
                             question: questionText,
                             options: options,
-                            correctOption: 0,
-                            marks: 1
+                            correctOption: correctOption >= 0 && correctOption < options.length ? correctOption : 0,
+                            marks: 5
                         });
                     }
                 });
@@ -223,10 +237,10 @@ const TestsTab = ({ course, students }) => {
                     }
                     setPasteText('');
                 } else {
-                    alert("No valid questions found in the text. Format: Q. Question? A) Option 1 B) Option 2...");
+                    alert("Format not recognized. Use: Q. Question? A) Opt 1 B) Opt 2 Ans: B");
                 }
             } catch (err) {
-                console.error(err);
+                console.error("Parse Error:", err);
             } finally {
                 setIsGenerating(false);
             }
@@ -290,19 +304,44 @@ const TestsTab = ({ course, students }) => {
                     <div className="flex items-center gap-3">
                         <button
                             onClick={fetchTests}
-                            className="flex items-center gap-2 px-4 py-2.5 bg-gray-50 text-gray-500 hover:text-primary hover:bg-primary/5 rounded-xl transition-all group font-black text-[10px] uppercase tracking-widest"
+                            disabled={isLoading}
+                            className="flex items-center gap-2 px-5 py-2.5 bg-primary/5 text-primary rounded-xl font-black text-[10px] uppercase tracking-widest transition-all active:scale-95 disabled:opacity-50"
                             title="Refresh Tests"
                         >
-                            <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin text-primary' : 'group-active:rotate-180 transition-transform duration-500'}`} />
-                            Refresh
+                            <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
+                            Refresh Tests
                         </button>
                         <button
                             onClick={() => setIsCreateModalOpen(true)}
-                            className="flex items-center gap-2 px-6 py-2.5 bg-slate-900 text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-black transition-all shadow-lg active:scale-95"
+                            className="flex items-center gap-2 px-6 py-2.5 bg-primary text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-primary/90 transition-all shadow-lg active:scale-95"
                         >
                             <Plus className="w-4 h-4" />
                             New Test
                         </button>
+                    </div>
+                </div>
+
+                {/* Quick Stats Summary Row */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    <div className="bg-primary/5 rounded-3xl p-6 border border-primary/10 text-center shadow-sm hover:shadow-md transition-all">
+                        <p className="text-2xl sm:text-3xl font-black text-primary">{tests.length}</p>
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Total Tests</p>
+                    </div>
+                    <div className="bg-green-50 dark:bg-green-500/10 rounded-3xl p-6 border border-green-100 dark:border-green-500/20 text-center shadow-sm hover:shadow-md transition-all">
+                        <p className="text-2xl sm:text-3xl font-black text-green-600 dark:text-green-400">
+                            {tests.reduce((acc, t) => acc + (t.submissions?.length || 0), 0)}
+                        </p>
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Recent Submissions</p>
+                    </div>
+                    <div className="bg-amber-50 dark:bg-amber-500/10 rounded-3xl p-6 border border-amber-100 dark:border-amber-500/20 text-center shadow-sm hover:shadow-md transition-all">
+                        <p className="text-2xl sm:text-3xl font-black text-amber-600 dark:text-amber-400">
+                            {tests.reduce((acc, t) => acc + (t.questions?.length || 0), 0)}
+                        </p>
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Total MCQs</p>
+                    </div>
+                    <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 border border-gray-100 dark:border-gray-700 text-center shadow-sm hover:shadow-md transition-all">
+                        <p className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-gray-100">{students.length}</p>
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Total Students</p>
                     </div>
                 </div>
 
@@ -462,47 +501,58 @@ const TestsTab = ({ course, students }) => {
                                     </div>
                                 </div>
 
-                                <div className="pt-4 border-t border-gray-50 flex items-center justify-between">
-                                    <div className="flex flex-col gap-2">
-                                        <span className="text-[8px] font-black text-gray-400 uppercase tracking-[0.2em]">Recent Submissions</span>
-                                        <div className="flex items-center">
-                                            <div className="flex -space-x-2 overflow-hidden">
-                                                {test.submissions?.slice(0, 4).map((sub, i) => (
-                                                    <div key={i} className="inline-block h-7 w-7 rounded-full ring-2 ring-white overflow-hidden bg-primary/10">
-                                                        {sub.user?.photo ? (
-                                                            <img src={sub.user.photo} alt="" className="h-full w-full object-cover" />
-                                                        ) : (
-                                                            <div className="flex h-full w-full items-center justify-center text-[8px] font-black text-orange-400">
-                                                                {sub.user?.name?.charAt(0)}
+                                <div className="pt-4 border-t border-gray-50">
+                                    <div className="flex flex-col gap-1 w-full">
+                                        <span className="text-[8px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1">
+                                            {test.submissions?.length > 0 ? "Latest Performance" : "Recent Submissions"}
+                                        </span>
+                                        
+                                        {test.submissions?.length > 0 ? (
+                                            (() => {
+                                                const latest = [...test.submissions].sort((a, b) => new Date(b.submittedAt || b.createdAt) - new Date(a.submittedAt || a.createdAt))[test.submissions.length - 1];
+                                                const totalMarks = test.totalMarks || test.questions?.reduce((acc, q) => acc + (q.marks || 1), 0) || test.questions?.length;
+                                                
+                                                return (
+                                                    <div className="flex items-center justify-between w-full">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="h-9 w-9 rounded-xl ring-2 ring-white overflow-hidden bg-primary/10 shrink-0 border border-primary/20">
+                                                                {latest.user?.photo ? (
+                                                                    <img src={latest.user.photo} alt="" className="h-full w-full object-cover" />
+                                                                ) : (
+                                                                    <div className="flex h-full w-full items-center justify-center text-xs font-black text-primary uppercase">
+                                                                        {latest.user?.name?.charAt(0)}
+                                                                    </div>
+                                                                )}
                                                             </div>
-                                                        )}
+                                                            <div className="flex flex-col">
+                                                                <span className="text-xs font-black text-gray-900 leading-tight truncate max-w-[120px] uppercase tracking-tight">{latest.user?.name}</span>
+                                                                <div className="flex items-center gap-2">
+                                                                    <span className="text-[10px] font-black text-primary tracking-tighter">{latest.user?.rollNo || '0000'}</span>
+                                                                    <span className="w-1 h-1 rounded-full bg-gray-200" />
+                                                                    <span className="text-[10px] font-bold text-gray-400">{new Date(latest.submittedAt || latest.createdAt).toLocaleDateString('en-GB')}</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="text-right bg-primary/5 px-3 py-1.5 rounded-xl border border-primary/10">
+                                                                <span className="text-xs font-black text-primary block leading-none">{latest.score}/{totalMarks}</span>
+                                                                <span className="text-[7px] font-black text-primary uppercase tracking-tighter opacity-70">Result</span>
+                                                            </div>
+                                                        </div>
                                                     </div>
-                                                ))}
-                                                {test.submissions?.length > 4 && (
-                                                    <div className="inline-block h-7 w-7 rounded-full ring-2 ring-white bg-slate-100 flex items-center justify-center text-[8px] font-black text-slate-500">
-                                                        +{test.submissions.length - 4}
+                                                );
+                                            })()
+                                        ) : (
+                                            <div className="flex items-center justify-between w-full">
+                                                <div className="flex items-center gap-2 py-1">
+                                                    <div className="h-7 w-7 rounded-lg bg-gray-50 flex items-center justify-center border border-dashed border-gray-200">
+                                                        <Users className="w-3.5 h-3.5 text-gray-300" />
                                                     </div>
-                                                )}
-                                                {(!test.submissions || test.submissions.length === 0) && (
-                                                    <span className="text-[10px] font-bold text-gray-300 italic">No submissions yet</span>
-                                                )}
+                                                    <span className="text-[10px] font-bold text-gray-300 italic uppercase tracking-widest">Waiting for Activity</span>
+                                                </div>
                                             </div>
-                                            {test.submissions?.length > 0 && (
-                                                <span className="ml-3 text-[10px] font-black text-slate-900 uppercase tracking-tight">
-                                                    {test.submissions.length} Total
-                                                </span>
-                                            )}
-                                        </div>
+                                        )}
                                     </div>
-                                    <button
-                                        onClick={() => {
-                                            setSelectedTest(test);
-                                            setIsViewModalOpen(true);
-                                        }}
-                                        className="p-3 bg-slate-50 hover:bg-slate-900 text-slate-400 hover:text-white rounded-2xl transition-all shadow-sm group/btn"
-                                    >
-                                        <ChevronRight className="w-5 h-5 group-hover/btn:translate-x-0.5 transition-transform" />
-                                    </button>
                                 </div>
                             </div>
                         </motion.div>
@@ -678,12 +728,28 @@ const TestsTab = ({ course, students }) => {
                                 <div className="flex gap-2 p-1 bg-white/10 rounded-xl">
                                     <button
                                         onClick={() => setInputMethod('paste')}
-                                        className={`flex-1 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${inputMethod === 'paste' ? 'bg-white text-slate-900 shadow-lg' : 'hover:bg-white/5'}`}
+                                        className={`flex-1 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${inputMethod === 'paste' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-white/50 hover:bg-white/5'}`}
                                     >Paste Text</button>
                                     <button
                                         onClick={() => setInputMethod('file')}
-                                        className={`flex-1 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${inputMethod === 'file' ? 'bg-white text-slate-900 shadow-lg' : 'hover:bg-white/5'}`}
+                                        className={`flex-1 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${inputMethod === 'file' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-white/50 hover:bg-white/5'}`}
                                     >Upload File</button>
+                                    <button
+                                        onClick={() => {
+                                            setInputMethod('manual');
+                                            const newQuestion = {
+                                                question: "New MCQ Question?",
+                                                options: ["Option A", "Option B", "Option C", "Option D"],
+                                                correctOption: 0,
+                                                marks: 5
+                                            };
+                                            setFormData(prev => ({
+                                                ...prev,
+                                                questions: [...prev.questions, newQuestion]
+                                            }));
+                                        }}
+                                        className={`flex-1 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${inputMethod === 'manual' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-white/50 hover:bg-white/5'}`}
+                                    >Manual</button>
                                 </div>
 
                                 {inputMethod === 'paste' ? (
@@ -692,9 +758,15 @@ const TestsTab = ({ course, students }) => {
                                             <textarea
                                                 value={pasteText}
                                                 onChange={(e) => setPasteText(e.target.value)}
-                                                placeholder="Paste book text, paragraphs, or MCQs here..."
+                                                placeholder={"Paste your MCQs here...\n\nExample:\nQ. Your question?\nA) Option One\nB) Option Two\nAns: B"}
                                                 className="w-full h-40 bg-white/10 border border-white/20 rounded-2xl p-4 text-xs font-medium outline-none focus:border-primary placeholder:text-white/30 resize-none"
                                             />
+                                            {pasteText && (
+                                                <button
+                                                    onClick={() => setPasteText('')}
+                                                    className="absolute top-3 right-3 p-2 bg-white/10 hover:bg-white/20 rounded-lg text-[8px] font-black uppercase tracking-widest text-white/50 transition-all"
+                                                >Clear</button>
+                                            )}
                                             {isGenerating && (
                                                 <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm rounded-2xl flex flex-col items-center justify-center space-y-2 animate-in fade-in duration-300">
                                                     <img src="/loading.gif" className="w-12 h-12 brightness-0 invert" alt="loading" />
@@ -704,7 +776,7 @@ const TestsTab = ({ course, students }) => {
                                         </div>
                                         <div className="flex items-center gap-2 px-2">
                                             <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                                            <p className="text-[9px] font-black uppercase tracking-widest text-white/50">Auto-detect enabled: Just paste to begin</p>
+                                            <p className="text-[9px] font-black uppercase tracking-widest text-white/50">Auto-numbering & Shuffling enabled</p>
                                         </div>
                                     </div>
                                 ) : (
@@ -747,14 +819,40 @@ const TestsTab = ({ course, students }) => {
                                         <div className="flex gap-4">
                                             <span className="w-8 h-8 rounded-xl bg-primary/5 text-primary flex items-center justify-center font-black text-xs shrink-0">{idx + 1}</span>
                                             <div className="space-y-4 flex-1">
-                                                <p className="font-bold text-gray-800 leading-relaxed">{q.question}</p>
-                                                <div className="grid grid-cols-2 gap-3">
+                                                <input
+                                                    type="text"
+                                                    value={q.question}
+                                                    onChange={(e) => {
+                                                        const updatedQuestions = [...formData.questions];
+                                                        updatedQuestions[idx].question = e.target.value;
+                                                        setFormData({ ...formData, questions: updatedQuestions });
+                                                    }}
+                                                    className="w-full font-bold text-gray-800 leading-relaxed bg-transparent border-b border-dashed border-gray-200 outline-none focus:border-primary"
+                                                />
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                                     {q.options.map((opt, oIdx) => (
                                                         <div key={oIdx} className={`px-4 py-2 rounded-xl border flex items-center gap-2 text-xs font-bold ${oIdx === q.correctOption ? 'bg-primary/5 border-primary text-primary' : 'bg-gray-50 border-gray-100 text-gray-500'}`}>
-                                                            <div className={`w-5 h-5 rounded-md flex items-center justify-center text-[10px] ${oIdx === q.correctOption ? 'bg-primary text-white' : 'bg-gray-200 text-gray-500'}`}>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    const updatedQuestions = [...formData.questions];
+                                                                    updatedQuestions[idx].correctOption = oIdx;
+                                                                    setFormData({ ...formData, questions: updatedQuestions });
+                                                                }}
+                                                                className={`w-5 h-5 rounded-md flex items-center justify-center text-[10px] shrink-0 ${oIdx === q.correctOption ? 'bg-primary text-white shadow-sm' : 'bg-gray-200 text-gray-500'}`}
+                                                            >
                                                                 {String.fromCharCode(65 + oIdx)}
-                                                            </div>
-                                                            {opt}
+                                                            </button>
+                                                            <input
+                                                                type="text"
+                                                                value={opt}
+                                                                onChange={(e) => {
+                                                                    const updatedQuestions = [...formData.questions];
+                                                                    updatedQuestions[idx].options[oIdx] = e.target.value;
+                                                                    setFormData({ ...formData, questions: updatedQuestions });
+                                                                }}
+                                                                className="bg-transparent border-none outline-none w-full font-bold"
+                                                            />
                                                         </div>
                                                     ))}
                                                 </div>
@@ -952,17 +1050,17 @@ const TestsTab = ({ course, students }) => {
                                 </h4>
                                 <div className="bg-slate-900 rounded-[2rem] p-6 text-white space-y-4 relative overflow-hidden">
                                     <div className="absolute -top-4 -right-4 w-24 h-24 bg-white/5 rounded-full blur-xl" />
-                                    
+
                                     <div className="flex gap-2 p-1 bg-white/10 rounded-xl">
-                                        <button 
+                                        <button
                                             type="button"
                                             onClick={() => setInputMethod('paste')}
-                                            className={`flex-1 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${inputMethod === 'paste' ? 'bg-white text-slate-900 shadow-lg' : 'hover:bg-white/5'}`}
+                                            className={`flex-1 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${inputMethod === 'paste' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-white/50 hover:bg-white/5'}`}
                                         >Paste Text</button>
-                                        <button 
+                                        <button
                                             type="button"
                                             onClick={() => setInputMethod('file')}
-                                            className={`flex-1 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${inputMethod === 'file' ? 'bg-white text-slate-900 shadow-lg' : 'hover:bg-white/5'}`}
+                                            className={`flex-1 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${inputMethod === 'file' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-white/50 hover:bg-white/5'}`}
                                         >Upload File</button>
                                     </div>
 
@@ -972,9 +1070,15 @@ const TestsTab = ({ course, students }) => {
                                                 <textarea
                                                     value={pasteText}
                                                     onChange={(e) => setPasteText(e.target.value)}
-                                                    placeholder="Paste book text, paragraphs, or MCQs here..."
+                                                    placeholder={"Paste your MCQs here...\n\nExample:\nQ. Your question?\nA) Option One\nB) Option Two\nAns: B"}
                                                     className="w-full h-40 bg-white/10 border border-white/20 rounded-2xl p-4 text-xs font-medium outline-none focus:border-primary placeholder:text-white/30 resize-none"
                                                 />
+                                                {pasteText && (
+                                                    <button
+                                                        onClick={() => setPasteText('')}
+                                                        className="absolute top-3 right-3 p-2 bg-white/10 hover:bg-white/20 rounded-lg text-[8px] font-black uppercase tracking-widest text-white/50 transition-all"
+                                                    >Clear</button>
+                                                )}
                                                 {isGenerating && (
                                                     <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm rounded-2xl flex flex-col items-center justify-center space-y-2 animate-in fade-in duration-300">
                                                         <img src="/loading.gif" className="w-12 h-12 brightness-0 invert" alt="loading" />
@@ -984,7 +1088,7 @@ const TestsTab = ({ course, students }) => {
                                             </div>
                                             <div className="flex items-center gap-2 px-2">
                                                 <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                                                <p className="text-[9px] font-black uppercase tracking-widest text-white/50">Auto-detect enabled: Just paste to begin</p>
+                                                <p className="text-[9px] font-black uppercase tracking-widest text-white/50">Auto-numbering & Shuffling enabled</p>
                                             </div>
                                         </div>
                                     ) : (
@@ -1007,9 +1111,15 @@ const TestsTab = ({ course, students }) => {
                         <div className="space-y-4">
                             <div className="flex items-center justify-between">
                                 <h4 className="text-sm font-black text-gray-900 uppercase tracking-wider flex items-center gap-2">
-                                    <List className="w-4 h-4 text-primary" /> Test Questions ({editingTest.questions?.length || 0})
+                                    <List className="w-4 h-4 text-primary" /> Questions ({editingTest.questions?.length || 0})
                                 </h4>
-                                <div className="flex gap-2">
+                                <div className="flex items-center gap-3">
+                                    {editingTest.questions?.length > 0 && (
+                                        <button
+                                            onClick={() => setEditingTest({ ...editingTest, questions: [] })}
+                                            className="text-[10px] font-black text-red-500 uppercase tracking-widest hover:underline"
+                                        >Clear All</button>
+                                    )}
                                     <button
                                         onClick={() => {
                                             const newQuestion = {
@@ -1105,85 +1215,7 @@ const TestsTab = ({ course, students }) => {
                 )}
             </Modal>
 
-            {/* View/Results Modal */}
-            <Modal
-                isOpen={isViewModalOpen}
-                onClose={() => setIsViewModalOpen(false)}
-                title={selectedTest?.title || "Test Details"}
-                size="xl"
-            >
-                <div className="space-y-6">
-                    <div className="grid grid-cols-3 gap-4">
-                        <div className="bg-primary/5 p-4 rounded-2xl text-center">
-                            <span className="text-[10px] font-black text-gray-400 uppercase block mb-1">Total MCQs</span>
-                            <span className="text-xl font-black text-primary">{selectedTest?.questions?.length || 0}</span>
-                        </div>
-                        <div className="bg-primary/5 p-4 rounded-2xl text-center">
-                            <span className="text-[10px] font-black text-gray-400 uppercase block mb-1">Submissions</span>
-                            <span className="text-xl font-black text-primary">{selectedTest?.submissions?.length || 0}</span>
-                        </div>
-                        <div className="bg-slate-50 p-4 rounded-2xl text-center">
-                            <span className="text-[10px] font-black text-gray-400 uppercase block mb-1">Duration</span>
-                            <span className="text-xl font-black text-slate-900">{selectedTest?.duration}m</span>
-                        </div>
-                    </div>
 
-                    <div className="space-y-4">
-                        <h4 className="text-sm font-black text-gray-900 uppercase tracking-wider flex items-center justify-between">
-                            <span>Student Submissions</span>
-                            <RefreshCw className="w-4 h-4 text-gray-400 cursor-pointer hover:rotate-180 transition-all duration-500" onClick={fetchTests} />
-                        </h4>
-
-                        <div className="border border-gray-100 rounded-[2.5rem] overflow-hidden divide-y divide-gray-50 bg-white shadow-sm">
-                            {selectedTest?.submissions?.length === 0 ? (
-                                <div className="p-20 text-center flex flex-col items-center justify-center space-y-4">
-                                    <div className="p-4 bg-gray-50 rounded-full">
-                                        <Users className="w-8 h-8 text-gray-200" />
-                                    </div>
-                                    <p className="text-gray-400 font-black uppercase tracking-widest text-xs">No submissions received yet</p>
-                                </div>
-                            ) : (
-                                selectedTest?.submissions?.map((sub, idx) => (
-                                    <div key={idx} className="p-6 flex items-center justify-between hover:bg-primary/5/30 transition-all group">
-                                        <div className="flex items-center gap-5">
-                                            <div className="relative">
-                                                <div className="w-14 h-14 rounded-2xl overflow-hidden border-2 border-white shadow-md group-hover:border-orange-200 transition-colors">
-                                                    {sub.user?.photo ? (
-                                                        <img src={sub.user.photo} alt="" className="w-full h-full object-cover" />
-                                                    ) : (
-                                                        <div className="w-full h-full bg-primary/10 flex items-center justify-center text-orange-400 font-black text-lg">
-                                                            {sub.user?.name?.charAt(0)}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-primary border-2 border-white rounded-full shadow-sm" />
-                                            </div>
-                                            <div>
-                                                <p className="text-sm font-black text-gray-900 uppercase tracking-tight group-hover:text-primary transition-colors">{sub.user?.name}</p>
-                                                <div className="flex items-center gap-2 mt-0.5">
-                                                    <span className="px-2 py-0.5 bg-slate-100 text-slate-500 rounded-md text-[8px] font-black uppercase tracking-widest">Roll: {sub.user?.rollNo || 'N/A'}</span>
-                                                    <span className="w-1 h-1 rounded-full bg-gray-300" />
-                                                    <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">{new Date(sub.submittedAt).toLocaleDateString('en-GB')}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className="text-right flex flex-col items-end gap-1">
-                                            <div className="flex items-baseline gap-1.5 bg-primary/5 px-4 py-2 rounded-2xl border border-primary/10">
-                                                <span className="text-2xl font-black text-primary">{sub.score}</span>
-                                                <span className="text-[10px] font-black text-primary uppercase tracking-widest">/ {selectedTest?.totalMarks || selectedTest?.questions?.reduce((acc, q) => acc + (q.marks || 5), 0)}</span>
-                                            </div>
-                                            <div className="flex items-center gap-1.5 mr-1">
-                                                <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-                                                <span className="text-[9px] font-black text-primary uppercase tracking-[0.15em]">Passed</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))
-                            )}
-                        </div>
-                    </div>
-                </div>
-            </Modal>
         </div>
     );
 };

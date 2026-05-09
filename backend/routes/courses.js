@@ -130,6 +130,7 @@ router.get('/teacher/dashboard', protect, authorize('teacher', 'admin'), async (
                 id: course._id,
                 _id: course._id,
                 name: course.title,
+                title: course.title, // Add this for consistency with frontend filters
                 category: course.category,
                 targetAudience: course.targetAudience || 'students',
                 location: course.location,
