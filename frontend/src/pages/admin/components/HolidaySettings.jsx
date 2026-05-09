@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Sun, Check, Calendar, Moon, X, XCircle } from 'lucide-react';
 import { attendanceAPI } from '../../../services/api';
-import { Loader } from '../../ui/Loader';
+import Loader from '../../../components/ui/Loader';
 
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const SHORT_DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];

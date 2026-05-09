@@ -473,6 +473,33 @@ router.put('/:assignmentId/grade/:submissionId', protect, authorize('teacher', '
     }
 });
 
+// @route   DELETE /api/assignments/:assignmentId/submissions/:submissionId
+// @desc    Delete a submission
+// @access  Private (Teacher, Admin)
+router.delete('/:assignmentId/submissions/:submissionId', protect, authorize('teacher', 'admin'), async (req, res) => {
+    try {
+        const assignment = await Assignment.findById(req.params.assignmentId);
+
+        if (!assignment) {
+            return res.status(404).json({ success: false, message: 'Assignment not found' });
+        }
+
+        const initialLength = assignment.submissions.length;
+        assignment.submissions = assignment.submissions.filter(
+            sub => sub._id.toString() !== req.params.submissionId
+        );
+
+        if (assignment.submissions.length === initialLength) {
+            return res.status(404).json({ success: false, message: 'Submission not found' });
+        }
+
+        await assignment.save();
+        res.json({ success: true, message: 'Submission deleted' });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
 // @route   GET /api/assignments/my
 // @desc    Get assignments for current user (only those created after user registration)
 // @access  Private

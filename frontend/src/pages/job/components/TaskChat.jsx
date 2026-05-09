@@ -1,10 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
 import { Send, User, ShieldCheck, Bell } from 'lucide-react';
-<<<<<<< HEAD
-import Loader, { ButtonLoader } from '../../components/ui/Loader';
-=======
->>>>>>> 3079364b313251fa7fc7eaad21dc212596252aa2
 import { taskAPI } from '../../../services/api';
 import Loader, { ButtonLoader } from '../../../components/ui/Loader';
 
@@ -115,13 +111,8 @@ const TaskChat = ({ taskId, currentUser }) => {
 
     if (isFetching) {
         return (
-<<<<<<< HEAD
-            <div className="flex items-center justify-center h-[400px] bg-gray-50 rounded-2xl border border-gray-100">
-                <Loader />
-=======
             <div className="h-[400px]">
                 <Loader message="Fetching Messages..." />
->>>>>>> 3079364b313251fa7fc7eaad21dc212596252aa2
             </div>
         );
     }
@@ -195,14 +186,8 @@ const TaskChat = ({ taskId, currentUser }) => {
                     isLoading={isSending}
                     disabled={!newMessage.trim()}
                     className="w-10 h-10 bg-primary hover:bg-purple-700 text-white rounded-xl flex items-center justify-center transition-all disabled:opacity-50 shadow-md"
-<<<<<<< HEAD
-                >
-                    <ButtonLoader isLoading={isSending} icon={<Send className="w-4 h-4" />} />
-                </button>
-=======
                     icon={<Send className="w-4 h-4" />}
                 />
->>>>>>> 3079364b313251fa7fc7eaad21dc212596252aa2
             </form>
         </div>
     );

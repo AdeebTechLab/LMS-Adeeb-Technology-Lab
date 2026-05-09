@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { FileText, Plus, Calendar, MoreHorizontal, Users, RefreshCw, CheckCircle, Clock, X, Upload, Edit2, Search, ChevronDown, Check } from 'lucide-react';
+import { FileText, Plus, Calendar, MoreHorizontal, Users, RefreshCw, CheckCircle, Clock, X, Upload, Edit2, Search, ChevronDown, Check, Trash2 } from 'lucide-react';
 import api, { assignmentAPI } from '../../../services/api';
 import Modal from '../../../components/ui/Modal';
 import Badge from '../../../components/ui/Badge';
@@ -217,6 +217,31 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
             alert(`Failed to ${status === 'rejected' ? 'reject' : 'grade'} submission`);
         } finally {
             setIsGrading(false);
+        }
+    };
+
+    const handleDeleteSubmission = async (assignmentId, submissionId) => {
+        if (!window.confirm('Are you sure you want to delete this submission? This action cannot be undone.')) {
+            return;
+        }
+
+        try {
+            await assignmentAPI.deleteSubmission(assignmentId, submissionId);
+            alert('Submission deleted successfully');
+
+            // Refresh assignments
+            fetchAssignments();
+
+            // Update selected assignment state to remove the submission
+            if (selectedAssignment && selectedAssignment._id === assignmentId) {
+                setSelectedAssignment({
+                    ...selectedAssignment,
+                    submissions: selectedAssignment.submissions.filter(s => s._id !== submissionId)
+                });
+            }
+        } catch (error) {
+            console.error('Error deleting submission:', error);
+            alert('Failed to delete submission');
         }
     };
 
@@ -559,8 +584,8 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                                         </div>
                                                         <div className="text-right shrink-0">
                                                             <div className={`text-[9px] font-black px-2 py-0.5 rounded-lg border ${sub.status === 'graded' ? 'bg-primary/5 text-primary border-primary/10' :
-                                                                    sub.status === 'rejected' ? 'bg-red-50 text-red-600 border-red-100' :
-                                                                        'bg-amber-50 text-amber-600 border-amber-100'
+                                                                sub.status === 'rejected' ? 'bg-red-50 text-red-600 border-red-100' :
+                                                                    'bg-amber-50 text-amber-600 border-amber-100'
                                                                 }`}>
                                                                 {sub.status === 'graded' ? `${sub.marks}/${assignment.totalMarks}` : (sub.status === 'rejected' ? 'REJECTED' : 'PENDING')}
                                                             </div>
@@ -1042,8 +1067,15 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                 <div className="space-y-4 max-h-[60vh] overflow-y-auto">
                     {selectedAssignment?.submissions && selectedAssignment.submissions.length > 0 ? (
                         selectedAssignment.submissions.map((submission) => (
-                            <div key={submission._id} className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-                                <div className="flex justify-between items-start mb-2">
+                            <div key={submission._id} className="bg-gray-50 p-4 rounded-xl border border-gray-100 relative">
+                                <button
+                                    onClick={() => handleDeleteSubmission(selectedAssignment._id, submission._id)}
+                                    className="absolute top-4 right-4 p-2 text-red-400 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors border border-transparent hover:border-red-100"
+                                    title="Delete Submission"
+                                >
+                                    <Trash2 className="w-4 h-4" />
+                                </button>
+                                <div className="flex justify-between items-start mb-2 pr-10">
                                     <div className="flex items-center gap-3">
                                         {submission.user?.photo ? (
                                             <img src={submission.user.photo} alt={submission.user?.name} className="w-8 h-8 rounded-full object-cover" />

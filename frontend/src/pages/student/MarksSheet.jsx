@@ -293,13 +293,13 @@ const MarksSheet = () => {
             </div>
 
             {/* Course Selector Step - High Visibility */}
-            <div className="bg-[#f8fafc] p-4 sm:p-8 rounded-3xl border-2 border-primary/20 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl shadow-primary/5">
+            <div className="bg-[#f8fafc] dark:bg-slate-900/50 p-4 sm:p-8 rounded-3xl border-2 border-primary/20 dark:border-primary/40 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl shadow-primary/5 dark:shadow-none">
                 <div className="flex items-center gap-4 w-full md:w-auto">
                     <div className="p-3 sm:p-4 bg-primary rounded-2xl shadow-lg shadow-primary shrink-0">
                         <GraduationCap className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
                     </div>
                     <div>
-                        <h3 className="font-black text-gray-900 uppercase tracking-tighter leading-none mb-1 text-base sm:text-lg">Step 1: Select Course</h3>
+                        <h3 className="font-black text-gray-900 dark:text-white uppercase tracking-tighter leading-none mb-1 text-base sm:text-lg">Step 1: Select Course</h3>
                         <p className="text-xs sm:text-sm text-gray-500 font-medium italic">Reveal your detailed performance</p>
                     </div>
                 </div>
@@ -307,7 +307,7 @@ const MarksSheet = () => {
                     <select
                         value={selectedCourseId}
                         onChange={(e) => setSelectedCourseId(e.target.value)}
-                        className={`w-full px-4 sm:px-6 py-3 sm:py-4 bg-white border-2 rounded-2xl outline-none transition-all font-black text-sm sm:text-lg uppercase tracking-tight appearance-none cursor-pointer ${!selectedCourseId ? 'border-amber-400 text-amber-600 animate-pulse ring-4 ring-amber-400/10' : 'border-primary text-primary'
+                        className={`w-full px-4 sm:px-6 py-3 sm:py-4 bg-white dark:bg-slate-800 border-2 rounded-2xl outline-none transition-all font-black text-sm sm:text-lg uppercase tracking-tight appearance-none cursor-pointer ${!selectedCourseId ? 'border-amber-400 text-amber-600 animate-pulse ring-4 ring-amber-400/10' : 'border-primary text-primary'
                             }`}
                     >
                         <option value="">-- Choose Course Here --</option>
@@ -336,21 +336,21 @@ const MarksSheet = () => {
                             : null;
 
                         return (
-                            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-2xl shadow-gray-200/50">
-                                <div className="p-4 sm:p-8 bg-gradient-to-r from-gray-50 to-white border-b border-gray-100 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="bg-white dark:bg-slate-900/40 rounded-3xl border border-gray-100 dark:border-slate-800 overflow-hidden shadow-2xl shadow-gray-200/50 dark:shadow-none">
+                                <div className="p-4 sm:p-8 bg-gradient-to-r from-gray-50 to-white dark:from-slate-800/40 dark:to-slate-900/60 border-b border-gray-100 dark:border-slate-800 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                                     <div>
-                                        <h3 className="font-black text-xl sm:text-3xl text-gray-900 uppercase tracking-tighter mb-2 leading-tight">{selectedCourse.name}</h3>
+                                        <h3 className="font-black text-xl sm:text-3xl text-gray-900 dark:text-white uppercase tracking-tighter mb-2 leading-tight">{selectedCourse.name}</h3>
                                         <div className="flex flex-wrap items-center gap-3 sm:gap-4">
-                                            <p className="text-[10px] sm:text-xs text-gray-400 font-black uppercase tracking-[0.2em]">Instructor: <span className="text-gray-900">{selectedCourse.teacher}</span></p>
+                                            <p className="text-[10px] sm:text-xs text-gray-400 font-black uppercase tracking-[0.2em]">Instructor: <span className="text-gray-900 dark:text-gray-200">{selectedCourse.teacher}</span></p>
                                             <Badge variant={selectedCourse.status === 'completed' ? 'success' : 'info'}>{selectedCourse.status.toUpperCase()}</Badge>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-4 sm:gap-6 bg-white p-3 sm:p-4 rounded-2xl border border-gray-100 shadow-sm w-fit">
+                                    <div className="flex items-center gap-4 sm:gap-6 bg-white dark:bg-slate-800 p-3 sm:p-4 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm w-fit">
                                         <div className="text-right">
                                             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Course Avg</p>
-                                            <p className="text-2xl sm:text-4xl font-black text-gray-900">{average}%</p>
+                                            <p className="text-2xl sm:text-4xl font-black text-gray-900 dark:text-white">{average}%</p>
                                         </div>
-                                        <div className={`w-12 h-12 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center font-black text-xl sm:text-3xl border-2 ${gradeInfo.color.replace('text', 'border').replace('600', '200')} ${gradeInfo.color} bg-gray-50`}>
+                                        <div className={`w-12 h-12 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center font-black text-xl sm:text-3xl border-2 ${gradeInfo.color.replace('text', 'border').replace('600', '200')} ${gradeInfo.color} bg-gray-50 dark:bg-slate-900/50`}>
                                             {gradeInfo.grade}
                                         </div>
                                     </div>

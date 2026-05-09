@@ -156,7 +156,8 @@ export const assignmentAPI = {
     grade: (assignmentId, submissionId, marks, feedback, status) =>
         api.put(`/assignments/${assignmentId}/grade/${submissionId}`, { marks, feedback, status }),
     update: (id, data) => api.put(`/assignments/${id}`, data),
-    delete: (id) => api.delete(`/assignments/${id}`)
+    delete: (id) => api.delete(`/assignments/${id}`),
+    deleteSubmission: (assignmentId, submissionId) => api.delete(`/assignments/${assignmentId}/submissions/${submissionId}`)
 };
 
 // Certificate APIs
@@ -220,7 +221,8 @@ export const testAPI = {
     create: (data) => api.post('/tests', data),
     submit: (id, answers) => api.post(`/tests/${id}/submit`, { answers }),
     update: (id, data) => api.put(`/tests/${id}`, data),
-    delete: (id) => api.delete(`/tests/${id}`)
+    delete: (id) => api.delete(`/tests/${id}`),
+    deleteSubmission: (testId, submissionId) => api.delete(`/tests/${testId}/submissions/${submissionId}`)
 };
 
 // Notification APIs

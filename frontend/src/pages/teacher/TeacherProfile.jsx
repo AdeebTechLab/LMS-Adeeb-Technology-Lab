@@ -147,7 +147,7 @@ const TeacherProfile = () => {
 
 
     const stats = [
-        { label: 'My Courses', value: myCourses.length.toString(), icon: BookOpen, color: 'bg-blue-100 text-blue-600' },
+        { label: 'My Courses', value: myCourses.length.toString(), icon: BookOpen, color: 'bg-primary/10 text-primary' },
         { label: 'Active Students', value: totalStudents.toString(), icon: User, color: 'bg-primary/10 text-primary' },
         { label: 'Classes This Month', value: '0', icon: GraduationCap, color: 'bg-primary/10 text-primary' },
     ];

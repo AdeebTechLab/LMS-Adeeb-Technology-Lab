@@ -5,7 +5,7 @@ import { useSelector } from 'react-redux';
 import { io } from 'socket.io-client';
 import {
     BookOpen, Users, Calendar, ArrowRight, ChevronLeft,
-    FileText, ClipboardList, CheckCircle, Clock, User, Search, Filter, MessageCircle, UserCheck, Zap, MapPin
+    FileText, ClipboardList, CheckCircle, Clock, User, Search, Filter, MessageCircle, UserCheck, Zap, MapPin, ExternalLink
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import Loader from '../../components/ui/Loader';
@@ -792,15 +792,18 @@ const AttendanceSheet = () => {
                 </div>
                 {/* Book Button */}
                 {selectedCourse.bookLink && (
-                    <a
-                        href={selectedCourse.bookLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2 px-5 py-2.5 bg-primary text-white rounded-xl shadow-lg shadow-primary/20 hover:bg-primary/90 hover:shadow-xl hover:shadow-primary/30 transition-all font-bold text-sm uppercase tracking-wide active:scale-95"
+                    <button
+                        onClick={() => window.open(selectedCourse.bookLink, '_blank')}
+                        className="group relative flex items-center gap-2.5 px-6 py-2.5 rounded-2xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-black uppercase tracking-widest text-xs hover:-translate-y-0.5 active:translate-y-0 transition-all shadow-lg hover:shadow-xl shadow-gray-900/20 dark:shadow-white/20 ml-auto md:ml-0 border border-gray-800 dark:border-gray-200"
+                        title="Open Course Book"
                     >
-                        <BookOpen className="w-5 h-5" />
-                        Course Book
-                    </a>
+                        <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/20 to-primary/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl"></div>
+                        <div className="bg-white/20 dark:bg-black/10 p-1.5 rounded-lg group-hover:-rotate-12 transition-transform duration-300 relative z-10">
+                            <BookOpen className="w-4 h-4" />
+                        </div>
+                        <span className="hidden sm:inline relative z-10">Read Book</span>
+                        <ExternalLink className="w-3.5 h-3.5 opacity-50 group-hover:opacity-100 transition-opacity relative z-10 ml-1" />
+                    </button>
                 )}
             </div>
 

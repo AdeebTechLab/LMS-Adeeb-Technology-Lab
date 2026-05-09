@@ -22,6 +22,7 @@ import {
     Award,
     Bell,
     FolderOpen,
+    Zap,
 } from 'lucide-react';
 import { logout, loginSuccess } from '../../features/auth/authSlice';
 import { userAPI, authAPI } from '../../services/api';
@@ -209,6 +210,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 { id: 'assignments', label: 'Assignments', icon: ClipboardList, path: '/student/assignments', state: { tab: 'assignments' } },
                 { id: 'class-logs', label: 'Class Logs', icon: Calendar, path: '/student/assignments', state: { tab: 'daily_tasks' } },
                 { id: 'marks', label: 'Marks Sheet', icon: FileText, path: '/student/marks' },
+                { id: 'tests', label: 'Tests', icon: Zap, path: '/student/assignments', state: { tab: 'tests' } },
                 { id: 'attendance', label: 'My Attendance', icon: Calendar, path: '/student/assignments', state: { tab: 'attendance' } },
             ],
             intern: [
@@ -216,9 +218,10 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 { id: 'profile', label: 'My Profile', icon: User, path: '/intern/profile' },
                 { id: 'courses', label: 'Browse Skills', icon: BookOpen, path: '/intern/courses' },
                 { id: 'fees', label: 'Fee Management', icon: CreditCard, path: '/intern/fees' },
-                { id: 'assignments', label: 'Assignments', icon: ClipboardList, path: '/intern/assignments', state: { tab: 'assignments' } },
-                { id: 'daily-tasks', label: 'Daily Tasks', icon: Calendar, path: '/intern/assignments', state: { tab: 'daily_tasks' } },
+                { id: 'daily-tasks', label: 'Daily Task', icon: FileText, path: '/intern/assignments', state: { tab: 'assignments' } },
+                { id: 'assignments', label: 'Logs', icon: ClipboardList, path: '/intern/assignments', state: { tab: 'daily_tasks' } },
                 { id: 'marks', label: 'Marks Sheet', icon: FileText, path: '/intern/marks' },
+                { id: 'tests', label: 'Tests', icon: Zap, path: '/intern/assignments', state: { tab: 'tests' } },
                 { id: 'attendance', label: 'My Attendance', icon: Calendar, path: '/intern/assignments', state: { tab: 'attendance' } },
             ],
             job: [

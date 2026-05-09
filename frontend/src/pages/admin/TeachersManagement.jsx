@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import {
     Calendar, GraduationCap, CheckCircle, XCircle, Clock, Shield, Edit2, Save, Download,
-    FileText, Users, PauseCircle, PlayCircle, BookOpen
+    FileText, Users, PauseCircle, PlayCircle, BookOpen,
+    Search, UserCheck, UserX, Trash2, User, Mail, MapPin, Phone, Briefcase, Camera, Upload, Plus
 } from 'lucide-react';
 import Loader, { ButtonLoader } from '../../components/ui/Loader';
 import { jsPDF } from 'jspdf';
@@ -420,10 +422,10 @@ const TeachersManagement = () => {
     };
 
     const filteredTeachers = teachers.filter(t => {
-        const matchesSearch = t.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            t.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            t.cnic?.includes(searchQuery) ||
-            t.rollNo?.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesSearch = (t.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (t.email || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (t.cnic || '').includes(searchQuery) ||
+            (t.rollNo || '').toLowerCase().includes(searchQuery.toLowerCase());
 
         if (!matchesSearch) return false;
 

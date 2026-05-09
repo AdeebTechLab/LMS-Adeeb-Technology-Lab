@@ -1,12 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-<<<<<<< HEAD
-import { Calendar, Clock, CheckCircle, XCircle, AlertCircle, User, BookOpen, ChevronLeft, ChevronRight, Zap, TrendingUp, Loader2 } from 'lucide-react';
-import Loader, { ButtonLoader } from '../../../components/ui/Loader';
-=======
 import { CheckCircle, XCircle, Clock, Calendar, ChevronLeft, ChevronRight, TrendingUp } from 'lucide-react';
 import Loader from '../../../components/ui/Loader';
->>>>>>> 3079364b313251fa7fc7eaad21dc212596252aa2
 import Badge from '../../../components/ui/Badge';
 import { attendanceAPI } from '../../../services/api';
 
@@ -74,13 +69,9 @@ const StudentAttendanceTab = ({ course }) => {
         return days;
     };
 
-<<<<<<< HEAD
-    if (isLoading) return <Loader />;
-=======
     if (isLoading) return (
         <Loader message="Fetching Attendance Records..." />
     );
->>>>>>> 3079364b313251fa7fc7eaad21dc212596252aa2
 
     return (
         <div className="space-y-6">
@@ -225,6 +216,3 @@ const StudentAttendanceTab = ({ course }) => {
 };
 
 export default StudentAttendanceTab;
-
-
-

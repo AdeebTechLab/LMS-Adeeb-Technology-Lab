@@ -59,7 +59,7 @@ const TeacherDirectory = () => {
     const getStatusBadge = (user) => {
         if (user.isCertified) {
             return (
-                <span className="inline-flex items-center gap-1 px-2 py-1 bg-amber-100 text-amber-700 rounded-lg text-xs font-bold">
+                <span className="inline-flex items-center gap-1 px-2 py-1 bg-amber-100 text-amber-700 rounded-lg text-xs font-bold dark:bg-transparent dark:text-amber-400">
                     <Award className="w-3 h-3" />
                     Certified
                 </span>
@@ -67,14 +67,14 @@ const TeacherDirectory = () => {
         }
         if (user.hasActiveEnrollment) {
             return (
-                <span className="inline-flex items-center gap-1 px-2 py-1 bg-primary/10 text-primary rounded-lg text-xs font-bold">
+                <span className="inline-flex items-center gap-1 px-2 py-1 bg-primary/10 text-primary rounded-lg text-xs font-bold dark:bg-transparent dark:text-primary">
                     <CheckCircle className="w-3 h-3" />
                     Active
                 </span>
             );
         }
         return (
-            <span className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 text-gray-600 rounded-lg text-xs font-bold">
+            <span className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 text-gray-600 rounded-lg text-xs font-bold dark:bg-transparent dark:text-gray-400">
                 Inactive
             </span>
         );
@@ -82,12 +82,12 @@ const TeacherDirectory = () => {
 
     const getRoleBadge = (role) => {
         const config = {
-            student: 'bg-blue-100 text-blue-700',
-            intern: 'bg-primary/10 text-purple-700',
-            teacher: 'bg-amber-100 text-amber-700'
+            student: 'bg-blue-100 text-blue-700 dark:bg-transparent dark:text-blue-400',
+            intern: 'bg-primary/10 text-purple-700 dark:bg-transparent dark:text-purple-400',
+            teacher: 'bg-amber-100 text-amber-700 dark:bg-transparent dark:text-amber-400'
         };
         return (
-            <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${config[role] || 'bg-gray-100 text-gray-700'}`}>
+            <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${config[role] || 'bg-gray-100 text-gray-700 dark:bg-transparent dark:text-gray-400'}`}>
                 {role}
             </span>
         );

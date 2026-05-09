@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import {
     Search, UserCheck, UserX, Trash2, User, Mail, Phone, MapPin,
     Briefcase, CheckCircle, Clock, Star, FileText, Edit2, Save, Camera, Upload, Plus, Shield, Download
 } from 'lucide-react';
@@ -270,7 +271,6 @@ const JobsManagement = () => {
             preferredMode: user.preferredMode || '',
             heardAbout: user.heardAbout || '',
             password: user.password || '',
-            fatherName: user.fatherName || user.guardianName || '',
             dob: user.dob ? new Date(user.dob).toISOString().split('T')[0] : ''
         });
     };
@@ -303,9 +303,9 @@ const JobsManagement = () => {
     };
 
     const filteredUsers = jobUsers.filter(u => {
-        const matchesSearch = u.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            u.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            u.skills?.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesSearch = (u.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (u.email || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (u.skills || '').toLowerCase().includes(searchQuery.toLowerCase());
 
         if (filterStatus === 'verified') return matchesSearch && u.isVerified;
         if (filterStatus === 'pending') return matchesSearch && !u.isVerified;

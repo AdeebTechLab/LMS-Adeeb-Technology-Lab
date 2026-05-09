@@ -174,6 +174,30 @@ router.put('/:id', protect, authorize('teacher', 'admin'), async (req, res) => {
     }
 });
 
+// @route   DELETE /api/tests/:testId/submissions/:submissionId
+// @desc    Delete a test submission
+// @access  Private (Teacher, Admin)
+router.delete('/:testId/submissions/:submissionId', protect, authorize('teacher', 'admin'), async (req, res) => {
+    try {
+        const test = await Test.findById(req.params.testId);
+        if (!test) return res.status(404).json({ success: false, message: 'Test not found' });
+
+        const initialLength = test.submissions.length;
+        test.submissions = test.submissions.filter(
+            sub => sub._id.toString() !== req.params.submissionId
+        );
+
+        if (test.submissions.length === initialLength) {
+            return res.status(404).json({ success: false, message: 'Submission not found' });
+        }
+
+        await test.save();
+        res.json({ success: true, message: 'Submission deleted' });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
 // @route   DELETE /api/tests/:id
 // @desc    Delete a test
 // @access  Private (Teacher, Admin)

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import {
     Calendar, GraduationCap, CheckCircle, Clock, BookOpen, Edit2, Save, Download,
     FileText, Users, Search, User, Mail, Phone, MapPin, UserCheck, UserX, Trash2, Receipt, Camera, Upload, Plus, Shield,
     PauseCircle, PlayCircle, AlertCircle
@@ -575,9 +576,9 @@ const InternsManagement = () => {
     };
 
     const filteredInterns = interns.filter(i => {
-        const matchesSearch = i.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            i.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            i.cnic?.includes(searchQuery);
+        const matchesSearch = (i.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (i.email || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (i.cnic || '').includes(searchQuery);
 
         if (!matchesSearch) return false;
 

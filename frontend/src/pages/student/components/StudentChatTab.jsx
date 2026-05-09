@@ -180,15 +180,9 @@ const StudentChatTab = ({ course, isRestricted }) => {
     }, {});
 
     if (isLoading) {
-<<<<<<< HEAD
-        return <div className="flex flex-col items-center justify-center h-full py-20 gap-4">
-                        <Loader />
-                    </div>;
-=======
         return (
             <Loader message="Initializing Secure Chat..." />
         );
->>>>>>> 3079364b313251fa7fc7eaad21dc212596252aa2
     }
 
     if (teachers.length === 0) {
@@ -342,6 +336,3 @@ const StudentChatTab = ({ course, isRestricted }) => {
 };
 
 export default StudentChatTab;
-
-
-

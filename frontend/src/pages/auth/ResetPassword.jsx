@@ -3,11 +3,7 @@ import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { logout } from '../../features/auth/authSlice';
 import { Lock, ArrowLeft, CheckCircle, AlertCircle, Eye, EyeOff } from 'lucide-react';
-<<<<<<< HEAD
-import Loader, { ButtonLoader } from '../../components/ui/Loader';
-=======
 import { ButtonLoader } from '../../components/ui/Loader';
->>>>>>> 3079364b313251fa7fc7eaad21dc212596252aa2
 import { authAPI } from '../../services/api';
 
 const ResetPassword = () => {
@@ -133,15 +129,8 @@ const ResetPassword = () => {
                                 isLoading={loading}
                                 className="w-full bg-gradient-to-r from-blue-500 to-primary text-white py-3 rounded-lg font-semibold hover:from-blue-600 hover:to-primary transition flex items-center justify-center gap-2 disabled:opacity-50"
                             >
-<<<<<<< HEAD
-                                <ButtonLoader isLoading={loading}>
-                                    Reset Password
-                                </ButtonLoader>
-                            </button>
-=======
                                 Reset Password
                             </ButtonLoader>
->>>>>>> 3079364b313251fa7fc7eaad21dc212596252aa2
                         </form>
                     )}
 
@@ -158,6 +147,3 @@ const ResetPassword = () => {
 };
 
 export default ResetPassword;
-
-
-

@@ -184,8 +184,7 @@ const StudentsManagement = () => {
             country: student.country || '',
             attendType: normalizedAttendType,
             heardAbout: student.heardAbout || '',
-            password: student.password || '',
-            fatherName: student.fatherName || student.guardianName || ''
+            password: student.password || ''
         });
     };
 
@@ -580,10 +579,10 @@ const StudentsManagement = () => {
     };
 
     const filteredStudents = students.filter(s => {
-        const matchesSearch = s.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            s.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            s.rollNo?.includes(searchQuery) ||
-            s.cnic?.includes(searchQuery);
+        const matchesSearch = (s.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (s.email || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (s.rollNo || '').includes(searchQuery) ||
+            (s.cnic || '').includes(searchQuery);
 
         if (!matchesSearch) return false;
 

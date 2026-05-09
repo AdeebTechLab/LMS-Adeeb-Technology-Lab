@@ -118,6 +118,28 @@ const TestsTab = ({ course, students }) => {
         }
     };
 
+    const handleDeleteSubmission = async (testId, submissionId) => {
+        if (!confirm('Are you sure you want to delete this submission? The student will be able to retake the test.')) return;
+        try {
+            await testAPI.deleteSubmission(testId, submissionId);
+            showToast.success('Submission deleted successfully');
+            
+            // Refresh tests list
+            fetchTests();
+            
+            // Update selected test modal state
+            if (selectedTest && selectedTest._id === testId) {
+                setSelectedTest({
+                    ...selectedTest,
+                    submissions: selectedTest.submissions.filter(s => s._id !== submissionId)
+                });
+            }
+        } catch (error) {
+            console.error('Error deleting submission:', error);
+            showToast.error('Failed to delete submission');
+        }
+    };
+
     const resetForm = () => {
         setFormData({
             title: '',
@@ -453,7 +475,7 @@ const TestsTab = ({ course, students }) => {
                                     <div className="p-3 bg-primary/5 rounded-2xl group-hover:bg-primary group-hover:text-white transition-colors">
                                         <FileText className="w-6 h-6 text-primary group-hover:text-white" />
                                     </div>
-                                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <div className="flex items-center gap-1">
                                         <button
                                             onClick={() => {
                                                 setEditingTest(test);
@@ -490,9 +512,23 @@ const TestsTab = ({ course, students }) => {
 
                                 <div className="pt-4 border-t border-gray-50">
                                     <div className="flex flex-col gap-1 w-full">
-                                        <span className="text-[8px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1">
-                                            {test.submissions?.length > 0 ? "Latest Performance" : "Recent Submissions"}
-                                        </span>
+                                        <div className="flex items-center justify-between mb-1">
+                                            <span className="text-[8px] font-black text-gray-400 uppercase tracking-[0.2em]">
+                                                {test.submissions?.length > 0 ? "Latest Performance" : "Recent Submissions"}
+                                            </span>
+                                            {test.submissions?.length > 0 && (
+                                                <button
+                                                    onClick={() => {
+                                                        setSelectedTest(test);
+                                                        setIsViewModalOpen(true);
+                                                    }}
+                                                    className="flex items-center gap-1 text-[9px] font-black text-primary hover:text-[#e67e01] uppercase tracking-widest transition-colors bg-primary/5 hover:bg-primary/10 px-2 py-1 rounded-md"
+                                                >
+                                                    <Eye className="w-3 h-3" />
+                                                    REVIEW GRADES
+                                                </button>
+                                            )}
+                                        </div>
                                         
                                         {test.submissions?.length > 0 ? (
                                             (() => {
@@ -1197,6 +1233,77 @@ const TestsTab = ({ course, students }) => {
                 )}
             </Modal>
 
+            {/* View Submissions Modal */}
+            <Modal
+                isOpen={isViewModalOpen}
+                onClose={() => {
+                    setIsViewModalOpen(false);
+                    setSelectedTest(null);
+                }}
+                title={`Submissions: ${selectedTest?.title}`}
+                size="xl"
+            >
+                <div className="space-y-4 max-h-[60vh] overflow-y-auto py-2 pr-2">
+                    {selectedTest?.submissions && selectedTest.submissions.length > 0 ? (
+                        selectedTest.submissions.map((submission) => {
+                            const totalMarks = selectedTest.totalMarks || selectedTest.questions?.length;
+                            return (
+                                <div key={submission._id} className="bg-gray-50 p-4 rounded-xl border border-gray-100 relative group">
+                                    <button
+                                        onClick={() => handleDeleteSubmission(selectedTest._id, submission._id)}
+                                        className="absolute top-4 right-4 p-2 text-red-400 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors border border-transparent hover:border-red-100"
+                                        title="Delete Submission"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                    </button>
+                                    <div className="flex justify-between items-start pr-10">
+                                        <div className="flex items-center gap-3">
+                                            {submission.user?.photo ? (
+                                                <img src={submission.user.photo} alt="" className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm" />
+                                            ) : (
+                                                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm border-2 border-white shadow-sm">
+                                                    {submission.user?.name?.charAt(0)}
+                                                </div>
+                                            )}
+                                            <div>
+                                                <div className="flex items-center gap-2 flex-wrap">
+                                                    <span className="font-bold text-gray-900 text-sm">{submission.user?.name}</span>
+                                                    {submission.user?.rollNo && (
+                                                        <span className="text-[10px] font-black text-red-500 bg-red-50 px-2 py-0.5 rounded-lg border border-red-100 uppercase tracking-tighter">
+                                                            {submission.user?.rollNo}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <p className="text-[11px] text-gray-400 font-medium flex items-center gap-1.5 mt-1">
+                                                    <Clock className="w-3.5 h-3.5" />
+                                                    {new Date(submission.submittedAt).toLocaleDateString()} at {new Date(submission.submittedAt).toLocaleTimeString()}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div className="text-right">
+                                            <Badge variant={submission.score >= (totalMarks / 2) ? 'success' : 'error'}>
+                                                {submission.score >= (totalMarks / 2) ? 'PASSED' : 'FAILED'}
+                                            </Badge>
+                                            <p className="text-xl font-black text-primary mt-1 leading-none">
+                                                {submission.score}
+                                                <span className="text-xs font-bold text-gray-400">/{totalMarks}</span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })
+                    ) : (
+                        <div className="text-center py-12">
+                            <div className="w-16 h-16 rounded-full bg-gray-50 flex items-center justify-center mx-auto mb-4 border border-dashed border-gray-200">
+                                <Users className="w-8 h-8 text-gray-300" />
+                            </div>
+                            <h4 className="text-lg font-bold text-gray-900 uppercase">No Submissions Yet</h4>
+                            <p className="text-xs text-gray-500 mt-1">Students haven't taken this test yet.</p>
+                        </div>
+                    )}
+                </div>
+            </Modal>
 
         </div>
     );

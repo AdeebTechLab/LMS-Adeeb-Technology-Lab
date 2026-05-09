@@ -69,8 +69,8 @@ const CourseManagement = () => {
     };
 
     const filteredCourses = courses.filter((course) => {
-        const matchesSearch = course.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            course.teachers?.some(t => t.name?.toLowerCase().includes(searchQuery.toLowerCase()));
+        const matchesSearch = (course.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (course.teachers || []).some(t => (t.name || '').toLowerCase().includes(searchQuery.toLowerCase()));
 
         const matchesRole = selectedRoles.length === 0 || selectedRoles.includes(course.targetAudience);
         const matchesCity = selectedCities.length === 0 || selectedCities.includes(course.city);

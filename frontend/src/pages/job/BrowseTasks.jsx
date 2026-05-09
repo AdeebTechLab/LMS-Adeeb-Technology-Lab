@@ -4,7 +4,6 @@ import { useSelector } from 'react-redux';
 import {
     Search, Calendar, Briefcase, CheckCircle, Send, Upload, CreditCard, AlertCircle, Link, Trash2, MessageSquare, ChevronLeft, ChevronRight, X
 } from 'lucide-react';
-import { ButtonLoader } from '../../components/ui/Loader';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
 import { taskAPI } from '../../services/api';
@@ -438,13 +437,11 @@ const BrowseTasks = () => {
                                         </button>
                                         <ButtonLoader
                                             variant="danger"
+                                            onClick={() => handleDeleteTask(task._id)}
                                             isLoading={isDeleting === task._id}
                                             icon={<Trash2 className="w-4 h-4" />}
+                                            className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl font-medium flex items-center justify-center gap-2 disabled:opacity-70"
                                         >
-<<<<<<< HEAD
-                                            {isDeleting === task._id ? <ButtonLoader isLoading={true} /> : <Trash2 className="w-4 h-4" />}
-=======
->>>>>>> 3079364b313251fa7fc7eaad21dc212596252aa2
                                             Delete
                                         </ButtonLoader>
                                     </div>
@@ -552,16 +549,12 @@ const BrowseTasks = () => {
                             <button onClick={() => setFeedbackModalOpen(false)} className="flex-1 py-3 text-gray-600 hover:bg-gray-100 rounded-xl font-medium">
                                 Cancel
                             </button>
-<<<<<<< HEAD
-                            <ButtonLoader onClick={handleFeedbackSubmit} isLoading={isSubmitting}>
-=======
                             <ButtonLoader
                                 onClick={handleFeedbackSubmit}
                                 isLoading={isSubmitting}
                                 disabled={!feedbackData.text.trim()}
                                 className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium flex items-center justify-center gap-2 disabled:opacity-50"
                             >
->>>>>>> 3079364b313251fa7fc7eaad21dc212596252aa2
                                 Submit Feedback
                             </ButtonLoader>
                         </div>
@@ -749,6 +742,3 @@ const BrowseTasks = () => {
 };
 
 export default BrowseTasks;
-
-
-

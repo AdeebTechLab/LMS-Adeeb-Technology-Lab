@@ -318,11 +318,11 @@ const CertificateManagement = () => {
     };
 
     const filteredCourses = courses.filter(c => {
-        const matchesSearch = c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        const matchesSearch = (c.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
             c.students.some(s =>
-                s.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                s.rollNo?.includes(searchQuery) ||
-                s.cnic?.includes(searchQuery)
+                (s.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                (s.rollNo || '').includes(searchQuery) ||
+                (s.cnic || '').includes(searchQuery)
             );
 
         const matchesCity = selectedCities.length === 0 || selectedCities.includes(c.city || c.location);
@@ -333,9 +333,9 @@ const CertificateManagement = () => {
     });
 
     const filteredRequests = requests.filter(r => {
-        const matchesSearch = r.user?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            r.course?.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            r.user?.cnic?.includes(searchQuery);
+        const matchesSearch = (r.user?.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (r.course?.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (r.user?.cnic || '').includes(searchQuery);
 
         const matchesCity = selectedCities.length === 0 || selectedCities.includes(r.course?.city || r.course?.location);
         const matchesType = selectedTypes.length === 0 || selectedTypes.includes(r.course?.targetAudience || (r.user?.role === 'intern' ? 'interns' : 'students'));
