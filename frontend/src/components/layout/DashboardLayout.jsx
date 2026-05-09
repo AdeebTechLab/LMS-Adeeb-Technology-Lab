@@ -423,11 +423,10 @@ const DashboardLayout = () => {
                             <button
                                 type="button"
                                 onClick={() => window.location.reload()}
-                                className="rounded-xl transition-all duration-200 bg-[var(--bg-sidebar)] hover:bg-[var(--bg-sidebar-dark)] text-white shadow-md hover:shadow-lg flex items-center justify-center gap-2 p-2.5 sm:px-3 sm:py-2.5"
+                                className="rounded-full transition-all duration-200 bg-[var(--bg-sidebar)] hover:bg-[var(--bg-sidebar-dark)] text-white shadow-md hover:shadow-lg flex items-center justify-center p-2.5 sm:w-10 sm:h-10"
                                 title="Refresh Page"
                             >
                                 <RefreshCw className="w-5 h-5 shrink-0" />
-                                <span className="hidden xl:inline text-sm font-semibold">Refresh</span>
                             </button>
 
                             {/* Dark / Light Mode Toggle */}
@@ -435,7 +434,7 @@ const DashboardLayout = () => {
                                 type="button"
                                 onClick={toggleTheme}
                                 title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-                                className={`relative rounded-xl transition-all duration-300 shadow-md hover:shadow-lg flex items-center justify-center gap-2 overflow-hidden p-2.5 sm:px-3 sm:py-2.5 ${isDark
+                                className={`relative rounded-full transition-all duration-300 shadow-md hover:shadow-lg flex items-center justify-center overflow-hidden p-2.5 sm:w-10 sm:h-10 ${isDark
                                     ? 'bg-primary text-white'
                                     : 'bg-[var(--bg-sidebar)] text-white'
                                     }`}
@@ -465,19 +464,15 @@ const DashboardLayout = () => {
                                         </motion.span>
                                     )}
                                 </AnimatePresence>
-                                <span className="hidden xl:inline text-sm font-semibold whitespace-nowrap">
-                                    {isDark ? 'Light' : 'Dark'}
-                                </span>
                             </button>
 
                             {/* Notifications */}
                             <div className="relative">
                                 <button
                                     onClick={() => setShowNotifications(!showNotifications)}
-                                    className={`relative p-2.5 rounded-xl transition-all flex items-center gap-2 ${isDark ? 'hover:bg-white/10 text-white/70' : 'hover:bg-gray-100 text-gray-600'}`}
+                                    className={`relative p-2.5 rounded-full transition-all flex items-center justify-center sm:w-10 sm:h-10 ${isDark ? 'hover:bg-white/10 text-white/70' : 'hover:bg-gray-100 text-gray-600'}`}
                                 >
                                     <Bell className="w-5 h-5" />
-                                    <span className="hidden xl:inline text-sm font-semibold">Notif</span>
                                     {unreadCount + pendingTasks.length > 0 && (
                                         <span className="absolute -top-1 -right-1 w-5 h-5 bg-primary text-white text-[10px] rounded-full flex items-center justify-center font-bold shadow-sm">
                                             {unreadCount + pendingTasks.length}
