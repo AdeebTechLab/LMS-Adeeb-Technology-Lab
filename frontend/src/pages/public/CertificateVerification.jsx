@@ -11,14 +11,21 @@ const CertificateVerification = () => {
 
     const handleSearch = async (e) => {
         e.preventDefault();
-        if (!rollNo.trim()) return;
+        let query = rollNo.trim();
+        if (!query) return;
+
+        // Normalize roll number: ATL-0001 or 0001 -> 0001
+        // We strip ATL- prefix if present to match the DB format
+        if (query.toUpperCase().startsWith('ATL-')) {
+            query = query.substring(4);
+        }
 
         setIsLoading(true);
         setError(null);
         setCertificates(null);
 
         try {
-            const response = await certificateAPI.verify(rollNo);
+            const response = await certificateAPI.verify(query);
             setCertificates(response.data.certificates);
         } catch (err) {
             setError(err.response?.data?.message || 'No certificates found for this roll number');

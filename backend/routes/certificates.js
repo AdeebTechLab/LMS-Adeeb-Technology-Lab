@@ -6,6 +6,7 @@ const CertificateRequest = require('../models/CertificateRequest');
 const Course = require('../models/Course');
 const Enrollment = require('../models/Enrollment');
 const User = require('../models/User');
+const Fee = require('../models/Fee');
 
 // @route   GET /api/certificates/my
 // @desc    Get logged-in user's certificates
@@ -259,10 +260,31 @@ router.post('/issue', protect, authorize('admin'), async (req, res) => {
             await user.save();
         }
 
-        // Calculate duration
+        // Calculate duration - fallback to months if dates are invalid
         const startDate = new Date(course.startDate);
         const endDate = new Date(course.endDate);
-        const duration = `${startDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })} - ${endDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}`;
+        let duration = '';
+        
+        if (!isNaN(startDate) && !isNaN(endDate)) {
+            duration = `${startDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })} - ${endDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}`;
+        } else {
+            // Fallback: Try to calculate months from first fee
+            try {
+                const feeRecord = await Fee.findOne({ user: userId, course: courseId });
+                if (feeRecord && feeRecord.installments.length > 0) {
+                    const start = new Date(feeRecord.installments[0].dueDate);
+                    const end = new Date();
+                    let months = (end.getFullYear() - start.getFullYear()) * 12;
+                    months += end.getMonth() - start.getMonth();
+                    months = Math.max(1, months);
+                    duration = `${months} Month${months > 1 ? 's' : ''}`;
+                } else {
+                    duration = '3 Months'; // Default fallback
+                }
+            } catch (err) {
+                duration = '3 Months';
+            }
+        }
 
         // Create certificate
         const certificate = await Certificate.create({
@@ -351,6 +373,28 @@ router.get('/verify/:rollNo', async (req, res) => {
             const isTeacher = cert.user.role === 'teacher';
             const position = isTeacher ? 'Teacher' : cert.user.role === 'intern' ? 'Intern' : 'Student';
 
+            // Calculate months between first fee and issued date if duration is invalid or for students
+            let displayDuration = cert.duration;
+            if ((!cert.duration || cert.duration.includes('Invalid')) && !isTeacher) {
+                try {
+                    const feeRecord = await Fee.findOne({ user: cert.user._id, course: cert.course?._id });
+                    if (feeRecord && feeRecord.installments.length > 0) {
+                        const start = new Date(feeRecord.installments[0].dueDate);
+                        const end = new Date(cert.issuedAt);
+                        
+                        if (!isNaN(start) && !isNaN(end)) {
+                            let months = (end.getFullYear() - start.getFullYear()) * 12;
+                            months += end.getMonth() - start.getMonth();
+                            // Round up or minimum 1 month
+                            months = Math.max(1, months);
+                            displayDuration = `${months} Month${months > 1 ? 's' : ''}`;
+                        }
+                    }
+                } catch (err) {
+                    console.error('Error calculating duration:', err);
+                }
+            }
+
             result.push({
                 rollNo: cert.user.rollNo,
                 name: cert.user.name,
@@ -359,7 +403,7 @@ router.get('/verify/:rollNo', async (req, res) => {
                 course: cert.course?.title || (cert.selectedCourses?.length > 0 ? cert.selectedCourses.join(', ') : (cert.skills || 'Teaching Certificate')),
                 selectedCourses: cert.selectedCourses || [],  // full list for multi-course display
                 skills: cert.skills,
-                duration: cert.duration,
+                duration: displayDuration,
                 passoutDate: cert.passoutDate,
                 certificateLink: cert.certificateLink,
                 location: cert.course?.location || null,
