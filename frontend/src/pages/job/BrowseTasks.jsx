@@ -2,13 +2,13 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useSelector } from 'react-redux';
 import {
-    Search, Calendar, Briefcase, CheckCircle, Send, Upload, CreditCard, Loader2, AlertCircle, Link, Trash2, MessageSquare, ChevronLeft, ChevronRight, X
+    Search, Calendar, Briefcase, CheckCircle, Send, Upload, CreditCard, AlertCircle, Link, Trash2, MessageSquare, ChevronLeft, ChevronRight, X
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
 import { taskAPI } from '../../services/api';
 import { getCategoryIcon, getCategoryColor, getCategoryBg } from '../../utils/taskCategoryIcons';
-import Loader from '../../components/ui/Loader';
+import Loader, { ButtonLoader } from '../../components/ui/Loader';
 import BirthdayWish from '../../components/dashboard/BirthdayWish';
 
 const BrowseTasks = () => {
@@ -441,7 +441,7 @@ const BrowseTasks = () => {
                                             className="px-4 py-2.5 bg-red-50 text-red-600 hover:bg-red-600 hover:text-white rounded-xl transition-all disabled:opacity-50 flex items-center gap-2 font-medium"
                                             title="Permanently Delete Project"
                                         >
-                                            {isDeleting === task._id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                                            {isDeleting === task._id ? <ButtonLoader isLoading={true} /> : <Trash2 className="w-4 h-4" />}
                                             Delete
                                         </button>
                                     </div>
@@ -549,13 +549,9 @@ const BrowseTasks = () => {
                             <button onClick={() => setFeedbackModalOpen(false)} className="flex-1 py-3 text-gray-600 hover:bg-gray-100 rounded-xl font-medium">
                                 Cancel
                             </button>
-                            <button
-                                onClick={handleFeedbackSubmit}
-                                disabled={isSubmitting || !feedbackData.text.trim()}
-                                className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium flex items-center justify-center gap-2 disabled:opacity-50"
-                            >
-                                {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Submit Feedback'}
-                            </button>
+                            <ButtonLoader onClick={handleFeedbackSubmit} isLoading={isSubmitting}>
+                                Submit Feedback
+                            </ButtonLoader>
                         </div>
                     </div>
                 )}

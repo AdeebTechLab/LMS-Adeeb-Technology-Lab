@@ -5,8 +5,9 @@ import { useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { io } from 'socket.io-client';
 import {
-    CreditCard, Upload, Clock, CheckCircle, AlertCircle, FileText, Loader2, FileImage, Trash2, X, Eye
+    CreditCard, Upload, CheckCircle, Clock, AlertCircle, Calendar, ArrowRight, FileText, Trash2, X, Eye, ExternalLink
 } from 'lucide-react';
+import Loader, { ButtonLoader } from '../../components/ui/Loader';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
 import { feeAPI, enrollmentAPI } from '../../services/api';
@@ -250,12 +251,7 @@ const FeeManagement = () => {
     const totals = getTotals();
 
     if (isFetching) {
-        return (
-            <div className="flex flex-col items-center justify-center h-64 gap-3">
-                <img src="/loading.gif" alt="Loading" className="w-20 h-20 object-contain" />
-                <span className="text-gray-600 font-medium">Loading fees...</span>
-            </div>
-        );
+        return <Loader />;
     }
 
     return (
@@ -286,7 +282,7 @@ const FeeManagement = () => {
                     <CheckCircle className="w-5 h-5 text-primary" />
                     <span className="text-primary font-medium">{successMsg}</span>
                 </motion.div>
-            )}            {/* Summary Cards */}
+            )}            {/* Summary Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm group hover:border-primary/20 transition-all">
                     <div className="flex items-center justify-between">
@@ -335,7 +331,7 @@ const FeeManagement = () => {
                         </div>
                     </div>
                 </motion.div>
-            </div>iv>
+            </div>
 
             {/* Course Challan List */}
             <div className="space-y-4 order-1">
@@ -728,13 +724,9 @@ const FeeManagement = () => {
                             <button onClick={() => { setIsUploadModalOpen(false); setUploadedFile(null); setPreviewUrl(null); setSlipId(''); }} className="flex-1 py-3 text-gray-600 font-medium hover:bg-gray-100 rounded-xl transition-colors">
                                 Cancel
                             </button>
-                            <button
-                                onClick={handleSubmitPayment}
-                                disabled={!uploadedFile || isSubmitting}
-                                className="flex-1 py-3 bg-[#0f2847] hover:bg-primary text-white font-medium rounded-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all shadow-lg shadow-orange-900/10"
-                            >
-                                {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Submit Payment'}
-                            </button>
+                            <ButtonLoader onClick={handleSubmitPayment} isLoading={isSubmitting} icon={<Upload className="w-5 h-5" />}>
+                                SUBMIT VERIFICATION
+                            </ButtonLoader>
                         </div>
                     </div>
                 )}

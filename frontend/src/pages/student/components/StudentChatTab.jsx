@@ -5,6 +5,7 @@ import { io } from 'socket.io-client';
 import {
     MessageCircle, Send, User, Loader2, GraduationCap
 } from 'lucide-react';
+import Loader, { ButtonLoader } from '../../../components/ui/Loader';
 import { chatAPI } from '../../../services/api';
 import ProfileAvatar from '../../../components/ui/ProfileAvatar';
 
@@ -179,12 +180,9 @@ const StudentChatTab = ({ course, isRestricted }) => {
     }, {});
 
     if (isLoading) {
-        return (
-            <div className="flex flex-col items-center justify-center py-24 gap-4">
-                <img src="/loading.gif" alt="Loading" className="w-24 h-24 object-contain" />
-                <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] animate-pulse">Initializing Secure Chat...</p>
-            </div>
-        );
+        return <div className="flex flex-col items-center justify-center h-full py-20 gap-4">
+                        <Loader />
+                    </div>;
     }
 
     if (teachers.length === 0) {

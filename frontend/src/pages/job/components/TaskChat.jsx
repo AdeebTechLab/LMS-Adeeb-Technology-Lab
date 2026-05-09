@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
-import { Send, Loader2, User, ShieldCheck, Bell } from 'lucide-react';
+import { Send, User, ShieldCheck, Bell } from 'lucide-react';
+import Loader, { ButtonLoader } from '../../components/ui/Loader';
 import { taskAPI } from '../../../services/api';
 
 const getSocketURL = () => {
@@ -111,7 +112,7 @@ const TaskChat = ({ taskId, currentUser }) => {
     if (isFetching) {
         return (
             <div className="flex items-center justify-center h-[400px] bg-gray-50 rounded-2xl border border-gray-100">
-                <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                <Loader />
             </div>
         );
     }
@@ -185,7 +186,7 @@ const TaskChat = ({ taskId, currentUser }) => {
                     disabled={!newMessage.trim() || isSending}
                     className="w-10 h-10 bg-primary hover:bg-purple-700 text-white rounded-xl flex items-center justify-center transition-all disabled:opacity-50 shadow-md"
                 >
-                    {isSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                    <ButtonLoader isLoading={isSending} icon={<Send className="w-4 h-4" />} />
                 </button>
             </form>
         </div>

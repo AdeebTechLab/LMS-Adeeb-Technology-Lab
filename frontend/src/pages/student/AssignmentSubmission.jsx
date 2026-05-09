@@ -4,9 +4,10 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     CheckCircle, Clock, Calendar, Search, Filter, AlertCircle, XCircle, ChevronLeft, ChevronRight,
-    BookOpen, GraduationCap, ArrowRight, ExternalLink, Send, FileText, ClipboardList, Plus, Loader2, Link as LinkIcon, MessageCircle, MapPin, Zap, X
+    BookOpen, GraduationCap, ArrowRight, ExternalLink, Send, FileText, ClipboardList, Plus, Link as LinkIcon, MessageCircle, MapPin, Zap, X
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
+import Loader, { ButtonLoader } from '../../components/ui/Loader';
 import { assignmentAPI, courseAPI, dailyTaskAPI, enrollmentAPI, chatAPI, feeAPI } from '../../services/api';
 import StudentChatTab from './components/StudentChatTab';
 import StudentAttendanceTab from './components/StudentAttendanceTab';
@@ -786,10 +787,7 @@ const AssignmentSubmission = () => {
                             <>
 
                                 {isLoading ? (
-                                    <div className="flex flex-col items-center justify-center py-24 gap-4">
-                                        <img src="/loading.gif" alt="Loading" className="w-28 h-28 object-contain" />
-                                        <span className="text-gray-400 font-black uppercase tracking-[0.3em] text-[10px] animate-pulse">Synchronizing Workspace...</span>
-                                    </div>
+                                    <Loader message="Synchronizing Workspace..." />
                                 ) : activeTab === 'assignments' ? (
                                     /* ASSIGNMENTS LIST */
                                     <div className="space-y-6">
@@ -1053,17 +1051,9 @@ const AssignmentSubmission = () => {
                                                                     disabled={isSubmitting || isRestricted}
                                                                     className="w-full py-5 bg-primary hover:bg-primary text-white font-black uppercase tracking-widest text-xs rounded-3xl shadow-2xl shadow-primary dark:shadow-primary/20 transition-all active:scale-[0.98] flex items-center justify-center gap-3 ring-offset-4 ring-offset-white dark:ring-offset-[#0f172a] focus:ring-4 focus:ring-primary/50 disabled:opacity-50 disabled:cursor-not-allowed"
                                                                 >
-                                                                    {isSubmitting ? (
-                                                                        <>
-                                                                            <Loader2 className="w-5 h-5 animate-spin" />
-                                                                            UPLOADING...
-                                                                        </>
-                                                                    ) : (
-                                                                        <>
-                                                                            <CheckCircle className="w-5 h-5" />
-                                                                            CONFIRM & SUBMIT WORK
-                                                                        </>
-                                                                    )}
+                                                                    <ButtonLoader isLoading={isSubmitting}>
+                                                                        CONFIRM & SUBMIT WORK
+                                                                    </ButtonLoader>
                                                                 </button>
                                                             </div>
                                                         </div>
@@ -1125,8 +1115,9 @@ const AssignmentSubmission = () => {
                                                     disabled={isSubmitting || !newTaskContent.trim() || isRestricted || isCompleted}
                                                     className="w-full py-6 bg-primary hover:bg-[#e67f00] text-white rounded-[1.5rem] font-black text-lg tracking-widest uppercase shadow-2xl shadow-primary/30 transition-all active:scale-[0.98] flex items-center justify-center gap-3 disabled:grayscale disabled:opacity-50"
                                                 >
-                                                    {isSubmitting ? <Loader2 className="w-6 h-6 animate-spin" /> : <Send className="w-6 h-6" />}
-                                                    {isCompleted ? 'LOGS ARCHIVED' : (isRestricted ? (currentEnrollment?.isPaused ? 'LOCKED (PAUSED)' : 'PORTAL LOCKED') : (resubmittingTaskId ? 'UPDATE ARCHIVE ENTRY' : 'COMMIT DAILY LOG'))}
+                                                    <ButtonLoader isLoading={isSubmitting} icon={<Send className="w-6 h-6" />}>
+                                                        {isCompleted ? 'LOGS ARCHIVED' : (isRestricted ? (currentEnrollment?.isPaused ? 'LOCKED (PAUSED)' : 'PORTAL LOCKED') : (resubmittingTaskId ? 'UPDATE ARCHIVE ENTRY' : 'COMMIT DAILY LOG'))}
+                                                    </ButtonLoader>
                                                 </button>
                                             </form>
                                         </div>

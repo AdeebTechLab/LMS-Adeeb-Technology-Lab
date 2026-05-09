@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Search, User, XCircle, Loader2, Award, CheckCircle, ShieldCheck, Download, FileText, BookOpen, Calendar, MapPin, Briefcase, GraduationCap, ExternalLink } from 'lucide-react';
+import { Search, Award, CheckCircle, XCircle, AlertCircle, Calendar, User, ShieldCheck, Download, FileText, BookOpen, MapPin, Briefcase, GraduationCap, ExternalLink } from 'lucide-react';
+import Loader, { ButtonLoader } from '../../components/ui/Loader';
 import { certificateAPI } from '../../services/api';
 
 const VerifyCertificate = () => {
@@ -151,8 +152,9 @@ const VerifyCertificate = () => {
                                     disabled={isSearching}
                                     className="px-8 py-4 bg-primary hover:bg-primary text-white font-black text-lg rounded-2xl transition-all flex items-center justify-center gap-3 shadow-lg shadow-primary/30 active:scale-95 disabled:opacity-50"
                                 >
-                                    {isSearching ? <Loader2 className="w-6 h-6 animate-spin" /> : <Search className="w-6 h-6" />}
-                                    {isSearching ? 'VERIFYING...' : 'VERIFY NOW'}
+                                    <ButtonLoader isLoading={isSearching}>
+                                        {isSearching ? 'VERIFYING...' : 'VERIFY NOW'}
+                                    </ButtonLoader>
                                 </button>
                             </div>
                         </div>

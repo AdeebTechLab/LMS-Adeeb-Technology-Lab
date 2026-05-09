@@ -3,8 +3,9 @@ import { motion } from 'framer-motion';
 import { useSelector, useDispatch } from 'react-redux';
 import {
     User, Mail, Phone, MapPin, Briefcase,
-    Edit2, Save, X, Camera, FileText, Award, Star, Loader2
+    Edit2, Save, X, Camera, FileText, Award, Star
 } from 'lucide-react';
+import Loader, { ButtonLoader } from '../../components/ui/Loader';
 import { authAPI, taskAPI, settingsAPI } from '../../services/api';
 import { updateUser } from '../../features/auth/authSlice';
 
@@ -202,14 +203,14 @@ const JobProfile = () => {
                             </button>
                         ) : (
                             <div className="flex gap-2">
-                                <button
+                                <ButtonLoader 
+                                    isLoading={isSaving}
                                     onClick={handleSave}
-                                    disabled={isSaving}
-                                    className="px-5 py-3 bg-white text-primary font-semibold rounded-xl hover:bg-gray-50 transition-colors flex items-center gap-2 disabled:opacity-50"
+                                    className="px-5 py-3 bg-white text-primary font-semibold rounded-xl hover:bg-gray-50 transition-colors flex items-center gap-2"
                                 >
-                                    {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                                    Save
-                                </button>
+                                    <Save className="w-4 h-4" />
+                                    Save Changes
+                                </ButtonLoader>
                                 <button
                                     onClick={handleCancel}
                                     className="px-5 py-3 bg-white/20 text-white font-semibold rounded-xl hover:bg-white/30 transition-colors flex items-center gap-2"
