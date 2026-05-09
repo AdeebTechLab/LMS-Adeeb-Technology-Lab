@@ -520,7 +520,7 @@ router.get('/check-status/:courseId', protect, async (req, res) => {
             if (inst.status !== 'verified' && inst.status !== 'paid') {
                 const dueDate = new Date(inst.dueDate);
                 const daysPastDue = Math.floor((now - dueDate) / (1000 * 60 * 60 * 24));
-                if (daysPastDue > 7) {
+                if (daysPastDue >= 0) {
                     hasOverdue = true;
                     overdueInstallment = {
                         installmentNumber: fee.installments.indexOf(inst) + 1,

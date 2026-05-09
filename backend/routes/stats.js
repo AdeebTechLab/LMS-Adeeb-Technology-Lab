@@ -129,14 +129,14 @@ router.get('/admin-dashboard', protect, authorize('admin'), async (req, res) => 
         allFees.forEach(fee => {
             fee.installments.forEach(inst => {
                 if (inst.status === 'verified') verifiedCount++;
-                else if (inst.status === 'pending' || inst.status === 'submitted') pendingCount++;
                 else if (inst.status === 'rejected') rejectedCount++;
+                else if (['pending', 'submitted', 'overdue'].includes(inst.status)) pendingCount++;
             });
         });
 
         // 4. [NEW] Essential Management Stats
         const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
-        
+
         const [
             pendingStudents,
             pendingInterns,

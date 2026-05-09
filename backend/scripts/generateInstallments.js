@@ -87,8 +87,8 @@ const generateInstallments = async (io) => {
                 const now = moment().tz('Asia/Karachi');
                 const daysSinceLastDue = now.diff(lastDueDate, 'days');
 
-                // Generate new installment if 30 days have passed since last due date
-                if (daysSinceLastDue >= 30) {
+                // Generate new installment if 25 days have passed since last due date (5 days before next due date)
+                if (daysSinceLastDue >= 25) {
                     // Parse course fee (handle string like "5000" or "Coming Soon")
                     let courseFee = 0;
                     if (fee.course.fee) {
@@ -226,7 +226,7 @@ const updateEnrollmentStatus = async () => {
                         const dueDate = moment.tz(inst.dueDate, 'Asia/Karachi');
                         const daysPastDue = now.diff(dueDate, 'days');
 
-                        if (daysPastDue > 7) {
+                        if (daysPastDue >= 0) {
                             hasOverdue = true;
                             if (inst.status !== 'overdue') {
                                 inst.status = 'overdue';

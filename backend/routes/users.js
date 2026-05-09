@@ -170,10 +170,10 @@ router.get('/pending-counts', protect, authorize('admin'), async (req, res) => {
             return acc;
         }, {});
 
-        // Count pending fees (installments that are 'submitted' OR 'pending')
+        // Count pending fees (installments that are 'submitted', 'pending', 'rejected', or 'overdue')
         const feeCounts = await Fee.aggregate([
             { $unwind: '$installments' },
-            { $match: { 'installments.status': { $in: ['submitted', 'pending'] } } },
+            { $match: { 'installments.status': { $in: ['submitted', 'pending', 'rejected', 'overdue'] } } },
             { $count: 'count' }
         ]);
 
