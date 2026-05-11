@@ -725,14 +725,15 @@ const FeeManagement = () => {
                             <button onClick={() => { setIsUploadModalOpen(false); setUploadedFile(null); setPreviewUrl(null); setSlipId(''); }} className="flex-1 py-3 text-gray-600 font-medium hover:bg-gray-100 rounded-xl transition-colors">
                                 Cancel
                             </button>
-                            <ButtonLoader
+                            <button
                                 onClick={handleSubmitPayment}
-                                isLoading={isSubmitting}
-                                disabled={!uploadedFile}
+                                disabled={isSubmitting || !uploadedFile}
                                 className="flex-1 py-3 bg-[#0f2847] hover:bg-primary text-white font-medium rounded-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all shadow-lg shadow-orange-900/10"
                             >
-                                Submit Payment
-                            </ButtonLoader>
+                                <ButtonLoader isLoading={isSubmitting}>
+                                    Submit Payment
+                                </ButtonLoader>
+                            </button>
                         </div>
                     </div>
                 )}
