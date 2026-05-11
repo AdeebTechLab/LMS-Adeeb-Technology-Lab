@@ -602,7 +602,7 @@ const FeeManagement = () => {
                 </div>
 
                 {/* Clear Step Banner */}
-                <div className="bg-[#0f2847] rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-4 text-white">
+                <div className="bg-primary-darkest rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-4 text-white">
                     <div className="flex items-center gap-3">
                         <div className="p-2 bg-white/10 rounded-lg">
                             <AlertCircle className="w-5 h-5 text-primary" />
@@ -728,7 +728,7 @@ const FeeManagement = () => {
                             <button
                                 onClick={handleSubmitPayment}
                                 disabled={isSubmitting || !uploadedFile}
-                                className="flex-1 py-3 bg-[#0f2847] hover:bg-primary text-white font-medium rounded-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all shadow-lg shadow-orange-900/10"
+                                className="flex-1 py-3 bg-primary-dark hover:bg-primary text-white font-medium rounded-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all shadow-lg shadow-primary/10"
                             >
                                 <ButtonLoader isLoading={isSubmitting}>
                                     Submit Payment

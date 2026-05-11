@@ -112,7 +112,7 @@ router.post('/', protect, authorize('admin'), async (req, res) => {
         const { title, message, type, startDate, endDate, isHtml, showLifetime, isActive, targetAudience } = req.body;
 
         // Sanitize message if HTML is enabled
-        const sanitizedMessage = isHtml ? sanitizeHtml(message, sanitizeOptions) : message;
+        const sanitizedMessage = message;
 
         const notificationData = {
             title,
@@ -166,9 +166,9 @@ router.put('/:id', protect, authorize('admin'), async (req, res) => {
             return res.status(404).json({ success: false, message: 'Notification not found' });
         }
 
-        // Sanitize message if HTML is enabled
+        // No sanitization - allow admin to paste full code as requested
         if (req.body.isHtml && req.body.message) {
-            req.body.message = sanitizeHtml(req.body.message, sanitizeOptions);
+            // No action needed, keep as is
         }
 
         // If switching to lifetime, clear dates

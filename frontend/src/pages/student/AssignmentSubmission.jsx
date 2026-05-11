@@ -28,7 +28,7 @@ const AssignmentSubmission = () => {
 
     const [myCourses, setMyCourses] = useState([]);
     const [selectedCourseId, setSelectedCourseId] = useState(location.state?.courseId || null);
-    const [activeTab, setActiveTab] = useState(location.state?.tab || 'assignments');
+    const [activeTab, setActiveTab] = useState(location.state?.tab || 'daily_tasks');
     const [assignments, setAssignments] = useState([]);
     const [dailyTasks, setDailyTasks] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -207,7 +207,7 @@ const AssignmentSubmission = () => {
                                     key={course._id}
                                     whileHover={{ y: -8, scale: 1.02 }}
                                     onClick={() => setSelectedCourseId(course._id)}
-                                    className="bg-white dark:bg-slate-900/40 p-8 rounded-[2.5rem] border border-gray-100 dark:border-slate-800 shadow-sm hover:shadow-2xl hover:border-primary transition-all cursor-pointer group"
+                                    className="bg-white dark:bg-slate-900/40 p-8 rounded-2xl border border-gray-100 dark:border-slate-800 shadow-sm hover:shadow-2xl hover:border-primary transition-all cursor-pointer group"
                                 >
                                     <div className="flex items-center gap-4 mb-6">
                                         <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary border border-orange-100">
@@ -233,7 +233,7 @@ const AssignmentSubmission = () => {
                 /* WORKSPACE VIEW */
                 <div className="space-y-6">
                     {/* Course Header */}
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900/40 p-6 rounded-[2rem] border border-gray-100 dark:border-slate-800 shadow-sm">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900/40 p-6 rounded-2xl border border-gray-100 dark:border-slate-800 shadow-sm">
                         <div className="flex items-center gap-4">
                             <button
                                 onClick={() => setSelectedCourseId(null)}
@@ -253,24 +253,25 @@ const AssignmentSubmission = () => {
                         {/* Right Side: Tabs & Actions */}
                         <div className="flex items-center gap-3 flex-wrap md:flex-nowrap">
                             {/* Tabs */}
-                            <div className="flex items-center gap-1.5 p-1.5 bg-gray-50 dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 w-fit">
+                            {/* Tabs - Styled like Teacher Portal */}
+                            <div className="flex items-center gap-2 bg-white dark:bg-slate-900 rounded-xl p-1 border border-gray-100 dark:border-slate-800 shadow-sm overflow-x-auto custom-scrollbar no-scrollbar min-w-0 max-w-full">
                                 {[
+                                    { id: 'daily_tasks', label: 'Class Log', icon: ClipboardList },
                                     { id: 'assignments', label: role === 'intern' ? 'Daily Task' : 'Assignments', icon: FileText },
-                                    { id: 'daily_tasks', label: 'Logs', icon: ClipboardList },
+                                    { id: 'tests', label: 'Tests', icon: Zap },
                                     { id: 'attendance', label: 'Attendance', icon: Calendar },
                                     { id: 'chat', label: 'Chat', icon: MessageCircle },
-                                    { id: 'tests', label: 'Tests', icon: Zap },
                                 ].map((tab) => (
                                     <button
                                         key={tab.id}
                                         onClick={() => setActiveTab(tab.id)}
-                                        className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === tab.id
-                                            ? 'bg-primary text-white shadow-lg shadow-orange-200 dark:shadow-none'
-                                            : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-200'
+                                        className={`flex items-center gap-2 py-2.5 px-5 rounded-lg font-bold text-[11px] uppercase tracking-wider transition-all whitespace-nowrap shrink-0 ${activeTab === tab.id
+                                            ? 'bg-primary text-white shadow-lg shadow-primary/20'
+                                            : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-slate-800'
                                             }`}
                                     >
-                                        <tab.icon className="w-4 h-4" />
-                                        <span className="hidden sm:inline">{tab.label}</span>
+                                        <tab.icon className={`w-4 h-4 ${activeTab === tab.id ? 'text-white' : 'text-gray-400'}`} />
+                                        {tab.label}
                                     </button>
                                 ))}
                             </div>
@@ -322,7 +323,7 @@ const AssignmentSubmission = () => {
                                 </div>
 
                                 {filteredAssignments.length === 0 ? (
-                                    <div className="bg-white dark:bg-slate-900/40 rounded-[2.5rem] p-20 border border-gray-100 dark:border-slate-800 text-center">
+                                    <div className="bg-white dark:bg-slate-900/40 rounded-2xl p-20 border border-gray-100 dark:border-slate-800 text-center">
                                         <FileText className="w-20 h-20 text-gray-200 mx-auto mb-6" />
                                         <h3 className="text-2xl font-black text-gray-400 uppercase tracking-widest">No Assignments Found</h3>
                                         <p className="text-gray-400 font-medium mt-2">Check back later for new tasks</p>
@@ -338,14 +339,14 @@ const AssignmentSubmission = () => {
                                                     key={assignment.id}
                                                     initial={{ opacity: 0, y: 10 }}
                                                     animate={{ opacity: 1, y: 0 }}
-                                                    className={`bg-white dark:bg-slate-900/40 rounded-[2.5rem] p-8 border border-gray-100 dark:border-slate-800 shadow-sm transition-all hover:shadow-2xl hover:border-primary dark:hover:border-primary/50 group relative overflow-hidden ${assignment.status === 'graded' ? 'opacity-95' : ''}`}
+                                                    className={`bg-white dark:bg-slate-900/40 rounded-2xl p-8 border border-gray-100 dark:border-slate-800 shadow-sm transition-all hover:shadow-2xl hover:border-primary dark:hover:border-primary/50 group relative overflow-hidden ${assignment.status === 'graded' ? 'opacity-95' : ''}`}
                                                 >
                                                     <div className={`absolute top-0 right-0 w-40 h-40 rounded-full -mr-20 -mt-20 blur-3xl opacity-10 transition-opacity group-hover:opacity-20 ${assignment.status === 'graded' ? 'bg-primary' : assignment.status === 'overdue' ? 'bg-red-500' : 'bg-amber-500'}`}></div>
 
                                                     <div className="flex flex-col h-full relative z-10">
                                                         <div className="flex items-start justify-between mb-6">
                                                             <div className="flex items-center gap-3">
-                                                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg ${assignment.status === 'graded' ? 'bg-primary' : assignment.status === 'submitted' ? 'bg-blue-600' : 'bg-[#0f2847]'}`}>
+                                                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg ${assignment.status === 'graded' ? 'bg-primary' : assignment.status === 'submitted' ? 'bg-blue-600' : 'bg-primary-dark'}`}>
                                                                     <FileText className="w-6 h-6" />
                                                                 </div>
                                                                 <div>
@@ -439,7 +440,7 @@ const AssignmentSubmission = () => {
                                     {selectedAssignment && (
                                         <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
                                             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setSelectedAssignment(null)} className="fixed inset-0 bg-[#0f172a]/80 backdrop-blur-xl" />
-                                            <motion.div initial={{ opacity: 0, scale: 0.95, y: 30 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 30 }} className="bg-white dark:bg-[#0f172a] w-full max-w-xl rounded-[3rem] shadow-2xl border border-white/20 relative z-10 overflow-hidden">
+                                            <motion.div initial={{ opacity: 0, scale: 0.95, y: 30 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 30 }} className="bg-white dark:bg-[#0f172a] w-full max-w-xl rounded-2xl shadow-2xl border border-white/20 relative z-10 overflow-hidden">
                                                 <div className="bg-primary p-10 text-white relative">
                                                     <h3 className="text-2xl font-black uppercase tracking-tight leading-none mb-2">Submit Assignment</h3>
                                                     <p className="text-white/70 text-xs font-bold uppercase tracking-widest">Share your work link and notes for evaluation</p>
@@ -468,7 +469,7 @@ const AssignmentSubmission = () => {
                         ) : activeTab === 'daily_tasks' ? (
                             /* DAILY LOGS VIEW */
                             <div className="space-y-8">
-                                <div className="bg-white dark:bg-slate-900/40 rounded-[2.5rem] p-10 border border-gray-100 dark:border-slate-800 shadow-sm">
+                                <div className="bg-white dark:bg-slate-900/40 rounded-2xl p-10 border border-gray-100 dark:border-slate-800 shadow-sm">
                                     <div className="flex items-center justify-between mb-8">
                                         <h3 className="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tight">Post Daily Activity Log</h3>
                                     </div>
@@ -499,7 +500,7 @@ const AssignmentSubmission = () => {
                                 <div className="space-y-4">
                                     <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] text-center my-10">Activity History</h4>
                                     {dailyTasks.length === 0 ? (
-                                        <div className="py-20 text-center bg-gray-50/50 rounded-[2.5rem] border-2 border-dashed border-gray-100">
+                                        <div className="py-20 text-center bg-gray-50/50 rounded-2xl border-2 border-dashed border-gray-100">
                                             <Clock className="w-12 h-12 text-gray-200 mx-auto mb-4" />
                                             <p className="text-gray-400 font-bold uppercase tracking-widest text-[10px]">No historical data found</p>
                                         </div>
@@ -538,17 +539,17 @@ const AssignmentSubmission = () => {
                             </div>
                         ) : activeTab === 'attendance' ? (
                             /* ATTENDANCE VIEW */
-                            <div className="bg-white dark:bg-slate-900/40 rounded-[2.5rem] p-8 border border-gray-100 dark:border-slate-800 shadow-sm min-h-[400px]">
+                            <div className="bg-white dark:bg-slate-900/40 rounded-2xl p-8 border border-gray-100 dark:border-slate-800 shadow-sm min-h-[400px]">
                                 <StudentAttendanceTab course={myCourses.find(c => c._id === selectedCourseId)} />
                             </div>
                         ) : activeTab === 'chat' ? (
                             /* CHAT VIEW */
-                            <div className="bg-white dark:bg-slate-900/40 rounded-[2.5rem] p-6 border border-gray-100 dark:border-slate-800 shadow-sm min-h-[500px]">
+                            <div className="bg-white dark:bg-slate-900/40 rounded-2xl p-6 border border-gray-100 dark:border-slate-800 shadow-sm min-h-[500px]">
                                 <StudentChatTab course={myCourses.find(c => c._id === selectedCourseId)} isRestricted={false} />
                             </div>
                         ) : activeTab === 'tests' ? (
                             /* TESTS VIEW */
-                            <div className="bg-white dark:bg-slate-900/40 rounded-[2.5rem] p-8 border border-gray-100 dark:border-slate-800 shadow-sm min-h-[400px]">
+                            <div className="bg-white dark:bg-slate-900/40 rounded-2xl p-8 border border-gray-100 dark:border-slate-800 shadow-sm min-h-[400px]">
                                 <StudentTestsTab courseId={selectedCourseId} isRestricted={isRestricted} />
                             </div>
                         ) : (

@@ -313,69 +313,47 @@
 /* ============================================================
    BRAND BLUE — Global remap: emerald / green / teal utilities
    ============================================================ */
-.text-emerald-50,
-.text-teal-50,
-.text-green-50 {
+.text-teal-50 {
   color: var(--brand-blue-50) !important;
 }
 
-.text-emerald-100,
-.text-teal-100,
-.text-green-100 {
+.text-teal-100 {
   color: var(--brand-blue-100) !important;
 }
 
-.text-emerald-500,
-.text-teal-500,
-.text-green-500 {
+.text-teal-500 {
   color: var(--brand-blue-500) !important;
 }
 
-.text-emerald-600,
-.text-teal-600,
-.text-green-600 {
+.text-teal-600 {
   color: var(--brand-blue-600) !important;
 }
 
-.text-emerald-700,
-.text-teal-700,
-.text-green-700 {
+.text-teal-700 {
   color: var(--brand-blue-700) !important;
 }
 
-.bg-emerald-50,
-.bg-teal-50,
-.bg-green-50 {
+.bg-teal-50 {
   background-color: var(--brand-blue-50) !important;
 }
 
-.bg-emerald-100,
-.bg-teal-100,
-.bg-green-100 {
+.bg-teal-100 {
   background-color: var(--brand-blue-100) !important;
 }
 
-.bg-emerald-500,
-.bg-teal-500,
-.bg-green-500 {
+.bg-teal-500 {
   background-color: var(--brand-blue-500) !important;
 }
 
-.bg-emerald-600,
-.bg-teal-600,
-.bg-green-600 {
+.bg-teal-600 {
   background-color: var(--brand-blue-600) !important;
 }
 
-.border-emerald-100,
-.border-teal-100,
-.border-green-100 {
+.border-teal-100 {
   border-color: var(--brand-blue-100) !important;
 }
 
-.border-emerald-500,
-.border-teal-500,
-.border-green-500 {
+.border-teal-500 {
   border-color: var(--brand-blue-500) !important;
 }
 
@@ -750,13 +728,32 @@ body {
   color: #cbd5e1 !important;
 }
 
+.announcement-html-content {
+  overflow: visible !important;
+}
+
 .announcement-html-content a {
-  text-decoration: underline;
-  color: #3b82f6;
+  text-decoration: none !important;
+}
+
+.announcement-html-content a:hover {
+  text-decoration: none !important;
+}
+
+.announcement-html-content svg, 
+.announcement-html-content i {
+  display: inline-block;
+  vertical-align: middle;
 }
 
 .dark .announcement-html-content a {
-  color: #60a5fa !important;
+  color: inherit;
+}
+
+@keyframes moveButton {
+    0% { transform: translateX(0px); }
+    50% { transform: translateX(-10px); }
+    100% { transform: translateX(0px); }
 }
 
 .announcement-html-content ul,
@@ -855,8 +852,16 @@ body {
 
 /* Status Indicator Animations */
 @keyframes status-ping {
-  0% { transform: scale(1); opacity: 1; }
-  70%, 100% { transform: scale(2.5); opacity: 0; }
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  70%,
+  100% {
+    transform: scale(2.5);
+    opacity: 0;
+  }
 }
 
 .animate-status-ping {
@@ -864,8 +869,17 @@ body {
 }
 
 @keyframes avatar-glow {
-  0%, 100% { border-color: rgba(34, 197, 94, 0.4); box-shadow: 0 0 5px rgba(34, 197, 94, 0.2); }
-  50% { border-color: rgba(34, 197, 94, 1); box-shadow: 0 0 15px rgba(34, 197, 94, 0.6); }
+
+  0%,
+  100% {
+    border-color: rgba(34, 197, 94, 0.4);
+    box-shadow: 0 0 5px rgba(34, 197, 94, 0.2);
+  }
+
+  50% {
+    border-color: rgba(34, 197, 94, 1);
+    box-shadow: 0 0 15px rgba(34, 197, 94, 0.6);
+  }
 }
 
 .online-avatar-glow {

@@ -77,32 +77,90 @@ const NotificationPopup = () => {
     };
 
     const getColorClasses = (type) => {
-        switch (type) {
-            case 'warning': return {
+        const themes = {
+            red: {
+                border: isDark ? 'border-rose-600/30' : 'border-rose-200',
+                bg: isDark ? 'bg-rose-600/10' : 'bg-rose-50/80',
+                iconBg: isDark ? 'bg-rose-600/20' : 'bg-rose-100',
+                bar: 'bg-rose-600'
+            },
+            blue: {
+                border: isDark ? 'border-blue-600/30' : 'border-blue-200',
+                bg: isDark ? 'bg-blue-600/10' : 'bg-blue-50/80',
+                iconBg: isDark ? 'bg-blue-600/20' : 'bg-blue-100',
+                bar: 'bg-blue-600'
+            },
+            green: {
+                border: isDark ? 'border-green-600/30' : 'border-green-200',
+                bg: isDark ? 'bg-green-600/10' : 'bg-green-50/80',
+                iconBg: isDark ? 'bg-green-600/20' : 'bg-green-100',
+                bar: 'bg-green-600'
+            },
+            yellow: {
                 border: isDark ? 'border-amber-500/30' : 'border-amber-200',
                 bg: isDark ? 'bg-amber-500/10' : 'bg-amber-50/80',
                 iconBg: isDark ? 'bg-amber-500/20' : 'bg-amber-100',
                 bar: 'bg-amber-500'
-            };
-            case 'success': return {
-                border: isDark ? 'border-primary/40' : 'border-primary/20',
-                bg: isDark ? 'bg-primary/15' : 'bg-primary/5',
-                iconBg: isDark ? 'bg-primary/20' : 'bg-primary/10',
-                bar: 'bg-primary'
-            };
-            case 'error': return {
-                border: isDark ? 'border-rose-500/30' : 'border-rose-200',
-                bg: isDark ? 'bg-rose-500/10' : 'bg-rose-50/80',
-                iconBg: isDark ? 'bg-rose-500/20' : 'bg-rose-100',
-                bar: 'bg-rose-500'
-            };
-            default: return {
-                border: isDark ? 'border-blue-500/30' : 'border-blue-200',
-                bg: isDark ? 'bg-blue-500/10' : 'bg-blue-50/80',
-                iconBg: isDark ? 'bg-blue-500/20' : 'bg-blue-100',
-                bar: 'bg-blue-500'
-            };
-        }
+            },
+            orange: {
+                border: isDark ? 'border-orange-600/30' : 'border-orange-200',
+                bg: isDark ? 'bg-orange-600/10' : 'bg-orange-50/80',
+                iconBg: isDark ? 'bg-orange-600/20' : 'bg-orange-100',
+                bar: 'bg-orange-600'
+            },
+            pink: {
+                border: isDark ? 'border-pink-600/30' : 'border-pink-200',
+                bg: isDark ? 'bg-pink-600/10' : 'bg-pink-50/80',
+                iconBg: isDark ? 'bg-pink-600/20' : 'bg-pink-100',
+                bar: 'bg-pink-600'
+            },
+            purple: {
+                border: isDark ? 'border-purple-600/30' : 'border-purple-200',
+                bg: isDark ? 'bg-purple-600/10' : 'bg-purple-50/80',
+                iconBg: isDark ? 'bg-purple-600/20' : 'bg-purple-100',
+                bar: 'bg-purple-600'
+            },
+            black: {
+                border: isDark ? 'border-slate-800/50' : 'border-slate-300',
+                bg: isDark ? 'bg-slate-900/40' : 'bg-slate-100/80',
+                iconBg: isDark ? 'bg-slate-800' : 'bg-slate-200',
+                bar: 'bg-slate-900'
+            },
+            brown: {
+                border: isDark ? 'border-amber-900/30' : 'border-amber-900/20',
+                bg: isDark ? 'bg-amber-900/10' : 'bg-amber-100/80',
+                iconBg: isDark ? 'bg-amber-900/20' : 'bg-amber-200',
+                bar: 'bg-amber-900'
+            },
+            white: {
+                border: isDark ? 'border-slate-200/20' : 'border-slate-200',
+                bg: isDark ? 'bg-slate-200/5' : 'bg-slate-50/90',
+                iconBg: isDark ? 'bg-slate-200/10' : 'bg-white border border-slate-100',
+                bar: 'bg-slate-200'
+            },
+            gray: {
+                border: isDark ? 'border-slate-500/30' : 'border-slate-300',
+                bg: isDark ? 'bg-slate-500/10' : 'bg-slate-100/80',
+                iconBg: isDark ? 'bg-slate-500/20' : 'bg-slate-200',
+                bar: 'bg-slate-500'
+            },
+            magenta: {
+                border: isDark ? 'border-fuchsia-600/30' : 'border-fuchsia-200',
+                bg: isDark ? 'bg-fuchsia-600/10' : 'bg-fuchsia-50/80',
+                iconBg: isDark ? 'bg-fuchsia-600/20' : 'bg-fuchsia-100',
+                bar: 'bg-fuchsia-600'
+            }
+        };
+
+        // Map legacy types to new colors
+        const legacyMap = {
+            info: themes.blue,
+            success: themes.green,
+            warning: themes.yellow,
+            error: themes.red
+        };
+
+        return themes[type] || legacyMap[type] || themes.blue;
     };
 
     return (
@@ -113,10 +171,10 @@ const NotificationPopup = () => {
                         initial={{ opacity: 0, scale: 0.95, y: 30 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: 30 }}
-                        className={`w-full max-w-2xl rounded-[1.5rem] shadow-[0_30px_100px_-20px_rgba(0,0,0,0.3)] overflow-hidden relative max-h-[85vh] flex flex-col transition-colors duration-300 ${isDark ? 'bg-[#1a1f2e]' : 'bg-white'}`}
+                        className={`w-full max-w-6xl rounded-[1.5rem] shadow-[0_30px_100px_-20px_rgba(0,0,0,0.3)] overflow-hidden relative max-h-[85vh] flex flex-col transition-all duration-300 ${isDark ? 'bg-[#1a1f2e]' : 'bg-white'}`}
                     >
                         {/* Header */}
-                        <div className={`p-4 md:p-5 pb-3 border-b flex items-center justify-between flex-shrink-0 ${isDark ? 'border-white/10' : 'border-slate-100'}`}>
+                        <div className={`p-6 md:p-8 pb-4 border-b flex items-center justify-between flex-shrink-0 ${isDark ? 'border-white/10' : 'border-slate-100'}`}>
                             <div className="flex items-center gap-3">
                                 <div className={`p-1.5 rounded-xl border border-primary/30 flex items-center justify-center overflow-hidden w-12 h-12 md:w-14 md:h-14 ${isDark ? 'bg-white/5' : 'bg-gray-50'}`}>
                                     <img

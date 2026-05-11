@@ -247,7 +247,7 @@ const TeacherDashboard = () => {
             {
                 label: 'Submissions',
                 data: [0, 0, 0, 0, 0, 0, 0],
-                backgroundColor: '#0545a7',
+                backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#ff8e01',
                 borderRadius: 6,
                 barThickness: 24,
             },
@@ -268,7 +268,7 @@ const TeacherDashboard = () => {
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-gradient-to-r from-[#0f2847] to-[#0545a7] rounded-2xl p-6 text-white"
+                    className="bg-gradient-to-r from-primary-darkest to-primary-dark rounded-2xl p-6 text-white"
                 >
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                         <div>
@@ -287,7 +287,7 @@ const TeacherDashboard = () => {
                             </button>
                             <button
                                 onClick={() => navigate('/teacher/attendance')}
-                                className="px-5 py-2.5 bg-white hover:bg-white/90 text-[#0f2847] rounded-xl font-medium transition-all duration-300"
+                                className="px-5 py-2.5 bg-white hover:bg-white/90 text-primary-dark rounded-xl font-medium transition-all duration-300"
                             >
                                 Mark Attendance
                             </button>
@@ -490,7 +490,7 @@ const TeacherDashboard = () => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.55 }}
-                        className="bg-gradient-to-r from-[#0f2847] to-[#0545a7] rounded-2xl p-6 border border-primary text-white"
+                        className="bg-gradient-to-r from-primary-darkest to-primary-dark rounded-2xl p-6 border border-primary text-white"
                     >
                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                             <div className="flex items-center gap-4">
@@ -522,7 +522,7 @@ const TeacherDashboard = () => {
                                     href={myCertificate.certificateLink}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="flex items-center gap-2 px-5 py-2.5 bg-amber-400 hover:bg-amber-300 text-[#0f2847] font-bold rounded-xl transition-all shrink-0 self-start sm:self-auto"
+                                    className="flex items-center gap-2 px-5 py-2.5 bg-amber-400 hover:bg-amber-300 text-primary-darkest font-bold rounded-xl transition-all shrink-0 self-start sm:self-auto"
                                 >
                                     <ExternalLink className="w-4 h-4" />
                                     Open Certificate

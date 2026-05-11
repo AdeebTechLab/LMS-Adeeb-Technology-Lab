@@ -194,7 +194,7 @@ const MarksSheet = () => {
         datasets: [
             {
                 data: enrollments.map((c) => parseFloat(calculateCourseAverage(c.grades))),
-                backgroundColor: ['#0545a7', '#3B82F6', '#8B5CF6', '#F59E0B', '#EF4444'],
+                backgroundColor: [getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#ff8e01', '#3B82F6', '#8B5CF6', '#F59E0B', '#EF4444'],
                 borderRadius: 8,
                 barThickness: 40,
             },
@@ -249,7 +249,7 @@ const MarksSheet = () => {
                 <motion.div 
                     initial={{ opacity: 0, y: 20 }} 
                     animate={{ opacity: 1, y: 0 }} 
-                    className="col-span-2 md:col-span-1 bg-gradient-to-br from-[#0f2847] to-[#0545a7] rounded-2xl p-6 text-white shadow-lg"
+                    className="col-span-2 md:col-span-1 bg-gradient-to-br from-primary-darkest to-primary-dark rounded-2xl p-6 text-white shadow-lg"
                 >
                     <div className="flex items-center justify-between">
                         <div>

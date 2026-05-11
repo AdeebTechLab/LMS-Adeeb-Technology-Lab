@@ -13,7 +13,7 @@ const notificationSchema = new mongoose.Schema({
     },
     type: {
         type: String,
-        enum: ['info', 'warning', 'success', 'error'],
+        enum: ['info', 'warning', 'success', 'error', 'red', 'blue', 'green', 'yellow', 'orange', 'pink', 'purple', 'black', 'brown', 'white', 'gray', 'magenta'],
         default: 'info'
     },
     isHtml: {

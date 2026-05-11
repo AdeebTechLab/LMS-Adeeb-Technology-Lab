@@ -69,7 +69,6 @@ router.get('/course/:courseId', protect, async (req, res) => {
                 $and: [
                     {
                         $or: [
-                            { assignTo: 'all' },
                             { assignedUsers: userId },
                             { "submissions.user": userId }
                         ]
@@ -129,7 +128,6 @@ router.get('/user/:userId', protect, authorize('admin', 'teacher'), async (req, 
         const assignments = await Assignment.find({
             course: { $in: courseIds },
             $or: [
-                { assignTo: 'all' },
                 { assignedUsers: resolvedUserId },
                 { "submissions.user": resolvedUserId }
             ]
@@ -542,7 +540,6 @@ router.get('/my', protect, async (req, res) => {
                 },
                 {
                     $or: [
-                        { assignTo: 'all' },
                         { assignedUsers: req.user.id },
                         { "submissions.user": req.user.id }
                     ]
@@ -586,17 +583,24 @@ router.put('/:id', protect, authorize('teacher', 'admin'), async (req, res) => {
             updateData.dueDate = moment.tz(updateData.dueDate, 'Asia/Karachi').endOf('day').toDate();
         }
 
-        const assignment = await Assignment.findByIdAndUpdate(
+        const assignment = await Assignment.findById(req.params.id);
+        if (!assignment) {
+            return res.status(404).json({ success: false, message: 'Assignment not found' });
+        }
+
+        // If assignTo is updated to 'all', we need to update assignedUsers list
+        if (updateData.assignTo === 'all') {
+            const enrollments = await Enrollment.find({ course: assignment.course });
+            updateData.assignedUsers = enrollments.map(e => e.user);
+        }
+
+        const updatedAssignment = await Assignment.findByIdAndUpdate(
             req.params.id,
             updateData,
             { new: true, runValidators: true }
         );
 
-        if (!assignment) {
-            return res.status(404).json({ success: false, message: 'Assignment not found' });
-        }
-
-        res.json({ success: true, assignment });
+        res.json({ success: true, assignment: updatedAssignment });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }

@@ -162,19 +162,52 @@ const NotificationManagement = () => {
                                     initial={{ opacity: 0, scale: 0.9 }}
                                     animate={{ opacity: 1, scale: 1 }}
                                     exit={{ opacity: 0, scale: 0.9 }}
-                                    className={`bg-white rounded-2xl border border-gray-100 overflow-hidden flex flex-col transition-all shadow-sm hover:shadow-md ${status.dimmed ? 'opacity-60 grayscale-[0.3]' : ''}`}
+                                    className={`bg-white rounded-2xl border border-gray-100 overflow-hidden flex flex-col transition-all shadow-sm hover:shadow-md ${status.dimmed ? 'opacity-60 grayscale-[0.3]' : ''} ${n.type === 'red' || n.type === 'error' ? 'bg-rose-50/30' :
+                                            n.type === 'blue' || n.type === 'info' ? 'bg-blue-50/30' :
+                                                n.type === 'green' || n.type === 'success' ? 'bg-green-50/30' :
+                                                    n.type === 'yellow' || n.type === 'warning' ? 'bg-amber-50/30' :
+                                                        n.type === 'orange' ? 'bg-orange-50/30' :
+                                                            n.type === 'pink' ? 'bg-pink-50/30' :
+                                                                n.type === 'purple' ? 'bg-purple-50/30' :
+                                                                    n.type === 'black' ? 'bg-slate-100/50' :
+                                                                        n.type === 'brown' ? 'bg-amber-100/20' :
+                                                                            n.type === 'white' ? 'bg-white' :
+                                                                                n.type === 'gray' ? 'bg-slate-50/50' :
+                                                                                    n.type === 'magenta' ? 'bg-fuchsia-50/30' : 'bg-blue-50/30'
+                                        }`}
                                 >
-                                    <div className={`h-1.5 w-full ${n.type === 'warning' ? 'bg-amber-400' :
-                                        n.type === 'success' ? 'bg-primary' :
-                                            n.type === 'error' ? 'bg-rose-500' : 'bg-blue-500'
+                                    <div className={`h-1.5 w-full ${n.type === 'red' || n.type === 'error' ? 'bg-rose-600' :
+                                            n.type === 'blue' || n.type === 'info' ? 'bg-blue-600' :
+                                                n.type === 'green' || n.type === 'success' ? 'bg-green-600' :
+                                                    n.type === 'yellow' || n.type === 'warning' ? 'bg-amber-500' :
+                                                        n.type === 'orange' ? 'bg-orange-600' :
+                                                            n.type === 'pink' ? 'bg-pink-600' :
+                                                                n.type === 'purple' ? 'bg-purple-600' :
+                                                                    n.type === 'black' ? 'bg-slate-900' :
+                                                                        n.type === 'brown' ? 'bg-amber-900' :
+                                                                            n.type === 'white' ? 'bg-slate-200' :
+                                                                                n.type === 'gray' ? 'bg-slate-500' :
+                                                                                    n.type === 'magenta' ? 'bg-fuchsia-600' : 'bg-blue-600'
                                         }`} />
 
                                     <div className="p-6 flex-1 flex flex-col">
                                         <div className="flex items-start justify-between mb-4">
-                                            <div className={`p-2 rounded-xl bg-${n.type === 'warning' ? 'amber' : n.type === 'success' ? 'emerald' : n.type === 'error' ? 'rose' : 'blue'}-50`}>
-                                                {n.type === 'warning' ? <AlertCircle className="w-5 h-5 text-amber-600" /> :
-                                                    n.type === 'success' ? <CheckCircle className="w-5 h-5 text-primary" /> :
-                                                        n.type === 'error' ? <XCircle className="w-5 h-5 text-rose-600" /> : <Info className="w-5 h-5 text-blue-600" />}
+                                            <div className={`p-2 rounded-xl ${n.type === 'red' || n.type === 'error' ? 'bg-rose-50 text-rose-600' :
+                                                    n.type === 'blue' || n.type === 'info' ? 'bg-blue-50 text-blue-600' :
+                                                        n.type === 'green' || n.type === 'success' ? 'bg-green-50 text-green-600' :
+                                                            n.type === 'yellow' || n.type === 'warning' ? 'bg-amber-50 text-amber-600' :
+                                                                n.type === 'orange' ? 'bg-orange-50 text-orange-600' :
+                                                                    n.type === 'pink' ? 'bg-pink-50 text-pink-600' :
+                                                                        n.type === 'purple' ? 'bg-purple-50 text-purple-600' :
+                                                                            n.type === 'black' ? 'bg-slate-100 text-slate-900' :
+                                                                                n.type === 'brown' ? 'bg-amber-100 text-amber-900' :
+                                                                                    n.type === 'white' ? 'bg-slate-50 text-slate-400 border border-slate-200' :
+                                                                                        n.type === 'gray' ? 'bg-slate-50 text-slate-500' :
+                                                                                            n.type === 'magenta' ? 'bg-fuchsia-50 text-fuchsia-600' : 'bg-blue-50 text-blue-600'
+                                                }`}>
+                                                {n.type === 'yellow' || n.type === 'warning' || n.type === 'orange' ? <AlertCircle className="w-5 h-5" /> :
+                                                    n.type === 'green' || n.type === 'success' ? <CheckCircle className="w-5 h-5" /> :
+                                                        n.type === 'red' || n.type === 'error' ? <XCircle className="w-5 h-5" /> : <Info className="w-5 h-5" />}
                                             </div>
                                             <Badge variant={status.variant}>{status.label}</Badge>
                                         </div>
@@ -239,12 +272,45 @@ const NotificationManagement = () => {
                             <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Title</label>
                             <input
                                 type="text"
-                                required
                                 value={formData.title}
                                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                                 className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 outline-none font-bold"
                                 placeholder="Enter notification title"
                             />
+                        </div>
+
+                        {/* Notification Type Selector */}
+                        <div>
+                            <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 ml-1">Notification Theme (12 Colors)</label>
+                            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-2">
+                                {[
+                                    { id: 'red', label: 'Red', color: 'bg-rose-600', ring: 'ring-rose-600/20', border: 'border-rose-200' },
+                                    { id: 'blue', label: 'Blue', color: 'bg-blue-600', ring: 'ring-blue-600/20', border: 'border-blue-200' },
+                                    { id: 'green', label: 'Green', color: 'bg-green-600', ring: 'ring-green-600/20', border: 'border-green-200' },
+                                    { id: 'yellow', label: 'Yellow', color: 'bg-amber-500', ring: 'ring-amber-500/20', border: 'border-amber-200' },
+                                    { id: 'orange', label: 'Orange', color: 'bg-orange-600', ring: 'ring-orange-600/20', border: 'border-orange-200' },
+                                    { id: 'pink', label: 'Pink', color: 'bg-pink-600', ring: 'ring-pink-600/20', border: 'border-pink-200' },
+                                    { id: 'purple', label: 'Purple', color: 'bg-purple-600', ring: 'ring-purple-600/20', border: 'border-purple-200' },
+                                    { id: 'black', label: 'Black', color: 'bg-slate-900', ring: 'ring-slate-900/20', border: 'border-slate-300' },
+                                    { id: 'brown', label: 'Brown', color: 'bg-amber-900', ring: 'ring-amber-900/20', border: 'border-amber-900/20' },
+                                    { id: 'white', label: 'White', color: 'bg-white border border-gray-200', ring: 'ring-gray-200/50', border: 'border-gray-200' },
+                                    { id: 'gray', label: 'Gray', color: 'bg-slate-500', ring: 'ring-slate-500/20', border: 'border-slate-200' },
+                                    { id: 'magenta', label: 'Magenta', color: 'bg-fuchsia-600', ring: 'ring-fuchsia-600/20', border: 'border-fuchsia-200' }
+                                ].map(type => (
+                                    <button
+                                        key={type.id}
+                                        type="button"
+                                        onClick={() => setFormData({ ...formData, type: type.id })}
+                                        className={`flex flex-col items-center gap-1.5 p-2 rounded-xl border transition-all ${formData.type === type.id
+                                            ? `${type.border} bg-white shadow-sm ring-2 ${type.ring}`
+                                            : 'border-transparent bg-gray-50 hover:bg-gray-100'
+                                            }`}
+                                    >
+                                        <div className={`w-5 h-5 rounded-full ${type.color} shrink-0`} />
+                                        <span className={`text-[9px] font-black uppercase tracking-tight ${formData.type === type.id ? 'text-gray-900' : 'text-gray-500'}`}>{type.label}</span>
+                                    </button>
+                                ))}
+                            </div>
                         </div>
 
                         <div className="space-y-0">
@@ -490,8 +556,8 @@ const NotificationManagement = () => {
                                                 setFormData({ ...formData, targetAudience: newAudience });
                                             }}
                                             className={`px-4 py-2 rounded-xl text-sm font-bold border transition-all ${isSelected
-                                                    ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-500/20'
-                                                    : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                                                ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-500/20'
+                                                : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                                                 }`}
                                         >
                                             {role === 'all' ? '📢 All Users' :

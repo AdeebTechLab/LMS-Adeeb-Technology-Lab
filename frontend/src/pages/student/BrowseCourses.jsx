@@ -448,7 +448,7 @@ const BrowseCourses = () => {
                                     {status === 'available' && (
                                         <button
                                             onClick={() => handleEnrollClick(course)}
-                                            className="px-4 py-2 bg-[#0f2847] hover:bg-primary text-white rounded-lg font-medium transition-all"
+                                            className="px-4 py-2 bg-primary-dark hover:bg-primary text-white rounded-lg font-medium transition-all"
                                         >
                                             Enroll Now
                                         </button>
@@ -572,7 +572,7 @@ const BrowseCourses = () => {
                             <button
                                 onClick={handleConfirmEnroll}
                                 disabled={isEnrolling}
-                                className="flex-1 py-3 bg-[#0f2847] hover:bg-primary text-white font-medium rounded-xl flex items-center justify-center gap-2 disabled:opacity-70"
+                                className="flex-1 py-3 bg-primary-dark hover:bg-primary text-white font-medium rounded-xl flex items-center justify-center gap-2 disabled:opacity-70"
                             >
                                 <ButtonLoader isLoading={isEnrolling}>
                                     Confirm Enrollment

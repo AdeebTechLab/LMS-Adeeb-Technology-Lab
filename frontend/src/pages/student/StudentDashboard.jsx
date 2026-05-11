@@ -219,7 +219,7 @@ const StudentDashboard = () => {
                     iconColor: 'text-primary',
                 },
                 {
-                    title: 'Pending Assignments',
+                    title: role === 'intern' ? 'Pending Tasks' : 'Pending Assignments',
                     value: activeAssignments.length.toString(),
                     icon: Clock,
                     iconBg: 'bg-primary/5',
@@ -294,10 +294,10 @@ const StudentDashboard = () => {
                             {activeLiveClasses.map((liveClass) => (
                                 <div
                                     key={liveClass._id}
-                                    className="bg-gradient-to-r from-red-600 via-red-500 to-primary rounded-3xl p-6 md:p-8 text-white shadow-2xl shadow-red-200 border-4 border-red-400"
+                                    className="bg-gradient-to-r from-red-600 via-red-500 to-primary rounded-2xl p-6 md:p-8 text-white shadow-2xl shadow-red-200 border-4 border-red-400"
                                 >
                                     {/* Animated Background Pulses */}
-                                    <div className="absolute top-0 left-0 w-full h-full overflow-hidden rounded-3xl">
+                                    <div className="absolute top-0 left-0 w-full h-full overflow-hidden rounded-2xl">
                                         <div className="absolute top-1/2 left-1/4 w-64 h-64 bg-white/10 rounded-full blur-3xl animate-pulse"></div>
                                         <div className="absolute top-1/2 right-1/4 w-48 h-48 bg-yellow-400/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '0.5s' }}></div>
                                     </div>
@@ -445,11 +445,11 @@ const StudentDashboard = () => {
                         className="lg:col-span-1 space-y-4"
                     >
                         <div className="flex items-center justify-between">
-                            <h3 className="text-lg font-bold text-gray-900 uppercase italic">Pending Assignments</h3>
+                            <h3 className="text-lg font-bold text-gray-900 uppercase italic">{role === 'intern' ? 'Pending Tasks' : 'Pending Assignments'}</h3>
                             <Badge variant="warning">{pendingAssignments.length}</Badge>
                         </div>
 
-                        <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm space-y-4 max-h-[500px] overflow-y-auto">
+                        <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm space-y-4 max-h-[500px] overflow-y-auto">
                             {pendingAssignments.length === 0 ? (
                                 <div className="text-center py-10 opacity-50">
                                     <CheckCircle className="w-10 h-10 text-primary mx-auto mb-2" />
@@ -465,7 +465,7 @@ const StudentDashboard = () => {
                                                 </div>
                                                 <div className="min-w-0 flex-1">
                                                     <h4 className="font-black text-gray-900 text-sm group-hover:text-primary transition-colors uppercase italic leading-tight mb-0.5">{assignment.title}</h4>
-                                                    <p className="text-[9px] text-primary font-black uppercase tracking-widest">{assignment.course?.title || 'Assignment'}</p>
+                                                    <p className="text-[9px] text-primary font-black uppercase tracking-widest">{assignment.course?.title || (role === 'intern' ? 'Daily Task' : 'Assignment')}</p>
                                                     <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mt-0.5 dark:text-gray-500">
                                                          Due: {new Date(assignment.dueDate).toLocaleDateString(undefined, { day: '2-digit', month: 'short' })}
                                                      </p>
@@ -498,7 +498,7 @@ const StudentDashboard = () => {
                         </div>
 
                         {enrolledCourses.length === 0 ? (
-                            <div className="bg-white rounded-3xl p-12 border border-gray-100 text-center">
+                            <div className="bg-white rounded-2xl p-12 border border-gray-100 text-center">
                                 <BookOpen className="w-12 h-12 text-gray-300 mx-auto mb-4" />
                                 <p className="text-gray-500 mb-4 font-bold uppercase tracking-widest text-xs">No active enrollments</p>
                                 <button
