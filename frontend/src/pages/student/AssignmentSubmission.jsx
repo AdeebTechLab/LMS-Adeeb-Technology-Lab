@@ -96,7 +96,7 @@ const AssignmentSubmission = () => {
                 enrollmentAPI.getMy()
             ]);
             setAssignments(assignRes.data.assignments || []);
-            setDailyTasks(dailyRes.data.tasks || []);
+            setDailyTasks(dailyRes.data.data || []);
             
             const enroll = enrollmentRes.data.data.find(e => (e.course?._id || e.course) === selectedCourseId);
             setCurrentEnrollment(enroll);
