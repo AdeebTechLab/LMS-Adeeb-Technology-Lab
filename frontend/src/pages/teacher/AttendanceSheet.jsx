@@ -765,27 +765,27 @@ const AttendanceSheet = () => {
         <div className="space-y-6">
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
+                <div className="flex-1">
                     <button
                         onClick={() => {
                             setSelectedCourse(null);
                             navigate('/teacher/courses');
                         }}
-                        className="flex items-center gap-2 text-primary hover:text-primary mb-2 font-bold text-sm tracking-wide"
+                        className="flex items-center gap-2 text-primary hover:text-primary mb-3 font-bold text-[10px] md:text-sm tracking-wide uppercase"
                     >
-                        <ChevronLeft className="w-4 h-4" />
+                        <ChevronLeft className="w-3.5 h-3.5 md:w-4 md:h-4" />
                         BACK TO ALL COURSES
                     </button>
-                    <h1 className="text-3xl font-black text-gray-900 uppercase tracking-tight">{selectedCourse.title || selectedCourse.name || 'Course Dashboard'}</h1>
-                    <div className="flex items-center gap-3 mt-1 flex-wrap">
+                    <h1 className="text-xl md:text-3xl font-black text-gray-900 uppercase tracking-tight leading-tight mb-2">{selectedCourse.title || selectedCourse.name || 'Course Dashboard'}</h1>
+                    <div className="flex items-center gap-2 md:gap-3 flex-wrap">
                         {(selectedCourse.city || selectedCourse.location) && (
-                            <span className="flex items-center gap-1.5 px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-[10px] font-black uppercase tracking-widest border border-gray-200 shadow-sm">
-                                <MapPin className="w-3 h-3 text-primary" />
+                            <span className="flex items-center gap-1 px-2.5 py-1 bg-gray-100 text-gray-600 rounded-lg text-[9px] md:text-[10px] font-black uppercase tracking-widest border border-gray-200 shadow-sm">
+                                <MapPin className="w-2.5 h-2.5 text-primary" />
                                 {selectedCourse.city || selectedCourse.location}
                             </span>
                         )}
-                        <span className="text-gray-400 text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
-                            <Users className="w-3 h-3" />
+                        <span className="text-gray-400 text-[9px] md:text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5">
+                            <Users className="w-2.5 h-2.5" />
                             {courseStudents.length} Students Active
                         </span>
                     </div>
@@ -794,15 +794,15 @@ const AttendanceSheet = () => {
                 {selectedCourse.bookLink && (
                     <button
                         onClick={() => window.open(selectedCourse.bookLink, '_blank')}
-                        className="group relative flex items-center gap-2.5 px-6 py-2.5 rounded-2xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-black uppercase tracking-widest text-xs hover:-translate-y-0.5 active:translate-y-0 transition-all shadow-lg hover:shadow-xl shadow-gray-900/20 dark:shadow-white/20 ml-auto md:ml-0 border border-gray-800 dark:border-gray-200"
+                        className="group relative flex items-center gap-2 px-4 md:px-6 py-2.5 rounded-xl md:rounded-2xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-black uppercase tracking-widest text-[10px] md:text-xs hover:-translate-y-0.5 active:translate-y-0 transition-all shadow-lg hover:shadow-xl shadow-gray-900/20 dark:shadow-white/20 w-fit md:ml-0 border border-gray-800 dark:border-gray-200"
                         title="Open Course Book"
                     >
-                        <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/20 to-primary/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl"></div>
-                        <div className="bg-white/20 dark:bg-black/10 p-1.5 rounded-lg group-hover:-rotate-12 transition-transform duration-300 relative z-10">
-                            <BookOpen className="w-4 h-4" />
+                        <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/20 to-primary/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-xl md:rounded-2xl"></div>
+                        <div className="bg-white/20 dark:bg-black/10 p-1 md:p-1.5 rounded-lg group-hover:-rotate-12 transition-transform duration-300 relative z-10">
+                            <BookOpen className="w-3.5 h-3.5 md:w-4 md:h-4" />
                         </div>
-                        <span className="hidden sm:inline relative z-10">Read Book</span>
-                        <ExternalLink className="w-3.5 h-3.5 opacity-50 group-hover:opacity-100 transition-opacity relative z-10 ml-1" />
+                        <span className="relative z-10">Read Book</span>
+                        <ExternalLink className="w-3 h-3 md:w-3.5 md:h-3.5 opacity-50 group-hover:opacity-100 transition-opacity relative z-10 ml-0.5 md:ml-1" />
                     </button>
                 )}
             </div>
@@ -822,15 +822,15 @@ const AttendanceSheet = () => {
                         <button
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
-                            className={`flex-1 flex items-center justify-center gap-2.5 py-3.5 px-6 rounded-xl font-black text-[11px] uppercase tracking-wider transition-all whitespace-nowrap relative ${activeTab === tab.id
+                            className={`flex items-center justify-center gap-2 py-2.5 md:py-3.5 px-4 md:px-6 rounded-lg md:rounded-xl font-black text-[10px] md:text-[11px] uppercase tracking-wider transition-all whitespace-nowrap relative shrink-0 ${activeTab === tab.id
                                 ? 'bg-primary text-white shadow-xl shadow-primary/30'
                                 : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-slate-800 hover:text-primary'
                                 }`}
                         >
-                            <tab.icon className={`w-4 h-4 ${activeTab === tab.id ? 'text-white' : 'text-gray-400 group-hover:text-primary'}`} />
+                            <tab.icon className={`w-3.5 h-3.5 md:w-4 md:h-4 ${activeTab === tab.id ? 'text-white' : 'text-gray-400 group-hover:text-primary'}`} />
                             {tab.label}
                             {tab.showBadge && activeTab !== 'chat' && (
-                                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center animate-pulse shadow-lg border-2 border-white dark:border-slate-900">
+                                <span className="absolute -top-1 -right-1 w-4 h-4 md:w-5 md:h-5 bg-red-500 text-white text-[9px] md:text-[10px] font-bold rounded-full flex items-center justify-center animate-pulse shadow-lg border-2 border-white dark:border-slate-900">
                                     {chatUnreadCount > 9 ? '9+' : chatUnreadCount}
                                 </span>
                             )}
@@ -839,7 +839,7 @@ const AttendanceSheet = () => {
                 </div>
 
                 {/* Tab Content */}
-                <div className="bg-white rounded-3xl p-8 border border-primary/20 shadow-xl shadow-gray-200/50 min-h-[500px]">
+                <div className="bg-white rounded-2xl md:rounded-3xl p-4 md:p-8 border border-primary/20 shadow-xl shadow-gray-200/50 min-h-[500px]">
                     {activeTab === 'daily_tasks' && (
                         <DailyTasksTab course={selectedCourse} students={courseStudents} />
                     )}

@@ -119,7 +119,7 @@ const DailyTasksTab = ({ course, students = [] }) => {
                 <h3 className="text-lg font-bold text-gray-900 uppercase italic">
                     {course.targetAudience === 'interns' ? 'Daily Task Submissions' : 'Class Log Submissions'}
                 </h3>
-                <button 
+                <button
                     onClick={fetchTasks}
                     disabled={isLoading}
                     className="flex items-center gap-2 px-5 py-2.5 bg-primary/5 text-primary rounded-xl font-black text-[10px] uppercase tracking-widest transition-all active:scale-95 disabled:opacity-50"
@@ -381,20 +381,20 @@ const DailyTasksTab = ({ course, students = [] }) => {
             {/* Grading Modal */}
             {selectedTaskForGrading && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
-                    <motion.div 
-                        initial={{ opacity: 0 }} 
-                        animate={{ opacity: 1 }} 
-                        className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" 
-                        onClick={() => setSelectedTaskForGrading(null)} 
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm"
+                        onClick={() => setSelectedTaskForGrading(null)}
                     />
-                    <motion.div 
-                        initial={{ opacity: 0, scale: 0.95, y: 20 }} 
-                        animate={{ opacity: 1, scale: 1, y: 0 }} 
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
                         className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-[2.5rem] shadow-2xl relative z-10 overflow-hidden border border-gray-100 dark:border-slate-800"
                     >
                         <div className="bg-primary p-8 text-white relative">
-                            <button 
-                                onClick={() => setSelectedTaskForGrading(null)} 
+                            <button
+                                onClick={() => setSelectedTaskForGrading(null)}
                                 className="absolute top-6 right-6 p-2 hover:bg-white/10 rounded-full transition-colors"
                             >
                                 <X className="w-5 h-5" />
@@ -402,7 +402,7 @@ const DailyTasksTab = ({ course, students = [] }) => {
                             <h3 className="text-xl font-black uppercase tracking-tight mb-1">Verify & Grade Work</h3>
                             <p className="text-white/70 text-[10px] font-black uppercase tracking-widest">Assign marks and feedback for {selectedTaskForGrading.user?.name}</p>
                         </div>
-                        
+
                         <div className="p-8 space-y-6">
                             <div className="bg-gray-50 dark:bg-slate-800/50 p-5 rounded-2xl border border-gray-100 dark:border-slate-800 mb-6">
                                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Student Log Content</p>
@@ -412,9 +412,9 @@ const DailyTasksTab = ({ course, students = [] }) => {
                             <div>
                                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 block">Performance Marks (0-10)</label>
                                 <div className="relative">
-                                    <input 
-                                        type="number" 
-                                        min="0" 
+                                    <input
+                                        type="number"
+                                        min="0"
                                         max="10"
                                         value={gradingMarks}
                                         onChange={(e) => setGradingMarks(e.target.value)}
@@ -426,7 +426,7 @@ const DailyTasksTab = ({ course, students = [] }) => {
 
                             <div>
                                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 block">Evaluation Feedback</label>
-                                <textarea 
+                                <textarea
                                     rows="3"
                                     value={gradingFeedback}
                                     onChange={(e) => setGradingFeedback(e.target.value)}
@@ -436,13 +436,13 @@ const DailyTasksTab = ({ course, students = [] }) => {
                             </div>
 
                             <div className="flex gap-3 pt-4">
-                                <button 
+                                <button
                                     onClick={() => setSelectedTaskForGrading(null)}
                                     className="flex-1 py-4 px-6 border-2 border-gray-100 dark:border-slate-800 rounded-2xl font-black text-[10px] uppercase tracking-widest text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800 transition-all"
                                 >
                                     Cancel
                                 </button>
-                                <button 
+                                <button
                                     onClick={() => submitVerification(selectedTaskForGrading._id, 'verified')}
                                     disabled={isSubmitting}
                                     className="flex-2 py-4 px-10 bg-primary text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-primary/20 hover:shadow-2xl hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"

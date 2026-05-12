@@ -468,15 +468,15 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
 
                             // 2. Filter by Selected Student
                             if (selectedStudentFilter === 'all') return true;
-                            
+
                             // Check if student is in assignedUsers
-                            const isAssigned = assignment.assignedUsers && 
-                                             assignment.assignedUsers.includes(selectedStudentFilter);
-                            
+                            const isAssigned = assignment.assignedUsers &&
+                                assignment.assignedUsers.includes(selectedStudentFilter);
+
                             // Check if student has a submission
-                            const hasSubmission = assignment.submissions && 
-                                                assignment.submissions.some(s => (s.user?._id || s.user) === selectedStudentFilter);
-                            
+                            const hasSubmission = assignment.submissions &&
+                                assignment.submissions.some(s => (s.user?._id || s.user) === selectedStudentFilter);
+
                             return isAssigned || hasSubmission;
                         })
                         .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))

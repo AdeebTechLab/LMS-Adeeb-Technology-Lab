@@ -171,40 +171,40 @@ const NotificationPopup = () => {
                         initial={{ opacity: 0, scale: 0.95, y: 30 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: 30 }}
-                        className={`w-full max-w-6xl rounded-[1.5rem] shadow-[0_30px_100px_-20px_rgba(0,0,0,0.3)] overflow-hidden relative max-h-[85vh] flex flex-col transition-all duration-300 ${isDark ? 'bg-[#1a1f2e]' : 'bg-white'}`}
+                        className={`w-full max-w-3xl mx-auto rounded-[1.25rem] md:rounded-[1.5rem] shadow-[0_30px_100px_-20px_rgba(0,0,0,0.3)] overflow-hidden relative max-h-[90vh] md:max-h-[85vh] flex flex-col transition-all duration-300 ${isDark ? 'bg-[#1a1f2e]' : 'bg-white'}`}
                     >
                         {/* Header */}
-                        <div className={`p-6 md:p-8 pb-4 border-b flex items-center justify-between flex-shrink-0 ${isDark ? 'border-white/10' : 'border-slate-100'}`}>
-                            <div className="flex items-center gap-3">
-                                <div className={`p-1.5 rounded-xl border border-primary/30 flex items-center justify-center overflow-hidden w-12 h-12 md:w-14 md:h-14 ${isDark ? 'bg-white/5' : 'bg-gray-50'}`}>
+                        <div className={`p-4 md:p-8 pb-3 md:pb-4 border-b flex items-center justify-between flex-shrink-0 ${isDark ? 'border-white/10' : 'border-slate-100'}`}>
+                            <div className="flex items-center gap-2 md:gap-3">
+                                <div className={`p-1 rounded-lg md:rounded-xl border border-primary/30 flex items-center justify-center overflow-hidden w-10 h-10 md:w-14 md:h-14 ${isDark ? 'bg-white/5' : 'bg-gray-50'}`}>
                                     <img
                                         src="/logo.png"
                                         alt="Logo"
-                                        className="w-full h-full object-contain scale-80"
+                                        className="w-full h-full object-contain"
                                         onError={(e) => {
                                             e.target.style.display = 'none';
                                             e.target.nextSibling.style.display = 'block';
                                         }}
                                     />
-                                    <GraduationCap className="w-16 h-16 text-primary hidden" />
+                                    <GraduationCap className="w-6 h-6 md:w-8 md:h-8 text-primary hidden" />
                                 </div>
                                 <div>
-                                    <div className="flex items-center gap-2">
-                                        <h1 className="text-primary font-black text-[10px] uppercase tracking-[0.2em]">LMS Adeeb Tech Lab</h1>
-                                        <div className="h-1 w-1 rounded-full bg-gray-400" />
-                                        <span className={`text-[10px] font-bold uppercase tracking-widest ${isDark ? 'text-white/40' : 'text-gray-400'}`}>Official Notice</span>
+                                    <div className="flex items-center gap-1.5 md:gap-2">
+                                        <h1 className="text-primary font-black text-[8px] md:text-[10px] uppercase tracking-[0.15em] md:tracking-[0.2em]">LMS Adeeb Tech Lab</h1>
+                                        <div className="h-0.5 w-0.5 md:h-1 md:w-1 rounded-full bg-gray-400" />
+                                        <span className={`text-[8px] md:text-[10px] font-bold uppercase tracking-widest ${isDark ? 'text-white/40' : 'text-gray-400'}`}>Official Notice</span>
                                     </div>
-                                    <h2 className={`text-xl md:text-2xl font-black tracking-tight mt-0.5 ${isDark ? 'text-white' : 'text-slate-900'}`}>Important Announcements</h2>
-                                    <p className={`text-xs font-medium mt-0.5 ${isDark ? 'text-gray-300' : 'text-slate-500'}`}>
+                                    <h2 className={`text-base md:text-2xl font-black tracking-tight leading-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>Important Announcements</h2>
+                                    <p className={`text-[10px] md:text-xs font-medium ${isDark ? 'text-gray-300' : 'text-slate-500'}`}>
                                         You have <span className="text-primary font-bold">{activeNotifications.length}</span> {activeNotifications.length === 1 ? 'notification' : 'notifications'} to review
                                     </p>
                                 </div>
                             </div>
                             <button
                                 onClick={handleDismiss}
-                                className={`p-3 rounded-2xl transition-all active:scale-90 flex-shrink-0 ${isDark ? 'text-white/40 hover:text-white hover:bg-white/10' : 'text-slate-400 hover:text-slate-900 hover:bg-slate-100'}`}
+                                className={`p-2 md:p-3 rounded-xl md:rounded-2xl transition-all active:scale-90 flex-shrink-0 ${isDark ? 'text-white/40 hover:text-white hover:bg-white/10' : 'text-slate-400 hover:text-slate-900 hover:bg-slate-100'}`}
                             >
-                                <X className="w-6 h-6" />
+                                <X className="w-5 h-5 md:w-6 md:h-6" />
                             </button>
                         </div>
 
@@ -224,17 +224,17 @@ const NotificationPopup = () => {
                                         <div className={`h-2 w-full ${colors.bar}`} />
 
                                         {/* Notification Content */}
-                                        <div className="px-4 md:px-5 py-2 md:py-3">
-                                            <h3 className={`text-lg md:text-xl font-black leading-none ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                                        <div className="px-4 md:px-5 py-3 md:py-4">
+                                            <h3 className={`text-base md:text-xl font-black leading-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
                                                 {notification.title?.trim()}
                                             </h3>
                                             {notification.isHtml ? (
                                                 <div
-                                                    className={`text-sm md:text-base leading-normal prose prose-sm max-w-none announcement-html-content ${isDark ? 'text-gray-200 prose-invert' : 'text-slate-700'} mt-1`}
+                                                    className={`text-[13px] md:text-base leading-relaxed prose prose-sm max-w-none announcement-html-content ${isDark ? 'text-gray-200 prose-invert' : 'text-slate-700'} mt-1.5`}
                                                     dangerouslySetInnerHTML={{ __html: notification.message }}
                                                 />
                                             ) : (
-                                                <div className={`text-sm md:text-base leading-normal whitespace-pre-wrap ${isDark ? 'text-gray-300' : 'text-slate-700'} mt-1`}>
+                                                <div className={`text-[13px] md:text-base leading-relaxed whitespace-pre-wrap ${isDark ? 'text-gray-300' : 'text-slate-700'} mt-1.5`}>
                                                     {notification.message?.trim()}
                                                 </div>
                                             )}
