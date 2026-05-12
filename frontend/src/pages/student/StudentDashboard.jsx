@@ -131,7 +131,7 @@ const StudentDashboard = () => {
             const courses = enrollments.map(e => {
                 const courseId = e.course?._id || e._id;
                 const unread = chatData.find(c => String(c._id) === String(courseId))?.totalUnread || 0;
-                
+
                 return {
                     id: courseId,
                     enrollmentId: e._id,
@@ -422,6 +422,38 @@ const StudentDashboard = () => {
                     </div>
                 </motion.div>
 
+                {/* Workspace Restricted Global Warning */}
+                {enrolledCourses.some(c => !c.isActive && c.status !== 'completed' && !c.isPaused) && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="bg-red-50 dark:bg-red-900/10 border-2 border-red-100 dark:border-red-900/20 rounded-[2rem] p-8 text-center"
+                    >
+                        <div className="w-16 h-16 bg-red-100 dark:bg-red-900/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                            <CreditCard className="w-8 h-8 text-red-600" />
+                        </div>
+                        <h2 className="text-xl font-black text-red-900 dark:text-red-400 uppercase tracking-tight mb-2">Workspace Restricted</h2>
+                        <p className="text-red-700 dark:text-red-400/80 max-w-2xl mx-auto font-medium mb-6 text-sm leading-relaxed">
+                            Your access to this course is currently locked because your monthly fee is overdue or pending verification.
+                            Please clear your dues or wait for admin verification to resume your learning journey.
+                        </p>
+                        <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                            <button
+                                onClick={() => navigate(`/${role}/fees`)}
+                                className="px-6 py-3 bg-red-600 text-white rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-red-700 transition-all shadow-lg shadow-red-200 dark:shadow-none"
+                            >
+                                Manage Fees & Payments
+                            </button>
+                            <button
+                                onClick={() => navigate(`/${role}/courses`)}
+                                className="px-6 py-3 bg-white dark:bg-slate-800 text-gray-600 dark:text-gray-300 rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-gray-50 dark:hover:bg-slate-700 transition-all border border-gray-200 dark:border-slate-700"
+                            >
+                                Back to Courses
+                            </button>
+                        </div>
+                    </motion.div>
+                )}
+
                 {/* Stats Grid */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                     {stats.map((stat, index) => (
@@ -467,8 +499,8 @@ const StudentDashboard = () => {
                                                     <h4 className="font-black text-gray-900 text-sm group-hover:text-primary transition-colors uppercase italic leading-tight mb-0.5">{assignment.title}</h4>
                                                     <p className="text-[9px] text-primary font-black uppercase tracking-widest">{assignment.course?.title || (role === 'intern' ? 'Daily Task' : 'Assignment')}</p>
                                                     <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mt-0.5 dark:text-gray-500">
-                                                         Due: {new Date(assignment.dueDate).toLocaleDateString(undefined, { day: '2-digit', month: 'short' })}
-                                                     </p>
+                                                        Due: {new Date(assignment.dueDate).toLocaleDateString(undefined, { day: '2-digit', month: 'short' })}
+                                                    </p>
                                                 </div>
                                             </div>
                                         </div>

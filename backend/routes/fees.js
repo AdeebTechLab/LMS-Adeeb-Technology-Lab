@@ -74,8 +74,8 @@ router.post('/:id/pay', protect, uploadReceipt.single('receipt'), async (req, re
             return res.status(404).json({ success: false, message: 'Installment not found' });
         }
 
-        if (installment.status !== 'pending' && installment.status !== 'rejected') {
-            return res.status(400).json({ success: false, message: 'Installment is not pending' });
+        if (installment.status !== 'pending' && installment.status !== 'rejected' && installment.status !== 'overdue') {
+            return res.status(400).json({ success: false, message: 'Installment is not in a payable status' });
         }
 
         console.log(`!!! FORCE ATOMIC UPDATE !!! Processing payment for fee ${fee._id} installment ${installmentId}`);
