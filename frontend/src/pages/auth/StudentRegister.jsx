@@ -182,6 +182,7 @@ const StudentRegister = () => {
 
     const validateForm = () => {
         const newErrors = {};
+        if (!photoFile) newErrors.photo = 'Profile photo is required';
         if (!formData.fullName.trim()) newErrors.fullName = 'Full name is required';
         if (!formData.phone) newErrors.phone = 'Phone is required';
         if (!formData.email) newErrors.email = 'Email is required';

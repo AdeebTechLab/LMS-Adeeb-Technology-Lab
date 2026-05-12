@@ -194,6 +194,7 @@ const InternshipRegister = () => {
 
     const validateForm = () => {
         const newErrors = {};
+        if (!photoFile) newErrors.photo = 'Profile photo is required';
         if (!formData.fullName.trim()) newErrors.fullName = 'Full name is required';
         if (!formData.fatherName.trim()) newErrors.fatherName = "Father's name is required";
         if (!formData.dob) newErrors.dob = 'Date of birth is required';

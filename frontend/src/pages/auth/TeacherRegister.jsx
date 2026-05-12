@@ -85,6 +85,10 @@ const TeacherRegister = () => {
     const validateForm = () => {
         const newErrors = {};
 
+        if (!photoFile) {
+            newErrors.photo = 'Profile photo is required';
+        }
+
         if (!formData.name.trim()) {
             newErrors.name = 'Name is required';
         }

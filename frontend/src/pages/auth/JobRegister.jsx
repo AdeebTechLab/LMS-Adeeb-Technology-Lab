@@ -172,6 +172,7 @@ const JobRegister = () => {
 
     const validateForm = () => {
         const newErrors = {};
+        if (!photoFile) newErrors.photo = 'Profile photo is required';
         if (!formData.fullName.trim()) newErrors.fullName = 'Full name is required';
         if (!formData.fatherName.trim()) newErrors.fatherName = 'Father name is required';
         if (!formData.email) newErrors.email = 'Email is required';
@@ -434,7 +435,7 @@ const JobRegister = () => {
                             {formData.city === 'Other' && (
                                 <InputField label="Specify City *" name="otherCity" placeholder="Enter your city" value={formData.otherCity} onChange={handleChange} error={errors.otherCity} />
                             )}
-                            
+
                             <SelectField label="Country *" name="country" options={COUNTRIES} placeholder="Select Country" value={formData.country} onChange={handleChange} error={errors.country} />
                             {formData.country === 'Other' && (
                                 <InputField label="Specify Country *" name="otherCountry" placeholder="Enter your country" value={formData.otherCountry} onChange={handleChange} error={errors.otherCountry} />
