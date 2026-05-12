@@ -585,15 +585,18 @@ const AssignmentSubmission = () => {
                                                         )}
 
                                                         {task.feedback && (
-                                                            <div className="mt-6 pt-6 border-t border-gray-100 dark:border-slate-800">
-                                                                <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-2">Teacher Evaluation</p>
-                                                                <p className="text-sm font-semibold italic text-primary">"{task.feedback}"</p>
-                                                                {task.marks !== undefined && (
-                                                                    <div className="mt-4 flex items-center justify-between bg-primary/5 p-4 rounded-xl border border-primary/10">
-                                                                        <span className="text-xs font-black text-primary uppercase tracking-tight">Proficiency Level</span>
-                                                                        <span className="text-xl font-black text-primary">{task.marks}<span className="text-xs">/100</span></span>
-                                                                    </div>
-                                                                )}
+                                                            <div className="mt-5 pt-5 border-t border-gray-100 dark:border-slate-800/50 flex flex-wrap items-center gap-4">
+                                                                {/* Compact Score */}
+                                                                <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/5 dark:bg-primary/20 rounded-xl border border-primary/10 dark:border-primary/30">
+                                                                    <span className="text-[10px] font-black text-primary uppercase tracking-widest">Score:</span>
+                                                                    <span className="text-sm font-black text-primary">{task.marks !== undefined ? task.marks : 0}<span className="text-[10px]">/10</span></span>
+                                                                </div>
+
+                                                                {/* Inline Feedback */}
+                                                                <div className="flex items-center gap-2 flex-1 min-w-[200px]">
+                                                                    <span className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest shrink-0">Feedback:</span>
+                                                                    <span className="text-[11px] text-primary dark:text-primary-light font-bold italic truncate">"{task.feedback}"</span>
+                                                                </div>
                                                             </div>
                                                         )}
                                                     </motion.div>

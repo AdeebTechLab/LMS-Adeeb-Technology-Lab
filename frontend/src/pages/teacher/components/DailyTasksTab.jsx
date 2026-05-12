@@ -13,6 +13,9 @@ const DailyTasksTab = ({ course, students = [] }) => {
     const [selectedStudentFilter, setSelectedStudentFilter] = useState('all');
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [studentSearchTerm, setStudentSearchTerm] = useState('');
+    const [selectedTaskForGrading, setSelectedTaskForGrading] = useState(null);
+    const [gradingMarks, setGradingMarks] = useState(10);
+    const [gradingFeedback, setGradingFeedback] = useState('');
 
     const fetchTasks = async () => {
         const courseId = course?._id || course?.id;
@@ -34,12 +37,20 @@ const DailyTasksTab = ({ course, students = [] }) => {
     }, [course?._id, course?.id]);
 
     const handleVerifyClick = (task) => {
-        submitVerification(task._id, 'verified');
+        setSelectedTaskForGrading(task);
+        setGradingMarks(10);
+        setGradingFeedback('Keep up the good work! Your progress is excellent.');
+    };
+
+    const handleEditGradeClick = (task) => {
+        setSelectedTaskForGrading(task);
+        setGradingMarks(task.marks !== undefined ? task.marks : 10);
+        setGradingFeedback(task.feedback || '');
     };
 
     const handleReject = async (task) => {
         if (!confirm('Are you sure you want to reject this submission? The student will be notified to resubmit.')) return;
-        submitVerification(task._id, 'rejected');
+        submitVerification(task._id, 'rejected', 0, 'Incomplete or incorrect work. Please review and resubmit.');
     };
 
     const handleDelete = async (task) => {
@@ -57,15 +68,18 @@ const DailyTasksTab = ({ course, students = [] }) => {
         }
     };
 
-    const submitVerification = async (taskId, status) => {
+    const submitVerification = async (taskId, status, marks, feedback) => {
         setIsSubmitting(true);
         try {
             const res = await api.put(`/daily-tasks/${taskId}/grade`, {
-                status
+                status,
+                marks: marks || gradingMarks,
+                feedback: feedback || gradingFeedback
             });
 
             // Update local state
-            setTasks(prev => prev.map(t => t._id === taskId ? res.data.data : t));
+            setTasks(prev => prev.map(t => t._id === taskId ? { ...res.data.data, user: t.user } : t));
+            setSelectedTaskForGrading(null);
             alert(`Task ${status === 'verified' ? 'verified' : 'rejected'} successfully`);
         } catch (error) {
             console.error(`Error ${status} task:`, error);
@@ -322,13 +336,22 @@ const DailyTasksTab = ({ course, students = [] }) => {
                                                     {isSubmitting ? '...' : 'VERIFY'}
                                                 </button>
                                             )}
-                                            {task.status === 'submitted' && (
+                                            {(task.status === 'verified' || task.status === 'graded') && (
+                                                <button
+                                                    onClick={() => handleEditGradeClick(task)}
+                                                    disabled={isSubmitting}
+                                                    className="px-4 py-2 bg-blue-100 text-blue-600 hover:bg-blue-200 rounded-lg text-xs font-black uppercase tracking-widest transition-all shadow-sm active:scale-95 disabled:opacity-50"
+                                                >
+                                                    EDIT GRADE
+                                                </button>
+                                            )}
+                                            {(task.status === 'submitted' || task.status === 'verified' || task.status === 'graded') && (
                                                 <button
                                                     onClick={() => handleReject(task)}
                                                     disabled={isSubmitting}
                                                     className="px-4 py-2 bg-red-100 text-red-600 hover:bg-red-200 rounded-lg text-xs font-black uppercase tracking-widest transition-all active:scale-95 disabled:opacity-50"
                                                 >
-                                                    REJECT
+                                                    {task.status === 'rejected' ? 'REJECTED' : 'REJECT'}
                                                 </button>
                                             )}
                                             <button
@@ -354,6 +377,83 @@ const DailyTasksTab = ({ course, students = [] }) => {
                     </div>
                 )}
             </div>
+
+            {/* Grading Modal */}
+            {selectedTaskForGrading && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+                    <motion.div 
+                        initial={{ opacity: 0 }} 
+                        animate={{ opacity: 1 }} 
+                        className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" 
+                        onClick={() => setSelectedTaskForGrading(null)} 
+                    />
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 0.95, y: 20 }} 
+                        animate={{ opacity: 1, scale: 1, y: 0 }} 
+                        className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-[2.5rem] shadow-2xl relative z-10 overflow-hidden border border-gray-100 dark:border-slate-800"
+                    >
+                        <div className="bg-primary p-8 text-white relative">
+                            <button 
+                                onClick={() => setSelectedTaskForGrading(null)} 
+                                className="absolute top-6 right-6 p-2 hover:bg-white/10 rounded-full transition-colors"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                            <h3 className="text-xl font-black uppercase tracking-tight mb-1">Verify & Grade Work</h3>
+                            <p className="text-white/70 text-[10px] font-black uppercase tracking-widest">Assign marks and feedback for {selectedTaskForGrading.user?.name}</p>
+                        </div>
+                        
+                        <div className="p-8 space-y-6">
+                            <div className="bg-gray-50 dark:bg-slate-800/50 p-5 rounded-2xl border border-gray-100 dark:border-slate-800 mb-6">
+                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Student Log Content</p>
+                                <p className="text-sm font-medium text-gray-600 dark:text-gray-400 italic">"{selectedTaskForGrading.content}"</p>
+                            </div>
+
+                            <div>
+                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 block">Performance Marks (0-10)</label>
+                                <div className="relative">
+                                    <input 
+                                        type="number" 
+                                        min="0" 
+                                        max="10"
+                                        value={gradingMarks}
+                                        onChange={(e) => setGradingMarks(e.target.value)}
+                                        className="w-full px-6 py-4 bg-gray-50 dark:bg-black/20 border-2 border-gray-100 dark:border-slate-800 rounded-2xl outline-none focus:border-primary font-black text-lg transition-all"
+                                    />
+                                    <span className="absolute right-6 top-1/2 -translate-y-1/2 font-black text-gray-300 text-lg">/10</span>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 block">Evaluation Feedback</label>
+                                <textarea 
+                                    rows="3"
+                                    value={gradingFeedback}
+                                    onChange={(e) => setGradingFeedback(e.target.value)}
+                                    placeholder="Write a short encouraging feedback..."
+                                    className="w-full px-6 py-4 bg-gray-50 dark:bg-black/20 border-2 border-gray-100 dark:border-slate-800 rounded-2xl outline-none focus:border-primary font-medium text-sm transition-all resize-none"
+                                />
+                            </div>
+
+                            <div className="flex gap-3 pt-4">
+                                <button 
+                                    onClick={() => setSelectedTaskForGrading(null)}
+                                    className="flex-1 py-4 px-6 border-2 border-gray-100 dark:border-slate-800 rounded-2xl font-black text-[10px] uppercase tracking-widest text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800 transition-all"
+                                >
+                                    Cancel
+                                </button>
+                                <button 
+                                    onClick={() => submitVerification(selectedTaskForGrading._id, 'verified')}
+                                    disabled={isSubmitting}
+                                    className="flex-2 py-4 px-10 bg-primary text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-primary/20 hover:shadow-2xl hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
+                                >
+                                    {isSubmitting ? 'Processing...' : 'Verify & Post Results'}
+                                </button>
+                            </div>
+                        </div>
+                    </motion.div>
+                </div>
+            )}
         </div>
     );
 };

@@ -91,7 +91,7 @@ const MarksSheet = () => {
                             number: index + 1,
                             type: 'Daily Task',
                             marks: t.marks,
-                            total: 100
+                            total: 10
                         }));
 
                     // Fetch Tests
@@ -405,7 +405,7 @@ const MarksSheet = () => {
                                                 <div className="p-2 bg-primary/5 rounded-lg"><RefreshCw className="w-5 h-5 text-primary" /></div>
                                                 <h4 className="font-black text-gray-900 uppercase tracking-widest">Daily work logs</h4>
                                             </div>
-                                            {dailyAvgMarks && <span className="text-[10px] font-black text-primary bg-primary/5 px-3 py-1.5 rounded-xl border border-primary/10 uppercase">Work Log Avg Score: {dailyAvgMarks}/100</span>}
+                                            {dailyAvgMarks && <span className="text-[10px] font-black text-primary bg-primary/5 px-3 py-1.5 rounded-xl border border-primary/10 uppercase">Work Log Avg Score: {dailyAvgMarks}/10</span>}
                                         </div>
                                         {dailyTaskGrades.length > 0 ? (
                                             <div className="overflow-x-auto no-scrollbar rounded-2xl border border-gray-100">
@@ -425,7 +425,7 @@ const MarksSheet = () => {
                                                                     <td className="py-4 px-6 font-black text-gray-300">LOG #{grade.number}</td>
                                                                     <td className="py-4 px-6 font-bold text-gray-900">{grade.assessment.split(': ')[1]}</td>
                                                                     <td className="py-4 px-6 font-medium text-gray-600">
-                                                                        <span className="text-gray-900 font-bold">{grade.marks}</span><span className="text-xs opacity-50">/100</span>
+                                                                        <span className="text-gray-900 font-bold">{grade.marks}</span><span className="text-xs opacity-50">/10</span>
                                                                     </td>
                                                                 </tr>
                                                             );
