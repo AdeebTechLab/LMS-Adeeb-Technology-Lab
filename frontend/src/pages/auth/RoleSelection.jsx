@@ -13,7 +13,7 @@ const RoleSelection = () => {
             icon: BookOpen,
             path: '/register/student',
             color: 'from-primary to-primary-dark',
-            bgColor: 'bg-primary/5',
+            bgColor: 'bg-primary/10',
             iconColor: 'text-primary'
         },
         {
@@ -22,9 +22,9 @@ const RoleSelection = () => {
             description: 'Apply for internship programs and gain hands-on experience',
             icon: Users,
             path: '/register/internship',
-            color: 'from-blue-500 to-indigo-600',
-            bgColor: 'bg-blue-50',
-            iconColor: 'text-blue-600'
+            color: 'from-primary to-primary-dark',
+            bgColor: 'bg-primary/10',
+            iconColor: 'text-primary'
         },
         {
             id: 'job',
@@ -33,7 +33,7 @@ const RoleSelection = () => {
             icon: Briefcase,
             path: '/register/job',
             color: 'from-primary to-primary-dark',
-            bgColor: 'bg-purple-50',
+            bgColor: 'bg-primary/10',
             iconColor: 'text-primary'
         },
         {
@@ -42,8 +42,8 @@ const RoleSelection = () => {
             description: 'Register as a teacher and share your knowledge',
             icon: GraduationCap,
             path: '/register/teacher',
-            color: 'from-primary to-red-600',
-            bgColor: 'bg-primary/5',
+            color: 'from-primary to-primary-dark',
+            bgColor: 'bg-primary/10',
             iconColor: 'text-primary'
         }
     ];

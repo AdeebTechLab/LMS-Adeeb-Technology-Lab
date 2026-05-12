@@ -57,7 +57,6 @@ const userSchema = new mongoose.Schema({
     // Location preference
     location: {
         type: String,
-        enum: ['islamabad', 'bahawalpur', ''],
         default: ''
     },
     // Common fields
