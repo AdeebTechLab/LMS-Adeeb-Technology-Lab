@@ -9,6 +9,7 @@ import {
 import { authAPI, enrollmentAPI, settingsAPI } from '../../services/api';
 import { updateUser } from '../../features/auth/authSlice';
 import Loader, { ButtonLoader } from '../../components/ui/Loader';
+import { formatDate } from '../../utils/dateFormatter';
 
 const InfoField = ({ icon: Icon, label, value, name, type = 'text', editable = true, isEditing, editForm, onChange }) => (
     <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-xl">
@@ -311,7 +312,7 @@ const StudentProfile = () => {
                                 ID: {user?.rollNo || '—'}
                             </span>
                             <span className="px-3 py-1 bg-white/20 rounded-full text-sm">
-                                Joined {profileData.registeredAt ? new Date(profileData.registeredAt).toLocaleDateString() : '—'}
+                                Joined {profileData.registeredAt ? formatDate(profileData.registeredAt) : '—'}
                             </span>
                         </div>
                     </div>
@@ -372,7 +373,7 @@ const StudentProfile = () => {
                         )}
                         <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={User} label="Father's Name" value={profileData.fatherName} name="fatherName" editable={canEditBio} />
                         <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={CreditCard} label="CNIC" value={profileData.cnic} name="cnic" editable={canEditBio} />
-                        <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={Calendar} label="Date of Birth" value={profileData.dob ? new Date(profileData.dob).toLocaleDateString() : ''} name="dob" editable={canEditBio} />
+                        <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={Calendar} label="Date of Birth" value={profileData.dob ? formatDate(profileData.dob) : ''} name="dob" editable={canEditBio} />
                         <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={User} label="Gender" value={profileData.gender} name="gender" editable={canEditBio} />
                         <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={GraduationCap} label="Education" value={profileData.education} name="education" editable={canEditBio} />
                         <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={MapPin} label="Address" value={profileData.address} name="address" editable={canEditBio} />

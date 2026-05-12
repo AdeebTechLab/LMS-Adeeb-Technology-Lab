@@ -10,6 +10,7 @@ import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
 import Loader, { ButtonLoader } from '../../components/ui/Loader';
 import { feeAPI, enrollmentAPI } from '../../services/api';
+import { formatDate } from '../../utils/dateFormatter';
 
 const FeeManagement = () => {
     const location = useLocation();
@@ -407,7 +408,7 @@ const FeeManagement = () => {
                                                             </Badge>
                                                         </div>
                                                         <div className="flex gap-4 text-sm text-gray-500">
-                                                            <span className={isOverdue ? 'text-red-600 font-bold' : ''}>Due: {inst.dueDate ? new Date(inst.dueDate).toLocaleDateString() : 'TBA'}</span>
+                                                            <span className={isOverdue ? 'text-red-600 font-bold' : ''}>Due: {formatDate(inst.dueDate)}</span>
                                                             {inst.slipId && <span>Slip ID: {inst.slipId}</span>}
                                                         </div>
                                                     </div>

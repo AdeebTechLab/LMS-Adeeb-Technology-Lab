@@ -9,6 +9,7 @@ import Modal from '../../components/ui/Modal';
 import { feeAPI } from '../../services/api';
 import { showToast } from '../../utils/customToast';
 import Loader, { ButtonLoader } from '../../components/ui/Loader';
+import { formatDate } from '../../utils/dateFormatter';
 
 const FeeVerification = () => {
     const [activeTab, setActiveTab] = useState('pending');
@@ -264,12 +265,6 @@ const FeeVerification = () => {
         });
     };
 
-    const formatDate = (dateString) => {
-        if (!dateString) return 'N/A';
-        return new Date(dateString).toLocaleDateString('en-US', {
-            month: 'short', day: 'numeric', year: 'numeric'
-        });
-    };
 
     const getImageUrl = (url) => {
         if (!url) return '';

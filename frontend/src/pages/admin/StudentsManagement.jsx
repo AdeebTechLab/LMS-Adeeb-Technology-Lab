@@ -13,6 +13,7 @@ import { userAPI, settingsAPI, enrollmentAPI, assignmentAPI, feeAPI } from '../.
 import { generateComprehensiveReport } from '../../utils/reportGenerator';
 import Loader, { ButtonLoader } from '../../components/ui/Loader';
 import ImageCropper from '../../components/ui/ImageCropper';
+import { formatDate } from '../../utils/dateFormatter';
 
 const StudentsManagement = () => {
     const [searchQuery, setSearchQuery] = useState('');
@@ -352,7 +353,7 @@ const StudentsManagement = () => {
         doc.text(title, 14, 22);
         doc.setFontSize(11);
         doc.setTextColor(100);
-        doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 30);
+        doc.text(`Generated on: ${formatDate(new Date())}`, 14, 30);
         doc.text(`Total Records: ${filteredStudents.length}`, 14, 37);
 
         let headers, body;
@@ -400,7 +401,7 @@ const StudentsManagement = () => {
                 s.email || 'N/A',
                 s.phone || 'N/A',
                 s.cnic || 'N/A',
-                s.dob ? new Date(s.dob).toLocaleDateString() : 'N/A',
+                s.dob ? formatDate(s.dob) : 'N/A',
                 s.age || 'N/A',
                 s.gender || 'N/A',
                 s.location ? (s.location.charAt(0).toUpperCase() + s.location.slice(1)) : 'N/A',
@@ -463,7 +464,7 @@ const StudentsManagement = () => {
                 ['Phone', s.phone],
                 ['CNIC', s.cnic],
                 ['Gender', s.gender],
-                ['Date of Birth', s.dob ? new Date(s.dob).toLocaleDateString() : 'N/A'],
+                ['Date of Birth', s.dob ? formatDate(s.dob) : 'N/A'],
                 ['Age', s.age],
                 ['Education', s.education],
                 ['Location', s.location],
@@ -475,7 +476,7 @@ const StudentsManagement = () => {
                 ['Guardian Job', s.guardianOccupation],
                 ['Attendance Type', s.attendType],
                 ['Heard About', s.heardAbout],
-                ['Admission Date', s.createdAt ? new Date(s.createdAt).toLocaleDateString() : 'N/A']
+                ['Admission Date', s.createdAt ? formatDate(s.createdAt) : 'N/A']
             ];
 
             fields.forEach(([label, value]) => {

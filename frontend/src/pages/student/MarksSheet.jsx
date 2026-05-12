@@ -15,6 +15,7 @@ import Badge from '../../components/ui/Badge';
 import { BarChart } from '../../components/charts/Charts';
 import { useSelector } from 'react-redux';
 import { assignmentAPI, dailyTaskAPI, enrollmentAPI, testAPI } from '../../services/api';
+import { formatDate } from '../../utils/dateFormatter';
 
 const MarksSheet = () => {
     const { user } = useSelector((state) => state.auth);
@@ -87,7 +88,7 @@ const MarksSheet = () => {
                         .filter(t => t.status === 'graded' || t.status === 'verified')
                         .sort((a, b) => new Date(a.date || a.createdAt) - new Date(b.date || b.createdAt))
                         .map((t, index) => ({
-                            assessment: `Work Log: ${new Date(t.date || t.createdAt).toLocaleDateString()}`,
+                            assessment: `Work Log: ${formatDate(t.date || t.createdAt)}`,
                             number: index + 1,
                             type: 'Daily Task',
                             marks: t.marks,

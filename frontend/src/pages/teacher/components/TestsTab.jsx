@@ -10,6 +10,7 @@ import Badge from '../../../components/ui/Badge';
 import Modal from '../../../components/ui/Modal';
 import Loader, { ButtonLoader } from '../../../components/ui/Loader';
 import { showToast } from '../../../utils/customToast';
+import { formatDate, formatDateTime } from '../../../utils/dateFormatter';
 
 const TestsTab = ({ course, students }) => {
     const [tests, setTests] = useState([]);
@@ -574,7 +575,7 @@ const TestsTab = ({ course, students }) => {
                                                                 <div className="flex items-center gap-2">
                                                                     <span className="text-[10px] font-black text-primary tracking-tighter">{latest.user?.rollNo || '0000'}</span>
                                                                     <span className="w-1 h-1 rounded-full bg-gray-200" />
-                                                                    <span className="text-[10px] font-bold text-gray-400">{new Date(latest.submittedAt || latest.createdAt).toLocaleDateString('en-GB')}</span>
+                                                                    <span className="text-[10px] font-bold text-gray-400">{formatDate(latest.submittedAt || latest.createdAt)}</span>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -1296,10 +1297,10 @@ const TestsTab = ({ course, students }) => {
                                                         </span>
                                                     )}
                                                 </div>
-                                                <p className="text-[11px] text-gray-400 font-medium flex items-center gap-1.5 mt-1">
-                                                    <Clock className="w-3.5 h-3.5" />
-                                                    {new Date(submission.submittedAt).toLocaleDateString()} at {new Date(submission.submittedAt).toLocaleTimeString()}
-                                                </p>
+                                                    <p className="text-[11px] text-gray-400 font-medium flex items-center gap-1.5 mt-1">
+                                                        <Clock className="w-3.5 h-3.5" />
+                                                        {formatDateTime(submission.submittedAt)}
+                                                    </p>
                                             </div>
                                         </div>
                                         <div className="text-right">

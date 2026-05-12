@@ -8,6 +8,7 @@ import Loader, { ButtonLoader } from '../../components/ui/Loader';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
 import { courseAPI, enrollmentAPI, certificateAPI } from '../../services/api';
+import { formatDate } from '../../utils/dateFormatter';
 
 const CertificateManagement = () => {
     const { user } = useSelector((state) => state.auth);
@@ -664,7 +665,7 @@ const CertificateManagement = () => {
                                                                 )}
                                                             </td>
                                                             <td className="px-6 py-4 text-xs text-gray-600">
-                                                                {student.certificate?.passoutDate || '-'}
+                                                                {student.certificate?.passoutDate ? formatDate(student.certificate.passoutDate) : '-'}
                                                             </td>
                                                             <td className="px-6 py-4">
                                                                 <div className="flex items-center gap-2">
@@ -815,7 +816,7 @@ const CertificateManagement = () => {
                                                         )}
                                                     </td>
                                                     <td className="px-6 py-4 text-xs text-gray-600">
-                                                        {teacher.certificate?.passoutDate ? new Date(teacher.certificate.passoutDate).toLocaleDateString() : '—'}
+                                                        {teacher.certificate?.passoutDate ? formatDate(teacher.certificate.passoutDate) : '—'}
                                                     </td>
                                                     <td className="px-6 py-4">
                                                         <div className="flex items-center gap-2">

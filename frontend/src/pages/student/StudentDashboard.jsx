@@ -24,6 +24,7 @@ import Badge from '../../components/ui/Badge';
 import { enrollmentAPI, feeAPI, assignmentAPI, liveClassAPI, chatAPI } from '../../services/api';
 import Modal from '../../components/ui/Modal'; // Assuming Modal component exists
 import { getCourseIcon, getCourseColor, getCourseStyle } from '../../utils/courseIcons';
+import { formatDate } from '../../utils/dateFormatter';
 
 const getSocketURL = () => {
     const rawUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -499,7 +500,7 @@ const StudentDashboard = () => {
                                                     <h4 className="font-black text-gray-900 text-sm group-hover:text-primary transition-colors uppercase italic leading-tight mb-0.5">{assignment.title}</h4>
                                                     <p className="text-[9px] text-primary font-black uppercase tracking-widest">{assignment.course?.title || (role === 'intern' ? 'Daily Task' : 'Assignment')}</p>
                                                     <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mt-0.5 dark:text-gray-500">
-                                                        Due: {new Date(assignment.dueDate).toLocaleDateString(undefined, { day: '2-digit', month: 'short' })}
+                                                        Due: {formatDate(assignment.dueDate)}
                                                     </p>
                                                 </div>
                                             </div>

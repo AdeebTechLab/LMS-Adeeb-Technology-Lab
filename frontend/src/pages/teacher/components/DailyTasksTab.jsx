@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { FileText, CheckCircle, Clock, Search, RefreshCw, ExternalLink, Trash2, Users, ChevronDown, Check, X } from 'lucide-react';
 import Badge from '../../../components/ui/Badge';
 import Loader from '../../../components/ui/Loader';
+import { formatDateTime } from '../../../utils/dateFormatter';
 import api from '../../../services/api';
 
 const DailyTasksTab = ({ course, students = [] }) => {
@@ -292,7 +293,7 @@ const DailyTasksTab = ({ course, students = [] }) => {
                                             </div>
                                             <p className="text-xs text-gray-400 mb-4 flex items-center gap-1.5 font-medium">
                                                 <Clock className="w-3.5 h-3.5" />
-                                                {new Date(task.date || task.createdAt).toLocaleDateString()} at {new Date(task.createdAt).toLocaleTimeString()}
+                                                {formatDateTime(task.date || task.createdAt)}
                                             </p>
 
                                             <div className="space-y-3">

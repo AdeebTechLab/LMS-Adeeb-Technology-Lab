@@ -5,6 +5,7 @@ import api, { assignmentAPI } from '../../../services/api';
 import Modal from '../../../components/ui/Modal';
 import Badge from '../../../components/ui/Badge';
 import Loader, { ButtonLoader } from '../../../components/ui/Loader';
+import { formatDate, formatDateTime } from '../../../utils/dateFormatter';
 
 const AssignmentsTab = ({ course, students }) => { // Accept students prop
     const [assignments, setAssignments] = useState([]);
@@ -568,7 +569,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                                     </div>
                                                     <p className="text-[10px] text-gray-400 font-medium flex items-center gap-1 mt-0.5">
                                                         <Clock className="w-3 h-3" />
-                                                        {new Date(spotlightSubmission.submittedAt).toLocaleDateString()} at {new Date(spotlightSubmission.submittedAt).toLocaleTimeString()}
+                                                        {formatDateTime(spotlightSubmission.submittedAt)}
                                                     </p>
                                                 </div>
                                             </div>
@@ -614,7 +615,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                                                         <span className="text-[9px] font-black text-red-500/70">{sub.user?.rollNo}</span>
                                                                     )}
                                                                     <span className="text-[9px] text-gray-400 font-medium">
-                                                                        {new Date(sub.submittedAt).toLocaleDateString()}
+                                                                        {formatDate(sub.submittedAt)}
                                                                     </span>
                                                                 </div>
                                                             </div>
@@ -637,7 +638,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                         <div className="flex items-center gap-4">
                                             <div className="flex items-center gap-1.5 px-3 py-1 bg-gray-50 rounded-lg border border-gray-100 text-xs font-bold text-gray-500 uppercase">
                                                 <Calendar className="w-3.5 h-3.5" />
-                                                Due: {new Date(assignment.dueDate).toLocaleDateString()}
+                                                Due: {formatDate(assignment.dueDate)}
                                             </div>
                                             {gradedCount < submissionCount && (
                                                 <div className="flex items-center gap-1.5 px-3 py-1 bg-amber-50 rounded-lg border border-amber-100 text-[10px] font-black text-amber-600 uppercase">
@@ -1135,7 +1136,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                             </div>
                                             <p className="text-[11px] text-gray-400 font-medium flex items-center gap-1.5">
                                                 <Clock className="w-3.5 h-3.5" />
-                                                {new Date(submission.submittedAt).toLocaleDateString()} at {new Date(submission.submittedAt).toLocaleTimeString()}
+                                                {formatDateTime(submission.submittedAt)}
                                             </p>
                                         </div>
                                     </div>

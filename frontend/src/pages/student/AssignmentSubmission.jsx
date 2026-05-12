@@ -9,6 +9,7 @@ import {
 import Badge from '../../components/ui/Badge';
 import Loader, { ButtonLoader } from '../../components/ui/Loader';
 import { assignmentAPI, courseAPI, dailyTaskAPI, enrollmentAPI, chatAPI, feeAPI } from '../../services/api';
+import { formatDate } from '../../utils/dateFormatter';
 import StudentChatTab from './components/StudentChatTab';
 import StudentAttendanceTab from './components/StudentAttendanceTab';
 import StudentTestsTab from './components/StudentTestsTab';
@@ -153,11 +154,6 @@ const AssignmentSubmission = () => {
 
     const isDeadlinePassed = (deadline) => new Date(deadline) < new Date();
     
-    const formatDate = (date) => new Date(date).toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric'
-    });
 
     const getTimeRemaining = (deadline) => {
         const diff = new Date(deadline) - new Date();

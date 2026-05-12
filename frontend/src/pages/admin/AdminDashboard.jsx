@@ -36,6 +36,7 @@ import { statsAPI, feeAPI } from '../../services/api';
 import HolidaySettings from './components/HolidaySettings';
 import Loader, { ButtonLoader } from '../../components/ui/Loader';
 import BirthdayWish from '../../components/dashboard/BirthdayWish';
+import { formatDate } from '../../utils/dateFormatter';
 
 const AdminDashboard = () => {
     const navigate = useNavigate();
@@ -258,7 +259,7 @@ const AdminDashboard = () => {
         {
             header: 'Date',
             accessor: 'date',
-            render: (row) => <span className="text-[10px] font-bold text-gray-500">{new Date(row.date).toLocaleDateString()}</span>,
+            render: (row) => <span className="text-[10px] font-bold text-gray-500">{formatDate(row.date)}</span>,
         },
         {
             header: 'Action',
@@ -361,7 +362,7 @@ const AdminDashboard = () => {
                     </div>
                     <div className="text-right">
                         <p className="text-xs font-black text-gray-400 uppercase tracking-widest">Report Generated</p>
-                        <p className="text-lg font-black text-gray-900 uppercase tracking-tighter">{new Date().toLocaleDateString()}</p>
+                        <p className="text-lg font-black text-gray-900 uppercase tracking-tighter">{formatDate(new Date())}</p>
                     </div>
                 </div>
             </div>
@@ -609,7 +610,7 @@ const AdminDashboard = () => {
                                         </div>
                                     </div>
                                     <div className="text-right">
-                                        <p className="text-[9px] font-black text-gray-300 uppercase">{new Date(regUser.createdAt).toLocaleDateString()}</p>
+                                        <p className="text-[9px] font-black text-gray-300 uppercase">{formatDate(regUser.createdAt)}</p>
                                         <div className="w-1.5 h-1.5 rounded-full bg-primary/30 ml-auto mt-1" />
                                     </div>
                                 </div>

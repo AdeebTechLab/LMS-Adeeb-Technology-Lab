@@ -12,6 +12,7 @@ import {
 import Badge from '../../components/ui/Badge';
 import Loader, { ButtonLoader } from '../../components/ui/Loader';
 import { courseAPI, assignmentAPI } from '../../services/api';
+import { formatDate, formatDateTime } from '../../utils/dateFormatter';
 
 const GradingSystem = () => {
     const { user } = useSelector((state) => state.auth);
@@ -149,14 +150,6 @@ const GradingSystem = () => {
         }
     };
 
-    const formatDate = (dateString) => {
-        return new Date(dateString).toLocaleDateString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-        });
-    };
 
     if (isLoading) {
         return <Loader message="Analyzing grading records..." />;
@@ -237,7 +230,7 @@ const GradingSystem = () => {
                             <div className="flex flex-wrap items-center gap-4">
                                 <div className="text-sm text-gray-500">
                                     <Clock className="w-4 h-4 inline mr-1" />
-                                    {formatDate(submission.submittedAt)}
+                                    {formatDateTime(submission.submittedAt)}
                                 </div>
 
                                 {submission.link && (

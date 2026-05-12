@@ -9,6 +9,7 @@ import { assignmentAPI, enrollmentAPI, attendanceAPI, dailyTaskAPI } from '../..
 import api from '../../../services/api';
 import Badge from '../../../components/ui/Badge';
 import Loader from '../../../components/ui/Loader';
+import { formatDate, formatDateTime } from '../../../utils/dateFormatter';
 
 const TAB_ASSIGNMENTS = 'assignments';
 const TAB_DAILY_TASKS = 'daily_tasks';
@@ -311,7 +312,7 @@ const StudentWorkView = ({ student, onBack }) => {
                                                                     </div>
                                                                 )}
                                                                 <p className="text-[10px] text-gray-400 font-medium">
-                                                                    Submitted: {new Date(submission.submittedAt).toLocaleString()}
+                                                                    Submitted: {formatDateTime(submission.submittedAt)}
                                                                 </p>
                                                             </div>
                                                         )}
@@ -319,7 +320,7 @@ const StudentWorkView = ({ student, onBack }) => {
                                                         <div className="mt-3 flex items-center gap-3 text-[10px] text-gray-400 font-bold uppercase">
                                                             <span className="flex items-center gap-1">
                                                                 <Calendar className="w-3 h-3" />
-                                                                Due: {new Date(assignment.dueDate).toLocaleDateString()}
+                                                                Due: {formatDate(assignment.dueDate)}
                                                             </span>
                                                             <span className="flex items-center gap-1">
                                                                 <Tag className="w-3 h-3" />
@@ -384,7 +385,7 @@ const StudentWorkView = ({ student, onBack }) => {
                                                                 )}
                                                                 <span className="text-xs text-gray-400 font-medium flex items-center gap-1 ml-auto">
                                                                     <Clock className="w-3 h-3" />
-                                                                    {new Date(task.date || task.createdAt).toLocaleDateString()}
+                                                                    {formatDate(task.date || task.createdAt)}
                                                                 </span>
                                                             </div>
 
@@ -499,7 +500,7 @@ const StudentWorkView = ({ student, onBack }) => {
                                                         >
                                                             <div className="flex flex-col">
                                                                 <span className="text-xs font-bold text-gray-900">
-                                                                    {new Date(log.date).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}
+                                                                    {formatDate(log.date)}
                                                                 </span>
                                                                 <span className="text-[10px] text-gray-400 font-medium">
                                                                     {new Date(log.date).toLocaleDateString(undefined, { weekday: 'long' })}

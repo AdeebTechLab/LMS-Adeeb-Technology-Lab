@@ -8,6 +8,7 @@ import {
 import Loader, { ButtonLoader } from '../../../components/ui/Loader';
 import { chatAPI } from '../../../services/api';
 import ProfileAvatar from '../../../components/ui/ProfileAvatar';
+import { formatDate } from '../../../utils/dateFormatter';
 
 const getSocketURL = () => {
     const rawUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -168,7 +169,7 @@ const StudentChatTab = ({ course, isRestricted }) => {
         const yesterday = new Date(today);
         yesterday.setDate(yesterday.getDate() - 1);
         if (msgDate.toDateString() === yesterday.toDateString()) return 'Yesterday';
-        return msgDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        return formatDate(msgDate);
     };
 
     // Group messages by date

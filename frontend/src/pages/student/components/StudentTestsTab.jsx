@@ -7,6 +7,7 @@ import {
 import Loader, { ButtonLoader } from '../../../components/ui/Loader';
 import { testAPI } from '../../../services/api';
 import Badge from '../../../components/ui/Badge';
+import { formatDate } from '../../../utils/dateFormatter';
 
 const StudentTestsTab = ({ courseId, isRestricted }) => {
     const [tests, setTests] = useState([]);
@@ -548,7 +549,7 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
                                     {test.dueDate && (
                                         <span className="text-[10px] font-black text-red-500 uppercase tracking-widest flex items-center gap-1">
                                             <Clock className="w-3 h-3" />
-                                            DUE: {new Date(test.dueDate).toLocaleDateString('en-GB')}
+                                            DUE: {formatDate(test.dueDate)}
                                         </span>
                                     )}
                                 </div>

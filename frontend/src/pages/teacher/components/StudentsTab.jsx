@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Users, PauseCircle, UserCheck, RefreshCw } from 'lucide-react';
 import { enrollmentAPI } from '../../../services/api';
 import Loader from '../../../components/ui/Loader';
+import { formatDate } from '../../../utils/dateFormatter';
 
 const StudentsTab = ({ course }) => {
     const [enrollments, setEnrollments] = useState([]);
@@ -122,7 +123,7 @@ const StudentsTab = ({ course }) => {
                                     </p>
                                     {isPaused && enrollment.pausedAt && (
                                         <p className="text-[10px] text-amber-600 font-medium mt-0.5">
-                                            Paused on {new Date(enrollment.pausedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+                                            Paused on {formatDate(enrollment.pausedAt)}
                                         </p>
                                     )}
                                 </div>

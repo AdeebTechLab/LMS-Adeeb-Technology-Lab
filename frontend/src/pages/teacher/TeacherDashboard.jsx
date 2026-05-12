@@ -30,6 +30,7 @@ import Loader, { ButtonLoader } from '../../components/ui/Loader';
 import { BarChart } from '../../components/charts/Charts';
 import { courseAPI, enrollmentAPI, assignmentAPI, dailyTaskAPI, liveClassAPI, certificateAPI } from '../../services/api';
 import { getCourseIcon, getCourseStyle } from '../../utils/courseIcons';
+import { formatDate } from '../../utils/dateFormatter';
 import BirthdayWish from '../../components/dashboard/BirthdayWish';
 
 
@@ -377,7 +378,7 @@ const TeacherDashboard = () => {
                                             </span>
                                             {course.startDate && (
                                                 <span className="flex items-center gap-1">
-                                                    <Calendar className="w-4 h-4" /> {new Date(course.startDate).toLocaleDateString()}
+                                                    <Calendar className="w-4 h-4" /> {formatDate(course.startDate)}
                                                 </span>
                                             )}
                                         </div>
@@ -511,7 +512,7 @@ const TeacherDashboard = () => {
                                         )}
                                         {myCertificate.passoutDate && (
                                             <span className="text-xs text-white/60">
-                                                Issued: {new Date(myCertificate.passoutDate).toLocaleDateString()}
+                                                Issued: {formatDate(myCertificate.passoutDate)}
                                             </span>
                                         )}
                                     </div>

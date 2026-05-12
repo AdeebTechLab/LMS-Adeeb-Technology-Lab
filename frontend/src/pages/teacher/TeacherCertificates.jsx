@@ -4,6 +4,7 @@ import { Award, ExternalLink, BookOpen, Calendar, Clock, User, CheckCircle } fro
 import { useSelector } from 'react-redux';
 import { certificateAPI } from '../../services/api';
 import Loader, { ButtonLoader } from '../../components/ui/Loader';
+import { formatDate } from '../../utils/dateFormatter';
 
 const TeacherCertificates = () => {
     const { user } = useSelector((state) => state.auth);
@@ -57,7 +58,7 @@ const TeacherCertificates = () => {
 
     const selectedCourses = certificate.selectedCourses || [];
     const issueDate = certificate.issuedAt
-        ? new Date(certificate.issuedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+        ? formatDate(certificate.issuedAt)
         : '—';
 
     return (

@@ -13,6 +13,7 @@ import {
     Clock,
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
+import { formatDate } from '../../utils/dateFormatter';
 
 const CourseClassroom = () => {
     const [activeTab, setActiveTab] = useState('announcements');
@@ -81,13 +82,6 @@ const CourseClassroom = () => {
         { id: 5, name: 'Ali Raza', email: 'ali@student.edu', submitted: 8, pending: 4, grade: 'B' },
     ];
 
-    const formatDate = (dateString) => {
-        return new Date(dateString).toLocaleDateString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            year: 'numeric',
-        });
-    };
 
     const handlePostAnnouncement = () => {
         if (!newAnnouncement.trim()) return;

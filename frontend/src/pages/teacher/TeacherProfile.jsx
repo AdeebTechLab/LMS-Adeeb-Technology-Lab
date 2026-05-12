@@ -10,6 +10,7 @@ import { updateUser } from '../../features/auth/authSlice';
 import { getCourseIcon } from '../../utils/courseIcons';
 import ProfileAvatar from '../../components/ui/ProfileAvatar';
 import Loader, { ButtonLoader } from '../../components/ui/Loader';
+import { formatDate } from '../../utils/dateFormatter';
 
 const InfoField = ({ icon: Icon, label, value, name, type = 'text', editable = true, isEditing, editForm, onChange }) => (
     <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-xl">
@@ -197,7 +198,7 @@ const TeacherProfile = () => {
                                 Roll: {user?.rollNo || '—'}
                             </span>
                             <span className="px-3 py-1 bg-white/20 rounded-full text-sm">
-                                Joined {profileData.joinedAt ? new Date(profileData.joinedAt).toLocaleDateString() : '—'}
+                                Joined {profileData.joinedAt ? formatDate(profileData.joinedAt) : '—'}
                             </span>
                         </div>
                     </div>
