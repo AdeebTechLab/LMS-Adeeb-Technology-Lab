@@ -520,76 +520,101 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
                     <p className="text-gray-500 font-bold italic">No tests are currently available for this course.</p>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4 sm:gap-6">
                     {tests.map((test) => {
                         const submission = test.submissions?.[0];
                         const isCompleted = !!submission;
+                        const isExpired = test.dueDate && new Date(test.dueDate) < new Date() && !isCompleted;
 
                         return (
-                            <div 
+                            <motion.div 
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
                                 key={test._id}
-                                className="bg-white border-2 border-gray-100 rounded-3xl p-6 transition-all group"
+                                className="bg-white dark:bg-[#1a1f2e] border-2 border-gray-100 dark:border-gray-800 rounded-[2rem] p-5 sm:p-6 transition-all hover:shadow-xl hover:shadow-primary/5 group relative overflow-hidden"
                             >
-                                <div className="flex items-start justify-between mb-4">
-                                    <div className="p-3 rounded-2xl bg-primary/5">
-                                        <Zap className="w-6 h-6 text-primary" />
+                                {/* Decorative Background Accent */}
+                                <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-bl-[3rem] -mr-8 -mt-8 transition-transform group-hover:scale-110" />
+
+                                <div className="flex items-start justify-between mb-5 relative z-10">
+                                    <div className="p-3 rounded-2xl bg-primary/10 dark:bg-primary/20 text-primary">
+                                        <Zap className="w-6 h-6" />
                                     </div>
-                                    <Badge variant={isCompleted ? 'success' : 'warning'}>
-                                        {isCompleted ? 'Completed' : 'Pending'}
-                                    </Badge>
+                                    <div className="flex flex-col items-end gap-2">
+                                        <Badge variant={isCompleted ? 'success' : isExpired ? 'danger' : 'warning'}>
+                                            {isCompleted ? 'Completed' : isExpired ? 'Expired' : 'Pending'}
+                                        </Badge>
+                                    </div>
                                 </div>
                                 
-                                <h4 className="text-lg font-black text-gray-900 mb-1 uppercase tracking-tight">{test.title}</h4>
-                                <div className="flex items-center gap-4 mb-6">
-                                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{test.duration} MINS</span>
-                                    {test.dueDate && (
-                                        <span className="text-[10px] font-black text-red-500 uppercase tracking-widest flex items-center gap-1">
-                                            <Clock className="w-3 h-3" />
-                                            DUE: {new Date(test.dueDate).toLocaleDateString()}
+                                <div className="space-y-1 mb-6 relative z-10">
+                                    <h4 className="text-lg sm:text-xl font-black text-gray-900 dark:text-white uppercase tracking-tight line-clamp-1">{test.title}</h4>
+                                    <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                                        <span className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest flex items-center gap-1.5">
+                                            <Clock className="w-3.5 h-3.5 text-primary" />
+                                            {test.duration} MINS
                                         </span>
-                                    )}
+                                        {test.dueDate && (
+                                            <span className={`text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 ${isExpired ? 'text-red-500' : 'text-primary'}`}>
+                                                <AlertCircle className="w-3.5 h-3.5" />
+                                                DUE: {new Date(test.dueDate).toLocaleDateString(undefined, { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                                            </span>
+                                        )}
+                                    </div>
                                 </div>
-                                <p className="text-sm text-gray-500 mb-6 line-clamp-2">{test.description || 'No instructions provided'}</p>
+
+                                <p className="text-sm text-gray-500 dark:text-gray-400 mb-8 line-clamp-2 min-h-[2.5rem] font-medium leading-relaxed">
+                                    {test.description || 'Complete this assessment to evaluate your understanding of the course material.'}
+                                </p>
                                 
                                 {isCompleted ? (
-                                    <div className="bg-primary/5 rounded-2xl p-4 border border-primary/10 flex items-center justify-between">
+                                    <div className="bg-primary/5 dark:bg-primary/10 rounded-2xl p-4 border border-primary/10 flex items-center justify-between">
                                         <div className="flex items-center gap-3">
-                                            <div className="p-2 bg-white rounded-xl">
+                                            <div className="p-2.5 bg-white dark:bg-[#1a1f2e] rounded-xl shadow-sm">
                                                 <Award className="w-5 h-5 text-primary" />
                                             </div>
                                             <div>
-                                                <p className="text-[10px] font-black text-primary uppercase tracking-widest">Your Score</p>
-                                                <p className="text-xl font-black text-primary leading-none">{submission.score} / {test.totalMarks}</p>
+                                                <p className="text-[9px] font-black text-primary uppercase tracking-widest leading-none mb-1">Your Score</p>
+                                                <p className="text-lg font-black text-primary leading-none">{submission.score} <span className="text-xs opacity-60">/ {test.totalMarks}</span></p>
                                             </div>
                                         </div>
                                         <div className="text-right">
-                                            <p className="text-[10px] font-black text-primary uppercase tracking-widest">Percentage</p>
-                                            <p className="text-xl font-black text-primary leading-none">
+                                            <p className="text-[9px] font-black text-primary uppercase tracking-widest leading-none mb-1">Success</p>
+                                            <p className="text-lg font-black text-primary leading-none">
                                                 {Math.round((submission.score / test.totalMarks) * 100)}%
                                             </p>
                                         </div>
                                     </div>
                                 ) : (
                                     <div className="space-y-4">
-                                        <div className="grid grid-cols-2 gap-3">
-                                            <div className="flex items-center gap-2 text-xs font-bold text-gray-600 bg-gray-50 p-2 rounded-xl">
+                                        <div className="grid grid-cols-2 gap-3 mb-2">
+                                            <div className="flex items-center gap-2 text-[11px] font-black text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800/50 p-2.5 rounded-xl border border-gray-100 dark:border-gray-700/50">
                                                 <Clock className="w-3.5 h-3.5 text-primary" />
                                                 {test.duration} Mins
                                             </div>
-                                            <div className="flex items-center gap-2 text-xs font-bold text-gray-600 bg-gray-50 p-2 rounded-xl">
+                                            <div className="flex items-center gap-2 text-[11px] font-black text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800/50 p-2.5 rounded-xl border border-gray-100 dark:border-gray-700/50">
                                                 <FileText className="w-3.5 h-3.5 text-blue-500" />
                                                 {test.questions?.length || 0} MCQs
                                             </div>
                                         </div>
-                                        <ButtonLoader 
-                                            onClick={() => handleStartTest(test)}
-                                            className="w-full py-4 bg-primary text-white rounded-2xl font-black text-sm uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-[#e67e01] transition-all shadow-lg shadow-primary/10"
-                                        >
-                                            Start Test
-                                        </ButtonLoader>
+                                        
+                                        {!isExpired ? (
+                                            <ButtonLoader 
+                                                onClick={() => handleStartTest(test)}
+                                                className="w-full py-4 bg-primary text-white rounded-2xl font-black text-xs sm:text-sm uppercase tracking-[0.1em] flex items-center justify-center gap-3 hover:bg-[#e67e01] transition-all shadow-lg shadow-primary/20 hover:shadow-primary/40 active:scale-[0.98]"
+                                                icon={<PlayCircle className="w-5 h-5" />}
+                                            >
+                                                Start Test
+                                            </ButtonLoader>
+                                        ) : (
+                                            <div className="w-full py-4 bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500 rounded-2xl font-black text-xs sm:text-sm uppercase tracking-[0.1em] flex items-center justify-center gap-3 cursor-not-allowed border-2 border-dashed border-gray-200 dark:border-gray-700">
+                                                <AlertCircle className="w-5 h-5" />
+                                                Test Expired
+                                            </div>
+                                        )}
                                     </div>
                                 )}
-                            </div>
+                            </motion.div>
                         );
                     })}
                 </div>
