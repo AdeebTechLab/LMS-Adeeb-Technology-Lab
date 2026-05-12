@@ -291,17 +291,23 @@ router.post('/:id/submit', protect, uploadSubmission.single('file'), async (req,
 
         if (existingSubmissionIndex !== -1) {
             const existingSubmission = assignment.submissions[existingSubmissionIndex];
-            // Only allow resubmission if it was rejected
-            if (existingSubmission.status !== 'rejected') {
-                return res.status(400).json({ success: false, message: 'Already submitted and not rejected' });
+            const deadlineNotPassed = !assignment.dueDate || new Date(assignment.dueDate) > new Date();
+
+            // Allow resubmission if:
+            // 1. Submission was rejected (can always resubmit)
+            // 2. Deadline has not passed (teacher extended the deadline)
+            if (existingSubmission.status !== 'rejected' && !deadlineNotPassed) {
+                return res.status(400).json({ success: false, message: 'Already submitted. Resubmission is only allowed if rejected or if the deadline has been extended.' });
             }
-            // Update the existing submission in-place (preserve history)
+
+            // Update the existing submission in-place
             existingSubmission.notes = notes || req.body.notes || existingSubmission.notes;
             existingSubmission.fileUrl = req.file ? req.file.path : (req.body.fileUrl || existingSubmission.fileUrl);
             existingSubmission.submittedAt = moment().tz('Asia/Karachi').toDate();
             existingSubmission.status = 'submitted';
+            // Clear marks and feedback so teacher grades fresh submission
             existingSubmission.marks = undefined;
-            // Keep the old feedback so student can still reference it
+            existingSubmission.feedback = undefined;
 
             await assignment.save();
 

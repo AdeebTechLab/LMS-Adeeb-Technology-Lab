@@ -111,10 +111,12 @@ const AssignmentSubmission = () => {
         if (!submissionUrl.trim() && !submissionText.trim()) return;
         setIsSubmitting(true);
         try {
-            await assignmentAPI.submit(assignmentId, {
-                submissionLink: submissionUrl,
-                notes: submissionText
-            });
+            // Build FormData so multipart/form-data content-type is satisfied
+            const formData = new FormData();
+            if (submissionUrl.trim()) formData.append('fileUrl', submissionUrl.trim());
+            if (submissionText.trim()) formData.append('notes', submissionText.trim());
+
+            await assignmentAPI.submit(assignmentId, formData);
             setSelectedAssignment(null);
             setSubmissionUrl('');
             setSubmissionText('');
@@ -306,9 +308,9 @@ const AssignmentSubmission = () => {
                                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                                     {[
                                         { label: 'Total', icon: FileText, count: filteredAssignments.length, color: 'text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-800/30' },
-                                        { label: 'Completed', icon: CheckCircle, count: filteredAssignments.filter((a) => a.status === 'graded').length, color: 'text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-800/30' },
-                                        { label: 'Pending', icon: Clock, count: filteredAssignments.filter((a) => a.status === 'pending' && !isDeadlinePassed(a.dueDate)).length, color: 'text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-800/30' },
-                                        { label: 'Overdue', icon: AlertCircle, count: filteredAssignments.filter((a) => a.status === 'overdue' || (a.status === 'pending' && isDeadlinePassed(a.dueDate))).length, color: 'text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border-red-100 dark:border-red-800/30' },
+                                        { label: 'Completed', icon: CheckCircle, count: filteredAssignments.filter((a) => { const s = a.submissions?.[0]?.status; return s === 'graded' || s === 'submitted'; }).length, color: 'text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-800/30' },
+                                        { label: 'Pending', icon: Clock, count: filteredAssignments.filter((a) => { const s = a.submissions?.[0]?.status || 'pending'; return (s === 'pending' || s === 'rejected') && !isDeadlinePassed(a.dueDate); }).length, color: 'text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-800/30' },
+                                        { label: 'Overdue', icon: AlertCircle, count: filteredAssignments.filter((a) => { const s = a.submissions?.[0]?.status || 'pending'; return (s === 'pending' || s === 'rejected') && isDeadlinePassed(a.dueDate); }).length, color: 'text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border-red-100 dark:border-red-800/30' },
                                     ].map((stat) => (
                                         <div key={stat.label} className={`${stat.color} rounded-2xl p-4 border flex items-center justify-between shadow-sm`}>
                                             <div>
@@ -331,8 +333,20 @@ const AssignmentSubmission = () => {
                                 ) : (
                                     <div className="space-y-6">
                                         {filteredAssignments.map((assignment, index) => {
-                                            const canSubmit = !isDeadlinePassed(assignment.dueDate) && assignment.status === 'pending' && !isRestricted && !isCompleted;
-                                            const statusConfig = getStatusConfig(assignment.status, assignment.dueDate);
+                                            // Get student's own submission details from the submissions array
+                                            const mySubmission = assignment.submissions && assignment.submissions.length > 0 ? assignment.submissions[0] : null;
+                                            const submissionStatus = mySubmission ? mySubmission.status : 'pending';
+                                            const submissionMarks = mySubmission ? mySubmission.marks : undefined;
+                                            const submissionFeedback = mySubmission ? mySubmission.feedback : undefined;
+                                            const submissionNotes = mySubmission ? mySubmission.notes : undefined;
+                                            const submissionLink = mySubmission ? mySubmission.fileUrl : undefined;
+                                            
+                                            const deadlinePassed = isDeadlinePassed(assignment.dueDate);
+                                            // Can submit if deadline not passed AND no submission yet (or rejected)
+                                            const canSubmit = !deadlinePassed && (submissionStatus === 'pending' || submissionStatus === 'rejected') && !isRestricted && !isCompleted;
+                                            // Can resubmit if deadline was extended and it's not passed, even for graded/submitted
+                                            const canResubmit = !deadlinePassed && (submissionStatus === 'graded' || submissionStatus === 'submitted') && !isRestricted && !isCompleted;
+                                            const statusConfig = getStatusConfig(submissionStatus, assignment.dueDate);
 
                                             return (
                                                 <motion.div
@@ -380,52 +394,52 @@ const AssignmentSubmission = () => {
                                                                 )}
                                                             </div>
 
-                                                            {(canSubmit || assignment.status === 'rejected') && selectedAssignment?.id !== assignment.id && (
+                                                            {(canSubmit || canResubmit) && selectedAssignment?._id !== assignment._id && (
                                                                 <button
                                                                     onClick={() => {
                                                                         setSelectedAssignment(assignment);
-                                                                        setSubmissionUrl(assignment.submissionLink || '');
-                                                                        setSubmissionText(assignment.notes || '');
+                                                                        setSubmissionUrl(submissionLink || '');
+                                                                        setSubmissionText(submissionNotes || '');
                                                                     }}
                                                                     disabled={isRestricted}
-                                                                    className={`px-8 py-3.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all text-white shadow-xl hover:shadow-2xl hover:scale-[1.03] active:scale-[0.98] ${assignment.status === 'rejected' ? 'bg-red-600 hover:bg-red-700' : 'bg-primary hover:bg-[#e67e00]'} disabled:bg-gray-300 flex items-center justify-center gap-2 w-full sm:w-auto`}
+                                                                    className={`px-8 py-3.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all text-white shadow-xl hover:shadow-2xl hover:scale-[1.03] active:scale-[0.98] ${submissionStatus === 'rejected' ? 'bg-red-600 hover:bg-red-700' : canResubmit ? 'bg-blue-600 hover:bg-blue-700' : 'bg-primary hover:bg-[#e67e00]'} disabled:bg-gray-300 flex items-center justify-center gap-2 w-full sm:w-auto`}
                                                                 >
                                                                     <Send className="w-4 h-4" />
-                                                                    {isRestricted ? 'PORTAL LOCKED' : (assignment.status === 'rejected' ? 'RESUBMIT' : 'SUBMIT WORK')}
+                                                                    {isRestricted ? 'PORTAL LOCKED' : (submissionStatus === 'rejected' ? 'RESUBMIT' : canResubmit ? 'RESUBMIT' : 'SUBMIT WORK')}
                                                                 </button>
                                                             )}
                                                         </div>
 
                                                         {/* Results/Feedback Display */}
-                                                        {(assignment.status === 'submitted' || assignment.status === 'graded') && (
+                                                        {(submissionStatus === 'submitted' || submissionStatus === 'graded') && (
                                                             <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-4">
-                                                                {assignment.status === 'graded' && (
+                                                                {submissionStatus === 'graded' && submissionMarks !== undefined && (
                                                                     <div className="bg-primary/5 dark:bg-primary/20 p-4 rounded-2xl border border-primary/10 text-center">
                                                                         <p className="text-[9px] font-black text-primary uppercase tracking-widest mb-1">Final Result</p>
-                                                                        <p className="text-3xl font-black text-primary">{assignment.grade}<span className="text-lg">/{assignment.totalMarks}</span></p>
+                                                                        <p className="text-3xl font-black text-primary">{submissionMarks}<span className="text-lg">/{assignment.totalMarks}</span></p>
                                                                     </div>
                                                                 )}
-                                                                {assignment.status === 'graded' && assignment.feedback && (
+                                                                {submissionStatus === 'graded' && submissionFeedback && (
                                                                     <div className="lg:col-span-2 bg-amber-50 dark:bg-amber-900/10 p-4 rounded-2xl border border-amber-100">
                                                                         <p className="text-[9px] font-black text-amber-600 uppercase tracking-widest mb-2 flex items-center gap-2"><MessageCircle className="w-3 h-3" /> Teacher Feedback</p>
-                                                                        <p className="text-[11px] text-gray-800 dark:text-gray-200 italic">"{assignment.feedback}"</p>
+                                                                        <p className="text-[11px] text-gray-800 dark:text-gray-200 italic">"{submissionFeedback}"</p>
                                                                     </div>
                                                                 )}
-                                                                <div className={`p-4 bg-slate-50 dark:bg-slate-900/30 rounded-2xl border border-slate-100 ${assignment.status !== 'graded' ? 'lg:col-span-3' : ''}`}>
+                                                                <div className={`p-4 bg-slate-50 dark:bg-slate-900/30 rounded-2xl border border-slate-100 ${submissionStatus !== 'graded' ? 'lg:col-span-3' : ''}`}>
                                                                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">My Submission</p>
-                                                                    {assignment.submissionLink && (
-                                                                        <a href={assignment.submissionLink} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[11px] font-bold text-blue-600 hover:underline">
+                                                                    {submissionLink && (
+                                                                        <a href={submissionLink} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[11px] font-bold text-blue-600 hover:underline">
                                                                             <LinkIcon className="w-3.5 h-3.5" /> View Submitted Work
                                                                         </a>
                                                                     )}
-                                                                    {assignment.notes && <p className="text-[10px] text-slate-600 mt-2 italic">"{assignment.notes}"</p>}
+                                                                    {submissionNotes && <p className="text-[10px] text-slate-600 mt-2 italic">"{submissionNotes}"</p>}
                                                                 </div>
                                                             </div>
                                                         )}
-                                                        {assignment.status === 'rejected' && assignment.feedback && (
+                                                        {submissionStatus === 'rejected' && submissionFeedback && (
                                                             <div className="mt-6 bg-red-50 dark:bg-red-900/10 p-5 rounded-2xl border border-red-200">
                                                                 <p className="text-[10px] font-black text-red-600 uppercase tracking-widest mb-2 flex items-center gap-2"><XCircle className="w-3 h-3" /> Rejection Reason</p>
-                                                                <p className="text-xs text-red-800 dark:text-red-200 font-medium">"{assignment.feedback}"</p>
+                                                                <p className="text-xs text-red-800 dark:text-red-200 font-medium">"{submissionFeedback}"</p>
                                                             </div>
                                                         )}
                                                     </div>
@@ -457,7 +471,7 @@ const AssignmentSubmission = () => {
                                                             <textarea placeholder="Any additional notes for the teacher..." rows="4" value={submissionText} onChange={(e) => setSubmissionText(e.target.value)} className="w-full px-6 py-5 bg-slate-50 dark:bg-black/40 border-2 border-slate-100 dark:border-slate-800 rounded-3xl outline-none focus:border-primary font-bold transition-all resize-none text-sm" />
                                                         </div>
                                                     </div>
-                                                    <button onClick={() => handleSubmit(selectedAssignment.id)} disabled={isSubmitting} className="w-full py-5 bg-primary text-white font-black uppercase tracking-widest text-xs rounded-3xl shadow-2xl transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-3">
+                                                    <button onClick={() => handleSubmit(selectedAssignment._id)} disabled={isSubmitting} className="w-full py-5 bg-primary text-white font-black uppercase tracking-widest text-xs rounded-3xl shadow-2xl transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-3">
                                                         <ButtonLoader isLoading={isSubmitting}>CONFIRM SUBMISSION</ButtonLoader>
                                                     </button>
                                                 </div>
