@@ -396,36 +396,25 @@ const StudentDashboard = () => {
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-gradient-to-br from-[var(--bg-sidebar)] via-[var(--bg-sidebar-dark)] to-[var(--bg-sidebar)] rounded-3xl p-5 sm:p-8 text-white shadow-2xl relative overflow-hidden group"
+                    className="bg-gradient-to-r from-[var(--bg-sidebar)] to-[var(--bg-sidebar-light)] rounded-2xl p-6 text-white shadow-xl"
                 >
-                    {/* Decorative Background Elements */}
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl -mr-32 -mt-32 group-hover:bg-primary/20 transition-colors duration-700"></div>
-                    <div className="absolute bottom-0 left-0 w-48 h-48 bg-blue-500/10 rounded-full blur-3xl -ml-24 -mb-24 group-hover:bg-blue-500/20 transition-colors duration-700"></div>
-
-                    <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-                        <div className="space-y-2">
-                            <h2 className="text-xl sm:text-3xl font-black mb-1 uppercase italic tracking-tighter leading-tight">
-                                Welcome back,<br className="sm:hidden" /> {user?.name?.split(' ')[0] || (role === 'intern' ? 'Intern' : 'Student')}!
-                            </h2>
-                            <div className="flex flex-wrap items-center gap-2">
-                                <span className="px-2 py-1 bg-white/10 rounded-lg text-[9px] font-black uppercase tracking-widest text-white/80 border border-white/5">
-                                    {enrolledCourses.filter(c => c.isActive).length} active enrollments
-                                </span>
-                                <span className="px-2 py-1 bg-primary/20 rounded-lg text-[9px] font-black uppercase tracking-widest text-primary border border-primary/20">
-                                    {pendingAssignments.length} pending tasks
-                                </span>
-                            </div>
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                        <div>
+                            <h2 className="text-2xl font-black mb-1 uppercase italic tracking-tighter">Welcome back, {user?.name?.split(' ')[0] || (role === 'intern' ? 'Intern' : 'Student')}!</h2>
+                            <p className="text-white/60 font-bold text-xs uppercase tracking-widest">
+                                {enrolledCourses.filter(c => c.isActive).length} active enrollments • {pendingAssignments.length} pending tasks
+                            </p>
                         </div>
-                        <div className="flex flex-col sm:flex-row gap-3">
+                        <div className="flex gap-3">
                             <button
                                 onClick={() => navigate(`/${role}/attendance`)}
-                                className="flex-1 sm:flex-none px-6 py-3 bg-white/5 hover:bg-white/10 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all duration-300 border border-white/10 backdrop-blur-sm active:scale-95"
+                                className="px-5 py-2.5 bg-white/10 hover:bg-white/20 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all duration-300 border border-white/20"
                             >
-                                My Attendance
+                                Attendance
                             </button>
                             <button
                                 onClick={() => navigate(`/${role}/courses`)}
-                                className="flex-1 sm:flex-none px-6 py-3 bg-primary hover:bg-primary/90 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all duration-300 shadow-xl shadow-orange-900/20 border border-primary/50 active:scale-95"
+                                className="px-5 py-2.5 bg-primary hover:bg-primary/90 text-white rounded-xl font-black text-[10px] uppercase tracking-widest transition-all duration-300 shadow-lg shadow-orange-900/20"
                             >
                                 {role === 'intern' ? 'Browse Skills' : 'Browse Courses'}
                             </button>
@@ -434,7 +423,7 @@ const StudentDashboard = () => {
                 </motion.div>
 
                 {/* Stats Grid */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                     {stats.map((stat, index) => (
                         <motion.div
                             key={stat.title}
@@ -442,7 +431,7 @@ const StudentDashboard = () => {
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: index * 0.1 }}
                         >
-                            <StatCard {...stat} className="h-full" />
+                            <StatCard {...stat} />
                         </motion.div>
                     ))}
                 </div>
@@ -562,13 +551,13 @@ const StudentDashboard = () => {
                                                         {course.isCompleted ? (
                                                             <Badge variant="success">Completed</Badge>
                                                         ) : course.isPaused ? (
-                                                            <Badge variant="warning">Portal Paused</Badge>
+                                                            <Badge variant="warning">Paused</Badge>
                                                         ) : !course.isFirstMonthVerified ? (
-                                                            <Badge variant="warning">Pending Verification</Badge>
+                                                            <Badge variant="warning">Verification Pending</Badge>
                                                         ) : !course.isActive ? (
-                                                            <Badge variant="danger">ACCOUNT LOCKED</Badge>
+                                                            <Badge variant="danger">Restricted</Badge>
                                                         ) : (
-                                                            <Badge variant="success">Active Access</Badge>
+                                                            <Badge variant="success">Active</Badge>
                                                         )}
                                                     </div>
                                                     <Badge variant="info">{course.progress}%</Badge>

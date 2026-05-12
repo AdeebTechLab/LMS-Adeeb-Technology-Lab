@@ -228,86 +228,174 @@ const DashboardLayout = () => {
             {/* Main Content - Scrollable */}
             <div className="flex-1 flex flex-col h-screen overflow-hidden">
                 {/* Header */}
-                <header className={`border-b sticky top-0 z-40 transition-all duration-300 ${isDark ? 'bg-[var(--bg-sidebar)] border-white/10 shadow-lg' : 'bg-white border-gray-100 shadow-sm'}`}>
-                    <div className="px-4 sm:px-6 py-2.5 sm:py-4 w-full flex flex-col lg:flex-row lg:items-center gap-2.5 sm:gap-4">
-                        {/* Top row for mobile / Desktop header */}
+                <header className={`border-b sticky top-0 z-40 transition-colors duration-300 ${isDark ? 'bg-[var(--bg-sidebar)] border-white/10' : 'bg-[var(--bg-card)] border-gray-100'}`}>
+                    <div className="px-4 sm:px-6 py-3 sm:py-4 w-full min-w-0 flex flex-col lg:flex-row lg:items-center gap-3 sm:gap-4">
+                        {/* Top row for mobile: Menu + Title + Actions */}
                         <div className="flex items-center justify-between w-full lg:w-auto gap-4">
                             {/* Left: menu + title */}
                             <div className="flex items-center gap-3 sm:gap-4 shrink-0 min-w-0">
                                 <button
                                     type="button"
                                     onClick={() => setSidebarOpen(!sidebarOpen)}
-                                    className={`p-2 rounded-xl transition-all lg:hidden shrink-0 bg-primary text-white shadow-md shadow-primary/20 active:scale-95`}
+                                    className={`p-2.5 rounded-xl transition-all lg:hidden shrink-0 bg-primary text-white shadow-md shadow-primary/20 active:scale-95`}
                                 >
                                     <Menu className="w-5 h-5" />
                                 </button>
+
                                 <div className="min-w-0">
-                                    <h1 className={`text-base sm:text-2xl font-black transition-colors duration-300 truncate uppercase tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>{getPageTitle()}</h1>
+                                    <h1 className={`text-lg sm:text-2xl font-bold transition-colors duration-300 truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>{getPageTitle()}</h1>
                                 </div>
                             </div>
 
-                            {/* Right: actions (Mobile Only View) */}
-                            <div className="flex lg:hidden items-center gap-1.5 shrink-0">
+                            {/* Right: actions (Moved here for mobile top row) */}
+                            <div className="flex lg:hidden items-center gap-2 sm:gap-3 shrink-0 relative z-10">
                                 {/* Refresh Button */}
                                 <button
                                     type="button"
                                     onClick={() => window.location.reload()}
-                                    className={`p-2 rounded-xl transition-all ${isDark ? 'bg-white/5 text-white/70' : 'bg-gray-50 text-gray-500'}`}
+                                    className="rounded-xl transition-all duration-200 bg-[var(--bg-sidebar-dark)] hover:bg-[var(--bg-sidebar)] text-white shadow-sm p-2.5"
+                                    title="Refresh Page"
                                 >
-                                    <RefreshCw className="w-4 h-4" />
+                                    <RefreshCw className="w-5 h-5 shrink-0" />
                                 </button>
 
                                 {/* Dark / Light Mode Toggle */}
                                 <button
                                     type="button"
                                     onClick={toggleTheme}
-                                    className={`p-2 rounded-xl transition-all ${isDark ? 'bg-primary text-white' : 'bg-gray-800 text-white shadow-sm'}`}
+                                    className={`relative rounded-xl transition-all duration-300 shadow-sm flex items-center justify-center overflow-hidden p-2.5 ${isDark
+                                        ? 'bg-primary'
+                                        : 'bg-[var(--bg-sidebar)] text-white'
+                                        }`}
                                 >
-                                    {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                                    {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
                                 </button>
 
                                 {/* Notifications */}
                                 <div className="relative">
                                     <button
                                         onClick={() => setShowNotifications(!showNotifications)}
-                                        className={`p-2 rounded-xl transition-all ${isDark ? 'bg-white/5 text-white/70' : 'bg-gray-50 text-gray-500'}`}
+                                        className={`relative p-2.5 rounded-xl transition-all flex items-center ${isDark ? 'hover:bg-white/10 text-white/70' : 'hover:bg-gray-100 text-gray-600'}`}
                                     >
-                                        <Bell className="w-4 h-4" />
+                                        <Bell className="w-5 h-5" />
                                         {unreadCount + pendingTasks.length > 0 && (
-                                            <span className="absolute -top-1 -right-1 w-4 h-4 bg-primary text-white text-[8px] rounded-full flex items-center justify-center font-black">
+                                            <span className="absolute top-0 right-0 w-4 h-4 bg-primary text-white text-[8px] rounded-full flex items-center justify-center font-bold shadow-sm">
                                                 {unreadCount + pendingTasks.length}
                                             </span>
                                         )}
                                     </button>
+
+                                    {/* Mobile Notifications Dropdown */}
+                                    {showNotifications && (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            className={`absolute right-[-60px] sm:right-0 mt-3 w-72 sm:w-80 rounded-2xl shadow-2xl border overflow-hidden z-[100] transition-colors duration-200 ${isDark ? 'bg-[var(--bg-sidebar)] border-white/10' : 'bg-white border-gray-100'}`}
+                                        >
+                                            <div className={`p-4 border-b ${isDark ? 'border-white/10' : 'border-gray-100'}`}>
+                                                <div className="flex items-center justify-between">
+                                                    <h3 className={`font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Notifications</h3>
+                                                    <span className="text-[10px] font-black bg-primary/10 text-primary px-2 py-1 rounded-lg uppercase">New</span>
+                                                </div>
+                                            </div>
+                                            <div className="max-h-[350px] overflow-y-auto no-scrollbar">
+                                                {pendingTasks.map((task, idx) => (
+                                                    <div
+                                                        key={`task-${idx}`}
+                                                        onClick={() => {
+                                                            navigate(task.path, { state: { tab: 'assignments', assignmentId: task.assignmentId, courseId: task.courseId } });
+                                                            setShowNotifications(false);
+                                                        }}
+                                                        className={`p-4 border-b cursor-pointer ${isDark ? 'border-white/5 hover:bg-white/5 bg-primary/5' : 'border-gray-50 hover:bg-gray-50 bg-primary/[0.02]'}`}
+                                                    >
+                                                        <p className={`text-sm font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{task.title}</p>
+                                                        <p className="text-[10px] text-primary font-bold mt-1 uppercase">{new Date(task.date).toLocaleDateString()}</p>
+                                                    </div>
+                                                ))}
+                                                {notifications.length === 0 && pendingTasks.length === 0 && (
+                                                    <div className="p-8 text-center text-gray-500">
+                                                        <Bell className="w-10 h-10 mx-auto mb-2 opacity-20" />
+                                                        <p className="text-xs">No new notifications</p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </motion.div>
+                                    )}
                                 </div>
 
                                 {/* User Profile Mini */}
-                                <button
-                                    onClick={() => setShowUserMenu(!showUserMenu)}
-                                    className="shrink-0 p-0.5"
-                                >
-                                    <ProfileAvatar src={user?.photo} name={user?.name} size="xs" shape="rounded-xl" border={isDark ? "border border-white/10" : "border border-gray-200"} />
-                                </button>
+                                <div className="relative">
+                                    <button
+                                        onClick={() => setShowUserMenu(!showUserMenu)}
+                                        className="shrink-0 p-0.5 rounded-xl transition-all"
+                                    >
+                                        <ProfileAvatar src={user?.photo} name={user?.name} size="sm" shape="rounded-xl" border="border border-white/20" fallbackColor="bg-gradient-to-br from-primary to-[#ffab40]" />
+                                    </button>
+
+                                    {/* Mobile User Dropdown */}
+                                    {showUserMenu && (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            className={`absolute right-0 mt-3 w-56 rounded-2xl shadow-2xl border overflow-hidden z-[100] transition-colors duration-200 ${isDark ? 'bg-[var(--bg-sidebar)] border-white/10' : 'bg-white border-gray-100'}`}
+                                        >
+                                            <div className="p-4 border-b border-gray-100">
+                                                <p className={`text-sm font-bold truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>{user?.name}</p>
+                                                <p className="text-xs text-gray-500 capitalize">{role}</p>
+                                            </div>
+                                            <div className="p-2">
+                                                <button
+                                                    onClick={() => { navigate(`/${role}/profile`); setShowUserMenu(false); }}
+                                                    className={`w-full flex items-center gap-3 p-2.5 rounded-xl text-sm font-medium ${isDark ? 'text-white/70 hover:bg-white/5 hover:text-white' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`}
+                                                >
+                                                    <User className="w-4 h-4" /> Profile
+                                                </button>
+                                                <button
+                                                    onClick={() => { navigate(`/${role}/settings`); setShowUserMenu(false); }}
+                                                    className={`w-full flex items-center gap-3 p-2.5 rounded-xl text-sm font-medium ${isDark ? 'text-white/70 hover:bg-white/5 hover:text-white' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`}
+                                                >
+                                                    <Settings className="w-4 h-4" /> Settings
+                                                </button>
+                                                <button
+                                                    onClick={() => { window.dispatchEvent(new CustomEvent('openChatWidget', { detail: { open: true } })); setShowUserMenu(false); }}
+                                                    className={`w-full flex items-center gap-3 p-2.5 rounded-xl text-sm font-medium ${isDark ? 'text-white/70 hover:bg-white/5 hover:text-white' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`}
+                                                >
+                                                    <LifeBuoy className="w-4 h-4" /> Help & Support
+                                                </button>
+                                                
+                                                <div className={`my-1 border-t ${isDark ? 'border-white/10' : 'border-gray-100'}`} />
+                                                
+                                                <button
+                                                    onClick={() => { handleLogout(); setShowUserMenu(false); }}
+                                                    className={`w-full flex items-center gap-3 p-2.5 rounded-xl text-sm font-medium transition-colors ${isDark ? 'text-red-400 hover:bg-red-500/10 hover:text-red-300' : 'text-red-600 hover:bg-red-50'}`}
+                                                >
+                                                    <LogOut className="w-4 h-4" /> Sign Out
+                                                </button>
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </div>
                             </div>
                         </div>
 
-                        {/* Search Bar - Full width on mobile, flexible on desktop */}
-                        <div className="flex-1 min-w-0 flex items-stretch lg:max-w-md xl:max-w-xl">
+                        {/* Search Bar - Takes second row on mobile */}
+                        <div className="flex-1 min-w-0 flex items-stretch relative z-0 order-last lg:order-none">
                             <div
-                                className={`flex w-full items-center rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 transition-all duration-300 border ${
+                                className={`flex w-full items-center rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 min-h-[2.25rem] sm:min-h-[2.75rem] transition-all duration-300 border ${
                                     isDark 
-                                    ? 'bg-white/5 border-white/5 focus-within:border-primary/40 focus-within:ring-1 focus-within:ring-primary/40' 
-                                    : 'bg-gray-50 border-gray-100 focus-within:border-primary/20 focus-within:bg-white focus-within:shadow-md'
+                                    ? 'bg-[var(--bg-sidebar-dark)] border-white/5 focus-within:border-primary/40 focus-within:ring-1 focus-within:ring-primary/40' 
+                                    : 'bg-gray-50 border-gray-200/80 focus-within:border-primary focus-within:bg-white focus-within:shadow-sm'
                                 }`}
                             >
-                                <Search className={`w-4 h-4 mr-2.5 shrink-0 transition-colors ${isDark ? 'text-white/20' : 'text-gray-400'}`} />
+                                <Search className={`w-4 h-4 mr-2 shrink-0 transition-colors duration-300 ${isDark ? 'text-white/30' : 'text-gray-400'}`} />
                                 <input
                                     type="search"
-                                    placeholder="Search anything..."
-                                    className={`bg-transparent border-none outline-none text-xs sm:text-sm w-full flex-1 ${
+                                    placeholder="Search courses or teachers..."
+                                    aria-label="Search"
+                                    className={`!bg-transparent border-none outline-none text-xs sm:text-sm w-full min-w-0 flex-1 transition-colors duration-300 ${
                                         isDark 
-                                        ? 'text-white placeholder:text-white/20' 
-                                        : 'text-gray-900 placeholder:text-gray-400'
+                                        ? 'text-white/90 placeholder:text-white/20' 
+                                        : 'text-gray-800 placeholder:text-gray-400'
                                     }`}
                                 />
                             </div>

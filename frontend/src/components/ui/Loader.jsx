@@ -47,45 +47,28 @@ export const FullScreenLoader = ({ message = 'Loading Data...' }) => {
     );
 };
 
-export const ButtonLoader = ({ isLoading, icon, children, className = "", onClick, disabled, type = "button", white = true }) => {
-    const content = (
+export const ButtonLoader = ({ isLoading, icon, children, className = "w-5 h-5", white = true }) => {
+    if (!isLoading) return (
         <>
-            {isLoading ? (
-                <div className="flex items-center justify-center gap-2">
-                    <img 
-                        src="/loading.gif" 
-                        alt="Loading..." 
-                        className="w-5 h-5 object-contain inline-block transition-all"
-                        style={{ 
-                            filter: white ? 'brightness(0) invert(1)' : 'none',
-                            opacity: 0.9
-                        }}
-                    />
-                    {children && <span className="opacity-70">{children}</span>}
-                </div>
-            ) : (
-                <div className="flex items-center justify-center gap-2">
-                    {icon && <span className="inline-block">{icon}</span>}
-                    {children}
-                </div>
-            )}
+            {icon && <span className="inline-block mr-2">{icon}</span>}
+            {children}
         </>
     );
-
-    if (onClick || className || type || disabled !== undefined) {
-        return (
-            <button
-                type={type}
-                onClick={onClick}
-                disabled={disabled || isLoading}
-                className={className}
-            >
-                {content}
-            </button>
-        );
-    }
-
-    return content;
+    
+    return (
+        <div className="flex items-center justify-center gap-2">
+            <img 
+                src="/loading.gif" 
+                alt="Loading..." 
+                className={`${className} object-contain inline-block transition-all`}
+                style={{ 
+                    filter: white ? 'brightness(0) invert(1)' : 'none',
+                    opacity: 0.9
+                }}
+            />
+            {children && <span className="opacity-70">{children}</span>}
+        </div>
+    );
 };
 
 export default Loader;

@@ -297,50 +297,40 @@ const AssignmentSubmission = () => {
                     </div>
 
                     {/* Tab Content */}
-                    <div className="min-h-[500px] relative">
-                        {/* RESTRICTED ACCESS OVERLAY */}
-                        <AnimatePresence>
-                            {isRestricted && (
-                                <motion.div 
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    exit={{ opacity: 0 }}
-                                    className="absolute inset-0 z-50 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md rounded-[2.5rem] flex items-center justify-center p-6 text-center"
-                                >
-                                    <motion.div 
-                                        initial={{ scale: 0.9, y: 20 }}
-                                        animate={{ scale: 1, y: 0 }}
-                                        className="max-w-md bg-white dark:bg-slate-900 rounded-3xl p-8 shadow-2xl border border-red-100 dark:border-red-900/30"
-                                    >
-                                        <div className="w-20 h-20 bg-red-50 dark:bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                                            <AlertCircle className="w-10 h-10 text-red-600" />
-                                        </div>
-                                        <h3 className="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tight mb-2">Access Locked</h3>
-                                        <p className="text-sm text-gray-500 dark:text-gray-400 font-medium mb-8 leading-relaxed">
-                                            Your portal access for this course is currently restricted. This usually happens due to <strong>pending/overdue fees</strong> or your account being <strong>paused</strong> by the administration.
-                                        </p>
-                                        <div className="flex flex-col gap-3">
-                                            <button 
-                                                onClick={() => navigate(`/${role}/fees`)}
-                                                className="w-full py-4 bg-primary text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-orange-900/20 active:scale-95 transition-all"
-                                            >
-                                                Manage Fees & Unlock
-                                            </button>
-                                            <button 
-                                                onClick={() => setSelectedCourseId(null)}
-                                                className="w-full py-4 bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-gray-400 rounded-2xl font-black text-xs uppercase tracking-widest active:scale-95 transition-all"
-                                            >
-                                                Back to Courses
-                                            </button>
-                                        </div>
-                                    </motion.div>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
+                    <div className="min-h-[500px]">
                         {isLoading ? (
                             <div className="h-[400px]">
                                 <Loader message="Synchronizing Workspace..." />
                             </div>
+                        ) : isRestricted ? (
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="bg-red-50 dark:bg-red-900/10 border-2 border-red-100 dark:border-red-900/20 rounded-[2.5rem] p-12 text-center my-8"
+                            >
+                                <div className="w-20 h-20 bg-red-100 dark:bg-red-900/20 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                                    <AlertCircle className="w-10 h-10 text-red-600" />
+                                </div>
+                                <h2 className="text-2xl font-black text-red-900 dark:text-red-400 uppercase tracking-tight mb-4">Workspace Restricted</h2>
+                                <p className="text-red-700 dark:text-red-400/80 max-w-lg mx-auto font-medium mb-8 leading-relaxed">
+                                    Your access to this course is currently locked because your monthly fee is overdue or pending verification. 
+                                    Please clear your dues or wait for admin verification to resume your learning journey.
+                                </p>
+                                <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                                    <button
+                                        onClick={() => navigate('/student/fees')}
+                                        className="px-8 py-4 bg-red-600 text-white rounded-2xl font-black uppercase tracking-widest hover:bg-red-700 transition-all shadow-xl shadow-red-200 dark:shadow-none"
+                                    >
+                                        Manage Fees & Payments
+                                    </button>
+                                    <button
+                                        onClick={() => setSelectedCourseId(null)}
+                                        className="px-8 py-4 bg-white dark:bg-slate-800 text-gray-600 dark:text-gray-300 rounded-2xl font-black uppercase tracking-widest hover:bg-gray-50 dark:hover:bg-slate-700 transition-all border border-gray-200 dark:border-slate-700"
+                                    >
+                                        Back to Courses
+                                    </button>
+                                </div>
+                            </motion.div>
                         ) : activeTab === 'assignments' ? (
                             /* ASSIGNMENTS VIEW */
                             <div className="space-y-8">

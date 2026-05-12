@@ -171,15 +171,11 @@ router.put('/:feeId/installments/:installmentId/verify', protect, authorize('adm
                 await Course.findByIdAndUpdate(fee.course, { $inc: { enrolledCount: 1 } });
             }
             updatedEnrollment.status = 'enrolled';
-            updatedEnrollment.isActive = true;
-            updatedEnrollment.feeStatus = fee.status === 'verified' ? 'verified' : 'partial';
-            
-            // Recalculate active status based on new strict logic
             updatedEnrollment.updateActiveStatus();
-            
+            updatedEnrollment.feeStatus = fee.status === 'verified' ? 'verified' : 'partial';
             await updatedEnrollment.save();
         } else {
-            const enrollment = await Enrollment.findOneAndUpdate(
+            await Enrollment.findOneAndUpdate(
                 { user: fee.user, course: fee.course },
                 {
                     status: 'enrolled',
@@ -187,12 +183,8 @@ router.put('/:feeId/installments/:installmentId/verify', protect, authorize('adm
                     feeStatus: fee.status === 'verified' ? 'verified' : 'partial',
                     $setOnInsert: { enrollmentDate: new Date() }
                 },
-                { upsert: false, new: true }
+                { upsert: false }
             );
-            if (enrollment) {
-                enrollment.updateActiveStatus();
-                await enrollment.save();
-            }
         }
 
         await fee.save();
@@ -264,17 +256,16 @@ router.put('/:feeId/installments/:installmentId/reject', protect, authorize('adm
         await fee.save();
 
         // Sync with Enrollment model
-        const enrollment = await Enrollment.findOne({ user: fee.user, course: fee.course });
-        if (enrollment) {
-            const instIndex = enrollment.installments.findIndex(i => i.installmentNumber === (installment.installmentNumber || 1));
-            if (instIndex >= 0) {
-                enrollment.installments[instIndex].status = "pending";
-                enrollment.installments[instIndex].paymentProof = null;
-                enrollment.installments[instIndex].paidDate = null;
+        await Enrollment.findOneAndUpdate(
+            { user: fee.user, course: fee.course, "installments.installmentNumber": installment.installmentNumber || 1 },
+            {
+                $set: {
+                    "installments.$.status": "pending",
+                    "installments.$.paymentProof": null,
+                    "installments.$.paidDate": null
+                }
             }
-            enrollment.updateActiveStatus();
-            await enrollment.save();
-        }
+        );
 
         // Socket notification for real-time refresh
         const io = req.app.get('io');
@@ -359,22 +350,23 @@ router.post('/:id/installments', protect, authorize('admin'), async (req, res) =
         // Sync with Enrollment model if it exists
         // If any installment is verified, ensure enrollment is marked as active+enrolled
         const hasVerifiedInstallment = newInstallments.some(i => i.status === 'verified');
-        const enrollment = await Enrollment.findOne({ user: fee.user, course: fee.course });
-        if (enrollment) {
-            enrollment.installments = newInstallments.map((inst, index) => ({
+        const enrollmentUpdate = {
+            installments: newInstallments.map((inst, index) => ({
                 installmentNumber: index + 1,
                 amount: inst.amount,
                 dueDate: inst.dueDate,
                 status: inst.status === 'verified' ? 'verified' : 'pending',
                 paymentProof: inst.receiptUrl
-            }));
-            if (hasVerifiedInstallment) {
-                enrollment.isActive = true;
-                enrollment.status = 'enrolled';
-            }
-            enrollment.updateActiveStatus();
-            await enrollment.save();
+            }))
+        };
+        if (hasVerifiedInstallment) {
+            enrollmentUpdate.isActive = true;
+            enrollmentUpdate.status = 'enrolled';
         }
+        await Enrollment.findOneAndUpdate(
+            { user: fee.user, course: fee.course },
+            enrollmentUpdate
+        );
 
         // Notify user about fee challan generation
         if (req.app.get('io') && newInstallments.some(i => i.status === 'pending')) {

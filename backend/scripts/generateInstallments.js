@@ -219,16 +219,15 @@ const updateEnrollmentStatus = async () => {
                 let hasOverdue = false;
 
                 for (const inst of fee.installments) {
-                    // Only treat as overdue if status is 'pending' - meaning the student has NOT
-                    // taken any action at all. 'submitted' means they uploaded proof and are
-                    // waiting for admin to verify — do NOT punish them for that.
-                    if (inst.status === 'pending') {
+                    // Lock if ANY installment is not verified and past its due date.
+                    // This includes 'pending', 'submitted', 'rejected' statuses.
+                    // Student stays locked until admin verifies the payment.
+                    if (inst.status !== 'verified') {
                         const dueDate = moment.tz(inst.dueDate, 'Asia/Karachi');
-                        const daysPastDue = now.diff(dueDate, 'days');
-
-                        if (daysPastDue >= 0) {
+                        if (now.isAfter(dueDate)) {
                             hasOverdue = true;
-                            if (inst.status !== 'overdue') {
+                            // Update status to 'overdue' only if it's currently 'pending' or 'rejected'
+                            if (inst.status === 'pending' || inst.status === 'rejected') {
                                 inst.status = 'overdue';
                             }
                             break;

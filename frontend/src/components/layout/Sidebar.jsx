@@ -264,12 +264,11 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             </AnimatePresence>
 
             <aside
-                className={`fixed lg:relative top-0 left-0 z-[999] h-screen w-[280px] bg-[var(--bg-sidebar)] flex flex-col transition-all duration-500 ease-in-out shadow-2xl ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+                className={`fixed lg:relative top-0 left-0 z-[999] h-screen w-[280px] bg-[var(--bg-sidebar)] flex flex-col transition-transform duration-300 ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
                     }`}
             >
-                {/* Logo Section */}
                 <div
-                    className="p-6 border-b border-white/5 cursor-pointer hover:bg-white/[0.02] transition-colors relative group"
+                    className="p-6 border-b border-[var(--border-sidebar)] cursor-pointer hover:bg-white/[0.02] transition-colors"
                     onClick={() => {
                         const defaultPages = {
                             admin: '/admin/dashboard',
@@ -282,62 +281,56 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                         setIsOpen(false);
                     }}
                 >
-                    <div className="flex items-center gap-4">
-                        <div className="relative">
-                            <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center overflow-hidden shadow-lg shadow-black/20 border border-white/10 group-hover:scale-105 transition-transform duration-300">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 border-2 border-primary rounded-full flex items-center justify-center overflow-hidden">
                                 <img
                                     src="/logo.png"
                                     alt="Logo"
-                                    className="w-8 h-8 object-contain"
+                                    className="w-full h-full object-contain"
                                     onError={(e) => {
                                         e.target.style.display = 'none';
                                         e.target.nextSibling.style.display = 'block';
                                     }}
                                 />
-                                <GraduationCap className="w-6 h-6 text-primary hidden" />
+                                <GraduationCap className="w-6 h-6 text-white hidden" />
                             </div>
-                            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-primary rounded-full border-2 border-[var(--bg-sidebar)]"></div>
+                            <div>
+                                <h1 className="text-[var(--text-sidebar)] font-bold text-lg tracking-tight">Adeeb Technology Lab</h1>
+                                <p className="text-primary text-[10px] font-black uppercase tracking-[0.2em]">{getRoleDisplayName()} Portal</p>
+                            </div>
                         </div>
-                        <div className="min-w-0">
-                            <h1 className="text-white font-black text-sm uppercase tracking-tighter leading-none mb-1">Adeeb Tech Lab</h1>
-                            <p className="text-primary text-[9px] font-black uppercase tracking-[0.2em] opacity-80 leading-none">{getRoleDisplayName()} PORTAL</p>
-                        </div>
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setIsOpen(false);
+                            }}
+                            className="lg:hidden text-white/60 hover:text-white"
+                        >
+                            <X className="w-5 h-5" />
+                        </button>
                     </div>
-                    
-                    <button
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            setIsOpen(false);
-                        }}
-                        className="lg:hidden absolute top-1/2 -right-10 -translate-y-1/2 w-8 h-8 bg-primary text-white rounded-r-xl flex items-center justify-center shadow-lg active:scale-95 transition-transform"
-                    >
-                        <X className="w-4 h-4" />
-                    </button>
                 </div>
 
-                {/* Profile Switcher */}
-                <div className="px-4 mt-6">
+                <div className="relative mx-4 mt-4">
                     <div 
-                        className={`p-3 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/5 transition-all duration-300 ${availableRoles.length > 1 ? 'cursor-pointer active:scale-[0.98]' : ''}`}
+                        className={`p-4 bg-[var(--bg-sidebar-light)]/40 rounded-xl border border-[var(--border-sidebar)] shadow-inner transition-colors ${availableRoles.length > 1 ? 'cursor-pointer hover:bg-[var(--bg-sidebar-light)]/60' : ''}`}
                         onClick={() => {
                             if (availableRoles.length > 1) setShowRoleMenu(!showRoleMenu);
                         }}
                     >
                         <div className="flex items-center gap-3">
-                            <div className="relative">
-                                <ProfileAvatar src={user?.photo} name={user?.name} size="sm" shape="rounded-xl" border="border border-white/10" fallbackColor="bg-gradient-to-br from-primary to-[#ffab40]" />
-                                <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-[var(--bg-sidebar)]"></div>
-                            </div>
+                            <ProfileAvatar src={user?.photo} name={user?.name} size="md" border="border border-[var(--border-sidebar)]" fallbackColor="bg-gradient-to-br from-[var(--bg-sidebar-light)] to-[var(--bg-sidebar)]" />
                             <div className="flex-1 min-w-0">
-                                <p className="text-white font-bold text-xs truncate">
+                                <p className="text-[var(--text-sidebar)] font-medium text-sm truncate">
                                     {user?.name || 'User'}
                                 </p>
-                                <p className="text-white/40 text-[9px] font-black uppercase tracking-widest truncate mt-0.5">
-                                    {role === 'job' ? 'Freelancer' : role}
+                                <p className="text-primary text-[10px] font-black uppercase tracking-widest truncate mt-0.5">
+                                    {getRoleDisplayName()}
                                 </p>
                             </div>
                             {availableRoles.length > 1 && (
-                                <ChevronDown className={`w-3.5 h-3.5 text-white/30 transition-transform duration-300 ${showRoleMenu ? 'rotate-180 text-primary' : ''}`} />
+                                <ChevronDown className={`w-4 h-4 text-[var(--text-sidebar-muted)] transition-transform ${showRoleMenu ? 'rotate-180' : ''}`} />
                             )}
                         </div>
                     </div>
@@ -345,29 +338,32 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                     <AnimatePresence>
                         {showRoleMenu && availableRoles.length > 1 && (
                             <motion.div
-                                initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: 'auto' }}
-                                exit={{ opacity: 0, height: 0 }}
-                                className="mt-2 bg-white/5 border border-white/5 rounded-2xl overflow-hidden shadow-xl z-50 py-1"
+                                initial={{ opacity: 0, y: -10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                                className="absolute top-full left-0 right-0 mt-2 bg-[var(--bg-sidebar-dark)] border border-[var(--border-sidebar)] rounded-xl overflow-hidden shadow-xl z-50 py-2"
                             >
-                                {availableRoles.map(r => (
-                                    <button
-                                        key={r}
-                                        disabled={isSwitchingRole}
-                                        onClick={() => handleSwitchRole(r)}
-                                        className={`w-full text-left px-4 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-between group ${
-                                            r === role 
-                                                ? 'text-primary' 
-                                                : 'text-white/40 hover:text-white hover:bg-white/5'
-                                        }`}
-                                    >
-                                        <span className="flex items-center gap-2">
-                                            {r === 'job' ? 'Freelancer' : r}
-                                            {isSwitchingRole && r === role && <ButtonLoader className="w-3 h-3" />}
-                                        </span>
-                                        {r === role && <div className="w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_8px_rgba(255,165,0,0.5)]"></div>}
-                                    </button>
-                                ))}
+                                <div className="px-4 py-2 border-b border-[var(--border-sidebar)] mb-2 flex items-center justify-between">
+                                    <span className="text-[10px] font-black text-[var(--text-sidebar-muted)] uppercase tracking-widest">Switch Profile</span>
+                                </div>
+                                        {availableRoles.map(r => (
+                                            <button
+                                                key={r}
+                                                disabled={isSwitchingRole}
+                                                onClick={() => handleSwitchRole(r)}
+                                                className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center justify-between ${
+                                                    r === role 
+                                                        ? 'bg-primary/10 text-primary font-bold border-l-2 border-primary' 
+                                                        : 'text-[var(--text-sidebar-muted)] hover:bg-white/5 hover:text-[var(--text-sidebar)] font-medium border-l-2 border-transparent'
+                                                }`}
+                                            >
+                                                <div className="flex items-center gap-2">
+                                                    <span className="capitalize">{r === 'job' ? 'Freelancer' : r} Dashboard</span>
+                                                    {isSwitchingRole && r === role && <ButtonLoader className="w-3 h-3" />}
+                                                </div>
+                                                {r === role && <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>}
+                                            </button>
+                                        ))}
                             </motion.div>
                         )}
                     </AnimatePresence>

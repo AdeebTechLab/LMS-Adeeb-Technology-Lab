@@ -232,7 +232,7 @@ const FeeManagement = () => {
 
         fees.forEach(fee => {
             (fee.installments || []).forEach(inst => {
-                if (inst.status === 'pending' || inst.status === 'rejected') {
+                if (inst.status === 'pending' || inst.status === 'rejected' || inst.status === 'overdue') {
                     pending += inst.amount || 0;
                 } else if (inst.status === 'submitted') {
                     underReviewCount++;
@@ -389,7 +389,7 @@ const FeeManagement = () => {
                                         </div>
                                     ) : (
                                         fee.installments.map((inst, index) => {
-                                            const isOverdue = inst.status === 'overdue' || (inst.status === 'pending' && inst.dueDate && new Date(inst.dueDate) < new Date());
+                                            const isOverdue = inst.status !== 'verified' && inst.dueDate && new Date(inst.dueDate) < new Date();
                                             const isPayable = inst.status === 'pending' || inst.status === 'rejected' || inst.status === 'overdue';
                                             return (
                                                 <div key={inst._id || index} className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl gap-4 border transition-colors ${isOverdue ? 'bg-red-50 border-red-100 hover:border-red-200' : 'bg-gray-50 border-gray-100 hover:border-primary/10'}`}>
@@ -401,7 +401,9 @@ const FeeManagement = () => {
                                                                     inst.status === 'submitted' ? 'info' :
                                                                         (inst.status === 'rejected' || isOverdue) ? 'danger' : 'warning'
                                                             }>
-                                                                {isOverdue && inst.status === 'pending' ? 'OVERDUE' : inst.status}
+                                                                {isOverdue && inst.status !== 'submitted' ? 'OVERDUE' : 
+                                                                 isOverdue && inst.status === 'submitted' ? 'PENDING VERIFICATION' : 
+                                                                 inst.status}
                                                             </Badge>
                                                         </div>
                                                         <div className="flex gap-4 text-sm text-gray-500">

@@ -97,25 +97,20 @@ enrollmentSchema.methods.updateActiveStatus = function () {
         // No installments created, check if single payment verified
         this.isActive = this.feeStatus === 'verified';
     } else {
-        // 1. Must have at least the first installment verified to be active
+        // Check if first installment is verified
         const firstInstallment = this.installments[0];
         const isFirstVerified = firstInstallment && firstInstallment.status === 'verified';
 
-        if (!isFirstVerified) {
-            this.isActive = false;
-            return false;
-        }
-
-        // 2. Check if ANY past-due installment is not yet verified
+        // Lock if ANY installment is not verified and past its due date
+        // This includes 'pending', 'submitted', 'rejected', or 'overdue'
         const now = new Date();
-        const hasUnverifiedOverdue = this.installments.some(inst => {
-            const dueDate = new Date(inst.dueDate);
-            // If it's past due and NOT verified (even if 'submitted' or 'pending')
-            return now > dueDate && inst.status !== 'verified';
-        });
+        const hasOverdue = this.installments.some(inst => 
+            inst.status !== 'verified' && 
+            now > new Date(inst.dueDate)
+        );
 
-        // Active only if first verified AND no other installments are overdue/unverified
-        this.isActive = isFirstVerified && !hasUnverifiedOverdue;
+        // Active if first verified and no installments are overdue/unverified past due date
+        this.isActive = isFirstVerified && !hasOverdue;
     }
 
     return this.isActive;

@@ -314,13 +314,16 @@ const StudentChatTab = ({ course, isRestricted }) => {
                                         }
                                     }}
                                 />
-                                <ButtonLoader
+                                <button
                                     onClick={() => handleSendMessage()}
-                                    isLoading={isSending}
-                                    disabled={!newMessage.trim() || !activeTeacher || isRestricted}
-                                    icon={<Send className="w-5 h-5" />}
+                                    disabled={!newMessage.trim() || !activeTeacher || isRestricted || isSending}
                                     className="px-4 py-3 bg-primary text-white rounded-xl hover:bg-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                                />
+                                >
+                                    <ButtonLoader
+                                        isLoading={isSending}
+                                        icon={<Send className="w-5 h-5" />}
+                                    />
+                                </button>
                             </div>
                         </form>
                     </>
