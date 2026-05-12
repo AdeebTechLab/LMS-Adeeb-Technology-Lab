@@ -452,6 +452,28 @@ const TestsTab = ({ course, students }) => {
                 {isDropdownOpen && <div className="fixed inset-0 z-[55]" onClick={() => setIsDropdownOpen(false)} />}
             </div>
 
+            {/* Test Title Search Bar */}
+            <div className="bg-white dark:bg-slate-900/40 rounded-2xl p-4 border border-gray-100 dark:border-slate-800 shadow-sm">
+                <div className="relative">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <input
+                        type="text"
+                        placeholder="Search test title..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full pl-12 pr-4 py-3.5 bg-gray-50/50 dark:bg-white/5 border border-transparent focus:border-primary focus:bg-white dark:focus:bg-white/10 rounded-2xl transition-all outline-none text-sm font-medium"
+                    />
+                    {searchTerm && (
+                        <button
+                            onClick={() => setSearchTerm('')}
+                            className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg transition-colors"
+                        >
+                            <X className="w-4 h-4 text-gray-400" />
+                        </button>
+                    )}
+                </div>
+            </div>
+
             {filteredTests.length === 0 ? (
                 <div className="bg-white rounded-[2.5rem] p-16 text-center border-2 border-dashed border-gray-100 flex flex-col items-center">
                     <div className="p-6 bg-gray-50 rounded-full mb-6">

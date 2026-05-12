@@ -809,73 +809,33 @@ const AttendanceSheet = () => {
 
             {/* Course Content: Multi-Tab */}
             <div className="space-y-6">
-                {/* Tab Navigation - Responsive Horizontal Scroll */}
-                <div className="flex gap-2 bg-gray-100/80 p-1.5 rounded-2xl w-full overflow-x-auto no-scrollbar border border-primary scroll-smooth">
-                    <button
-                        onClick={() => setActiveTab('daily_tasks')}
-                        className={`px-6 sm:px-8 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 whitespace-nowrap shrink-0 ${activeTab === 'daily_tasks'
-                            ? 'bg-white text-primary shadow-sm border border-primary/30'
-                            : 'text-gray-500 hover:bg-gray-200 hover:text-gray-900'
-                            }`}
-                    >
-                        <ClipboardList className="w-4 h-4" />
-                        {selectedCourse.targetAudience === 'interns' ? 'Daily Tasks' : 'Class Logs'}
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('assignments')}
-                        className={`px-6 sm:px-8 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 whitespace-nowrap shrink-0 ${activeTab === 'assignments'
-                            ? 'bg-white text-primary shadow-sm border border-primary/30'
-                            : 'text-gray-500 hover:bg-gray-200 hover:text-gray-900'
-                            }`}
-                    >
-                        <FileText className="w-4 h-4" />
-                        Assignments
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('tests')}
-                        className={`px-8 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 ${activeTab === 'tests'
-                            ? 'bg-white text-primary shadow-sm border border-primary/30'
-                            : 'text-gray-500 hover:bg-gray-200 hover:text-gray-900'
-                            }`}
-                    >
-                        <Zap className="w-4 h-4" />
-                        Tests
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('attendance')}
-                        className={`px-6 sm:px-8 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 whitespace-nowrap shrink-0 ${activeTab === 'attendance'
-                            ? 'bg-white text-primary shadow-sm border border-primary/30'
-                            : 'text-gray-500 hover:bg-gray-200 hover:text-gray-900'
-                            }`}
-                    >
-                        <Clock className="w-4 h-4" />
-                        Attendance
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('students')}
-                        className={`px-8 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 ${activeTab === 'students'
-                            ? 'bg-white text-primary shadow-sm border border-primary/30'
-                            : 'text-gray-500 hover:bg-gray-200 hover:text-gray-900'
-                            }`}
-                    >
-                        <UserCheck className="w-4 h-4" />
-                        Students
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('chat')}
-                        className={`px-8 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 relative ${activeTab === 'chat'
-                            ? 'bg-white text-primary shadow-sm border border-primary/30'
-                            : 'text-gray-500 hover:bg-gray-200 hover:text-gray-900'
-                            }`}
-                    >
-                        <MessageCircle className="w-4 h-4" />
-                        Chat
-                        {chatUnreadCount > 0 && activeTab !== 'chat' && (
-                            <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center animate-pulse">
-                                {chatUnreadCount > 9 ? '9+' : chatUnreadCount}
-                            </span>
-                        )}
-                    </button>
+                {/* Tab Navigation - Separate Row like Student Portal */}
+                <div className="flex items-center gap-2 bg-white dark:bg-slate-900/40 rounded-2xl p-1.5 border border-gray-100 dark:border-slate-800 shadow-sm overflow-x-auto no-scrollbar">
+                    {[
+                        { id: 'daily_tasks', label: selectedCourse.targetAudience === 'interns' ? 'Daily Tasks' : 'Class Logs', icon: ClipboardList },
+                        { id: 'assignments', label: 'Assignments', icon: FileText },
+                        { id: 'tests', label: 'Tests', icon: Zap },
+                        { id: 'attendance', label: 'Attendance', icon: Clock },
+                        { id: 'students', label: 'Students', icon: UserCheck },
+                        { id: 'chat', label: 'Chat', icon: MessageCircle, showBadge: chatUnreadCount > 0 },
+                    ].map((tab) => (
+                        <button
+                            key={tab.id}
+                            onClick={() => setActiveTab(tab.id)}
+                            className={`flex-1 flex items-center justify-center gap-2.5 py-3.5 px-6 rounded-xl font-black text-[11px] uppercase tracking-wider transition-all whitespace-nowrap relative ${activeTab === tab.id
+                                ? 'bg-primary text-white shadow-xl shadow-primary/30'
+                                : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-slate-800 hover:text-primary'
+                                }`}
+                        >
+                            <tab.icon className={`w-4 h-4 ${activeTab === tab.id ? 'text-white' : 'text-gray-400 group-hover:text-primary'}`} />
+                            {tab.label}
+                            {tab.showBadge && activeTab !== 'chat' && (
+                                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center animate-pulse shadow-lg border-2 border-white dark:border-slate-900">
+                                    {chatUnreadCount > 9 ? '9+' : chatUnreadCount}
+                                </span>
+                            )}
+                        </button>
+                    ))}
                 </div>
 
                 {/* Tab Content */}

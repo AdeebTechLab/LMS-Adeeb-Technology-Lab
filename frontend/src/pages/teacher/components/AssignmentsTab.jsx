@@ -19,6 +19,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [studentSearchTerm, setStudentSearchTerm] = useState('');
     const [assignSearchTerm, setAssignSearchTerm] = useState(''); // For searching students when assigning
+    const [assignmentTitleFilter, setAssignmentTitleFilter] = useState(''); // For searching assignments by title
 
     // Create Form State
     const [newAssignment, setNewAssignment] = useState({
@@ -431,12 +432,41 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                 )}
             </div>
 
+            {/* Assignment Title Search Bar */}
+            <div className="bg-white dark:bg-slate-900/40 rounded-2xl p-4 border border-gray-100 dark:border-slate-800 shadow-sm">
+                <div className="relative">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <input
+                        type="text"
+                        placeholder="Search assignment title..."
+                        value={assignmentTitleFilter}
+                        onChange={(e) => setAssignmentTitleFilter(e.target.value)}
+                        className="w-full pl-12 pr-4 py-3.5 bg-gray-50/50 dark:bg-white/5 border border-transparent focus:border-primary focus:bg-white dark:focus:bg-white/10 rounded-2xl transition-all outline-none text-sm font-medium"
+                    />
+                    {assignmentTitleFilter && (
+                        <button
+                            onClick={() => setAssignmentTitleFilter('')}
+                            className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg transition-colors"
+                        >
+                            <X className="w-4 h-4 text-gray-400" />
+                        </button>
+                    )}
+                </div>
+            </div>
+
             {isLoading && assignments.length === 0 ? (
                 <Loader message="Loading assignments..." />
             ) : (
                 <div className="space-y-4">
                     {assignments
                         .filter(assignment => {
+                            // 1. Filter by Assignment Title
+                            if (assignmentTitleFilter.trim()) {
+                                const titleMatch = assignment.title?.toLowerCase().includes(assignmentTitleFilter.toLowerCase());
+                                if (!titleMatch) return false;
+                            }
+
+                            // 2. Filter by Selected Student
                             if (selectedStudentFilter === 'all') return true;
                             
                             // Check if student is in assignedUsers

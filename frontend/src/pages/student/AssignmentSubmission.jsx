@@ -234,55 +234,32 @@ const AssignmentSubmission = () => {
             ) : (
                 /* WORKSPACE VIEW */
                 <div className="space-y-6">
-                    {/* Course Header */}
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900/40 p-6 rounded-2xl border border-gray-100 dark:border-slate-800 shadow-sm">
-                        <div className="flex items-center gap-4">
+                    {/* Course Header - Transparent like Teacher Portal */}
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div>
                             <button
                                 onClick={() => setSelectedCourseId(null)}
-                                className="w-12 h-12 rounded-2xl bg-gray-50 dark:bg-slate-800 flex items-center justify-center text-gray-400 hover:text-primary hover:bg-primary/5 transition-all"
+                                className="flex items-center gap-2 text-primary hover:text-primary mb-2 font-bold text-sm tracking-wide uppercase"
                             >
-                                <ChevronLeft className="w-6 h-6" />
+                                <ChevronLeft className="w-4 h-4" />
+                                BACK TO MY COURSES
                             </button>
-                            <div>
-                                <h2 className="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tight">{myCourses.find(c => c._id === selectedCourseId)?.title}</h2>
-                                <div className="flex items-center gap-3 mt-1">
-                                    <Badge variant="primary" size="sm">Workspace ACTIVE</Badge>
-                                    {isRestricted && <Badge variant="error" size="sm">PORTAL LOCKED</Badge>}
-                                </div>
+                            <h1 className="text-3xl font-black text-gray-900 dark:text-white uppercase tracking-tight leading-none mb-3">
+                                {myCourses.find(c => c._id === selectedCourseId)?.title}
+                            </h1>
+                            <div className="flex items-center gap-3">
+                                <Badge variant="primary" size="sm">Workspace ACTIVE</Badge>
+                                {isRestricted && <Badge variant="error" size="sm">PORTAL LOCKED</Badge>}
                             </div>
                         </div>
 
-                        {/* Right Side: Tabs & Actions */}
-                        <div className="flex items-center gap-3 flex-wrap md:flex-nowrap">
-                            {/* Tabs */}
-                            {/* Tabs - Styled like Teacher Portal */}
-                            <div className="flex items-center gap-2 bg-white dark:bg-slate-900 rounded-xl p-1 border border-gray-100 dark:border-slate-800 shadow-sm overflow-x-auto custom-scrollbar no-scrollbar min-w-0 max-w-full">
-                                {[
-                                    { id: 'daily_tasks', label: 'Class Log', icon: ClipboardList },
-                                    { id: 'assignments', label: role === 'intern' ? 'Daily Task' : 'Assignments', icon: FileText },
-                                    { id: 'tests', label: 'Tests', icon: Zap },
-                                    { id: 'attendance', label: 'Attendance', icon: Calendar },
-                                    { id: 'chat', label: 'Chat', icon: MessageCircle },
-                                ].map((tab) => (
-                                    <button
-                                        key={tab.id}
-                                        onClick={() => setActiveTab(tab.id)}
-                                        className={`flex items-center gap-2 py-2.5 px-5 rounded-lg font-bold text-[11px] uppercase tracking-wider transition-all whitespace-nowrap shrink-0 ${activeTab === tab.id
-                                            ? 'bg-primary text-white shadow-lg shadow-primary/20'
-                                            : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-slate-800'
-                                            }`}
-                                    >
-                                        <tab.icon className={`w-4 h-4 ${activeTab === tab.id ? 'text-white' : 'text-gray-400'}`} />
-                                        {tab.label}
-                                    </button>
-                                ))}
-                            </div>
-
+                        {/* Right Side: Actions */}
+                        <div className="flex items-center gap-3">
                             {/* Book Action Button */}
                             {myCourses.find(c => c._id === selectedCourseId)?.bookLink && (
                                 <button
                                     onClick={() => window.open(myCourses.find(c => c._id === selectedCourseId)?.bookLink, '_blank')}
-                                    className="group relative flex items-center gap-2.5 px-6 py-2.5 rounded-2xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-black uppercase tracking-widest text-xs hover:-translate-y-0.5 active:translate-y-0 transition-all shadow-lg hover:shadow-xl shadow-gray-900/20 dark:shadow-white/20 ml-auto md:ml-0 border border-gray-800 dark:border-gray-200"
+                                    className="group relative flex items-center gap-2.5 px-6 py-2.5 rounded-2xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-black uppercase tracking-widest text-xs hover:-translate-y-0.5 active:translate-y-0 transition-all shadow-lg hover:shadow-xl shadow-gray-900/20 dark:shadow-white/20 border border-gray-800 dark:border-gray-200"
                                     title="Open Course Book"
                                 >
                                     <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/20 to-primary/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl"></div>
@@ -294,6 +271,29 @@ const AssignmentSubmission = () => {
                                 </button>
                             )}
                         </div>
+                    </div>
+
+                    {/* Navigation Tabs - Separate Row like Teacher Portal */}
+                    <div className="flex items-center gap-2 bg-white dark:bg-slate-900/40 rounded-2xl p-1.5 border border-gray-100 dark:border-slate-800 shadow-sm overflow-x-auto no-scrollbar">
+                        {[
+                            { id: 'daily_tasks', label: 'Class Log', icon: ClipboardList },
+                            { id: 'assignments', label: role === 'intern' ? 'Daily Task' : 'Assignments', icon: FileText },
+                            { id: 'tests', label: 'Tests', icon: Zap },
+                            { id: 'attendance', label: 'Attendance', icon: Calendar },
+                            { id: 'chat', label: 'Chat', icon: MessageCircle },
+                        ].map((tab) => (
+                            <button
+                                key={tab.id}
+                                onClick={() => setActiveTab(tab.id)}
+                                className={`flex-1 flex items-center justify-center gap-2.5 py-3.5 px-6 rounded-xl font-black text-[11px] uppercase tracking-wider transition-all whitespace-nowrap ${activeTab === tab.id
+                                    ? 'bg-primary text-white shadow-xl shadow-primary/30'
+                                    : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-slate-800 hover:text-primary'
+                                    }`}
+                            >
+                                <tab.icon className={`w-4 h-4 ${activeTab === tab.id ? 'text-white' : 'text-gray-400 group-hover:text-primary'}`} />
+                                {tab.label}
+                            </button>
+                        ))}
                     </div>
 
                     {/* Tab Content */}
@@ -375,25 +375,57 @@ const AssignmentSubmission = () => {
                                                             {assignment.description}
                                                         </p>
 
-                                                        <div className="mt-auto pt-6 border-t border-gray-50 dark:border-slate-800/50 flex flex-col sm:flex-row items-center justify-between gap-4">
+                                                        {/* Compact Action Row */}
+                                                        <div className="mt-auto pt-6 border-t border-gray-50 dark:border-slate-800/50 flex flex-wrap items-center justify-between gap-4">
                                                             <div className="flex flex-wrap items-center gap-3">
-                                                                <div className="flex items-center gap-3 px-4 py-2.5 bg-primary/5 dark:bg-primary/10 rounded-2xl border border-primary/10 dark:border-primary/30">
-                                                                    <Calendar className="w-4 h-4 text-primary" />
-                                                                    <div>
-                                                                        <p className="text-[9px] font-black text-primary/60 uppercase tracking-widest leading-none mb-1">Dead Line</p>
-                                                                        <p className="text-xs font-black text-gray-700 dark:text-gray-300 uppercase tracking-tight">{formatDate(assignment.dueDate)}</p>
-                                                                    </div>
-                                                                </div>
-                                                                {canSubmit && (
-                                                                    <div className="flex items-center gap-2 px-4 py-2.5 bg-amber-50 dark:bg-amber-900/10 rounded-2xl border border-amber-100 animate-pulse">
-                                                                        <Clock className="w-4 h-4 text-amber-500" />
-                                                                        <span className="text-[10px] font-black text-amber-600 uppercase tracking-widest">
+                                                                {/* Deadline & Remaining Time */}
+                                                                <div className="flex items-center gap-2 bg-gray-50 dark:bg-slate-800/50 px-3 py-2 rounded-xl border border-gray-100 dark:border-slate-800">
+                                                                    <Calendar className="w-3.5 h-3.5 text-primary" />
+                                                                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Dead Line:</span>
+                                                                    <span className="text-[10px] font-black text-gray-900 dark:text-gray-200 uppercase">{formatDate(assignment.dueDate)}</span>
+                                                                    {!deadlinePassed && (submissionStatus === 'pending' || submissionStatus === 'rejected' || canResubmit) && (
+                                                                        <span className="text-[10px] font-black text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-2 py-0.5 rounded-lg border border-amber-100 dark:border-amber-800/30 animate-pulse ml-1">
                                                                             {getTimeRemaining(assignment.dueDate)}
                                                                         </span>
+                                                                    )}
+                                                                </div>
+
+                                                                {/* Inline Rejection Feedback */}
+                                                                {submissionStatus === 'rejected' && submissionFeedback && (
+                                                                    <div className="flex items-center gap-2 px-3 py-2 bg-red-50 dark:bg-red-900/10 rounded-xl border border-red-100 dark:border-red-800/30">
+                                                                        <AlertCircle className="w-3.5 h-3.5 text-red-600" />
+                                                                        <span className="text-[10px] font-black text-red-600 uppercase tracking-widest shrink-0">Reason:</span>
+                                                                        <span className="text-[10px] text-red-800 dark:text-red-200 font-bold italic">"{submissionFeedback}"</span>
+                                                                    </div>
+                                                                )}
+
+                                                                {/* Graded Summary */}
+                                                                {submissionStatus === 'graded' && submissionMarks !== undefined && (
+                                                                    <div className="flex items-center gap-2 px-3 py-2 bg-primary/5 dark:bg-primary/20 rounded-xl border border-primary/10 dark:border-primary/30">
+                                                                        <span className="text-[10px] font-black text-primary uppercase tracking-widest">Score:</span>
+                                                                        <span className="text-sm font-black text-primary">{submissionMarks}/{assignment.totalMarks}</span>
+                                                                        {submissionLink && (
+                                                                            <a href={submissionLink} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-[10px] font-black text-blue-600 hover:text-blue-700 bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded-lg border border-blue-100 dark:border-blue-800/30 transition-colors ml-1 uppercase">
+                                                                                <LinkIcon className="w-3 h-3" /> My Work
+                                                                            </a>
+                                                                        )}
+                                                                    </div>
+                                                                )}
+
+                                                                {/* Submitted but Pending Grade Summary */}
+                                                                {submissionStatus === 'submitted' && (
+                                                                    <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 dark:bg-blue-900/10 rounded-xl border border-blue-100 dark:border-blue-800/30">
+                                                                        <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest">Submitted</span>
+                                                                        {submissionLink && (
+                                                                            <a href={submissionLink} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-[10px] font-black text-blue-600 hover:text-blue-700 bg-white/50 dark:bg-white/5 px-2 py-1 rounded-lg border border-blue-100/50 transition-colors ml-1 uppercase">
+                                                                                <LinkIcon className="w-3 h-3" /> View Link
+                                                                            </a>
+                                                                        )}
                                                                     </div>
                                                                 )}
                                                             </div>
 
+                                                            {/* Action Button on Right */}
                                                             {(canSubmit || canResubmit) && selectedAssignment?._id !== assignment._id && (
                                                                 <button
                                                                     onClick={() => {
@@ -402,46 +434,12 @@ const AssignmentSubmission = () => {
                                                                         setSubmissionText(submissionNotes || '');
                                                                     }}
                                                                     disabled={isRestricted}
-                                                                    className={`px-8 py-3.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all text-white shadow-xl hover:shadow-2xl hover:scale-[1.03] active:scale-[0.98] ${submissionStatus === 'rejected' ? 'bg-red-600 hover:bg-red-700' : canResubmit ? 'bg-blue-600 hover:bg-blue-700' : 'bg-primary hover:bg-[#e67e00]'} disabled:bg-gray-300 flex items-center justify-center gap-2 w-full sm:w-auto`}
+                                                                    className={`px-10 py-3.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all text-white shadow-xl hover:shadow-2xl hover:scale-[1.05] active:scale-95 ${submissionStatus === 'rejected' ? 'bg-red-600 hover:bg-red-700' : canResubmit ? 'bg-blue-600 hover:bg-blue-700' : 'bg-primary hover:bg-[#e67e00]'} disabled:opacity-50`}
                                                                 >
-                                                                    <Send className="w-4 h-4" />
-                                                                    {isRestricted ? 'PORTAL LOCKED' : (submissionStatus === 'rejected' ? 'RESUBMIT' : canResubmit ? 'RESUBMIT' : 'SUBMIT WORK')}
+                                                                    {submissionStatus === 'rejected' ? 'RESUBMIT' : canResubmit ? 'RESUBMIT' : 'SUBMIT WORK'}
                                                                 </button>
                                                             )}
                                                         </div>
-
-                                                        {/* Results/Feedback Display */}
-                                                        {(submissionStatus === 'submitted' || submissionStatus === 'graded') && (
-                                                            <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-4">
-                                                                {submissionStatus === 'graded' && submissionMarks !== undefined && (
-                                                                    <div className="bg-primary/5 dark:bg-primary/20 p-4 rounded-2xl border border-primary/10 text-center">
-                                                                        <p className="text-[9px] font-black text-primary uppercase tracking-widest mb-1">Final Result</p>
-                                                                        <p className="text-3xl font-black text-primary">{submissionMarks}<span className="text-lg">/{assignment.totalMarks}</span></p>
-                                                                    </div>
-                                                                )}
-                                                                {submissionStatus === 'graded' && submissionFeedback && (
-                                                                    <div className="lg:col-span-2 bg-amber-50 dark:bg-amber-900/10 p-4 rounded-2xl border border-amber-100">
-                                                                        <p className="text-[9px] font-black text-amber-600 uppercase tracking-widest mb-2 flex items-center gap-2"><MessageCircle className="w-3 h-3" /> Teacher Feedback</p>
-                                                                        <p className="text-[11px] text-gray-800 dark:text-gray-200 italic">"{submissionFeedback}"</p>
-                                                                    </div>
-                                                                )}
-                                                                <div className={`p-4 bg-slate-50 dark:bg-slate-900/30 rounded-2xl border border-slate-100 ${submissionStatus !== 'graded' ? 'lg:col-span-3' : ''}`}>
-                                                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">My Submission</p>
-                                                                    {submissionLink && (
-                                                                        <a href={submissionLink} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[11px] font-bold text-blue-600 hover:underline">
-                                                                            <LinkIcon className="w-3.5 h-3.5" /> View Submitted Work
-                                                                        </a>
-                                                                    )}
-                                                                    {submissionNotes && <p className="text-[10px] text-slate-600 mt-2 italic">"{submissionNotes}"</p>}
-                                                                </div>
-                                                            </div>
-                                                        )}
-                                                        {submissionStatus === 'rejected' && submissionFeedback && (
-                                                            <div className="mt-6 bg-red-50 dark:bg-red-900/10 p-5 rounded-2xl border border-red-200">
-                                                                <p className="text-[10px] font-black text-red-600 uppercase tracking-widest mb-2 flex items-center gap-2"><XCircle className="w-3 h-3" /> Rejection Reason</p>
-                                                                <p className="text-xs text-red-800 dark:text-red-200 font-medium">"{submissionFeedback}"</p>
-                                                            </div>
-                                                        )}
                                                     </div>
                                                 </motion.div>
                                             );
@@ -519,35 +517,88 @@ const AssignmentSubmission = () => {
                                             <p className="text-gray-400 font-bold uppercase tracking-widest text-[10px]">No historical data found</p>
                                         </div>
                                     ) : (
-                                        [...dailyTasks].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).map((task, idx) => (
-                                            <motion.div key={task._id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: idx * 0.05 }} className="bg-white dark:bg-slate-900/40 p-7 rounded-3xl border border-gray-100 dark:border-slate-800 shadow-sm relative overflow-hidden">
-                                                <div className="flex justify-between items-start mb-6">
-                                                    <div className="flex items-center gap-4">
-                                                        <div className="bg-gray-50 dark:bg-slate-800 px-3 py-1.5 rounded-xl border border-gray-100 dark:border-slate-700">
-                                                            <p className="text-[10px] font-black text-gray-900 dark:text-white leading-none">{new Date(task.date || task.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
+                                        [...dailyTasks]
+                                            .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+                                            .map((task, idx) => {
+                                                // Calculate Log # for this user
+                                                const sortedTasks = [...dailyTasks].sort((a, b) => new Date(a.date || a.createdAt) - new Date(b.date || b.createdAt));
+                                                const logNumber = sortedTasks.findIndex(t => String(t._id) === String(task._id)) + 1;
+
+                                                return (
+                                                    <motion.div 
+                                                        key={task._id} 
+                                                        initial={{ opacity: 0, x: -10 }} 
+                                                        animate={{ opacity: 1, x: 0 }} 
+                                                        transition={{ delay: idx * 0.05 }} 
+                                                        className="bg-white dark:bg-slate-900/40 p-7 rounded-3xl border border-gray-100 dark:border-slate-800 shadow-sm relative overflow-hidden"
+                                                    >
+                                                        <div className="flex items-start justify-between mb-6">
+                                                            <div className="flex items-center gap-4">
+                                                                {user?.photo ? (
+                                                                    <img src={user.photo} alt="" className="w-11 h-11 rounded-full object-cover border border-primary/10" />
+                                                                ) : (
+                                                                    <div className="w-11 h-11 rounded-full bg-primary/5 flex items-center justify-center text-primary font-bold border border-primary/10 uppercase">
+                                                                        {user?.name?.charAt(0)}
+                                                                    </div>
+                                                                )}
+                                                                <div>
+                                                                    <div className="flex items-center gap-2 mb-0.5">
+                                                                        <span className="text-[10px] font-black text-primary bg-primary/5 px-2 py-0.5 rounded-lg border border-primary/10 uppercase tracking-tight">
+                                                                            {role === 'intern' ? 'LOG' : 'CLASS'} #{logNumber}
+                                                                        </span>
+                                                                        <h4 className="font-bold text-gray-900 dark:text-white uppercase tracking-tight">{user?.name}</h4>
+                                                                        {user?.rollNo && (
+                                                                            <span className="text-[10px] font-black text-red-500 bg-red-50 dark:bg-red-900/20 px-2 py-0.5 rounded-lg border border-red-100 dark:border-red-800/30">
+                                                                                {user?.rollNo}
+                                                                            </span>
+                                                                        )}
+                                                                        <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border ${role === 'intern' ? 'bg-purple-50 dark:bg-purple-900/20 text-primary border-primary/10' : 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 border-blue-100 dark:border-blue-800/30'}`}>
+                                                                            {role || 'student'}
+                                                                        </span>
+                                                                    </div>
+                                                                    <p className="text-[10px] text-gray-400 font-medium flex items-center gap-1.5 uppercase tracking-wider">
+                                                                        <Clock className="w-3.5 h-3.5" />
+                                                                        {new Date(task.date || task.createdAt).toLocaleDateString('en-GB')} at {new Date(task.createdAt).toLocaleTimeString()}
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                            <div className="flex items-center gap-3">
+                                                                <Badge variant={task.status === 'verified' ? 'success' : 'warning'}>{task.status.toUpperCase()}</Badge>
+                                                                {task.status === 'rejected' && (
+                                                                    <button 
+                                                                        onClick={() => { setResubmittingTaskId(task._id); setNewTaskContent(task.content); window.scrollTo({ top: 0, behavior: 'smooth' }); }} 
+                                                                        className="text-[10px] font-black text-primary underline uppercase tracking-widest"
+                                                                    >
+                                                                        Edit & Re-commit
+                                                                    </button>
+                                                                )}
+                                                            </div>
                                                         </div>
-                                                        <Badge variant={task.status === 'verified' ? 'success' : 'warning'}>{task.status.toUpperCase()}</Badge>
-                                                    </div>
-                                                    {task.status === 'rejected' && (
-                                                        <button onClick={() => { setResubmittingTaskId(task._id); setNewTaskContent(task.content); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="text-[10px] font-black text-primary underline uppercase tracking-widest">Edit & Re-commit</button>
-                                                    )}
-                                                </div>
-                                                <div className="bg-gray-50/50 dark:bg-black/20 p-5 rounded-2xl border border-gray-100 dark:border-slate-800 text-sm italic text-gray-600 dark:text-gray-400 font-medium leading-relaxed mb-4 whitespace-pre-wrap">"{task.content}"</div>
-                                                {task.workLink && <a href={task.workLink} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[10px] font-black text-primary uppercase hover:bg-primary/5 w-fit px-3 py-1.5 rounded-lg border border-primary/10 transition-all"><ExternalLink className="w-3.5 h-3.5" /> View Work</a>}
-                                                {task.feedback && (
-                                                    <div className="mt-6 pt-6 border-t border-gray-100 dark:border-slate-800">
-                                                        <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-2">Teacher Evaluation</p>
-                                                        <p className="text-sm font-semibold italic text-primary">"{task.feedback}"</p>
-                                                        {task.marks !== undefined && (
-                                                            <div className="mt-4 flex items-center justify-between bg-primary/5 p-4 rounded-xl border border-primary/10">
-                                                                <span className="text-xs font-black text-primary uppercase tracking-tight">Proficiency Level</span>
-                                                                <span className="text-xl font-black text-primary">{task.marks}<span className="text-xs">/100</span></span>
+
+                                                        <div className="bg-gray-50/50 dark:bg-black/20 p-5 rounded-2xl border border-gray-100 dark:border-slate-800 text-sm italic text-gray-600 dark:text-gray-400 font-medium leading-relaxed mb-4 whitespace-pre-wrap">"{task.content}"</div>
+                                                        
+                                                        {task.workLink && (
+                                                            <a href={task.workLink} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[10px] font-black text-primary uppercase hover:bg-primary/5 w-fit px-3 py-1.5 rounded-lg border border-primary/10 transition-all">
+                                                                <ExternalLink className="w-3.5 h-3.5" /> 
+                                                                View Submitted Work
+                                                            </a>
+                                                        )}
+
+                                                        {task.feedback && (
+                                                            <div className="mt-6 pt-6 border-t border-gray-100 dark:border-slate-800">
+                                                                <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-2">Teacher Evaluation</p>
+                                                                <p className="text-sm font-semibold italic text-primary">"{task.feedback}"</p>
+                                                                {task.marks !== undefined && (
+                                                                    <div className="mt-4 flex items-center justify-between bg-primary/5 p-4 rounded-xl border border-primary/10">
+                                                                        <span className="text-xs font-black text-primary uppercase tracking-tight">Proficiency Level</span>
+                                                                        <span className="text-xl font-black text-primary">{task.marks}<span className="text-xs">/100</span></span>
+                                                                    </div>
+                                                                )}
                                                             </div>
                                                         )}
-                                                    </div>
-                                                )}
-                                            </motion.div>
-                                        ))
+                                                    </motion.div>
+                                                );
+                                            })
                                     )}
                                 </div>
                             </div>
