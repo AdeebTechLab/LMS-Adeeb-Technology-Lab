@@ -111,8 +111,24 @@ const TeacherRegister = () => {
             newErrors.cnic = 'CNIC must be 13 digits';
         }
 
+        if (!formData.fatherName.trim()) {
+            newErrors.fatherName = "Father's Name is required";
+        }
+
+        if (!formData.dob) {
+            newErrors.dob = 'Date of Birth is required';
+        }
+
+        if (!formData.gender) {
+            newErrors.gender = 'Gender is required';
+        }
+
         if (!formData.qualification) {
             newErrors.qualification = 'Qualification is required';
+        }
+
+        if (!formData.experience.trim()) {
+            newErrors.experience = 'Experience is required';
         }
 
         if (!formData.specialization.trim()) {
@@ -462,7 +478,7 @@ const TeacherRegister = () => {
                         {/* Phone and CNIC Row */}
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1.5">Phone *</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-1.5">WhatsApp Number *</label>
                                 <div className="relative">
                                     <input
                                         type="tel"
@@ -495,7 +511,7 @@ const TeacherRegister = () => {
 
                         {/* Father Name */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1.5">Father Name</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1.5">Father Name *</label>
                             <div className="relative">
                                 <input
                                     type="text"
@@ -503,26 +519,28 @@ const TeacherRegister = () => {
                                     value={formData.fatherName}
                                     onChange={handleChange}
                                     placeholder="Father's Name"
-                                    className="w-full px-4 py-3 pl-11 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50"
+                                    className={`w-full px-4 py-3 pl-11 border ${errors.fatherName ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50`}
                                 />
                                 <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                             </div>
+                            {errors.fatherName && <p className="mt-1 text-sm text-red-500">{errors.fatherName}</p>}
                         </div>
 
                         {/* DOB and Gender */}
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1.5">Date of Birth</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-1.5">Date of Birth *</label>
                                 <div className="relative">
                                     <input
                                         type="date"
                                         name="dob"
                                         value={formData.dob}
                                         onChange={handleChange}
-                                        className="w-full px-4 py-3 pl-11 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50"
+                                        className={`w-full px-4 py-3 pl-11 border ${errors.dob ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50`}
                                     />
                                     <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                                 </div>
+                                {errors.dob && <p className="mt-1 text-sm text-red-500">{errors.dob}</p>}
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1.5">Age (Auto)</label>
@@ -542,13 +560,13 @@ const TeacherRegister = () => {
 
                         {/* Gender */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1.5">Gender</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1.5">Gender *</label>
                             <div className="relative">
                                 <select
                                     name="gender"
                                     value={formData.gender}
                                     onChange={handleChange}
-                                    className="w-full px-4 py-3 pl-11 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50 appearance-none cursor-pointer"
+                                    className={`w-full px-4 py-3 pl-11 border ${errors.gender ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50 appearance-none cursor-pointer`}
                                 >
                                     <option value="">Select Gender</option>
                                     <option value="Male">Male</option>
@@ -557,6 +575,7 @@ const TeacherRegister = () => {
                                 <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                                 <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
                             </div>
+                            {errors.gender && <p className="mt-1 text-sm text-red-500">{errors.gender}</p>}
                         </div>
 
                         {/* Qualification */}
@@ -598,7 +617,7 @@ const TeacherRegister = () => {
                         {/* Experience and Location Row */}
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1.5">Experience</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-1.5">Experience *</label>
                                 <div className="relative">
                                     <input
                                         type="text"
@@ -606,10 +625,11 @@ const TeacherRegister = () => {
                                         value={formData.experience}
                                         onChange={handleChange}
                                         placeholder="e.g., 5 Years"
-                                        className={`w-full px-4 py-3 pl-11 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50`}
+                                        className={`w-full px-4 py-3 pl-11 border ${errors.experience ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50`}
                                     />
                                     <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                                 </div>
+                                {errors.experience && <p className="mt-1 text-sm text-red-500">{errors.experience}</p>}
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1.5">Location *</label>

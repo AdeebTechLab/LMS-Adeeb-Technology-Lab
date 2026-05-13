@@ -184,6 +184,7 @@ const JobRegister = () => {
         if (!formData.country) newErrors.country = 'Country is required';
         if (!formData.qualification) newErrors.qualification = 'Qualification is required';
         if (!formData.teachingExp) newErrors.teachingExp = 'This field is required';
+        if (!formData.experienceDetails.trim()) newErrors.experienceDetails = 'Experience details are required';
         if (formData.skills.length === 0) newErrors.skills = 'Select at least one skill';
         if (!formData.preferredCity) newErrors.preferredCity = 'Preferred city is required';
         if (!formData.preferredMode) newErrors.preferredMode = 'Preferred mode is required';
@@ -427,7 +428,7 @@ const JobRegister = () => {
                             <InputField label="Full Name *" name="fullName" icon={User} placeholder="Your full name" value={formData.fullName} onChange={handleChange} error={errors.fullName} />
                             <InputField label="Father Name *" name="fatherName" icon={User} placeholder="Father's name" value={formData.fatherName} onChange={handleChange} error={errors.fatherName} />
                             <InputField label="Email Address *" name="email" type="email" icon={Mail} placeholder="your@email.com" value={formData.email} onChange={handleChange} error={errors.email} />
-                            <InputField label="Phone Number *" name="phone" type="tel" icon={Phone} placeholder="+92 300 1234567" value={formData.phone} onChange={handleChange} error={errors.phone} />
+                            <InputField label="WhatsApp Number *" name="phone" type="tel" icon={Phone} placeholder="+92 300 1234567" value={formData.phone} onChange={handleChange} error={errors.phone} />
                             <InputField label="CNIC Number *" name="cnic" icon={CreditCard} placeholder="XXXXX-XXXXXXX-X" value={formData.cnic} onChange={handleCNICChange} error={errors.cnic} />
                             <InputField label="Date of Birth *" name="dob" type="date" icon={Calendar} value={formData.dob} onChange={handleChange} error={errors.dob} />
                             <InputField label="Age (Auto) *" name="age" type="number" placeholder="Calculated automatically" value={formData.age} onChange={handleChange} error={errors.age} readOnly />
@@ -450,15 +451,16 @@ const JobRegister = () => {
                             <InputField label="Highest Qualification *" name="qualification" placeholder="e.g. M.Sc Computer Science" value={formData.qualification} onChange={handleChange} error={errors.qualification} />
                             <SelectField label="Any Work Experience *" name="teachingExp" options={['Yes', 'No']} placeholder="Select" value={formData.teachingExp} onChange={handleChange} error={errors.teachingExp} />
                             <div className="md:col-span-2">
-                                <label className="block text-sm font-medium text-gray-700 mb-1.5">Experience Details</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-1.5">Experience Details *</label>
                                 <textarea
                                     name="experienceDetails"
                                     value={formData.experienceDetails}
                                     onChange={handleChange}
                                     rows={3}
                                     placeholder="Write about your experience..."
-                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50"
+                                    className={`w-full px-4 py-3 border ${errors.experienceDetails ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50`}
                                 />
+                                {errors.experienceDetails && <p className="mt-1 text-sm text-red-500">{errors.experienceDetails}</p>}
                             </div>
                             <div className="md:col-span-2">
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Skills or Fields you specialize in * <span className="text-gray-400 text-xs">(select multiple)</span></label>

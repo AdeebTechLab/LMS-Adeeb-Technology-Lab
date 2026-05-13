@@ -193,7 +193,7 @@ const TeacherDashboard = () => {
             const activeStudentsCount = coursesWithData
                 .filter(c => c.targetAudience === 'students')
                 .reduce((sum, c) => sum + (c.activeStudents || 0), 0);
-            
+
             const activeInternsCount = coursesWithData
                 .filter(c => c.targetAudience === 'interns')
                 .reduce((sum, c) => sum + (c.activeStudents || 0), 0);
@@ -557,8 +557,8 @@ const TeacherDashboard = () => {
                                     <div
                                         key={lc._id}
                                         className={`flex items-center justify-between p-4 rounded-xl border ${isExpiringSoon
-                                                ? 'bg-primary/5 border-orange-300 animate-pulse'
-                                                : 'bg-red-50 border-red-200'
+                                            ? 'bg-primary/5 border-orange-300 animate-pulse'
+                                            : 'bg-red-50 border-red-200'
                                             }`}
                                     >
                                         <div className="flex items-center gap-3">
@@ -571,8 +571,8 @@ const TeacherDashboard = () => {
                                                     </p>
                                                     {hasTimer && secondsLeft !== null && (
                                                         <span className={`flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-full ${isExpiringSoon
-                                                                ? 'bg-orange-200 text-orange-700'
-                                                                : 'bg-red-100 text-red-600'
+                                                            ? 'bg-orange-200 text-orange-700'
+                                                            : 'bg-red-100 text-red-600'
                                                             }`}>
                                                             <Timer className="w-3 h-3" />
                                                             {`${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`} left
@@ -685,8 +685,8 @@ const TeacherDashboard = () => {
                                                 type="button"
                                                 onClick={() => setLiveClassForm(f => ({ ...f, autoEndMinutes: f.autoEndMinutes === String(min) ? '' : String(min) }))}
                                                 className={`px-3 py-2 rounded-xl text-sm font-semibold transition-all border ${liveClassForm.autoEndMinutes === String(min)
-                                                        ? 'bg-primary text-white border-primary shadow-sm'
-                                                        : 'bg-white text-gray-700 border-gray-200 hover:border-orange-300'
+                                                    ? 'bg-primary text-white border-primary shadow-sm'
+                                                    : 'bg-white text-gray-700 border-gray-200 hover:border-orange-300'
                                                     }`}
                                             >
                                                 {min} min

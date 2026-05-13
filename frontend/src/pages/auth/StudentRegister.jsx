@@ -184,7 +184,8 @@ const StudentRegister = () => {
         const newErrors = {};
         if (!photoFile) newErrors.photo = 'Profile photo is required';
         if (!formData.fullName.trim()) newErrors.fullName = 'Full name is required';
-        if (!formData.phone) newErrors.phone = 'Phone is required';
+        if (!formData.fatherName.trim()) newErrors.fatherName = "Father's name is required";
+        if (!formData.phone) newErrors.phone = 'WhatsApp Number is required';
         if (!formData.email) newErrors.email = 'Email is required';
         else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Invalid email format';
         if (!formData.cnic) newErrors.cnic = 'CNIC/BForm is required';
@@ -195,7 +196,7 @@ const StudentRegister = () => {
         if (!formData.attendClasses) newErrors.attendClasses = 'Class type is required';
         if (!formData.education) newErrors.education = 'Education is required';
         if (!formData.guardianName) newErrors.guardianName = 'Guardian name is required';
-        if (!formData.guardianPhone) newErrors.guardianPhone = 'Guardian phone is required';
+        if (!formData.guardianPhone) newErrors.guardianPhone = 'Guardian WhatsApp Number is required';
         if (!formData.guardianOccupation) newErrors.guardianOccupation = 'Guardian occupation is required';
         if (!formData.address) newErrors.address = 'Address is required';
         if (!formData.city) newErrors.city = 'City is required';
@@ -463,8 +464,8 @@ const StudentRegister = () => {
                         <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-2 border-b">Personal Information</h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
                             <InputField label="Full Name *" name="fullName" icon={User} placeholder="Enter your full name" value={formData.fullName} onChange={handleChange} error={errors.fullName} />
-                            <InputField label="Father Name" name="fatherName" icon={User} placeholder="Father's full name" value={formData.fatherName} onChange={handleChange} />
-                            <InputField label="Phone *" name="phone" type="tel" icon={Phone} placeholder="+92 300 1234567" value={formData.phone} onChange={handleChange} error={errors.phone} />
+                            <InputField label="Father Name *" name="fatherName" icon={User} placeholder="Father's full name" value={formData.fatherName} onChange={handleChange} error={errors.fatherName} />
+                            <InputField label="WhatsApp Number *" name="phone" type="tel" icon={Phone} placeholder="+92 300 1234567" value={formData.phone} onChange={handleChange} error={errors.phone} />
                             <InputField label="Email *" name="email" type="email" icon={Mail} placeholder="your@email.com" value={formData.email} onChange={handleChange} error={errors.email} />
                             <InputField label="CNIC/BForm *" name="cnic" icon={CreditCard} placeholder="XXXXX-XXXXXXX-X" value={formData.cnic} onChange={handleCNICChange} error={errors.cnic} />
                             <InputField label="Date of Birth *" name="dob" type="date" icon={Calendar} value={formData.dob} onChange={handleChange} error={errors.dob} />
@@ -484,7 +485,7 @@ const StudentRegister = () => {
                         <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-2 border-b">Guardian Information</h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
                             <InputField label="Guardian Name *" name="guardianName" icon={Users} placeholder="Guardian's full name" value={formData.guardianName} onChange={handleChange} error={errors.guardianName} />
-                            <InputField label="Guardian Phone *" name="guardianPhone" type="tel" icon={Phone} placeholder="Guardian's phone" value={formData.guardianPhone} onChange={handleChange} error={errors.guardianPhone} />
+                            <InputField label="Guardian WhatsApp Number *" name="guardianPhone" type="tel" icon={Phone} placeholder="Guardian's WhatsApp number" value={formData.guardianPhone} onChange={handleChange} error={errors.guardianPhone} />
                             <InputField label="Guardian Occupation *" name="guardianOccupation" placeholder="Guardian's occupation" value={formData.guardianOccupation} onChange={handleChange} error={errors.guardianOccupation} />
                         </div>
 

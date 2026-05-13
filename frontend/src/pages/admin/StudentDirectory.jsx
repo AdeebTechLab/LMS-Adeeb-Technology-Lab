@@ -20,7 +20,7 @@ const FILTER_OPTIONS = [
 const StudentDirectory = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    
+
     // Get filter from URL query param if exists
     const queryParams = new URLSearchParams(location.search);
     const urlFilter = queryParams.get('filter');
@@ -152,11 +152,10 @@ const StudentDirectory = () => {
                                 <button
                                     key={option.value}
                                     onClick={() => setActiveFilter(option.value)}
-                                    className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wide transition-all ${
-                                        isActive
+                                    className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wide transition-all ${isActive
                                             ? 'bg-primary text-white shadow-lg shadow-orange-200'
                                             : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                    }`}
+                                        }`}
                                 >
                                     <Icon className="w-4 h-4" />
                                     <span>{option.label}</span>

@@ -14,11 +14,11 @@ router.get('/', protect, authorize('admin'), async (req, res) => {
 
         // Get users based on type - default to all roles if type is not specified
         const roleFilter = type === 'teachers' ? ['teacher'] : ['student', 'intern', 'teacher'];
-        
+
         // [MODIFIED]: If filter is pending, fetch unverified users. Otherwise, only verified.
         const isVerifiedFilter = filter === 'pending' ? false : true;
 
-        const users = await User.find({ 
+        const users = await User.find({
             role: { $in: roleFilter },
             isVerified: isVerifiedFilter
         }).select('name email phone cnic rollNo role photo createdAt').lean();
@@ -60,7 +60,7 @@ router.get('/', protect, authorize('admin'), async (req, res) => {
             const uniqueCourses = [...new Set(courses)];
 
             // Check if user has any active enrollment
-            const hasActiveEnrollment = userEnrollments.some(e => 
+            const hasActiveEnrollment = userEnrollments.some(e =>
                 e.status === 'enrolled' || e.status === 'pending'
             );
 

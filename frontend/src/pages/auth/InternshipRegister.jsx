@@ -207,9 +207,18 @@ const InternshipRegister = () => {
         if (!formData.city) newErrors.city = 'City is required';
         if (!formData.degree) newErrors.degree = 'Degree is required';
         if (!formData.university) newErrors.university = 'University is required';
+        if (!formData.department) newErrors.department = 'Department is required';
+        if (!formData.semester) newErrors.semester = 'Semester is required';
+        if (!formData.rollNumber) newErrors.rollNumber = 'Roll number is required';
+        if (!formData.cgpa) newErrors.cgpa = 'CGPA is required';
+        if (!formData.majorSubjects) newErrors.majorSubjects = 'Major subjects are required';
         if (!formData.duration) newErrors.duration = 'Duration is required';
         if (!formData.internCity) newErrors.internCity = 'City is required';
         if (!formData.internType) newErrors.internType = 'Type is required';
+        if (formData.requirements.length === 0) newErrors.requirements = 'Requirements selection is required';
+        if (!formData.guardianPhone) newErrors.guardianPhone = 'Guardian WhatsApp number is required';
+        if (!formData.guardianOccupation) newErrors.guardianOccupation = 'Guardian occupation is required';
+        if (!formData.reason) newErrors.reason = 'Reason is required';
         if (!formData.heardAbout) newErrors.heardAbout = 'This field is required';
         if (!formData.password) newErrors.password = 'Password is required';
         else if (formData.password.length < 6) newErrors.password = 'Minimum 6 characters';
@@ -511,7 +520,7 @@ const InternshipRegister = () => {
                             <InputField label="Age (Auto) *" name="age" type="number" placeholder="Calculated automatically" value={formData.age} onChange={handleChange} error={errors.age} readOnly />
                             <SelectField label="Gender *" name="gender" options={['Male', 'Female']} placeholder="Select Gender" value={formData.gender} onChange={handleChange} error={errors.gender} />
                             <InputField label="CNIC / B-Form *" name="cnic" icon={CreditCard} placeholder="XXXXX-XXXXXXX-X" value={formData.cnic} onChange={handleCNICChange} error={errors.cnic} />
-                            <InputField label="Contact Number *" name="contact" type="tel" icon={Phone} placeholder="+92 300 1234567" value={formData.contact} onChange={handleChange} error={errors.contact} />
+                            <InputField label="WhatsApp Number *" name="contact" type="tel" icon={Phone} placeholder="+92 300 1234567" value={formData.contact} onChange={handleChange} error={errors.contact} />
                             <InputField label="Email Address *" name="email" type="email" icon={Mail} placeholder="your@email.com" value={formData.email} onChange={handleChange} error={errors.email} />
                         </div>
 
@@ -521,7 +530,7 @@ const InternshipRegister = () => {
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
                             <InputField
-                                label="Guardian Phone"
+                                label="Guardian WhatsApp Number *"
                                 name="guardianPhone"
                                 icon={Phone}
                                 placeholder="Guardian's Phone"
@@ -529,7 +538,7 @@ const InternshipRegister = () => {
                                 onChange={handleChange}
                             />
                             <InputField
-                                label="Guardian Occupation"
+                                label="Guardian Occupation *"
                                 name="guardianOccupation"
                                 icon={Briefcase}
                                 placeholder="Guardian's Occupation"
@@ -561,11 +570,12 @@ const InternshipRegister = () => {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
                             <InputField label="Current Degree Program *" name="degree" icon={GraduationCap} placeholder="e.g. BS Computer Science" value={formData.degree} onChange={handleChange} error={errors.degree} />
                             <InputField label="Institution / University *" name="university" icon={Building} placeholder="University name" value={formData.university} onChange={handleChange} error={errors.university} />
-                            <InputField label="Department / Faculty" name="department" icon={BookOpen} placeholder="Your department" value={formData.department} onChange={handleChange} error={errors.department} />
-                            <InputField label="Current Semester / Year" name="semester" placeholder="e.g. 6th Semester" value={formData.semester} onChange={handleChange} error={errors.semester} />
-                            <InputField label="CGPA or Percentage" name="cgpa" placeholder="e.g. 3.5 or 85%" value={formData.cgpa} onChange={handleChange} error={errors.cgpa} />
+                            <InputField label="Department / Faculty *" name="department" icon={BookOpen} placeholder="Your department" value={formData.department} onChange={handleChange} error={errors.department} />
+                            <InputField label="Current Semester / Year *" name="semester" placeholder="e.g. 6th Semester" value={formData.semester} onChange={handleChange} error={errors.semester} />
+                            <InputField label="Roll Number *" name="rollNumber" placeholder="Your roll number" value={formData.rollNumber} onChange={handleChange} error={errors.rollNumber} />
+                            <InputField label="CGPA or Percentage *" name="cgpa" placeholder="e.g. 3.5 or 85%" value={formData.cgpa} onChange={handleChange} error={errors.cgpa} />
                             <div className="md:col-span-2">
-                                <InputField label="Major Subjects / Courses" name="majorSubjects" placeholder="List your major subjects" value={formData.majorSubjects} onChange={handleChange} error={errors.majorSubjects} />
+                                <InputField label="Major Subjects / Courses *" name="majorSubjects" placeholder="List your major subjects" value={formData.majorSubjects} onChange={handleChange} error={errors.majorSubjects} />
                             </div>
                         </div>
 
@@ -619,8 +629,9 @@ const InternshipRegister = () => {
                                     onChange={handleChange}
                                     rows={3}
                                     placeholder="Write a short answer..."
-                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all bg-gray-50/50"
+                                    className={`w-full px-4 py-3 border ${errors.reason ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all bg-gray-50/50`}
                                 />
+                                {errors.reason && <p className="mt-1 text-sm text-red-500">{errors.reason}</p>}
                             </div>
                             <SelectField label="How did you hear about us? *" name="heardAbout" options={HEARD_OPTIONS} placeholder="Select Option" value={formData.heardAbout} onChange={handleChange} error={errors.heardAbout} />
                         </div>

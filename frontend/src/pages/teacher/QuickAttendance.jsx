@@ -143,7 +143,7 @@ const QuickAttendance = () => {
                                 courseId: course._id,
                                 courseName: course.title || course.name,
                                 audience: course.targetAudience,
-                                location: course.location || 'N/A',
+                                location: course.city || course.location || 'N/A',
                                 attendType: e.user?.attendType || 'Physical',
                                 lastSeen: e.user?.lastSeen
                             });
@@ -250,6 +250,7 @@ const QuickAttendance = () => {
                     s.name.toUpperCase(),
                     s.rollNo,
                     s.courseName.toUpperCase(),
+                    s.location.toUpperCase(),
                     s.audience === 'interns' ? 'INTERN' : 'STUDENT',
                     mode.toUpperCase(),
                     status.toUpperCase()
@@ -258,7 +259,7 @@ const QuickAttendance = () => {
 
             autoTable(doc, {
                 startY: 55,
-                head: [['#', 'Student Name', 'Roll Number', 'Course', 'Category', 'Mode', 'Status']],
+                head: [['#', 'Student Name', 'Roll Number', 'Course', 'Campus Location', 'Category', 'Mode', 'Status']],
                 body: tableRows,
                 headStyles: {
                     fillColor: [16, 185, 129],
@@ -276,10 +277,12 @@ const QuickAttendance = () => {
                     0: { halign: 'center' },
                     2: { halign: 'center' },
                     4: { halign: 'center' },
-                    5: { halign: 'center', fontStyle: 'bold' }
+                    5: { halign: 'center' },
+                    6: { halign: 'center' },
+                    7: { halign: 'center', fontStyle: 'bold' }
                 },
                 didParseCell: (data) => {
-                    if (data.section === 'body' && data.column.index === 5) {
+                    if (data.section === 'body' && data.column.index === 7) {
                         const status = data.cell.raw.toString().toLowerCase();
                         if (status === 'present') data.cell.styles.textColor = [5, 150, 105];
                         if (status === 'absent') data.cell.styles.textColor = [220, 38, 38];
@@ -576,32 +579,44 @@ const QuickAttendance = () => {
                             </select>
                         </div>
 
-                        {/* Location Filter */}
-                        <div className="relative flex-1 lg:w-40">
-                            <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3 h-3 text-primary" />
-                            <select
-                                value={filterLocation}
-                                onChange={(e) => setFilterLocation(e.target.value)}
-                                className="w-full pl-9 pr-8 py-3 bg-gray-50/50 border border-gray-100 rounded-xl text-[9px] font-black uppercase tracking-widest outline-none focus:border-primary/30 focus:bg-white transition-all cursor-pointer appearance-none"
-                            >
-                                <option value="all">All Locations</option>
-                                <option value="Bahawalpur">Bahawalpur</option>
-                                <option value="Islamabad">Islamabad</option>
-                            </select>
+                        {/* Location Filter - Buttons */}
+                        <div className="flex items-center gap-1.5 bg-gray-50/50 p-1 rounded-xl border border-gray-100">
+                            {[
+                                { id: 'all', label: 'All Locations' },
+                                { id: 'Bahawalpur', label: 'Bahawalpur' },
+                                { id: 'Islamabad', label: 'Islamabad' }
+                            ].map(loc => (
+                                <button
+                                    key={loc.id}
+                                    onClick={() => setFilterLocation(loc.id)}
+                                    className={`px-3 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${filterLocation === loc.id
+                                        ? 'bg-primary text-white shadow-md'
+                                        : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+                                        }`}
+                                >
+                                    {loc.label}
+                                </button>
+                            ))}
                         </div>
 
-                        {/* Category Filter */}
-                        <div className="relative flex-1 lg:w-36">
-                            <GraduationCap className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3 h-3 text-primary" />
-                            <select
-                                value={filterCategory}
-                                onChange={(e) => setFilterCategory(e.target.value)}
-                                className="w-full pl-9 pr-8 py-3 bg-gray-50/50 border border-gray-100 rounded-xl text-[9px] font-black uppercase tracking-widest outline-none focus:border-primary/30 focus:bg-white transition-all cursor-pointer appearance-none"
-                            >
-                                <option value="all">All Categories</option>
-                                <option value="students">Students</option>
-                                <option value="interns">Interns</option>
-                            </select>
+                        {/* Category Filter - Buttons */}
+                        <div className="flex items-center gap-1.5 bg-gray-50/50 p-1 rounded-xl border border-gray-100">
+                            {[
+                                { id: 'all', label: 'All Categories' },
+                                { id: 'students', label: 'Students' },
+                                { id: 'interns', label: 'Interns' }
+                            ].map(cat => (
+                                <button
+                                    key={cat.id}
+                                    onClick={() => setFilterCategory(cat.id)}
+                                    className={`px-3 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${filterCategory === cat.id
+                                        ? 'bg-primary text-white shadow-md'
+                                        : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+                                        }`}
+                                >
+                                    {cat.label}
+                                </button>
+                            ))}
                         </div>
                     </div>
                 </div>
@@ -649,6 +664,7 @@ const QuickAttendance = () => {
                                 <th className="px-8 py-5 text-[10px] font-black text-white/90 uppercase tracking-[0.2em]">Student Details</th>
                                 <th className="px-6 py-5 text-[10px] font-black text-white/90 uppercase tracking-[0.2em]">Roll Number</th>
                                 <th className="px-6 py-5 text-[10px] font-black text-white/90 uppercase tracking-[0.2em]">Active Course</th>
+                                <th className="px-6 py-5 text-[10px] font-black text-white/90 uppercase tracking-[0.2em]">Campus Location</th>
                                 <th className="px-6 py-5 text-[10px] font-black text-white/90 uppercase tracking-[0.2em]">Category</th>
                                 <th className="px-6 py-5 text-[10px] font-black text-white/90 uppercase tracking-[0.2em]">Attend Type</th>
                                 <th className="px-8 py-5 text-[10px] font-black text-white/90 uppercase tracking-[0.2em] text-center">Attendance Marking</th>
@@ -728,10 +744,16 @@ const QuickAttendance = () => {
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4">
+                                                <div className="flex items-center gap-1.5">
+                                                    <MapPin className="w-3.5 h-3.5 text-primary" />
+                                                    <span className="text-xs font-black text-gray-700 uppercase tracking-tight">{student.location}</span>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4">
                                                 <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider ${student.audience === 'interns'
                                                     ? 'bg-purple-100 text-purple-700'
                                                     : 'bg-blue-100 text-blue-700'
-                                                }`}>
+                                                    }`}>
                                                     {student.audience === 'interns' ? 'Intern' : 'Student'}
                                                 </span>
                                             </td>
