@@ -164,6 +164,34 @@ router.post('/:id/submit', protect, async (req, res) => {
         test.submissions.push(submission);
         await test.save();
 
+        // Notify teachers
+        const io = req.app.get('io');
+        if (io) {
+            const course = await Course.findById(test.course).populate('teachers', '_id name');
+            if (course && course.teachers) {
+                for (const teacher of course.teachers) {
+                    const teacherId = teacher._id.toString();
+                    
+                    // Socket event
+                    io.to(teacherId).emit('new_test_submission', {
+                        studentName: req.user.name,
+                        testTitle: test.title,
+                        score: score
+                    });
+
+                    // Push Notification
+                    sendPushNotification(teacherId, {
+                        title: 'Test Completed ✅',
+                        body: `${req.user.name} completed the test "${test.title}". Score: ${score}/${test.totalMarks}`,
+                        icon: '/logo.png',
+                        image: '/logo.png',
+                        badge: '/logo.png',
+                        url: '/teacher/dashboard'
+                    });
+                }
+            }
+        }
+
         res.json({
             success: true,
             message: 'Test submitted and graded successfully',

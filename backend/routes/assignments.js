@@ -349,6 +349,8 @@ router.post('/:id/submit', protect, uploadSubmission.single('file'), async (req,
                             title: 'Assignment Resubmitted 🔄',
                             body: `${req.user.name} resubmitted: ${assignment.title}`,
                             icon: '/logo.png',
+                            image: '/logo.png',
+                            badge: '/logo.png',
                             url: '/teacher/dashboard'
                         });
                     }
@@ -400,6 +402,8 @@ router.post('/:id/submit', protect, uploadSubmission.single('file'), async (req,
                         title: 'New Submission 📥',
                         body: `${req.user.name} submitted: ${assignment.title}`,
                         icon: '/logo.png',
+                        image: '/logo.png',
+                        badge: '/logo.png',
                         url: '/teacher/dashboard'
                     });
                 }

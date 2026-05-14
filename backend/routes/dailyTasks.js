@@ -103,6 +103,34 @@ router.post('/', protect, authorize('intern', 'student'), async (req, res) => {
             console.log(`✅ New daily task created with ID: ${task._id}`);
         }
 
+        // Notify teachers via Socket and Push
+        const io = req.app.get('io');
+        if (io) {
+            const course = await Course.findById(courseId).populate('teachers', '_id name');
+            if (course && course.teachers) {
+                for (const teacher of course.teachers) {
+                    const teacherId = teacher._id.toString();
+                    
+                    // Socket event
+                    io.to(teacherId).emit('new_daily_task', {
+                        studentName: req.user.name,
+                        courseTitle: course.title,
+                        taskId: task._id
+                    });
+
+                    // Push Notification
+                    sendPushNotification(teacherId, {
+                        title: 'New Work Log 📝',
+                        body: `${req.user.name} submitted a work log for ${course.title}`,
+                        icon: '/logo.png',
+                        image: '/logo.png',
+                        badge: '/logo.png',
+                        url: '/teacher/dashboard'
+                    });
+                }
+            }
+        }
+
         res.status(taskId ? 200 : 201).json({
             success: true,
             data: task

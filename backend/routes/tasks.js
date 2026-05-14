@@ -5,6 +5,7 @@ const { uploadSubmission } = require('../config/cloudinary');
 const PaidTask = require('../models/PaidTask');
 const User = require('../models/User');
 const UserNotification = require('../models/UserNotification');
+const { sendPushNotification } = require('../utils/pushHelper');
 
 // @route   GET /api/tasks
 // @desc    Get all tasks
@@ -143,6 +144,18 @@ router.post('/:id/apply', protect, authorize('job'), async (req, res) => {
             })
         );
         await Promise.all(notificationPromises);
+        
+        // Push Notification for Admins
+        admins.forEach(admin => {
+            sendPushNotification(admin._id.toString(), {
+                title: 'New Job Application 💼',
+                body: `${req.user.name} applied for "${task.title}"`,
+                icon: '/logo.png',
+                image: '/logo.png',
+                badge: '/logo.png',
+                url: '/admin/paid-tasks'
+            });
+        });
 
         res.json({ success: true, message: 'Application submitted' });
     } catch (error) {
@@ -197,6 +210,16 @@ router.put('/:id/assign', protect, authorize('admin'), async (req, res) => {
             io.to(userId.toString()).emit('new_browser_notification', {
                 title: 'Task Assigned',
                 message: `You have been assigned to the task: "${task.title}".`,
+                url: '/job/tasks'
+            });
+
+            // Push Notification for Student
+            sendPushNotification(userId.toString(), {
+                title: 'Task Assigned 🎯',
+                body: `You have been assigned to: "${task.title}"`,
+                icon: '/logo.png',
+                image: '/logo.png',
+                badge: '/logo.png',
                 url: '/job/tasks'
             });
         }
@@ -295,6 +318,19 @@ router.post('/:id/submit', protect, uploadSubmission.single('file'), async (req,
 
         await task.save();
 
+        // Notify Admins of Submission
+        const admins = await User.find({ role: 'admin' });
+        admins.forEach(admin => {
+            sendPushNotification(admin._id.toString(), {
+                title: 'Job Work Submitted 📤',
+                body: `${req.user.name} submitted work for "${task.title}"`,
+                icon: '/logo.png',
+                image: '/logo.png',
+                badge: '/logo.png',
+                url: '/admin/paid-tasks'
+            });
+        });
+
         res.json({ success: true, message: 'Work submitted successfully' });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
@@ -346,9 +382,20 @@ router.put('/:id/admin-complete', protect, authorize('admin'), async (req, res) 
 
             if (io) {
                 task.assignedTo.forEach(userId => {
-                    io.to(userId.toString()).emit('new_browser_notification', {
+                    const userIdStr = userId.toString();
+                    io.to(userIdStr).emit('new_browser_notification', {
                         title: 'Payment Received!',
-                        message: `Payment for "${task.title}" has been completed! Please submit your feedback.`,
+                        message: `Payment for "${task.title}" has been completed!`,
+                        url: '/job/tasks'
+                    });
+
+                    // Push Notification for Student
+                    sendPushNotification(userIdStr, {
+                        title: 'Payment Received! 💰',
+                        body: `Payment for "${task.title}" has been completed!`,
+                        icon: '/logo.png',
+                        image: '/logo.png',
+                        badge: '/logo.png',
                         url: '/job/tasks'
                     });
                 });
