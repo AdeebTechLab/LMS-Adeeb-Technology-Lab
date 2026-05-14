@@ -189,9 +189,9 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
         const progress = (answeredCount / shuffledQuestions.length) * 100;
 
         return (
-            <div className="fixed inset-0 z-[3000] bg-[#f8fafc] flex flex-col h-[100dvh] w-screen overflow-hidden font-sans select-none overscroll-none">
+            <div className="fixed inset-0 z-[3000] bg-[#f8fafc] dark:bg-[#0f1117] flex flex-col h-[100dvh] w-screen overflow-hidden font-sans select-none overscroll-none">
                 {/* Header with Title and Timer */}
-                <div className="shrink-0 p-4 sm:p-5 bg-white/80 backdrop-blur-md border-b border-primary/5 flex items-center justify-between sticky top-0 z-[100] shadow-sm">
+                <div className="shrink-0 p-4 sm:p-5 bg-white/80 dark:bg-[#1a1f2e]/80 backdrop-blur-md border-b border-primary/5 dark:border-white/5 flex items-center justify-between sticky top-0 z-[100] shadow-sm">
                     <div className="flex items-center gap-5">
                         <div className="relative group">
                             <div className="absolute inset-0 bg-primary rounded-2xl blur-lg opacity-10" />
@@ -200,7 +200,7 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
                             </div>
                         </div>
                         <div className="flex flex-col">
-                            <h3 className="text-base font-black text-slate-900 uppercase tracking-tighter leading-none mb-1">{selectedTest.title}</h3>
+                            <h3 className="text-base font-black text-slate-900 dark:text-white uppercase tracking-tighter leading-none mb-1">{selectedTest.title}</h3>
                             <div className="flex items-center gap-2">
                                 <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
                                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Active Session</span>
@@ -211,7 +211,7 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
                     {/* Centered Premium Timer (No Card) */}
                     <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
                         <div className={`flex flex-col items-center transition-all duration-500 text-red-600`}>
-                            <span className={`text-[8px] font-black uppercase tracking-[0.2em] mb-0.5 text-red-400`}>Time Left</span>
+                            <span className={`text-[8px] font-black uppercase tracking-[0.2em] mb-0.5 text-red-400 dark:text-red-400/80`}>Time Left</span>
                             <div className="flex items-center gap-2">
                                 <Clock className={`w-4 h-4 ${timeLeft < 60 ? 'animate-pulse' : 'text-red-600'}`} />
                                 <span className="text-2xl font-black tabular-nums tracking-wider leading-none">{formatTime(timeLeft)}</span>
@@ -231,20 +231,20 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
                     <div className="max-w-4xl w-full py-4">
                         {/* Progress and Label */}
                         <div className="flex flex-col items-center space-y-1.5 mb-6">
-                            <span className="text-[8px] font-black text-slate-400 uppercase tracking-[0.3em]">Progress</span>
+                            <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em]">Progress</span>
                             <div className="flex items-center gap-3 w-full">
-                                <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden p-0.5 border border-white shadow-inner">
+                                <div className="flex-1 h-2 bg-slate-100 dark:bg-slate-800/50 rounded-full overflow-hidden p-0.5 border border-white dark:border-white/5 shadow-inner">
                                     <motion.div 
                                         initial={{ width: 0 }}
                                         animate={{ width: `${progress}%` }}
                                         className="h-full bg-gradient-to-r from-primary to-[#ffa534] rounded-full shadow-lg"
                                     />
                                 </div>
-                                <span className="text-[10px] font-black text-slate-800 tabular-nums">{Math.round(progress)}%</span>
+                                <span className="text-[10px] font-black text-slate-800 dark:text-slate-200 tabular-nums">{Math.round(progress)}%</span>
                             </div>
                         </div>
 
-                        <div className="bg-white p-2.5 rounded-2xl border-2 border-slate-50 flex flex-wrap gap-2 justify-center shadow-sm mb-8">
+                        <div className="bg-white dark:bg-[#1a1f2e] p-2.5 rounded-2xl border-2 border-slate-50 dark:border-white/5 flex flex-wrap gap-2 justify-center shadow-sm mb-8">
                             {shuffledQuestions.map((_, i) => (
                                 <button
                                     key={i}
@@ -257,7 +257,7 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
                                         ? 'bg-primary border-primary text-white shadow-xl shadow-primary/10 scale-110 z-10'
                                         : answers[shuffledQuestions[i]._id] !== undefined
                                         ? 'bg-primary/5 border-primary/10 text-primary'
-                                        : 'bg-white border-slate-100 text-slate-300 hover:border-slate-200'
+                                        : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-white/5 text-slate-300 dark:text-slate-600 hover:border-slate-200 dark:hover:border-white/10'
                                     }`}
                                 >
                                     {i + 1}
@@ -276,16 +276,16 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
                                     x: { type: "spring", stiffness: 100, damping: 20 },
                                     opacity: { duration: 0.5 }
                                 }}
-                                className="bg-white p-8 sm:p-12 rounded-[3rem] border-2 border-primary/10 shadow-xl shadow-primary/10/20 space-y-10 relative overflow-hidden"
+                                className="bg-white dark:bg-[#1a1f2e] p-8 sm:p-12 rounded-[3rem] border-2 border-primary/10 dark:border-white/5 shadow-xl shadow-primary/10/20 space-y-10 relative overflow-hidden"
                             >
                                 {/* Background Accent */}
-                                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5/20 rounded-bl-[5rem] -mr-10 -mt-10" />
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 dark:bg-primary/10 rounded-bl-[5rem] -mr-10 -mt-10" />
 
                                 <div className="space-y-4 relative">
-                                    <span className="px-4 py-1.5 rounded-full bg-slate-900 text-white text-[9px] font-black uppercase tracking-[0.2em]">
+                                    <span className="px-4 py-1.5 rounded-full bg-slate-900 dark:bg-primary text-white text-[9px] font-black uppercase tracking-[0.2em]">
                                         Question {currentQuestionIndex + 1}
                                     </span>
-                                    <h2 className="text-2xl sm:text-3xl font-black text-slate-800 leading-tight">
+                                    <h2 className="text-2xl sm:text-3xl font-black text-slate-800 dark:text-white leading-tight">
                                         {currentQuestion.question}
                                     </h2>
                                 </div>
@@ -297,19 +297,19 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
                                             onClick={() => setAnswers({...answers, [currentQuestion._id]: opt.originalIndex})}
                                             className={`group p-5 rounded-[2rem] text-left border-2 transition-all flex items-center gap-6 ${
                                                 answers[currentQuestion._id] === opt.originalIndex
-                                                ? 'border-primary bg-white shadow-xl shadow-primary/10/50 translate-x-2'
-                                                : 'border-slate-50 bg-slate-50/50 hover:border-primary/10 hover:bg-white hover:translate-x-1'
+                                                ? 'border-primary bg-white dark:bg-slate-800 shadow-xl shadow-primary/10/50 translate-x-2'
+                                                : 'border-slate-50 dark:border-white/5 bg-slate-50/50 dark:bg-white/5 hover:border-primary/10 hover:bg-white dark:hover:bg-slate-800 hover:translate-x-1'
                                             }`}
                                         >
                                             <div className={`w-10 h-10 shrink-0 rounded-2xl border-2 flex items-center justify-center font-black text-base transition-all ${
                                                 answers[currentQuestion._id] === opt.originalIndex
                                                 ? 'bg-primary border-primary text-white shadow-lg shadow-orange-200'
-                                                : 'bg-white border-slate-100 text-slate-400 group-hover:border-primary/5 group-hover:text-primary'
+                                                : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-white/10 text-slate-400 group-hover:border-primary/5 group-hover:text-primary'
                                             }`}>
                                                 {String.fromCharCode(65 + oIdx)}
                                             </div>
                                             <span className={`text-lg font-bold transition-colors ${
-                                                answers[currentQuestion._id] === opt.originalIndex ? 'text-slate-900' : 'text-slate-600'
+                                                answers[currentQuestion._id] === opt.originalIndex ? 'text-slate-900 dark:text-white' : 'text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white'
                                             }`}>{opt.text}</span>
                                         </button>
                                     ))}
@@ -320,7 +320,7 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
                 </div>
 
                 {/* Footer Navigation */}
-                <div className="shrink-0 p-4 bg-white border-t flex items-center justify-center">
+                <div className="shrink-0 p-4 bg-white dark:bg-[#1a1f2e] border-t dark:border-white/5 flex items-center justify-center">
                     <div className="max-w-4xl w-full flex items-center justify-between">
                         <button 
                             disabled={currentQuestionIndex === 0}
@@ -328,7 +328,7 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
                                 setDirection(-1);
                                 setCurrentQuestionIndex(prev => prev - 1);
                             }}
-                            className="flex items-center gap-2 px-6 py-3 rounded-xl font-black text-[10px] text-slate-400 uppercase tracking-widest hover:bg-slate-50 transition-all disabled:opacity-0"
+                            className="flex items-center gap-2 px-6 py-3 rounded-xl font-black text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-widest hover:bg-slate-50 dark:hover:bg-slate-800 transition-all disabled:opacity-0"
                         >
                             <ChevronRight className="w-4 h-4 rotate-180" />
                             Previous
@@ -340,8 +340,8 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
                                 disabled={isSubmitting || Object.keys(answers).length < shuffledQuestions.length}
                                 className={`px-8 py-3 rounded-xl font-black text-xs uppercase tracking-widest transition-all shadow-lg flex items-center gap-3 group ${
                                     Object.keys(answers).length < shuffledQuestions.length
-                                    ? 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
-                                    : 'bg-slate-900 text-white hover:bg-black'
+                                    ? 'bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed shadow-none'
+                                    : 'bg-slate-900 dark:bg-primary text-white hover:bg-black dark:hover:bg-primary-dark'
                                 }`}
                             >
                                 <ButtonLoader
@@ -373,12 +373,12 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
                             initial={{ x: '100%' }}
                             animate={{ x: 0 }}
                             exit={{ x: '100%' }}
-                            className="absolute inset-0 z-[5000] bg-white flex flex-col overflow-hidden"
+                            className="absolute inset-0 z-[5000] bg-white dark:bg-[#0f1117] flex flex-col overflow-hidden"
                         >
-                            <div className="p-6 sm:p-8 border-b bg-white flex items-center justify-between sticky top-0 z-20 shadow-sm">
+                            <div className="p-6 sm:p-8 border-b dark:border-white/5 bg-white dark:bg-[#1a1f2e] flex items-center justify-between sticky top-0 z-20 shadow-sm">
                                 <div className="flex-1">
-                                    <h2 className="text-xl font-black text-gray-900 uppercase tracking-tight leading-none mb-1">{selectedTest?.title}</h2>
-                                    <p className="text-[10px] text-gray-400 font-black uppercase tracking-[0.2em]">Test Review Session</p>
+                                    <h2 className="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tight leading-none mb-1">{selectedTest?.title}</h2>
+                                    <p className="text-[10px] text-gray-400 dark:text-slate-500 font-black uppercase tracking-[0.2em]">Test Review Session</p>
                                 </div>
 
                                 <div className="flex-1 flex justify-end">
@@ -389,7 +389,7 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
                                 </div>
                             </div>
 
-                            <div className="flex-1 overflow-y-auto p-6 sm:p-12 space-y-8 no-scrollbar bg-slate-50/50">
+                            <div className="flex-1 overflow-y-auto p-6 sm:p-12 space-y-8 no-scrollbar bg-slate-50/50 dark:bg-[#0f1117]">
                                 <div className="max-w-5xl mx-auto space-y-8 pb-12">
                                     {/* Final Score Card at Top */}
                                     <div className="bg-gradient-to-br from-slate-900 to-slate-800 p-8 sm:p-10 rounded-[3rem] text-center shadow-2xl shadow-slate-200 relative overflow-hidden">
@@ -429,11 +429,11 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
                                         const isCorrect = userChoice === q.correctOption;
 
                                         return (
-                                            <div key={q._id} className="bg-white rounded-[2.5rem] p-8 border-2 border-slate-200 shadow-sm space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500" style={{ animationDelay: `${idx * 0.1}s` }}>
+                                            <div key={q._id} className="bg-white dark:bg-[#1a1f2e] rounded-[2.5rem] p-8 border-2 border-slate-200 dark:border-white/5 shadow-sm space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500" style={{ animationDelay: `${idx * 0.1}s` }}>
                                                 <div className="flex items-center gap-6">
                                                     <div className="relative shrink-0">
-                                                        <div className={`w-16 h-16 rounded-[1.5rem] flex items-center justify-center shadow-lg bg-white border-2 ${
-                                                            isCorrect ? 'border-primary/10' : 'border-red-100'
+                                                        <div className={`w-16 h-16 rounded-[1.5rem] flex items-center justify-center shadow-lg bg-white dark:bg-slate-800 border-2 ${
+                                                            isCorrect ? 'border-primary/10 dark:border-primary/20' : 'border-red-100 dark:border-red-900/30'
                                                         }`}>
                                                             <span className={`text-2xl font-black ${isCorrect ? 'text-primary' : 'text-red-500'}`}>
                                                                 {idx + 1}
@@ -450,7 +450,7 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
                                                         </div>
                                                     </div>
                                                     <div className="flex-1">
-                                                        <h4 className="text-xl font-bold text-gray-800 leading-relaxed">{q.question}</h4>
+                                                        <h4 className="text-xl font-bold text-gray-800 dark:text-white leading-relaxed">{q.question}</h4>
                                                         {!isCorrect && userChoice === undefined && (
                                                             <span className="text-[10px] font-black text-red-500 uppercase mt-1 block tracking-widest">Question Skipped</span>
                                                         )}
@@ -462,17 +462,17 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
                                                         const isUserSelection = userChoice === oIdx;
                                                         const isCorrectOption = q.correctOption === oIdx;
                                                         
-                                                        let bgColor = 'bg-slate-50 border-transparent';
-                                                        let textColor = 'text-slate-600';
-                                                        let iconColor = 'bg-slate-100 text-slate-400';
+                                                        let bgColor = 'bg-slate-50 dark:bg-slate-800 border-transparent dark:border-white/5';
+                                                        let textColor = 'text-slate-600 dark:text-slate-400';
+                                                        let iconColor = 'bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-500';
 
                                                         if (isCorrectOption) {
-                                                            bgColor = 'bg-primary/5 border-primary';
+                                                            bgColor = 'bg-primary/5 dark:bg-primary/10 border-primary';
                                                             textColor = 'text-primary';
                                                             iconColor = 'bg-primary text-white';
                                                         } else if (isUserSelection && !isCorrect) {
-                                                            bgColor = 'bg-red-50 border-red-200';
-                                                            textColor = 'text-red-700';
+                                                            bgColor = 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-900/30';
+                                                            textColor = 'text-red-700 dark:text-red-400';
                                                             iconColor = 'bg-red-500 text-white';
                                                         }
 
