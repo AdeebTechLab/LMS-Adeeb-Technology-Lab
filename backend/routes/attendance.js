@@ -151,6 +151,8 @@ router.post('/', protect, authorize('teacher', 'admin'), async (req, res) => {
                 title: 'Attendance Marked',
                 body: `Your attendance for "${cTitle}" on ${displayDate} is marked as ${record.status}.`,
                 icon: '/logo.png',
+                image: '/logo.png',
+                badge: '/logo.png',
                 url: '/student/attendance'
             };
 

@@ -5,6 +5,8 @@ const Test = require('../models/Test');
 const Enrollment = require('../models/Enrollment');
 const Course = require('../models/Course');
 const mongoose = require('mongoose');
+const UserNotification = require('../models/UserNotification');
+const { sendPushNotification } = require('../utils/pushHelper');
 
 // @route   GET /api/tests/course/:courseId
 // @desc    Get all tests for a course
@@ -79,6 +81,39 @@ router.post('/', protect, authorize('teacher', 'admin'), async (req, res) => {
             assignTo: assignTo || 'all',
             assignedUsers: assignedUsers || [],
             createdBy: req.user.id
+        });
+
+        // Notify students
+        const targetUsers = assignTo === 'all' 
+            ? (await Enrollment.find({ course: courseId })).map(e => e.user)
+            : assignedUsers;
+
+        targetUsers.forEach(async (userId) => {
+            const userIdStr = userId.toString();
+            const notificationTitle = 'New Test Assigned 📝';
+            const notificationMessage = `A new test "${title}" has been assigned to you.`;
+
+            // Push Notification
+            sendPushNotification(userIdStr, {
+                title: notificationTitle,
+                body: notificationMessage,
+                icon: '/logo.png',
+                image: '/logo.png',
+                badge: '/logo.png',
+                url: '/student/tests'
+            });
+
+            // Persistent Notification
+            try {
+                await UserNotification.create({
+                    user: userIdStr,
+                    title: notificationTitle,
+                    message: notificationMessage,
+                    type: 'test_assigned'
+                });
+            } catch (err) {
+                console.error('Error creating test notification:', err);
+            }
         });
 
         res.status(201).json({ success: true, test });

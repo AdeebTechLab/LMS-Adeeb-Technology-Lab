@@ -141,10 +141,24 @@ const DashboardLayout = () => {
                 await fetchNotifications();
             }
 
-            // Navigate to related task if exists
-            if (notification.relatedTask) {
-                setShowNotifications(false);
+            setShowNotifications(false);
+
+            // Navigate based on notification type
+            if (notification.relatedTask || notification.type?.startsWith('task_')) {
                 navigate(`/${role}/paid-tasks`);
+            } else if (notification.type === 'assignment_assigned') {
+                navigate(`/${role}/assignments`);
+            } else if (notification.type === 'test_assigned') {
+                navigate(`/${role}/tests`);
+            } else if (notification.type === 'graded') {
+                const message = (notification.message || '').toLowerCase();
+                if (message.includes('work log') || message.includes('daily task')) {
+                    navigate(`/${role}/daily-tasks`);
+                } else if (message.includes('test')) {
+                    navigate(`/${role}/tests`);
+                } else {
+                    navigate(`/${role}/assignments`);
+                }
             }
         } catch (error) {
             console.error('Error handling notification:', error);
@@ -183,17 +197,21 @@ const DashboardLayout = () => {
     const getNotificationIcon = (notification) => {
         const title = (notification.title || '').toLowerCase();
         const message = (notification.message || '').toLowerCase();
+        const type = notification.type;
         
-        if (title.includes('fee') || title.includes('payment') || title.includes('installment') || message.includes('fee')) {
-            return <CreditCard className="w-4 h-4 text-primary" />;
+        if (type === 'test_assigned' || title.includes('test')) {
+            return <ClipboardList className="w-4 h-4 text-rose-500" />;
         }
-        if (title.includes('assignment') || title.includes('task') || message.includes('assignment')) {
+        if (type === 'assignment_assigned' || title.includes('assignment')) {
             return <FileText className="w-4 h-4 text-blue-500" />;
         }
-        if (title.includes('result') || title.includes('marks') || title.includes('certificate')) {
-            return <Award className="w-4 h-4 text-amber-500" />;
+        if (type === 'graded' || title.includes('graded') || title.includes('marks')) {
+            return <Award className="w-4 h-4 text-emerald-500" />;
         }
-        if (title.includes('class') || title.includes('session') || title.includes('meeting') || title.includes('live')) {
+        if (title.includes('fee') || title.includes('payment')) {
+            return <CreditCard className="w-4 h-4 text-primary" />;
+        }
+        if (title.includes('class') || title.includes('live')) {
             return <Calendar className="w-4 h-4 text-indigo-500" />;
         }
         

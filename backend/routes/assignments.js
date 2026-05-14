@@ -7,6 +7,7 @@ const Assignment = require('../models/Assignment');
 const Enrollment = require('../models/Enrollment');
 const Course = require('../models/Course');
 const Fee = require('../models/Fee');
+const UserNotification = require('../models/UserNotification');
 const { sendPushNotification } = require('../utils/pushHelper');
 
 // Helper function to check if student has overdue fees (more than 7 days past due)
@@ -220,14 +221,31 @@ router.post('/', protect, authorize('teacher', 'admin'), async (req, res) => {
             }
         }
 
-        // Send push notifications to all assigned users
-        assignedUsers.forEach(userId => {
-            sendPushNotification(userId.toString(), {
+        // Send push notifications and save to database
+        assignedUsers.forEach(async (userId) => {
+            const userIdStr = userId.toString();
+            
+            // Push notification
+            sendPushNotification(userIdStr, {
                 title: 'New Assignment 📝',
                 body: `A new assignment "${title}" has been posted in your course.`,
                 icon: '/logo.png',
+                image: '/logo.png',
+                badge: '/logo.png',
                 url: '/student/assignments'
             });
+
+            // Persistent Notification
+            try {
+                await UserNotification.create({
+                    user: userIdStr,
+                    title: 'New Assignment 📝',
+                    message: `A new assignment "${title}" has been posted in your course.`,
+                    type: 'assignment_assigned'
+                });
+            } catch (err) {
+                console.error('Error creating persistent notification:', err);
+            }
         });
 
         res.status(201).json({ success: true, assignment });
@@ -467,8 +485,22 @@ router.put('/:assignmentId/grade/:submissionId', protect, authorize('teacher', '
                 title: nTitle,
                 body: nMessage,
                 icon: '/logo.png',
+                image: '/logo.png',
+                badge: '/logo.png',
                 url: '/student/assignments'
             });
+
+            // Persistent Notification
+            try {
+                await UserNotification.create({
+                    user: studentId,
+                    title: nTitle,
+                    message: nMessage,
+                    type: 'graded'
+                });
+            } catch (err) {
+                console.error('Error creating persistent notification:', err);
+            }
         }
 
         res.json({ success: true, assignment });

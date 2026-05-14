@@ -4,6 +4,8 @@ const { protect, authorize } = require('../middleware/auth');
 const DailyTask = require('../models/DailyTask');
 const Course = require('../models/Course');
 const Fee = require('../models/Fee');
+const UserNotification = require('../models/UserNotification');
+const { sendPushNotification } = require('../utils/pushHelper');
 
 // Debug middleware to log all requests to this router
 router.use((req, res, next) => {
@@ -172,6 +174,35 @@ router.put('/:id/grade', protect, authorize('teacher', 'admin'), async (req, res
         task.status = status || 'graded';
 
         await task.save();
+
+        // Notify student/intern
+        const studentId = task.user.toString();
+        const notificationTitle = status === 'rejected' ? 'Work Log Rejected ❌' : 'Work Log Graded ✅';
+        const notificationMessage = status === 'rejected' 
+            ? `Your work log has been rejected. Feedback: ${feedback || 'Please review.'}`
+            : `Your work log has been graded. Marks: ${marks}/10`;
+
+        // Push Notification
+        sendPushNotification(studentId, {
+            title: notificationTitle,
+            body: notificationMessage,
+            icon: '/logo.png',
+            image: '/logo.png',
+            badge: '/logo.png',
+            url: '/student/daily-tasks'
+        });
+
+        // Persistent Notification
+        try {
+            await UserNotification.create({
+                user: studentId,
+                title: notificationTitle,
+                message: notificationMessage,
+                type: 'graded'
+            });
+        } catch (err) {
+            console.error('Error creating daily task notification:', err);
+        }
 
         res.json({
             success: true,

@@ -24,20 +24,13 @@ const CustomToast = ({ t, title, message, type = 'info', icon: IconComponent }) 
             <div className="flex-1 w-0 p-4">
                 <div className="flex items-start">
                     <div className="flex-shrink-0 pt-0.5">
-                        <div className={`p-3 rounded-2xl ${colors.iconBg} shadow-inner`}>
-                            {IconComponent ? (
-                                <IconComponent className={`w-8 h-8 ${colors.icon}`} />
-                            ) : (
-                                <Bell className={`w-8 h-8 ${colors.icon}`} />
-                            )}
+                        <div className={`p-3 rounded-2xl ${colors.iconBg} shadow-inner flex items-center justify-center`}>
+                            <img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain" />
                         </div>
                     </div>
                     <div className="ml-4 flex-1">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                                <div className="w-5 h-5 rounded-md bg-primary/10 flex items-center justify-center border border-primary/20">
-                                    <img src="/logo.png" alt="Logo" className="w-3 h-3 object-contain" />
-                                </div>
                                 <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">LMS Adeeb Tech Lab</span>
                             </div>
                             <button
