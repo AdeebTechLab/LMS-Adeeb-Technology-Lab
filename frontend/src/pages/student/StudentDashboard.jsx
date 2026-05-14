@@ -233,6 +233,7 @@ const StudentDashboard = () => {
                     icon: CheckCircle,
                     iconBg: 'bg-primary/5',
                     iconColor: 'text-primary',
+                    onClick: () => navigate(`/${role}/courses`, { state: { activeTab: 'completed' } })
                 },
                 {
                     title: 'Pending Fees',

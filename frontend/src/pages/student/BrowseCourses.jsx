@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useSelector } from 'react-redux';
 import {
@@ -8,8 +8,9 @@ import {
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
 import Loader, { ButtonLoader } from '../../components/ui/Loader';
-import { courseAPI, enrollmentAPI, certificateAPI } from '../../services/api';
+import { courseAPI, enrollmentAPI, certificateAPI, assignmentAPI, dailyTaskAPI, testAPI } from '../../services/api';
 import { getCourseIcon, getCourseColor, getCourseStyle } from '../../utils/courseIcons';
+import { formatDate } from '../../utils/dateFormatter';
 
 const CITY_OPTIONS = [
     { value: 'Bahawalpur', label: 'Bahawalpur' },
@@ -18,6 +19,7 @@ const CITY_OPTIONS = [
 
 const BrowseCourses = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const { role, user } = useSelector((state) => state.auth);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCities, setSelectedCities] = useState([]);
@@ -38,26 +40,75 @@ const BrowseCourses = () => {
     // Fetch data on component mount
     useEffect(() => {
         fetchData();
-    }, []);
+
+        // Handle initial tab from navigation state
+        if (location.state?.activeTab) {
+            setActiveTab(location.state.activeTab);
+        }
+    }, [location.state]);
 
     const fetchData = async () => {
         setIsFetching(true);
         setError('');
         try {
-            const [coursesRes, enrollmentsRes] = await Promise.all([
+            const [coursesRes, enrollmentsRes, assignRes, certRes] = await Promise.all([
                 courseAPI.getAll({ targetAudience: role === 'intern' ? 'interns' : 'students' }),
-                enrollmentAPI.getMy()
+                enrollmentAPI.getMy(),
+                assignmentAPI.getMy(),
+                certificateAPI.getMy().catch(() => ({ data: { certificates: [] } }))
             ]);
-            setCourses(coursesRes.data.data || []);
-            setMyEnrollments(enrollmentsRes.data.data || []);
 
-            // Fetch user's certificates
-            try {
-                const certRes = await certificateAPI.getMy();
-                setMyCertificates(certRes.data.certificates || []);
-            } catch (e) {
-                // User might not have certificates yet
-            }
+            const courses = coursesRes.data.data || [];
+            const rawEnrollments = enrollmentsRes.data.data || [];
+            const allAssignments = assignRes.data.assignments || [];
+            setMyCertificates(certRes.data.certificates || []);
+            setCourses(courses);
+
+            // Enrich completed enrollments with dynamic grades (same as MarksSheet)
+            const enrichedEnrollments = await Promise.all(rawEnrollments.map(async (e) => {
+                if (e.status !== 'completed' || !e.course) return e;
+                
+                try {
+                    const courseId = e.course._id;
+                    const [dtRes, testRes] = await Promise.all([
+                        dailyTaskAPI.getMy(courseId),
+                        testAPI.getByCourse(courseId)
+                    ]);
+
+                    const courseAssignments = allAssignments
+                        .filter(a => String(a.course?._id || a.course) === String(courseId));
+                    
+                    const assignmentGrades = courseAssignments.map(a => {
+                        const mySub = a.submissions?.find(s => String(s.user?._id || s.user) === String(user?._id || user?.id));
+                        if (mySub && mySub.marks != null) return { marks: mySub.marks, total: a.totalMarks || 100 };
+                        return null;
+                    }).filter(Boolean);
+
+                    const tasks = (dtRes.data.data || [])
+                        .filter(t => t.status === 'graded' || t.status === 'verified')
+                        .map(t => ({ marks: t.marks, total: 10 }));
+
+                    const tests = (testRes?.data?.tests || []).map(t => {
+                        const mySub = t.submissions?.find(s => String(s.user?._id || s.user) === String(user?._id || user?.id));
+                        if (mySub) return { marks: mySub.score || 0, total: t.totalMarks || 100 };
+                        return null;
+                    }).filter(Boolean);
+
+                    const allGrades = [...assignmentGrades, ...tasks, ...tests];
+                    const avg = calculateSimpleAverage(allGrades);
+                    
+                    return {
+                        ...e,
+                        percentage: avg,
+                        grade: getGrade(avg).grade
+                    };
+                } catch (err) {
+                    console.error('Error calculating grade for course:', e.course?.title, err);
+                    return e;
+                }
+            }));
+            
+            setMyEnrollments(enrichedEnrollments);
         } catch (err) {
             console.error('Error fetching data:', err);
             setError('Failed to load courses. Please try again.');
@@ -78,7 +129,7 @@ const BrowseCourses = () => {
     const enrolledCourses = myEnrollments
         .filter(e => (e.status === 'enrolled' || e.status === 'pending') && e.course)
         .map(e => ({ ...e.course, enrolledStatus: e.status }));
-        
+
     const completedCourses = myEnrollments
         .filter(e => e.status === 'completed' && e.course)
         .map(e => ({ ...e.course, enrolledStatus: 'completed' }));
@@ -95,8 +146,8 @@ const BrowseCourses = () => {
         const matchesSearch = course.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
             course.teachers?.some(t => t.name?.toLowerCase().includes(searchQuery.toLowerCase()));
 
-        const matchesCity = selectedCities.length === 0 || 
-            selectedCities.some(city => 
+        const matchesCity = selectedCities.length === 0 ||
+            selectedCities.some(city =>
                 city.toLowerCase() === (course.city?.toLowerCase() || course.location?.toLowerCase())
             );
 
@@ -161,6 +212,38 @@ const BrowseCourses = () => {
         if (num >= 1000000) return `${(num / 1000000).toFixed(num >= 10000000 ? 0 : 1).replace('.0', '')}M`;
         if (num >= 1000) return `${(num / 1000).toFixed(num >= 10000 ? 0 : 1).replace('.0', '')}K`;
         return `${num}`;
+    };
+
+    const getGrade = (percentage) => {
+        const p = parseFloat(percentage);
+        if (!p || isNaN(p)) return { grade: 'N/A', color: 'text-gray-400' };
+        if (p >= 90) return { grade: 'A+', color: 'text-primary' };
+        if (p >= 85) return { grade: 'A', color: 'text-primary' };
+        if (p >= 80) return { grade: 'B+', color: 'text-blue-600' };
+        if (p >= 75) return { grade: 'B', color: 'text-blue-600' };
+        if (p >= 70) return { grade: 'C+', color: 'text-amber-600' };
+        if (p >= 65) return { grade: 'C', color: 'text-amber-600' };
+        if (p >= 60) return { grade: 'D', color: 'text-primary' };
+        return { grade: 'F', color: 'text-red-600' };
+    };
+
+    const calculateSimpleAverage = (grades) => {
+        if (!grades || grades.length === 0) return 0;
+        const percentages = grades.map(g => (g.marks / g.total) * 100);
+        const sum = percentages.reduce((a, b) => a + b, 0);
+        return (sum / grades.length).toFixed(1);
+    };
+
+    const getDownloadLink = (link) => {
+        if (!link) return '';
+        // If it's a Google Drive link, transform it for direct download
+        if (link.includes('drive.google.com')) {
+            const fileIdMatch = link.match(/[-\w]{25,}/);
+            if (fileIdMatch) {
+                return `https://drive.google.com/uc?export=download&id=${fileIdMatch[0]}`;
+            }
+        }
+        return link;
     };
 
     const handleCourseSeen = async (courseId) => {
@@ -353,7 +436,7 @@ const BrowseCourses = () => {
                                 <h3 className="font-bold text-gray-900 mb-2 line-clamp-1">{course.title}</h3>
                                 <p className="text-sm text-gray-500 mb-2 line-clamp-2">{course.description}</p>
                                 {course.description?.length > 100 && (
-                                    <button 
+                                    <button
                                         onClick={() => { setSelectedCourse(course); setViewModalOpen(true); }}
                                         className="text-xs text-primary hover:text-primary font-medium mt-1 mb-4"
                                     >
@@ -425,8 +508,10 @@ const BrowseCourses = () => {
                                 {status === 'completed' && enrollment && (
                                     <div className="mb-4 p-3 bg-purple-50 rounded-xl">
                                         <div className="flex items-center justify-between">
-                                            <span className="text-sm text-gray-600">Final Grade</span>
-                                            <span className="font-bold text-primary">{enrollment.grade} ({enrollment.percentage}%)</span>
+                                            <span className="text-sm text-gray-600">Final Grade (%)</span>
+                                            <span className={`font-black ${getGrade(enrollment.percentage).color}`}>
+                                                {getGrade(enrollment.percentage).grade} ({enrollment.percentage || 0}%)
+                                            </span>
                                         </div>
                                     </div>
                                 )}
@@ -484,23 +569,13 @@ const BrowseCourses = () => {
                                     {status === 'completed' && (
                                         <div className="flex gap-2">
                                             {certificate?.certificateLink ? (
-                                                <>
                                                     <a
-                                                        href={certificate.certificateLink}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="px-3 py-2 bg-primary/10 text-primary rounded-lg font-medium text-sm hover:bg-purple-200 transition-all"
-                                                    >
-                                                        View
-                                                    </a>
-                                                    <a
-                                                        href={certificate.certificateLink}
+                                                        href={getDownloadLink(certificate.certificateLink)}
                                                         download
                                                         className="px-3 py-2 bg-primary text-white rounded-lg font-medium text-sm hover:bg-purple-700 transition-all"
                                                     >
                                                         Download
                                                     </a>
-                                                </>
                                             ) : (
                                                 <span className="px-3 py-2 bg-gray-100 text-gray-500 rounded-lg font-medium text-sm">
                                                     Certificate Pending

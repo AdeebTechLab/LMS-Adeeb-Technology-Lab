@@ -147,11 +147,11 @@ const MarksSheet = () => {
         return ((marks / total) * 100).toFixed(1);
     };
 
-    const calculateCourseAverage = (grades) => {
+    const calculateSimpleAverage = (grades) => {
         if (!grades || grades.length === 0) return 0;
-        const totalMarks = grades.reduce((sum, g) => sum + g.marks, 0);
-        const totalPossible = grades.reduce((sum, g) => sum + g.total, 0);
-        return totalPossible > 0 ? ((totalMarks / totalPossible) * 100).toFixed(1) : 0;
+        const percentages = grades.map(g => (g.marks / g.total) * 100);
+        const sum = percentages.reduce((a, b) => a + b, 0);
+        return (sum / grades.length).toFixed(1);
     };
 
     const getOverallAverage = () => {
@@ -173,12 +173,7 @@ const MarksSheet = () => {
         return { grade: 'F', color: 'text-red-600' };
     };
 
-    const calculateSimpleAverage = (grades) => {
-        if (!grades || grades.length === 0) return 0;
-        const percentages = grades.map(g => (g.marks / g.total) * 100);
-        const sum = percentages.reduce((a, b) => a + b, 0);
-        return (sum / grades.length).toFixed(1);
-    };
+
 
     const overallAverage = getOverallAverage();
     const overallGrade = getGrade(parseFloat(overallAverage));
@@ -194,7 +189,7 @@ const MarksSheet = () => {
         labels: enrollments.map((c) => c.name.split(' ')[0]),
         datasets: [
             {
-                data: enrollments.map((c) => parseFloat(calculateCourseAverage(c.grades))),
+                data: enrollments.map((c) => parseFloat(calculateSimpleAverage(c.grades))),
                 backgroundColor: [getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#ff8e01', '#3B82F6', '#8B5CF6', '#F59E0B', '#EF4444'],
                 borderRadius: 8,
                 barThickness: 40,
