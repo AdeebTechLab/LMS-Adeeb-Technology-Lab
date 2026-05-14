@@ -369,8 +369,8 @@ const AssignmentSubmission = () => {
                                             const deadlinePassed = isDeadlinePassed(assignment.dueDate);
                                             // Can submit if deadline not passed AND no submission yet (or rejected)
                                             const canSubmit = !deadlinePassed && (submissionStatus === 'pending' || submissionStatus === 'rejected') && !isRestricted && !isCompleted;
-                                            // Can resubmit if deadline was extended and it's not passed, even for graded/submitted
-                                            const canResubmit = !deadlinePassed && (submissionStatus === 'graded' || submissionStatus === 'submitted') && !isRestricted && !isCompleted;
+                                            // Can resubmit if deadline was extended and it's not passed, but NOT if already graded
+                                            const canResubmit = !deadlinePassed && (submissionStatus === 'submitted') && !isRestricted && !isCompleted;
                                             const statusConfig = getStatusConfig(submissionStatus, assignment.dueDate);
 
                                             return (
