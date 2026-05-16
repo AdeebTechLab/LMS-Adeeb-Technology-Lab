@@ -46,117 +46,32 @@ const AdeebMeet = () => {
 
     const isTeacher = role === 'teacher' || role === 'admin';
 
-    useEffect(() => {
-        const init = async () => {
-            try {
-                // Get User Media
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-                userStream.current = stream;
-                if (userVideo.current) {
-                    userVideo.current.srcObject = stream;
-                }
-
-                // Connect Socket
-                socketRef.current = io(SOCKET_URL, { withCredentials: true });
-
-                // Join Classroom
-                const userDetails = {
-                    id: user?._id || user?.id,
-                    name: user?.name || 'Guest',
-                    photo: user?.photo || null,
-                    role: role || 'student'
-                };
-
-                socketRef.current.emit('join_classroom', roomName, userDetails);
-
-                // Receive existing users
-                socketRef.current.on('existing_classroom_users', (users) => {
-                    const peersList = [];
-                    users.forEach(({ socketId, userDetails }) => {
-                        const peer = createPeer(socketId, socketRef.current.id, stream, userDetails);
-                        peersRef.current.push({
-                            peerId: socketId,
-                            peer,
-                            userDetails
-                        });
-                        peersList.push({
-                            peerId: socketId,
-                            peer,
-                            userDetails
-                        });
-                    });
-                    setPeers(peersList);
-                    setIsLoading(false);
-                });
-
-                // When a new user joins
-                socketRef.current.on('user_joined_classroom', (payload) => {
-                    const peer = addPeer(payload.signal, payload.socketId, stream, payload.userDetails);
-                    const peerObj = {
-                        peerId: payload.socketId,
-                        peer,
-                        userDetails: payload.userDetails
-                    };
-                    
-                    // Avoid duplicates
-                    if (!peersRef.current.find(p => p.peerId === payload.socketId)) {
-                        peersRef.current.push(peerObj);
-                        setPeers(prev => [...prev, peerObj]);
-                    }
-                });
-
-                // Signaling
-                socketRef.current.on('classroom_signal', (payload) => {
-                    const item = peersRef.current.find(p => p.peerId === payload.from);
-                    if (item) {
-                        item.peer.signal(payload.signal);
-                    }
-                });
-
-                // User left
-                socketRef.current.on('user_left_classroom', (socketId) => {
-                    const peerObj = peersRef.current.find(p => p.peerId === socketId);
-                    if (peerObj) {
-                        peerObj.peer.destroy();
-                    }
-                    const updatedPeers = peersRef.current.filter(p => p.peerId !== socketId);
-                    peersRef.current = updatedPeers;
-                    setPeers(updatedPeers);
-                });
-
-                // Chat Messages
-                socketRef.current.on('classroom_message', (data) => {
-                    setMessages(prev => [...prev, data]);
-                });
-
-                // Teacher Actions
-                socketRef.current.on('teacher_action', (data) => {
-                    if (data.action === 'mute_all' && !isTeacher) {
-                        toggleMute(true);
-                        toast.error('Teacher muted everyone');
-                    }
-                });
-
-                socketRef.current.on('class_ended_by_teacher', () => {
-                    toast.error('The teacher has ended the class');
-                    leaveClass();
-                });
-
-            } catch (err) {
-                console.error('Error initializing classroom:', err);
-                toast.error('Could not access camera/microphone');
-                setIsLoading(false);
-            }
-        };
-
-        init();
-
-        return () => {
-            leaveClass();
-        };
+    const cleanupResources = useCallback(() => {
+        if (socketRef.current) {
+            socketRef.current.disconnect();
+            socketRef.current = null;
+        }
+        if (userStream.current) {
+            userStream.current.getTracks().forEach(track => track.stop());
+            userStream.current = null;
+        }
+        if (screenStream.current) {
+            screenStream.current.getTracks().forEach(track => track.stop());
+            screenStream.current = null;
+        }
+        peersRef.current.forEach(({ peer }) => {
+            try { peer.destroy(); } catch (e) {}
+        });
+        peersRef.current = [];
+        setPeers([]);
     }, []);
 
-    const createPeer = (userToSignal, callerId, stream, userDetails) => {
+    const leaveClass = () => {
+        cleanupResources();
+        navigate(`/${role}/dashboard`);
+    };
+
+    const createPeer = (userToSignal, callerId, stream) => {
         const peer = new Peer({
             initiator: true,
             trickle: false,
@@ -164,13 +79,23 @@ const AdeebMeet = () => {
         });
 
         peer.on('signal', signal => {
-            socketRef.current.emit('classroom_signal', { to: userToSignal, from: callerId, signal });
+            socketRef.current.emit('classroom_signal', { 
+                to: userToSignal, 
+                from: callerId, 
+                signal,
+                userDetails: {
+                    id: user?._id || user?.id,
+                    name: user?.name,
+                    photo: user?.photo,
+                    role: role
+                }
+            });
         });
 
         return peer;
     };
 
-    const addPeer = (incomingSignal, callerId, stream, userDetails) => {
+    const addPeer = (incomingSignal, callerId, stream) => {
         const peer = new Peer({
             initiator: false,
             trickle: false,
@@ -185,6 +110,107 @@ const AdeebMeet = () => {
 
         return peer;
     };
+
+    useEffect(() => {
+        const init = async () => {
+            try {
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    throw new Error('Secure context (HTTPS) required for video calling.');
+                }
+
+                let stream;
+                try {
+                    stream = await navigator.mediaDevices.getUserMedia({ 
+                        video: { width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30 } }, 
+                        audio: true 
+                    });
+                } catch (e) {
+                    stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                }
+
+                userStream.current = stream;
+                if (userVideo.current) userVideo.current.srcObject = stream;
+
+                socketRef.current = io(SOCKET_URL, { withCredentials: true });
+
+                const userDetails = {
+                    id: user?._id || user?.id,
+                    name: user?.name || 'Guest',
+                    photo: user?.photo || null,
+                    role: role || 'student'
+                };
+
+                socketRef.current.emit('join_classroom', roomName, userDetails);
+                setIsLoading(false);
+
+                socketRef.current.on('existing_classroom_users', (users) => {
+                    const peersList = [];
+                    users.forEach(({ socketId, userDetails: otherUser }) => {
+                        const peer = createPeer(socketId, socketRef.current.id, stream);
+                        const peerObj = { peerId: socketId, peer, userDetails: otherUser };
+                        peersRef.current.push(peerObj);
+                        peersList.push(peerObj);
+                    });
+                    setPeers(peersList);
+                });
+
+                socketRef.current.on('classroom_signal', (payload) => {
+                    const item = peersRef.current.find(p => p.peerId === payload.from);
+                    if (item) {
+                        item.peer.signal(payload.signal);
+                    } else if (payload.signal.type === 'offer') {
+                        // Handshake initiated by new joiner
+                        const peer = addPeer(payload.signal, payload.from, stream);
+                        const newPeerObj = {
+                            peerId: payload.from,
+                            peer,
+                            userDetails: payload.userDetails
+                        };
+                        peersRef.current.push(newPeerObj);
+                        setPeers(prev => [...prev, newPeerObj]);
+                    }
+                });
+
+                socketRef.current.on('user_left_classroom', (socketId) => {
+                    const peerObj = peersRef.current.find(p => p.peerId === socketId);
+                    if (peerObj) peerObj.peer.destroy();
+                    const updatedPeers = peersRef.current.filter(p => p.peerId !== socketId);
+                    peersRef.current = updatedPeers;
+                    setPeers(updatedPeers);
+                });
+
+                socketRef.current.on('classroom_message', (data) => {
+                    setMessages(prev => [...prev, data]);
+                });
+
+                socketRef.current.on('teacher_action', (data) => {
+                    if (data.action === 'mute_all' && !isTeacher) {
+                        toggleMute(true);
+                        toast.error('Teacher muted everyone');
+                    }
+                });
+
+                socketRef.current.on('class_ended_by_teacher', () => {
+                    toast.error('The teacher has ended the class');
+                    leaveClass();
+                });
+
+            } catch (err) {
+                console.error('Error:', err);
+                toast.error(err.message);
+                setIsLoading(false);
+            }
+        };
+
+        init();
+
+        return () => {
+            // ONLY cleanup, NO navigation here
+            if (socketRef.current) socketRef.current.disconnect();
+            if (userStream.current) userStream.current.getTracks().forEach(track => track.stop());
+            peersRef.current.forEach(({ peer }) => { try { peer.destroy(); } catch(e){} });
+        };
+    }, [roomName]);
 
     const toggleMute = (force) => {
         const newState = force !== undefined ? force : !isMuted;
@@ -253,13 +279,6 @@ const AdeebMeet = () => {
 
         socketRef.current.emit('classroom_message', data);
         setNewMessage('');
-    };
-
-    const leaveClass = () => {
-        if (socketRef.current) socketRef.current.disconnect();
-        if (userStream.current) userStream.current.getTracks().forEach(track => track.stop());
-        if (screenStream.current) screenStream.current.getTracks().forEach(track => track.stop());
-        navigate(`/${role}/dashboard`);
     };
 
     const endClassForEveryone = () => {
