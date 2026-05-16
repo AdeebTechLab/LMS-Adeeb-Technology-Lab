@@ -120,12 +120,30 @@ const AdeebMeet = () => {
 
                 let stream;
                 try {
+                    // Try full video + audio
                     stream = await navigator.mediaDevices.getUserMedia({ 
-                        video: { width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30 } }, 
+                        video: { width: { ideal: 1280 }, height: { ideal: 720 } }, 
                         audio: true 
                     });
-                } catch (e) {
-                    stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                } catch (e1) {
+                    try {
+                        // Fallback to basic video + audio
+                        stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                    } catch (e2) {
+                        try {
+                            // Fallback to audio only
+                            stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                            setIsVideoOff(true); // Default to video off
+                        } catch (e3) {
+                            try {
+                                // Fallback to video only
+                                stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                                setIsMuted(true); // Default to muted
+                            } catch (e4) {
+                                throw new Error('No camera or microphone found. You need at least one to join.');
+                            }
+                        }
+                    }
                 }
 
                 userStream.current = stream;
