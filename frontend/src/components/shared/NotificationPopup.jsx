@@ -9,7 +9,7 @@ import { useTheme } from '../../context/ThemeContext';
 const NotificationPopup = () => {
     const [activeNotifications, setActiveNotifications] = useState([]);
     const [isVisible, setIsVisible] = useState(false);
-    const { user } = useSelector((state) => state.auth);
+    const { user, role } = useSelector((state) => state.auth);
     const location = useLocation();
     const { isDark } = useTheme();
 
@@ -19,7 +19,7 @@ const NotificationPopup = () => {
             location.pathname.endsWith('/dashboard') ||
             location.pathname.endsWith('/tasks');
 
-        if (!isDashboardOrTasks) return;
+        if (!isDashboardOrTasks || role === 'admin') return;
 
         const fetchActive = async () => {
             try {
@@ -43,7 +43,7 @@ const NotificationPopup = () => {
 
 
 
-    if (!isVisible || activeNotifications.length === 0) return null;
+    if (!isVisible || activeNotifications.length === 0 || role === 'admin') return null;
 
     const getIcon = (notification) => {
         const title = (notification.title || '').toLowerCase();

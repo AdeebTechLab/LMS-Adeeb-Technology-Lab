@@ -157,64 +157,42 @@ const AdeebMeet = () => {
     useEffect(() => {
         const init = async () => {
             try {
-                // WebRTC requires HTTPS or localhost
-                if (window.location.hostname !== 'localhost' && !window.isSecureContext) {
-                    throw new Error('Adeeb Meet requires a secure connection (HTTPS). Please ensure your LMS is running over SSL.');
-                }
-
-                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                    throw new Error('Your browser does not support video conferencing or media devices.');
-                }
-
-                let stream;
+                // 1. Get Media First (Crucial for audio/video reaching others)
+                let stream = null;
                 try {
-                    // Try full video + audio
-                    stream = await navigator.mediaDevices.getUserMedia({ 
-                        video: { width: { ideal: 1280 }, height: { ideal: 720 } }, 
-                        audio: true 
-                    });
+                    // Try to get audio and video
+                    stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
                 } catch (e1) {
                     try {
-                        // Fallback to basic video + audio
-                        stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                        // Fallback to audio only
+                        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                        setIsVideoOff(true);
                     } catch (e2) {
                         try {
-                            // Fallback to audio only
-                            stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                            setIsVideoOff(true); // Default to video off
+                            // Fallback to video only
+                            stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                            setIsMuted(true);
                         } catch (e3) {
-                            try {
-                                // Fallback to video only
-                                stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                                setIsMuted(true); // Default to muted
-                            } catch (e4) {
-                                throw new Error('No camera or microphone found. You need at least one to join.');
-                            }
+                            console.warn('No media devices found');
                         }
                     }
                 }
 
-                userStream.current = stream;
-                if (userVideo.current) userVideo.current.srcObject = stream;
+                if (stream) {
+                    userStream.current = stream;
+                    if (userVideo.current) userVideo.current.srcObject = stream;
+                } else {
+                    toast.error('Entering in view-only mode (No Camera/Mic found)');
+                }
 
+                // 2. Initialize Socket and Setup Listeners
                 socketRef.current = io(SOCKET_URL, { withCredentials: true });
 
-                const userDetails = {
-                    id: user?._id || user?.id,
-                    name: user?.name || 'Guest',
-                    photo: user?.photo || null,
-                    role: role || 'student'
-                };
-
-                socketRef.current.emit('join_classroom', roomName, userDetails);
-                setIsLoading(false);
-
-                // Update participant list whenever anyone joins/leaves
                 socketRef.current.on('room_users_update', (users) => {
                     setParticipants(users);
                 });
 
-                // New joiner starts handshakes with existing users
+                // Handshake handlers (Uses the 'stream' we just got)
                 socketRef.current.on('existing_classroom_users', (users) => {
                     users.forEach(({ socketId, userDetails: otherUser }) => {
                         const peer = createPeer(socketId, socketRef.current.id, stream);
@@ -224,26 +202,13 @@ const AdeebMeet = () => {
                     });
                 });
 
-                // When someone joins, the JOINER initiates the handshake with existing users
-                // BUT we also need to handle the case where the existing user needs to initiate
-                socketRef.current.on('user_joined_classroom', (payload) => {
-                    toast.success(`${payload.userDetails.name} joined the class`);
-                });
-
-                // Signaling handler
                 socketRef.current.on('classroom_signal', (payload) => {
                     const item = peersRef.current.find(p => p.peerId === payload.from);
                     if (item) {
-                        // We already have a peer for this user, just add the new signal/candidate
                         item.peer.signal(payload.signal);
                     } else if (payload.signal.type === 'offer') {
-                        // This is a new connection request
                         const peer = addPeer(payload.signal, payload.from, stream, payload.userDetails);
-                        const newPeerObj = {
-                            peerId: payload.from,
-                            peer,
-                            userDetails: payload.userDetails
-                        };
+                        const newPeerObj = { peerId: payload.from, peer, userDetails: payload.userDetails };
                         peersRef.current.push(newPeerObj);
                         setPeers(prev => [...prev, newPeerObj]);
                     }
@@ -251,7 +216,7 @@ const AdeebMeet = () => {
 
                 socketRef.current.on('user_left_classroom', (socketId) => {
                     const peerObj = peersRef.current.find(p => p.peerId === socketId);
-                    if (peerObj) peerObj.peer.destroy();
+                    if (peerObj) try { peerObj.peer.destroy(); } catch(e){}
                     const updatedPeers = peersRef.current.filter(p => p.peerId !== socketId);
                     peersRef.current = updatedPeers;
                     setPeers(updatedPeers);
@@ -261,21 +226,24 @@ const AdeebMeet = () => {
                     setMessages(prev => [...prev, data]);
                 });
 
-                socketRef.current.on('teacher_action', (data) => {
-                    if (data.action === 'mute_all' && !isTeacher) {
-                        toggleMute(true);
-                        toast.error('Teacher muted everyone');
-                    }
-                });
-
                 socketRef.current.on('class_ended_by_teacher', () => {
                     toast.error('The teacher has ended the class');
                     leaveClass();
                 });
 
+                // 3. Finally Join (Now everything is ready)
+                const userDetails = {
+                    id: user?._id || user?.id,
+                    name: user?.name || 'Guest',
+                    photo: user?.photo || null,
+                    role: role || 'student'
+                };
+                socketRef.current.emit('join_classroom', roomName, userDetails);
+                setIsLoading(false);
+
             } catch (err) {
-                console.error('Error:', err);
-                toast.error(err.message);
+                console.error('Init Error:', err);
+                toast.error('Connection failed. Please refresh.');
                 setIsLoading(false);
             }
         };
