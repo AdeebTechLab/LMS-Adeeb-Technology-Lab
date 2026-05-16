@@ -28,6 +28,7 @@ import { logout, loginSuccess } from '../../features/auth/authSlice';
 import { userAPI, authAPI } from '../../services/api';
 import ProfileAvatar from '../ui/ProfileAvatar';
 import Loader, { ButtonLoader } from '../ui/Loader';
+import SocialLinks from '../shared/SocialLinks';
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
     const navigate = useNavigate();
@@ -429,7 +430,9 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 </nav>
 
                 {/* Bottom Section */}
-                <div className="p-4 border-t border-[var(--border-sidebar)]">
+                <div className="p-4 border-t border-[var(--border-sidebar)] space-y-3">
+                    <SocialLinks className="px-1" />
+
                     <NavLink
                         to={`/${role}/settings`}
                         className="flex items-center gap-3 px-4 py-3 rounded-xl text-[var(--text-sidebar-muted)] hover:text-[var(--text-sidebar)] hover:bg-white/5 transition-all duration-200"
