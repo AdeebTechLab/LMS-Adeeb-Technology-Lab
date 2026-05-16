@@ -138,6 +138,23 @@ io.on('connection', (socket) => {
     });
 
     // --- CUSTOM VIDEO CLASSROOM SIGNALING ---
+    const broadcastRoomUsers = (roomId) => {
+        const usersInRoom = [];
+        const roomSockets = io.sockets.adapter.rooms.get(roomId);
+        if (roomSockets) {
+            for (const socketId of roomSockets) {
+                const s = io.sockets.sockets.get(socketId);
+                if (s && s.userDetails) {
+                    usersInRoom.push({
+                        socketId: socketId,
+                        userDetails: s.userDetails
+                    });
+                }
+            }
+        }
+        io.to(roomId).emit('room_users_update', usersInRoom);
+    };
+
     socket.on('join_classroom', (roomId, userDetails) => {
         socket.join(roomId);
         socket.roomId = roomId;
@@ -145,21 +162,21 @@ io.on('connection', (socket) => {
         
         console.log(`📡 User ${userDetails.name} joined classroom: ${roomId}`);
         
-        // Notify others in the room
+        // Notify others to start handshake
         socket.to(roomId).emit('user_joined_classroom', {
             socketId: socket.id,
             userDetails: userDetails
         });
 
-        // Get list of all users currently in the room
-        const usersInRoom = [];
+        // Send existing users to the new joiner ONLY
+        const existingUsers = [];
         const roomSockets = io.sockets.adapter.rooms.get(roomId);
         if (roomSockets) {
             for (const socketId of roomSockets) {
                 if (socketId !== socket.id) {
                     const s = io.sockets.sockets.get(socketId);
                     if (s && s.userDetails) {
-                        usersInRoom.push({
+                        existingUsers.push({
                             socketId: socketId,
                             userDetails: s.userDetails
                         });
@@ -167,28 +184,26 @@ io.on('connection', (socket) => {
                 }
             }
         }
-        
-        // Send existing users to the new joiner
-        socket.emit('existing_classroom_users', usersInRoom);
+        socket.emit('existing_classroom_users', existingUsers);
+
+        // Broadcast updated user list to everyone for the participant list UI
+        broadcastRoomUsers(roomId);
     });
 
     socket.on('classroom_signal', (data) => {
-        // data: { to: socketId, signal, from: { id, name, photo, role } }
+        // data: { to: socketId, signal, from: socketId, userDetails }
         io.to(data.to).emit('classroom_signal', {
             signal: data.signal,
             from: socket.id,
-            userDetails: data.from
+            userDetails: data.userDetails
         });
     });
 
     socket.on('classroom_message', (data) => {
-        // data: { roomId, text, senderName, senderPhoto }
         io.to(data.roomId).emit('classroom_message', data);
     });
 
     socket.on('teacher_control', (data) => {
-        // data: { roomId, action, targetSocketId }
-        // Actions: 'mute_all', 'kick_user', 'end_class'
         if (data.action === 'end_class') {
             io.to(data.roomId).emit('class_ended_by_teacher');
         } else {
@@ -198,7 +213,10 @@ io.on('connection', (socket) => {
 
     socket.on('disconnect', () => {
         if (socket.roomId) {
-            io.to(socket.roomId).emit('user_left_classroom', socket.id);
+            const roomId = socket.roomId;
+            io.to(roomId).emit('user_left_classroom', socket.id);
+            // Wait a bit then broadcast updated list
+            setTimeout(() => broadcastRoomUsers(roomId), 500);
         }
         activeUserSockets.delete(socket.id);
         const uniqueUsers = new Set(activeUserSockets.values()).size;

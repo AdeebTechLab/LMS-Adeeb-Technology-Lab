@@ -19,6 +19,12 @@ const getSocketURL = () => {
 
 const SOCKET_URL = getSocketURL();
 
+// Polyfill for simple-peer in Vite
+if (typeof window !== 'undefined') {
+    window.global = window;
+    window.process = { env: {} };
+}
+
 const AdeebMeet = () => {
     const { roomName } = useParams();
     const navigate = useNavigate();
@@ -37,6 +43,7 @@ const AdeebMeet = () => {
     
     // WebRTC & Socket States
     const [peers, setPeers] = useState([]); // [{ peerId, peer, userDetails }]
+    const [participants, setParticipants] = useState([]); // [{ socketId, userDetails }]
     const socketRef = useRef();
     const userVideo = useRef();
     const peersRef = useRef([]);
@@ -64,6 +71,7 @@ const AdeebMeet = () => {
         });
         peersRef.current = [];
         setPeers([]);
+        setParticipants([]);
     }, []);
 
     const leaveClass = () => {
@@ -76,22 +84,31 @@ const AdeebMeet = () => {
             initiator: true,
             trickle: false,
             stream,
+            config: {
+                iceServers: [
+                    { urls: 'stun:stun.l.google.com:19302' },
+                    { urls: 'stun:global.stun.twilio.com:3478' }
+                ]
+            }
         });
 
         peer.on('signal', signal => {
-            socketRef.current.emit('classroom_signal', { 
-                to: userToSignal, 
-                from: callerId, 
-                signal,
-                userDetails: {
-                    id: user?._id || user?.id,
-                    name: user?.name,
-                    photo: user?.photo,
-                    role: role
-                }
-            });
+            if (socketRef.current) {
+                socketRef.current.emit('classroom_signal', { 
+                    to: userToSignal, 
+                    from: callerId, 
+                    signal,
+                    userDetails: {
+                        id: user?._id || user?.id,
+                        name: user?.name,
+                        photo: user?.photo,
+                        role: role
+                    }
+                });
+            }
         });
 
+        peer.on('error', err => console.error('Peer error:', err));
         return peer;
     };
 
@@ -100,12 +117,30 @@ const AdeebMeet = () => {
             initiator: false,
             trickle: false,
             stream,
+            config: {
+                iceServers: [
+                    { urls: 'stun:stun.l.google.com:19302' },
+                    { urls: 'stun:global.stun.twilio.com:3478' }
+                ]
+            }
         });
 
         peer.on('signal', signal => {
-            socketRef.current.emit('classroom_signal', { to: callerId, signal });
+            if (socketRef.current) {
+                socketRef.current.emit('classroom_signal', { 
+                    to: callerId, 
+                    signal,
+                    userDetails: {
+                        id: user?._id || user?.id,
+                        name: user?.name,
+                        photo: user?.photo,
+                        role: role
+                    }
+                });
+            }
         });
 
+        peer.on('error', err => console.error('Peer error:', err));
         peer.signal(incomingSignal);
 
         return peer;
@@ -161,23 +196,33 @@ const AdeebMeet = () => {
                 socketRef.current.emit('join_classroom', roomName, userDetails);
                 setIsLoading(false);
 
+                // Update participant list whenever anyone joins/leaves
+                socketRef.current.on('room_users_update', (users) => {
+                    setParticipants(users);
+                });
+
+                // New joiner starts handshakes with existing users
                 socketRef.current.on('existing_classroom_users', (users) => {
-                    const peersList = [];
                     users.forEach(({ socketId, userDetails: otherUser }) => {
                         const peer = createPeer(socketId, socketRef.current.id, stream);
                         const peerObj = { peerId: socketId, peer, userDetails: otherUser };
                         peersRef.current.push(peerObj);
-                        peersList.push(peerObj);
+                        setPeers(prev => [...prev, peerObj]);
                     });
-                    setPeers(peersList);
                 });
 
+                // When someone joins, the JOINER initiates the handshake with existing users
+                // BUT we also need to handle the case where the existing user needs to initiate
+                socketRef.current.on('user_joined_classroom', (payload) => {
+                    toast.success(`${payload.userDetails.name} joined the class`);
+                });
+
+                // Signaling handler
                 socketRef.current.on('classroom_signal', (payload) => {
                     const item = peersRef.current.find(p => p.peerId === payload.from);
                     if (item) {
                         item.peer.signal(payload.signal);
                     } else if (payload.signal.type === 'offer') {
-                        // Handshake initiated by new joiner
                         const peer = addPeer(payload.signal, payload.from, stream);
                         const newPeerObj = {
                             peerId: payload.from,
@@ -421,7 +466,7 @@ const AdeebMeet = () => {
                                     onClick={() => { setShowChat(false); setShowParticipants(true); }}
                                     className={`flex-1 py-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all ${showParticipants ? 'text-primary border-b-2 border-primary' : 'text-white/40'}`}
                                 >
-                                    Participants ({peers.length + 1})
+                                    Participants ({participants.length})
                                 </button>
                             </div>
 
@@ -449,14 +494,14 @@ const AdeebMeet = () => {
 
                                 {showParticipants && (
                                     <div className="space-y-3">
-                                        <ParticipantRow name={user?.name} role={role} photo={user?.photo} isSelf />
-                                        {peers.map(p => (
+                                        {participants.map(p => (
                                             <ParticipantRow 
-                                                key={p.peerId} 
+                                                key={p.socketId} 
                                                 name={p.userDetails.name} 
                                                 role={p.userDetails.role} 
                                                 photo={p.userDetails.photo}
-                                                socketId={p.peerId}
+                                                socketId={p.socketId}
+                                                isSelf={p.socketId === socketRef.current?.id}
                                                 isTeacher={isTeacher}
                                             />
                                         ))}
@@ -557,6 +602,12 @@ const VideoCard = ({ peer }) => {
     const [isMuted, setIsMuted] = useState(false);
 
     useEffect(() => {
+        if (peer.peer.connected) {
+             if (peer.peer.stream && videoRef.current) {
+                 videoRef.current.srcObject = peer.peer.stream;
+             }
+        }
+
         peer.peer.on('stream', stream => {
             if (videoRef.current) {
                 videoRef.current.srcObject = stream;
