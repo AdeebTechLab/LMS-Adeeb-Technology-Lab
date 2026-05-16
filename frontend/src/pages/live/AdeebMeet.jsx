@@ -82,11 +82,13 @@ const AdeebMeet = () => {
     const createPeer = (userToSignal, callerId, stream) => {
         const peer = new Peer({
             initiator: true,
-            trickle: false,
+            trickle: true,
             stream,
             config: {
                 iceServers: [
                     { urls: 'stun:stun.l.google.com:19302' },
+                    { urls: 'stun:stun1.l.google.com:19302' },
+                    { urls: 'stun:stun2.l.google.com:19302' },
                     { urls: 'stun:global.stun.twilio.com:3478' }
                 ]
             }
@@ -112,14 +114,16 @@ const AdeebMeet = () => {
         return peer;
     };
 
-    const addPeer = (incomingSignal, callerId, stream) => {
+    const addPeer = (incomingSignal, callerId, stream, incomingUserDetails) => {
         const peer = new Peer({
             initiator: false,
-            trickle: false,
+            trickle: true,
             stream,
             config: {
                 iceServers: [
                     { urls: 'stun:stun.l.google.com:19302' },
+                    { urls: 'stun:stun1.l.google.com:19302' },
+                    { urls: 'stun:stun2.l.google.com:19302' },
                     { urls: 'stun:global.stun.twilio.com:3478' }
                 ]
             }
@@ -141,7 +145,11 @@ const AdeebMeet = () => {
         });
 
         peer.on('error', err => console.error('Peer error:', err));
-        peer.signal(incomingSignal);
+        
+        // Only signal if we have the actual offer/answer data
+        if (incomingSignal) {
+            peer.signal(incomingSignal);
+        }
 
         return peer;
     };
@@ -149,8 +157,13 @@ const AdeebMeet = () => {
     useEffect(() => {
         const init = async () => {
             try {
+                // WebRTC requires HTTPS or localhost
+                if (window.location.hostname !== 'localhost' && !window.isSecureContext) {
+                    throw new Error('Adeeb Meet requires a secure connection (HTTPS). Please ensure your LMS is running over SSL.');
+                }
+
                 if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                    throw new Error('Secure context (HTTPS) required for video calling.');
+                    throw new Error('Your browser does not support video conferencing or media devices.');
                 }
 
                 let stream;
@@ -221,9 +234,11 @@ const AdeebMeet = () => {
                 socketRef.current.on('classroom_signal', (payload) => {
                     const item = peersRef.current.find(p => p.peerId === payload.from);
                     if (item) {
+                        // We already have a peer for this user, just add the new signal/candidate
                         item.peer.signal(payload.signal);
                     } else if (payload.signal.type === 'offer') {
-                        const peer = addPeer(payload.signal, payload.from, stream);
+                        // This is a new connection request
+                        const peer = addPeer(payload.signal, payload.from, stream, payload.userDetails);
                         const newPeerObj = {
                             peerId: payload.from,
                             peer,
