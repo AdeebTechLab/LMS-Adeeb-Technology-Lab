@@ -19,12 +19,14 @@ import {
     TrendingUp
 } from 'lucide-react';
 import BirthdayWish from '../../components/dashboard/BirthdayWish';
+import WorkspaceRestrictedBanner from '../../components/dashboard/WorkspaceRestrictedBanner';
 import StatCard from '../../components/ui/StatCard';
 import Badge from '../../components/ui/Badge';
 import { enrollmentAPI, feeAPI, assignmentAPI, liveClassAPI, chatAPI } from '../../services/api';
 import Modal from '../../components/ui/Modal'; // Assuming Modal component exists
 import { getCourseIcon, getCourseColor, getCourseStyle } from '../../utils/courseIcons';
 import { formatDate } from '../../utils/dateFormatter';
+import { calculateOutstandingFees } from '../../utils/feeHelpers';
 
 const getSocketURL = () => {
     const rawUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -79,6 +81,10 @@ const StudentDashboard = () => {
         socketRef.current.on('new_global_message', (data) => {
             console.log('💬 New message received:', data);
             fetchDashboardData(); // Refetch to update unread counts
+        });
+
+        socketRef.current.on('fee_updated', () => {
+            fetchDashboardData();
         });
 
         return () => {
@@ -152,20 +158,12 @@ const StudentDashboard = () => {
             });
             setEnrolledCourses(courses);
 
-            // Fetch fees
+            // Fetch fees (pending until paid and admin-verified)
             let totalPendingAmount = 0;
-            let totalPendingInstallments = 0;
             try {
                 const feeRes = await feeAPI.getMy();
-                const fees = feeRes.data.data || [];
-                fees.forEach(f => {
-                    f.installments?.forEach(inst => {
-                        if (inst.status === 'pending' || inst.status === 'rejected') {
-                            totalPendingAmount += inst.amount || 0;
-                            totalPendingInstallments++;
-                        }
-                    });
-                });
+                const { totalAmount } = calculateOutstandingFees(feeRes.data.data || []);
+                totalPendingAmount = totalAmount;
             } catch (e) {
                 // Fees API might not exist for this user
             }
@@ -237,12 +235,12 @@ const StudentDashboard = () => {
                     onClick: () => navigate(`/${role}/courses`, { state: { activeTab: 'completed' } })
                 },
                 {
-                    title: 'Pending Fees',
-                    value: totalPendingInstallments > 0 ? `${totalPendingInstallments} Pending` : 'All Clear',
-                    subValue: totalPendingAmount > 0 ? `(Rs ${totalPendingAmount.toLocaleString()})` : '',
+                    title: 'Total Pending',
+                    value: totalPendingAmount > 0 ? `Rs ${totalPendingAmount.toLocaleString()}` : 'All Clear',
+                    valueClassName: totalPendingAmount > 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400',
                     icon: CreditCard,
-                    iconBg: 'bg-primary/5',
-                    iconColor: 'text-primary',
+                    iconBg: totalPendingAmount > 0 ? 'bg-red-100 dark:bg-red-900/20' : 'bg-primary/5',
+                    iconColor: totalPendingAmount > 0 ? 'text-red-600 dark:text-red-400' : 'text-primary',
                     onClick: () => navigate(`/${role}/fees`)
                 },
             ]);
@@ -283,7 +281,36 @@ const StudentDashboard = () => {
 
     return (
         <>
-            <div className="space-y-6">
+            <motion.div className="space-y-6">
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-gradient-to-r from-[var(--bg-sidebar)] to-[var(--bg-sidebar-light)] rounded-2xl p-6 text-white shadow-xl"
+                >
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                        <div>
+                            <h2 className="text-2xl font-black mb-1 uppercase italic tracking-tighter">Welcome back, {user?.name?.split(' ')[0] || (role === 'intern' ? 'Intern' : 'Student')}!</h2>
+                            <p className="text-white/60 font-bold text-xs uppercase tracking-widest">
+                                {enrolledCourses.filter(c => c.isActive).length} active enrollments • {pendingAssignments.length} pending tasks
+                            </p>
+                        </div>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => navigate(`/${role}/attendance`)}
+                                className="px-5 py-2.5 bg-white/10 hover:bg-white/20 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all duration-300 border border-white/20"
+                            >
+                                Attendance
+                            </button>
+                            <button
+                                onClick={() => navigate(`/${role}/courses`)}
+                                className="px-5 py-2.5 bg-primary hover:bg-primary/90 text-white rounded-xl font-black text-[10px] uppercase tracking-widest transition-all duration-300 shadow-lg shadow-orange-900/20"
+                            >
+                                {role === 'intern' ? 'Browse Skills' : 'Browse Courses'}
+                            </button>
+                        </div>
+                    </div>
+                </motion.div>
+
                 <BirthdayWish />
                 {/* Live Class Banner - Big and Prominent */}
                 <AnimatePresence>
@@ -395,67 +422,13 @@ const StudentDashboard = () => {
                         </button>
                     </motion.div>
                 )}
-
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="bg-gradient-to-r from-[var(--bg-sidebar)] to-[var(--bg-sidebar-light)] rounded-2xl p-6 text-white shadow-xl"
-                >
-                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                        <div>
-                            <h2 className="text-2xl font-black mb-1 uppercase italic tracking-tighter">Welcome back, {user?.name?.split(' ')[0] || (role === 'intern' ? 'Intern' : 'Student')}!</h2>
-                            <p className="text-white/60 font-bold text-xs uppercase tracking-widest">
-                                {enrolledCourses.filter(c => c.isActive).length} active enrollments • {pendingAssignments.length} pending tasks
-                            </p>
-                        </div>
-                        <div className="flex gap-3">
-                            <button
-                                onClick={() => navigate(`/${role}/attendance`)}
-                                className="px-5 py-2.5 bg-white/10 hover:bg-white/20 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all duration-300 border border-white/20"
-                            >
-                                Attendance
-                            </button>
-                            <button
-                                onClick={() => navigate(`/${role}/courses`)}
-                                className="px-5 py-2.5 bg-primary hover:bg-primary/90 text-white rounded-xl font-black text-[10px] uppercase tracking-widest transition-all duration-300 shadow-lg shadow-orange-900/20"
-                            >
-                                {role === 'intern' ? 'Browse Skills' : 'Browse Courses'}
-                            </button>
-                        </div>
-                    </div>
-                </motion.div>
-
-                {/* Workspace Restricted Global Warning */}
-                {enrolledCourses.some(c => !c.isActive && c.status !== 'completed' && !c.isPaused) && (
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="bg-red-50 dark:bg-red-900/10 border-2 border-red-100 dark:border-red-900/20 rounded-[2rem] p-8 text-center"
-                    >
-                        <div className="w-16 h-16 bg-red-100 dark:bg-red-900/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                            <CreditCard className="w-8 h-8 text-red-600" />
-                        </div>
-                        <h2 className="text-xl font-black text-red-900 dark:text-red-400 uppercase tracking-tight mb-2">Workspace Restricted</h2>
-                        <p className="text-red-700 dark:text-red-400/80 max-w-2xl mx-auto font-medium mb-6 text-sm leading-relaxed">
-                            Your access to this course is currently locked because your monthly fee is overdue or pending verification.
-                            Please clear your dues or wait for admin verification to resume your learning journey.
-                        </p>
-                        <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-                            <button
-                                onClick={() => navigate(`/${role}/fees`)}
-                                className="px-6 py-3 bg-red-600 text-white rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-red-700 transition-all shadow-lg shadow-red-200 dark:shadow-none"
-                            >
-                                Manage Fees & Payments
-                            </button>
-                            <button
-                                onClick={() => navigate(`/${role}/courses`)}
-                                className="px-6 py-3 bg-white dark:bg-slate-800 text-gray-600 dark:text-gray-300 rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-gray-50 dark:hover:bg-slate-700 transition-all border border-gray-200 dark:border-slate-700"
-                            >
-                                Back to Courses
-                            </button>
-                        </div>
-                    </motion.div>
-                )}
+                <WorkspaceRestrictedBanner
+                    role={role}
+                    pendingFees={pendingFees}
+                    lockedCourses={enrolledCourses.filter(
+                        (c) => !c.isActive && c.status !== 'completed' && !c.isPaused
+                    )}
+                />
 
                 {/* Stats Grid */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
@@ -630,11 +603,11 @@ const StudentDashboard = () => {
                             </div>
                         )}
                     </motion.div>
-                </div >
-            </div >
+                </div>
+            </motion.div>
 
             {/* Withdrawal Confirmation Modal */}
-            < Modal
+            <Modal
                 isOpen={withdrawModal.open}
                 onClose={() => setWithdrawModal({ ...withdrawModal, open: false })}
                 title="Revoke Course Application"
@@ -667,7 +640,7 @@ const StudentDashboard = () => {
                         </button>
                     </div>
                 </div>
-            </Modal >
+            </Modal>
         </>
     );
 };

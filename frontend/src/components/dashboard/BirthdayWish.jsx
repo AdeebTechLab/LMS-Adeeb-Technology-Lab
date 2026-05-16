@@ -113,7 +113,7 @@ const BirthdayWish = () => {
                     </div>
 
                     {/* Birthday people — horizontal scroll on small screens */}
-                    <div className="flex flex-1 gap-2 overflow-x-auto pb-0.5 sm:pb-0 scrollbar-thin">
+                    <div className="flex flex-1 gap-2 overflow-x-auto pb-0.5 sm:pb-0 scrollbar-thin justify-end">
                         {birthdays.map((person) => {
                             const currentYear = new Date().getFullYear();
                             const hasWished = person.birthdayWishes?.some(
@@ -160,11 +160,10 @@ const BirthdayWish = () => {
                                         <button
                                             onClick={() => handleWish(person._id, hasWished)}
                                             disabled={wishingId === person._id || hasWished}
-                                            className={`px-2.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wide flex items-center gap-1 transition-all ${
-                                                hasWished
+                                            className={`px-2.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wide flex items-center gap-1 transition-all ${hasWished
                                                     ? 'bg-white/10 text-white/45 cursor-default'
                                                     : 'bg-white text-primary hover:bg-white/90 active:scale-95'
-                                            }`}
+                                                }`}
                                         >
                                             {wishingId === person._id ? (
                                                 <PartyPopper className="w-3 h-3 animate-bounce" />

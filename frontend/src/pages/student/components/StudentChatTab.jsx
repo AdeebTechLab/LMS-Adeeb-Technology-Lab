@@ -162,7 +162,7 @@ const StudentChatTab = ({ course, isRestricted }) => {
         });
     };
 
-    const formatDate = (date) => {
+    const getDisplayDate = (date) => {
         const today = new Date();
         const msgDate = new Date(date);
         if (msgDate.toDateString() === today.toDateString()) return 'Today';
@@ -174,7 +174,7 @@ const StudentChatTab = ({ course, isRestricted }) => {
 
     // Group messages by date
     const groupedMessages = messages.reduce((groups, msg) => {
-        const date = formatDate(msg.createdAt);
+        const date = getDisplayDate(msg.createdAt);
         if (!groups[date]) groups[date] = [];
         groups[date].push(msg);
         return groups;

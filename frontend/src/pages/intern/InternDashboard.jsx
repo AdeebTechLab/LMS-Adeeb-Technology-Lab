@@ -10,6 +10,7 @@ import StatCard from '../../components/ui/StatCard';
 import Badge from '../../components/ui/Badge';
 import { enrollmentAPI, assignmentAPI, feeAPI, liveClassAPI, chatAPI } from '../../services/api';
 import { getCourseIcon } from '../../utils/courseIcons';
+import { calculateOutstandingFees } from '../../utils/feeHelpers';
 
 const getSocketURL = () => {
     const rawUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -92,20 +93,12 @@ const InternDashboard = () => {
             });
             setEnrollments(courses);
 
-            // Fetch Fees
+            // Fetch fees (pending until paid and admin-verified)
             let totalPendingAmount = 0;
-            let totalPendingInstallments = 0;
             try {
                 const feeRes = await feeAPI.getMy();
-                const fees = feeRes.data.data || [];
-                fees.forEach(f => {
-                    f.installments?.forEach(inst => {
-                        if (inst.status === 'pending' || inst.status === 'rejected') {
-                            totalPendingAmount += inst.amount || 0;
-                            totalPendingInstallments++;
-                        }
-                    });
-                });
+                const { totalAmount } = calculateOutstandingFees(feeRes.data.data || []);
+                totalPendingAmount = totalAmount;
             } catch (e) {
                 // Ignore if no fee API access
             }
@@ -160,12 +153,12 @@ const InternDashboard = () => {
                     onClick: () => navigate(`/${role}/courses`, { state: { activeTab: 'completed' } }),
                 },
                 {
-                    title: 'Pending Fees',
-                    value: totalPendingInstallments > 0 ? `${totalPendingInstallments} Pending` : 'All Clear',
-                    subValue: totalPendingAmount > 0 ? `(Rs ${totalPendingAmount.toLocaleString()})` : '',
+                    title: 'Total Pending',
+                    value: totalPendingAmount > 0 ? `Rs ${totalPendingAmount.toLocaleString()}` : 'All Clear',
+                    valueClassName: totalPendingAmount > 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400',
                     icon: CreditCard,
-                    iconBg: totalPendingInstallments > 0 ? 'bg-red-100' : 'bg-green-100',
-                    iconColor: totalPendingInstallments > 0 ? 'text-red-600' : 'text-green-600',
+                    iconBg: totalPendingAmount > 0 ? 'bg-red-100 dark:bg-red-900/20' : 'bg-green-100 dark:bg-green-900/20',
+                    iconColor: totalPendingAmount > 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400',
                     onClick: () => navigate(`/${role}/fees`)
                 },
             ]);

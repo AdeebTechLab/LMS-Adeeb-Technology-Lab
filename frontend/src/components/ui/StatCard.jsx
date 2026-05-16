@@ -9,6 +9,7 @@ const StatCard = ({
     iconBg = 'bg-primary',
     iconColor = 'text-primary',
     className = '',
+    valueClassName = '',
     onClick,
     subValue,
 }) => {
@@ -23,7 +24,7 @@ const StatCard = ({
             <div className="flex items-start justify-between">
                 <div>
                     <p className="text-[10px] sm:text-sm font-black text-gray-500 dark:text-gray-400 mb-1 uppercase tracking-wider">{title}</p>
-                    <p className="text-lg sm:text-3xl font-black text-gray-900 dark:text-gray-100 leading-none">{value}</p>
+                    <p className={`text-lg sm:text-3xl font-black leading-none ${valueClassName || 'text-gray-900 dark:text-gray-100'}`}>{value}</p>
                     {/* Optional Subvalue (e.g., fee amount) */}
                     {subValue && <p className="text-[10px] sm:text-xs font-bold text-gray-500 dark:text-gray-400 mt-1.5">{subValue}</p>}
                     {change && (

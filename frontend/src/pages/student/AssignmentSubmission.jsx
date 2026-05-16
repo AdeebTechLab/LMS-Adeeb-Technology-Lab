@@ -13,6 +13,8 @@ import { formatDate } from '../../utils/dateFormatter';
 import StudentChatTab from './components/StudentChatTab';
 import StudentAttendanceTab from './components/StudentAttendanceTab';
 import StudentTestsTab from './components/StudentTestsTab';
+import WorkspaceRestrictedBanner from '../../components/dashboard/WorkspaceRestrictedBanner';
+import { calculateOutstandingFees } from '../../utils/feeHelpers';
 import { io } from 'socket.io-client';
 
 const getSocketURL = () => {
@@ -41,6 +43,7 @@ const AssignmentSubmission = () => {
     const [newTaskContent, setNewTaskContent] = useState('');
     const [resubmittingTaskId, setResubmittingTaskId] = useState(null);
     const [currentEnrollment, setCurrentEnrollment] = useState(null);
+    const [pendingFees, setPendingFees] = useState(0);
     const socketRef = useRef();
 
     useEffect(() => {
@@ -111,6 +114,14 @@ const AssignmentSubmission = () => {
             
             const enroll = enrollmentRes.data.data.find(e => (e.course?._id || e.course) === selectedCourseId);
             setCurrentEnrollment(enroll);
+
+            try {
+                const feeRes = await feeAPI.getMy();
+                const { totalAmount } = calculateOutstandingFees(feeRes.data.data || []);
+                setPendingFees(totalAmount);
+            } catch {
+                setPendingFees(0);
+            }
         } catch (error) {
             console.error('Error fetching course data:', error);
         } finally {
@@ -311,34 +322,20 @@ const AssignmentSubmission = () => {
                                 <Loader message="Synchronizing Workspace..." />
                             </div>
                         ) : isRestricted ? (
-                            <motion.div
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className="bg-red-50 dark:bg-red-900/10 border-2 border-red-100 dark:border-red-900/20 rounded-[2.5rem] p-12 text-center my-8"
-                            >
-                                <div className="w-20 h-20 bg-red-100 dark:bg-red-900/20 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                                    <AlertCircle className="w-10 h-10 text-red-600" />
-                                </div>
-                                <h2 className="text-2xl font-black text-red-900 dark:text-red-400 uppercase tracking-tight mb-4">Workspace Restricted</h2>
-                                <p className="text-red-700 dark:text-red-400/80 max-w-lg mx-auto font-medium mb-8 leading-relaxed">
-                                    Your access to this course is currently locked because your monthly fee is overdue or pending verification. 
-                                    Please clear your dues or wait for admin verification to resume your learning journey.
-                                </p>
-                                <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                                    <button
-                                        onClick={() => navigate('/student/fees')}
-                                        className="px-8 py-4 bg-red-600 text-white rounded-2xl font-black uppercase tracking-widest hover:bg-red-700 transition-all shadow-xl shadow-red-200 dark:shadow-none"
-                                    >
-                                        Manage Fees & Payments
-                                    </button>
-                                    <button
-                                        onClick={() => setSelectedCourseId(null)}
-                                        className="px-8 py-4 bg-white dark:bg-slate-800 text-gray-600 dark:text-gray-300 rounded-2xl font-black uppercase tracking-widest hover:bg-gray-50 dark:hover:bg-slate-700 transition-all border border-gray-200 dark:border-slate-700"
-                                    >
-                                        Back to Courses
-                                    </button>
-                                </div>
-                            </motion.div>
+                            <WorkspaceRestrictedBanner
+                                role={role}
+                                pendingFees={pendingFees}
+                                restrictionType={currentEnrollment?.isPaused ? 'paused' : 'fee'}
+                                lockedCourses={[{
+                                    id: selectedCourseId,
+                                    title: currentEnrollment?.course?.title
+                                        || myCourses.find((c) => c._id === selectedCourseId)?.title
+                                        || 'This Course',
+                                }]}
+                                onBack={() => setSelectedCourseId(null)}
+                                backLabel="Back to Courses"
+                                className="my-4"
+                            />
                         ) : activeTab === 'assignments' ? (
                             /* ASSIGNMENTS VIEW */
                             <div className="space-y-8">
@@ -650,7 +647,7 @@ const AssignmentSubmission = () => {
                         ) : activeTab === 'chat' ? (
                             /* CHAT VIEW */
                             <div className="bg-white dark:bg-slate-900/40 rounded-2xl p-6 border border-gray-100 dark:border-slate-800 shadow-sm min-h-[500px]">
-                                <StudentChatTab course={myCourses.find(c => c._id === selectedCourseId)} isRestricted={false} />
+                                <StudentChatTab course={myCourses.find(c => c._id === selectedCourseId)} isRestricted={isRestricted} />
                             </div>
                         ) : activeTab === 'tests' ? (
                             /* TESTS VIEW */
