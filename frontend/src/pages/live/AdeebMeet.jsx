@@ -264,18 +264,55 @@ const AdeebMeet = () => {
         };
     }, [roomName]);
 
-    const toggleMute = (force) => {
+    const toggleMute = async (force) => {
         const newState = force !== undefined ? force : !isMuted;
-        if (userStream.current) {
+        if (userStream.current && userStream.current.getAudioTracks().length > 0) {
             userStream.current.getAudioTracks()[0].enabled = !newState;
             setIsMuted(newState);
+        } else if (!newState) {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                const audioTrack = stream.getAudioTracks()[0];
+                if (userStream.current) {
+                    userStream.current.addTrack(audioTrack);
+                } else {
+                    userStream.current = stream;
+                }
+                peersRef.current.forEach(({ peer }) => {
+                    if (peer && !peer.destroyed) {
+                        try { peer.addTrack(audioTrack, userStream.current); } catch(e) {}
+                    }
+                });
+                setIsMuted(false);
+            } catch (err) {
+                toast.error('Could not access microphone');
+            }
         }
     };
 
-    const toggleVideo = () => {
-        if (userStream.current) {
+    const toggleVideo = async () => {
+        if (userStream.current && userStream.current.getVideoTracks().length > 0) {
             userStream.current.getVideoTracks()[0].enabled = isVideoOff;
             setIsVideoOff(!isVideoOff);
+        } else if (isVideoOff) {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 1280 }, height: { ideal: 720 } } });
+                const videoTrack = stream.getVideoTracks()[0];
+                if (userStream.current) {
+                    userStream.current.addTrack(videoTrack);
+                } else {
+                    userStream.current = stream;
+                    if (userVideo.current) userVideo.current.srcObject = stream;
+                }
+                peersRef.current.forEach(({ peer }) => {
+                    if (peer && !peer.destroyed) {
+                        try { peer.addTrack(videoTrack, userStream.current); } catch(e) {}
+                    }
+                });
+                setIsVideoOff(false);
+            } catch (err) {
+                toast.error('Could not access camera');
+            }
         }
     };
 
@@ -292,10 +329,14 @@ const AdeebMeet = () => {
                 const screenTrack = stream.getVideoTracks()[0];
                 const cameraTrack = userStream.current?.getVideoTracks()[0];
 
-                // Replace track in all active peer connections
+                // Replace or Add track in all active peer connections
                 peersRef.current.forEach(({ peer }) => {
-                    if (peer && cameraTrack && screenTrack) {
-                        peer.replaceTrack(cameraTrack, screenTrack, userStream.current);
+                    if (peer && !peer.destroyed) {
+                        if (cameraTrack) {
+                            try { peer.replaceTrack(cameraTrack, screenTrack, userStream.current); } catch(e) {}
+                        } else {
+                            try { peer.addTrack(screenTrack, userStream.current); } catch(e) {}
+                        }
                     }
                 });
 
@@ -321,8 +362,12 @@ const AdeebMeet = () => {
             const screenTrack = screenStream.current?.getVideoTracks()[0];
 
             peersRef.current.forEach(({ peer }) => {
-                if (peer && screenTrack && cameraTrack) {
-                    peer.replaceTrack(screenTrack, cameraTrack, userStream.current);
+                if (peer && !peer.destroyed && screenTrack) {
+                    if (cameraTrack) {
+                        try { peer.replaceTrack(screenTrack, cameraTrack, userStream.current); } catch(e) {}
+                    } else {
+                        try { peer.removeTrack(screenTrack, userStream.current); } catch(e) {}
+                    }
                 }
             });
 
