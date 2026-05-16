@@ -157,26 +157,32 @@ const AdeebMeet = () => {
     useEffect(() => {
         const init = async () => {
             try {
-                // 1. Get Media First (Crucial for audio/video reaching others)
+                // 1. Get Media First (Optimized for Mobile/NAT)
                 let stream = null;
                 try {
-                    // Try to get audio and video
-                    stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
-                } catch (e1) {
-                    try {
-                        // Fallback to audio only
-                        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                        setIsVideoOff(true);
-                    } catch (e2) {
-                        try {
-                            // Fallback to video only
-                            stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                            setIsMuted(true);
-                        } catch (e3) {
-                            console.warn('No media devices found');
+                    const mediaConstraints = {
+                        audio: true,
+                        video: {
+                            width: { ideal: 1280 },
+                            height: { ideal: 720 },
+                            frameRate: { ideal: 24 }
                         }
-                    }
-                }
+                    };
+                    
+                    const getMedia = async () => {
+                        try {
+                            return await navigator.mediaDevices.getUserMedia(mediaConstraints);
+                        } catch (e) {
+                            try { return await navigator.mediaDevices.getUserMedia({ audio: true }); }
+                            catch (e2) { try { return await navigator.mediaDevices.getUserMedia({ video: true }); } 
+                            catch (e3) { return null; } }
+                        }
+                    };
+                    stream = await Promise.race([
+                        getMedia(),
+                        new Promise(resolve => setTimeout(() => resolve(null), 4000))
+                    ]);
+                } catch (e) {}
 
                 if (stream) {
                     userStream.current = stream;
@@ -274,6 +280,10 @@ const AdeebMeet = () => {
     };
 
     const toggleScreenShare = async () => {
+        if (!navigator.mediaDevices.getDisplayMedia) {
+            toast.error('Screen sharing is not supported on this device/browser (Common on mobile)');
+            return;
+        }
         try {
             if (!isScreenSharing) {
                 const stream = await navigator.mediaDevices.getDisplayMedia({ cursor: true });
