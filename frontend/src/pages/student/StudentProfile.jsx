@@ -88,7 +88,7 @@ const StudentProfile = () => {
         course: '',
         attendType: user?.attendType || 'Physical',
         cityToAttend: user?.location || '',
-        rollNumber: user?.rollNumber || '', // Academic Roll No
+        rollNumber: user?.rollNumber || '', // University Roll No
         heardAbout: user?.heardAbout || '',
         // Intern Specific
         degree: user?.degree || '',
@@ -309,7 +309,7 @@ const StudentProfile = () => {
                                 {profileData.city || user?.location || 'Location not set'}
                             </span>
                             <span className="px-3 py-1 bg-white/20 rounded-full text-sm font-mono tracking-tight">
-                                ID: {user?.rollNo || '—'}
+                                Roll No# {user?.rollNo || '—'}
                             </span>
                             <span className="px-3 py-1 bg-white/20 rounded-full text-sm">
                                 Joined {profileData.registeredAt ? formatDate(profileData.registeredAt) : '—'}
@@ -396,7 +396,6 @@ const StudentProfile = () => {
                             Academic Information
                         </h2>
                         <div className="space-y-4">
-                            <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={FileText} label="Academic Roll No" value={profileData.rollNumber} name="rollNumber" editable={canEditBio} />
                             <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={Users} label="Heard About Us Via" value={profileData.heardAbout} name="heardAbout" editable={canEditBio} />
                             <div className="grid grid-cols-2 gap-4">
                                 <SelectField 
@@ -450,6 +449,7 @@ const StudentProfile = () => {
                                 <div className="grid grid-cols-2 gap-4">
                                     <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={BookOpen} label="Department" value={profileData.department} name="department" editable={canEditBio} />
                                     <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={Calendar} label="Semester" value={profileData.semester} name="semester" editable={canEditBio} />
+                                    <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={FileText} label="University Roll Number" value={profileData.rollNumber} name="rollNumber" editable={canEditBio} />
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={Award} label="CGPA / Grade" value={profileData.cgpa} name="cgpa" editable={canEditBio} />

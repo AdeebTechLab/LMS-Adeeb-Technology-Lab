@@ -148,16 +148,17 @@ const TeacherDashboard = () => {
 
     const handleCreateLiveClass = async (e) => {
         e.preventDefault();
-        if (!liveClassForm.title || !liveClassForm.link) return;
+        if (!liveClassForm.title) return;
 
         setIsCreatingLiveClass(true);
         try {
             await liveClassAPI.create({
                 ...liveClassForm,
+                link: `/live-meet/${Math.random().toString(36).substring(2, 10).toUpperCase()}`,
                 autoEndMinutes: liveClassForm.autoEndMinutes ? parseInt(liveClassForm.autoEndMinutes) : null
             });
             setShowLiveClassModal(false);
-            setLiveClassForm({ title: '', link: '', description: '', visibility: 'all', autoEndMinutes: '' });
+            setLiveClassForm({ title: '', description: '', visibility: 'all', autoEndMinutes: '' });
             fetchActiveLiveClasses();
         } catch (error) {
             console.error('Error creating live class:', error);
@@ -289,7 +290,7 @@ const TeacherDashboard = () => {
                         <div className="flex gap-2 sm:gap-3 flex-wrap">
                             <button
                                 onClick={() => {
-                                    setLiveClassForm({ title: '', link: '', description: '', visibility: 'all', autoEndMinutes: '' });
+                                    setLiveClassForm({ title: '', description: '', visibility: 'all', autoEndMinutes: '' });
                                     setShowLiveClassModal(true);
                                 }}
                                 className="px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl font-medium transition-all duration-300 flex items-center gap-2 shadow-lg shadow-red-500/20"
@@ -301,9 +302,9 @@ const TeacherDashboard = () => {
                                 onClick={() => {
                                     const roomId = `room-${Math.random().toString(36).substring(7)}`;
                                     setLiveClassForm({ 
-                                        title: 'Adeeb Live Session',
-                                        link: `${window.location.origin}/live-meet/${roomId}`,
-                                        description: 'Join our private Adeeb Meet session.',
+                                        title: '',
+                                        link: `/live-meet/${roomId}`,
+                                        description: '',
                                         visibility: 'all',
                                         autoEndMinutes: '' 
                                     });
@@ -534,7 +535,7 @@ const TeacherDashboard = () => {
                                     <div className="flex items-center gap-3 mt-1 flex-wrap">
                                         {myCertificate.rollNo && (
                                             <span className="text-xs bg-white/10 text-amber-300 px-2 py-0.5 rounded-full font-mono font-bold">
-                                                {myCertificate.rollNo}
+                                                Roll No# {myCertificate.rollNo}
                                             </span>
                                         )}
                                         {myCertificate.duration && (
@@ -614,11 +615,11 @@ const TeacherDashboard = () => {
                                         <div className="flex gap-2">
                                             {lc.link?.includes('/live-meet/') ? (
                                                 <button
-                                                    onClick={() => navigate(`/live-meet/${lc.link.split('/').pop()}`)}
+                                                    onClick={() => window.open(`/live-meet/${lc.link.split('/').pop()}`, '_blank')}
                                                     className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary transition-colors flex items-center gap-2"
                                                 >
                                                     <Video className="w-4 h-4" />
-                                                    Join Meet
+                                                    Open Meet
                                                 </button>
                                             ) : (
                                                 <a
@@ -685,19 +686,7 @@ const TeacherDashboard = () => {
                                     />
                                 </div>
 
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Live Class Link *
-                                    </label>
-                                    <input
-                                        type="url"
-                                        value={liveClassForm.link}
-                                        onChange={(e) => setLiveClassForm({ ...liveClassForm, link: e.target.value })}
-                                        placeholder="https://meet.google.com/... or Zoom link"
-                                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent"
-                                        required
-                                    />
-                                </div>
+
 
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">

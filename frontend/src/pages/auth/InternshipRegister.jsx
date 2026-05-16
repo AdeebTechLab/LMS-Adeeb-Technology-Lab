@@ -209,7 +209,7 @@ const InternshipRegister = () => {
         if (!formData.university) newErrors.university = 'University is required';
         if (!formData.department) newErrors.department = 'Department is required';
         if (!formData.semester) newErrors.semester = 'Semester is required';
-        if (!formData.rollNumber) newErrors.rollNumber = 'Roll number is required';
+        if (!formData.rollNumber) newErrors.rollNumber = 'University roll number is required';
         if (!formData.cgpa) newErrors.cgpa = 'CGPA is required';
         if (!formData.majorSubjects) newErrors.majorSubjects = 'Major subjects are required';
         if (!formData.duration) newErrors.duration = 'Duration is required';
@@ -572,7 +572,7 @@ const InternshipRegister = () => {
                             <InputField label="Institution / University *" name="university" icon={Building} placeholder="University name" value={formData.university} onChange={handleChange} error={errors.university} />
                             <InputField label="Department / Faculty *" name="department" icon={BookOpen} placeholder="Your department" value={formData.department} onChange={handleChange} error={errors.department} />
                             <InputField label="Current Semester / Year *" name="semester" placeholder="e.g. 6th Semester" value={formData.semester} onChange={handleChange} error={errors.semester} />
-                            <InputField label="Roll Number *" name="rollNumber" placeholder="Your roll number" value={formData.rollNumber} onChange={handleChange} error={errors.rollNumber} />
+                            <InputField label="University Roll Number *" name="rollNumber" placeholder="Your university roll number" value={formData.rollNumber} onChange={handleChange} error={errors.rollNumber} />
                             <InputField label="CGPA or Percentage *" name="cgpa" placeholder="e.g. 3.5 or 85%" value={formData.cgpa} onChange={handleChange} error={errors.cgpa} />
                             <div className="md:col-span-2">
                                 <InputField label="Major Subjects / Courses *" name="majorSubjects" placeholder="List your major subjects" value={formData.majorSubjects} onChange={handleChange} error={errors.majorSubjects} />

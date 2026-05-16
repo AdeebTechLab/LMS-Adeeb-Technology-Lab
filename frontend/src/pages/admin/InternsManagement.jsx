@@ -297,7 +297,7 @@ const InternsManagement = () => {
             headers = [['Name', 'Email', 'Identity']];
             body = filteredInterns.map(i => [i.name || 'N/A', i.email || 'N/A', 'Intern']);
         } else if (type === 'academic') {
-            headers = [['Roll No', 'Name', 'Degree', 'University', 'CGPA', 'Semester', 'Registered Courses']];
+            headers = [['University Roll No', 'Name', 'Degree', 'University', 'CGPA', 'Semester', 'Registered Courses']];
             body = filteredInterns.map(i => [
                 i.rollNumber || 'N/A',
                 i.name || 'N/A',
@@ -308,7 +308,7 @@ const InternsManagement = () => {
                 (userCoursesMap[i._id] && userCoursesMap[i._id].length > 0) ? userCoursesMap[i._id].join(', ') : 'N/A'
             ]);
         } else if (type === 'address') {
-            headers = [['Roll No', 'Name', 'Address', 'City']];
+            headers = [['University Roll No', 'Name', 'Address', 'City']];
             body = filteredInterns.map(i => [
                 i.rollNumber || 'N/A',
                 i.name || 'N/A',
@@ -316,7 +316,7 @@ const InternsManagement = () => {
                 i.city || 'N/A'
             ]);
         } else {
-            headers = [['Roll No', 'Name', 'Email', 'Phone', 'CNIC', 'DOB', 'Degree', 'University', 'CGPA', 'Location', 'Mode', 'Registered Courses', 'Status']];
+            headers = [['University Roll No', 'Name', 'Email', 'Phone', 'CNIC', 'DOB', 'Degree', 'University', 'CGPA', 'Location', 'Mode', 'Registered Courses', 'Status']];
             body = filteredInterns.map(i => [
                 i.rollNumber || 'N/A',
                 i.name || 'N/A',
@@ -1335,7 +1335,7 @@ const InternsManagement = () => {
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">Roll Number <span className="text-xs text-gray-400">(University)</span></label>
+                            <label className="text-sm font-medium text-gray-700">University Roll Number</label>
                             <input
                                 type="text"
                                 value={editForm.rollNumber}

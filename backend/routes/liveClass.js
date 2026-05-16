@@ -149,7 +149,7 @@ router.put('/:id', protect, authorize('teacher', 'admin'), async (req, res) => {
         if (isActive === false) {
             const io = req.app.get('io');
             if (io) {
-                io.emit('live_class_ended', { id: liveClass._id });
+                io.emit('live_class_ended', { id: liveClass._id, link: liveClass.link });
             }
         }
 
@@ -179,7 +179,7 @@ router.delete('/:id', protect, authorize('teacher', 'admin'), async (req, res) =
         // Notify clients
         const io = req.app.get('io');
         if (io) {
-            io.emit('live_class_ended', { id: req.params.id });
+            io.emit('live_class_ended', { id: req.params.id, link: liveClass.link });
         }
 
         res.json({ success: true, message: 'Live class ended and removed' });
@@ -210,7 +210,7 @@ router.put('/:id/end', protect, authorize('teacher', 'admin'), async (req, res) 
         // Notify clients
         const io = req.app.get('io');
         if (io) {
-            io.emit('live_class_ended', { id: liveClass._id });
+            io.emit('live_class_ended', { id: liveClass._id, link: liveClass.link });
         }
 
         res.json({ success: true, message: 'Live class ended', data: liveClass });

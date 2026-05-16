@@ -365,7 +365,7 @@ const StudentDashboard = () => {
 
                                         {liveClass.link?.includes('/live-meet/') ? (
                                             <button
-                                                onClick={() => navigate(`/live-meet/${liveClass.link.split('/').pop()}`)}
+                                                onClick={() => window.open(`/live-meet/${liveClass.link.split('/').pop()}`, '_blank')}
                                                 className="flex-shrink-0 px-8 py-4 md:px-10 md:py-5 bg-white text-primary rounded-2xl font-black uppercase tracking-widest text-sm md:text-base hover:bg-gray-100 transition-all shadow-lg flex items-center gap-3 group"
                                             >
                                                 <Video className="w-5 h-5 md:w-6 md:h-6 group-hover:scale-110 transition-transform" />

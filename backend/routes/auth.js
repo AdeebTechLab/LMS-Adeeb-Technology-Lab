@@ -70,10 +70,10 @@ router.post('/register', uploadRegistration.fields([
         // Fields to synchronize across all roles for the same email
         const syncFields = [
             'name', 'phone', 'cnic', 'dob', 'age', 'gender', 
-            'address', 'city', 'country', 'fatherName', 'photo'
+            'address', 'city', 'country', 'fatherName', 'photo', 'rollNo'
         ];
 
-        const syncData = { password }; // Password always synchronized during registration
+        const syncData = { password, rollNo: assignedRollNo }; // Password and Roll Number always synchronized during registration
 
         // Add photo if uploaded
         if (req.files && req.files['photo']) {

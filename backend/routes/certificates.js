@@ -583,7 +583,7 @@ router.post('/backfill-teacher-ids', protect, authorize('admin'), async (req, re
 
         let count = 0;
         for (const teacher of teachers) {
-            const newId = await Counter.getNextTeacherId();
+            const newId = await Counter.getNextRollNo();
             teacher.rollNo = newId;
             await teacher.save();
             count++;

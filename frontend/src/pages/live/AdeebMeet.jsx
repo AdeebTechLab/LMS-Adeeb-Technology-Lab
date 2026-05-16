@@ -2,8 +2,16 @@ import { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Video, Mic, Share2, MessageSquare, Users, Settings, X, LogOut, Maximize2, ShieldCheck } from 'lucide-react';
+import { Video, Mic, Share2, MessageSquare, Users, Settings, X, LogOut, Maximize2, ShieldCheck, AlertCircle } from 'lucide-react';
 import Loader from '../../components/ui/Loader';
+import { io } from 'socket.io-client';
+
+const getSocketURL = () => {
+    const rawUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    return rawUrl.replace('/api', '');
+};
+
+const SOCKET_URL = getSocketURL();
 
 const AdeebMeet = () => {
     const { roomName } = useParams();
@@ -14,6 +22,18 @@ const AdeebMeet = () => {
     const jitsiContainerRef = useRef(null);
 
     useEffect(() => {
+        // Socket connection for global end
+        const socket = io(SOCKET_URL, { withCredentials: true });
+        
+        socket.on('live_class_ended', (data) => {
+            // If the ended class link matches our current URL, force leave
+            if (window.location.href.includes(data.id) || (data.link && window.location.href.includes(data.link))) {
+                if (api) api.executeCommand('hangup');
+                const dashboardPath = role ? `/${role}/dashboard` : '/';
+                navigate(dashboardPath);
+            }
+        });
+
         // Load Jitsi External API script
         const scriptId = 'jitsi-external-api';
         if (!document.getElementById(scriptId)) {
@@ -33,21 +53,26 @@ const AdeebMeet = () => {
         }, 8000);
 
         return () => {
+            socket.disconnect();
             clearTimeout(timer);
             if (api) api.dispose();
         };
-    }, []);
+    }, [api]);
 
     const initMeet = () => {
         const domain = 'meet.jit.si';
+        const serverUrl = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
+        const avatarUrl = user?.photo ? (user.photo.startsWith('http') ? user.photo : `${serverUrl}/${user.photo}`) : null;
+
         const options = {
-            roomName: `AdeebTechLab-${roomName}`,
+            roomName: `Adeeb-${roomName}`,
             width: '100%',
             height: '100%',
             parentNode: jitsiContainerRef.current,
             userInfo: {
                 displayName: user?.name || 'Guest User',
-                email: user?.email || ''
+                email: user?.email || '',
+                avatarUrl: avatarUrl
             },
             configOverwrite: {
                 startWithAudioMuted: true,
@@ -57,6 +82,12 @@ const AdeebMeet = () => {
                 disableDeepLinking: true,
                 brandingRoomAlias: 'Adeeb Meet',
                 defaultLanguage: 'en',
+                // Enable these to bypass moderator hurdles on some Jitsi deployments
+                disableModeratorIndicator: true,
+                enableNoAudioDetection: true,
+                enableNoVideoDetection: true,
+                allParticipantsAreModerators: true, // This helps bypass the "wait for moderator" screen
+                enableLobby: false, // Ensure lobby is disabled
                 toolbarButtons: [
                     'microphone', 'camera', 'closedcaptions', 'desktop', 'fullscreen',
                     'fodeviceselection', 'hangup', 'profile', 'chat', 'recording',
