@@ -137,7 +137,69 @@ io.on('connection', (socket) => {
         io.to(senderRoom).emit('new_global_message', data);
     });
 
+    // --- CUSTOM VIDEO CLASSROOM SIGNALING ---
+    socket.on('join_classroom', (roomId, userDetails) => {
+        socket.join(roomId);
+        socket.roomId = roomId;
+        socket.userDetails = userDetails; // { id, name, photo, role }
+        
+        console.log(`📡 User ${userDetails.name} joined classroom: ${roomId}`);
+        
+        // Notify others in the room
+        socket.to(roomId).emit('user_joined_classroom', {
+            socketId: socket.id,
+            userDetails: userDetails
+        });
+
+        // Get list of all users currently in the room
+        const usersInRoom = [];
+        const roomSockets = io.sockets.adapter.rooms.get(roomId);
+        if (roomSockets) {
+            for (const socketId of roomSockets) {
+                if (socketId !== socket.id) {
+                    const s = io.sockets.sockets.get(socketId);
+                    if (s && s.userDetails) {
+                        usersInRoom.push({
+                            socketId: socketId,
+                            userDetails: s.userDetails
+                        });
+                    }
+                }
+            }
+        }
+        
+        // Send existing users to the new joiner
+        socket.emit('existing_classroom_users', usersInRoom);
+    });
+
+    socket.on('classroom_signal', (data) => {
+        // data: { to: socketId, signal, from: { id, name, photo, role } }
+        io.to(data.to).emit('classroom_signal', {
+            signal: data.signal,
+            from: socket.id,
+            userDetails: data.from
+        });
+    });
+
+    socket.on('classroom_message', (data) => {
+        // data: { roomId, text, senderName, senderPhoto }
+        io.to(data.roomId).emit('classroom_message', data);
+    });
+
+    socket.on('teacher_control', (data) => {
+        // data: { roomId, action, targetSocketId }
+        // Actions: 'mute_all', 'kick_user', 'end_class'
+        if (data.action === 'end_class') {
+            io.to(data.roomId).emit('class_ended_by_teacher');
+        } else {
+            io.to(data.targetSocketId || data.roomId).emit('teacher_action', data);
+        }
+    });
+
     socket.on('disconnect', () => {
+        if (socket.roomId) {
+            io.to(socket.roomId).emit('user_left_classroom', socket.id);
+        }
         activeUserSockets.delete(socket.id);
         const uniqueUsers = new Set(activeUserSockets.values()).size;
         io.emit('active_users_count', uniqueUsers);
