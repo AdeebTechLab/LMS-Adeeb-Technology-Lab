@@ -218,6 +218,7 @@ const StudentDashboard = () => {
                     icon: BookOpen,
                     iconBg: 'bg-primary/5',
                     iconColor: 'text-primary',
+                    onClick: () => navigate(`/${role}/courses`, { state: { activeTab: 'enrolled' } }),
                 },
                 {
                     title: role === 'intern' ? 'Pending Tasks' : 'Pending Assignments',

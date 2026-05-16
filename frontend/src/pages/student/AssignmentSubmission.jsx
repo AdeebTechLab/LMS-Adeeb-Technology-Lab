@@ -64,8 +64,10 @@ const AssignmentSubmission = () => {
         }
         if (location.state?.courseId) {
             setSelectedCourseId(location.state.courseId);
+        } else if (myCourses.length === 1 && !selectedCourseId) {
+            setSelectedCourseId(myCourses[0]._id);
         }
-    }, [location.state]);
+    }, [location.state, myCourses, selectedCourseId]);
 
     const fetchMyCourses = async () => {
         setIsLoading(true);
@@ -74,13 +76,21 @@ const AssignmentSubmission = () => {
             const enrollments = res.data.data || [];
             // Filter only verified and active/completed courses
             const activeEnrollments = enrollments.filter(e => e.status === 'enrolled' || e.status === 'completed');
-            setMyCourses(activeEnrollments.map(e => ({
+            const courses = activeEnrollments.map(e => ({
                 ...e.course,
                 enrollmentStatus: e.status,
                 isPaused: e.isPaused,
                 isActive: e.isActive,
                 enrollmentId: e._id
-            })));
+            }));
+            setMyCourses(courses);
+
+            // Auto-select when only one enrolled course (sidebar: Class Logs, Daily Task, Tests, etc.)
+            if (location.state?.courseId) {
+                setSelectedCourseId(location.state.courseId);
+            } else if (courses.length === 1) {
+                setSelectedCourseId(courses[0]._id);
+            }
         } catch (error) {
             console.error('Error fetching courses:', error);
         } finally {
@@ -233,13 +243,15 @@ const AssignmentSubmission = () => {
                     {/* Course Header - Transparent like Teacher Portal */}
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div>
-                            <button
-                                onClick={() => setSelectedCourseId(null)}
-                                className="flex items-center gap-2 text-primary hover:text-primary mb-2 font-bold text-sm tracking-wide uppercase"
-                            >
-                                <ChevronLeft className="w-4 h-4" />
-                                BACK TO MY COURSES
-                            </button>
+                            {myCourses.length > 1 && (
+                                <button
+                                    onClick={() => setSelectedCourseId(null)}
+                                    className="flex items-center gap-2 text-primary hover:text-primary mb-2 font-bold text-sm tracking-wide uppercase"
+                                >
+                                    <ChevronLeft className="w-4 h-4" />
+                                    BACK TO {role === 'intern' ? 'MY SKILLS' : 'MY COURSES'}
+                                </button>
+                            )}
                             <h1 className="text-3xl font-black text-gray-900 dark:text-white uppercase tracking-tight leading-none mb-3">
                                 {myCourses.find(c => c._id === selectedCourseId)?.title}
                             </h1>

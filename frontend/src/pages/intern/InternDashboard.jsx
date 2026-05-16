@@ -141,6 +141,7 @@ const InternDashboard = () => {
                     icon: BookOpen,
                     iconBg: 'bg-primary/10',
                     iconColor: 'text-primary',
+                    onClick: () => navigate(`/${role}/courses`, { state: { activeTab: 'enrolled' } }),
                 },
                 {
                     title: 'Pending Assignments',
@@ -156,6 +157,7 @@ const InternDashboard = () => {
                     icon: CheckCircle,
                     iconBg: 'bg-primary/10',
                     iconColor: 'text-primary',
+                    onClick: () => navigate(`/${role}/courses`, { state: { activeTab: 'completed' } }),
                 },
                 {
                     title: 'Pending Fees',
