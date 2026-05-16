@@ -363,15 +363,25 @@ const StudentDashboard = () => {
                                             </div>
                                         </div>
 
-                                        <a
-                                            href={liveClass.link}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="flex-shrink-0 px-8 py-4 md:px-10 md:py-5 bg-white text-red-600 rounded-2xl font-black uppercase tracking-widest text-sm md:text-base hover:bg-gray-100 transition-all shadow-lg flex items-center gap-3 group"
-                                        >
-                                            <ExternalLink className="w-5 h-5 md:w-6 md:h-6 group-hover:rotate-12 transition-transform" />
-                                            Join Now
-                                        </a>
+                                        {liveClass.link?.includes('/live-meet/') ? (
+                                            <button
+                                                onClick={() => navigate(`/live-meet/${liveClass.link.split('/').pop()}`)}
+                                                className="flex-shrink-0 px-8 py-4 md:px-10 md:py-5 bg-white text-primary rounded-2xl font-black uppercase tracking-widest text-sm md:text-base hover:bg-gray-100 transition-all shadow-lg flex items-center gap-3 group"
+                                            >
+                                                <Video className="w-5 h-5 md:w-6 md:h-6 group-hover:scale-110 transition-transform" />
+                                                Join Adeeb Meet
+                                            </button>
+                                        ) : (
+                                            <a
+                                                href={liveClass.link}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="flex-shrink-0 px-8 py-4 md:px-10 md:py-5 bg-white text-red-600 rounded-2xl font-black uppercase tracking-widest text-sm md:text-base hover:bg-gray-100 transition-all shadow-lg flex items-center gap-3 group"
+                                            >
+                                                <ExternalLink className="w-5 h-5 md:w-6 md:h-6 group-hover:rotate-12 transition-transform" />
+                                                Join Now
+                                            </a>
+                                        )}
                                     </div>
                                 </div>
                             ))}

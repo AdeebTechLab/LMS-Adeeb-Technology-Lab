@@ -765,29 +765,34 @@ const AttendanceSheet = () => {
         <div className="space-y-6">
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div className="flex-1">
-                    <button
-                        onClick={() => {
-                            setSelectedCourse(null);
-                            navigate('/teacher/courses');
-                        }}
-                        className="flex items-center gap-2 text-primary hover:text-primary mb-3 font-bold text-[10px] md:text-sm tracking-wide uppercase"
-                    >
-                        <ChevronLeft className="w-3.5 h-3.5 md:w-4 md:h-4" />
-                        BACK TO ALL COURSES
-                    </button>
-                    <h1 className="text-xl md:text-3xl font-black text-gray-900 uppercase tracking-tight leading-tight mb-2">{selectedCourse.title || selectedCourse.name || 'Course Dashboard'}</h1>
-                    <div className="flex items-center gap-2 md:gap-3 flex-wrap">
-                        {(selectedCourse.city || selectedCourse.location) && (
-                            <span className="flex items-center gap-1 px-2.5 py-1 bg-gray-100 text-gray-600 rounded-lg text-[9px] md:text-[10px] font-black uppercase tracking-widest border border-gray-200 shadow-sm">
-                                <MapPin className="w-2.5 h-2.5 text-primary" />
-                                {selectedCourse.city || selectedCourse.location}
+                <div className="flex items-center gap-4">
+                    <div className="w-16 h-16 md:w-20 md:h-20 bg-white rounded-3xl p-2.5 shadow-xl shadow-primary/10 border border-primary/5 flex items-center justify-center shrink-0">
+                        <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
+                    </div>
+                    <div className="flex-1">
+                        <button
+                            onClick={() => {
+                                setSelectedCourse(null);
+                                navigate('/teacher/courses');
+                            }}
+                            className="flex items-center gap-2 text-primary hover:text-primary mb-2 font-bold text-[10px] md:text-[11px] tracking-wide uppercase"
+                        >
+                            <ChevronLeft className="w-3.5 h-3.5" />
+                            BACK TO ALL COURSES
+                        </button>
+                        <h1 className="text-xl md:text-3xl font-black text-gray-900 uppercase tracking-tight leading-tight mb-1.5">{selectedCourse.title || selectedCourse.name || 'Course Dashboard'}</h1>
+                        <div className="flex items-center gap-2 md:gap-3 flex-wrap">
+                            {(selectedCourse.city || selectedCourse.location) && (
+                                <span className="flex items-center gap-1 px-2.5 py-1 bg-gray-100 text-gray-600 rounded-lg text-[9px] md:text-[10px] font-black uppercase tracking-widest border border-gray-200 shadow-sm">
+                                    <MapPin className="w-2.5 h-2.5 text-primary" />
+                                    {selectedCourse.city || selectedCourse.location}
+                                </span>
+                            )}
+                            <span className="text-gray-400 text-[9px] md:text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5">
+                                <Users className="w-2.5 h-2.5" />
+                                {courseStudents.length} Students Active
                             </span>
-                        )}
-                        <span className="text-gray-400 text-[9px] md:text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5">
-                            <Users className="w-2.5 h-2.5" />
-                            {courseStudents.length} Students Active
-                        </span>
+                        </div>
                     </div>
                 </div>
                 {/* Book Button */}

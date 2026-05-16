@@ -197,22 +197,18 @@ const QuickAttendance = () => {
         }));
 
         try {
-            const courseStudents = students.filter(s => s.courseId === student.courseId);
-            const records = courseStudents.map(s => {
-                const sKey = `${s.courseId}-${s.id}`;
-                const sDefaultMode = (s.attendType || '').toLowerCase().includes('online') ? 'online' : 'onsite';
-                const sData = s.id === student.id ? { status, mode: defaultMode } : (attendanceMarks[sKey] || { status: 'absent', mode: sDefaultMode });
-                return {
-                    userId: s.id,
-                    status: sData.status,
-                    mode: sData.mode || sDefaultMode
-                };
-            });
+            // OPTIMIZED: Only send the changed student to the backend to prevent notification storms 
+            // and reduce server load. The backend will update this specific student in the record.
+            const record = {
+                userId: student.id,
+                status: status,
+                mode: defaultMode
+            };
 
             await attendanceAPI.mark({
                 courseId: student.courseId,
                 date: selectedDate,
-                records
+                records: [record] // Send only the updated record
             });
         } catch (error) {
             console.error('Failed to save attendance:', error);
@@ -470,6 +466,12 @@ const QuickAttendance = () => {
         return holidayDays.includes(dateObj.getDay());
     };
 
+    const markedCount = filteredStudents.filter(s => attendanceMarks[`${s.courseId}-${s.id}`]?.status).length;
+    const presentCount = filteredStudents.filter(s => attendanceMarks[`${s.courseId}-${s.id}`]?.status === 'present').length;
+    const absentCount = filteredStudents.filter(s => attendanceMarks[`${s.courseId}-${s.id}`]?.status === 'absent').length;
+    const totalCount = filteredStudents.length;
+    const progressPercent = totalCount > 0 ? Math.round((markedCount / totalCount) * 100) : 0;
+
     if (isLoading) {
         return (
             <Loader message="Initializing Active Attendance..." />
@@ -477,56 +479,115 @@ const QuickAttendance = () => {
     }
 
     return (
-        <div className="w-full px-4 md:px-6 lg:px-8 space-y-6 pb-20">
-            {/* Premium Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-6 sm:p-8 rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden relative group">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -mr-32 -mt-32 opacity-50 group-hover:scale-110 transition-transform duration-700"></div>
+        <div className="w-full px-4 md:px-6 lg:px-8 space-y-3 pb-6">
+            {/* Header */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-white p-3 sm:p-4 rounded-xl border border-gray-100 shadow-sm overflow-hidden relative">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16 opacity-40 pointer-events-none"></div>
 
-                <div className="relative z-10">
-                    <button
-                        onClick={() => navigate('/teacher/dashboard')}
-                        className="flex items-center gap-2 text-primary hover:text-primary font-black text-[10px] uppercase tracking-[0.2em] mb-4"
-                    >
-                        <ChevronLeft className="w-4 h-4" />
-                        Back to Portal
-                    </button>
-                    <h1 className="text-3xl font-black text-gray-900 uppercase tracking-tighter leading-none mb-2">Active Attendance</h1>
-                    <p className="text-gray-500 text-xs font-bold uppercase tracking-widest flex items-center gap-2">
-                        <Users className="w-4 h-4 text-primary" />
-                        Fast marking for {filteredStudents.length} {filterCategory === 'all' ? 'active members' : filterCategory}
-                    </p>
+                <div className="relative z-10 flex items-center gap-3 min-w-0">
+                    <div className="w-11 h-11 shrink-0 bg-white rounded-xl p-1.5 shadow-sm border border-primary/5 flex items-center justify-center">
+                        <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
+                    </div>
+                    <div>
+                        <button
+                            onClick={() => navigate('/teacher/dashboard')}
+                            className="flex items-center gap-1 text-primary font-black text-[9px] uppercase tracking-[0.15em] mb-0.5"
+                        >
+                            <ChevronLeft className="w-3 h-3" />
+                            Back to Portal
+                        </button>
+                        <h1 className="text-lg sm:text-xl font-black text-gray-900 uppercase tracking-tight leading-none">Active Attendance</h1>
+                        <p className="text-gray-500 text-[9px] font-bold uppercase tracking-wider flex items-center gap-1.5 mt-0.5 truncate">
+                            <Users className="w-3 h-3 text-primary shrink-0" />
+                            Marking for {filteredStudents.length} {filterCategory === 'all' ? 'active members' : filterCategory}
+                        </p>
+                    </div>
                 </div>
 
-                <div className="flex flex-col sm:flex-row items-center gap-4 relative z-10">
+                <div className="flex flex-wrap items-center gap-2 relative z-10 shrink-0">
                     <button
                         onClick={() => setShowRangeModal(true)}
-                        className="flex items-center justify-center gap-3 bg-white text-rose-600 px-6 py-3.5 rounded-2xl font-black uppercase tracking-widest text-xs border-2 border-rose-100 shadow-sm hover:border-rose-500 hover:shadow-lg hover:shadow-rose-100 transition-all active:scale-95"
+                        className="flex items-center justify-center gap-1.5 bg-white text-rose-600 px-3 py-2 rounded-lg font-black uppercase tracking-wider text-[10px] border border-rose-100 hover:border-rose-400 hover:shadow-lg hover:shadow-rose-100 transition-all active:scale-95"
                     >
-                        <Calendar className="w-5 h-5" />
+                        <Calendar className="w-3.5 h-3.5" />
                         Range Export
                     </button>
                     <button
                         onClick={handleDownloadPDF}
-                        className="flex items-center justify-center gap-3 bg-white text-primary px-6 py-3.5 rounded-2xl font-black uppercase tracking-widest text-xs border-2 border-primary/10 shadow-sm hover:border-primary hover:shadow-lg hover:shadow-primary/10 transition-all active:scale-95"
+                        className="flex items-center justify-center gap-1.5 bg-white text-primary px-3 py-2 rounded-lg font-black uppercase tracking-wider text-[10px] border border-primary/15 hover:border-primary hover:shadow-primary/10 transition-all active:scale-95"
                     >
-                        <Download className="w-5 h-5" />
+                        <Download className="w-3.5 h-3.5" />
                         Download Today
                     </button>
-                    <div className="flex flex-col items-end">
-                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 mr-1">Selection Date</label>
+                    <div className="flex flex-col">
+                        <label className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Selection Date</label>
                         <div className="relative">
-                            <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
+                            <Calendar className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-primary" />
                             <input
                                 type="date"
                                 value={selectedDate}
                                 max={getLocalDateString(new Date())}
                                 onChange={(e) => setSelectedDate(e.target.value)}
-                                className="pl-12 pr-6 py-3.5 bg-gray-50 border-2 border-transparent focus:border-primary focus:bg-white rounded-2xl text-sm font-black outline-none transition-all cursor-pointer shadow-sm"
+                                className="pl-8 pr-3 py-2 bg-gray-50 border border-transparent focus:border-primary focus:bg-white rounded-lg text-xs font-bold outline-none transition-all cursor-pointer"
                             />
                         </div>
                     </div>
                 </div>
             </div>
+
+            {/* Attendance Progress — top bar */}
+            {!isDateHoliday() && (
+                <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-2.5 sm:p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6">
+                    <div className="w-full flex-1 min-w-[180px] space-y-1.5">
+                        <div className="flex items-center justify-between gap-1.5">
+                            <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider shrink-0">Attendance Progress</span>
+                            <span className="text-xs font-black text-gray-900 tabular-nums whitespace-nowrap">
+                                {markedCount}/{totalCount}
+                                <span className="text-gray-400 font-bold"> ({progressPercent}%)</span>
+                            </span>
+                        </div>
+                        <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                            <motion.div
+                                className="h-full bg-primary rounded-full shadow-[0_0_8px_rgba(255,142,1,0.3)]"
+                                initial={{ width: 0 }}
+                                animate={{ width: `${progressPercent}%` }}
+                                transition={{ duration: 0.4 }}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 shrink-0">
+                        <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-100 shadow-sm shadow-emerald-500/5">
+                            <UserCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                            <div>
+                                <span className="text-[8px] font-black text-emerald-600/80 uppercase tracking-wider block leading-none">Present</span>
+                                <span className="text-sm font-black text-emerald-700 tabular-nums leading-tight">{presentCount}</span>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-rose-50 border border-rose-100 shadow-sm shadow-rose-500/5">
+                            <UserX className="w-3.5 h-3.5 text-rose-600 shrink-0" />
+                            <div>
+                                <span className="text-[8px] font-black text-rose-600/80 uppercase tracking-wider block leading-none">Absent</span>
+                                <span className="text-sm font-black text-rose-700 tabular-nums leading-tight">{absentCount}</span>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-100 shadow-sm shadow-amber-500/5">
+                            <Clock className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                            <div>
+                                <span className="text-[8px] font-black text-amber-600/80 uppercase tracking-wider block leading-none">Pending</span>
+                                <span className="text-sm font-black text-amber-700 tabular-nums leading-tight">{totalCount - markedCount}</span>
+                            </div>
+                        </div>
+                        <button
+                            onClick={() => navigate('/teacher/dashboard')}
+                            className="px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-xl font-black text-[10px] uppercase tracking-wider transition-all active:scale-95 flex items-center gap-2 whitespace-nowrap shadow-lg shadow-primary/20"
+                        >
+                            <CheckCircle className="w-4 h-4" />
+                            Finish Marking
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {/* Warning if Holiday */}
             {isDateHoliday() && (
@@ -546,31 +607,31 @@ const QuickAttendance = () => {
             )}
 
             {/* Professional Filter Toolbar */}
-            <div className="bg-white/80 backdrop-blur-xl p-4 sm:p-5 rounded-[2.5rem] border border-gray-100 shadow-sm space-y-5">
-                <div className="flex flex-col lg:flex-row gap-4 items-center">
+            <div className="bg-white/80 backdrop-blur-xl p-2.5 sm:p-3 rounded-xl border border-gray-100 shadow-sm space-y-2.5">
+                <div className="flex flex-col lg:flex-row gap-2 items-center">
                     {/* Search Bar - Sleek Design */}
                     <div className="relative flex-1 w-full group">
-                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                            <Search className="w-4 h-4 text-gray-400 group-focus-within:text-primary transition-colors" />
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <Search className="w-3.5 h-3.5 text-gray-400 group-focus-within:text-primary transition-colors" />
                         </div>
                         <input
                             type="text"
                             placeholder="Search by name or roll number..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-11 pr-4 py-3.5 !bg-gray-50/50 dark:!bg-white/5 border border-gray-100 focus:border-primary/30 focus:!bg-white dark:focus:!bg-white/10 focus:ring-4 focus:ring-primary/5 rounded-2xl text-sm font-bold outline-none transition-all placeholder:text-gray-400 dark:text-white"
+                            className="w-full pl-9 pr-3 py-2 !bg-gray-50/50 dark:!bg-white/5 border border-gray-100 focus:border-primary/30 focus:!bg-white dark:focus:!bg-white/10 focus:ring-2 focus:ring-primary/5 rounded-lg text-xs font-bold outline-none transition-all placeholder:text-gray-400 dark:text-white"
                         />
                     </div>
 
                     {/* Filters Row */}
-                    <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
+                    <div className="flex flex-wrap items-center gap-1.5 w-full lg:w-auto">
                         {/* Course Filter */}
                         <div className="relative flex-1 lg:w-48">
                             <Filter className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3 h-3 text-primary" />
                             <select
                                 value={filterCourse}
                                 onChange={(e) => setFilterCourse(e.target.value)}
-                                className="w-full pl-9 pr-8 py-3 bg-gray-50/50 border border-gray-100 rounded-xl text-[9px] font-black uppercase tracking-widest outline-none focus:border-primary/30 focus:bg-white transition-all cursor-pointer appearance-none"
+                                className="w-full pl-9 pr-8 py-1.5 bg-gray-50/50 border border-gray-100 rounded-lg text-[8px] font-black uppercase tracking-wider outline-none focus:border-primary/30 focus:bg-white transition-all cursor-pointer appearance-none"
                             >
                                 <option value="all">All Courses</option>
                                 {courses.map(c => (
@@ -580,7 +641,7 @@ const QuickAttendance = () => {
                         </div>
 
                         {/* Location Filter - Buttons */}
-                        <div className="flex items-center gap-1.5 bg-gray-50/50 p-1 rounded-xl border border-gray-100">
+                        <div className="flex items-center gap-1.5 bg-gray-50/50 p-0.5 rounded-lg border border-gray-100">
                             {[
                                 { id: 'all', label: 'All Locations' },
                                 { id: 'Bahawalpur', label: 'Bahawalpur' },
@@ -589,7 +650,7 @@ const QuickAttendance = () => {
                                 <button
                                     key={loc.id}
                                     onClick={() => setFilterLocation(loc.id)}
-                                    className={`px-3 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${filterLocation === loc.id
+                                    className={`px-2 py-1 rounded-md text-[8px] font-black uppercase tracking-wider transition-all ${filterLocation === loc.id
                                         ? 'bg-primary text-white shadow-md'
                                         : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
                                         }`}
@@ -600,7 +661,7 @@ const QuickAttendance = () => {
                         </div>
 
                         {/* Category Filter - Buttons */}
-                        <div className="flex items-center gap-1.5 bg-gray-50/50 p-1 rounded-xl border border-gray-100">
+                        <div className="flex items-center gap-1.5 bg-gray-50/50 p-0.5 rounded-lg border border-gray-100">
                             {[
                                 { id: 'all', label: 'All Categories' },
                                 { id: 'students', label: 'Students' },
@@ -609,7 +670,7 @@ const QuickAttendance = () => {
                                 <button
                                     key={cat.id}
                                     onClick={() => setFilterCategory(cat.id)}
-                                    className={`px-3 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${filterCategory === cat.id
+                                    className={`px-2 py-1 rounded-md text-[8px] font-black uppercase tracking-wider transition-all ${filterCategory === cat.id
                                         ? 'bg-primary text-white shadow-md'
                                         : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
                                         }`}
@@ -622,10 +683,10 @@ const QuickAttendance = () => {
                 </div>
 
                 {/* Status Chips - Interactive Filtering */}
-                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 pt-4 border-t border-gray-50">
-                    <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 rounded-full border border-gray-100">
-                        <div className="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
-                        <span className="text-[9px] font-black text-gray-500 uppercase tracking-[0.15em]">Quick Status Filter</span>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 pt-2 border-t border-gray-50">
+                    <div className="flex items-center gap-2 px-2 py-1 bg-gray-50 rounded-full shrink-0 border border-gray-100">
+                        <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></div>
+                        <span className="text-[8px] font-black text-gray-500 uppercase tracking-wider">Quick Status Filter</span>
                     </div>
 
                     <div className="flex flex-wrap items-center gap-2">
@@ -638,12 +699,12 @@ const QuickAttendance = () => {
                             <button
                                 key={btn.id}
                                 onClick={() => setFilterStatus(btn.id)}
-                                className={`flex items-center gap-2.5 px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all border shadow-sm ${filterStatus === btn.id
-                                    ? `${btn.activeClass} shadow-lg scale-105`
+                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[8px] font-black uppercase tracking-wider transition-all border ${filterStatus === btn.id
+                                    ? `${btn.activeClass} `
                                     : `bg-white border-gray-100 text-gray-500 hover:border-${btn.baseColor}-200 hover:bg-${btn.baseColor}-50/50 hover:text-${btn.baseColor}-600`
                                     }`}
                             >
-                                <btn.icon className={`w-3.5 h-3.5 ${filterStatus === btn.id ? 'opacity-100' : 'opacity-60'}`} />
+                                <btn.icon className={`w-3 h-3 ${filterStatus === btn.id ? 'opacity-100' : 'opacity-60'}`} />
                                 {btn.label}
                                 {filterStatus === btn.id && (
                                     <span className="ml-1 w-1.5 h-1.5 rounded-full bg-white/40"></span>
@@ -655,19 +716,24 @@ const QuickAttendance = () => {
             </div>
 
             {/* Student List Table */}
-            <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden">
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
-                        <thead>
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col">
+                <div className="px-4 py-2.5 bg-gray-50 border-b border-gray-100 flex items-center justify-between gap-2 shrink-0">
+                    <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">
+                        Showing {filteredStudents.length} student{filteredStudents.length !== 1 ? 's' : ''}
+                    </span>
+                </div>
+                <div className="w-full">
+                    <table className="w-full min-w-full text-left border-collapse">
+                        <thead className="sticky top-0 z-10">
                             <tr className="bg-primary border-b border-primary">
-                                <th className="px-6 py-5 text-[10px] font-black text-white/90 uppercase tracking-[0.2em] text-center w-12">#</th>
-                                <th className="px-8 py-5 text-[10px] font-black text-white/90 uppercase tracking-[0.2em]">Student Details</th>
-                                <th className="px-6 py-5 text-[10px] font-black text-white/90 uppercase tracking-[0.2em]">Roll Number</th>
-                                <th className="px-6 py-5 text-[10px] font-black text-white/90 uppercase tracking-[0.2em]">Active Course</th>
-                                <th className="px-6 py-5 text-[10px] font-black text-white/90 uppercase tracking-[0.2em]">Campus Location</th>
-                                <th className="px-6 py-5 text-[10px] font-black text-white/90 uppercase tracking-[0.2em]">Category</th>
-                                <th className="px-6 py-5 text-[10px] font-black text-white/90 uppercase tracking-[0.2em]">Attend Type</th>
-                                <th className="px-8 py-5 text-[10px] font-black text-white/90 uppercase tracking-[0.2em] text-center">Attendance Marking</th>
+                                <th className="px-1.5 py-2 text-[9px] font-black text-white/90 uppercase tracking-tighter text-center w-8">#</th>
+                                <th className="px-2 py-2 text-[9px] font-black text-white/90 uppercase tracking-tighter min-w-[120px]">Student</th>
+                                <th className="px-1.5 py-2 text-[9px] font-black text-white/90 uppercase tracking-tighter whitespace-nowrap">Roll No</th>
+                                <th className="px-1.5 py-2 text-[9px] font-black text-white/90 uppercase tracking-tighter min-w-[100px]">Course</th>
+                                <th className="px-1.5 py-2 text-[9px] font-black text-white/90 uppercase tracking-tighter whitespace-nowrap">Location</th>
+                                <th className="px-1.5 py-2 text-[9px] font-black text-white/90 uppercase tracking-tighter whitespace-nowrap">Type</th>
+                                <th className="px-1.5 py-2 text-[9px] font-black text-white/90 uppercase tracking-tighter whitespace-nowrap">Mode</th>
+                                <th className="px-2 py-2 text-[9px] font-black text-white/90 uppercase tracking-tighter text-center whitespace-nowrap">Mark</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50">
@@ -689,19 +755,19 @@ const QuickAttendance = () => {
                                                     'hover:bg-gray-50/50'
                                                 }`}
                                         >
-                                            <td className="px-6 py-4 text-center">
-                                                <span className="text-xs font-black text-gray-400">
+                                            <td className="px-2 py-1.5 text-center">
+                                                <span className="text-[10px] font-black text-gray-400 tabular-nums">
                                                     {index + 1}
                                                 </span>
                                             </td>
-                                            <td className="px-8 py-4">
-                                                <div className="flex items-center gap-4">
+                                            <td className="px-3 py-1.5">
+                                                <div className="flex items-center gap-2 min-w-0">
                                                     <div className="relative">
                                                         <ProfileAvatar
                                                             src={student.photo}
                                                             name={student.name}
-                                                            size="lg"
-                                                            shape="rounded-xl"
+                                                            size="sm"
+                                                            shape="rounded-lg"
                                                             border={formatLastSeen(student.lastSeen) === 'Online' ? 'online-avatar-glow' : currentMark?.status === 'present' ? 'border-primary' : currentMark?.status === 'absent' ? 'border-rose-500' : 'border-gray-100'}
                                                         />
                                                         {formatLastSeen(student.lastSeen) === 'Online' && (
@@ -711,19 +777,19 @@ const QuickAttendance = () => {
                                                             </div>
                                                         )}
                                                     </div>
-                                                    <div className="min-w-0">
-                                                        <h3 className="text-sm font-black text-gray-900 uppercase tracking-tight group-hover:text-primary transition-colors">{student.name}</h3>
+                                                    <div className="min-w-0 flex-1">
+                                                        <h3 className="text-[11px] font-black text-gray-900 uppercase tracking-tight group-hover:text-primary transition-colors truncate max-w-[150px] sm:max-w-none" title={student.name}>{student.name}</h3>
                                                         <div className="flex items-center gap-2 mt-0.5">
                                                             {formatLastSeen(student.lastSeen) === 'Online' ? (
-                                                                <div className="flex items-center gap-1.5 px-2 py-0.5 bg-green-500/10 border border-green-500/20 rounded-lg backdrop-blur-sm">
-                                                                    <span className="text-[9px] font-black text-green-600 uppercase tracking-[0.1em]">
+                                                                <div className="flex items-center gap-1.5 px-1.5 py-0.5 bg-green-500/10 border border-green-500/20 rounded-md backdrop-blur-sm">
+                                                                    <span className="text-[8px] font-black text-green-600 uppercase tracking-[0.1em]">
                                                                         Active Now
                                                                     </span>
                                                                 </div>
                                                             ) : (
                                                                 <div className="flex items-center gap-1.5">
-                                                                    <div className={`w-1.5 h-1.5 rounded-full ${getStatusColor(student.lastSeen)} opacity-60`}></div>
-                                                                    <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">
+                                                                    <div className={`w-1 h-1 rounded-full ${getStatusColor(student.lastSeen)} opacity-60`}></div>
+                                                                    <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">
                                                                         {formatLastSeen(student.lastSeen)}
                                                                     </span>
                                                                 </div>
@@ -732,43 +798,39 @@ const QuickAttendance = () => {
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-4">
-                                                <span className="text-[11px] font-black text-red-500 bg-red-50 px-2 py-1 rounded-lg border border-red-100 uppercase tracking-wider">
+                                            <td className="px-2 py-1.5">
+                                                <span className="text-[10px] font-black text-red-500 bg-red-50 px-1.5 py-0.5 rounded-md border border-red-100 uppercase tracking-wider whitespace-nowrap">
                                                     {student.rollNo}
                                                 </span>
                                             </td>
-                                            <td className="px-6 py-4">
-                                                <div className="flex flex-col">
-                                                    <span className="text-xs font-black text-gray-700 uppercase tracking-tight">{student.courseName}</span>
-                                                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">Assigned Class</span>
+                                            <td className="px-1.5 py-1.5">
+                                                <span className="text-[9px] font-black text-gray-700 uppercase tracking-tight line-clamp-1" title={student.courseName}>{student.courseName}</span>
+                                            </td>
+                                            <td className="px-1.5 py-1.5">
+                                                <div className="flex items-center gap-1">
+                                                    <span className="text-[9px] font-black text-gray-700 uppercase tracking-tight">{student.location}</span>
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-4">
-                                                <div className="flex items-center gap-1.5">
-                                                    <MapPin className="w-3.5 h-3.5 text-primary" />
-                                                    <span className="text-xs font-black text-gray-700 uppercase tracking-tight">{student.location}</span>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider ${student.audience === 'interns'
+                                            <td className="px-1.5 py-1.5">
+                                                <span className={`text-[8px] px-1 py-0.5 rounded font-bold uppercase tracking-wider whitespace-nowrap ${student.audience === 'interns'
                                                     ? 'bg-purple-100 text-purple-700'
                                                     : 'bg-blue-100 text-blue-700'
                                                     }`}>
                                                     {student.audience === 'interns' ? 'Intern' : 'Student'}
                                                 </span>
                                             </td>
-                                            <td className="px-6 py-4">
+                                            <td className="px-1.5 py-1.5">
                                                 {(student.attendType || '').toLowerCase().includes('online')
-                                                    ? <span className="bg-rose-50 text-rose-600 border-rose-200 text-[10px] px-3 py-1.5 rounded-lg font-black uppercase tracking-widest border shadow-sm">Remote</span>
-                                                    : <span className="bg-primary/5 text-primary border-primary text-[10px] px-3 py-1.5 rounded-lg font-black uppercase tracking-widest border shadow-sm">OnSite</span>
+                                                    ? <span className="bg-rose-50 text-rose-600 border-rose-200 text-[8px] px-1 py-0.5 rounded-md font-black uppercase tracking-widest border whitespace-nowrap">Remote</span>
+                                                    : <span className="bg-primary/5 text-primary border-primary text-[8px] px-1 py-0.5 rounded-md font-black uppercase tracking-widest border whitespace-nowrap">OnSite</span>
                                                 }
                                             </td>
-                                            <td className="px-8 py-4">
-                                                <div className="flex items-center justify-center gap-2">
+                                            <td className="px-3 py-1.5">
+                                                <div className="flex items-center justify-center gap-1 flex-nowrap">
                                                     <button
                                                         disabled={isDateHoliday()}
                                                         onClick={() => handleMark(student, 'present')}
-                                                        className={`px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-[0.15em] transition-all flex items-center justify-center gap-2 border-2 ${currentMark?.status === 'present'
+                                                        className={`px-2.5 py-1.5 rounded-lg font-black text-[9px] uppercase tracking-[0.1em] transition-all flex items-center justify-center border-2 whitespace-nowrap ${currentMark?.status === 'present'
                                                             ? 'bg-present-fixed border-present-fixed text-white shadow-lg shadow-present-fixed/20'
                                                             : 'bg-white border-gray-100 text-gray-400 hover:border-present-fixed hover:text-present-fixed'
                                                             } disabled:opacity-30 disabled:cursor-not-allowed active:scale-95`}
@@ -778,7 +840,7 @@ const QuickAttendance = () => {
                                                     <button
                                                         disabled={isDateHoliday()}
                                                         onClick={() => handleMark(student, 'absent')}
-                                                        className={`px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-[0.15em] transition-all flex items-center justify-center gap-2 border-2 ${currentMark?.status === 'absent'
+                                                        className={`px-2.5 py-1.5 rounded-lg font-black text-[9px] uppercase tracking-[0.1em] transition-all flex items-center justify-center border-2 whitespace-nowrap ${currentMark?.status === 'absent'
                                                             ? 'bg-absent-fixed border-absent-fixed text-white shadow-lg shadow-absent-fixed/20'
                                                             : 'bg-white border-gray-100 text-gray-400 hover:border-absent-fixed hover:text-absent-fixed'
                                                             } disabled:opacity-30 disabled:cursor-not-allowed active:scale-95`}
@@ -804,34 +866,6 @@ const QuickAttendance = () => {
                 </div>
             )}
 
-            {/* Bottom Bar for Global Actions */}
-            {!isDateHoliday() && (
-                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-6 py-4 bg-gray-900/90 backdrop-blur-xl rounded-[2rem] border border-white/10 shadow-2xl flex items-center gap-8">
-                    <div className="flex items-center gap-4">
-                        <div className="flex flex-col">
-                            <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Progress</span>
-                            <span className="text-xl font-black text-white leading-none">
-                                {filteredStudents.filter(s => attendanceMarks[`${s.courseId}-${s.id}`]?.status).length} / {filteredStudents.length}
-                            </span>
-                        </div>
-                        <div className="w-px h-8 bg-white/10"></div>
-                        <div className="flex flex-col">
-                            <span className="text-[10px] font-black text-primary uppercase tracking-widest">Present</span>
-                            <span className="text-xl font-black text-white leading-none">
-                                {Object.values(attendanceMarks).filter(v => v?.status === 'present').length}
-                            </span>
-                        </div>
-                    </div>
-
-                    <button
-                        onClick={() => navigate('/teacher/dashboard')}
-                        className="px-8 py-3 bg-primary hover:bg-primary text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-lg shadow-primary/20 active:scale-95 flex items-center gap-3"
-                    >
-                        <CheckCircle className="w-5 h-5" />
-                        Finish Marking
-                    </button>
-                </div>
-            )}
             {/* Range Report Modal */}
             <AnimatePresence>
                 {showRangeModal && (

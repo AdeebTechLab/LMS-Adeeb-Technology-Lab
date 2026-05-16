@@ -59,6 +59,9 @@ import CertificateVerification from './pages/public/CertificateVerification';
 // Settings Page
 import Settings from './pages/settings/Settings';
 
+// Live Class Page
+import AdeebMeet from './pages/live/AdeebMeet';
+
 
 // Protected Route Component
 const ProtectedRoute = ({ children, allowedRoles }) => {
@@ -202,6 +205,11 @@ const AppRoutes = () => {
         <Route path="profile" element={<JobProfile />} />
         <Route path="settings" element={<Settings />} />
       </Route>
+
+      <Route
+        path="/live-meet/:roomName"
+        element={<ProtectedRoute><AdeebMeet /></ProtectedRoute>}
+      />
 
       {/* Root redirect */}
       <Route

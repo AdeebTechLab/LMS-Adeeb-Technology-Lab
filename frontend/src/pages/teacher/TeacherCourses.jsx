@@ -336,11 +336,31 @@ const TeacherCourses = ({ isDashboard = false }) => {
                             </button>
                         </div>
                         <button
-                            onClick={() => setShowLiveClassModal(true)}
+                            onClick={() => {
+                                setLiveClassForm({ title: '', link: '', description: '', visibility: 'all', autoEndMinutes: '' });
+                                setShowLiveClassModal(true);
+                            }}
                             className="px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl font-medium transition-all duration-300 flex items-center gap-2 shadow-lg shadow-red-200"
                         >
                             <Video className="w-5 h-5" />
                             Start Live Class
+                        </button>
+                        <button
+                            onClick={() => {
+                                const roomId = `room-${Math.random().toString(36).substring(7)}`;
+                                setLiveClassForm({ 
+                                    title: 'Adeeb Live Session',
+                                    link: `${window.location.origin}/live-meet/${roomId}`,
+                                    description: 'Join our private Adeeb Meet session.',
+                                    visibility: 'all',
+                                    autoEndMinutes: '' 
+                                });
+                                setShowLiveClassModal(true);
+                            }}
+                            className="px-5 py-2.5 bg-primary hover:bg-primary-dark text-white rounded-xl font-medium transition-all duration-300 flex items-center gap-2 shadow-lg shadow-primary/20"
+                        >
+                            <Users className="w-5 h-5" />
+                            Start Adeeb Meet
                         </button>
                     </div>
                 </div>
@@ -372,15 +392,25 @@ const TeacherCourses = ({ isDashboard = false }) => {
                                 })()}
                             </div>
                             <div className="flex gap-2">
-                                <a
-                                    href={activeLiveClasses[0]?.link}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="flex-1 sm:flex-none px-4 py-2 bg-white text-red-600 rounded-lg font-bold text-xs hover:bg-gray-100 transition-colors flex items-center justify-center gap-2"
-                                >
-                                    <ExternalLink className="w-4 h-4" />
-                                    Open
-                                </a>
+                                {activeLiveClasses[0]?.link?.includes('/live-meet/') ? (
+                                    <button
+                                        onClick={() => navigate(`/live-meet/${activeLiveClasses[0].link.split('/').pop()}`)}
+                                        className="flex-1 sm:flex-none px-4 py-2 bg-white text-primary rounded-lg font-bold text-xs hover:bg-gray-100 transition-colors flex items-center justify-center gap-2"
+                                    >
+                                        <Video className="w-4 h-4" />
+                                        Open Meet
+                                    </button>
+                                ) : (
+                                    <a
+                                        href={activeLiveClasses[0]?.link}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex-1 sm:flex-none px-4 py-2 bg-white text-red-600 rounded-lg font-bold text-xs hover:bg-gray-100 transition-colors flex items-center justify-center gap-2"
+                                    >
+                                        <ExternalLink className="w-4 h-4" />
+                                        Open
+                                    </a>
+                                )}
                                 <button
                                     onClick={() => handleEndLiveClass(activeLiveClasses[0]?._id)}
                                     className="flex-1 sm:flex-none px-4 py-2 bg-red-700 text-white rounded-lg font-bold text-xs hover:bg-red-800 transition-colors flex items-center justify-center gap-2"

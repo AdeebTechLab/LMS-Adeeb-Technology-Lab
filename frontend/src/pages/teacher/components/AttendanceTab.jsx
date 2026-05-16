@@ -148,15 +148,21 @@ const AttendanceTab = ({ course, students }) => {
         // 3. Auto-save to server
         setIsSaving(true);
         try {
-            const records = students.map(student => ({
-                userId: student.id,
-                status: newMarks[student.id]?.status || 'absent'
-            }));
+            // OPTIMIZED: Only send the changed student to the backend to prevent notification storms 
+            // and reduce server load.
+            const student = students.find(s => s.id === studentId);
+            const defaultMode = (student?.attendType || '').toLowerCase().includes('online') ? 'online' : 'onsite';
+
+            const record = {
+                userId: studentId,
+                status: status,
+                mode: defaultMode
+            };
 
             await attendanceAPI.mark({
                 courseId: course._id,
                 date: selectedDate,
-                records
+                records: [record]
             });
 
             setLastSaved(new Date());

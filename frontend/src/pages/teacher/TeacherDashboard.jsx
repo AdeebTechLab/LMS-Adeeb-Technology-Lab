@@ -268,22 +268,51 @@ const TeacherDashboard = () => {
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-gradient-to-r from-primary-darkest to-primary-dark rounded-2xl p-6 text-white"
+                    className="bg-gradient-to-r from-primary-darkest to-primary-dark rounded-3xl p-6 md:p-8 text-white relative overflow-hidden group shadow-2xl shadow-primary/20"
                 >
-                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                        <div>
-                            <h2 className="text-2xl font-bold mb-2">Welcome back, {user?.name || 'Teacher'}!</h2>
-                            <p className="text-white/70">
-                                You have {myCourses.length} active courses under your management.
-                            </p>
+                    <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full -mr-48 -mt-48 blur-3xl group-hover:scale-110 transition-transform duration-700"></div>
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative z-10">
+                        <div className="flex items-center gap-5">
+                            <div className="w-16 h-16 md:w-20 md:h-20 bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/20 flex items-center justify-center shrink-0">
+                                <img src="/logo.png" alt="Logo" className="w-full h-full object-contain brightness-0 invert" />
+                            </div>
+                            <div>
+                                <div className="flex items-center gap-2 mb-1">
+                                    <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em] bg-white px-2 py-0.5 rounded-md shadow-sm">Official</span>
+                                    <h2 className="text-2xl md:text-3xl font-bold">Welcome, {user?.name || 'Teacher'}!</h2>
+                                </div>
+                                <p className="text-white/70 text-sm md:text-base font-medium">
+                                    You have <span className="text-white font-black underline decoration-primary underline-offset-4">{myCourses.length} active courses</span> under your management.
+                                </p>
+                            </div>
                         </div>
                         <div className="flex gap-2 sm:gap-3 flex-wrap">
                             <button
-                                onClick={() => setShowLiveClassModal(true)}
-                                className="px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl font-medium transition-all duration-300 flex items-center gap-2"
+                                onClick={() => {
+                                    setLiveClassForm({ title: '', link: '', description: '', visibility: 'all', autoEndMinutes: '' });
+                                    setShowLiveClassModal(true);
+                                }}
+                                className="px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl font-medium transition-all duration-300 flex items-center gap-2 shadow-lg shadow-red-500/20"
                             >
                                 <Video className="w-4 h-4" />
                                 Start Live Class
+                            </button>
+                            <button
+                                onClick={() => {
+                                    const roomId = `room-${Math.random().toString(36).substring(7)}`;
+                                    setLiveClassForm({ 
+                                        title: 'Adeeb Live Session',
+                                        link: `${window.location.origin}/live-meet/${roomId}`,
+                                        description: 'Join our private Adeeb Meet session.',
+                                        visibility: 'all',
+                                        autoEndMinutes: '' 
+                                    });
+                                    setShowLiveClassModal(true);
+                                }}
+                                className="px-5 py-2.5 bg-primary hover:bg-primary-dark text-white rounded-xl font-medium transition-all duration-300 flex items-center gap-2 shadow-lg shadow-primary/20"
+                            >
+                                <Users className="w-4 h-4" />
+                                Start Adeeb Meet
                             </button>
                             <button
                                 onClick={() => navigate('/teacher/attendance')}
@@ -583,15 +612,25 @@ const TeacherDashboard = () => {
                                             </div>
                                         </div>
                                         <div className="flex gap-2">
-                                            <a
-                                                href={lc.link}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary transition-colors flex items-center gap-2"
-                                            >
-                                                <ExternalLink className="w-4 h-4" />
-                                                Open
-                                            </a>
+                                            {lc.link?.includes('/live-meet/') ? (
+                                                <button
+                                                    onClick={() => navigate(`/live-meet/${lc.link.split('/').pop()}`)}
+                                                    className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary transition-colors flex items-center gap-2"
+                                                >
+                                                    <Video className="w-4 h-4" />
+                                                    Join Meet
+                                                </button>
+                                            ) : (
+                                                <a
+                                                    href={lc.link}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary transition-colors flex items-center gap-2"
+                                                >
+                                                    <ExternalLink className="w-4 h-4" />
+                                                    Open
+                                                </a>
+                                            )}
                                             <button
                                                 onClick={() => handleEndLiveClass(lc._id)}
                                                 className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center gap-2"
