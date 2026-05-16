@@ -279,14 +279,18 @@ const AdeebMeet = () => {
                 const stream = await navigator.mediaDevices.getDisplayMedia({ cursor: true });
                 screenStream.current = stream;
                 
-                // Replace track in all peers
-                const videoTrack = stream.getVideoTracks()[0];
+                const screenTrack = stream.getVideoTracks()[0];
+                const cameraTrack = userStream.current?.getVideoTracks()[0];
+
+                // Replace track in all active peer connections
                 peersRef.current.forEach(({ peer }) => {
-                    peer.replaceTrack(userStream.current.getVideoTracks()[0], videoTrack, userStream.current);
+                    if (peer && cameraTrack && screenTrack) {
+                        peer.replaceTrack(cameraTrack, screenTrack, userStream.current);
+                    }
                 });
 
-                // When sharing stops via browser UI
-                videoTrack.onended = () => stopScreenSharing();
+                // Handle sharing stop via browser UI button
+                screenTrack.onended = () => stopScreenSharing();
                 
                 if (userVideo.current) userVideo.current.srcObject = stream;
                 setIsScreenSharing(true);
@@ -294,19 +298,27 @@ const AdeebMeet = () => {
                 stopScreenSharing();
             }
         } catch (err) {
-            console.error('Screen sharing failed:', err);
+            console.error('Screen sharing error:', err);
+            toast.error('Failed to start screen share');
         }
     };
 
     const stopScreenSharing = () => {
         if (screenStream.current) {
             screenStream.current.getTracks().forEach(track => track.stop());
-            const videoTrack = userStream.current.getVideoTracks()[0];
+            
+            const cameraTrack = userStream.current?.getVideoTracks()[0];
+            const screenTrack = screenStream.current?.getVideoTracks()[0];
+
             peersRef.current.forEach(({ peer }) => {
-                peer.replaceTrack(screenStream.current.getVideoTracks()[0], videoTrack, userStream.current);
+                if (peer && screenTrack && cameraTrack) {
+                    peer.replaceTrack(screenTrack, cameraTrack, userStream.current);
+                }
             });
+
             if (userVideo.current) userVideo.current.srcObject = userStream.current;
             setIsScreenSharing(false);
+            screenStream.current = null;
         }
     };
 
