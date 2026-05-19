@@ -26,25 +26,39 @@ if (typeof window !== 'undefined') {
 }
 
 const createDummyVideoTrack = () => {
-    const canvas = Object.assign(document.createElement("canvas"), { width: 640, height: 480 });
-    const ctx = canvas.getContext("2d");
-    if (ctx) {
-        ctx.fillStyle = "black";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    try {
+        const canvas = Object.assign(document.createElement("canvas"), { width: 640, height: 480 });
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+            ctx.fillStyle = "black";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+        const stream = canvas.captureStream ? canvas.captureStream(10) : (canvas.webkitCaptureStream ? canvas.webkitCaptureStream(10) : null);
+        if (stream) {
+            const track = stream.getVideoTracks()[0];
+            if (track) {
+                track.enabled = false; // Start disabled
+                return track;
+            }
+        }
+        return null;
+    } catch (e) {
+        return null;
     }
-    const stream = canvas.captureStream(10);
-    const track = stream.getVideoTracks()[0];
-    track.enabled = false; // Start disabled
-    return track;
 };
 
 const createDummyAudioTrack = () => {
     try {
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return null;
+        const ctx = new AudioContext();
         const dst = ctx.createMediaStreamDestination();
         const track = dst.stream.getAudioTracks()[0];
-        track.enabled = false; // Start disabled
-        return track;
+        if (track) {
+            track.enabled = false; // Start disabled
+            return track;
+        }
+        return null;
     } catch (e) {
         return null;
     }
@@ -313,96 +327,138 @@ const AdeebMeet = () => {
 
     const toggleMute = async (force) => {
         const newState = force !== undefined ? force : !isMuted;
-        if (userStream.current && userStream.current.getAudioTracks().length > 0) {
-            const audioTrack = userStream.current.getAudioTracks()[0];
+        if (!userStream.current) return;
+
+        const audioTracks = userStream.current.getAudioTracks();
+        
+        if (!newState) {
+            // We are unmuting: try to get real audio
+            let newTrack = null;
+            try {
+                const tempStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                newTrack = tempStream.getAudioTracks()[0];
+            } catch (err) {
+                toast.error('Could not access microphone');
+                return;
+            }
             
-            if (!newState) {
-                // We are unmuting: try to get real audio
-                let newTrack = null;
-                try {
-                    const tempStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    newTrack = tempStream.getAudioTracks()[0];
-                } catch (err) {
-                    toast.error('Could not access microphone');
-                    return;
-                }
-                
-                if (newTrack) {
-                    userStream.current.removeTrack(audioTrack);
+            if (newTrack) {
+                if (audioTracks.length > 0) {
+                    const oldTrack = audioTracks[0];
+                    userStream.current.removeTrack(oldTrack);
                     userStream.current.addTrack(newTrack);
                     
                     peersRef.current.forEach(({ peer }) => {
                         if (peer && !peer.destroyed) {
-                            try { peer.replaceTrack(audioTrack, newTrack, userStream.current); } catch(e) {}
+                            try { peer.replaceTrack(oldTrack, newTrack, userStream.current); } catch(e) {}
                         }
                     });
-                    setIsMuted(false);
+                } else {
+                    userStream.current.addTrack(newTrack);
+                    peersRef.current.forEach(({ peer }) => {
+                        if (peer && !peer.destroyed) {
+                            try { peer.addTrack(newTrack, userStream.current); } catch(e) {}
+                        }
+                    });
                 }
-            } else {
-                // We are muting: replace with silent dummy track
-                const dummyTrack = createDummyAudioTrack();
+                setIsMuted(false);
+            }
+        } else {
+            // We are muting: replace with silent dummy track if possible
+            const dummyTrack = createDummyAudioTrack();
+            if (audioTracks.length > 0) {
+                const oldTrack = audioTracks[0];
                 if (dummyTrack) {
-                    userStream.current.removeTrack(audioTrack);
+                    userStream.current.removeTrack(oldTrack);
                     userStream.current.addTrack(dummyTrack);
                     
                     peersRef.current.forEach(({ peer }) => {
                         if (peer && !peer.destroyed) {
-                            try { peer.replaceTrack(audioTrack, dummyTrack, userStream.current); } catch(e) {}
+                            try { peer.replaceTrack(oldTrack, dummyTrack, userStream.current); } catch(e) {}
                         }
                     });
+                } else {
+                    oldTrack.enabled = false;
                 }
-                
-                try { audioTrack.stop(); } catch (e) {}
-                setIsMuted(true);
+                try { oldTrack.stop(); } catch (e) {}
+            } else if (dummyTrack) {
+                userStream.current.addTrack(dummyTrack);
+                peersRef.current.forEach(({ peer }) => {
+                    if (peer && !peer.destroyed) {
+                        try { peer.addTrack(dummyTrack, userStream.current); } catch(e) {}
+                    }
+                });
             }
+            setIsMuted(true);
         }
     };
 
     const toggleVideo = async () => {
-        if (userStream.current && userStream.current.getVideoTracks().length > 0) {
-            const videoTrack = userStream.current.getVideoTracks()[0];
+        if (!userStream.current) return;
+
+        const videoTracks = userStream.current.getVideoTracks();
+        
+        if (isVideoOff) {
+            // We are turning video ON: get real camera track
+            let newTrack = null;
+            try {
+                const tempStream = await navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 1280 }, height: { ideal: 720 } } });
+                newTrack = tempStream.getVideoTracks()[0];
+            } catch (err) {
+                toast.error('Could not access camera');
+                return;
+            }
             
-            if (isVideoOff) {
-                // We are turning video ON: get real camera track
-                let newTrack = null;
-                try {
-                    const tempStream = await navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 1280 }, height: { ideal: 720 } } });
-                    newTrack = tempStream.getVideoTracks()[0];
-                } catch (err) {
-                    toast.error('Could not access camera');
-                    return;
-                }
-                
-                if (newTrack) {
-                    userStream.current.removeTrack(videoTrack);
+            if (newTrack) {
+                if (videoTracks.length > 0) {
+                    const oldTrack = videoTracks[0];
+                    userStream.current.removeTrack(oldTrack);
                     userStream.current.addTrack(newTrack);
                     
                     peersRef.current.forEach(({ peer }) => {
                         if (peer && !peer.destroyed) {
-                            try { peer.replaceTrack(videoTrack, newTrack, userStream.current); } catch(e) {}
+                            try { peer.replaceTrack(oldTrack, newTrack, userStream.current); } catch(e) {}
                         }
                     });
-                    
-                    if (userVideo.current) userVideo.current.srcObject = userStream.current;
-                    setIsVideoOff(false);
-                }
-            } else {
-                // We are turning video OFF: replace with a dummy black track
-                const dummyTrack = createDummyVideoTrack();
-                if (dummyTrack) {
-                    userStream.current.removeTrack(videoTrack);
-                    userStream.current.addTrack(dummyTrack);
-                    
+                } else {
+                    userStream.current.addTrack(newTrack);
                     peersRef.current.forEach(({ peer }) => {
                         if (peer && !peer.destroyed) {
-                            try { peer.replaceTrack(videoTrack, dummyTrack, userStream.current); } catch(e) {}
+                            try { peer.addTrack(newTrack, userStream.current); } catch(e) {}
                         }
                     });
                 }
                 
-                try { videoTrack.stop(); } catch (e) {}
-                setIsVideoOff(true);
+                if (userVideo.current) userVideo.current.srcObject = userStream.current;
+                setIsVideoOff(false);
             }
+        } else {
+            // We are turning video OFF: replace with a dummy black track
+            const dummyTrack = createDummyVideoTrack();
+            if (videoTracks.length > 0) {
+                const oldTrack = videoTracks[0];
+                if (dummyTrack) {
+                    userStream.current.removeTrack(oldTrack);
+                    userStream.current.addTrack(dummyTrack);
+                    
+                    peersRef.current.forEach(({ peer }) => {
+                        if (peer && !peer.destroyed) {
+                            try { peer.replaceTrack(oldTrack, dummyTrack, userStream.current); } catch(e) {}
+                        }
+                    });
+                } else {
+                    oldTrack.enabled = false;
+                }
+                try { oldTrack.stop(); } catch (e) {}
+            } else if (dummyTrack) {
+                userStream.current.addTrack(dummyTrack);
+                peersRef.current.forEach(({ peer }) => {
+                    if (peer && !peer.destroyed) {
+                        try { peer.addTrack(dummyTrack, userStream.current); } catch(e) {}
+                    }
+                });
+            }
+            setIsVideoOff(true);
         }
     };
 
