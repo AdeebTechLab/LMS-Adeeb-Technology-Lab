@@ -73,6 +73,12 @@ router.post('/messages', protect, async (req, res) => {
         });
 
         res.status(201).json({ success: true, data: populatedMessage });
+
+        // Trigger Google Sheet auto-reply bot check asynchronously if student/user sends a message to an admin
+        if (req.user.role !== 'admin' && populatedMessage.recipient && populatedMessage.recipient.role === 'admin') {
+            const { checkGoogleSheetAndReply } = require('../utils/chatbot');
+            checkGoogleSheetAndReply(text, senderId, recipientId, req.app);
+        }
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }

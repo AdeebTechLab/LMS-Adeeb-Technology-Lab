@@ -156,7 +156,7 @@ const TaskChat = ({ taskId, currentUser }) => {
                                         {isMe ? 'You' : senderName}
                                     </span>
                                 </div>
-                                <div className={`max-w-[80%] p-3 rounded-2xl text-sm shadow-sm ${isMe
+                                <div className={`max-w-[80%] p-3 rounded-2xl text-sm shadow-sm whitespace-pre-wrap ${isMe
                                     ? 'bg-primary text-white rounded-tr-none'
                                     : 'bg-white text-gray-700 border border-gray-100 rounded-tl-none'
                                     }`}>

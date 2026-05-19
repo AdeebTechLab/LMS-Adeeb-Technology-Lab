@@ -127,7 +127,7 @@ const HelpSupport = () => {
             </p>
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold leading-tight mb-2">Adeeb Technology Lab</h1>
             <p className="text-white/80 text-xs sm:text-sm md:text-base max-w-xl leading-relaxed">
-              Website، بہاولپور کیمپس اور اسلام آباد کیمپس — مکمل سوالات و جوابات ایک جگہ
+              Website, Bahawalpur Campus, and Islamabad Campus — complete Q&A all in one place
             </p>
           </div>
         </div>
@@ -147,7 +147,7 @@ const HelpSupport = () => {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-3 mb-6 sm:mb-8">
         <a
-          href="mailto:info.pcskills@gmail.com"
+          href="mailto:info.AdeebTechLab@gmail.com"
           className={`flex items-center gap-3 p-3 sm:p-4 rounded-xl sm:rounded-2xl border transition-all active:scale-[0.99] md:hover:shadow-md md:hover:border-primary/30 ${cardClass}`}
         >
           <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center text-primary shrink-0">
@@ -156,7 +156,7 @@ const HelpSupport = () => {
           <div className="min-w-0 flex-1 text-start sm:text-end">
             <p className="text-xs text-gray-500 dark:text-white/50">Email</p>
             <p className="text-sm font-semibold truncate" dir="ltr">
-              info.pcskills@gmail.com
+              info.AdeebTechLab@gmail.com
             </p>
           </div>
         </a>
@@ -188,7 +188,7 @@ const HelpSupport = () => {
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-xs text-gray-500 dark:text-white/50">Live Chat</p>
-            <p className="text-sm font-semibold">سپورٹ چیٹ کھولیں</p>
+            <p className="text-sm font-semibold">Open Support Chat</p>
           </div>
         </button>
       </div>
@@ -203,7 +203,7 @@ const HelpSupport = () => {
           type="search"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="سوال تلاش کریں… (مثلاً admission، Web Development)"
+          placeholder="Search questions... (e.g. admission, Web Development)"
           className={`flex-1 bg-transparent border-none outline-none text-sm ${
             isDark ? 'text-white placeholder:text-white/30' : 'text-gray-800 placeholder:text-gray-400'
           }`}
@@ -215,7 +215,7 @@ const HelpSupport = () => {
             onClick={() => setSearch('')}
             className="text-xs font-medium text-primary hover:underline shrink-0"
           >
-            صاف
+            Clear
           </button>
         )}
       </div>
@@ -232,7 +232,7 @@ const HelpSupport = () => {
                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
           }`}
         >
-          تمام ({ALL_FAQ_ITEMS.length})
+          All ({ALL_FAQ_ITEMS.length})
         </button>
         {FAQ_SECTIONS.map((s) => {
           const Icon = SECTION_ICONS[s.id] || BookOpen;
@@ -259,8 +259,8 @@ const HelpSupport = () => {
       {grouped.length === 0 ? (
         <div className={`text-center py-16 rounded-2xl border ${cardClass}`}>
           <Search className="w-10 h-10 mx-auto text-gray-300 dark:text-white/20 mb-3" />
-          <p className="font-medium">کوئی سوال نہیں ملا</p>
-          <p className="text-sm text-gray-500 dark:text-white/50 mt-1">دوسرا لفظ آزمائیں</p>
+          <p className="font-medium">No questions found</p>
+          <p className="text-sm text-gray-500 dark:text-white/50 mt-1">Try another search term</p>
         </div>
       ) : (
         <div className="space-y-8">
@@ -274,9 +274,6 @@ const HelpSupport = () => {
                   </div>
                   <div>
                     <h2 className="text-lg font-bold">{section.title}</h2>
-                    <p className="text-xs text-gray-500 dark:text-white/50" dir="ltr">
-                      {section.titleEn}
-                    </p>
                   </div>
                 </div>
                 <div className="space-y-2">

@@ -585,7 +585,7 @@ const AdeebMeet = () => {
                                                 </span>
                                                 <motion.div
                                                     whileHover={{ scale: 1.01 }}
-                                                    className={`px-3 py-2 rounded-2xl text-xs max-w-[95%] ${
+                                                    className={`px-3 py-2 rounded-2xl text-xs max-w-[95%] whitespace-pre-wrap ${
                                                         msg.senderId === (user?._id || user?.id)
                                                             ? 'bg-primary text-white rounded-tr-sm'
                                                             : 'bg-white/5 border border-white/10 rounded-tl-sm'

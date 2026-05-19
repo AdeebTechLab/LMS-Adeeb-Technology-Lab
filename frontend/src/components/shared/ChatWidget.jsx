@@ -37,6 +37,7 @@ const ChatWidget = () => {
     const isOpenRef = useRef(isOpen);
     const myIdRef = useRef((user.id || user._id || '').toString());
     const adminUserRef = useRef(null);
+    const autoSendHelpPendingRef = useRef(false);
     const [incomingNotify, setIncomingNotify] = useState(null); // { senderName, text }
 
     useEffect(() => {
@@ -285,6 +286,22 @@ const ChatWidget = () => {
         }
     }, [isOpen, activeChat?.userId]);
 
+    // Set autoSendHelpPendingRef when widget is opened for non-admin users
+    useEffect(() => {
+        if (isOpen && user?.role !== 'admin') {
+            autoSendHelpPendingRef.current = true;
+        } else {
+            autoSendHelpPendingRef.current = false;
+        }
+    }, [isOpen, user?.role]);
+
+    // Auto-start chat with admin when widget is opened for non-admin users
+    useEffect(() => {
+        if (isOpen && user?.role !== 'admin' && adminUser) {
+            startChat(adminUser);
+        }
+    }, [isOpen, adminUser, user?.role]);
+
     const fetchUnreadCount = async () => {
         try {
             const res = await chatAPI.getUnread();
@@ -364,7 +381,8 @@ const ChatWidget = () => {
         setIsLoading(true);
         try {
             const res = await chatAPI.getMessages(otherUserId);
-            setMessages(res.data.data || []);
+            const fetchedMsgs = res.data.data || [];
+            setMessages(fetchedMsgs);
 
             // Mark as read and update badge
             chatAPI.markAsRead(otherUserId)
@@ -373,6 +391,21 @@ const ChatWidget = () => {
                     if (user?.role === 'admin') fetchConversations();
                 })
                 .catch(console.error);
+
+            // Auto-send "Help" if pending for non-admin support chat
+            if (autoSendHelpPendingRef.current && user?.role !== 'admin') {
+                autoSendHelpPendingRef.current = false;
+                try {
+                    const sendRes = await chatAPI.sendMessage(otherUserId, 'Help');
+                    const savedMsg = sendRes.data.data;
+                    setMessages(prev => {
+                        if (prev.some(m => m._id === savedMsg._id)) return prev;
+                        return [...prev, savedMsg];
+                    });
+                } catch (e) {
+                    console.error('Error sending auto-Help message:', e);
+                }
+            }
         } catch (error) {
             console.error('Error fetching messages:', error);
         } finally {
@@ -682,30 +715,8 @@ const ChatWidget = () => {
                                             })()}
                                         </>
                                     ) : (
-                                        <div className="text-center py-10 space-y-6 flex-1 flex flex-col justify-center">
-                                            <div className="w-20 h-20 bg-orange-100 rounded-3xl flex items-center justify-center mx-auto shadow-inner">
-                                                <ShieldCheck className="w-10 h-10 text-primary" />
-                                            </div>
-                                            <div>
-                                                <h4 className="text-lg font-bold text-gray-900">Contact Admin</h4>
-                                                <p className="text-sm text-gray-500 px-6">
-                                                    Have a question or need help with a task? Chat directly with our administration team.
-                                                </p>
-                                            </div>
-                                            <button
-                                                onClick={() => adminUser && startChat(adminUser)}
-                                                disabled={!adminUser}
-                                                className="mx-auto w-40 py-3 bg-primary hover:bg-orange-700 text-white rounded-2xl font-bold shadow-lg shadow-orange-900/10 transition-all flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50"
-                                            >
-                                                {adminUser ? (
-                                                    <>
-                                                        <MessageCircle className="w-4 h-4" />
-                                                        Chat Now
-                                                    </>
-                                                ) : (
-                                                    <ButtonLoader />
-                                                )}
-                                            </button>
+                                        <div className="flex-grow flex items-center justify-center">
+                                            <Loader message="Connecting to Support..." size="sm" />
                                         </div>
                                     )}
                                 </div>
@@ -723,7 +734,7 @@ const ChatWidget = () => {
 
                                                 return (
                                                     <div key={index} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
-                                                        <div className={`max-w-[85%] p-3.5 rounded-2xl text-[15px] shadow-sm leading-relaxed ${isMe
+                                                        <div className={`max-w-[85%] p-3.5 rounded-2xl text-[15px] shadow-sm leading-relaxed whitespace-pre-wrap ${isMe
                                                             ? 'bg-primary text-white rounded-tr-none shadow-orange-100'
                                                             : 'bg-white text-gray-800 border border-gray-100 rounded-tl-none pr-6'
                                                             }`}>
@@ -794,23 +805,24 @@ const ChatWidget = () => {
             </AnimatePresence>
 
             {/* Bubble */}
-            <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setIsOpen(!isOpen)}
-                className={`w-14 h-14 rounded-full shadow-2xl flex items-center justify-center transition-all relative ${isOpen ? 'bg-white text-primary rotate-90' : 'bg-primary text-white'
-                    }`}
-            >
-                {isOpen ? <X className="w-6 h-6" /> : <MessageCircle className="w-6 h-6" />}
-                {!isOpen && unreadCount > 0 && (
-                    <span className="absolute -top-1 -right-1 flex h-4 w-4">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-4 w-4 bg-red-500 text-white text-[10px] items-center justify-center font-bold">
-                            {unreadCount}
+            {!isOpen && (
+                <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setIsOpen(true)}
+                    className="w-16 h-16 rounded-full shadow-2xl flex items-center justify-center transition-all relative bg-transparent"
+                >
+                    <img src="/livechat.png" alt="Live Chat" className="w-full h-full object-contain" />
+                    {unreadCount > 0 && (
+                        <span className="absolute -top-1 -right-1 flex h-4 w-4">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-4 w-4 bg-red-500 text-white text-[10px] items-center justify-center font-bold">
+                                {unreadCount}
+                            </span>
                         </span>
-                    </span>
-                )}
-            </motion.button>
+                    )}
+                </motion.button>
+            )}
         </div >
     );
 };
