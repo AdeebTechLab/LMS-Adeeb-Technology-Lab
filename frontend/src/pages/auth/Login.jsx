@@ -7,8 +7,10 @@ import { loginStart, loginSuccess, loginFailure } from '../../features/auth/auth
 import { authAPI } from '../../services/api';
 import { ButtonLoader } from '../../components/ui/Loader';
 import WhatsAppWidget from '../../components/shared/WhatsAppWidget';
+import { useTranslation } from 'react-i18next';
 
 const Login = () => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const { isLoading, error } = useSelector((state) => state.auth);
@@ -25,17 +27,17 @@ const Login = () => {
     const validateForm = () => {
         const newErrors = {};
         if (!formData.email) {
-            newErrors.email = 'Email is required';
+            newErrors.email = t('auth.emailRequired');
         } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-            newErrors.email = 'Please enter a valid email';
+            newErrors.email = t('auth.emailInvalid');
         }
         if (!formData.password) {
-            newErrors.password = 'Password is required';
+            newErrors.password = t('auth.passwordRequired');
         } else if (formData.password.length < 6) {
-            newErrors.password = 'Password must be at least 6 characters';
+            newErrors.password = t('auth.passwordMin');
         }
         if (!formData.agreeTerms) {
-            newErrors.agreeTerms = 'You must agree to the terms';
+            newErrors.agreeTerms = t('auth.termsRequired');
         }
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -83,7 +85,7 @@ const Login = () => {
             else if (role === 'job') navigate('/job/tasks');
             else navigate('/student/profile');
         } catch (err) {
-            const message = err.response?.data?.message || 'Invalid email or password';
+            const message = err.response?.data?.message || t('auth.invalidCredentials');
             dispatch(loginFailure(message));
         }
     };
@@ -143,8 +145,8 @@ const Login = () => {
                         transition={{ delay: 0.5, duration: 0.5 }}
                         className="flex flex-col items-center text-center relative z-20"
                     >
-                        <h2 className="text-white text-3xl font-bold tracking-tight mb-2">Adeeb Technology Lab</h2>
-                        <p className="text-white/60 text-base">Digital tech expert software house LMS</p>
+                        <h2 className="text-white text-3xl font-bold tracking-tight mb-2">{t('app.name')}</h2>
+                        <p className="text-white/60 text-base">{t('app.tagline')}</p>
                     </motion.div>
 
                     {/* Decorative Lines */}
@@ -167,10 +169,8 @@ const Login = () => {
                         transition={{ delay: 0.2 }}
                         className="mb-8"
                     >
-                        <h1 className="text-4xl font-bold text-gray-900 mb-2">Log in</h1>
-                        <p className="text-gray-500">
-                            Welcome back! Please enter your details.
-                        </p>
+                        <h1 className="text-4xl font-bold text-gray-900 mb-2">{t('auth.login')}</h1>
+                        <p className="text-gray-500">{t('auth.welcomeBack')}</p>
                     </motion.div>
 
                     {/* Error Message */}
@@ -205,7 +205,7 @@ const Login = () => {
                             transition={{ delay: 0.4 }}
                         >
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Email Address
+                                {t('auth.email')}
                             </label>
                             <div className="relative">
                                 <input
@@ -231,7 +231,7 @@ const Login = () => {
                             transition={{ delay: 0.5 }}
                         >
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Password
+                                {t('auth.password')}
                             </label>
                             <div className="relative">
                                 <input
@@ -278,7 +278,7 @@ const Login = () => {
                                     className="h-4 w-4 text-gray-900 focus:ring-gray-500 border-gray-300 rounded cursor-pointer"
                                 />
                                 <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700 cursor-pointer select-none">
-                                    Remember me
+                                    {t('auth.rememberMe')}
                                 </label>
                             </div>
 
@@ -286,7 +286,7 @@ const Login = () => {
                                 to="/forgot-password"
                                 className="text-sm text-gray-600 hover:text-primary underline transition-colors"
                             >
-                                Forgot Password?
+                                {t('auth.forgotPassword')}
                             </Link>
                         </motion.div>
 
@@ -300,13 +300,13 @@ const Login = () => {
                             className="w-full py-4 bg-gray-900 hover:bg-black text-white font-bold rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-70 disabled:cursor-not-allowed active:scale-95"
                         >
                             <ButtonLoader isLoading={isLoading}>
-                                {isLoading ? 'Signing in...' : 'Log in'}
+                                {isLoading ? t('auth.signingIn') : t('auth.login')}
                             </ButtonLoader>
                         </motion.button>
 
                         <div className="relative flex py-2 items-center">
                             <div className="flex-grow border-t border-gray-200"></div>
-                            <span className="flex-shrink-0 mx-4 text-gray-400 text-xs font-bold uppercase tracking-widest">Or</span>
+                            <span className="flex-shrink-0 mx-4 text-gray-400 text-xs font-bold uppercase tracking-widest">{t('auth.or')}</span>
                             <div className="flex-grow border-t border-gray-200"></div>
                         </div>
 
@@ -318,7 +318,7 @@ const Login = () => {
                                 type="button"
                                 className="w-full py-4 bg-white text-gray-900 font-bold rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 border-2 border-gray-900 active:scale-95"
                             >
-                                <span>Create an Account</span>
+                                <span>{t('auth.createAccount')}</span>
                             </motion.button>
                         </Link>
 

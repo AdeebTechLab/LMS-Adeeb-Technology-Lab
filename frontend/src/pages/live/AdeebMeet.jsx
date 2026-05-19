@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
     Video,
     VideoOff,
@@ -28,6 +28,8 @@ import {
     getSocketURL,
     resolveAvatarUrl,
 } from '../../lib/adeebMeet/webrtcConfig';
+import { AudioLevelMonitor } from '../../lib/adeebMeet/audioLevelMonitor';
+import { playChatNotificationSound } from '../../lib/adeebMeet/chatNotify';
 import { enrollmentAPI } from '../../services/api';
 
 const SOCKET_URL = getSocketURL();
@@ -50,13 +52,22 @@ const AdeebMeet = () => {
     const [participants, setParticipants] = useState([]);
     const [connectionStatus, setConnectionStatus] = useState('connecting');
     const [myCourses, setMyCourses] = useState('');
+    const [activeSpeakerId, setActiveSpeakerId] = useState(null);
+    const [audioLevels, setAudioLevels] = useState({});
+    const [peerScreenShare, setPeerScreenShare] = useState({});
+    const [screenFocusOn, setScreenFocusOn] = useState(false);
+    const [unreadChat, setUnreadChat] = useState(0);
+    const myUserId = user?._id || user?.id;
     const socketRef = useRef(null);
+    const audioMonitorRef = useRef(null);
     const managerRef = useRef(null);
     const userVideoRef = useRef(null);
     const userStreamRef = useRef(null);
     const screenStreamRef = useRef(null);
     const chatEndRef = useRef(null);
     const mainContainerRef = useRef(null);
+    const showChatRef = useRef(showChat);
+    showChatRef.current = showChat;
 
     const isTeacher = role === 'teacher' || role === 'admin';
 
@@ -69,8 +80,17 @@ const AdeebMeet = () => {
         screenStreamRef.current?.getTracks().forEach((t) => t.stop());
         userStreamRef.current = null;
         screenStreamRef.current = null;
+        audioMonitorRef.current?.stop();
         navigate(`/${role}/dashboard`);
     }, [navigate, role]);
+
+    const appendMessage = useCallback((data) => {
+        if (!data?.messageId) return;
+        setMessages((prev) => {
+            if (prev.some((m) => m.messageId === data.messageId)) return prev;
+            return [...prev, data];
+        });
+    }, []);
 
     useEffect(() => {
         if (!user || !roomName) return;
@@ -149,6 +169,14 @@ const AdeebMeet = () => {
                         localStream: stream,
                         onPeersChange: setPeers,
                         onParticipantsChange: setParticipants,
+                        onScreenShareChange: ({ socketId, active }) => {
+                            if (!socketId) return;
+                            setPeerScreenShare((prev) => ({
+                                ...prev,
+                                [socketId]: active,
+                            }));
+                            if (active) setScreenFocusOn(true);
+                        },
                     });
                     manager.onClassEnded = onClassEnded;
                     manager.onKicked = onKicked;
@@ -166,7 +194,12 @@ const AdeebMeet = () => {
                 });
 
                 socket.on('classroom_message', (data) => {
-                    setMessages((prev) => [...prev, data]);
+                    appendMessage(data);
+                    const fromSelf = data.senderId === myUserId;
+                    if (!fromSelf && !showChatRef.current) {
+                        setUnreadChat((n) => n + 1);
+                        playChatNotificationSound();
+                    }
                 });
 
                 socket.on('classroom_media_state', ({ socketId, isMuted, isVideoOff }) => {
@@ -199,22 +232,59 @@ const AdeebMeet = () => {
             managerRef.current?.destroy();
             socketRef.current?.disconnect();
             userStreamRef.current?.getTracks().forEach((t) => t.stop());
+            audioMonitorRef.current?.stop();
         };
-    }, [roomName, user, role, leaveClass]);
+    }, [roomName, user, role, leaveClass, appendMessage, myUserId]);
+
+    useEffect(() => {
+        if (!userStreamRef.current && !peers.length) return;
+
+        if (!audioMonitorRef.current) {
+            audioMonitorRef.current = new AudioLevelMonitor((levels, loudestId) => {
+                setAudioLevels(levels);
+                setActiveSpeakerId(loudestId);
+            });
+        }
+
+        const monitor = audioMonitorRef.current;
+        const localStream = userStreamRef.current;
+        const localAudio = localStream?.getAudioTracks()[0];
+        if (localAudio?.enabled) {
+            monitor.addStream('local', localStream);
+        } else {
+            monitor.removeStream('local');
+        }
+        peers.forEach((p) => monitor.addStream(p.peerId, p.remoteStream));
+        monitor.start();
+
+        return () => {};
+    }, [peers]);
+
+    useEffect(
+        () => () => {
+            audioMonitorRef.current?.stop();
+            audioMonitorRef.current = null;
+        },
+        []
+    );
 
     useEffect(() => {
         chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
 
-    const toggleMute = () => {
+    const toggleMute = async () => {
         const next = !isMuted;
-        managerRef.current?.setMuted(next);
-        setIsMuted(next);
-        socketRef.current?.emit('classroom_media_state', {
-            roomId: roomName,
-            isMuted: next,
-            isVideoOff
-        });
+        try {
+            await managerRef.current?.setMuted(next);
+            setIsMuted(next);
+            socketRef.current?.emit('classroom_media_state', {
+                roomId: roomName,
+                isMuted: next,
+                isVideoOff,
+            });
+        } catch (err) {
+            toast.error(err.message || 'Microphone unavailable');
+        }
     };
 
     const toggleVideo = () => {
@@ -238,6 +308,7 @@ const AdeebMeet = () => {
                     userVideoRef.current.srcObject = displayStream;
                 }
                 setIsScreenSharing(true);
+                setScreenFocusOn(true);
                 toast.success('Screen sharing started');
             } else {
                 await managerRef.current.stopScreenShare();
@@ -246,6 +317,7 @@ const AdeebMeet = () => {
                     userVideoRef.current.srcObject = userStreamRef.current;
                 }
                 setIsScreenSharing(false);
+                setScreenFocusOn(false);
             }
         } catch (err) {
             console.error(err);
@@ -257,15 +329,16 @@ const AdeebMeet = () => {
         e.preventDefault();
         if (!newMessage.trim() || !managerRef.current) return;
         const data = {
+            messageId: `${socketRef.current?.id || 'local'}-${Date.now()}`,
             roomId: roomName,
             text: newMessage.trim(),
-            senderId: user?._id || user?.id,
+            senderId: myUserId,
             senderName: user?.name,
             senderPhoto: user?.photo,
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         };
         managerRef.current.sendChatMessage(roomName, data);
-        setMessages((prev) => [...prev, data]);
+        appendMessage(data);
         setNewMessage('');
     };
 
@@ -285,19 +358,41 @@ const AdeebMeet = () => {
         }
     };
 
-    const totalTiles = 1 + peers.length;
-    const gridClass =
-        layout === 'grid'
-            ? totalTiles === 1
-                ? 'grid-cols-1 max-w-4xl mx-auto'
-                : totalTiles === 2
-                  ? 'grid-cols-1 md:grid-cols-2'
-                  : totalTiles <= 4
-                    ? 'grid-cols-1 md:grid-cols-2'
-                    : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
-            : 'grid-cols-1';
+    const mySocketId = socketRef.current?.id;
+    const screenSharerId =
+        screenFocusOn &&
+        (isScreenSharing
+            ? mySocketId
+            : peers.find((p) => peerScreenShare[p.peerId] || p.isScreenSharing)?.peerId);
+
+    const orderedPeers = [...peers].sort((a, b) => {
+        if (a.peerId === activeSpeakerId) return -1;
+        if (b.peerId === activeSpeakerId) return 1;
+        return 0;
+    });
+
+    const localSpeaking = activeSpeakerId === 'local';
+    const localLevel = audioLevels.local ?? 0;
 
     const avatar = (photo, name) => resolveAvatarUrl(photo, name, SOCKET_URL);
+
+    const renderLocalTile = (className = '') => (
+        <VideoTile
+            stream={isScreenSharing ? screenStreamRef.current : userStreamRef.current}
+            name={`You${isTeacher ? ' (Teacher)' : ''}`}
+            isMuted={isMuted}
+            isVideoOff={isVideoOff && !isScreenSharing}
+            isLocal
+            isScreenShare={isScreenSharing}
+            videoRef={userVideoRef}
+            avatarUrl={avatar(user?.photo, user?.name)}
+            rollNo={user?.rollNo || user?.rollNumber || null}
+            course={isTeacher ? null : myCourses}
+            isSpeaking={localSpeaking}
+            audioLevel={localLevel}
+            className={className}
+        />
+    );
 
     return (
         <motion.div
@@ -366,29 +461,67 @@ const AdeebMeet = () => {
 
             <main className="flex-1 flex overflow-hidden min-h-0">
                 <div className="flex-1 p-3 md:p-4 overflow-y-auto min-h-0">
-                    <div className={`grid gap-3 md:gap-4 ${gridClass}`}>
-                        <VideoTile
-                            stream={isScreenSharing ? screenStreamRef.current : userStreamRef.current}
-                            name={`You${isTeacher ? ' (Teacher)' : ''}`}
-                            photo={user?.photo}
-                            isMuted={isMuted}
-                            isVideoOff={isVideoOff && !isScreenSharing}
-                            isLocal
-                            isScreenShare={isScreenSharing}
-                            videoRef={userVideoRef}
-                            avatarUrl={avatar(user?.photo, user?.name)}
-                            rollNo={user?.rollNo || user?.rollNumber || null}
-                            course={isTeacher ? null : myCourses}
-                        />
-
-                        {peers.map((peer) => (
-                            <RemoteVideoTile
-                                key={peer.peerId}
-                                peer={peer}
-                                avatarUrl={avatar(peer.userDetails?.photo, peer.userDetails?.name)}
-                            />
-                        ))}
-                    </div>
+                    {screenSharerId ? (
+                        <div className="flex flex-col lg:flex-row gap-3 min-h-[50vh]">
+                            <div className="flex-1 min-h-[280px]">
+                                {screenSharerId === mySocketId
+                                    ? renderLocalTile('h-full min-h-[280px] !aspect-auto')
+                                    : (() => {
+                                          const sp = peers.find((p) => p.peerId === screenSharerId);
+                                          return sp ? (
+                                              <RemoteVideoTile
+                                                  peer={sp}
+                                                  avatarUrl={avatar(sp.userDetails?.photo, sp.userDetails?.name)}
+                                                  isSpeaking={activeSpeakerId === screenSharerId}
+                                                  audioLevel={audioLevels[screenSharerId] ?? 0}
+                                                  className="h-full min-h-[280px] !aspect-auto"
+                                                  isScreenShare
+                                              />
+                                          ) : null;
+                                      })()}
+                            </div>
+                            <div className="lg:w-52 flex lg:flex-col gap-2 overflow-x-auto lg:overflow-y-auto pb-1">
+                                {screenSharerId !== mySocketId &&
+                                    renderLocalTile('!aspect-video min-w-[140px] lg:min-w-0 shrink-0')}
+                                {orderedPeers
+                                    .filter((p) => p.peerId !== screenSharerId)
+                                    .map((peer) => (
+                                        <RemoteVideoTile
+                                            key={peer.peerId}
+                                            peer={peer}
+                                            avatarUrl={avatar(peer.userDetails?.photo, peer.userDetails?.name)}
+                                            isSpeaking={activeSpeakerId === peer.peerId}
+                                            audioLevel={audioLevels[peer.peerId] ?? 0}
+                                            className="!aspect-video min-w-[140px] lg:min-w-0 shrink-0"
+                                        />
+                                    ))}
+                            </div>
+                        </div>
+                    ) : (
+                        <div
+                            className={`grid gap-3 md:gap-4 ${
+                                layout === 'grid'
+                                    ? 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-3'
+                                    : 'grid-cols-1 max-w-3xl mx-auto'
+                            }`}
+                        >
+                            {localSpeaking
+                                ? renderLocalTile('sm:col-span-2 ring-2 ring-primary/50')
+                                : renderLocalTile()}
+                            {orderedPeers.map((peer) => (
+                                <RemoteVideoTile
+                                    key={peer.peerId}
+                                    peer={peer}
+                                    avatarUrl={avatar(peer.userDetails?.photo, peer.userDetails?.name)}
+                                    isSpeaking={activeSpeakerId === peer.peerId}
+                                    audioLevel={audioLevels[peer.peerId] ?? 0}
+                                    className={
+                                        activeSpeakerId === peer.peerId ? 'sm:col-span-2 ring-2 ring-primary/50' : ''
+                                    }
+                                />
+                            ))}
+                        </div>
+                    )}
                 </div>
 
                 <AnimatePresence>
@@ -440,9 +573,9 @@ const AdeebMeet = () => {
                                                 No messages yet. Say hello!
                                             </p>
                                         )}
-                                        {messages.map((msg, i) => (
+                                        {messages.map((msg) => (
                                             <motion.div
-                                                key={`${msg.time}-${i}`}
+                                                key={msg.messageId || `${msg.senderId}-${msg.time}-${msg.text}`}
                                                 initial={{ opacity: 0, y: 8 }}
                                                 animate={{ opacity: 1, y: 0 }}
                                                 className={`flex flex-col ${msg.senderId === (user?._id || user?.id) ? 'items-end' : 'items-start'}`}
@@ -541,21 +674,39 @@ const AdeebMeet = () => {
                         accent={isScreenSharing}
                         label={isScreenSharing ? 'Stop share' : 'Share screen'}
                     />
-                    <motion.div className="w-px h-8 bg-white/10 mx-1 hidden sm:block" />
+                    {(isScreenSharing || peers.some((p) => peerScreenShare[p.peerId])) && (
+                        <ControlBtn
+                            onClick={() => setScreenFocusOn((v) => !v)}
+                            active={screenFocusOn}
+                            icon={Monitor}
+                            label={screenFocusOn ? 'Exit focus' : 'Focus screen'}
+                        />
+                    )}
+                    <div className="w-px h-8 bg-white/10 mx-1 hidden sm:block" />
                     <ControlBtn
                         onClick={() => setLayout(layout === 'grid' ? 'sidebar' : 'grid')}
                         icon={layout === 'grid' ? SidebarIcon : LayoutGrid}
                         label="Layout"
                     />
-                    <ControlBtn
-                        onClick={() => {
-                            setShowChat((c) => !c);
-                            if (!showChat) setShowParticipants(false);
-                        }}
-                        active={showChat}
-                        icon={MessageSquare}
-                        label="Chat"
-                    />
+                    <div className="relative">
+                        <ControlBtn
+                            onClick={() => {
+                                setShowChat((c) => !c);
+                                if (!showChat) {
+                                    setShowParticipants(false);
+                                    setUnreadChat(0);
+                                }
+                            }}
+                            active={showChat}
+                            icon={MessageSquare}
+                            label="Chat"
+                        />
+                        {unreadChat > 0 && !showChat && (
+                            <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 bg-rose-500 text-white text-[9px] font-black rounded-full flex items-center justify-center">
+                                {unreadChat > 9 ? '9+' : unreadChat}
+                            </span>
+                        )}
+                    </div>
                     <ControlBtn
                         onClick={() => {
                             setShowParticipants((p) => !p);
@@ -600,6 +751,16 @@ const AdeebMeet = () => {
     );
 };
 
+const AudioWave = ({ active }) =>
+    active ? (
+        <div className="audio-wave shrink-0" aria-hidden>
+            <span />
+            <span />
+            <span />
+            <span />
+        </div>
+    ) : null;
+
 const VideoTile = ({
     stream,
     name,
@@ -611,6 +772,9 @@ const VideoTile = ({
     avatarUrl,
     rollNo,
     course,
+    isSpeaking = false,
+    audioLevel = 0,
+    className = '',
 }) => {
     const internalRef = useRef(null);
     const ref = videoRef || internalRef;
@@ -621,29 +785,32 @@ const VideoTile = ({
         }
     }, [stream, ref]);
 
+    const showWave = (isSpeaking || audioLevel > 0.12) && !isMuted;
+
     return (
-        <motion.div
-            layout
-            initial={{ opacity: 0, scale: 0.96 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="relative bg-white/5 rounded-2xl md:rounded-3xl overflow-hidden border border-white/10 aspect-video min-h-[180px] group shadow-xl"
+        <div
+            className={`relative bg-white/5 rounded-2xl md:rounded-3xl overflow-hidden border border-white/10 aspect-video min-h-[180px] group shadow-lg ${isSpeaking ? 'meet-tile-speaking' : ''} ${className}`}
         >
             <video
                 ref={ref}
                 autoPlay
                 playsInline
                 muted={isLocal}
-                className={`w-full h-full object-cover bg-[#1a1a1a] ${isLocal && !isScreenShare ? 'mirror' : ''}`}
+                disablePictureInPicture
+                className={`w-full h-full object-cover bg-[#1a1a1a] ${isLocal && !isScreenShare ? 'mirror' : ''} ${isScreenShare ? 'object-contain' : ''}`}
             />
-            <div className="absolute bottom-3 left-3 flex items-center gap-2 px-2.5 py-1 bg-black/50 backdrop-blur-md rounded-lg border border-white/10 z-10">
-                <img src={avatarUrl} alt="" className="w-5 h-5 rounded-full object-cover" />
-                <span className="text-[10px] font-bold truncate max-w-[140px]">{name}</span>
-                {isMuted && <MicOff className="w-3 h-3 text-red-400 shrink-0" />}
-                {isScreenShare && (
-                    <span className="text-[8px] bg-emerald-500/80 px-1 rounded uppercase font-black">
-                        Screen
-                    </span>
-                )}
+            <div className="absolute bottom-3 left-3 right-3 flex items-end justify-between gap-2 z-10 pointer-events-none">
+                <div className="flex items-center gap-2 px-2.5 py-1 bg-black/50 rounded-lg border border-white/10 min-w-0 pointer-events-auto">
+                    <img src={avatarUrl} alt="" className="w-5 h-5 rounded-full object-cover shrink-0" />
+                    <span className="text-[10px] font-bold truncate max-w-[120px]">{name}</span>
+                    {isMuted && <MicOff className="w-3 h-3 text-red-400 shrink-0" />}
+                    {isScreenShare && (
+                        <span className="text-[8px] bg-emerald-500/80 px-1 rounded uppercase font-black shrink-0">
+                            Screen
+                        </span>
+                    )}
+                </div>
+                <AudioWave active={showWave} />
             </div>
             <AnimatePresence>
                 {isVideoOff && (
@@ -682,11 +849,20 @@ const VideoTile = ({
                     </motion.div>
                 )}
             </AnimatePresence>
-        </motion.div>
+        </div>
     );
 };
 
-const RemoteVideoTile = ({ peer, avatarUrl }) => {
+const RemoteVideoTile = ({
+    peer,
+    avatarUrl,
+    isSpeaking = false,
+    audioLevel = 0,
+    className = '',
+    isScreenShare = false,
+}) => {
+    if (!peer) return null;
+
     const videoRef = useRef(null);
     const [isMuted, setIsMuted] = useState(true);
     const [isVideoOff, setIsVideoOff] = useState(false);
@@ -733,10 +909,14 @@ const RemoteVideoTile = ({ peer, avatarUrl }) => {
             name={`${name}${isTeacherPeer ? ' (Teacher)' : ''}`}
             isMuted={displayIsMuted}
             isVideoOff={displayIsVideoOff}
+            isScreenShare={isScreenShare || peer.isScreenSharing}
             videoRef={videoRef}
             avatarUrl={avatarUrl}
             rollNo={peer.userDetails?.rollNo}
             course={peer.userDetails?.course}
+            isSpeaking={isSpeaking}
+            audioLevel={audioLevel}
+            className={className}
         />
     );
 };

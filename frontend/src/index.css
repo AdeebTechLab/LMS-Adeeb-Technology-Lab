@@ -1,13 +1,99 @@
-/* Google Fonts - Inter */
+/* Google Fonts - Inter + Urdu */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+.urdu-text {
+  font-family: 'Noto Nastaliq Urdu', 'Segoe UI', Tahoma, 'Inter', sans-serif;
+}
+
+.hindi-text {
+  font-family: 'Noto Sans Devanagari', 'Segoe UI', 'Inter', sans-serif;
+}
+
+.arabic-text {
+  font-family: 'Noto Sans Arabic', 'Segoe UI', 'Inter', sans-serif;
+}
+
+/* RTL layout helpers when Urdu / Arabic selected */
+html.lang-rtl body {
+  text-align: right;
+}
+
+html.lang-rtl .sidebar-nav-item,
+html.lang-rtl input,
+html.lang-rtl textarea {
+  text-align: inherit;
+}
+
+/* Horizontal scroll strips (Settings themes, Help FAQ filters) */
+.scrollbar-thin {
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  height: 4px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 999px;
+}
+
+.dark .scrollbar-thin::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.snap-x-mandatory {
+  scroll-snap-type: x mandatory;
+}
+
+.snap-start {
+  scroll-snap-align: start;
+}
+
 /* Adeeb Meet — local camera mirror */
 .adeeb-meet video.mirror {
   transform: scaleX(-1);
+}
+
+.adeeb-meet video {
+  transform: translateZ(0);
+}
+
+.adeeb-meet .meet-tile-speaking {
+  border-color: rgba(255, 142, 1, 0.85);
+  box-shadow: 0 0 0 2px rgba(255, 142, 1, 0.35);
+}
+
+.adeeb-meet .audio-wave {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 14px;
+}
+
+.adeeb-meet .audio-wave span {
+  width: 3px;
+  border-radius: 2px;
+  background: #4ade80;
+  animation: adeeb-wave 0.55s ease-in-out infinite;
+}
+
+.adeeb-meet .audio-wave span:nth-child(1) { animation-delay: 0s; height: 35%; }
+.adeeb-meet .audio-wave span:nth-child(2) { animation-delay: 0.08s; height: 65%; }
+.adeeb-meet .audio-wave span:nth-child(3) { animation-delay: 0.16s; height: 45%; }
+.adeeb-meet .audio-wave span:nth-child(4) { animation-delay: 0.24s; height: 80%; }
+
+@keyframes adeeb-wave {
+  0%, 100% { transform: scaleY(0.45); opacity: 0.65; }
+  50% { transform: scaleY(1); opacity: 1; }
 }
 
 
@@ -91,9 +177,76 @@
   --border-sidebar: rgba(255, 255, 255, 0.1);
   --text-sidebar: #FFFFFF;
   --text-sidebar-muted: rgba(255, 255, 255, 0.6);
+
+  /* Button/link text on primary backgrounds */
+  --primary-foreground: #ffffff;
 }
 
-/* Theme Overrides */
+/* Theme 2 — Luxury Gold */
+.theme-gold {
+  --primary: #f5d7a5;
+  --primary-dark: #f5d7a5;
+  --primary-darkest: #6b3d25;
+  --primary-light: #fae8ca;
+  --primary-lighter: #fff5e6;
+  --primary-foreground: #65371d;
+
+  --secondary: #6b3d25;
+  --secondary-light: #8b5a3a;
+  --secondary-dark: #4a2a1a;
+
+  --bg-main: #F8FAFC;
+  --bg-card: #FFFFFF;
+  --bg-sidebar: #6b3d25;
+  --bg-sidebar-light: #8b5a3a;
+  --bg-sidebar-dark: #4a2a1a;
+  --border-sidebar: rgba(255, 255, 255, 0.1);
+  --text-sidebar: #FFFFFF;
+  --text-sidebar-muted: rgba(255, 255, 255, 0.65);
+
+  --text-primary: #65371d;
+  --text-secondary: #8b6348;
+  --text-muted: #f4e6d9;
+  --text-light: #FFFFFF;
+
+  --brand-blue-500: #f5d7a5;
+  --brand-blue-600: #d4b88d;
+  --brand-blue-700: #6b3d25;
+}
+
+/* Theme 3 — Olive Garden */
+.theme-olive {
+  --primary: #678018;
+  --primary-dark: #678018;
+  --primary-darkest: #324321;
+  --primary-light: #83a022;
+  --primary-lighter: #a0c230;
+  --primary-foreground: #ffffff;
+
+  --secondary: #324321;
+  --secondary-light: #4a5f30;
+  --secondary-dark: #253218;
+
+  --bg-main: #F8FAFC;
+  --bg-card: #FFFFFF;
+  --bg-sidebar: #324321;
+  --bg-sidebar-light: #4a5f30;
+  --bg-sidebar-dark: #253218;
+  --border-sidebar: rgba(255, 255, 255, 0.1);
+  --text-sidebar: #FFFFFF;
+  --text-sidebar-muted: rgba(255, 255, 255, 0.65);
+
+  --text-primary: #2f401e;
+  --text-secondary: #5a6b42;
+  --text-muted: #ecf0d5;
+  --text-light: #FFFFFF;
+
+  --brand-blue-500: #678018;
+  --brand-blue-600: #4d6112;
+  --brand-blue-700: #324321;
+}
+
+/* Theme 4 — Midnight Navy */
 .theme-navy {
   --primary: #1154bd;
   --primary-dark: #1154bd;
@@ -134,10 +287,17 @@
   --text-sidebar: #FFFFFF;
   --text-sidebar-muted: rgba(255, 255, 255, 0.6);
 
+  --bg-main: #F8FAFC;
+  --bg-card: #FFFFFF;
+  --primary-foreground: #ffffff;
+
   --text-primary: #0b2c5f;
-  --text-secondary: #ecf0d5;
+  --text-secondary: #5a7199;
+  --text-muted: #94a3b8;
+  --text-light: #FFFFFF;
 }
 
+/* Theme 5 — Royal Lavender */
 .theme-lavender {
   --primary: #fedef6;
   --primary-dark: #fedef6;
@@ -146,8 +306,9 @@
   --primary-lighter: #ffffff;
 
   --secondary: #6841c2;
-  --secondary-light: #fedef6;
+  --secondary-light: #9b84ec;
   --secondary-dark: #4e3192;
+  --primary-foreground: #4e2bab;
 
   --brand-blue-50: #f5f3ff;
   --brand-blue-100: #ede9fe;
@@ -178,10 +339,15 @@
   --text-sidebar: #FFFFFF;
   --text-sidebar-muted: rgba(255, 255, 255, 0.6);
 
+  --bg-main: #F8FAFC;
+  --bg-card: #FFFFFF;
+
   --text-primary: #4e2bab;
   --text-secondary: #9b84ec;
+  --text-light: #FFFFFF;
 }
 
+/* Theme 6 — Rose Petal */
 .theme-rose-pink {
   --primary: #f83c93;
   --primary-dark: #f83c93;
@@ -222,98 +388,22 @@
   --text-sidebar: #FFFFFF;
   --text-sidebar-muted: rgba(255, 255, 255, 0.6);
 
+  --bg-main: #F8FAFC;
+  --bg-card: #FFFFFF;
+  --primary-foreground: #ffffff;
+
   --text-primary: #920d3e;
-  --text-secondary: #f83c93;
+  --text-secondary: #c42d65;
+  --text-light: #FFFFFF;
 }
 
-.theme-olive {
-  --primary: #678018;
-  --primary-dark: #678018;
-  --primary-darkest: #324321;
-  --primary-light: #83a022;
-  --primary-lighter: #a0c230;
-
-  --secondary: #324321;
-  --secondary-light: #678018;
-  --secondary-dark: #182110;
-
-  --brand-blue-50: #ecfdf5;
-  --brand-blue-100: #d1fae5;
-  --brand-blue-200: #a7f3d0;
-  --brand-blue-300: #6ee7b7;
-  --brand-blue-400: #34d399;
-  --brand-blue-500: #678018;
-  --brand-blue-600: #4d6112;
-  --brand-blue-700: #324321;
-  --brand-blue-800: #253218;
-  --brand-blue-900: #182110;
-
-  --brand-secondary-50: #ecfeff;
-  --brand-secondary-100: #cffafe;
-  --brand-secondary-200: #a5f3fc;
-  --brand-secondary-300: #67e8f9;
-  --brand-secondary-400: #22d3ee;
-  --brand-secondary-500: #06b6d4;
-  --brand-secondary-600: #0891b2;
-  --brand-secondary-700: #0e7490;
-  --brand-secondary-800: #155e75;
-  --brand-secondary-900: #164e63;
-
-  --bg-sidebar: #324321;
-  --bg-sidebar-light: #678018;
-  --bg-sidebar-dark: #253218;
-  --border-sidebar: rgba(255, 255, 255, 0.1);
-  --text-sidebar: #FFFFFF;
-  --text-sidebar-muted: rgba(255, 255, 255, 0.6);
-
-  --text-primary: #2f401e;
-  --text-secondary: #ecf0d5;
+/* Readable label on primary-colored buttons (Gold & Lavender) */
+.bg-primary.text-white,
+button.bg-primary.text-white,
+a.bg-primary.text-white,
+.hover\:bg-primary:hover.hover\:text-white {
+  color: var(--primary-foreground) !important;
 }
-
-.theme-gold {
-  --primary: #f5d7a5;
-  --primary-dark: #f5d7a5;
-  --primary-darkest: #6b3d25;
-  --primary-light: #fae8ca;
-  --primary-lighter: #fff5e6;
-
-  --secondary: #6b3d25;
-  --secondary-light: #d4b88d;
-  --secondary-dark: #4a2a1a;
-
-  --brand-blue-50: #fffbeb;
-  --brand-blue-100: #fef3c7;
-  --brand-blue-200: #fde68a;
-  --brand-blue-300: #fcd34d;
-  --brand-blue-400: #fbbf24;
-  --brand-blue-500: #f5d7a5;
-  --brand-blue-600: #d4b88d;
-  --brand-blue-700: #6b3d25;
-  --brand-blue-800: #4a2a1a;
-  --brand-blue-900: #29170e;
-
-  --brand-secondary-50: #fafaf9;
-  --brand-secondary-100: #f5f5f4;
-  --brand-secondary-200: #e7e5e4;
-  --brand-secondary-300: #d6d3d1;
-  --brand-secondary-400: #a8a29e;
-  --brand-secondary-500: #78716c;
-  --brand-secondary-600: #57534e;
-  --brand-secondary-700: #44403c;
-  --brand-secondary-800: #292524;
-  --brand-secondary-900: #1c1917;
-
-  --bg-sidebar: #6b3d25;
-  --bg-sidebar-light: #d4b88d;
-  --bg-sidebar-dark: #4a2a1a;
-  --border-sidebar: rgba(255, 255, 255, 0.1);
-  --text-sidebar: #FFFFFF;
-  --text-sidebar-muted: rgba(255, 255, 255, 0.6);
-
-  --text-primary: #65371d;
-  --text-secondary: #f4e6d9;
-}
-
 
 /* ============================================================
    BRAND BLUE — Global remap: emerald / green / teal utilities

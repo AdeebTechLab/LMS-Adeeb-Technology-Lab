@@ -58,6 +58,7 @@ import CertificateVerification from './pages/public/CertificateVerification';
 
 // Settings Page
 import Settings from './pages/settings/Settings';
+import HelpSupport from './pages/support/HelpSupport';
 
 // Live Class Page
 import AdeebMeet from './pages/live/AdeebMeet';
@@ -145,6 +146,7 @@ const AppRoutes = () => {
         <Route path="directory" element={<StudentDirectory />} />
         <Route path="teacher-directory" element={<TeacherDirectory />} />
         <Route path="settings" element={<Settings />} />
+        <Route path="help-support" element={<HelpSupport />} />
       </Route>
 
       {/* Public Verification Route */}
@@ -163,6 +165,7 @@ const AppRoutes = () => {
         <Route path="course/:id" element={<AttendanceSheet />} />
         <Route path="certificates" element={<TeacherCertificates />} />
         <Route path="settings" element={<Settings />} />
+        <Route path="help-support" element={<HelpSupport />} />
       </Route>
 
       {/* Student Routes */}
@@ -178,6 +181,7 @@ const AppRoutes = () => {
         <Route path="assignments" element={<AssignmentSubmission />} />
         <Route path="marks" element={<MarksSheet />} />
         <Route path="settings" element={<Settings />} />
+        <Route path="help-support" element={<HelpSupport />} />
       </Route>
 
       {/* Intern Routes */}
@@ -193,6 +197,7 @@ const AppRoutes = () => {
         <Route path="assignments" element={<AssignmentSubmission />} />
         <Route path="marks" element={<MarksSheet />} />
         <Route path="settings" element={<Settings />} />
+        <Route path="help-support" element={<HelpSupport />} />
       </Route>
 
       {/* Job Routes - Paid Tasks System */}
@@ -204,6 +209,7 @@ const AppRoutes = () => {
         <Route path="tasks" element={<BrowseTasks />} />
         <Route path="profile" element={<JobProfile />} />
         <Route path="settings" element={<Settings />} />
+        <Route path="help-support" element={<HelpSupport />} />
       </Route>
 
       <Route

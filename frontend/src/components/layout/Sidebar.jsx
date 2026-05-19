@@ -26,11 +26,13 @@ import {
 } from 'lucide-react';
 import { logout, loginSuccess } from '../../features/auth/authSlice';
 import { userAPI, authAPI } from '../../services/api';
+import { useTranslation } from 'react-i18next';
 import ProfileAvatar from '../ui/ProfileAvatar';
 import Loader, { ButtonLoader } from '../ui/Loader';
 import SocialLinks from '../shared/SocialLinks';
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const location = useLocation();
     const dispatch = useDispatch();
@@ -92,7 +94,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             }
         } catch (err) {
             console.error('Role switch error:', err);
-            alert(err.response?.data?.message || 'Failed to switch roles.');
+            alert(err.response?.data?.message || t('auth.switchRoleFailed'));
         } finally {
             setIsSwitchingRole(false);
         }
@@ -185,50 +187,50 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     const getMenuItems = () => {
         const baseItems = {
             admin: [
-                { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/admin/dashboard' },
-                { id: 'directory', label: 'Directory', icon: FolderOpen, path: '/admin/directory' },
-                { id: 'courses', label: 'Courses', icon: BookOpen, path: '/admin/courses' },
-                { id: 'paid-tasks', label: 'Paid Tasks', icon: Briefcase, path: '/admin/paid-tasks' },
-                { id: 'certificates', label: 'Certificates', icon: Award, path: '/admin/certificates' },
-                { id: 'students', label: 'Students', icon: Users, path: '/admin/students', badge: adminPendingCounts.studentRegisteredNew },
-                { id: 'teachers', label: 'Teachers', icon: GraduationCap, path: '/admin/teachers', badge: adminPendingCounts.teacherRegisteredNew },
-                { id: 'interns', label: 'Interns', icon: Users, path: '/admin/interns', badge: adminPendingCounts.internRegisteredNew },
-                { id: 'jobs', label: 'Freelancers', icon: Briefcase, path: '/admin/jobs', badge: adminPendingCounts.job },
-                { id: 'notifications', label: 'Notifications', icon: Bell, path: '/admin/notifications' },
-                { id: 'fees', label: 'Fee Verification', icon: CreditCard, path: '/admin/fees', badge: adminPendingCounts.fees },
+                { id: 'dashboard', labelKey: 'nav.dashboard', icon: LayoutDashboard, path: '/admin/dashboard' },
+                { id: 'directory', labelKey: 'nav.directory', icon: FolderOpen, path: '/admin/directory' },
+                { id: 'courses', labelKey: 'nav.courses', icon: BookOpen, path: '/admin/courses' },
+                { id: 'paid-tasks', labelKey: 'nav.paidTasks', icon: Briefcase, path: '/admin/paid-tasks' },
+                { id: 'certificates', labelKey: 'nav.certificates', icon: Award, path: '/admin/certificates' },
+                { id: 'students', labelKey: 'nav.students', icon: Users, path: '/admin/students', badge: adminPendingCounts.studentRegisteredNew },
+                { id: 'teachers', labelKey: 'nav.teachers', icon: GraduationCap, path: '/admin/teachers', badge: adminPendingCounts.teacherRegisteredNew },
+                { id: 'interns', labelKey: 'nav.interns', icon: Users, path: '/admin/interns', badge: adminPendingCounts.internRegisteredNew },
+                { id: 'jobs', labelKey: 'nav.freelancers', icon: Briefcase, path: '/admin/jobs', badge: adminPendingCounts.job },
+                { id: 'notifications', labelKey: 'nav.notifications', icon: Bell, path: '/admin/notifications' },
+                { id: 'fees', labelKey: 'nav.feeVerification', icon: CreditCard, path: '/admin/fees', badge: adminPendingCounts.fees },
             ],
             teacher: [
-                { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/teacher/dashboard', submissionBadge: teacherSubmissionCount },
-                { id: 'profile', label: 'My Profile', icon: User, path: '/teacher/profile' },
-                { id: 'courses', label: 'My Courses', icon: BookOpen, path: '/teacher/courses' },
-                { id: 'attendance', label: 'Attendance', icon: Calendar, path: '/teacher/quick-attendance' },
-                { id: 'certificates', label: 'Certificates', icon: Award, path: '/teacher/certificates' },
+                { id: 'dashboard', labelKey: 'nav.dashboard', icon: LayoutDashboard, path: '/teacher/dashboard', submissionBadge: teacherSubmissionCount },
+                { id: 'profile', labelKey: 'nav.myProfile', icon: User, path: '/teacher/profile' },
+                { id: 'courses', labelKey: 'nav.myCourses', icon: BookOpen, path: '/teacher/courses' },
+                { id: 'attendance', labelKey: 'nav.attendance', icon: Calendar, path: '/teacher/quick-attendance' },
+                { id: 'certificates', labelKey: 'nav.certificates', icon: Award, path: '/teacher/certificates' },
             ],
             student: [
-                { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/student/dashboard' },
-                { id: 'profile', label: 'My Profile', icon: User, path: '/student/profile' },
-                { id: 'courses', label: 'My Courses', icon: BookOpen, path: '/student/courses' },
-                { id: 'fees', label: 'Fee Payment', icon: CreditCard, path: '/student/fees' },
-                { id: 'attendance', label: 'My Attendance', icon: Calendar, path: '/student/assignments', state: { tab: 'attendance' } },
-                { id: 'class-logs', label: 'Class Logs', icon: ClipboardList, path: '/student/assignments', state: { tab: 'daily_tasks' } },
-                { id: 'assignments', label: 'Assignments', icon: FileText, path: '/student/assignments', state: { tab: 'assignments' } },
-                { id: 'tests', label: 'My Tests', icon: Zap, path: '/student/assignments', state: { tab: 'tests' } },
-                { id: 'marks', label: 'Marks Sheet', icon: BarChart3, path: '/student/marks' },
+                { id: 'dashboard', labelKey: 'nav.dashboard', icon: LayoutDashboard, path: '/student/dashboard' },
+                { id: 'profile', labelKey: 'nav.myProfile', icon: User, path: '/student/profile' },
+                { id: 'courses', labelKey: 'nav.myCourses', icon: BookOpen, path: '/student/courses' },
+                { id: 'fees', labelKey: 'nav.feePayment', icon: CreditCard, path: '/student/fees' },
+                { id: 'attendance', labelKey: 'nav.myAttendance', icon: Calendar, path: '/student/assignments', state: { tab: 'attendance' } },
+                { id: 'class-logs', labelKey: 'nav.classLogs', icon: ClipboardList, path: '/student/assignments', state: { tab: 'daily_tasks' } },
+                { id: 'assignments', labelKey: 'nav.assignments', icon: FileText, path: '/student/assignments', state: { tab: 'assignments' } },
+                { id: 'tests', labelKey: 'nav.myTests', icon: Zap, path: '/student/assignments', state: { tab: 'tests' } },
+                { id: 'marks', labelKey: 'nav.marksSheet', icon: BarChart3, path: '/student/marks' },
             ],
             intern: [
-                { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/intern/dashboard' },
-                { id: 'profile', label: 'My Profile', icon: User, path: '/intern/profile' },
-                { id: 'courses', label: 'My Skills', icon: BookOpen, path: '/intern/courses' },
-                { id: 'fees', label: 'Fee Payment', icon: CreditCard, path: '/intern/fees' },
-                { id: 'attendance', label: 'My Attendance', icon: Calendar, path: '/intern/assignments', state: { tab: 'attendance' } },
-                { id: 'class-logs', label: 'Class Logs', icon: ClipboardList, path: '/intern/assignments', state: { tab: 'daily_tasks' } },
-                { id: 'assignments', label: 'Daily Task', icon: FileText, path: '/intern/assignments', state: { tab: 'assignments' } },
-                { id: 'tests', label: 'My Tests', icon: Zap, path: '/intern/assignments', state: { tab: 'tests' } },
-                { id: 'marks', label: 'Marks Sheet', icon: BarChart3, path: '/intern/marks' },
+                { id: 'dashboard', labelKey: 'nav.dashboard', icon: LayoutDashboard, path: '/intern/dashboard' },
+                { id: 'profile', labelKey: 'nav.myProfile', icon: User, path: '/intern/profile' },
+                { id: 'courses', labelKey: 'nav.mySkills', icon: BookOpen, path: '/intern/courses' },
+                { id: 'fees', labelKey: 'nav.feePayment', icon: CreditCard, path: '/intern/fees' },
+                { id: 'attendance', labelKey: 'nav.myAttendance', icon: Calendar, path: '/intern/assignments', state: { tab: 'attendance' } },
+                { id: 'class-logs', labelKey: 'nav.classLogs', icon: ClipboardList, path: '/intern/assignments', state: { tab: 'daily_tasks' } },
+                { id: 'assignments', labelKey: 'nav.dailyTask', icon: FileText, path: '/intern/assignments', state: { tab: 'assignments' } },
+                { id: 'tests', labelKey: 'nav.myTests', icon: Zap, path: '/intern/assignments', state: { tab: 'tests' } },
+                { id: 'marks', labelKey: 'nav.marksSheet', icon: BarChart3, path: '/intern/marks' },
             ],
             job: [
-                { id: 'tasks', label: 'Paid Tasks', icon: Briefcase, path: '/job/tasks' },
-                { id: 'profile', label: 'My Profile', icon: User, path: '/job/profile' },
+                { id: 'tasks', labelKey: 'nav.paidTasks', icon: Briefcase, path: '/job/tasks' },
+                { id: 'profile', labelKey: 'nav.myProfile', icon: User, path: '/job/profile' },
             ],
         };
 
@@ -238,16 +240,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     const menuItems = getMenuItems();
 
     // Get role display name
-    const getRoleDisplayName = () => {
-        const names = {
-            admin: 'Administrator',
-            teacher: 'Teacher',
-            student: 'Student',
-            intern: 'Intern',
-            job: 'Freelancer'
-        };
-        return names[role] || 'User';
-    };
+    const getRoleDisplayName = () => t(`roles.${role}`, { defaultValue: t('roles.user') });
 
     return (
         <>
@@ -297,8 +290,10 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                                 <GraduationCap className="w-6 h-6 text-white hidden" />
                             </div>
                             <div>
-                                <h1 className="text-[var(--text-sidebar)] font-bold text-lg tracking-tight">Adeeb Technology Lab</h1>
-                                <p className="text-primary text-[10px] font-black uppercase tracking-[0.2em]">{getRoleDisplayName()} Portal</p>
+                                <h1 className="text-[var(--text-sidebar)] font-bold text-lg tracking-tight">{t('app.name')}</h1>
+                                <p className="text-primary text-[10px] font-black uppercase tracking-[0.2em]">
+                                    {t('app.portal', { role: getRoleDisplayName() })}
+                                </p>
                             </div>
                         </div>
                         <button
@@ -345,7 +340,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                                 className="absolute top-full left-0 right-0 mt-2 bg-[var(--bg-sidebar-dark)] border border-[var(--border-sidebar)] rounded-xl overflow-hidden shadow-xl z-50 py-2"
                             >
                                 <div className="px-4 py-2 border-b border-[var(--border-sidebar)] mb-2 flex items-center justify-between">
-                                    <span className="text-[10px] font-black text-[var(--text-sidebar-muted)] uppercase tracking-widest">Switch Profile</span>
+                                    <span className="text-[10px] font-black text-[var(--text-sidebar-muted)] uppercase tracking-widest">{t('layout.switchProfile')}</span>
                                 </div>
                                         {availableRoles.map(r => (
                                             <button
@@ -391,7 +386,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                                     }}
                                 >
                                     <item.icon className="w-5 h-5 flex-shrink-0" />
-                                    <span className="font-medium flex-1">{item.label}</span>
+                                    <span className="font-medium flex-1">{t(item.labelKey)}</span>
                                     {item.id === 'assignments' && pendingCount > 0 && (
                                         <motion.span
                                             initial={{ scale: 0 }}
@@ -438,14 +433,14 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                         className="flex items-center gap-3 px-4 py-3 rounded-xl text-[var(--text-sidebar-muted)] hover:text-[var(--text-sidebar)] hover:bg-white/5 transition-all duration-200"
                     >
                         <Settings className="w-5 h-5" />
-                        <span className="font-medium">Settings</span>
+                        <span className="font-medium">{t('layout.settings')}</span>
                     </NavLink>
                     <button
                         onClick={handleLogout}
                         className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-400/80 hover:text-red-400 hover:bg-red-500/10 transition-all duration-200 mt-1"
                     >
                         <LogOut className="w-5 h-5" />
-                        <span className="font-medium">Logout</span>
+                        <span className="font-medium">{t('layout.logout')}</span>
                     </button>
                 </div>
             </aside>

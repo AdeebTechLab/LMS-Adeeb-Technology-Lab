@@ -1,21 +1,31 @@
-import { ICE_SERVERS } from './webrtcConfig';
+import { ICE_SERVERS, acquireMicrophoneTrack, getDisplayMediaOptions, isDisplayMediaSupported } from './webrtcConfig';
+
+let emitPeersTimer = null;
 
 /**
- * Mesh WebRTC manager with perfect negotiation (avoids offer/answer glare).
- * Each participant connects P2P to every other participant in the room.
+ * Mesh WebRTC manager with perfect negotiation.
  */
 export class WebRTCMeetingManager {
-    constructor({ socket, mySocketId, myUserDetails, localStream, onPeersChange, onParticipantsChange }) {
+    constructor({
+        socket,
+        mySocketId,
+        myUserDetails,
+        localStream,
+        onPeersChange,
+        onParticipantsChange,
+        onScreenShareChange,
+    }) {
         this.socket = socket;
         this.mySocketId = mySocketId;
         this.myUserDetails = myUserDetails;
         this.localStream = localStream;
         this.onPeersChange = onPeersChange;
         this.onParticipantsChange = onParticipantsChange;
+        this.onScreenShareChange = onScreenShareChange;
 
-        /** @type {Map<string, { pc: RTCPeerConnection, userDetails: object, remoteStream: MediaStream, makingOffer: boolean, iceQueue: RTCIceCandidateInit[] }>} */
         this.peers = new Map();
         this.cameraVideoTrack = localStream?.getVideoTracks()[0] ?? null;
+        this.cameraAudioTrack = localStream?.getAudioTracks()[0] ?? null;
         this.screenTrack = null;
         this.destroyed = false;
 
@@ -29,7 +39,6 @@ export class WebRTCMeetingManager {
             });
         });
 
-        // New joiner always initiates via existing_classroom_users — wait for their offer
         this.socket.on('user_joined_classroom', () => {});
 
         this.socket.on('classroom_signal', async ({ signal, from, userDetails }) => {
@@ -39,23 +48,32 @@ export class WebRTCMeetingManager {
 
         this.socket.on('user_left_classroom', (socketId) => {
             this._removePeer(socketId);
+            this.onScreenShareChange?.({ socketId, active: false });
         });
 
         this.socket.on('room_users_update', (users) => {
             this.onParticipantsChange?.(users);
         });
 
-        this.socket.on('teacher_action', (data) => {
-            if (data.action === 'kicked') {
-                this.onKicked?.();
-            } else if (data.action === 'force_mute') {
-                this.onForceMute?.();
+        this.socket.on('classroom_screen_share', ({ socketId, active }) => {
+            if (socketId && socketId !== this.mySocketId) {
+                this.onScreenShareChange?.({ socketId, active });
             }
+        });
+
+        this.socket.on('teacher_action', (data) => {
+            if (data.action === 'kicked') this.onKicked?.();
+            else if (data.action === 'force_mute') this.onForceMute?.();
         });
 
         this.socket.on('class_ended_by_teacher', () => {
             this.onClassEnded?.();
         });
+    }
+
+    _scheduleEmitPeers() {
+        if (emitPeersTimer) clearTimeout(emitPeersTimer);
+        emitPeersTimer = setTimeout(() => this._emitPeers(), 80);
     }
 
     _isPolite(remoteSocketId) {
@@ -68,6 +86,7 @@ export class WebRTCMeetingManager {
             userDetails: data.userDetails,
             remoteStream: data.remoteStream,
             connectionState: data.pc.connectionState,
+            isScreenSharing: data.isScreenSharing,
         }));
         this.onPeersChange?.(list);
     }
@@ -77,7 +96,10 @@ export class WebRTCMeetingManager {
             return this.peers.get(remoteSocketId);
         }
 
-        const pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
+        const pc = new RTCPeerConnection({
+            iceServers: ICE_SERVERS,
+            bundlePolicy: 'max-bundle',
+        });
         const remoteStream = new MediaStream();
 
         if (this.localStream) {
@@ -92,20 +114,25 @@ export class WebRTCMeetingManager {
             remoteStream,
             makingOffer: false,
             iceQueue: [],
+            isScreenSharing: false,
         };
 
         pc.ontrack = (event) => {
-            event.streams[0]?.getTracks().forEach((track) => {
-                const existing = remoteStream.getTracks().find((t) => t.kind === track.kind);
-                if (existing) remoteStream.removeTrack(existing);
-                remoteStream.addTrack(track);
-            });
-            if (!event.streams[0] && event.track) {
-                const existing = remoteStream.getTracks().find((t) => t.kind === event.track.kind);
-                if (existing) remoteStream.removeTrack(existing);
-                remoteStream.addTrack(event.track);
+            const track = event.track;
+            const existing = remoteStream.getTracks().find((t) => t.kind === track.kind);
+            if (existing) remoteStream.removeTrack(existing);
+            remoteStream.addTrack(track);
+
+            if (track.kind === 'video') {
+                const label = (track.label || '').toLowerCase();
+                entry.isScreenSharing =
+                    label.includes('screen') ||
+                    label.includes('window') ||
+                    label.includes('display');
+                this._scheduleEmitPeers();
             }
-            this._emitPeers();
+
+            this._scheduleEmitPeers();
         };
 
         pc.onicecandidate = (event) => {
@@ -125,11 +152,11 @@ export class WebRTCMeetingManager {
                     /* ignore */
                 }
             }
-            this._emitPeers();
+            this._scheduleEmitPeers();
         };
 
         this.peers.set(remoteSocketId, entry);
-        this._emitPeers();
+        this._scheduleEmitPeers();
         return entry;
     }
 
@@ -140,7 +167,7 @@ export class WebRTCMeetingManager {
             try {
                 await pc.addIceCandidate(new RTCIceCandidate(candidate));
             } catch {
-                /* ignore stale candidates */
+                /* ignore */
             }
         }
     }
@@ -230,12 +257,54 @@ export class WebRTCMeetingManager {
             /* ignore */
         }
         this.peers.delete(socketId);
-        this._emitPeers();
+        this._scheduleEmitPeers();
     }
 
-    setMuted(muted) {
-        const track = this.localStream?.getAudioTracks()[0];
-        if (track) track.enabled = !muted;
+    async _replaceLocalAudioTrack(newTrack) {
+        if (!newTrack || !this.localStream) return;
+
+        const old = this.localStream.getAudioTracks()[0];
+        if (old) {
+            this.localStream.removeTrack(old);
+            try {
+                old.stop();
+            } catch {
+                /* ignore */
+            }
+        }
+        this.localStream.addTrack(newTrack);
+        this.cameraAudioTrack = newTrack;
+
+        for (const [, { pc }] of this.peers) {
+            const sender = pc.getSenders().find((s) => s.track?.kind === 'audio');
+            if (sender) await sender.replaceTrack(newTrack);
+            else pc.addTrack(newTrack, this.localStream);
+        }
+    }
+
+    async setMuted(muted) {
+        if (!muted) {
+            let track = this.localStream?.getAudioTracks()[0];
+            const needsNew =
+                !track ||
+                track.readyState === 'ended' ||
+                track.muted ||
+                track.label === 'MediaStreamAudioDestinationNode';
+            if (needsNew) {
+                try {
+                    const fresh = await acquireMicrophoneTrack();
+                    if (fresh) await this._replaceLocalAudioTrack(fresh);
+                    track = fresh;
+                } catch (err) {
+                    console.error('Microphone access failed:', err);
+                    throw new Error('Could not access microphone. Check browser permissions.');
+                }
+            }
+            if (track) track.enabled = true;
+        } else {
+            const track = this.localStream?.getAudioTracks()[0];
+            if (track) track.enabled = false;
+        }
     }
 
     setVideoEnabled(enabled) {
@@ -244,14 +313,13 @@ export class WebRTCMeetingManager {
     }
 
     async startScreenShare() {
-        if (!navigator.mediaDevices?.getDisplayMedia) {
-            throw new Error('Screen sharing not supported');
+        if (!isDisplayMediaSupported()) {
+            throw new Error(
+                'Screen sharing is not supported on this browser. Try Chrome on desktop or Android.'
+            );
         }
 
-        const displayStream = await navigator.mediaDevices.getDisplayMedia({
-            video: { cursor: 'always' },
-            audio: false,
-        });
+        const displayStream = await navigator.mediaDevices.getDisplayMedia(getDisplayMediaOptions());
         const screenTrack = displayStream.getVideoTracks()[0];
         if (!screenTrack) throw new Error('No screen track');
 
@@ -277,6 +345,12 @@ export class WebRTCMeetingManager {
             this.stopScreenShare().catch(() => {});
         };
 
+        this.socket.emit('classroom_screen_share', {
+            roomId: this.roomId,
+            active: true,
+        });
+        this.onScreenShareChange?.({ socketId: this.mySocketId, active: true });
+
         return displayStream;
     }
 
@@ -288,12 +362,16 @@ export class WebRTCMeetingManager {
         if (!cameraTrack || cameraTrack.readyState === 'ended') {
             try {
                 const cam = await navigator.mediaDevices.getUserMedia({
-                    video: { width: { ideal: 1280 }, height: { ideal: 720 } },
+                    video: {
+                        width: { ideal: 640, max: 854 },
+                        height: { ideal: 360, max: 480 },
+                        frameRate: { ideal: 15, max: 20 },
+                    },
                 });
                 cameraTrack = cam.getVideoTracks()[0];
                 this.cameraVideoTrack = cameraTrack;
             } catch {
-                cameraTrack = createDummyVideoTrackFallback();
+                cameraTrack = null;
             }
         }
 
@@ -316,6 +394,12 @@ export class WebRTCMeetingManager {
         if (cameraTrack && this.localStream && !this.localStream.getVideoTracks().includes(cameraTrack)) {
             this.localStream.addTrack(cameraTrack);
         }
+
+        this.socket.emit('classroom_screen_share', {
+            roomId: this.roomId,
+            active: false,
+        });
+        this.onScreenShareChange?.({ socketId: this.mySocketId, active: false });
     }
 
     kickUser(targetSocketId) {
@@ -368,14 +452,8 @@ export class WebRTCMeetingManager {
         this.socket.off('classroom_signal');
         this.socket.off('user_left_classroom');
         this.socket.off('room_users_update');
+        this.socket.off('classroom_screen_share');
         this.socket.off('teacher_action');
         this.socket.off('class_ended_by_teacher');
     }
-}
-
-function createDummyVideoTrackFallback() {
-    const canvas = Object.assign(document.createElement('canvas'), { width: 640, height: 480 });
-    const ctx = canvas.getContext('2d');
-    ctx?.fillRect(0, 0, 640, 480);
-    return canvas.captureStream(10).getVideoTracks()[0];
 }

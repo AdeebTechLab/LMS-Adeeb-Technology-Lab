@@ -36,8 +36,10 @@ import useAutoLogout from '../../hooks/useAutoLogout';
 import { useTheme } from '../../context/ThemeContext';
 import Loader, { FullScreenLoader } from '../ui/Loader';
 import ProfileAvatar from '../ui/ProfileAvatar';
+import { useTranslation } from 'react-i18next';
 
 const DashboardLayout = () => {
+    const { t } = useTranslation();
     // Enable auto-logout
     useAutoLogout();
 
@@ -301,7 +303,7 @@ const DashboardLayout = () => {
                                     type="button"
                                     onClick={() => window.location.reload()}
                                     className="rounded-xl transition-all duration-200 bg-[var(--bg-sidebar-dark)] hover:bg-[var(--bg-sidebar)] text-white shadow-sm p-2.5"
-                                    title="Refresh Page"
+                                    title={t('layout.refreshPage')}
                                 >
                                     <RefreshCw className="w-5 h-5 shrink-0" />
                                 </button>
@@ -395,25 +397,25 @@ const DashboardLayout = () => {
                                                     onClick={() => { navigate(`/${role}/profile`); setShowUserMenu(false); }}
                                                     className={`w-full flex items-center gap-3 p-2.5 rounded-xl text-sm font-medium ${isDark ? 'text-white/70 hover:bg-white/5 hover:text-white' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`}
                                                 >
-                                                    <User className="w-4 h-4" /> Profile
+                                                    <User className="w-4 h-4" /> {t('layout.profile')}
                                                 </button>
                                                 <button
                                                     onClick={() => { navigate(`/${role}/settings`); setShowUserMenu(false); }}
                                                     className={`w-full flex items-center gap-3 p-2.5 rounded-xl text-sm font-medium ${isDark ? 'text-white/70 hover:bg-white/5 hover:text-white' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`}
                                                 >
-                                                    <Settings className="w-4 h-4" /> Settings
+                                                    <Settings className="w-4 h-4" /> {t('layout.settings')}
                                                 </button>
                                                 <button
-                                                    onClick={() => { window.dispatchEvent(new CustomEvent('openChatWidget', { detail: { open: true } })); setShowUserMenu(false); }}
+                                                    onClick={() => { navigate(`/${role}/help-support`); setShowUserMenu(false); }}
                                                     className={`w-full flex items-center gap-3 p-2.5 rounded-xl text-sm font-medium ${isDark ? 'text-white/70 hover:bg-white/5 hover:text-white' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`}
                                                 >
-                                                    <LifeBuoy className="w-4 h-4" /> Help & Support
+                                                    <LifeBuoy className="w-4 h-4" /> {t('layout.helpSupport')}
                                                 </button>
                                                 <button
                                                     onClick={() => { setShowResetPasswordModal(true); setShowUserMenu(false); }}
                                                     className={`w-full flex items-center gap-3 p-2.5 rounded-xl text-sm font-medium ${isDark ? 'text-white/70 hover:bg-white/5 hover:text-white' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`}
                                                 >
-                                                    <Lock className="w-4 h-4" /> Reset Password
+                                                    <Lock className="w-4 h-4" /> {t('layout.resetPassword')}
                                                 </button>
                                                 
                                                 <div className={`my-1 border-t ${isDark ? 'border-white/10' : 'border-gray-100'}`} />
@@ -422,7 +424,7 @@ const DashboardLayout = () => {
                                                     onClick={() => { handleLogout(); setShowUserMenu(false); }}
                                                     className={`w-full flex items-center gap-3 p-2.5 rounded-xl text-sm font-medium transition-colors ${isDark ? 'text-red-400 hover:bg-red-500/10 hover:text-red-300' : 'text-red-600 hover:bg-red-50'}`}
                                                 >
-                                                    <LogOut className="w-4 h-4" /> Sign Out
+                                                    <LogOut className="w-4 h-4" /> {t('layout.signOut')}
                                                 </button>
                                             </div>
                                         </motion.div>
@@ -443,8 +445,8 @@ const DashboardLayout = () => {
                                 <Search className={`w-4 h-4 mr-2 shrink-0 transition-colors duration-300 ${isDark ? 'text-white/30' : 'text-gray-400'}`} />
                                 <input
                                     type="search"
-                                    placeholder="Search courses or teachers..."
-                                    aria-label="Search"
+                                    placeholder={t('layout.searchPlaceholder')}
+                                    aria-label={t('layout.search')}
                                     className={`!bg-transparent border-none outline-none text-xs sm:text-sm w-full min-w-0 flex-1 transition-colors duration-300 ${
                                         isDark 
                                         ? 'text-white/90 placeholder:text-white/20' 
@@ -461,7 +463,7 @@ const DashboardLayout = () => {
                                 type="button"
                                 onClick={() => window.location.reload()}
                                 className="rounded-full transition-all duration-200 bg-[var(--bg-sidebar)] hover:bg-[var(--bg-sidebar-dark)] text-white shadow-md hover:shadow-lg flex items-center justify-center p-2.5 sm:w-10 sm:h-10"
-                                title="Refresh Page"
+                                title={t('layout.refreshPage')}
                             >
                                 <RefreshCw className="w-5 h-5 shrink-0" />
                             </button>
@@ -470,7 +472,7 @@ const DashboardLayout = () => {
                             <button
                                 type="button"
                                 onClick={toggleTheme}
-                                title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+                                title={isDark ? t('layout.switchToLight') : t('layout.switchToDark')}
                                 className={`relative rounded-full transition-all duration-300 shadow-md hover:shadow-lg flex items-center justify-center overflow-hidden p-2.5 sm:w-10 sm:h-10 ${isDark
                                     ? 'bg-primary text-white'
                                     : 'bg-[var(--bg-sidebar)] text-white'
@@ -661,7 +663,7 @@ const DashboardLayout = () => {
                                                 className={`w-full flex items-center gap-3 px-3 py-2 text-sm rounded-lg ${isDark ? 'text-white/60 hover:bg-white/5 hover:text-white' : 'text-gray-600 hover:bg-gray-50'}`}
                                             >
                                                 <User className="w-4 h-4" />
-                                                Profile
+                                                {t('layout.profile')}
                                             </button>
                                             <button 
                                                 onClick={() => {
@@ -671,17 +673,17 @@ const DashboardLayout = () => {
                                                 className={`w-full flex items-center gap-3 px-3 py-2 text-sm rounded-lg ${isDark ? 'text-white/60 hover:bg-white/5 hover:text-white' : 'text-gray-600 hover:bg-gray-50'}`}
                                             >
                                                 <Settings className="w-4 h-4" />
-                                                Settings
+                                                {t('layout.settings')}
                                             </button>
                                             <button 
                                                 onClick={() => {
-                                                    window.dispatchEvent(new CustomEvent('openChatWidget', { detail: { open: true } }));
+                                                    navigate(`/${role}/help-support`);
                                                     setShowUserMenu(false);
                                                 }}
                                                 className={`w-full flex items-center gap-3 px-3 py-2 text-sm rounded-lg ${isDark ? 'text-white/60 hover:bg-white/5 hover:text-white' : 'text-gray-600 hover:bg-gray-50'}`}
                                             >
                                                 <LifeBuoy className="w-4 h-4" />
-                                                Help & Support
+                                                {t('layout.helpSupport')}
                                             </button>
                                             <button 
                                                 onClick={() => {
@@ -691,7 +693,7 @@ const DashboardLayout = () => {
                                                 className={`w-full flex items-center gap-3 px-3 py-2 text-sm rounded-lg ${isDark ? 'text-white/60 hover:bg-white/5 hover:text-white' : 'text-gray-600 hover:bg-gray-50'}`}
                                             >
                                                 <Lock className="w-4 h-4" />
-                                                Reset Password
+                                                {t('layout.resetPassword')}
                                             </button>
                                             
                                             <div className={`my-1 border-t ${isDark ? 'border-white/10' : 'border-gray-100'}`} />
@@ -705,7 +707,7 @@ const DashboardLayout = () => {
                                                 className={`w-full flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-colors ${isDark ? 'text-red-400 hover:bg-red-500/10 hover:text-red-300' : 'text-red-600 hover:bg-red-50'}`}
                                             >
                                                 <LogOut className="w-4 h-4" />
-                                                Sign Out
+                                                {t('layout.signOut')}
                                             </button>
                                         </div>
                                     </motion.div>
@@ -716,7 +718,7 @@ const DashboardLayout = () => {
                 </header>
 
                 {/* Page Content */}
-                <main className={`flex-1 p-6 overflow-y-auto overflow-x-hidden transition-colors duration-300 ${isDark ? 'bg-[#0f1117]' : 'bg-[var(--bg-main)]'}`}>
+                <main className={`flex-1 p-3 sm:p-5 md:p-6 overflow-y-auto overflow-x-hidden transition-colors duration-300 ${isDark ? 'bg-[#0f1117]' : 'bg-[var(--bg-main)]'}`}>
                     <motion.div
                         key={location.pathname}
                         initial={{ opacity: 0, y: 20 }}
@@ -750,7 +752,7 @@ const DashboardLayout = () => {
                             className={`w-full max-w-md rounded-2xl shadow-2xl overflow-hidden border ${isDark ? 'bg-[var(--bg-sidebar)] border-white/10' : 'bg-white border-gray-100'}`}
                         >
                             <div className={`px-6 py-4 border-b flex items-center justify-between ${isDark ? 'border-white/10' : 'border-gray-100'}`}>
-                                <h2 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Reset Password</h2>
+                                <h2 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('layout.resetPassword')}</h2>
                                 <button
                                     onClick={() => setShowResetPasswordModal(false)}
                                     className={`p-2 rounded-xl transition-colors ${isDark ? 'hover:bg-white/10 text-white/70' : 'hover:bg-gray-100 text-gray-500'}`}

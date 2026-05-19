@@ -211,6 +211,14 @@ io.on('connection', (socket) => {
         });
     });
 
+    socket.on('classroom_screen_share', (data) => {
+        if (!data?.roomId) return;
+        socket.to(data.roomId).emit('classroom_screen_share', {
+            socketId: socket.id,
+            active: !!data.active
+        });
+    });
+
     socket.on('leave_classroom', (roomId) => {
         if (!roomId) return;
         socket.leave(roomId);
