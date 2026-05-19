@@ -25,6 +25,31 @@ if (typeof window !== 'undefined') {
     window.process = { env: {} };
 }
 
+const createDummyVideoTrack = () => {
+    const canvas = Object.assign(document.createElement("canvas"), { width: 640, height: 480 });
+    const ctx = canvas.getContext("2d");
+    if (ctx) {
+        ctx.fillStyle = "black";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+    const stream = canvas.captureStream(10);
+    const track = stream.getVideoTracks()[0];
+    track.enabled = false; // Start disabled
+    return track;
+};
+
+const createDummyAudioTrack = () => {
+    try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const dst = ctx.createMediaStreamDestination();
+        const track = dst.stream.getAudioTracks()[0];
+        track.enabled = false; // Start disabled
+        return track;
+    } catch (e) {
+        return null;
+    }
+};
+
 const AdeebMeet = () => {
     const { roomName } = useParams();
     const navigate = useNavigate();
@@ -155,6 +180,8 @@ const AdeebMeet = () => {
     };
 
     useEffect(() => {
+        if (!user) return;
+
         const init = async () => {
             try {
                 // 1. Get Media First (Optimized for Mobile/NAT)
@@ -184,10 +211,30 @@ const AdeebMeet = () => {
                     ]);
                 } catch (e) {}
 
-                if (stream) {
-                    userStream.current = stream;
-                    if (userVideo.current) userVideo.current.srcObject = stream;
+                const finalStream = new MediaStream();
+                
+                let realAudioTrack = stream ? stream.getAudioTracks()[0] : null;
+                if (realAudioTrack) {
+                    finalStream.addTrack(realAudioTrack);
                 } else {
+                    const dummyAudio = createDummyAudioTrack();
+                    if (dummyAudio) finalStream.addTrack(dummyAudio);
+                    setIsMuted(true);
+                }
+
+                let realVideoTrack = stream ? stream.getVideoTracks()[0] : null;
+                if (realVideoTrack) {
+                    finalStream.addTrack(realVideoTrack);
+                } else {
+                    const dummyVideo = createDummyVideoTrack();
+                    if (dummyVideo) finalStream.addTrack(dummyVideo);
+                    setIsVideoOff(true);
+                }
+
+                userStream.current = finalStream;
+                if (userVideo.current) userVideo.current.srcObject = finalStream;
+
+                if (!stream) {
                     toast.error('Entering in view-only mode (No Camera/Mic found)');
                 }
 
@@ -262,56 +309,99 @@ const AdeebMeet = () => {
             if (userStream.current) userStream.current.getTracks().forEach(track => track.stop());
             peersRef.current.forEach(({ peer }) => { try { peer.destroy(); } catch(e){} });
         };
-    }, [roomName]);
+    }, [roomName, user, role]);
 
     const toggleMute = async (force) => {
         const newState = force !== undefined ? force : !isMuted;
         if (userStream.current && userStream.current.getAudioTracks().length > 0) {
-            userStream.current.getAudioTracks()[0].enabled = !newState;
-            setIsMuted(newState);
-        } else if (!newState) {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                const audioTrack = stream.getAudioTracks()[0];
-                if (userStream.current) {
-                    userStream.current.addTrack(audioTrack);
-                } else {
-                    userStream.current = stream;
+            const audioTrack = userStream.current.getAudioTracks()[0];
+            
+            if (!newState) {
+                // We are unmuting: try to get real audio
+                let newTrack = null;
+                try {
+                    const tempStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    newTrack = tempStream.getAudioTracks()[0];
+                } catch (err) {
+                    toast.error('Could not access microphone');
+                    return;
                 }
-                peersRef.current.forEach(({ peer }) => {
-                    if (peer && !peer.destroyed) {
-                        try { peer.addTrack(audioTrack, userStream.current); } catch(e) {}
-                    }
-                });
-                setIsMuted(false);
-            } catch (err) {
-                toast.error('Could not access microphone');
+                
+                if (newTrack) {
+                    userStream.current.removeTrack(audioTrack);
+                    userStream.current.addTrack(newTrack);
+                    
+                    peersRef.current.forEach(({ peer }) => {
+                        if (peer && !peer.destroyed) {
+                            try { peer.replaceTrack(audioTrack, newTrack, userStream.current); } catch(e) {}
+                        }
+                    });
+                    setIsMuted(false);
+                }
+            } else {
+                // We are muting: replace with silent dummy track
+                const dummyTrack = createDummyAudioTrack();
+                if (dummyTrack) {
+                    userStream.current.removeTrack(audioTrack);
+                    userStream.current.addTrack(dummyTrack);
+                    
+                    peersRef.current.forEach(({ peer }) => {
+                        if (peer && !peer.destroyed) {
+                            try { peer.replaceTrack(audioTrack, dummyTrack, userStream.current); } catch(e) {}
+                        }
+                    });
+                }
+                
+                try { audioTrack.stop(); } catch (e) {}
+                setIsMuted(true);
             }
         }
     };
 
     const toggleVideo = async () => {
         if (userStream.current && userStream.current.getVideoTracks().length > 0) {
-            userStream.current.getVideoTracks()[0].enabled = isVideoOff;
-            setIsVideoOff(!isVideoOff);
-        } else if (isVideoOff) {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 1280 }, height: { ideal: 720 } } });
-                const videoTrack = stream.getVideoTracks()[0];
-                if (userStream.current) {
-                    userStream.current.addTrack(videoTrack);
-                } else {
-                    userStream.current = stream;
-                    if (userVideo.current) userVideo.current.srcObject = stream;
+            const videoTrack = userStream.current.getVideoTracks()[0];
+            
+            if (isVideoOff) {
+                // We are turning video ON: get real camera track
+                let newTrack = null;
+                try {
+                    const tempStream = await navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 1280 }, height: { ideal: 720 } } });
+                    newTrack = tempStream.getVideoTracks()[0];
+                } catch (err) {
+                    toast.error('Could not access camera');
+                    return;
                 }
-                peersRef.current.forEach(({ peer }) => {
-                    if (peer && !peer.destroyed) {
-                        try { peer.addTrack(videoTrack, userStream.current); } catch(e) {}
-                    }
-                });
-                setIsVideoOff(false);
-            } catch (err) {
-                toast.error('Could not access camera');
+                
+                if (newTrack) {
+                    userStream.current.removeTrack(videoTrack);
+                    userStream.current.addTrack(newTrack);
+                    
+                    peersRef.current.forEach(({ peer }) => {
+                        if (peer && !peer.destroyed) {
+                            try { peer.replaceTrack(videoTrack, newTrack, userStream.current); } catch(e) {}
+                        }
+                    });
+                    
+                    if (userVideo.current) userVideo.current.srcObject = userStream.current;
+                    setIsVideoOff(false);
+                }
+            } else {
+                // We are turning video OFF: replace with a dummy black track
+                const dummyTrack = createDummyVideoTrack();
+                if (dummyTrack) {
+                    userStream.current.removeTrack(videoTrack);
+                    userStream.current.addTrack(dummyTrack);
+                    
+                    peersRef.current.forEach(({ peer }) => {
+                        if (peer && !peer.destroyed) {
+                            try { peer.replaceTrack(videoTrack, dummyTrack, userStream.current); } catch(e) {}
+                        }
+                    });
+                }
+                
+                try { videoTrack.stop(); } catch (e) {}
+                setIsVideoOff(true);
             }
         }
     };
@@ -463,7 +553,7 @@ const AdeebMeet = () => {
                     }`}>
                         {/* Local Video */}
                         <div className="relative bg-white/5 rounded-3xl overflow-hidden border border-white/10 aspect-video group">
-                            <video ref={userVideo} autoPlay muted playsInline className="w-full h-full object-cover mirror" />
+                            <video ref={userVideo} autoPlay muted playsInline className={`w-full h-full object-cover ${isScreenSharing ? '' : 'mirror'}`} />
                             <div className="absolute bottom-4 left-4 flex items-center gap-2 px-3 py-1.5 bg-black/40 backdrop-blur-md rounded-xl border border-white/10">
                                 <img src={getAvatar(user?.photo, user?.name)} className="w-5 h-5 rounded-full object-cover" />
                                 <span className="text-[10px] font-black uppercase tracking-widest">You {isTeacher && '(Teacher)'}</span>
@@ -547,9 +637,9 @@ const AdeebMeet = () => {
                                         {participants.map(p => (
                                             <ParticipantRow 
                                                 key={p.socketId} 
-                                                name={p.userDetails.name} 
-                                                role={p.userDetails.role} 
-                                                photo={p.userDetails.photo}
+                                                name={p.userDetails?.name || 'Guest'} 
+                                                role={p.userDetails?.role || 'student'} 
+                                                photo={p.userDetails?.photo}
                                                 socketId={p.socketId}
                                                 isSelf={p.socketId === socketRef.current?.id}
                                                 isTeacher={isTeacher}
@@ -677,9 +767,9 @@ const VideoCard = ({ peer }) => {
         <div className="relative bg-white/5 rounded-3xl overflow-hidden border border-white/10 aspect-video group">
             <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover" />
             <div className="absolute bottom-4 left-4 flex items-center gap-2 px-3 py-1.5 bg-black/40 backdrop-blur-md rounded-xl border border-white/10">
-                <img src={getAvatar(peer.userDetails.photo, peer.userDetails.name)} className="w-5 h-5 rounded-full object-cover" />
+                <img src={getAvatar(peer.userDetails?.photo, peer.userDetails?.name)} className="w-5 h-5 rounded-full object-cover" />
                 <span className="text-[10px] font-black uppercase tracking-widest">
-                    {peer.userDetails.name} {peer.userDetails.role === 'teacher' && '(Teacher)'}
+                    {peer.userDetails?.name || 'Guest'} {peer.userDetails?.role === 'teacher' && '(Teacher)'}
                 </span>
             </div>
         </div>
