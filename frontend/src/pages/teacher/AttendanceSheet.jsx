@@ -766,9 +766,6 @@ const AttendanceSheet = () => {
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 md:w-20 md:h-20 bg-white rounded-3xl p-2.5 shadow-xl shadow-primary/10 border border-primary/5 flex items-center justify-center shrink-0">
-                        <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
-                    </div>
                     <div className="flex-1">
                         <button
                             onClick={() => {

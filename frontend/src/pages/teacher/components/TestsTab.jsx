@@ -124,10 +124,10 @@ const TestsTab = ({ course, students }) => {
         try {
             await testAPI.deleteSubmission(testId, submissionId);
             showToast.success('Submission deleted successfully');
-            
+
             // Refresh tests list
             fetchTests();
-            
+
             // Update selected test modal state
             if (selectedTest && selectedTest._id === testId) {
                 setSelectedTest({
@@ -161,7 +161,7 @@ const TestsTab = ({ course, students }) => {
 
         setIsGenerating(true);
         setTimeout(() => {
-            const detectedCount = Math.floor(Math.random() * 5) + 5; 
+            const detectedCount = Math.floor(Math.random() * 5) + 5;
             const generatedQuestions = Array.from({ length: detectedCount }, (_, i) => ({
                 question: `[Auto-Parsed] Question ${i + 1} from ${file.name.split('.')[0]} content...`,
                 options: ["Option A", "Option B", "Option C", "Option D"],
@@ -209,7 +209,7 @@ const TestsTab = ({ course, students }) => {
                 rawBlocks.forEach(block => {
                     const cleanBlock = block.trim();
                     if (!cleanBlock) return;
-                    
+
                     const qMatch = cleanBlock.match(/(?:Q[:.]|Question[:.]|\d+[:.])\s*(.*?)(?=[A-D][)|.]|Ans[:.]|Answer[:.]|Correct[:.]|Key[:.]|$)/is);
                     const questionText = qMatch ? qMatch[1].trim() : cleanBlock.split('\n')[0].replace(/(?:Q[:.]|Question[:.]|\d+[:.])\s*/i, '').trim();
 
@@ -552,42 +552,45 @@ const TestsTab = ({ course, students }) => {
                                                 </button>
                                             )}
                                         </div>
-                                        
+
                                         {test.submissions?.length > 0 ? (
-                                            (() => {
-                                                const latest = [...test.submissions].sort((a, b) => new Date(b.submittedAt || b.createdAt) - new Date(a.submittedAt || a.createdAt))[test.submissions.length - 1];
-                                                const totalMarks = test.totalMarks || test.questions?.reduce((acc, q) => acc + (q.marks || 1), 0) || test.questions?.length;
-                                                
-                                                return (
-                                                    <div className="flex items-center justify-between w-full">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="h-9 w-9 rounded-xl ring-2 ring-white overflow-hidden bg-primary/10 shrink-0 border border-primary/20">
-                                                                {latest.user?.photo ? (
-                                                                    <img src={latest.user.photo} alt="" className="h-full w-full object-cover" />
-                                                                ) : (
-                                                                    <div className="flex h-full w-full items-center justify-center text-xs font-black text-primary uppercase">
-                                                                        {latest.user?.name?.charAt(0)}
+                                            <div className="flex flex-col gap-3 mt-2 max-h-[160px] overflow-y-auto custom-scrollbar pr-1">
+                                                {[...test.submissions]
+                                                    .sort((a, b) => new Date(b.submittedAt || b.createdAt) - new Date(a.submittedAt || a.createdAt))
+                                                    .map((submission, idx) => {
+                                                        const totalMarks = test.totalMarks || test.questions?.reduce((acc, q) => acc + (q.marks || 1), 0) || test.questions?.length;
+
+                                                        return (
+                                                            <div key={submission._id || idx} className="flex items-center justify-between w-full">
+                                                                <div className="flex items-center gap-3">
+                                                                    <div className="h-9 w-9 rounded-xl ring-2 ring-white overflow-hidden bg-primary/10 shrink-0 border border-primary/20">
+                                                                        {submission.user?.photo ? (
+                                                                            <img src={submission.user.photo} alt="" className="h-full w-full object-cover" />
+                                                                        ) : (
+                                                                            <div className="flex h-full w-full items-center justify-center text-xs font-black text-primary uppercase">
+                                                                                {submission.user?.name?.charAt(0)}
+                                                                            </div>
+                                                                        )}
                                                                     </div>
-                                                                )}
-                                                            </div>
-                                                            <div className="flex flex-col">
-                                                                <span className="text-xs font-black text-gray-900 leading-tight truncate max-w-[120px] uppercase tracking-tight">{latest.user?.name}</span>
+                                                                    <div className="flex flex-col">
+                                                                        <span className="text-xs font-black text-gray-900 leading-tight truncate max-w-[120px] uppercase tracking-tight">{submission.user?.name}</span>
+                                                                        <div className="flex items-center gap-2">
+                                                                            <span className="text-[10px] font-black text-primary tracking-tighter">{submission.user?.rollNo || '0000'}</span>
+                                                                            <span className="w-1 h-1 rounded-full bg-gray-200" />
+                                                                            <span className="text-[10px] font-bold text-gray-400">{formatDate(submission.submittedAt || submission.createdAt)}</span>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
                                                                 <div className="flex items-center gap-2">
-                                                                    <span className="text-[10px] font-black text-primary tracking-tighter">{latest.user?.rollNo || '0000'}</span>
-                                                                    <span className="w-1 h-1 rounded-full bg-gray-200" />
-                                                                    <span className="text-[10px] font-bold text-gray-400">{formatDate(latest.submittedAt || latest.createdAt)}</span>
+                                                                    <div className="text-right bg-primary/5 px-3 py-1.5 rounded-xl border border-primary/10">
+                                                                        <span className="text-xs font-black text-primary block leading-none">{submission.score}/{totalMarks}</span>
+                                                                        <span className="text-[7px] font-black text-primary uppercase tracking-tighter opacity-70">Result</span>
+                                                                    </div>
                                                                 </div>
                                                             </div>
-                                                        </div>
-                                                        <div className="flex items-center gap-2">
-                                                            <div className="text-right bg-primary/5 px-3 py-1.5 rounded-xl border border-primary/10">
-                                                                <span className="text-xs font-black text-primary block leading-none">{latest.score}/{totalMarks}</span>
-                                                                <span className="text-[7px] font-black text-primary uppercase tracking-tighter opacity-70">Result</span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                );
-                                            })()
+                                                        );
+                                                    })}
+                                            </div>
                                         ) : (
                                             <div className="flex items-center justify-between w-full">
                                                 <div className="flex items-center gap-2 py-1">
@@ -1297,10 +1300,10 @@ const TestsTab = ({ course, students }) => {
                                                         </span>
                                                     )}
                                                 </div>
-                                                    <p className="text-[11px] text-gray-400 font-medium flex items-center gap-1.5 mt-1">
-                                                        <Clock className="w-3.5 h-3.5" />
-                                                        {formatDateTime(submission.submittedAt)}
-                                                    </p>
+                                                <p className="text-[11px] text-gray-400 font-medium flex items-center gap-1.5 mt-1">
+                                                    <Clock className="w-3.5 h-3.5" />
+                                                    {formatDateTime(submission.submittedAt)}
+                                                </p>
                                             </div>
                                         </div>
                                         <div className="text-right">

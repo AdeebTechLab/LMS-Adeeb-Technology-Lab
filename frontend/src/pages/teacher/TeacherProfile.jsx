@@ -305,7 +305,7 @@ const TeacherProfile = () => {
                             <p>No courses assigned yet</p>
                         </div>
                     ) : (
-                        <div className="space-y-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             {myCourses.map((course) => {
                                 const CourseIcon = getCourseIcon(course.category, course.title);
                                 return (
@@ -314,7 +314,7 @@ const TeacherProfile = () => {
                                             <CourseIcon className="w-5 h-5 text-primary" />
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <p className="font-medium text-gray-900">{course.title}</p>
+                                            <p className="font-medium text-gray-900 truncate" title={course.title}>{course.title}</p>
                                             <p className="text-sm text-gray-500">{course.enrolledCount || 0} students enrolled</p>
                                             <p className="text-xs text-primary mt-1 capitalize">{course.duration || 'Ongoing'}</p>
                                         </div>

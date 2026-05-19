@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
     Zap, Clock, CheckCircle, FileText, 
@@ -23,6 +23,34 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
     const [showReview, setShowReview] = useState(false);
     const [direction, setDirection] = useState(0); // 1 for next, -1 for previous
 
+    const submitTestRef = useRef();
+    const isPromptActiveRef = useRef(false);
+
+    const enterFullscreen = () => {
+        const element = document.documentElement;
+        if (element.requestFullscreen) {
+            element.requestFullscreen().catch(err => console.log("Fullscreen error:", err));
+        } else if (element.mozRequestFullScreen) {
+            element.mozRequestFullScreen();
+        } else if (element.webkitRequestFullscreen) {
+            element.webkitRequestFullscreen();
+        } else if (element.msRequestFullscreen) {
+            element.msRequestFullscreen();
+        }
+    };
+
+    const exitFullscreen = () => {
+        if (document.exitFullscreen) {
+            document.exitFullscreen().catch(err => console.log("Exit fullscreen error:", err));
+        } else if (document.mozCancelFullScreen) {
+            document.mozCancelFullScreen();
+        } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+        } else if (document.msExitFullscreen) {
+            document.msExitFullscreen();
+        }
+    };
+
     // Prevent navigation/refresh during test
     useEffect(() => {
         const handleBeforeUnload = (e) => {
@@ -40,24 +68,81 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
 
         const handleKeyDown = (e) => {
             if (isTakingTest && !testResult) {
+                // Intercept F11
+                if (e.key === 'F11' || e.keyCode === 122) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    if (isPromptActiveRef.current) return;
+                    isPromptActiveRef.current = true;
+
+                    const confirmClose = window.confirm("Warning: Pressing F11 will close the test. Are you sure you want to finish the test now? Selected answers will be submitted, and unanswered questions will get 0 marks.");
+                    
+                    isPromptActiveRef.current = false;
+
+                    if (confirmClose) {
+                        exitFullscreen();
+                        if (submitTestRef.current) {
+                            submitTestRef.current(true);
+                        }
+                    } else {
+                        // Keep fullscreen active
+                        enterFullscreen();
+                    }
+                }
+
                 // Disable Ctrl+C, Ctrl+V, Ctrl+U, Ctrl+S, F12
                 if (
                     (e.ctrlKey && (e.key === 'c' || e.key === 'v' || e.key === 'u' || e.key === 's')) ||
-                    e.key === 'F12'
+                    e.key === 'F12' || e.keyCode === 123
                 ) {
                     e.preventDefault();
+                    e.stopPropagation();
+                }
+            }
+        };
+
+        const handleFullscreenChange = () => {
+            const isFullscreen = document.fullscreenElement || 
+                                 document.webkitFullscreenElement || 
+                                 document.mozFullScreenElement || 
+                                 document.msFullscreenElement;
+            
+            if (!isFullscreen && isTakingTest && !testResult) {
+                if (isPromptActiveRef.current) return;
+                isPromptActiveRef.current = true;
+
+                const confirmClose = window.confirm("Warning: Exiting full-screen mode is not allowed during the test. Do you want to submit the test now? Unanswered questions will receive 0 marks.");
+                
+                isPromptActiveRef.current = false;
+
+                if (confirmClose) {
+                    if (submitTestRef.current) {
+                        submitTestRef.current(true);
+                    }
+                } else {
+                    // Try to re-enter fullscreen
+                    enterFullscreen();
                 }
             }
         };
 
         window.addEventListener('beforeunload', handleBeforeUnload);
         window.addEventListener('contextmenu', handleContextMenu);
-        window.addEventListener('keydown', handleKeyDown);
+        window.addEventListener('keydown', handleKeyDown, true);
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+        document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+        document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+        document.addEventListener('MSFullscreenChange', handleFullscreenChange);
 
         return () => {
             window.removeEventListener('beforeunload', handleBeforeUnload);
             window.removeEventListener('contextmenu', handleContextMenu);
-            window.removeEventListener('keydown', handleKeyDown);
+            window.removeEventListener('keydown', handleKeyDown, true);
+            document.removeEventListener('fullscreenchange', handleFullscreenChange);
+            document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+            document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
+            document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
         };
     }, [isTakingTest, testResult]);
 
@@ -99,6 +184,8 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
             return;
         }
 
+        enterFullscreen();
+
         setIsLoading(true); // Show loader while shuffling/preparing
         
         setTimeout(() => {
@@ -138,20 +225,20 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
         }, 800); // Small delay to show "Preparing Test"
     };
 
-    const handleSubmitTest = async () => {
+    const handleSubmitTest = async (forceSubmit = false) => {
         if (isSubmitting) return;
 
         const answeredCount = Object.keys(answers).length;
-        if (answeredCount < shuffledQuestions.length) {
+        if (!forceSubmit && answeredCount < shuffledQuestions.length) {
             alert(`Please answer all questions before finishing. (${answeredCount}/${shuffledQuestions.length} answered)`);
             return;
         }
 
         setIsSubmitting(true);
         try {
-            const formattedAnswers = Object.keys(answers).map(qId => ({
-                questionId: qId,
-                selectedOption: answers[qId]
+            const formattedAnswers = shuffledQuestions.map(q => ({
+                questionId: q._id,
+                selectedOption: answers[q._id] !== undefined ? answers[q._id] : -1
             }));
 
             const res = await testAPI.submit(selectedTest._id, formattedAnswers);
@@ -170,6 +257,10 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
             setIsSubmitting(false);
         }
     };
+
+    useEffect(() => {
+        submitTestRef.current = handleSubmitTest;
+    }, [handleSubmitTest]);
 
     const formatTime = (seconds) => {
         const mins = Math.floor(seconds / 60);
@@ -414,6 +505,7 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
 
                                         <button 
                                             onClick={() => {
+                                                exitFullscreen();
                                                 setIsTakingTest(false);
                                                 setSelectedTest(null);
                                                 setTestResult(null);

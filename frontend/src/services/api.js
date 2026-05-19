@@ -68,7 +68,8 @@ export const authAPI = {
     forgotPassword: (data) => api.post('/auth/forgot-password', data),
     resetPassword: (token, data) => api.post(`/auth/reset-password/${token}`, data),
     getAvailableRoles: () => api.get('/auth/available-roles'),
-    switchRole: (data) => api.post('/auth/switch-role', data)
+    switchRole: (data) => api.post('/auth/switch-role', data),
+    changePassword: (data) => api.put('/auth/change-password', data)
 };
 
 // User APIs (for admin)

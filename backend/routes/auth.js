@@ -526,6 +526,37 @@ router.put('/profile', protect, uploadPhoto.single('photo'), async (req, res) =>
     }
 });
 
+// @route   PUT /api/auth/change-password
+// @desc    Change user password
+// @access  Private
+router.put('/change-password', protect, async (req, res) => {
+    try {
+        const { newPassword } = req.body;
+        if (!newPassword || newPassword.length < 6) {
+            return res.status(400).json({ success: false, message: 'Password must be at least 6 characters' });
+        }
+
+        const user = await User.findById(req.user.id);
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+
+        user.password = newPassword;
+        await user.save();
+
+        // Synchronize password across all OTHER accounts with the same email
+        await User.updateMany(
+            { email: user.email, _id: { $ne: user._id } },
+            { $set: { password: newPassword } }
+        );
+
+        res.json({ success: true, message: 'Password updated successfully' });
+    } catch (error) {
+        console.error('Change password error:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
 // ==================== FORGOT PASSWORD ====================
 
 // @route   GET /api/auth/test-email

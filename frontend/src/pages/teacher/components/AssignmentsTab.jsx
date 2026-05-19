@@ -599,32 +599,33 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                             </p>
                                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-60 overflow-y-auto pr-2 custom-scrollbar p-1">
                                                 {assignment.submissions.map((sub) => (
-                                                    <div key={sub._id} className="p-2.5 bg-gray-50/50 hover:bg-white hover:shadow-sm rounded-xl border border-gray-100 transition-all flex items-center justify-between gap-3 group">
+                                                    <div key={sub._id} className="p-2.5 bg-gray-50/50 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 hover:shadow-sm rounded-xl border border-gray-100 dark:border-white/10 transition-all flex items-center justify-between gap-3 group">
                                                         <div className="flex items-center gap-2 overflow-hidden">
                                                             {sub.user?.photo ? (
-                                                                <img src={sub.user.photo} alt="" className="w-7 h-7 rounded-full object-cover border border-gray-100" />
+                                                                <img src={sub.user.photo} alt="" className="w-7 h-7 rounded-full object-cover border border-gray-100 dark:border-slate-800" />
                                                             ) : (
-                                                                <div className="w-7 h-7 rounded-full bg-primary/5 flex items-center justify-center text-primary font-bold text-[10px]">
+                                                                <div className="w-7 h-7 rounded-full bg-primary/5 dark:bg-primary/10 flex items-center justify-center text-primary font-bold text-[10px]">
                                                                     {sub.user?.name?.charAt(0)}
                                                                 </div>
                                                             )}
                                                             <div className="min-w-0">
-                                                                <p className="text-[11px] font-bold text-gray-900 truncate group-hover:text-primary transition-colors">{sub.user?.name}</p>
+                                                                <p className="text-[11px] font-bold text-gray-900 dark:text-white truncate group-hover:text-primary transition-colors">{sub.user?.name}</p>
                                                                 <div className="flex items-center gap-1.5">
                                                                     {sub.user?.rollNo && (
                                                                         <span className="text-[9px] font-black text-red-500/70">{sub.user?.rollNo}</span>
                                                                     )}
-                                                                    <span className="text-[9px] text-gray-400 font-medium">
+                                                                    <span className="text-[9px] text-gray-400 dark:text-gray-500 font-medium">
                                                                         {formatDate(sub.submittedAt)}
                                                                     </span>
                                                                 </div>
                                                             </div>
                                                         </div>
                                                         <div className="text-right shrink-0">
-                                                            <div className={`text-[9px] font-black px-2 py-0.5 rounded-lg border ${sub.status === 'graded' ? 'bg-primary/5 text-primary border-primary/10' :
-                                                                sub.status === 'rejected' ? 'bg-red-50 text-red-600 border-red-100' :
-                                                                    'bg-amber-50 text-amber-600 border-amber-100'
-                                                                }`}>
+                                                            <div className={`text-[9px] font-black px-2 py-0.5 rounded-lg border ${
+                                                                sub.status === 'graded' ? 'bg-primary/5 dark:bg-primary/10 text-primary border-primary/10 dark:border-primary/20' :
+                                                                sub.status === 'rejected' ? 'bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 border-red-100 dark:border-red-500/20' :
+                                                                'bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-100 dark:border-amber-500/20'
+                                                            }`}>
                                                                 {sub.status === 'graded' ? `${sub.marks}/${assignment.totalMarks}` : (sub.status === 'rejected' ? 'REJECTED' : 'PENDING')}
                                                             </div>
                                                         </div>

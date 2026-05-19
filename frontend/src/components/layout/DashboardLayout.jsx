@@ -23,14 +23,15 @@ import {
     Zap, 
     GraduationCap, 
     X, 
-    Megaphone
+    Megaphone,
+    Lock
 } from 'lucide-react';
 import { useDispatch } from 'react-redux';
 import { logout } from '../../features/auth/authSlice';
 import Sidebar from './Sidebar';
 import NotificationPopup from '../shared/NotificationPopup';
 import ChatWidget from '../shared/ChatWidget';
-import { userNotificationAPI, assignmentAPI, courseAPI } from '../../services/api';
+import { userNotificationAPI, assignmentAPI, courseAPI, authAPI } from '../../services/api';
 import useAutoLogout from '../../hooks/useAutoLogout';
 import { useTheme } from '../../context/ThemeContext';
 import Loader, { FullScreenLoader } from '../ui/Loader';
@@ -43,6 +44,10 @@ const DashboardLayout = () => {
     const [sidebarOpen, setSidebarOpen] = useState(true);
     const [showNotifications, setShowNotifications] = useState(false);
     const [showUserMenu, setShowUserMenu] = useState(false);
+    const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
+    const [resetPasswordForm, setResetPasswordForm] = useState({ newPassword: '', confirmPassword: '' });
+    const [isResettingPassword, setIsResettingPassword] = useState(false);
+    const [resetPasswordError, setResetPasswordError] = useState('');
     const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const { user, role } = useSelector((state) => state.auth);
@@ -171,6 +176,30 @@ const DashboardLayout = () => {
             await fetchNotifications();
         } catch (error) {
             console.error('Error marking all as read:', error);
+        }
+    };
+
+    const handleResetPasswordSubmit = async (e) => {
+        e.preventDefault();
+        setResetPasswordError('');
+        if (resetPasswordForm.newPassword.length < 6) {
+            setResetPasswordError('Password must be at least 6 characters.');
+            return;
+        }
+        if (resetPasswordForm.newPassword !== resetPasswordForm.confirmPassword) {
+            setResetPasswordError('Passwords do not match.');
+            return;
+        }
+        try {
+            setIsResettingPassword(true);
+            await authAPI.changePassword({ newPassword: resetPasswordForm.newPassword });
+            setShowResetPasswordModal(false);
+            setResetPasswordForm({ newPassword: '', confirmPassword: '' });
+            alert('Password successfully updated!');
+        } catch (err) {
+            setResetPasswordError(err.response?.data?.message || 'Failed to update password');
+        } finally {
+            setIsResettingPassword(false);
         }
     };
 
@@ -379,6 +408,12 @@ const DashboardLayout = () => {
                                                     className={`w-full flex items-center gap-3 p-2.5 rounded-xl text-sm font-medium ${isDark ? 'text-white/70 hover:bg-white/5 hover:text-white' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`}
                                                 >
                                                     <LifeBuoy className="w-4 h-4" /> Help & Support
+                                                </button>
+                                                <button
+                                                    onClick={() => { setShowResetPasswordModal(true); setShowUserMenu(false); }}
+                                                    className={`w-full flex items-center gap-3 p-2.5 rounded-xl text-sm font-medium ${isDark ? 'text-white/70 hover:bg-white/5 hover:text-white' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`}
+                                                >
+                                                    <Lock className="w-4 h-4" /> Reset Password
                                                 </button>
                                                 
                                                 <div className={`my-1 border-t ${isDark ? 'border-white/10' : 'border-gray-100'}`} />
@@ -648,6 +683,16 @@ const DashboardLayout = () => {
                                                 <LifeBuoy className="w-4 h-4" />
                                                 Help & Support
                                             </button>
+                                            <button 
+                                                onClick={() => {
+                                                    setShowResetPasswordModal(true);
+                                                    setShowUserMenu(false);
+                                                }}
+                                                className={`w-full flex items-center gap-3 px-3 py-2 text-sm rounded-lg ${isDark ? 'text-white/60 hover:bg-white/5 hover:text-white' : 'text-gray-600 hover:bg-gray-50'}`}
+                                            >
+                                                <Lock className="w-4 h-4" />
+                                                Reset Password
+                                            </button>
                                             
                                             <div className={`my-1 border-t ${isDark ? 'border-white/10' : 'border-gray-100'}`} />
                                             
@@ -693,6 +738,93 @@ const DashboardLayout = () => {
                     }}
                 />
             )}
+
+            {/* Reset Password Modal */}
+            <AnimatePresence>
+                {showResetPasswordModal && (
+                    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className={`w-full max-w-md rounded-2xl shadow-2xl overflow-hidden border ${isDark ? 'bg-[var(--bg-sidebar)] border-white/10' : 'bg-white border-gray-100'}`}
+                        >
+                            <div className={`px-6 py-4 border-b flex items-center justify-between ${isDark ? 'border-white/10' : 'border-gray-100'}`}>
+                                <h2 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Reset Password</h2>
+                                <button
+                                    onClick={() => setShowResetPasswordModal(false)}
+                                    className={`p-2 rounded-xl transition-colors ${isDark ? 'hover:bg-white/10 text-white/70' : 'hover:bg-gray-100 text-gray-500'}`}
+                                >
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+                            <form onSubmit={handleResetPasswordSubmit} className="p-6 space-y-4">
+                                {resetPasswordError && (
+                                    <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-500 rounded-xl text-sm font-medium flex items-center gap-2">
+                                        <AlertCircle className="w-4 h-4 shrink-0" />
+                                        {resetPasswordError}
+                                    </div>
+                                )}
+                                <div>
+                                    <label className={`block text-sm font-medium mb-1.5 ${isDark ? 'text-white/70' : 'text-gray-700'}`}>
+                                        New Password
+                                    </label>
+                                    <input
+                                        type="password"
+                                        value={resetPasswordForm.newPassword}
+                                        onChange={(e) => setResetPasswordForm({ ...resetPasswordForm, newPassword: e.target.value })}
+                                        className={`w-full px-4 py-2.5 rounded-xl border focus:ring-2 focus:ring-primary/20 outline-none transition-all ${
+                                            isDark 
+                                            ? 'bg-black/20 border-white/10 text-white focus:border-primary/50' 
+                                            : 'bg-white border-gray-200 text-gray-900 focus:border-primary'
+                                        }`}
+                                        placeholder="Enter new password"
+                                        required
+                                        minLength={6}
+                                    />
+                                </div>
+                                <div>
+                                    <label className={`block text-sm font-medium mb-1.5 ${isDark ? 'text-white/70' : 'text-gray-700'}`}>
+                                        Confirm Password
+                                    </label>
+                                    <input
+                                        type="password"
+                                        value={resetPasswordForm.confirmPassword}
+                                        onChange={(e) => setResetPasswordForm({ ...resetPasswordForm, confirmPassword: e.target.value })}
+                                        className={`w-full px-4 py-2.5 rounded-xl border focus:ring-2 focus:ring-primary/20 outline-none transition-all ${
+                                            isDark 
+                                            ? 'bg-black/20 border-white/10 text-white focus:border-primary/50' 
+                                            : 'bg-white border-gray-200 text-gray-900 focus:border-primary'
+                                        }`}
+                                        placeholder="Confirm new password"
+                                        required
+                                        minLength={6}
+                                    />
+                                </div>
+                                <div className="pt-4 flex justify-end gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowResetPasswordModal(false)}
+                                        className={`px-5 py-2.5 rounded-xl font-medium transition-colors ${
+                                            isDark ? 'hover:bg-white/10 text-white/70' : 'hover:bg-gray-100 text-gray-600'
+                                        }`}
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        disabled={isResettingPassword}
+                                        className="px-5 py-2.5 bg-primary text-white font-medium rounded-xl hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-w-[120px]"
+                                    >
+                                        {isResettingPassword ? <Loader className="w-5 h-5 text-white" /> : 'Save Password'}
+                                    </button>
+                                </div>
+                            </form>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
             {/* Global Chat Widget */}
             <ChatWidget />
         </div>

@@ -32,7 +32,12 @@ const SocialLinks = ({ className = '' }) => {
     };
 
     return (
-        <div ref={containerRef} className={className}>
+        <div ref={containerRef} className={`relative ${className}`}>
+            <img 
+                src="/Flex.gif" 
+                alt="Flex" 
+                className="absolute -top-8 left-12 w-24 h-24 z-10 pointer-events-none drop-shadow-lg" 
+            />
             <button
                 type="button"
                 onClick={toggleOpen}
