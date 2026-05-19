@@ -19,10 +19,16 @@ const ForgotPassword = () => {
         setSuccess(false);
 
         try {
-            await authAPI.forgotPassword({ email, role });
+            await authAPI.forgotPassword({
+                email: email.toLowerCase().trim(),
+                role,
+            });
             setSuccess(true);
         } catch (err) {
-            setError(err.response?.data?.message || 'Something went wrong. Please try again.');
+            setError(
+                err.response?.data?.message ||
+                    'Could not send reset email. Check your role selection and try again.'
+            );
         } finally {
             setLoading(false);
         }
@@ -55,7 +61,8 @@ const ForgotPassword = () => {
 
                     <h1 className="text-3xl font-bold text-white mb-2">Forgot Password</h1>
                     <p className="text-gray-300 mb-6">
-                        Enter your email address and we'll send you a link to reset your password.
+                        Enter your email and select the <strong className="text-white">same role you use to login</strong>.
+                        We'll send a reset link (check spam folder too).
                     </p>
 
                     {success ? (
@@ -64,7 +71,8 @@ const ForgotPassword = () => {
                             <div>
                                 <h3 className="text-green-400 font-semibold">Check your email</h3>
                                 <p className="text-green-300 text-sm mt-1">
-                                    If an account exists with {email}, you will receive a password reset link shortly.
+                                    If an account exists for <strong>{email}</strong> as <strong>{role}</strong>,
+                                    you will receive a reset link within a few minutes. Also check Spam / Promotions.
                                 </p>
                             </div>
                         </div>

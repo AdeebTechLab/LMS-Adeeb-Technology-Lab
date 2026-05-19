@@ -203,19 +203,49 @@ io.on('connection', (socket) => {
         io.to(data.roomId).emit('classroom_message', data);
     });
 
-    socket.on('teacher_control', (data) => {
-        if (data.action === 'end_class') {
-            io.to(data.roomId).emit('class_ended_by_teacher');
-        } else {
-            io.to(data.targetSocketId || data.roomId).emit('teacher_action', data);
+    socket.on('leave_classroom', (roomId) => {
+        if (!roomId) return;
+        socket.leave(roomId);
+        socket.to(roomId).emit('user_left_classroom', socket.id);
+        if (socket.roomId === roomId) {
+            socket.roomId = null;
+            socket.userDetails = null;
         }
+        setTimeout(() => broadcastRoomUsers(roomId), 300);
+    });
+
+    socket.on('teacher_control', (data) => {
+        const roomId = data.roomId;
+        if (!roomId) return;
+
+        if (data.action === 'end_class') {
+            io.to(roomId).emit('class_ended_by_teacher');
+            return;
+        }
+
+        if (data.action === 'kick_user' && data.targetSocketId) {
+            io.to(data.targetSocketId).emit('teacher_action', { action: 'kicked' });
+            const target = io.sockets.sockets.get(data.targetSocketId);
+            if (target?.roomId) {
+                target.leave(target.roomId);
+                io.to(target.roomId).emit('user_left_classroom', data.targetSocketId);
+                setTimeout(() => broadcastRoomUsers(target.roomId), 300);
+            }
+            return;
+        }
+
+        if (data.action === 'mute_user' && data.targetSocketId) {
+            io.to(data.targetSocketId).emit('teacher_action', { action: 'force_mute' });
+            return;
+        }
+
+        io.to(data.targetSocketId || roomId).emit('teacher_action', data);
     });
 
     socket.on('disconnect', () => {
         if (socket.roomId) {
             const roomId = socket.roomId;
             io.to(roomId).emit('user_left_classroom', socket.id);
-            // Wait a bit then broadcast updated list
             setTimeout(() => broadcastRoomUsers(roomId), 500);
         }
         activeUserSockets.delete(socket.id);

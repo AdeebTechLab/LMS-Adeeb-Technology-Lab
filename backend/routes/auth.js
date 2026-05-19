@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
+const { sendEmail, isEmailConfigured } = require('../utils/email');
+const { getClientUrl } = require('../config/client');
 const { protect } = require('../middleware/auth');
 const { uploadPhoto, uploadRegistration } = require('../config/cloudinary');
 const User = require('../models/User');
@@ -209,7 +211,7 @@ router.post('/register', uploadRegistration.fields([
                                     <p style="margin: 5px 0;"><strong>Signup Date:</strong> ${new Date().toLocaleString()}</p>
                                 </div>
                                 <p>Please log in to the admin dashboard to view and verify this user.</p>
-                                <a href="${process.env.CLIENT_URL || 'http://localhost:5173'}/login" style="display: inline-block; padding: 12px 24px; background-color: #0d2818; color: white; text-decoration: none; border-radius: 5px; font-weight: bold; margin-top: 10px;">Login to Admin Panel</a>
+                                <a href="${getClientUrl()}/login" style="display: inline-block; padding: 12px 24px; background-color: #0d2818; color: white; text-decoration: none; border-radius: 5px; font-weight: bold; margin-top: 10px;">Login to Admin Panel</a>
                             </div>
                             <div style="background-color: #f1f1f1; padding: 10px; text-align: center; font-size: 12px; color: #666666;">
                                 This is an automated notification from AdeebTechLab LMS.
@@ -606,72 +608,89 @@ router.post('/forgot-password', async (req, res) => {
     try {
         const { email, role } = req.body;
 
-        if (!email || !role) {
-            return res.status(400).json({ success: false, message: 'Please provide email and role' });
+        const genericSuccess = {
+            success: true,
+            message: 'If an account exists with this email, you will receive a password reset link shortly.',
+        };
+
+        if (!email?.trim()) {
+            return res.status(400).json({ success: false, message: 'Please provide your email address' });
         }
 
-        const user = await User.findOne({ email, role });
+        const normalizedEmail = email.toLowerCase().trim();
+
+        if (!isEmailConfigured()) {
+            console.error('❌ EMAIL_USER or EMAIL_PASS not set in environment');
+            return res.status(503).json({
+                success: false,
+                message: 'Email service is not configured on the server. Please contact admin.',
+            });
+        }
+
+        let user = null;
+        if (role) {
+            user = await User.findOne({ email: normalizedEmail, role });
+        }
         if (!user) {
-            // Don't reveal if user doesn't exist for security
-            return res.json({ success: true, message: 'If account exists for this role, password reset email has been sent' });
+            user = await User.findOne({ email: normalizedEmail });
         }
 
-        // Check for missing ENV variables early
-        if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-            console.error('❌ EMAIL_USER or EMAIL_PASS environment variables are not set!');
-            return res.status(500).json({ success: false, message: 'Email service is not configured.' });
+        if (!user) {
+            return res.json(genericSuccess);
         }
 
         // Generate reset token
         const resetToken = crypto.randomBytes(32).toString('hex');
         user.passwordResetToken = crypto.createHash('sha256').update(resetToken).digest('hex');
-        user.passwordResetExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
+        user.passwordResetExpires = Date.now() + 60 * 60 * 1000;
         await user.save({ validateBeforeSave: false });
 
-        // Create reset URL
-        const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
-        const resetUrl = `${clientUrl}/reset-password/${resetToken}`;
+        const resetUrl = `${getClientUrl()}/reset-password/${resetToken}`;
+        const roleLabel = user.role.charAt(0).toUpperCase() + user.role.slice(1);
 
-        console.log(`🔑 Generated reset link for ${user.email}: ${resetUrl}`);
-
-        // Send email
-        const transporter = nodemailer.createTransport({
-            service: 'gmail', // Use service 'gmail' for auto-configuration (Port 465/587 auto-handled)
-            auth: {
-                user: process.env.EMAIL_USER,
-                pass: process.env.EMAIL_PASS
-            }
+        await sendEmail({
+            to: user.email,
+            subject: 'Reset your Adeeb Technology Lab password',
+            text: `Hi ${user.name},\n\nReset your password: ${resetUrl}\n\nThis link expires in 1 hour.`,
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden;">
+                    <div style="background: linear-gradient(135deg, #ff8e01, #e67e00); padding: 24px; text-align: center;">
+                        <h1 style="color: #fff; margin: 0; font-size: 22px;">Adeeb Technology Lab</h1>
+                        <p style="color: rgba(255,255,255,0.9); margin: 8px 0 0; font-size: 14px;">Password Reset</p>
+                    </div>
+                    <div style="padding: 24px; color: #333;">
+                        <p>Hi <strong>${user.name}</strong>,</p>
+                        <p>Reset the password for your <strong>${roleLabel}</strong> account:</p>
+                        <p style="text-align: center; margin: 28px 0;">
+                            <a href="${resetUrl}" style="display: inline-block; padding: 14px 28px; background: #ff8e01; color: #fff; text-decoration: none; border-radius: 8px; font-weight: bold;">Reset Password</a>
+                        </p>
+                        <p style="font-size: 13px; color: #666; word-break: break-all;">Or copy: <a href="${resetUrl}">${resetUrl}</a></p>
+                        <p style="font-size: 13px; color: #888;">Expires in 1 hour. Check spam if you don't see this email.</p>
+                    </div>
+                </div>
+            `,
         });
 
-        const mailOptions = {
-            from: process.env.EMAIL_USER,
-            to: user.email,
-            subject: 'LMS Password Reset',
-            html: `
-                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                    <h2 style="color: #1a73e8;">LMS Password Reset</h2>
-                    <p>Hi ${user.name},</p>
-                    <p>You requested to reset your password. Click the button below to reset it:</p>
-                    <a href="${resetUrl}" style="display: inline-block; padding: 12px 24px; background-color: #1a73e8; color: white; text-decoration: none; border-radius: 4px; margin: 20px 0;">Reset Password</a>
-                    <p>Or copy this link: ${resetUrl}</p>
-                    <p style="color: #666;">This link will expire in 10 minutes.</p>
-                    <p style="color: #999; font-size: 12px;">If you didn't request this, please ignore this email.</p>
-                </div>
-            `
-        };
-
-        res.json({ success: true, message: 'Password reset email sent' });
-
-        transporter.sendMail(mailOptions)
-            .then(() => console.log('Password reset email sent to:', user.email))
-            .catch((error) => console.error('Error sending password reset email asynchronously:', error));
-
+        console.log(`🔑 Password reset email sent to ${user.email} (${user.role})`);
+        return res.json(genericSuccess);
     } catch (error) {
         console.error('Forgot password error:', error);
-        res.status(500).json({
+
+        const isAuthError =
+            error.code === 'EAUTH' ||
+            error.responseCode === 535 ||
+            /invalid login|authentication failed/i.test(error.message || '');
+
+        if (isAuthError) {
+            return res.status(503).json({
+                success: false,
+                message: 'Email could not be sent. Admin must configure Gmail App Password in EMAIL_PASS.',
+            });
+        }
+
+        return res.status(500).json({
             success: false,
-            message: 'Error sending email. Please check server logs.',
-            error: error.message // Send actual error to client for debugging
+            message: 'Could not send reset email. Please try again or contact support.',
         });
     }
 });

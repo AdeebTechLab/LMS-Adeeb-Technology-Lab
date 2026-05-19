@@ -5,6 +5,11 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Adeeb Meet — local camera mirror */
+.adeeb-meet video.mirror {
+  transform: scaleX(-1);
+}
+
 
 /* Custom CSS Variables - Design Tokens */
 :root {
