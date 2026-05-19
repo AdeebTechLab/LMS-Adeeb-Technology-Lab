@@ -28,6 +28,7 @@ import {
     getSocketURL,
     resolveAvatarUrl,
 } from '../../lib/adeebMeet/webrtcConfig';
+import { enrollmentAPI } from '../../services/api';
 
 const SOCKET_URL = getSocketURL();
 
@@ -48,7 +49,7 @@ const AdeebMeet = () => {
     const [peers, setPeers] = useState([]);
     const [participants, setParticipants] = useState([]);
     const [connectionStatus, setConnectionStatus] = useState('connecting');
-
+    const [myCourses, setMyCourses] = useState('');
     const socketRef = useRef(null);
     const managerRef = useRef(null);
     const userVideoRef = useRef(null);
@@ -91,17 +92,29 @@ const AdeebMeet = () => {
                     toast('Camera/mic unavailable — you can still listen and chat', { icon: 'ℹ️' });
                 }
 
-                const socket = io(SOCKET_URL, {
-                    withCredentials: true,
-                    transports: ['websocket', 'polling'],
-                });
-                socketRef.current = socket;
+                let courseNames = '';
+                if (role === 'student' || role === 'intern') {
+                    try {
+                        const res = await enrollmentAPI.getMy();
+                        const activeEnrollments = (res.data?.data || []).filter(e => e.isActive || e.status === 'enrolled');
+                        if (activeEnrollments.length > 0) {
+                            courseNames = activeEnrollments.map(e => e.course?.title).filter(Boolean).join(', ');
+                            setMyCourses(courseNames);
+                        }
+                    } catch (err) {
+                        console.error('Error fetching enrollments for meeting:', err);
+                    }
+                }
 
                 const userDetails = {
                     id: user?._id || user?.id,
                     name: user?.name || 'Guest',
                     photo: user?.photo || null,
                     role: role || 'student',
+                    rollNo: user?.rollNo || user?.rollNumber || null,
+                    course: courseNames || null,
+                    isMuted: !hasAudio,
+                    isVideoOff: !hasVideo
                 };
 
                 const onClassEnded = () => {
@@ -119,6 +132,12 @@ const AdeebMeet = () => {
                     setIsMuted(true);
                     toast('Teacher muted your microphone', { icon: '🔇' });
                 };
+
+                const socket = io(SOCKET_URL, {
+                    withCredentials: true,
+                    transports: ['websocket', 'polling'],
+                });
+                socketRef.current = socket;
 
                 const startMeeting = () => {
                     if (cancelled || managerRef.current) return;
@@ -148,6 +167,16 @@ const AdeebMeet = () => {
 
                 socket.on('classroom_message', (data) => {
                     setMessages((prev) => [...prev, data]);
+                });
+
+                socket.on('classroom_media_state', ({ socketId, isMuted, isVideoOff }) => {
+                    setPeers((prevPeers) =>
+                        prevPeers.map((peer) =>
+                            peer.peerId === socketId
+                                ? { ...peer, mediaState: { isMuted, isVideoOff } }
+                                : peer
+                        )
+                    );
                 });
 
                 socket.io.on('reconnect', () => {
@@ -181,12 +210,22 @@ const AdeebMeet = () => {
         const next = !isMuted;
         managerRef.current?.setMuted(next);
         setIsMuted(next);
+        socketRef.current?.emit('classroom_media_state', {
+            roomId: roomName,
+            isMuted: next,
+            isVideoOff
+        });
     };
 
     const toggleVideo = () => {
         const next = !isVideoOff;
         managerRef.current?.setVideoEnabled(!next);
         setIsVideoOff(next);
+        socketRef.current?.emit('classroom_media_state', {
+            roomId: roomName,
+            isMuted,
+            isVideoOff: next
+        });
     };
 
     const toggleScreenShare = async () => {
@@ -338,6 +377,8 @@ const AdeebMeet = () => {
                             isScreenShare={isScreenSharing}
                             videoRef={userVideoRef}
                             avatarUrl={avatar(user?.photo, user?.name)}
+                            rollNo={user?.rollNo || user?.rollNumber || null}
+                            course={isTeacher ? null : myCourses}
                         />
 
                         {peers.map((peer) => (
@@ -433,6 +474,8 @@ const AdeebMeet = () => {
                                                 name={p.userDetails?.name || 'Guest'}
                                                 role={p.userDetails?.role || 'student'}
                                                 photo={p.userDetails?.photo}
+                                                rollNo={p.userDetails?.rollNo}
+                                                course={p.userDetails?.course}
                                                 isSelf={p.socketId === socketRef.current?.id}
                                                 isTeacher={isTeacher}
                                                 onKick={() => {
@@ -566,6 +609,8 @@ const VideoTile = ({
     isScreenShare,
     videoRef,
     avatarUrl,
+    rollNo,
+    course,
 }) => {
     const internalRef = useRef(null);
     const ref = videoRef || internalRef;
@@ -590,7 +635,7 @@ const VideoTile = ({
                 muted={isLocal}
                 className={`w-full h-full object-cover bg-[#1a1a1a] ${isLocal && !isScreenShare ? 'mirror' : ''}`}
             />
-            <div className="absolute bottom-3 left-3 flex items-center gap-2 px-2.5 py-1 bg-black/50 backdrop-blur-md rounded-lg border border-white/10">
+            <div className="absolute bottom-3 left-3 flex items-center gap-2 px-2.5 py-1 bg-black/50 backdrop-blur-md rounded-lg border border-white/10 z-10">
                 <img src={avatarUrl} alt="" className="w-5 h-5 rounded-full object-cover" />
                 <span className="text-[10px] font-bold truncate max-w-[140px]">{name}</span>
                 {isMuted && <MicOff className="w-3 h-3 text-red-400 shrink-0" />}
@@ -606,12 +651,34 @@ const VideoTile = ({
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="absolute inset-0 bg-[#1a1a1a] flex flex-col items-center justify-center"
+                        className="absolute inset-0 bg-[#141414] flex flex-col items-center justify-center p-4 z-0"
                     >
-                        <img src={avatarUrl} alt="" className="w-20 h-20 rounded-full border-4 border-white/10 mb-3" />
-                        <span className="text-xs text-white/40 font-bold uppercase tracking-widest">
-                            Camera off
-                        </span>
+                        <motion.img 
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={{ delay: 0.1 }}
+                            src={avatarUrl} 
+                            alt="" 
+                            className="w-20 h-20 rounded-full border-4 border-white/10 shadow-2xl object-cover mb-3" 
+                        />
+                        <div className="flex flex-col items-center text-center max-w-[90%]">
+                            <span className="text-xs md:text-sm font-extrabold text-white tracking-tight drop-shadow-md">
+                                {name}
+                            </span>
+                            {rollNo && (
+                                <span className="text-[10px] font-black uppercase tracking-wider text-primary mt-0.5">
+                                    Roll No: {rollNo}
+                                </span>
+                            )}
+                            {course && (
+                                <span className="text-[10px] font-bold text-white/50 mt-0.5 truncate max-w-[200px]" title={course}>
+                                    {course}
+                                </span>
+                            )}
+                            <span className="text-[8px] md:text-[9px] text-white/20 uppercase tracking-[0.2em] font-black mt-3 bg-white/5 px-2 py-0.5 rounded-full border border-white/5">
+                                Camera off
+                            </span>
+                        </div>
                     </motion.div>
                 )}
             </AnimatePresence>
@@ -652,14 +719,24 @@ const RemoteVideoTile = ({ peer, avatarUrl }) => {
     const name = peer.userDetails?.name || 'Guest';
     const isTeacherPeer = peer.userDetails?.role === 'teacher' || peer.userDetails?.role === 'admin';
 
+    const displayIsVideoOff = peer.mediaState?.isVideoOff !== undefined 
+        ? peer.mediaState.isVideoOff 
+        : (peer.userDetails?.isVideoOff !== undefined ? peer.userDetails.isVideoOff : isVideoOff);
+
+    const displayIsMuted = peer.mediaState?.isMuted !== undefined 
+        ? peer.mediaState.isMuted 
+        : (peer.userDetails?.isMuted !== undefined ? peer.userDetails.isMuted : isMuted);
+
     return (
         <VideoTile
             stream={peer.remoteStream}
             name={`${name}${isTeacherPeer ? ' (Teacher)' : ''}`}
-            isMuted={isMuted}
-            isVideoOff={isVideoOff}
+            isMuted={displayIsMuted}
+            isVideoOff={displayIsVideoOff}
             videoRef={videoRef}
             avatarUrl={avatarUrl}
+            rollNo={peer.userDetails?.rollNo}
+            course={peer.userDetails?.course}
         />
     );
 };
@@ -688,7 +765,7 @@ const ControlBtn = ({ onClick, active, icon: Icon, danger, accent, label }) => (
     </motion.div>
 );
 
-const ParticipantRow = ({ name, role, photo, isSelf, isTeacher, onKick, onMute }) => {
+const ParticipantRow = ({ name, role, photo, rollNo, course, isSelf, isTeacher, onKick, onMute }) => {
     const avatarUrl = resolveAvatarUrl(photo, name, SOCKET_URL);
 
     return (
@@ -702,7 +779,19 @@ const ParticipantRow = ({ name, role, photo, isSelf, isTeacher, onKick, onMute }
                     <p className="text-xs font-bold truncate">
                         {name} {isSelf && '(You)'}
                     </p>
-                    <p className="text-[9px] text-white/40 uppercase">{role}</p>
+                    <div className="flex flex-col gap-0.5 mt-0.5">
+                        <span className="text-[9px] text-white/40 uppercase font-medium">{role}</span>
+                        {rollNo && (
+                            <span className="text-[9px] text-primary font-bold">
+                                Roll No: {rollNo}
+                            </span>
+                        )}
+                        {course && (
+                            <span className="text-[9px] text-white/60 truncate max-w-[180px]" title={course}>
+                                Course: {course}
+                            </span>
+                        )}
+                    </div>
                 </div>
             </motion.div>
             {!isSelf && isTeacher && (

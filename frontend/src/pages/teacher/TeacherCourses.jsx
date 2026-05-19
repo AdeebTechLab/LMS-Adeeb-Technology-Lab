@@ -45,6 +45,7 @@ const TeacherCourses = ({ isDashboard = false }) => {
 
     // Live Class States
     const [showLiveClassModal, setShowLiveClassModal] = useState(false);
+    const [liveClassModalType, setLiveClassModalType] = useState('google'); // 'google' | 'adeeb'
     const [liveClassForm, setLiveClassForm] = useState({
         title: '',
         link: '',
@@ -130,16 +131,21 @@ const TeacherCourses = ({ isDashboard = false }) => {
     const handleCreateLiveClass = async (e) => {
         e.preventDefault();
         if (!liveClassForm.title) return;
+        if (liveClassModalType === 'google' && !liveClassForm.link) return;
 
         setIsCreatingLiveClass(true);
         try {
+            const finalLink = liveClassModalType === 'adeeb'
+                ? `/live-meet/${Math.random().toString(36).substring(2, 10).toUpperCase()}`
+                : liveClassForm.link;
+
             await liveClassAPI.create({
                 ...liveClassForm,
-                link: `/live-meet/${Math.random().toString(36).substring(2, 10).toUpperCase()}`,
+                link: finalLink,
                 autoEndMinutes: liveClassForm.autoEndMinutes ? parseInt(liveClassForm.autoEndMinutes) : null
             });
             setShowLiveClassModal(false);
-            setLiveClassForm({ title: '', description: '', visibility: 'all', autoEndMinutes: '' });
+            setLiveClassForm({ title: '', link: '', description: '', visibility: 'all', autoEndMinutes: '' });
             fetchActiveLiveClasses();
         } catch (error) {
             console.error('Error creating live class:', error);
@@ -338,24 +344,19 @@ const TeacherCourses = ({ isDashboard = false }) => {
                         </div>
                         <button
                             onClick={() => {
-                                setLiveClassForm({ title: '', description: '', visibility: 'all', autoEndMinutes: '' });
+                                setLiveClassForm({ title: '', link: '', description: '', visibility: 'all', autoEndMinutes: '' });
+                                setLiveClassModalType('google');
                                 setShowLiveClassModal(true);
                             }}
                             className="px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl font-medium transition-all duration-300 flex items-center gap-2 shadow-lg shadow-red-200"
                         >
                             <Video className="w-5 h-5" />
-                            Start Live Class
+                            Google Meet Link
                         </button>
                         <button
                             onClick={() => {
-                                const roomId = `room-${Math.random().toString(36).substring(7)}`;
-                                setLiveClassForm({ 
-                                    title: '',
-                                    link: `/live-meet/${roomId}`,
-                                    description: '',
-                                    visibility: 'all',
-                                    autoEndMinutes: '' 
-                                });
+                                setLiveClassForm({ title: '', link: '', description: '', visibility: 'all', autoEndMinutes: '' });
+                                setLiveClassModalType('adeeb');
                                 setShowLiveClassModal(true);
                             }}
                             className="px-5 py-2.5 bg-primary hover:bg-primary-dark text-white rounded-xl font-medium transition-all duration-300 flex items-center gap-2 shadow-lg shadow-primary/20"
@@ -773,8 +774,8 @@ const TeacherCourses = ({ isDashboard = false }) => {
                         >
                             <div className="flex items-center justify-between mb-6">
                                 <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                                    <Video className="w-6 h-6 text-red-500" />
-                                    Start Live Class
+                                    {liveClassModalType === 'google' ? <Video className="w-6 h-6 text-red-500" /> : <Users className="w-6 h-6 text-primary" />}
+                                    {liveClassModalType === 'google' ? 'Google Meet Link' : 'Start Adeeb Meet'}
                                 </h3>
                                 <button
                                     onClick={() => setShowLiveClassModal(false)}
@@ -798,6 +799,22 @@ const TeacherCourses = ({ isDashboard = false }) => {
                                         required
                                     />
                                 </div>
+
+                                {liveClassModalType === 'google' && (
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Google Meet Link *
+                                        </label>
+                                        <input
+                                            type="url"
+                                            value={liveClassForm.link}
+                                            onChange={(e) => setLiveClassForm({ ...liveClassForm, link: e.target.value })}
+                                            placeholder="e.g., https://meet.google.com/abc-defg-hij"
+                                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent"
+                                            required
+                                        />
+                                    </div>
+                                )}
 
 
 
@@ -895,10 +912,16 @@ const TeacherCourses = ({ isDashboard = false }) => {
                                     >
                                         {isCreatingLiveClass ? (
                                             <ButtonLoader />
-                                        ) : (
+                                        ) : liveClassModalType === 'google' ? (
                                             <Video className="w-5 h-5" />
+                                        ) : (
+                                            <Users className="w-5 h-5" />
                                         )}
-                                        {isCreatingLiveClass ? 'Starting...' : 'Start Live Class'}
+                                        {isCreatingLiveClass 
+                                            ? 'Starting...' 
+                                            : liveClassModalType === 'google' 
+                                                ? 'Google Meet Link' 
+                                                : 'Start Adeeb Meet'}
                                     </button>
                                 </div>
                             </form>

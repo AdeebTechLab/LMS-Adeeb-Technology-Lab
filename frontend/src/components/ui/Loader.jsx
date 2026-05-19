@@ -57,15 +57,26 @@ export const ButtonLoader = ({ isLoading, icon, children, className = "w-5 h-5",
     
     return (
         <div className="flex items-center justify-center gap-2">
-            <img 
-                src="/loading.gif" 
-                alt="Loading..." 
-                className={`${className} object-contain inline-block transition-all`}
-                style={{ 
-                    filter: white ? 'brightness(0) invert(1)' : 'none',
-                    opacity: 0.9
-                }}
-            />
+            <svg 
+                className={`animate-spin ${className} text-current inline-block transition-all`} 
+                xmlns="http://www.w3.org/2000/svg" 
+                fill="none" 
+                viewBox="0 0 24 24"
+            >
+                <circle 
+                    className="opacity-25" 
+                    cx="12" 
+                    cy="12" 
+                    r="10" 
+                    stroke="currentColor" 
+                    strokeWidth="4"
+                />
+                <path 
+                    className="opacity-75" 
+                    fill="currentColor" 
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                />
+            </svg>
             {children && <span className="opacity-70">{children}</span>}
         </div>
     );

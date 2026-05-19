@@ -203,6 +203,14 @@ io.on('connection', (socket) => {
         io.to(data.roomId).emit('classroom_message', data);
     });
 
+    socket.on('classroom_media_state', (data) => {
+        socket.to(data.roomId).emit('classroom_media_state', {
+            socketId: socket.id,
+            isMuted: data.isMuted,
+            isVideoOff: data.isVideoOff
+        });
+    });
+
     socket.on('leave_classroom', (roomId) => {
         if (!roomId) return;
         socket.leave(roomId);
