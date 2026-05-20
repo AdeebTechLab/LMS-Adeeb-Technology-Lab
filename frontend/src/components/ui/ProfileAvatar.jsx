@@ -39,7 +39,7 @@ const ProfileAvatar = ({
                 <img
                     src={src}
                     alt={name}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover object-center"
                     loading="lazy"
                     onError={(e) => {
                         // Hide broken image, show fallback

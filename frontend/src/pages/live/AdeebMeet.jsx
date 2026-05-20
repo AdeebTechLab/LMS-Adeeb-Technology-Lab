@@ -534,11 +534,9 @@ const AdeebMeet = () => {
         ...peers.map((p) => ({ key: p.peerId, isLocal: false, peer: p })),
     ];
 
-    const gridTileClass =
-        focusedTileId === null ? 'meet-tile-fixed !aspect-square !min-h-0' : 'h-full min-h-0 !aspect-auto';
-    const fullTileClass =
-        focusedTileId === null ? 'meet-tile-fullwidth !aspect-video !min-h-0 w-full' : 'h-full min-h-0 !aspect-auto w-full';
-    const tileSizeClass = layout === 'grid' ? gridTileClass : fullTileClass;
+    const gridTileClass = 'meet-tile-fixed !aspect-square !min-h-0';
+    const fullTileClass = 'meet-tile-fullwidth w-full';
+    const focusedTileClass = 'h-full min-h-0 !aspect-auto w-full';
 
     const localLevel = audioLevels.local ?? 0;
 
@@ -741,9 +739,17 @@ const AdeebMeet = () => {
                             {displayTiles.map((tile) => {
                                 const tileId = tile.isLocal ? 'local' : tile.peer.peerId;
                                 const sizeClass =
-                                    focusedTileId === tileId ? 'h-full min-h-0 !aspect-auto w-full' : tileSizeClass;
+                                    focusedTileId === tileId
+                                        ? focusedTileClass
+                                        : layout === 'grid'
+                                          ? gridTileClass
+                                          : fullTileClass;
                                 const wrapperClass =
-                                    layout === 'grid' && !focusedTileId ? 'shrink-0' : 'min-h-0 w-full';
+                                    focusedTileId === tileId
+                                        ? 'min-h-0 w-full h-full flex-1'
+                                        : layout === 'grid'
+                                          ? 'shrink-0'
+                                          : 'w-full shrink-0';
 
                                 if (tile.isLocal) {
                                     return renderTileWrapper(
@@ -853,7 +859,7 @@ const AdeebMeet = () => {
                                 )}
 
                                 {showParticipants && (
-                                    <div className="space-y-2">
+                                    <div className="meet-students-panel space-y-2 select-text">
                                         {participants.map((p) => (
                                             <ParticipantRow
                                                 key={p.socketId}
@@ -1130,7 +1136,7 @@ const VideoTile = ({
                 muted={isLocal}
                 data-remote={!isLocal ? 'true' : undefined}
                 disablePictureInPicture
-                className={`w-full h-full object-cover bg-[#1a1a1a] ${isLocal && !isScreenShare ? 'mirror' : ''} ${isScreenShare ? 'object-contain' : ''}`}
+                className={`object-cover bg-[#1a1a1a] ${isFullTile ? '' : 'w-full h-full'} ${isLocal && !isScreenShare ? 'mirror' : ''} ${isScreenShare ? 'object-contain' : ''}`}
             />
             <div className="absolute bottom-3 left-3 right-3 flex items-end justify-between gap-2 z-10 pointer-events-none">
                 <div className="flex items-center gap-2 px-2.5 py-1 bg-black/50 rounded-lg border border-white/10 min-w-0 pointer-events-auto">
@@ -1375,21 +1381,24 @@ const ParticipantRow = ({ name, role, photo, rollNo, course, isSelf, isTeacher, 
             layout
             className="flex items-center justify-between p-2.5 bg-white/5 rounded-xl border border-white/5 group"
         >
-            <motion.div className="flex items-center gap-2 min-w-0" whileHover={{ x: 2 }}>
-                <img src={avatarUrl} alt="" className="w-8 h-8 rounded-lg object-cover shrink-0" />
-                <div className="min-w-0">
-                    <p className="text-xs font-bold truncate">
+            <motion.div className="flex items-center gap-2 min-w-0 flex-1" whileHover={{ x: 2 }}>
+                <img src={avatarUrl} alt="" className="w-8 h-8 rounded-lg object-cover shrink-0 pointer-events-none" />
+                <div className="min-w-0 flex-1 student-row-text">
+                    <p className="text-xs font-bold break-words">
                         {name} {isSelf && '(You)'}
                     </p>
                     <div className="flex flex-col gap-0.5 mt-0.5">
                         <span className="text-[9px] text-white/40 uppercase font-medium">{role}</span>
                         {rollNo && (
-                            <span className="text-[9px] text-primary font-bold">
+                            <span className="text-[9px] text-primary font-bold select-all">
                                 Roll No: {rollNo}
                             </span>
                         )}
                         {course && (
-                            <span className="text-[9px] text-white/60 truncate max-w-[180px]" title={course}>
+                            <span
+                                className="text-[9px] text-white/60 break-words select-all"
+                                title={course}
+                            >
                                 Course: {course}
                             </span>
                         )}
