@@ -68,13 +68,46 @@ export const createDummyVideoTrack = () => {
     }
 };
 
-export async function acquireMicrophoneTrack() {
+export async function enumerateMediaDevices() {
+    if (!navigator.mediaDevices?.enumerateDevices) {
+        return { audioInputs: [], videoInputs: [] };
+    }
+    try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        return {
+            audioInputs: devices.filter((d) => d.kind === 'audioinput'),
+            videoInputs: devices.filter((d) => d.kind === 'videoinput'),
+        };
+    } catch {
+        return { audioInputs: [], videoInputs: [] };
+    }
+}
+
+export async function acquireMicrophoneTrack(deviceId) {
     if (!navigator.mediaDevices?.getUserMedia) return null;
+    const audio = deviceId
+        ? { ...AUDIO_CONSTRAINTS, deviceId: { exact: deviceId } }
+        : AUDIO_CONSTRAINTS;
     const stream = await navigator.mediaDevices.getUserMedia({
-        audio: AUDIO_CONSTRAINTS,
+        audio,
         video: false,
     });
     const track = stream.getAudioTracks()[0];
+    if (!track) return null;
+    track.enabled = true;
+    return track;
+}
+
+export async function acquireCameraTrack(deviceId) {
+    if (!navigator.mediaDevices?.getUserMedia) return null;
+    const video = deviceId
+        ? { ...VIDEO_CONSTRAINTS, deviceId: { exact: deviceId } }
+        : VIDEO_CONSTRAINTS;
+    const stream = await navigator.mediaDevices.getUserMedia({
+        audio: false,
+        video,
+    });
+    const track = stream.getVideoTracks()[0];
     if (!track) return null;
     track.enabled = true;
     return track;

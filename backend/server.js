@@ -138,6 +138,8 @@ io.on('connection', (socket) => {
     });
 
     // --- CUSTOM VIDEO CLASSROOM SIGNALING ---
+    const roomScreenSharers = new Map();
+
     const broadcastRoomUsers = (roomId) => {
         const usersInRoom = [];
         const roomSockets = io.sockets.adapter.rooms.get(roomId);
@@ -186,6 +188,11 @@ io.on('connection', (socket) => {
         }
         socket.emit('existing_classroom_users', existingUsers);
 
+        const activeSharer = roomScreenSharers.get(roomId);
+        if (activeSharer) {
+            socket.emit('classroom_screen_share', { socketId: activeSharer, active: true });
+        }
+
         // Broadcast updated user list to everyone for the participant list UI
         broadcastRoomUsers(roomId);
     });
@@ -213,6 +220,11 @@ io.on('connection', (socket) => {
 
     socket.on('classroom_screen_share', (data) => {
         if (!data?.roomId) return;
+        if (data.active) {
+            roomScreenSharers.set(data.roomId, socket.id);
+        } else if (roomScreenSharers.get(data.roomId) === socket.id) {
+            roomScreenSharers.delete(data.roomId);
+        }
         socket.to(data.roomId).emit('classroom_screen_share', {
             socketId: socket.id,
             active: !!data.active
@@ -221,6 +233,10 @@ io.on('connection', (socket) => {
 
     socket.on('leave_classroom', (roomId) => {
         if (!roomId) return;
+        if (roomScreenSharers.get(roomId) === socket.id) {
+            roomScreenSharers.delete(roomId);
+            socket.to(roomId).emit('classroom_screen_share', { socketId: socket.id, active: false });
+        }
         socket.leave(roomId);
         socket.to(roomId).emit('user_left_classroom', socket.id);
         if (socket.roomId === roomId) {

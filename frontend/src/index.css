@@ -67,6 +67,16 @@ html.lang-rtl textarea {
   transform: translateZ(0);
 }
 
+.adeeb-meet:fullscreen {
+  width: 100vw;
+  height: 100vh;
+}
+
+.adeeb-meet:fullscreen main {
+  flex: 1;
+  min-height: 0;
+}
+
 .adeeb-meet .meet-tile-speaking {
   border-color: rgba(255, 142, 1, 0.85);
   box-shadow: 0 0 0 2px rgba(255, 142, 1, 0.35);

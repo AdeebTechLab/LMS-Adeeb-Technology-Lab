@@ -1,4 +1,10 @@
-import { ICE_SERVERS, acquireMicrophoneTrack, getDisplayMediaOptions, isDisplayMediaSupported } from './webrtcConfig';
+import {
+    ICE_SERVERS,
+    acquireCameraTrack,
+    acquireMicrophoneTrack,
+    getDisplayMediaOptions,
+    isDisplayMediaSupported,
+} from './webrtcConfig';
 
 let emitPeersTimer = null;
 
@@ -39,7 +45,10 @@ export class WebRTCMeetingManager {
             });
         });
 
-        this.socket.on('user_joined_classroom', () => {});
+        this.socket.on('user_joined_classroom', ({ socketId, userDetails }) => {
+            if (!socketId || socketId === this.mySocketId) return;
+            this._connectToPeer(socketId, userDetails, true);
+        });
 
         this.socket.on('classroom_signal', async ({ signal, from, userDetails }) => {
             if (!from || from === this.mySocketId) return;
@@ -56,9 +65,13 @@ export class WebRTCMeetingManager {
         });
 
         this.socket.on('classroom_screen_share', ({ socketId, active }) => {
-            if (socketId && socketId !== this.mySocketId) {
-                this.onScreenShareChange?.({ socketId, active });
+            if (!socketId || socketId === this.mySocketId) return;
+            const entry = this.peers.get(socketId);
+            if (entry) {
+                entry.isScreenSharing = !!active;
+                this._scheduleEmitPeers();
             }
+            this.onScreenShareChange?.({ socketId, active: !!active });
         });
 
         this.socket.on('teacher_action', (data) => {
@@ -280,6 +293,62 @@ export class WebRTCMeetingManager {
             if (sender) await sender.replaceTrack(newTrack);
             else pc.addTrack(newTrack, this.localStream);
         }
+        await this._renegotiateAllPeers();
+    }
+
+    async _replaceLocalVideoTrack(newTrack) {
+        if (!newTrack || !this.localStream || this.screenTrack) return;
+
+        const old = this.localStream.getVideoTracks()[0];
+        if (old && old !== newTrack) {
+            this.localStream.removeTrack(old);
+            if (old !== this.screenTrack) {
+                try {
+                    old.stop();
+                } catch {
+                    /* ignore */
+                }
+            }
+        }
+        if (!this.localStream.getVideoTracks().includes(newTrack)) {
+            this.localStream.addTrack(newTrack);
+        }
+        this.cameraVideoTrack = newTrack;
+
+        for (const [, { pc }] of this.peers) {
+            const sender = pc.getSenders().find((s) => s.track?.kind === 'video');
+            if (sender) await sender.replaceTrack(newTrack);
+            else pc.addTrack(newTrack, this.localStream);
+        }
+        await this._renegotiateAllPeers();
+    }
+
+    async _renegotiateAllPeers() {
+        for (const socketId of this.peers.keys()) {
+            await this._renegotiatePeer(socketId);
+        }
+    }
+
+    async _renegotiatePeer(remoteSocketId) {
+        const entry = this.peers.get(remoteSocketId);
+        if (!entry || this.destroyed) return;
+        const { pc } = entry;
+        if (pc.signalingState !== 'stable' || entry.makingOffer) return;
+
+        try {
+            entry.makingOffer = true;
+            const offer = await pc.createOffer();
+            await pc.setLocalDescription(offer);
+            this.socket.emit('classroom_signal', {
+                to: remoteSocketId,
+                signal: pc.localDescription,
+                userDetails: this.myUserDetails,
+            });
+        } catch (err) {
+            console.error('Renegotiation failed:', err);
+        } finally {
+            entry.makingOffer = false;
+        }
     }
 
     async setMuted(muted) {
@@ -308,8 +377,27 @@ export class WebRTCMeetingManager {
     }
 
     setVideoEnabled(enabled) {
-        const track = this.localStream?.getVideoTracks()[0];
-        if (track && track.readyState === 'live') track.enabled = enabled;
+        const track = this.screenTrack || this.localStream?.getVideoTracks()[0];
+        if (track && track.readyState === 'live' && track !== this.screenTrack) track.enabled = enabled;
+    }
+
+    async switchAudioDevice(deviceId) {
+        const fresh = await acquireMicrophoneTrack(deviceId);
+        if (!fresh) throw new Error('Could not access selected microphone');
+        const wasMuted = !this.localStream?.getAudioTracks()[0]?.enabled;
+        await this._replaceLocalAudioTrack(fresh);
+        if (!wasMuted) fresh.enabled = true;
+        return fresh;
+    }
+
+    async switchVideoDevice(deviceId) {
+        if (this.screenTrack) throw new Error('Stop screen sharing before switching camera');
+        const fresh = await acquireCameraTrack(deviceId);
+        if (!fresh) throw new Error('Could not access selected camera');
+        const wasOff = !this.localStream?.getVideoTracks()[0]?.enabled;
+        await this._replaceLocalVideoTrack(fresh);
+        if (!wasOff) fresh.enabled = true;
+        return fresh;
     }
 
     async startScreenShare() {
@@ -328,9 +416,12 @@ export class WebRTCMeetingManager {
             this.cameraVideoTrack = this.localStream?.getVideoTracks()[0] ?? null;
         }
 
-        for (const [, { pc }] of this.peers) {
+        for (const [peerId, { pc }] of this.peers) {
             const sender = pc.getSenders().find((s) => s.track?.kind === 'video');
             if (sender) await sender.replaceTrack(screenTrack);
+            else pc.addTrack(screenTrack, this.localStream);
+            const entry = this.peers.get(peerId);
+            if (entry) entry.isScreenSharing = true;
         }
 
         const localVideo = this.localStream?.getVideoTracks()[0];
@@ -350,6 +441,8 @@ export class WebRTCMeetingManager {
             active: true,
         });
         this.onScreenShareChange?.({ socketId: this.mySocketId, active: true });
+        this._scheduleEmitPeers();
+        await this._renegotiateAllPeers();
 
         return displayStream;
     }
@@ -375,9 +468,11 @@ export class WebRTCMeetingManager {
             }
         }
 
-        for (const [, { pc }] of this.peers) {
+        for (const [peerId, { pc }] of this.peers) {
             const sender = pc.getSenders().find((s) => s.track?.kind === 'video');
             if (sender && cameraTrack) await sender.replaceTrack(cameraTrack);
+            const entry = this.peers.get(peerId);
+            if (entry) entry.isScreenSharing = false;
         }
 
         if (screenTrack) {
@@ -400,6 +495,8 @@ export class WebRTCMeetingManager {
             active: false,
         });
         this.onScreenShareChange?.({ socketId: this.mySocketId, active: false });
+        this._scheduleEmitPeers();
+        await this._renegotiateAllPeers();
     }
 
     kickUser(targetSocketId) {

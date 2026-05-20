@@ -55,6 +55,13 @@ export class AudioLevelMonitor {
         this.sources.delete(id);
     }
 
+    resumeContext() {
+        if (this.ctx?.state === 'suspended') {
+            return this.ctx.resume();
+        }
+        return Promise.resolve();
+    }
+
     start() {
         if (this.timer) return;
         this.timer = setInterval(() => this._tick(), this.intervalMs);

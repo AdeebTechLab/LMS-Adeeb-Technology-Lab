@@ -19,12 +19,14 @@ import {
     Maximize2,
     Sidebar as SidebarIcon,
     X,
+    ChevronDown,
 } from 'lucide-react';
 import { io } from 'socket.io-client';
 import toast from 'react-hot-toast';
 import { WebRTCMeetingManager } from '../../lib/adeebMeet/WebRTCMeetingManager';
 import {
     buildLocalMediaStream,
+    enumerateMediaDevices,
     getSocketURL,
     resolveAvatarUrl,
 } from '../../lib/adeebMeet/webrtcConfig';
@@ -33,6 +35,13 @@ import { playChatNotificationSound } from '../../lib/adeebMeet/chatNotify';
 import { enrollmentAPI } from '../../services/api';
 
 const SOCKET_URL = getSocketURL();
+
+const attachStreamToVideo = (videoEl, stream) => {
+    if (!videoEl || !stream) return;
+    if (videoEl.srcObject !== stream) videoEl.srcObject = stream;
+    const playPromise = videoEl.play();
+    if (playPromise?.catch) playPromise.catch(() => {});
+};
 
 const AdeebMeet = () => {
     const { roomName } = useParams();
@@ -55,8 +64,14 @@ const AdeebMeet = () => {
     const [activeSpeakerId, setActiveSpeakerId] = useState(null);
     const [audioLevels, setAudioLevels] = useState({});
     const [peerScreenShare, setPeerScreenShare] = useState({});
-    const [screenFocusOn, setScreenFocusOn] = useState(false);
+    const [screenFocusOn, setScreenFocusOn] = useState(true);
     const [unreadChat, setUnreadChat] = useState(0);
+    const [audioDevices, setAudioDevices] = useState([]);
+    const [videoDevices, setVideoDevices] = useState([]);
+    const [selectedAudioDevice, setSelectedAudioDevice] = useState('');
+    const [selectedVideoDevice, setSelectedVideoDevice] = useState('');
+    const [showAudioMenu, setShowAudioMenu] = useState(false);
+    const [showVideoMenu, setShowVideoMenu] = useState(false);
     const myUserId = user?._id || user?.id;
     const socketRef = useRef(null);
     const audioMonitorRef = useRef(null);
@@ -110,6 +125,24 @@ const AdeebMeet = () => {
                 setIsVideoOff(!hasVideo);
                 if (!hasAudio && !hasVideo) {
                     toast('Camera/mic unavailable — you can still listen and chat', { icon: 'ℹ️' });
+                }
+
+                const { audioInputs, videoInputs } = await enumerateMediaDevices();
+                if (!cancelled) {
+                    setAudioDevices(audioInputs);
+                    setVideoDevices(videoInputs);
+                    const audioTrack = stream.getAudioTracks()[0];
+                    const videoTrack = stream.getVideoTracks()[0];
+                    if (audioTrack?.getSettings?.().deviceId) {
+                        setSelectedAudioDevice(audioTrack.getSettings().deviceId);
+                    } else if (audioInputs[0]) {
+                        setSelectedAudioDevice(audioInputs[0].deviceId);
+                    }
+                    if (videoTrack?.getSettings?.().deviceId) {
+                        setSelectedVideoDevice(videoTrack.getSettings().deviceId);
+                    } else if (videoInputs[0]) {
+                        setSelectedVideoDevice(videoInputs[0].deviceId);
+                    }
                 }
 
                 let courseNames = '';
@@ -237,6 +270,55 @@ const AdeebMeet = () => {
     }, [roomName, user, role, leaveClass, appendMessage, myUserId]);
 
     useEffect(() => {
+        const unlockPlayback = () => {
+            audioMonitorRef.current?.resumeContext?.().catch(() => {});
+            document.querySelectorAll('.adeeb-meet video').forEach((el) => {
+                el.play?.().catch(() => {});
+            });
+        };
+        document.addEventListener('click', unlockPlayback, { once: true });
+        document.addEventListener('keydown', unlockPlayback, { once: true });
+        return () => {
+            document.removeEventListener('click', unlockPlayback);
+            document.removeEventListener('keydown', unlockPlayback);
+        };
+    }, []);
+
+    useEffect(() => {
+        if (!showAudioMenu && !showVideoMenu) return;
+        const close = () => {
+            setShowAudioMenu(false);
+            setShowVideoMenu(false);
+        };
+        const timer = setTimeout(() => document.addEventListener('click', close), 0);
+        return () => {
+            clearTimeout(timer);
+            document.removeEventListener('click', close);
+        };
+    }, [showAudioMenu, showVideoMenu]);
+
+    useEffect(() => {
+        const refreshDevices = async () => {
+            const { audioInputs, videoInputs } = await enumerateMediaDevices();
+            setAudioDevices(audioInputs);
+            setVideoDevices(videoInputs);
+        };
+        refreshDevices();
+        navigator.mediaDevices?.addEventListener?.('devicechange', refreshDevices);
+        return () => navigator.mediaDevices?.removeEventListener?.('devicechange', refreshDevices);
+    }, []);
+
+    useEffect(() => {
+        if (!peers.length) return;
+        const timer = setTimeout(() => {
+            document.querySelectorAll('.adeeb-meet video:not([muted])').forEach((el) => {
+                el.play?.().catch(() => {});
+            });
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [peers]);
+
+    useEffect(() => {
         if (!userStreamRef.current && !peers.length) return;
 
         if (!audioMonitorRef.current) {
@@ -296,6 +378,43 @@ const AdeebMeet = () => {
             isMuted,
             isVideoOff: next
         });
+    };
+
+    const switchMicrophone = async (deviceId) => {
+        if (!deviceId || !managerRef.current) return;
+        try {
+            await managerRef.current.switchAudioDevice(deviceId);
+            setSelectedAudioDevice(deviceId);
+            setIsMuted(false);
+            socketRef.current?.emit('classroom_media_state', {
+                roomId: roomName,
+                isMuted: false,
+                isVideoOff,
+            });
+            setShowAudioMenu(false);
+        } catch (err) {
+            toast.error(err.message || 'Could not switch microphone');
+        }
+    };
+
+    const switchCamera = async (deviceId) => {
+        if (!deviceId || !managerRef.current) return;
+        try {
+            await managerRef.current.switchVideoDevice(deviceId);
+            setSelectedVideoDevice(deviceId);
+            if (userVideoRef.current && userStreamRef.current) {
+                attachStreamToVideo(userVideoRef.current, userStreamRef.current);
+            }
+            setIsVideoOff(false);
+            socketRef.current?.emit('classroom_media_state', {
+                roomId: roomName,
+                isMuted,
+                isVideoOff: false,
+            });
+            setShowVideoMenu(false);
+        } catch (err) {
+            toast.error(err.message || 'Could not switch camera');
+        }
     };
 
     const toggleScreenShare = async () => {
@@ -359,16 +478,25 @@ const AdeebMeet = () => {
     };
 
     const mySocketId = socketRef.current?.id;
-    const screenSharerId =
-        screenFocusOn &&
-        (isScreenSharing
-            ? mySocketId
-            : peers.find((p) => peerScreenShare[p.peerId] || p.isScreenSharing)?.peerId);
+    const screenSharerId = isScreenSharing
+        ? mySocketId
+        : peers.find((p) => peerScreenShare[p.peerId] || p.isScreenSharing)?.peerId ?? null;
 
-    const orderedPeers = [...peers].sort((a, b) => {
-        if (a.peerId === activeSpeakerId) return -1;
-        if (b.peerId === activeSpeakerId) return 1;
+    const showScreenLayout = screenSharerId && screenFocusOn;
+
+    const sortBySpeaker = (aKey, bKey) => {
+        if (aKey === activeSpeakerId) return -1;
+        if (bKey === activeSpeakerId) return 1;
         return 0;
+    };
+
+    const orderedTiles = [
+        { key: 'local', isLocal: true },
+        ...peers.map((p) => ({ key: p.peerId, isLocal: false, peer: p })),
+    ].sort((a, b) => {
+        const aKey = a.isLocal ? 'local' : a.key;
+        const bKey = b.isLocal ? 'local' : b.key;
+        return sortBySpeaker(aKey, bKey);
     });
 
     const localSpeaking = activeSpeakerId === 'local';
@@ -459,13 +587,13 @@ const AdeebMeet = () => {
                 </div>
             </header>
 
-            <main className="flex-1 flex overflow-hidden min-h-0">
-                <div className="flex-1 p-3 md:p-4 overflow-y-auto min-h-0">
-                    {screenSharerId ? (
-                        <div className="flex flex-col lg:flex-row gap-3 min-h-[50vh]">
-                            <div className="flex-1 min-h-[280px]">
+            <main className="flex-1 flex overflow-hidden min-h-0 h-0">
+                <div className="flex-1 flex flex-col min-h-0 p-2 md:p-3 overflow-hidden">
+                    {showScreenLayout ? (
+                        <div className="flex flex-col lg:flex-row gap-2 md:gap-3 flex-1 min-h-0 h-full">
+                            <div className="flex-1 min-h-0 min-w-0">
                                 {screenSharerId === mySocketId
-                                    ? renderLocalTile('h-full min-h-[280px] !aspect-auto')
+                                    ? renderLocalTile('h-full min-h-0 !aspect-auto')
                                     : (() => {
                                           const sp = peers.find((p) => p.peerId === screenSharerId);
                                           return sp ? (
@@ -474,52 +602,69 @@ const AdeebMeet = () => {
                                                   avatarUrl={avatar(sp.userDetails?.photo, sp.userDetails?.name)}
                                                   isSpeaking={activeSpeakerId === screenSharerId}
                                                   audioLevel={audioLevels[screenSharerId] ?? 0}
-                                                  className="h-full min-h-[280px] !aspect-auto"
+                                                  className="h-full min-h-0 !aspect-auto"
                                                   isScreenShare
                                               />
                                           ) : null;
                                       })()}
                             </div>
-                            <div className="lg:w-52 flex lg:flex-col gap-2 overflow-x-auto lg:overflow-y-auto pb-1">
+                            <div className="lg:w-48 xl:w-52 flex lg:flex-col gap-2 overflow-x-auto lg:overflow-y-auto shrink-0 max-h-full">
                                 {screenSharerId !== mySocketId &&
-                                    renderLocalTile('!aspect-video min-w-[140px] lg:min-w-0 shrink-0')}
-                                {orderedPeers
-                                    .filter((p) => p.peerId !== screenSharerId)
-                                    .map((peer) => (
-                                        <RemoteVideoTile
-                                            key={peer.peerId}
-                                            peer={peer}
-                                            avatarUrl={avatar(peer.userDetails?.photo, peer.userDetails?.name)}
-                                            isSpeaking={activeSpeakerId === peer.peerId}
-                                            audioLevel={audioLevels[peer.peerId] ?? 0}
-                                            className="!aspect-video min-w-[140px] lg:min-w-0 shrink-0"
-                                        />
-                                    ))}
+                                    renderLocalTile('!aspect-video min-w-[120px] lg:min-w-0 shrink-0 max-h-[120px] lg:max-h-none')}
+                                {orderedTiles
+                                    .filter((t) => (t.isLocal ? 'local' : t.key) !== screenSharerId)
+                                    .map((tile) =>
+                                        tile.isLocal ? (
+                                            <div key="local-strip" className="shrink-0">
+                                                {renderLocalTile('!aspect-video min-w-[120px] lg:min-w-0 max-h-[120px] lg:max-h-none')}
+                                            </div>
+                                        ) : (
+                                            <RemoteVideoTile
+                                                key={tile.peer.peerId}
+                                                peer={tile.peer}
+                                                avatarUrl={avatar(
+                                                    tile.peer.userDetails?.photo,
+                                                    tile.peer.userDetails?.name
+                                                )}
+                                                isSpeaking={activeSpeakerId === tile.peer.peerId}
+                                                audioLevel={audioLevels[tile.peer.peerId] ?? 0}
+                                                className="!aspect-video min-w-[120px] lg:min-w-0 shrink-0 max-h-[120px] lg:max-h-none"
+                                            />
+                                        )
+                                    )}
                             </div>
                         </div>
                     ) : (
                         <div
-                            className={`grid gap-3 md:gap-4 ${
+                            className={`flex-1 min-h-0 h-full grid gap-2 md:gap-3 auto-rows-fr content-stretch ${
                                 layout === 'grid'
                                     ? 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-3'
-                                    : 'grid-cols-1 max-w-3xl mx-auto'
+                                    : 'grid-cols-1 max-w-3xl mx-auto w-full'
                             }`}
                         >
-                            {localSpeaking
-                                ? renderLocalTile('sm:col-span-2 ring-2 ring-primary/50')
-                                : renderLocalTile()}
-                            {orderedPeers.map((peer) => (
-                                <RemoteVideoTile
-                                    key={peer.peerId}
-                                    peer={peer}
-                                    avatarUrl={avatar(peer.userDetails?.photo, peer.userDetails?.name)}
-                                    isSpeaking={activeSpeakerId === peer.peerId}
-                                    audioLevel={audioLevels[peer.peerId] ?? 0}
-                                    className={
-                                        activeSpeakerId === peer.peerId ? 'sm:col-span-2 ring-2 ring-primary/50' : ''
-                                    }
-                                />
-                            ))}
+                            {orderedTiles.map((tile) =>
+                                tile.isLocal ? (
+                                    <div key="local" className="min-h-0 h-full">
+                                        {renderLocalTile('h-full min-h-[140px] !aspect-auto')}
+                                    </div>
+                                ) : (
+                                    <div key={tile.peer.peerId} className="min-h-0 h-full">
+                                        <RemoteVideoTile
+                                            peer={tile.peer}
+                                            avatarUrl={avatar(
+                                                tile.peer.userDetails?.photo,
+                                                tile.peer.userDetails?.name
+                                            )}
+                                            isSpeaking={activeSpeakerId === tile.peer.peerId}
+                                            audioLevel={audioLevels[tile.peer.peerId] ?? 0}
+                                            className="h-full min-h-[140px] !aspect-auto"
+                                            isScreenShare={
+                                                peerScreenShare[tile.peer.peerId] || tile.peer.isScreenSharing
+                                            }
+                                        />
+                                    </div>
+                                )
+                            )}
                         </div>
                     )}
                 </div>
@@ -653,19 +798,38 @@ const AdeebMeet = () => {
 
             <footer className="h-[72px] md:h-20 bg-black/80 backdrop-blur-2xl border-t border-white/5 flex items-center justify-center px-4 z-30 shrink-0">
                 <div className="flex items-center gap-2 md:gap-3 flex-wrap justify-center">
-                    <ControlBtn
-                        onClick={toggleMute}
+                    <DeviceControl
+                        onMainClick={toggleMute}
                         active={!isMuted}
                         icon={isMuted ? MicOff : Mic}
                         danger={isMuted}
                         label={isMuted ? 'Unmute' : 'Mute'}
+                        menuOpen={showAudioMenu}
+                        onMenuToggle={() => {
+                            setShowAudioMenu((v) => !v);
+                            setShowVideoMenu(false);
+                        }}
+                        devices={audioDevices}
+                        selectedDeviceId={selectedAudioDevice}
+                        onSelectDevice={switchMicrophone}
+                        emptyLabel="No microphones found"
                     />
-                    <ControlBtn
-                        onClick={toggleVideo}
+                    <DeviceControl
+                        onMainClick={toggleVideo}
                         active={!isVideoOff}
                         icon={isVideoOff ? VideoOff : Video}
                         danger={isVideoOff}
                         label={isVideoOff ? 'Camera on' : 'Camera off'}
+                        menuOpen={showVideoMenu}
+                        onMenuToggle={() => {
+                            setShowVideoMenu((v) => !v);
+                            setShowAudioMenu(false);
+                        }}
+                        devices={videoDevices}
+                        selectedDeviceId={selectedVideoDevice}
+                        onSelectDevice={switchCamera}
+                        emptyLabel="No cameras found"
+                        disabled={isScreenSharing}
                     />
                     <ControlBtn
                         onClick={toggleScreenShare}
@@ -674,12 +838,12 @@ const AdeebMeet = () => {
                         accent={isScreenSharing}
                         label={isScreenSharing ? 'Stop share' : 'Share screen'}
                     />
-                    {(isScreenSharing || peers.some((p) => peerScreenShare[p.peerId])) && (
+                    {screenSharerId && (
                         <ControlBtn
                             onClick={() => setScreenFocusOn((v) => !v)}
                             active={screenFocusOn}
                             icon={Monitor}
-                            label={screenFocusOn ? 'Exit focus' : 'Focus screen'}
+                            label={screenFocusOn ? 'Grid view' : 'Focus screen'}
                         />
                     )}
                     <div className="w-px h-8 bg-white/10 mx-1 hidden sm:block" />
@@ -781,9 +945,21 @@ const VideoTile = ({
 
     useEffect(() => {
         if (ref.current && stream) {
-            ref.current.srcObject = stream;
+            attachStreamToVideo(ref.current, stream);
         }
     }, [stream, ref]);
+
+    useEffect(() => {
+        if (!ref.current || isLocal || !stream) return;
+        const video = ref.current;
+        const onTrack = () => attachStreamToVideo(video, stream);
+        stream.addEventListener('addtrack', onTrack);
+        stream.addEventListener('removetrack', onTrack);
+        return () => {
+            stream.removeEventListener('addtrack', onTrack);
+            stream.removeEventListener('removetrack', onTrack);
+        };
+    }, [stream, ref, isLocal]);
 
     const showWave = (isSpeaking || audioLevel > 0.12) && !isMuted;
 
@@ -871,9 +1047,10 @@ const RemoteVideoTile = ({
         const stream = peer.remoteStream;
         if (!stream || !videoRef.current) return;
 
-        videoRef.current.srcObject = stream;
+        attachStreamToVideo(videoRef.current, stream);
 
         const updateTracks = () => {
+            attachStreamToVideo(videoRef.current, stream);
             const audio = stream.getAudioTracks()[0];
             const video = stream.getVideoTracks()[0];
             setIsMuted(!audio || !audio.enabled);
@@ -920,6 +1097,85 @@ const RemoteVideoTile = ({
         />
     );
 };
+
+const DeviceControl = ({
+    onMainClick,
+    active,
+    icon: Icon,
+    danger,
+    label,
+    menuOpen,
+    onMenuToggle,
+    devices,
+    selectedDeviceId,
+    onSelectDevice,
+    emptyLabel,
+    disabled,
+}) => (
+    <div className="relative flex flex-col items-center gap-0.5">
+        <div className="flex items-center">
+            <motion.button
+                type="button"
+                onClick={onMainClick}
+                whileTap={{ scale: 0.92 }}
+                className={`w-11 h-11 md:w-12 md:h-12 rounded-l-xl md:rounded-l-2xl flex items-center justify-center transition-colors ${
+                    danger
+                        ? 'bg-rose-500 text-white'
+                        : active
+                          ? 'bg-primary text-white'
+                          : 'bg-white/5 text-white/70 hover:bg-white/10 border border-white/5'
+                }`}
+            >
+                <Icon className="w-5 h-5" />
+            </motion.button>
+            <motion.button
+                type="button"
+                onClick={(e) => {
+                    e.stopPropagation();
+                    onMenuToggle();
+                }}
+                disabled={disabled}
+                whileTap={{ scale: 0.92 }}
+                className={`w-6 h-11 md:h-12 rounded-r-xl md:rounded-r-2xl flex items-center justify-center border-l border-white/10 transition-colors ${
+                    disabled
+                        ? 'opacity-40 cursor-not-allowed bg-white/5'
+                        : menuOpen
+                          ? 'bg-primary/80 text-white'
+                          : 'bg-white/5 text-white/70 hover:bg-white/10'
+                }`}
+                aria-label="Select device"
+            >
+                <ChevronDown className={`w-3.5 h-3.5 transition-transform ${menuOpen ? 'rotate-180' : ''}`} />
+            </motion.button>
+        </div>
+        <span className="text-[7px] md:text-[8px] font-bold uppercase text-white/30 hidden sm:block">
+            {label}
+        </span>
+        {menuOpen && (
+            <div
+                className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-56 max-h-48 overflow-y-auto bg-[#1a1a1a] border border-white/10 rounded-xl shadow-2xl z-50 py-1"
+                onClick={(e) => e.stopPropagation()}
+            >
+                {devices.length === 0 ? (
+                    <p className="px-3 py-2 text-[10px] text-white/40">{emptyLabel}</p>
+                ) : (
+                    devices.map((d) => (
+                        <button
+                            key={d.deviceId}
+                            type="button"
+                            onClick={() => onSelectDevice(d.deviceId)}
+                            className={`w-full text-left px-3 py-2 text-[10px] truncate hover:bg-white/10 ${
+                                d.deviceId === selectedDeviceId ? 'text-primary font-bold' : 'text-white/80'
+                            }`}
+                        >
+                            {d.label || `Device ${d.deviceId.slice(0, 6)}`}
+                        </button>
+                    ))
+                )}
+            </div>
+        )}
+    </div>
+);
 
 const ControlBtn = ({ onClick, active, icon: Icon, danger, accent, label }) => (
     <motion.div className="flex flex-col items-center gap-0.5" whileHover={{ y: -2 }}>
