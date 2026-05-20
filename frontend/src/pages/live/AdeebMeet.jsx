@@ -22,6 +22,7 @@ import {
     Sidebar as SidebarIcon,
     X,
     ChevronDown,
+    Hand,
 } from 'lucide-react';
 import { io } from 'socket.io-client';
 import toast from 'react-hot-toast';
@@ -81,6 +82,8 @@ const AdeebMeet = () => {
     const [showSpeakerMenu, setShowSpeakerMenu] = useState(false);
     const [speakerMuted, setSpeakerMuted] = useState(false);
     const [focusedTileId, setFocusedTileId] = useState(null);
+    const [handRaised, setHandRaised] = useState(false);
+    const [raisedHands, setRaisedHands] = useState({});
     const myUserId = user?._id || user?.id;
     const socketRef = useRef(null);
     const audioMonitorRef = useRef(null);
@@ -105,6 +108,8 @@ const AdeebMeet = () => {
         userStreamRef.current = null;
         screenStreamRef.current = null;
         audioMonitorRef.current?.stop();
+        setHandRaised(false);
+        setRaisedHands({});
         navigate(`/${role}/dashboard`);
     }, [navigate, role]);
 
@@ -252,6 +257,29 @@ const AdeebMeet = () => {
                                 : peer
                         )
                     );
+                });
+
+                socket.on('classroom_hand_raise', ({ socketId, raised, userDetails }) => {
+                    if (!socketId) return;
+                    setRaisedHands((prev) => {
+                        const next = { ...prev };
+                        if (raised) next[socketId] = userDetails?.name || 'Participant';
+                        else delete next[socketId];
+                        return next;
+                    });
+                    if (socketId === socket.id) setHandRaised(!!raised);
+                    else if (raised && userDetails?.name) {
+                        toast(`${userDetails.name} raised hand`, { icon: '🖐️', duration: 2500 });
+                    }
+                });
+
+                socket.on('user_left_classroom', (leftSocketId) => {
+                    setRaisedHands((prev) => {
+                        if (!prev[leftSocketId]) return prev;
+                        const next = { ...prev };
+                        delete next[leftSocketId];
+                        return next;
+                    });
                 });
 
                 socket.io.on('reconnect', () => {
@@ -448,6 +476,16 @@ const AdeebMeet = () => {
         }
     };
 
+    const toggleHandRaise = () => {
+        const next = !handRaised;
+        setHandRaised(next);
+        socketRef.current?.emit('classroom_hand_raise', {
+            roomId: roomName,
+            raised: next,
+        });
+        if (next) toast('Hand raised — everyone can see', { icon: '🖐️', duration: 2000 });
+    };
+
     const toggleScreenShare = async () => {
         if (!managerRef.current) return;
         try {
@@ -535,10 +573,19 @@ const AdeebMeet = () => {
     ];
 
     const gridTileClass = 'meet-tile-fixed !aspect-square !min-h-0';
-    const fullTileClass = 'meet-tile-fullwidth w-full';
+    const fullTileClass = 'meet-tile-fullwidth w-full h-full flex-1 min-h-0';
     const focusedTileClass = 'h-full min-h-0 !aspect-auto w-full';
 
     const localLevel = audioLevels.local ?? 0;
+
+    const isHandRaised = (tileId) =>
+        tileId === 'local' ? handRaised : !!raisedHands[tileId];
+
+    const isTileSpeaking = (tileId) => {
+        if (isMuted && tileId === 'local') return false;
+        const level = tileId === 'local' ? localLevel : audioLevels[tileId] ?? 0;
+        return activeSpeakerId === tileId || level > 0.07;
+    };
 
     const avatar = (photo, name) => resolveAvatarUrl(photo, name, SOCKET_URL);
 
@@ -578,8 +625,9 @@ const AdeebMeet = () => {
             avatarUrl={avatar(user?.photo, user?.name)}
             rollNo={user?.rollNo || user?.rollNumber || null}
             course={isTeacher ? null : myCourses}
-            isSpeaking={false}
+            isSpeaking={isTileSpeaking('local')}
             audioLevel={localLevel}
+            handRaised={handRaised}
             className={className}
             tileId="local"
             isTileFocused={focusedTileId === 'local'}
@@ -692,8 +740,9 @@ const AdeebMeet = () => {
                                               <RemoteVideoTile
                                                   peer={sp}
                                                   avatarUrl={avatar(sp.userDetails?.photo, sp.userDetails?.name)}
-                                                  isSpeaking={false}
+                                                  isSpeaking={isTileSpeaking(screenSharerId)}
                                                   audioLevel={audioLevels[screenSharerId] ?? 0}
+                                                  handRaised={isHandRaised(screenSharerId)}
                                                   className="h-full min-h-0 !aspect-auto"
                                                   isScreenShare
                                               />
@@ -718,8 +767,9 @@ const AdeebMeet = () => {
                                                     tile.peer.userDetails?.photo,
                                                     tile.peer.userDetails?.name
                                                 )}
-                                                isSpeaking={false}
+                                                isSpeaking={isTileSpeaking(tile.peer.peerId)}
                                                 audioLevel={audioLevels[tile.peer.peerId] ?? 0}
+                                                handRaised={isHandRaised(tile.peer.peerId)}
                                                 className="!aspect-video min-w-[120px] lg:min-w-0 shrink-0 max-h-[120px] lg:max-h-none"
                                             />
                                         )
@@ -749,7 +799,7 @@ const AdeebMeet = () => {
                                         ? 'min-h-0 w-full h-full flex-1'
                                         : layout === 'grid'
                                           ? 'shrink-0'
-                                          : 'w-full shrink-0';
+                                          : 'w-full flex-1 min-h-0 flex flex-col';
 
                                 if (tile.isLocal) {
                                     return renderTileWrapper(
@@ -766,8 +816,9 @@ const AdeebMeet = () => {
                                             tile.peer.userDetails?.photo,
                                             tile.peer.userDetails?.name
                                         )}
-                                        isSpeaking={false}
+                                        isSpeaking={isTileSpeaking(tile.peer.peerId)}
                                         audioLevel={audioLevels[tile.peer.peerId] ?? 0}
+                                        handRaised={isHandRaised(tile.peer.peerId)}
                                         className={sizeClass}
                                         isScreenShare={
                                             peerScreenShare[tile.peer.peerId] || tile.peer.isScreenSharing
@@ -869,6 +920,8 @@ const AdeebMeet = () => {
                                                 rollNo={p.userDetails?.rollNo}
                                                 course={p.userDetails?.course}
                                                 isSelf={p.socketId === socketRef.current?.id}
+                                                isSpeaking={isTileSpeaking(p.socketId)}
+                                                handRaised={isHandRaised(p.socketId)}
                                                 isTeacher={isTeacher}
                                                 onKick={() => {
                                                     if (window.confirm(`Remove ${p.userDetails?.name}?`)) {
@@ -969,6 +1022,13 @@ const AdeebMeet = () => {
                         accent={isScreenSharing}
                         label={isScreenSharing ? 'Stop share' : 'Share screen'}
                     />
+                    <ControlBtn
+                        onClick={toggleHandRaise}
+                        active={handRaised}
+                        icon={Hand}
+                        accent={handRaised}
+                        label={handRaised ? 'Lower hand' : 'Raise hand'}
+                    />
                     {screenSharerId && (
                         <ControlBtn
                             onClick={() => setScreenFocusOn((v) => !v)}
@@ -1046,15 +1106,53 @@ const AdeebMeet = () => {
     );
 };
 
-const AudioWave = ({ active }) =>
+const AudioWave = ({ active, large = false }) =>
     active ? (
-        <div className="audio-wave shrink-0" aria-hidden>
+        <div className={`${large ? 'audio-wave-lg' : 'audio-wave'} shrink-0`} aria-hidden>
             <span />
             <span />
             <span />
             <span />
+            {large && <span />}
         </div>
     ) : null;
+
+const SpeakingAvatar = ({ src, alt, sizeClass, isSpeaking, audioLevel, isMuted }) => {
+    const active = (isSpeaking || audioLevel > 0.07) && !isMuted;
+    return (
+        <div className="flex flex-col items-center gap-2">
+            <div className={`speaking-avatar-wrap ${active ? 'is-speaking' : ''}`}>
+                <img
+                    src={src}
+                    alt={alt}
+                    className={`${sizeClass} rounded-full object-cover border-4 shadow-2xl ${
+                        active ? 'border-emerald-400' : 'border-white/10'
+                    }`}
+                />
+            </div>
+            {active && (
+                <>
+                    <AudioWave active large />
+                    <span className="meet-speaking-badge text-[9px] font-black uppercase tracking-widest text-emerald-400 bg-emerald-500/20 px-2 py-0.5 rounded-full border border-emerald-500/40">
+                        Speaking
+                    </span>
+                </>
+            )}
+        </div>
+    );
+};
+
+const HandRaisedBadge = ({ className = '' }) => (
+    <div
+        className={`meet-hand-badge flex items-center gap-1 px-2 py-1 rounded-lg bg-amber-500/90 border border-amber-300/80 text-white shadow-lg z-20 pointer-events-none ${className}`}
+        title="Hand raised"
+    >
+        <span className="text-base leading-none" aria-hidden>
+            🖐️
+        </span>
+        <span className="text-[8px] font-black uppercase tracking-wider">Hand</span>
+    </div>
+);
 
 const VideoTile = ({
     stream,
@@ -1069,6 +1167,7 @@ const VideoTile = ({
     course,
     isSpeaking = false,
     audioLevel = 0,
+    handRaised = false,
     className = '',
     tileId,
     isTileFocused = false,
@@ -1096,7 +1195,7 @@ const VideoTile = ({
         };
     }, [stream, ref, isLocal]);
 
-    const showWave = audioLevel > 0.12 && !isMuted;
+    const showWave = (isSpeaking || audioLevel > 0.07) && !isMuted;
     const isFixedTile = className.includes('meet-tile-fixed');
     const isFullTile = className.includes('meet-tile-fullwidth');
 
@@ -1104,7 +1203,7 @@ const VideoTile = ({
         <div
             className={`relative bg-white/5 rounded-2xl md:rounded-3xl overflow-hidden border border-white/10 group shadow-lg ${
                 isFixedTile || isFullTile ? '' : 'aspect-video min-h-[180px]'
-            } ${isTileFocused ? 'ring-2 ring-primary/60' : ''} ${className}`}
+            } ${showWave ? 'meet-tile-speaking' : ''} ${isTileFocused ? 'ring-2 ring-primary/60' : ''} ${className}`}
             onClick={isTileFocused && onToggleFocus ? () => onToggleFocus(tileId) : undefined}
             role={isTileFocused ? 'button' : undefined}
             tabIndex={isTileFocused ? 0 : undefined}
@@ -1116,6 +1215,9 @@ const VideoTile = ({
                     : undefined
             }
         >
+            {handRaised && (
+                <HandRaisedBadge className="absolute top-2 right-2" />
+            )}
             {isTileFocused && showTileControls && onToggleFocus && (
                 <button
                     type="button"
@@ -1123,7 +1225,7 @@ const VideoTile = ({
                         e.stopPropagation();
                         onToggleFocus(tileId);
                     }}
-                    className="absolute top-2 right-2 z-20 w-8 h-8 rounded-lg bg-black/60 hover:bg-primary/80 border border-white/20 flex items-center justify-center transition-colors"
+                    className={`absolute top-2 z-20 w-8 h-8 rounded-lg bg-black/60 hover:bg-primary/80 border border-white/20 flex items-center justify-center transition-colors ${handRaised ? 'right-24' : 'right-2'}`}
                     title="Exit full screen"
                 >
                     <Minimize2 className="w-4 h-4" />
@@ -1138,10 +1240,32 @@ const VideoTile = ({
                 disablePictureInPicture
                 className={`object-cover bg-[#1a1a1a] ${isFullTile ? '' : 'w-full h-full'} ${isLocal && !isScreenShare ? 'mirror' : ''} ${isScreenShare ? 'object-contain' : ''}`}
             />
+            {showWave && !isVideoOff && (
+                <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-1 pointer-events-none">
+                    <div className="speaking-avatar-wrap is-speaking">
+                        <img
+                            src={avatarUrl}
+                            alt=""
+                            className="w-14 h-14 rounded-full object-cover border-2 border-emerald-400 shadow-lg"
+                        />
+                    </div>
+                    <AudioWave active large />
+                    <span className="meet-speaking-badge text-[8px] font-black uppercase tracking-widest text-emerald-300 bg-black/70 px-2 py-0.5 rounded-full border border-emerald-500/50">
+                        Speaking
+                    </span>
+                </div>
+            )}
             <div className="absolute bottom-3 left-3 right-3 flex items-end justify-between gap-2 z-10 pointer-events-none">
-                <div className="flex items-center gap-2 px-2.5 py-1 bg-black/50 rounded-lg border border-white/10 min-w-0 pointer-events-auto">
-                    <img src={avatarUrl} alt="" className="w-5 h-5 rounded-full object-cover shrink-0" />
+                <div
+                    className={`flex items-center gap-2 px-2.5 py-1 rounded-lg border min-w-0 pointer-events-auto ${
+                        showWave ? 'bg-emerald-500/30 border-emerald-400/50' : 'bg-black/50 border-white/10'
+                    }`}
+                >
+                    <div className={`speaking-avatar-wrap shrink-0 ${showWave ? 'is-speaking' : ''}`}>
+                        <img src={avatarUrl} alt="" className="w-8 h-8 rounded-full object-cover" />
+                    </div>
                     <span className="text-[10px] font-bold truncate max-w-[120px]">{name}</span>
+                    {showWave && <AudioWave active />}
                     {isMuted && <MicOff className="w-3 h-3 text-red-400 shrink-0" />}
                     {isScreenShare && (
                         <span className="text-[8px] bg-emerald-500/80 px-1 rounded uppercase font-black shrink-0">
@@ -1149,7 +1273,6 @@ const VideoTile = ({
                         </span>
                     )}
                 </div>
-                <AudioWave active={showWave} />
             </div>
             <AnimatePresence>
                 {isVideoOff && (
@@ -1159,15 +1282,15 @@ const VideoTile = ({
                         exit={{ opacity: 0 }}
                         className="absolute inset-0 bg-[#141414] flex flex-col items-center justify-center p-4 z-0"
                     >
-                        <motion.img 
-                            initial={{ scale: 0.9, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            transition={{ delay: 0.1 }}
-                            src={avatarUrl} 
-                            alt="" 
-                            className="w-20 h-20 rounded-full border-4 border-white/10 shadow-2xl object-cover mb-3" 
+                        <SpeakingAvatar
+                            src={avatarUrl}
+                            alt={name}
+                            sizeClass="w-24 h-24 md:w-28 md:h-28"
+                            isSpeaking={isSpeaking}
+                            audioLevel={audioLevel}
+                            isMuted={isMuted}
                         />
-                        <div className="flex flex-col items-center text-center max-w-[90%]">
+                        <div className="flex flex-col items-center text-center max-w-[90%] mt-1">
                             <span className="text-xs md:text-sm font-extrabold text-white tracking-tight drop-shadow-md">
                                 {name}
                             </span>
@@ -1194,6 +1317,7 @@ const RemoteVideoTile = ({
     avatarUrl,
     isSpeaking = false,
     audioLevel = 0,
+    handRaised = false,
     className = '',
     isScreenShare = false,
     tileId,
@@ -1256,6 +1380,7 @@ const RemoteVideoTile = ({
             course={peer.userDetails?.course}
             isSpeaking={isSpeaking}
             audioLevel={audioLevel}
+            handRaised={handRaised}
             className={className}
             tileId={tileId || peer.peerId}
             isTileFocused={isTileFocused}
@@ -1373,16 +1498,48 @@ const ControlBtn = ({ onClick, active, icon: Icon, danger, accent, label }) => (
     </motion.div>
 );
 
-const ParticipantRow = ({ name, role, photo, rollNo, course, isSelf, isTeacher, onKick, onMute }) => {
+const ParticipantRow = ({
+    name,
+    role,
+    photo,
+    rollNo,
+    course,
+    isSelf,
+    isSpeaking = false,
+    handRaised = false,
+    isTeacher,
+    onKick,
+    onMute,
+}) => {
     const avatarUrl = resolveAvatarUrl(photo, name, SOCKET_URL);
 
     return (
         <motion.div
             layout
-            className="flex items-center justify-between p-2.5 bg-white/5 rounded-xl border border-white/5 group"
+            className={`flex items-center justify-between p-2.5 rounded-xl border group ${
+                handRaised
+                    ? 'bg-amber-500/20 border-amber-400/50'
+                    : isSpeaking
+                      ? 'bg-emerald-500/15 border-emerald-500/40'
+                      : 'bg-white/5 border-white/5'
+            }`}
         >
             <motion.div className="flex items-center gap-2 min-w-0 flex-1" whileHover={{ x: 2 }}>
-                <img src={avatarUrl} alt="" className="w-8 h-8 rounded-lg object-cover shrink-0 pointer-events-none" />
+                <div className={`speaking-avatar-wrap shrink-0 ${isSpeaking ? 'is-speaking' : ''}`}>
+                    <img
+                        src={avatarUrl}
+                        alt=""
+                        className={`w-8 h-8 rounded-lg object-cover pointer-events-none ${
+                            isSpeaking ? 'border-2 border-emerald-400' : handRaised ? 'border-2 border-amber-400' : ''
+                        }`}
+                    />
+                </div>
+                {handRaised && (
+                    <span className="meet-hand-badge text-lg shrink-0" title="Hand raised">
+                        🖐️
+                    </span>
+                )}
+                {isSpeaking && <AudioWave active />}
                 <div className="min-w-0 flex-1 student-row-text">
                     <p className="text-xs font-bold break-words">
                         {name} {isSelf && '(You)'}

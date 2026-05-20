@@ -139,6 +139,15 @@ io.on('connection', (socket) => {
 
     // --- CUSTOM VIDEO CLASSROOM SIGNALING ---
     const roomScreenSharers = new Map();
+    const roomRaisedHands = new Map();
+
+    const clearRaisedHand = (roomId, socketId) => {
+        const set = roomRaisedHands.get(roomId);
+        if (!set?.has(socketId)) return;
+        set.delete(socketId);
+        if (set.size === 0) roomRaisedHands.delete(roomId);
+        io.to(roomId).emit('classroom_hand_raise', { socketId, raised: false });
+    };
 
     const broadcastRoomUsers = (roomId) => {
         const usersInRoom = [];
@@ -193,6 +202,21 @@ io.on('connection', (socket) => {
             socket.emit('classroom_screen_share', { socketId: activeSharer, active: true });
         }
 
+        const raisedInRoom = roomRaisedHands.get(roomId);
+        if (raisedInRoom) {
+            for (const raisedSocketId of raisedInRoom) {
+                if (raisedSocketId === socket.id) continue;
+                const rs = io.sockets.sockets.get(raisedSocketId);
+                if (rs?.userDetails) {
+                    socket.emit('classroom_hand_raise', {
+                        socketId: raisedSocketId,
+                        raised: true,
+                        userDetails: rs.userDetails,
+                    });
+                }
+            }
+        }
+
         // Broadcast updated user list to everyone for the participant list UI
         broadcastRoomUsers(roomId);
     });
@@ -218,6 +242,27 @@ io.on('connection', (socket) => {
         });
     });
 
+    socket.on('classroom_hand_raise', (data) => {
+        const roomId = data?.roomId || socket.roomId;
+        if (!roomId) return;
+
+        if (!roomRaisedHands.has(roomId)) roomRaisedHands.set(roomId, new Set());
+        const set = roomRaisedHands.get(roomId);
+
+        if (data.raised) {
+            set.add(socket.id);
+        } else {
+            set.delete(socket.id);
+            if (set.size === 0) roomRaisedHands.delete(roomId);
+        }
+
+        io.to(roomId).emit('classroom_hand_raise', {
+            socketId: socket.id,
+            raised: !!data.raised,
+            userDetails: socket.userDetails,
+        });
+    });
+
     socket.on('classroom_screen_share', (data) => {
         if (!data?.roomId) return;
         if (data.active) {
@@ -237,6 +282,7 @@ io.on('connection', (socket) => {
             roomScreenSharers.delete(roomId);
             socket.to(roomId).emit('classroom_screen_share', { socketId: socket.id, active: false });
         }
+        clearRaisedHand(roomId, socket.id);
         socket.leave(roomId);
         socket.to(roomId).emit('user_left_classroom', socket.id);
         if (socket.roomId === roomId) {

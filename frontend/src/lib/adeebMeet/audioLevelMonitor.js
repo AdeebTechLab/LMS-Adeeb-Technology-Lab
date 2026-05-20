@@ -87,7 +87,7 @@ export class AudioLevelMonitor {
 
         const levels = {};
         let loudestId = null;
-        let loudest = 0.08;
+        let loudest = 0.05;
 
         for (const [id, { analyser }] of this.sources) {
             const buf = new Uint8Array(analyser.frequencyBinCount);

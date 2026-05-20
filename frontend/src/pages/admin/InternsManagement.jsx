@@ -608,9 +608,13 @@ const InternsManagement = () => {
     };
 
     const filteredInterns = interns.filter(i => {
-        const matchesSearch = (i.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-            (i.email || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-            (i.cnic || '').includes(searchQuery);
+        const q = searchQuery.trim().toLowerCase();
+        const matchesSearch =
+            (i.name || '').toLowerCase().includes(q) ||
+            (i.email || '').toLowerCase().includes(q) ||
+            (i.cnic || '').includes(searchQuery.trim()) ||
+            String(i.rollNo || '').toLowerCase().includes(q) ||
+            String(i.rollNumber || '').toLowerCase().includes(q);
 
         if (!matchesSearch) return false;
 
@@ -722,7 +726,7 @@ const InternsManagement = () => {
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                     <input
                         type="text"
-                        placeholder="Search by name, email, or CNIC..."
+                        placeholder="Search by name, email, roll no, or CNIC..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-transparent focus:border-blue-500 focus:bg-white rounded-2xl transition-all outline-none text-sm font-medium"
