@@ -529,22 +529,17 @@ const AdeebMeet = () => {
 
     const showScreenLayout = screenSharerId && screenFocusOn;
 
-    const sortBySpeaker = (aKey, bKey) => {
-        if (aKey === activeSpeakerId) return -1;
-        if (bKey === activeSpeakerId) return 1;
-        return 0;
-    };
-
-    const orderedTiles = [
+    const displayTiles = [
         { key: 'local', isLocal: true },
         ...peers.map((p) => ({ key: p.peerId, isLocal: false, peer: p })),
-    ].sort((a, b) => {
-        const aKey = a.isLocal ? 'local' : a.key;
-        const bKey = b.isLocal ? 'local' : b.key;
-        return sortBySpeaker(aKey, bKey);
-    });
+    ];
 
-    const localSpeaking = activeSpeakerId === 'local';
+    const gridTileClass =
+        focusedTileId === null ? 'meet-tile-fixed !aspect-square !min-h-0' : 'h-full min-h-0 !aspect-auto';
+    const fullTileClass =
+        focusedTileId === null ? 'meet-tile-fullwidth !aspect-video !min-h-0 w-full' : 'h-full min-h-0 !aspect-auto w-full';
+    const tileSizeClass = layout === 'grid' ? gridTileClass : fullTileClass;
+
     const localLevel = audioLevels.local ?? 0;
 
     const avatar = (photo, name) => resolveAvatarUrl(photo, name, SOCKET_URL);
@@ -585,7 +580,7 @@ const AdeebMeet = () => {
             avatarUrl={avatar(user?.photo, user?.name)}
             rollNo={user?.rollNo || user?.rollNumber || null}
             course={isTeacher ? null : myCourses}
-            isSpeaking={localSpeaking}
+            isSpeaking={false}
             audioLevel={localLevel}
             className={className}
             tileId="local"
@@ -699,7 +694,7 @@ const AdeebMeet = () => {
                                               <RemoteVideoTile
                                                   peer={sp}
                                                   avatarUrl={avatar(sp.userDetails?.photo, sp.userDetails?.name)}
-                                                  isSpeaking={activeSpeakerId === screenSharerId}
+                                                  isSpeaking={false}
                                                   audioLevel={audioLevels[screenSharerId] ?? 0}
                                                   className="h-full min-h-0 !aspect-auto"
                                                   isScreenShare
@@ -710,7 +705,7 @@ const AdeebMeet = () => {
                             <div className="lg:w-48 xl:w-52 flex lg:flex-col gap-2 overflow-x-auto lg:overflow-y-auto shrink-0 max-h-full">
                                 {screenSharerId !== mySocketId &&
                                     renderLocalTile('!aspect-video min-w-[120px] lg:min-w-0 shrink-0 max-h-[120px] lg:max-h-none')}
-                                {orderedTiles
+                                {displayTiles
                                     .filter((t) => (t.isLocal ? 'local' : t.key) !== screenSharerId)
                                     .map((tile) =>
                                         tile.isLocal ? (
@@ -725,7 +720,7 @@ const AdeebMeet = () => {
                                                     tile.peer.userDetails?.photo,
                                                     tile.peer.userDetails?.name
                                                 )}
-                                                isSpeaking={activeSpeakerId === tile.peer.peerId}
+                                                isSpeaking={false}
                                                 audioLevel={audioLevels[tile.peer.peerId] ?? 0}
                                                 className="!aspect-video min-w-[120px] lg:min-w-0 shrink-0 max-h-[120px] lg:max-h-none"
                                             />
@@ -735,27 +730,26 @@ const AdeebMeet = () => {
                         </div>
                     ) : (
                         <div
-                            className={`flex-1 min-h-0 h-full gap-2 md:gap-3 ${
+                            className={`flex-1 min-h-0 h-full w-full ${
                                 focusedTileId
                                     ? 'flex flex-col'
-                                    : `grid auto-rows-fr content-stretch ${
-                                          layout === 'grid'
-                                              ? 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4'
-                                              : 'grid-cols-1 max-w-3xl mx-auto w-full'
-                                      }`
+                                    : layout === 'grid'
+                                      ? 'meet-tiles-grid'
+                                      : 'meet-tiles-full'
                             }`}
                         >
-                            {orderedTiles.map((tile) => {
+                            {displayTiles.map((tile) => {
                                 const tileId = tile.isLocal ? 'local' : tile.peer.peerId;
+                                const sizeClass =
+                                    focusedTileId === tileId ? 'h-full min-h-0 !aspect-auto w-full' : tileSizeClass;
+                                const wrapperClass =
+                                    layout === 'grid' && !focusedTileId ? 'shrink-0' : 'min-h-0 w-full';
+
                                 if (tile.isLocal) {
                                     return renderTileWrapper(
                                         tileId,
-                                        renderLocalTile(
-                                            focusedTileId === tileId
-                                                ? 'h-full min-h-0 !aspect-auto'
-                                                : 'h-full min-h-[160px] aspect-video'
-                                        ),
-                                        'min-h-0 h-full'
+                                        renderLocalTile(sizeClass),
+                                        wrapperClass
                                     );
                                 }
                                 return renderTileWrapper(
@@ -766,13 +760,9 @@ const AdeebMeet = () => {
                                             tile.peer.userDetails?.photo,
                                             tile.peer.userDetails?.name
                                         )}
-                                        isSpeaking={activeSpeakerId === tile.peer.peerId}
+                                        isSpeaking={false}
                                         audioLevel={audioLevels[tile.peer.peerId] ?? 0}
-                                        className={
-                                            focusedTileId === tileId
-                                                ? 'h-full min-h-0 !aspect-auto'
-                                                : 'h-full min-h-[160px] aspect-video'
-                                        }
+                                        className={sizeClass}
                                         isScreenShare={
                                             peerScreenShare[tile.peer.peerId] || tile.peer.isScreenSharing
                                         }
@@ -780,7 +770,7 @@ const AdeebMeet = () => {
                                         isTileFocused={focusedTileId === tileId}
                                         onToggleFocus={toggleTileFocus}
                                     />,
-                                    'min-h-0 h-full'
+                                    wrapperClass
                                 );
                             })}
                         </div>
@@ -983,9 +973,9 @@ const AdeebMeet = () => {
                     )}
                     <div className="w-px h-8 bg-white/10 mx-1 hidden sm:block" />
                     <ControlBtn
-                        onClick={() => setLayout(layout === 'grid' ? 'sidebar' : 'grid')}
-                        icon={layout === 'grid' ? SidebarIcon : LayoutGrid}
-                        label="Layout"
+                        onClick={() => setLayout(layout === 'grid' ? 'full' : 'grid')}
+                        icon={layout === 'grid' ? LayoutGrid : SidebarIcon}
+                        label={layout === 'grid' ? 'Grid' : 'Full width'}
                     />
                     <div className="relative">
                         <ControlBtn
@@ -1100,11 +1090,15 @@ const VideoTile = ({
         };
     }, [stream, ref, isLocal]);
 
-    const showWave = (isSpeaking || audioLevel > 0.12) && !isMuted;
+    const showWave = audioLevel > 0.12 && !isMuted;
+    const isFixedTile = className.includes('meet-tile-fixed');
+    const isFullTile = className.includes('meet-tile-fullwidth');
 
     return (
         <div
-            className={`relative bg-white/5 rounded-2xl md:rounded-3xl overflow-hidden border border-white/10 aspect-video min-h-[180px] group shadow-lg ${isSpeaking ? 'meet-tile-speaking' : ''} ${isTileFocused ? 'ring-2 ring-primary/60' : ''} ${className}`}
+            className={`relative bg-white/5 rounded-2xl md:rounded-3xl overflow-hidden border border-white/10 group shadow-lg ${
+                isFixedTile || isFullTile ? '' : 'aspect-video min-h-[180px]'
+            } ${isTileFocused ? 'ring-2 ring-primary/60' : ''} ${className}`}
             onClick={isTileFocused && onToggleFocus ? () => onToggleFocus(tileId) : undefined}
             role={isTileFocused ? 'button' : undefined}
             tabIndex={isTileFocused ? 0 : undefined}
