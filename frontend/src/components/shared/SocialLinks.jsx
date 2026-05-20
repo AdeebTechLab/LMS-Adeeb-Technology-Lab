@@ -3,8 +3,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Share2, ChevronUp, ChevronDown } from 'lucide-react';
 import { SOCIAL_LINK_GROUPS, PLATFORM_HOVER } from '../../constants/socialLinks';
 import SocialIcon from './SocialIcon';
+import { useTranslation } from 'react-i18next';
 
 const SocialLinks = ({ className = '' }) => {
+    const { t } = useTranslation();
     const [isOpen, setIsOpen] = useState(false);
     const [activeGroup, setActiveGroup] = useState(null);
     const containerRef = useRef(null);
@@ -48,7 +50,7 @@ const SocialLinks = ({ className = '' }) => {
                 }`}
             >
                 <Share2 className="w-5 h-5 shrink-0" />
-                <span className="font-medium flex-1 text-left">Social Media</span>
+                <span className="font-medium flex-1 text-left">{t('social.title')}</span>
                 <motion.span
                     animate={{ rotate: isOpen ? 180 : 0 }}
                     transition={{ duration: 0.25 }}
@@ -86,9 +88,9 @@ const SocialLinks = ({ className = '' }) => {
                                             }`}
                                         >
                                             <span className="text-[11px] font-semibold leading-snug">
-                                                {group.title}
+                                                {group.id === 'adeeb-tech-lab' ? t('social.adeebTechLab') : group.id === 'computer-courses' ? t('social.theComputerCourses') : group.title}
                                                 {group.badge && (
-                                                    <span className="text-primary font-bold ml-1">· {group.badge}</span>
+                                                    <span className="text-primary font-bold ml-1">· {group.badge === 'Company' ? t('social.company') : group.badge === 'Academy' ? t('social.academy') : group.badge}</span>
                                                 )}
                                             </span>
                                             <ChevronDown

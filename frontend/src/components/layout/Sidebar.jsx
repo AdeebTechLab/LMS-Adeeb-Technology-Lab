@@ -319,7 +319,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                             <ProfileAvatar src={user?.photo} name={user?.name} size="md" border="border border-[var(--border-sidebar)]" fallbackColor="bg-gradient-to-br from-[var(--bg-sidebar-light)] to-[var(--bg-sidebar)]" />
                             <div className="flex-1 min-w-0">
                                 <p className="text-[var(--text-sidebar)] font-medium text-sm truncate">
-                                    {user?.name || 'User'}
+                                    {user?.name || t('roles.user')}
                                 </p>
                                 <p className="text-primary text-[10px] font-black uppercase tracking-widest truncate mt-0.5">
                                     {getRoleDisplayName()}
@@ -354,7 +354,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                                                 }`}
                                             >
                                                 <div className="flex items-center gap-2">
-                                                    <span className="capitalize">{r === 'job' ? 'Freelancer' : r} Dashboard</span>
+                                                    <span className="capitalize">{t(`roles.${r}`, { defaultValue: r })} {t('nav.dashboard')}</span>
                                                     {isSwitchingRole && r === role && <ButtonLoader className="w-3 h-3" />}
                                                 </div>
                                                 {r === role && <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>}

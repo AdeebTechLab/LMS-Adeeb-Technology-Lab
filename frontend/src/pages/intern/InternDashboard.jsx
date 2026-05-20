@@ -11,6 +11,7 @@ import Badge from '../../components/ui/Badge';
 import { enrollmentAPI, assignmentAPI, feeAPI, liveClassAPI, chatAPI } from '../../services/api';
 import { getCourseIcon } from '../../utils/courseIcons';
 import { calculateOutstandingFees } from '../../utils/feeHelpers';
+import { useTranslation } from 'react-i18next';
 
 const getSocketURL = () => {
     const rawUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -20,6 +21,7 @@ const getSocketURL = () => {
 const SOCKET_URL = getSocketURL();
 
 const InternDashboard = () => {
+    const { t } = useTranslation();
     const { user, role } = useSelector((state) => state.auth);
     const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(true);
@@ -129,7 +131,7 @@ const InternDashboard = () => {
             // Build Stats
             setStats([
                 {
-                    title: 'Enrolled Programs',
+                    title: t('dashboard.enrolledPrograms'),
                     value: courses.filter(c => c.isActive && !c.isCompleted).length.toString(),
                     icon: BookOpen,
                     iconBg: 'bg-primary/10',
@@ -137,7 +139,7 @@ const InternDashboard = () => {
                     onClick: () => navigate(`/${role}/courses`, { state: { activeTab: 'enrolled' } }),
                 },
                 {
-                    title: 'Pending Assignments',
+                    title: t('dashboard.pendingTasksUpper'),
                     value: activeAssignments.length.toString(),
                     icon: Clock,
                     iconBg: 'bg-amber-100',
@@ -145,7 +147,7 @@ const InternDashboard = () => {
                     onClick: () => navigate(`/${role}/assignments`)
                 },
                 {
-                    title: 'Certificates',
+                    title: t('dashboard.certificates'),
                     value: courses.filter(c => c.isCompleted).length.toString(),
                     icon: CheckCircle,
                     iconBg: 'bg-primary/10',
@@ -153,8 +155,8 @@ const InternDashboard = () => {
                     onClick: () => navigate(`/${role}/courses`, { state: { activeTab: 'completed' } }),
                 },
                 {
-                    title: 'Total Pending',
-                    value: totalPendingAmount > 0 ? `Rs ${totalPendingAmount.toLocaleString()}` : 'All Clear',
+                    title: t('dashboard.totalPending'),
+                    value: totalPendingAmount > 0 ? `Rs ${totalPendingAmount.toLocaleString()}` : t('dashboard.allClear'),
                     valueClassName: totalPendingAmount > 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400',
                     icon: CreditCard,
                     iconBg: totalPendingAmount > 0 ? 'bg-red-100 dark:bg-red-900/20' : 'bg-green-100 dark:bg-green-900/20',
@@ -218,7 +220,7 @@ const InternDashboard = () => {
 
                                         <div>
                                             <div className="flex items-center gap-2 mb-1">
-                                                <span className="text-xs font-bold uppercase tracking-widest text-white/80">🔴 Live Class in Progress</span>
+                                                <span className="text-xs font-bold uppercase tracking-widest text-white/80">{t('dashboard.liveClassInProgress')}</span>
                                             </div>
                                             <h2 className="text-2xl md:text-3xl font-black uppercase tracking-tight">
                                                 {liveClass.title}
@@ -227,7 +229,7 @@ const InternDashboard = () => {
                                                 <p className="text-white/80 mt-1 text-sm md:text-base">{liveClass.description}</p>
                                             )}
                                             <p className="text-white/70 text-sm mt-2">
-                                                by {liveClass.createdBy?.name || 'Teacher'}
+                                                {t('dashboard.liveClassBy', { name: liveClass.createdBy?.name || 'Teacher' })}
                                             </p>
                                         </div>
                                     </div>
@@ -239,7 +241,7 @@ const InternDashboard = () => {
                                         className="flex-shrink-0 px-8 py-4 md:px-10 md:py-5 bg-white text-red-600 rounded-2xl font-black uppercase tracking-widest text-sm md:text-base hover:bg-gray-100 transition-all shadow-lg flex items-center gap-3 group"
                                     >
                                         <ExternalLink className="w-5 h-5 md:w-6 md:h-6 group-hover:rotate-12 transition-transform" />
-                                        Join Now
+                                        {t('dashboard.joinNow')}
                                     </a>
                                 </div>
                             </div>
@@ -260,15 +262,15 @@ const InternDashboard = () => {
                             <Bell className="w-6 h-6 animate-bounce" />
                         </div>
                         <div>
-                            <h3 className="text-sm font-black text-gray-900 uppercase tracking-tight">Assignment Due Soon</h3>
-                            <p className="text-xs text-gray-600 font-medium lowercase">You have {pendingAssignments.length} pending task(s) in your pipeline.</p>
+                            <h3 className="text-sm font-black text-gray-900 uppercase tracking-tight">{t('dashboard.assignmentDueSoon')}</h3>
+                            <p className="text-xs text-gray-600 font-medium lowercase">{t('dashboard.pendingTaskDetails', { count: pendingAssignments.length })}</p>
                         </div>
                     </div>
                     <button
                         onClick={() => navigate(`/${role}/assignments`)}
                         className="px-4 py-2 bg-primary text-white text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-[#e67e00] transition-colors shadow-sm"
                     >
-                        Review Now
+                        {t('dashboard.reviewNow')}
                     </button>
                 </motion.div>
             )}
@@ -281,10 +283,10 @@ const InternDashboard = () => {
                 <div className="flex items-center justify-between">
                     <div>
                         <h1 className="text-3xl font-black mb-1 uppercase italic tracking-tighter">
-                            Welcome back, {user?.name?.split(' ')[0] || 'Intern'}! 👋
+                            {t('dashboard.welcomeBack', { name: user?.name?.split(' ')[0] || 'Intern' })}
                         </h1>
                         <p className="text-white/60 text-sm font-bold uppercase tracking-widest">
-                            {enrollments.filter(e => e.isActive).length} Active Programs • {pendingAssignments.length} Pending Tasks
+                            {t('dashboard.activePrograms', { count: enrollments.filter(e => e.isActive).length })} • {t('dashboard.pendingTasksUpper', { count: pendingAssignments.length })}
                         </p>
                     </div>
                 </div>
@@ -314,14 +316,14 @@ const InternDashboard = () => {
                     className="lg:col-span-1 space-y-4"
                 >
                     <div className="flex items-center justify-between">
-                        <h2 className="text-xl font-bold text-gray-900 uppercase italic">Active Assignments</h2>
+                        <h2 className="text-xl font-bold text-gray-900 uppercase italic">{t('dashboard.activeAssignments')}</h2>
                         <Badge variant="warning">{pendingAssignments.length}</Badge>
                     </div>
                     <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 space-y-4 max-h-[500px] overflow-y-auto">
                         {pendingAssignments.length === 0 ? (
                             <div className="text-center py-12 opacity-50">
                                 <CheckCircle className="w-10 h-10 text-green-500 mx-auto mb-2" />
-                                <p className="text-xs font-black uppercase">Assignments Clear!</p>
+                                <p className="text-xs font-black uppercase">{t('dashboard.assignmentsClear')}</p>
                             </div>
                         ) : (
                             pendingAssignments.map((assignment) => (
@@ -334,7 +336,7 @@ const InternDashboard = () => {
                                             <div>
                                                 <h4 className="font-black text-gray-900 text-sm group-hover:text-primary transition-colors uppercase italic truncate max-w-[150px]">{assignment.title}</h4>
                                                 <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mt-0.5">
-                                                    Deadline: {new Date(assignment.dueDate).toLocaleDateString(undefined, { day: '2-digit', month: 'short' })}
+                                                    {t('dashboard.deadline', { date: new Date(assignment.dueDate).toLocaleDateString(undefined, { day: '2-digit', month: 'short' }) })}
                                                 </p>
                                             </div>
                                         </div>
@@ -343,7 +345,7 @@ const InternDashboard = () => {
                                         onClick={() => navigate(`/${role}/assignments`)}
                                         className="w-full py-2.5 bg-[var(--bg-sidebar)] hover:bg-[var(--bg-sidebar-light)] text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg active:scale-95"
                                     >
-                                        Go to Submission
+                                        {t('dashboard.goToSubmission')}
                                     </button>
                                 </div>
                             ))
@@ -358,7 +360,7 @@ const InternDashboard = () => {
                     transition={{ delay: 0.6 }}
                     className="lg:col-span-2 space-y-4"
                 >
-                    <h2 className="text-xl font-bold text-gray-900 uppercase italic">Registered Programs</h2>
+                    <h2 className="text-xl font-bold text-gray-900 uppercase italic">{t('dashboard.registeredPrograms')}</h2>
                     <div className="space-y-4">
                         {enrollments.map((enrollment) => (
                             <div
@@ -382,8 +384,8 @@ const InternDashboard = () => {
                                         <h3 className="font-bold text-gray-900 uppercase tracking-tight group-hover:text-primary transition-colors">{enrollment.course?.title || 'Program'}</h3>
                                         <p className="text-xs text-gray-400 font-bold uppercase tracking-widest mt-1 italic">
                                             {enrollment.course?.durationMonths
-                                                ? `${enrollment.course.durationMonths} ${enrollment.course.durationMonths === 1 ? 'Month' : 'Months'}`
-                                                : 'Ongoing'}
+                                                ? (enrollment.course.durationMonths === 1 ? t('dashboard.months', { count: 1 }) : t('dashboard.monthsPlural', { count: enrollment.course.durationMonths }))
+                                                : t('dashboard.ongoing')}
                                         </p>
                                     </div>
                                 </div>
@@ -393,14 +395,14 @@ const InternDashboard = () => {
                                             onClick={(e) => { e.stopPropagation(); navigate(`/${role}/fees`); }}
                                             className="px-6 py-2.5 text-[10px] font-black uppercase tracking-widest text-red-600 bg-red-50 rounded-xl hover:bg-red-100 transition-all active:scale-95"
                                         >
-                                            Pay Fee
+                                            {t('dashboard.payFee')}
                                         </button>
                                     ) : (
                                         <button
                                             onClick={(e) => { e.stopPropagation(); navigate(`/${role}/assignments`, { state: { courseId: enrollment.id } }); }}
                                             className="px-6 py-2.5 text-[10px] font-black uppercase tracking-widest text-primary bg-primary/5 rounded-xl hover:bg-primary/10 transition-all active:scale-95"
                                         >
-                                            Portal
+                                            {t('dashboard.portal')}
                                         </button>
                                     )}
                                 </div>

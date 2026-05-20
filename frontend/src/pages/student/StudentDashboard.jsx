@@ -27,6 +27,7 @@ import Modal from '../../components/ui/Modal'; // Assuming Modal component exist
 import { getCourseIcon, getCourseColor, getCourseStyle } from '../../utils/courseIcons';
 import { formatDate } from '../../utils/dateFormatter';
 import { calculateOutstandingFees } from '../../utils/feeHelpers';
+import { useTranslation } from 'react-i18next';
 
 const getSocketURL = () => {
     const rawUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -37,6 +38,7 @@ const SOCKET_URL = getSocketURL();
 
 
 const StudentDashboard = () => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const { role, user } = useSelector((state) => state.auth);
     const [isLoading, setIsLoading] = useState(true);
@@ -211,7 +213,7 @@ const StudentDashboard = () => {
             // Build stats
             setStats([
                 {
-                    title: 'Enrolled Courses',
+                    title: t('dashboard.enrolledCourses'),
                     value: courses.filter(c => !c.isCompleted).length.toString(),
                     icon: BookOpen,
                     iconBg: 'bg-primary/5',
@@ -219,7 +221,7 @@ const StudentDashboard = () => {
                     onClick: () => navigate(`/${role}/courses`, { state: { activeTab: 'enrolled' } }),
                 },
                 {
-                    title: role === 'intern' ? 'Pending Tasks' : 'Pending Assignments',
+                    title: role === 'intern' ? t('dashboard.pendingTasksUpper') : t('dashboard.pendingAssignments'),
                     value: activeAssignments.length.toString(),
                     icon: Clock,
                     iconBg: 'bg-primary/5',
@@ -227,7 +229,7 @@ const StudentDashboard = () => {
                     onClick: () => navigate(`/${role}/assignments`)
                 },
                 {
-                    title: 'Certificates',
+                    title: t('dashboard.certificates'),
                     value: courses.filter(c => c.isCompleted).length.toString(),
                     icon: CheckCircle,
                     iconBg: 'bg-primary/5',
@@ -235,8 +237,8 @@ const StudentDashboard = () => {
                     onClick: () => navigate(`/${role}/courses`, { state: { activeTab: 'completed' } })
                 },
                 {
-                    title: 'Total Pending',
-                    value: totalPendingAmount > 0 ? `Rs ${totalPendingAmount.toLocaleString()}` : 'All Clear',
+                    title: t('dashboard.totalPending'),
+                    value: totalPendingAmount > 0 ? `Rs ${totalPendingAmount.toLocaleString()}` : t('dashboard.allClear'),
                     valueClassName: totalPendingAmount > 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400',
                     icon: CreditCard,
                     iconBg: totalPendingAmount > 0 ? 'bg-red-100 dark:bg-red-900/20' : 'bg-primary/5',
@@ -289,9 +291,9 @@ const StudentDashboard = () => {
                 >
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                         <div>
-                            <h2 className="text-2xl font-black mb-1 uppercase italic tracking-tighter">Welcome back, {user?.name?.split(' ')[0] || (role === 'intern' ? 'Intern' : 'Student')}!</h2>
+                            <h2 className="text-2xl font-black mb-1 uppercase italic tracking-tighter">{t('dashboard.welcomeBack', { name: user?.name?.split(' ')[0] || (role === 'intern' ? 'Intern' : 'Student') })}</h2>
                             <p className="text-white/60 font-bold text-xs uppercase tracking-widest">
-                                {enrolledCourses.filter(c => c.isActive).length} active enrollments • {pendingAssignments.length} pending tasks
+                                {t('dashboard.activeEnrollments', { count: enrolledCourses.filter(c => c.isActive).length })} • {t('dashboard.pendingTasksLower', { count: pendingAssignments.length })}
                             </p>
                         </div>
                         <div className="flex gap-3">
@@ -305,7 +307,7 @@ const StudentDashboard = () => {
                                 onClick={() => navigate(`/${role}/courses`)}
                                 className="px-5 py-2.5 bg-primary hover:bg-primary/90 text-white rounded-xl font-black text-[10px] uppercase tracking-widest transition-all duration-300 shadow-lg shadow-orange-900/20"
                             >
-                                {role === 'intern' ? 'Browse Skills' : 'Browse Courses'}
+                                {role === 'intern' ? t('dashboard.browseSkills') : t('dashboard.browseCourses')}
                             </button>
                         </div>
                     </div>
@@ -349,7 +351,7 @@ const StudentDashboard = () => {
 
                                             <div>
                                                 <div className="flex items-center gap-2 mb-1">
-                                                    <span className="text-xs font-bold uppercase tracking-widest text-white/80">🔴 Live Class in Progress</span>
+                                                    <span className="text-xs font-bold uppercase tracking-widest text-white/80">{t('dashboard.liveClassInProgress')}</span>
                                                 </div>
                                                 <h2 className="text-2xl md:text-3xl font-black uppercase tracking-tight">
                                                     {liveClass.title}
@@ -358,7 +360,7 @@ const StudentDashboard = () => {
                                                     <p className="text-white/80 mt-1 text-sm md:text-base">{liveClass.description}</p>
                                                 )}
                                                 <p className="text-white/70 text-sm mt-2">
-                                                    by {liveClass.createdBy?.name || 'Teacher'}
+                                                    {t('dashboard.liveClassBy', { name: liveClass.createdBy?.name || 'Teacher' })}
                                                 </p>
                                             </div>
                                         </div>
@@ -369,7 +371,7 @@ const StudentDashboard = () => {
                                                 className="flex-shrink-0 px-8 py-4 md:px-10 md:py-5 bg-white text-primary rounded-2xl font-black uppercase tracking-widest text-sm md:text-base hover:bg-gray-100 transition-all shadow-lg flex items-center gap-3 group"
                                             >
                                                 <Video className="w-5 h-5 md:w-6 md:h-6 group-hover:scale-110 transition-transform" />
-                                                Join Adeeb Meet
+                                                {t('dashboard.joinMeet')}
                                             </button>
                                         ) : (
                                             <a
@@ -379,7 +381,7 @@ const StudentDashboard = () => {
                                                 className="flex-shrink-0 px-8 py-4 md:px-10 md:py-5 bg-white text-red-600 rounded-2xl font-black uppercase tracking-widest text-sm md:text-base hover:bg-gray-100 transition-all shadow-lg flex items-center gap-3 group"
                                             >
                                                 <ExternalLink className="w-5 h-5 md:w-6 md:h-6 group-hover:rotate-12 transition-transform" />
-                                                Join Now
+                                                {t('dashboard.joinNow')}
                                             </a>
                                         )}
                                     </div>
@@ -400,9 +402,9 @@ const StudentDashboard = () => {
                             <Bell className="w-5 h-5 text-amber-600" />
                         </div>
                         <div>
-                            <p className="text-sm font-black text-amber-800 dark:text-amber-200 uppercase tracking-wide">Account Temporarily Paused</p>
+                            <p className="text-sm font-black text-amber-800 dark:text-amber-200 uppercase tracking-wide">{t('dashboard.accountPaused')}</p>
                             <p className="text-xs text-amber-700 font-medium mt-1 leading-relaxed">
-                                Your access to one or more courses has been paused by your teacher. Assignments, daily task submissions, and fee installments are blocked until your teacher resumes your access.
+                                {t('dashboard.accountPausedDesc')}
                             </p>
                         </div>
                     </motion.div>
@@ -420,15 +422,15 @@ const StudentDashboard = () => {
                                 <Bell className="w-6 h-6 animate-bounce" />
                             </div>
                             <div>
-                                <h3 className="text-sm font-black text-gray-900 dark:text-white uppercase tracking-tight">Urgent Task Pending</h3>
-                                <p className="text-xs text-gray-600 dark:text-gray-400 font-medium lowercase">You have {pendingAssignments.length} assignment(s) requiring immediate attention.</p>
+                                <h3 className="text-sm font-black text-gray-900 dark:text-white uppercase tracking-tight">{t('dashboard.urgentTaskPending')}</h3>
+                                <p className="text-xs text-gray-600 dark:text-gray-400 font-medium lowercase">{t('dashboard.urgentTaskDetails', { count: pendingAssignments.length })}</p>
                             </div>
                         </div>
                         <button
                             onClick={() => navigate(`/${role}/assignments`)}
                             className="px-4 py-2 bg-primary text-white text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-[#e67e00] transition-colors shadow-sm"
                         >
-                            View All
+                            {t('dashboard.viewAll')}
                         </button>
                     </motion.div>
                 )}
@@ -463,7 +465,7 @@ const StudentDashboard = () => {
                         className="lg:col-span-1 space-y-4"
                     >
                         <div className="flex items-center justify-between">
-                            <h3 className="text-lg font-bold text-gray-900 uppercase italic">{role === 'intern' ? 'Pending Tasks' : 'Pending Assignments'}</h3>
+                            <h3 className="text-lg font-bold text-gray-900 uppercase italic">{role === 'intern' ? t('dashboard.pendingTasksUpper') : t('dashboard.pendingAssignments')}</h3>
                             <Badge variant="warning">{pendingAssignments.length}</Badge>
                         </div>
 
@@ -471,7 +473,7 @@ const StudentDashboard = () => {
                             {pendingAssignments.length === 0 ? (
                                 <div className="text-center py-10 opacity-50">
                                     <CheckCircle className="w-10 h-10 text-primary mx-auto mb-2" />
-                                    <p className="text-xs font-black uppercase">All Caught Up!</p>
+                                    <p className="text-xs font-black uppercase">{t('dashboard.allCaughtUp')}</p>
                                 </div>
                             ) : (
                                 pendingAssignments.map((assignment, index) => (
@@ -485,7 +487,7 @@ const StudentDashboard = () => {
                                                     <h4 className="font-black text-gray-900 text-sm group-hover:text-primary transition-colors uppercase italic leading-tight mb-0.5">{assignment.title}</h4>
                                                     <p className="text-[9px] text-primary font-black uppercase tracking-widest">{assignment.course?.title || (role === 'intern' ? 'Daily Task' : 'Assignment')}</p>
                                                     <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mt-0.5 dark:text-gray-500">
-                                                        Due: {formatDate(assignment.dueDate)}
+                                                        {t('dashboard.due', { date: formatDate(assignment.dueDate) })}
                                                     </p>
                                                 </div>
                                             </div>
@@ -494,7 +496,7 @@ const StudentDashboard = () => {
                                             onClick={() => navigate(`/${role}/assignments`)}
                                             className="w-full py-2.5 bg-[var(--bg-sidebar)] hover:bg-[var(--bg-sidebar-light)] dark:bg-primary dark:hover:bg-[#e67e00] text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-slate-200 dark:shadow-orange-950/20 active:scale-95"
                                         >
-                                            Submit Now
+                                            {t('dashboard.submitNow')}
                                         </button>
                                     </div>
                                 ))
@@ -511,19 +513,19 @@ const StudentDashboard = () => {
                     >
                         <div className="flex items-center justify-between mb-4">
                             <div>
-                                <h3 className="text-lg font-bold text-gray-900 uppercase italic">My Courses</h3>
+                                <h3 className="text-lg font-bold text-gray-900 uppercase italic">{t('dashboard.myCourses')}</h3>
                             </div>
                         </div>
 
                         {enrolledCourses.length === 0 ? (
                             <div className="bg-white rounded-2xl p-12 border border-gray-100 text-center">
                                 <BookOpen className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                                <p className="text-gray-500 mb-4 font-bold uppercase tracking-widest text-xs">No active enrollments</p>
+                                <p className="text-gray-500 mb-4 font-bold uppercase tracking-widest text-xs">{t('dashboard.noActiveEnrollments')}</p>
                                 <button
                                     onClick={() => navigate(`/${role}/courses`)}
                                     className="px-6 py-2.5 bg-primary hover:bg-primary text-white rounded-xl font-medium"
                                 >
-                                    {role === 'intern' ? 'Browse Skills' : 'Browse Courses'}
+                                    {role === 'intern' ? t('dashboard.browseSkills') : t('dashboard.browseCourses')}
                                 </button>
                             </div>
                         ) : (
@@ -567,15 +569,15 @@ const StudentDashboard = () => {
                                                 <div className="flex flex-col items-end ml-4 space-y-1">
                                                     <div>
                                                         {course.isCompleted ? (
-                                                            <Badge variant="success">Completed</Badge>
+                                                            <Badge variant="success">{t('dashboard.completed')}</Badge>
                                                         ) : course.isPaused ? (
-                                                            <Badge variant="warning">Paused</Badge>
+                                                            <Badge variant="warning">{t('dashboard.paused')}</Badge>
                                                         ) : !course.isFirstMonthVerified ? (
-                                                            <Badge variant="warning">Verification Pending</Badge>
+                                                            <Badge variant="warning">{t('dashboard.verificationPending')}</Badge>
                                                         ) : !course.isActive ? (
-                                                            <Badge variant="danger">Restricted</Badge>
+                                                            <Badge variant="danger">{t('dashboard.restricted')}</Badge>
                                                         ) : (
-                                                            <Badge variant="success">Active</Badge>
+                                                            <Badge variant="success">{t('dashboard.active')}</Badge>
                                                         )}
                                                     </div>
                                                     <Badge variant="info">{course.progress}%</Badge>
@@ -592,7 +594,7 @@ const StudentDashboard = () => {
                                             <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-gray-400">
                                                 <span className="flex items-center gap-1 truncate">
                                                     <Calendar className="w-3 h-3" />
-                                                    <span className="truncate">{course.nextClass}</span>
+                                                    <span className="truncate">{course.nextClass === 'Check schedule' ? t('dashboard.checkSchedule') : course.nextClass}</span>
                                                 </span>
 
                                                 <div className="flex items-center gap-2">
@@ -602,7 +604,7 @@ const StudentDashboard = () => {
                                                             className="flex items-center gap-1 text-red-500 hover:text-red-600 hover:bg-red-50 px-2 py-1 rounded transition-colors z-10"
                                                         >
                                                             <Trash2 className="w-3 h-3" />
-                                                            Revoke
+                                                            {t('dashboard.revoke')}
                                                         </button>
                                                     )}
                                                 </div>
@@ -620,18 +622,15 @@ const StudentDashboard = () => {
             <Modal
                 isOpen={withdrawModal.open}
                 onClose={() => setWithdrawModal({ ...withdrawModal, open: false })}
-                title="Revoke Course Application"
+                title={t('dashboard.revokeTitle')}
                 size="sm"
             >
                 <div className="space-y-4">
                     <div className="bg-red-50 p-4 rounded-xl flex items-start gap-3">
                         <Trash2 className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
                         <div>
-                            <h4 className="font-bold text-red-700 text-sm">Are you sure?</h4>
-                            <p className="text-xs text-red-600 mt-1">
-                                You are about to withdraw from <strong>{withdrawModal.courseTitle}</strong>.
-                                This will remove the course and any pending fee records.
-                            </p>
+                            <h4 className="font-bold text-red-700 text-sm">{t('dashboard.areYouSure')}</h4>
+                            <p className="text-xs text-red-600 mt-1" dangerouslySetInnerHTML={{ __html: t('dashboard.revokeWarning', { courseTitle: withdrawModal.courseTitle }) }} />
                         </div>
                     </div>
 
@@ -646,7 +645,7 @@ const StudentDashboard = () => {
                             onClick={confirmWithdraw}
                             className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium"
                         >
-                            Confirm Revoke
+                            {t('dashboard.confirmRevoke')}
                         </button>
                     </div>
                 </div>

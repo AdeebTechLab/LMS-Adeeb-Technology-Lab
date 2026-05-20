@@ -15,10 +15,12 @@ import StatCard from '../../components/ui/StatCard';
 import { getCourseIcon, getCourseStyle } from '../../utils/courseIcons';
 import BirthdayWish from '../../components/dashboard/BirthdayWish';
 import Loader, { ButtonLoader } from '../../components/ui/Loader';
+import { useTranslation } from 'react-i18next';
 
 
 
 const TeacherCourses = ({ isDashboard = false }) => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const { user } = useSelector((state) => state.auth);
     const [isLoading, setIsLoading] = useState(true);
@@ -312,10 +314,10 @@ const TeacherCourses = ({ isDashboard = false }) => {
                 {isDashboard && <BirthdayWish />}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900">{isDashboard ? 'Pending Tasks Dashboard' : 'My Courses'}</h1>
+                        <h1 className="text-2xl font-bold text-gray-900">{isDashboard ? t('teacherDashboard.pendingTasksDashboard') : t('teacherDashboard.courses')}</h1>
                         <p className="text-gray-500">
                             {isDashboard 
-                                ? 'Showing courses that require grading attention' 
+                                ? t('teacherDashboard.showingCoursesGrading') 
                                 : 'Overview of all your assigned courses'}
                         </p>
                     </div>
@@ -329,7 +331,7 @@ const TeacherCourses = ({ isDashboard = false }) => {
                                     }`}
                             >
                                 <BookOpen className="w-4 h-4" />
-                                Courses
+                                {t('teacherDashboard.courses')}
                             </button>
                             <button
                                 onClick={() => { setSearchMode('students'); setSearchQuery(''); }}
@@ -339,7 +341,7 @@ const TeacherCourses = ({ isDashboard = false }) => {
                                     }`}
                             >
                                 <Users className="w-4 h-4" />
-                                Search Student
+                                {t('teacherDashboard.searchStudent')}
                             </button>
                         </div>
                         <button
@@ -351,7 +353,7 @@ const TeacherCourses = ({ isDashboard = false }) => {
                             className="px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl font-medium transition-all duration-300 flex items-center gap-2 shadow-lg shadow-red-200"
                         >
                             <Video className="w-5 h-5" />
-                            Google Meet Link
+                            {t('teacherDashboard.googleMeetLink')}
                         </button>
                         <button
                             onClick={() => {
@@ -362,7 +364,7 @@ const TeacherCourses = ({ isDashboard = false }) => {
                             className="px-5 py-2.5 bg-primary hover:bg-primary-dark text-white rounded-xl font-medium transition-all duration-300 flex items-center gap-2 shadow-lg shadow-primary/20"
                         >
                             <Users className="w-5 h-5" />
-                            Start Adeeb Meet
+                            {t('teacherDashboard.startAdeebMeet')}
                         </button>
                     </div>
                 </div>
@@ -429,7 +431,7 @@ const TeacherCourses = ({ isDashboard = false }) => {
                 {isDashboard && (
                     <div className="grid grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6 gap-3 sm:gap-4">
                         <StatCard
-                            title="Active Courses"
+                            title={t('teacherDashboard.activeCourses')}
                             value={summaryStats.totalCourses}
                             icon={BookOpen}
                             iconBg="bg-blue-50"
@@ -437,7 +439,7 @@ const TeacherCourses = ({ isDashboard = false }) => {
                             onClick={() => navigate('/teacher/courses')}
                         />
                         <StatCard
-                            title="Active Students"
+                            title={t('teacherDashboard.activeStudents')}
                             value={summaryStats.activeStudents}
                             icon={Users}
                             iconBg="bg-blue-50"
@@ -445,7 +447,7 @@ const TeacherCourses = ({ isDashboard = false }) => {
                             onClick={() => navigate('/teacher/quick-attendance', { state: { initialCategory: 'students' } })}
                         />
                         <StatCard
-                            title="Active Interns"
+                            title={t('teacherDashboard.activeInterns')}
                             value={summaryStats.activeInterns}
                             icon={GraduationCap}
                             iconBg="bg-purple-50"
@@ -453,14 +455,14 @@ const TeacherCourses = ({ isDashboard = false }) => {
                             onClick={() => navigate('/teacher/quick-attendance', { state: { initialCategory: 'interns' } })}
                         />
                         <StatCard
-                            title="Pending Gradings"
+                            title={t('teacherDashboard.pendingGradings')}
                             value={summaryStats.pendingAssignments}
                             icon={FileText}
                             iconBg="bg-amber-50"
                             iconColor="text-amber-600"
                         />
                         <StatCard
-                            title="Today's Present"
+                            title={t('teacherDashboard.todaysPresent')}
                             value={summaryStats.todayPresent}
                             icon={User}
                             iconBg="bg-primary/5"
@@ -468,7 +470,7 @@ const TeacherCourses = ({ isDashboard = false }) => {
                             onClick={() => navigate('/teacher/quick-attendance', { state: { initialFilter: 'present' } })}
                         />
                         <StatCard
-                            title="Today's Absent"
+                            title={t('teacherDashboard.todaysAbsent')}
                             value={summaryStats.todayAbsent}
                             icon={X}
                             iconBg="bg-red-50"

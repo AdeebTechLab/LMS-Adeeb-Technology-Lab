@@ -814,8 +814,8 @@ const AttendanceSheet = () => {
                 {/* Tab Navigation - Separate Row like Student Portal */}
                 <div className="flex items-center gap-2 bg-white dark:bg-slate-900/40 rounded-2xl p-1.5 border border-gray-100 dark:border-slate-800 shadow-sm overflow-x-auto no-scrollbar">
                     {[
-                        { id: 'daily_tasks', label: selectedCourse.targetAudience === 'interns' ? 'Daily Tasks' : 'Class Logs', icon: ClipboardList },
-                        { id: 'assignments', label: 'Assignments', icon: FileText },
+                        { id: 'daily_tasks', label: 'Class Logs', icon: ClipboardList },
+                        { id: 'assignments', label: selectedCourse.targetAudience === 'interns' ? 'Daily task' : 'Assignments', icon: FileText },
                         { id: 'tests', label: 'Tests', icon: Zap },
                         { id: 'attendance', label: 'Attendance', icon: Clock },
                         { id: 'students', label: 'Students', icon: UserCheck },

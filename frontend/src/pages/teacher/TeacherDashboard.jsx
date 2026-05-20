@@ -32,9 +32,10 @@ import { courseAPI, enrollmentAPI, assignmentAPI, dailyTaskAPI, liveClassAPI, ce
 import { getCourseIcon, getCourseStyle } from '../../utils/courseIcons';
 import { formatDate } from '../../utils/dateFormatter';
 import BirthdayWish from '../../components/dashboard/BirthdayWish';
-
+import { useTranslation } from 'react-i18next';
 
 const TeacherDashboard = () => {
+    const { t } = useTranslation();
     const { user } = useSelector((state) => state.auth);
     const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(true);
@@ -212,14 +213,14 @@ const TeacherDashboard = () => {
             // Build stats
             setStats([
                 {
-                    title: 'Active Courses',
+                    title: t('teacherDashboard.activeCourses'),
                     value: coursesWithData.length.toString(),
                     icon: BookOpen,
                     iconBg: 'bg-primary/10',
                     iconColor: 'text-primary',
                 },
                 {
-                    title: 'Active Students',
+                    title: t('teacherDashboard.activeStudents'),
                     value: activeStudentsCount.toString(),
                     icon: Users,
                     iconBg: 'bg-blue-100',
@@ -227,7 +228,7 @@ const TeacherDashboard = () => {
                     onClick: () => navigate('/teacher/quick-attendance', { state: { initialCategory: 'students' } })
                 },
                 {
-                    title: 'Active Interns',
+                    title: t('teacherDashboard.activeInterns'),
                     value: activeInternsCount.toString(),
                     icon: GraduationCap,
                     iconBg: 'bg-purple-100',
@@ -304,7 +305,7 @@ const TeacherDashboard = () => {
                                 className="px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl font-medium transition-all duration-300 flex items-center gap-2 shadow-lg shadow-red-500/20"
                             >
                                 <Video className="w-4 h-4" />
-                                Google Meet Link
+                                {t('teacherDashboard.googleMeetLink')}
                             </button>
                             <button
                                 onClick={() => {
@@ -315,7 +316,7 @@ const TeacherDashboard = () => {
                                 className="px-5 py-2.5 bg-primary hover:bg-primary-dark text-white rounded-xl font-medium transition-all duration-300 flex items-center gap-2 shadow-lg shadow-primary/20"
                             >
                                 <Users className="w-4 h-4" />
-                                Start Adeeb Meet
+                                {t('teacherDashboard.startAdeebMeet')}
                             </button>
                             <button
                                 onClick={() => navigate('/teacher/attendance')}

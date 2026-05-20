@@ -485,9 +485,6 @@ const QuickAttendance = () => {
                 <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16 opacity-40 pointer-events-none"></div>
 
                 <div className="relative z-10 flex items-center gap-3 min-w-0">
-                    <div className="w-11 h-11 shrink-0 bg-white rounded-xl p-1.5 shadow-sm border border-primary/5 flex items-center justify-center">
-                        <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
-                    </div>
                     <div>
                         <button
                             onClick={() => navigate('/teacher/dashboard')}
@@ -722,7 +719,7 @@ const QuickAttendance = () => {
                         Showing {filteredStudents.length} student{filteredStudents.length !== 1 ? 's' : ''}
                     </span>
                 </div>
-                <div className="w-full">
+                <div className="w-full overflow-x-auto">
                     <table className="w-full min-w-full text-left border-collapse">
                         <thead className="sticky top-0 z-10">
                             <tr className="bg-primary border-b border-primary">
@@ -730,9 +727,9 @@ const QuickAttendance = () => {
                                 <th className="px-2 py-2 text-[9px] font-black text-white/90 uppercase tracking-tighter min-w-[120px]">Student</th>
                                 <th className="px-1.5 py-2 text-[9px] font-black text-white/90 uppercase tracking-tighter whitespace-nowrap">Roll No</th>
                                 <th className="px-1.5 py-2 text-[9px] font-black text-white/90 uppercase tracking-tighter min-w-[100px]">Course</th>
-                                <th className="px-1.5 py-2 text-[9px] font-black text-white/90 uppercase tracking-tighter whitespace-nowrap">Location</th>
-                                <th className="px-1.5 py-2 text-[9px] font-black text-white/90 uppercase tracking-tighter whitespace-nowrap">Type</th>
-                                <th className="px-1.5 py-2 text-[9px] font-black text-white/90 uppercase tracking-tighter whitespace-nowrap">Mode</th>
+                                <th className="hidden sm:table-cell px-1.5 py-2 text-[9px] font-black text-white/90 uppercase tracking-tighter whitespace-nowrap">Location</th>
+                                <th className="hidden sm:table-cell px-1.5 py-2 text-[9px] font-black text-white/90 uppercase tracking-tighter whitespace-nowrap">Type</th>
+                                <th className="hidden sm:table-cell px-1.5 py-2 text-[9px] font-black text-white/90 uppercase tracking-tighter whitespace-nowrap">Mode</th>
                                 <th className="px-2 py-2 text-[9px] font-black text-white/90 uppercase tracking-tighter text-center whitespace-nowrap">Mark</th>
                             </tr>
                         </thead>
@@ -806,12 +803,12 @@ const QuickAttendance = () => {
                                             <td className="px-1.5 py-1.5">
                                                 <span className="text-[9px] font-black text-gray-700 uppercase tracking-tight line-clamp-1" title={student.courseName}>{student.courseName}</span>
                                             </td>
-                                            <td className="px-1.5 py-1.5">
+                                            <td className="hidden sm:table-cell px-1.5 py-1.5">
                                                 <div className="flex items-center gap-1">
                                                     <span className="text-[9px] font-black text-gray-700 uppercase tracking-tight">{student.location}</span>
                                                 </div>
                                             </td>
-                                            <td className="px-1.5 py-1.5">
+                                            <td className="hidden sm:table-cell px-1.5 py-1.5">
                                                 <span className={`text-[8px] px-1 py-0.5 rounded font-bold uppercase tracking-wider whitespace-nowrap ${student.audience === 'interns'
                                                     ? 'bg-purple-100 text-purple-700'
                                                     : 'bg-blue-100 text-blue-700'
@@ -819,7 +816,7 @@ const QuickAttendance = () => {
                                                     {student.audience === 'interns' ? 'Intern' : 'Student'}
                                                 </span>
                                             </td>
-                                            <td className="px-1.5 py-1.5">
+                                            <td className="hidden sm:table-cell px-1.5 py-1.5">
                                                 {(student.attendType || '').toLowerCase().includes('online')
                                                     ? <span className="bg-rose-50 text-rose-600 border-rose-200 text-[8px] px-1 py-0.5 rounded-md font-black uppercase tracking-widest border whitespace-nowrap">Remote</span>
                                                     : <span className="bg-primary/5 text-primary border-primary text-[8px] px-1 py-0.5 rounded-md font-black uppercase tracking-widest border whitespace-nowrap">OnSite</span>

@@ -1,29 +1,7 @@
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Lock, ShieldAlert, CreditCard, BookOpen, ArrowRight, PauseCircle } from 'lucide-react';
-
-const CONTENT = {
-    fee: {
-        badge: 'Access Locked',
-        description: 'Course access is paused until your fee is paid and verified by admin.',
-        steps: [
-            'Upload payment slip from the Fees page',
-            'Wait for admin verification — access unlocks automatically',
-        ],
-        primaryLabel: 'Pay & Verify Fee',
-        showFeeCta: true,
-    },
-    paused: {
-        badge: 'Account Paused',
-        description: 'Your teacher has temporarily paused this course. Assignments and submissions are blocked until access is restored.',
-        steps: [
-            'Contact your teacher or admin for more information',
-            'You will regain access once your account is resumed',
-        ],
-        primaryLabel: null,
-        showFeeCta: false,
-    },
-};
+import { useTranslation } from 'react-i18next';
 
 const WorkspaceRestrictedBanner = ({
     role,
@@ -34,7 +12,32 @@ const WorkspaceRestrictedBanner = ({
     backLabel = 'View Courses',
     className = '',
 }) => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
+
+    const CONTENT = {
+        fee: {
+            badge: t('workspace.accessLocked'),
+            description: t('workspace.pausedReason'),
+            steps: [
+                t('workspace.step1'),
+                t('workspace.step2'),
+            ],
+            primaryLabel: t('workspace.payVerifyFee'),
+            showFeeCta: true,
+        },
+        paused: {
+            badge: t('dashboard.accountPaused'),
+            description: t('dashboard.accountPausedDesc'),
+            steps: [
+                t('workspace.contactAdmin'),
+                t('workspace.accessResumed'),
+            ],
+            primaryLabel: null,
+            showFeeCta: false,
+        },
+    };
+
     const content = CONTENT[restrictionType] || CONTENT.fee;
 
     if (!lockedCourses.length) return null;
@@ -82,13 +85,13 @@ const WorkspaceRestrictedBanner = ({
                             </span>
                             {restrictionType === 'fee' && pendingFees > 0 && (
                                 <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-white text-red-600 text-[10px] font-black uppercase tracking-widest">
-                                    Due: Rs {pendingFees.toLocaleString()}
+                                    {t('workspace.due', { amount: pendingFees.toLocaleString() })}
                                 </span>
                             )}
                         </div>
 
                         <h2 className="text-xl sm:text-2xl font-black uppercase tracking-tight leading-tight mb-2">
-                            Workspace Restricted
+                            {t('workspace.restricted')}
                         </h2>
 
                         <p className="text-sm text-white/85 leading-relaxed max-w-xl">{content.description}</p>
@@ -133,7 +136,7 @@ const WorkspaceRestrictedBanner = ({
                         className="flex items-center justify-center gap-2 px-5 py-3.5 bg-white/10 hover:bg-white/20 text-white rounded-xl font-black uppercase tracking-widest text-[10px] sm:text-xs border border-white/25 transition-all backdrop-blur-sm"
                     >
                         <BookOpen className="w-4 h-4" />
-                        {backLabel}
+                        {backLabel === 'View Courses' ? t('workspace.viewCourses') : backLabel}
                     </button>
                 </div>
             </div>
