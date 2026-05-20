@@ -1,8 +1,9 @@
 import {
     ICE_SERVERS,
     acquireCameraTrack,
+    acquireDisplayStream,
     acquireMicrophoneTrack,
-    getDisplayMediaOptions,
+    getScreenShareUnsupportedReason,
     isDisplayMediaSupported,
 } from './webrtcConfig';
 
@@ -403,11 +404,12 @@ export class WebRTCMeetingManager {
     async startScreenShare() {
         if (!isDisplayMediaSupported()) {
             throw new Error(
-                'Screen sharing is not supported on this browser. Try Chrome on desktop or Android.'
+                getScreenShareUnsupportedReason() ||
+                    'Screen sharing is not supported on this browser. Use HTTPS and Chrome on Android or desktop.'
             );
         }
 
-        const displayStream = await navigator.mediaDevices.getDisplayMedia(getDisplayMediaOptions());
+        const displayStream = await acquireDisplayStream();
         const screenTrack = displayStream.getVideoTracks()[0];
         if (!screenTrack) throw new Error('No screen track');
 

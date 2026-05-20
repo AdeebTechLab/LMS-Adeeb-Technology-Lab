@@ -32,24 +32,116 @@ export const VIDEO_CONSTRAINTS = {
     frameRate: { ideal: 15, max: 20 },
 };
 
-export const isDisplayMediaSupported = () =>
-    typeof navigator !== 'undefined' &&
-    !!navigator.mediaDevices?.getDisplayMedia;
+export const isMobileDevice = () =>
+    /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || '');
 
-/** Mobile-friendly screen capture options */
-export const getDisplayMediaOptions = () => {
-    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-    return {
-        video: {
-            displaySurface: 'monitor',
-            width: { max: 1280 },
-            height: { max: 720 },
-            frameRate: { max: 15 },
-        },
-        audio: false,
-        ...(isMobile && { preferCurrentTab: true, selfBrowserSurface: 'exclude' }),
-    };
+export const isIOSDevice = () => /iPhone|iPad|iPod/i.test(navigator.userAgent || '');
+
+export const isAndroidDevice = () => /Android/i.test(navigator.userAgent || '');
+
+/** Bound getDisplayMedia — some mobile browsers only expose it on mediaDevices */
+export const getDisplayMediaFn = () => {
+    if (typeof navigator === 'undefined') return null;
+    if (navigator.mediaDevices?.getDisplayMedia) {
+        return navigator.mediaDevices.getDisplayMedia.bind(navigator.mediaDevices);
+    }
+    if (typeof navigator.getDisplayMedia === 'function') {
+        return navigator.getDisplayMedia.bind(navigator);
+    }
+    return null;
 };
+
+export const isDisplayMediaSupported = () => {
+    if (typeof window === 'undefined') return false;
+    if (!window.isSecureContext) return false;
+    return !!getDisplayMediaFn();
+};
+
+/** Constraint sets tried in order (mobile-first minimal) */
+export const getDisplayMediaAttempts = () => {
+    const isAndroid = isAndroidDevice();
+    const isIOS = isIOSDevice();
+    const isMobile = isMobileDevice();
+
+    if (isIOS) {
+        return [
+            { video: true, audio: false, preferCurrentTab: true },
+            { video: true, audio: false },
+        ];
+    }
+
+    if (isAndroid || isMobile) {
+        return [
+            {
+                video: {
+                    width: { max: 1280 },
+                    height: { max: 720 },
+                    frameRate: { max: 24 },
+                },
+                audio: false,
+                preferCurrentTab: true,
+            },
+            { video: true, audio: false, preferCurrentTab: true },
+            { video: true, audio: false },
+        ];
+    }
+
+    return [
+        {
+            video: {
+                width: { max: 1920 },
+                height: { max: 1080 },
+                frameRate: { max: 30 },
+            },
+            audio: false,
+        },
+        { video: true, audio: false },
+    ];
+};
+
+/** @deprecated use acquireDisplayStream */
+export const getDisplayMediaOptions = () => getDisplayMediaAttempts()[0];
+
+export const getScreenShareUnsupportedReason = () => {
+    if (typeof window === 'undefined') return 'Screen sharing is unavailable.';
+    if (!window.isSecureContext) {
+        return 'Screen sharing on phone requires a secure link (HTTPS). Open the class using https:// not http://.';
+    }
+    if (isIOSDevice() && !getDisplayMediaFn()) {
+        return 'Screen sharing on iPhone needs Safari 17.4+ or iOS 18+. Try Android Chrome, or share from a laptop.';
+    }
+    if (!getDisplayMediaFn()) {
+        return 'Screen sharing is not available in this browser. Use Chrome on Android, or Chrome/Edge on desktop.';
+    }
+    return null;
+};
+
+export async function acquireDisplayStream() {
+    const getDisplayMedia = getDisplayMediaFn();
+    const blockedReason = getScreenShareUnsupportedReason();
+    if (!getDisplayMedia) {
+        throw new Error(blockedReason || 'Screen sharing is not supported on this device.');
+    }
+
+    const attempts = getDisplayMediaAttempts();
+    let lastError = null;
+
+    for (const constraints of attempts) {
+        try {
+            return await getDisplayMedia(constraints);
+        } catch (err) {
+            lastError = err;
+            if (err?.name === 'NotAllowedError' || err?.name === 'AbortError') {
+                throw err;
+            }
+        }
+    }
+
+    const msg =
+        lastError?.message ||
+        'Could not start screen sharing. On phone Chrome, allow tab/screen when prompted.';
+    throw new Error(msg);
+}
 
 export const createDummyVideoTrack = () => {
     try {
@@ -70,16 +162,17 @@ export const createDummyVideoTrack = () => {
 
 export async function enumerateMediaDevices() {
     if (!navigator.mediaDevices?.enumerateDevices) {
-        return { audioInputs: [], videoInputs: [] };
+        return { audioInputs: [], videoInputs: [], audioOutputs: [] };
     }
     try {
         const devices = await navigator.mediaDevices.enumerateDevices();
         return {
             audioInputs: devices.filter((d) => d.kind === 'audioinput'),
             videoInputs: devices.filter((d) => d.kind === 'videoinput'),
+            audioOutputs: devices.filter((d) => d.kind === 'audiooutput'),
         };
     } catch {
-        return { audioInputs: [], videoInputs: [] };
+        return { audioInputs: [], videoInputs: [], audioOutputs: [] };
     }
 }
 

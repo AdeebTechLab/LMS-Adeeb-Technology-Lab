@@ -15,8 +15,10 @@ import {
     Monitor,
     UserMinus,
     VolumeX,
+    Volume2,
     LayoutGrid,
     Maximize2,
+    Minimize2,
     Sidebar as SidebarIcon,
     X,
     ChevronDown,
@@ -27,7 +29,9 @@ import { WebRTCMeetingManager } from '../../lib/adeebMeet/WebRTCMeetingManager';
 import {
     buildLocalMediaStream,
     enumerateMediaDevices,
+    getScreenShareUnsupportedReason,
     getSocketURL,
+    isDisplayMediaSupported,
     resolveAvatarUrl,
 } from '../../lib/adeebMeet/webrtcConfig';
 import { AudioLevelMonitor } from '../../lib/adeebMeet/audioLevelMonitor';
@@ -72,6 +76,11 @@ const AdeebMeet = () => {
     const [selectedVideoDevice, setSelectedVideoDevice] = useState('');
     const [showAudioMenu, setShowAudioMenu] = useState(false);
     const [showVideoMenu, setShowVideoMenu] = useState(false);
+    const [speakerDevices, setSpeakerDevices] = useState([]);
+    const [selectedSpeakerDevice, setSelectedSpeakerDevice] = useState('');
+    const [showSpeakerMenu, setShowSpeakerMenu] = useState(false);
+    const [speakerMuted, setSpeakerMuted] = useState(false);
+    const [focusedTileId, setFocusedTileId] = useState(null);
     const myUserId = user?._id || user?.id;
     const socketRef = useRef(null);
     const audioMonitorRef = useRef(null);
@@ -284,24 +293,46 @@ const AdeebMeet = () => {
         };
     }, []);
 
+    const applySpeakerSink = useCallback(
+        async (deviceId) => {
+            if (speakerMuted) return;
+            const videos = document.querySelectorAll('.adeeb-meet video[data-remote="true"]');
+            for (const video of videos) {
+                if (!video.setSinkId) continue;
+                try {
+                    await video.setSinkId(deviceId || '');
+                } catch {
+                    /* browser may not support setSinkId */
+                }
+            }
+        },
+        [speakerMuted]
+    );
+
     useEffect(() => {
-        if (!showAudioMenu && !showVideoMenu) return;
+        if (!speakerMuted) applySpeakerSink(selectedSpeakerDevice);
+    }, [peers, selectedSpeakerDevice, speakerMuted, applySpeakerSink]);
+
+    useEffect(() => {
+        if (!showAudioMenu && !showVideoMenu && !showSpeakerMenu) return;
         const close = () => {
             setShowAudioMenu(false);
             setShowVideoMenu(false);
+            setShowSpeakerMenu(false);
         };
         const timer = setTimeout(() => document.addEventListener('click', close), 0);
         return () => {
             clearTimeout(timer);
             document.removeEventListener('click', close);
         };
-    }, [showAudioMenu, showVideoMenu]);
+    }, [showAudioMenu, showVideoMenu, showSpeakerMenu]);
 
     useEffect(() => {
         const refreshDevices = async () => {
-            const { audioInputs, videoInputs } = await enumerateMediaDevices();
+            const { audioInputs, videoInputs, audioOutputs } = await enumerateMediaDevices();
             setAudioDevices(audioInputs);
             setVideoDevices(videoInputs);
+            setSpeakerDevices(audioOutputs);
         };
         refreshDevices();
         navigator.mediaDevices?.addEventListener?.('devicechange', refreshDevices);
@@ -421,6 +452,14 @@ const AdeebMeet = () => {
         if (!managerRef.current) return;
         try {
             if (!isScreenSharing) {
+                if (!isDisplayMediaSupported()) {
+                    toast.error(
+                        getScreenShareUnsupportedReason() ||
+                            'Screen sharing is not available on this device.',
+                        { duration: 6000 }
+                    );
+                    return;
+                }
                 const displayStream = await managerRef.current.startScreenShare();
                 screenStreamRef.current = displayStream;
                 if (userVideoRef.current) {
@@ -440,7 +479,13 @@ const AdeebMeet = () => {
             }
         } catch (err) {
             console.error(err);
-            toast.error(err.message || 'Screen share failed');
+            if (err?.name === 'NotAllowedError') {
+                toast.error('Screen share cancelled or permission denied.');
+            } else if (err?.name === 'AbortError') {
+                toast.error('Screen share was cancelled.');
+            } else {
+                toast.error(err.message || 'Screen share failed', { duration: 5000 });
+            }
         }
     };
 
@@ -504,7 +549,31 @@ const AdeebMeet = () => {
 
     const avatar = (photo, name) => resolveAvatarUrl(photo, name, SOCKET_URL);
 
-    const renderLocalTile = (className = '') => (
+    const studentCount = participants.filter(
+        (p) => p.userDetails?.role === 'student' || p.userDetails?.role === 'intern'
+    ).length;
+
+    const toggleSpeakerMute = () => {
+        const next = !speakerMuted;
+        setSpeakerMuted(next);
+        document.querySelectorAll('.adeeb-meet video[data-remote="true"]').forEach((v) => {
+            v.muted = next;
+        });
+        if (!next) applySpeakerSink(selectedSpeakerDevice);
+    };
+
+    const switchSpeaker = async (deviceId) => {
+        setSelectedSpeakerDevice(deviceId);
+        setSpeakerMuted(false);
+        await applySpeakerSink(deviceId);
+        setShowSpeakerMenu(false);
+    };
+
+    const toggleTileFocus = (tileId) => {
+        setFocusedTileId((prev) => (prev === tileId ? null : tileId));
+    };
+
+    const renderLocalTile = (className = '', tileOptions = {}) => (
         <VideoTile
             stream={isScreenSharing ? screenStreamRef.current : userStreamRef.current}
             name={`You${isTeacher ? ' (Teacher)' : ''}`}
@@ -519,8 +588,38 @@ const AdeebMeet = () => {
             isSpeaking={localSpeaking}
             audioLevel={localLevel}
             className={className}
+            tileId="local"
+            isTileFocused={focusedTileId === 'local'}
+            onToggleFocus={toggleTileFocus}
+            showTileControls={tileOptions.showTileControls !== false}
         />
     );
+
+    const renderTileWrapper = (tileId, children, className = '') => {
+        const isFocused = focusedTileId === tileId;
+        const isHidden = focusedTileId && focusedTileId !== tileId;
+
+        if (isHidden) return null;
+
+        return (
+            <div
+                key={tileId}
+                className={`relative min-h-0 h-full ${isFocused ? 'col-span-full row-span-full z-10' : ''} ${className}`}
+            >
+                {!isFocused && (
+                    <button
+                        type="button"
+                        onClick={() => toggleTileFocus(tileId)}
+                        className="absolute top-2 right-2 z-20 w-8 h-8 rounded-lg bg-black/60 hover:bg-primary/80 border border-white/20 flex items-center justify-center transition-colors"
+                        title="Full screen"
+                    >
+                        <Maximize2 className="w-4 h-4" />
+                    </button>
+                )}
+                {children}
+            </div>
+        );
+    };
 
     return (
         <motion.div
@@ -535,12 +634,12 @@ const AdeebMeet = () => {
                     initial={{ x: -20, opacity: 0 }}
                     animate={{ x: 0, opacity: 1 }}
                 >
-                    <motion.div
-                        className="w-10 h-10 bg-primary/20 rounded-xl flex items-center justify-center border border-primary/30"
+                    <motion.img
+                        src="/logo.png"
+                        alt="LMS"
+                        className="h-10 w-10 object-contain"
                         whileHover={{ scale: 1.05 }}
-                    >
-                        <img src="/logo.png" alt="Adeeb" className="w-6 h-6 brightness-0 invert" />
-                    </motion.div>
+                    />
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
@@ -636,35 +735,54 @@ const AdeebMeet = () => {
                         </div>
                     ) : (
                         <div
-                            className={`flex-1 min-h-0 h-full grid gap-2 md:gap-3 auto-rows-fr content-stretch ${
-                                layout === 'grid'
-                                    ? 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-3'
-                                    : 'grid-cols-1 max-w-3xl mx-auto w-full'
+                            className={`flex-1 min-h-0 h-full gap-2 md:gap-3 ${
+                                focusedTileId
+                                    ? 'flex flex-col'
+                                    : `grid auto-rows-fr content-stretch ${
+                                          layout === 'grid'
+                                              ? 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4'
+                                              : 'grid-cols-1 max-w-3xl mx-auto w-full'
+                                      }`
                             }`}
                         >
-                            {orderedTiles.map((tile) =>
-                                tile.isLocal ? (
-                                    <div key="local" className="min-h-0 h-full">
-                                        {renderLocalTile('h-full min-h-[140px] !aspect-auto')}
-                                    </div>
-                                ) : (
-                                    <div key={tile.peer.peerId} className="min-h-0 h-full">
-                                        <RemoteVideoTile
-                                            peer={tile.peer}
-                                            avatarUrl={avatar(
-                                                tile.peer.userDetails?.photo,
-                                                tile.peer.userDetails?.name
-                                            )}
-                                            isSpeaking={activeSpeakerId === tile.peer.peerId}
-                                            audioLevel={audioLevels[tile.peer.peerId] ?? 0}
-                                            className="h-full min-h-[140px] !aspect-auto"
-                                            isScreenShare={
-                                                peerScreenShare[tile.peer.peerId] || tile.peer.isScreenSharing
-                                            }
-                                        />
-                                    </div>
-                                )
-                            )}
+                            {orderedTiles.map((tile) => {
+                                const tileId = tile.isLocal ? 'local' : tile.peer.peerId;
+                                if (tile.isLocal) {
+                                    return renderTileWrapper(
+                                        tileId,
+                                        renderLocalTile(
+                                            focusedTileId === tileId
+                                                ? 'h-full min-h-0 !aspect-auto'
+                                                : 'h-full min-h-[160px] aspect-video'
+                                        ),
+                                        'min-h-0 h-full'
+                                    );
+                                }
+                                return renderTileWrapper(
+                                    tileId,
+                                    <RemoteVideoTile
+                                        peer={tile.peer}
+                                        avatarUrl={avatar(
+                                            tile.peer.userDetails?.photo,
+                                            tile.peer.userDetails?.name
+                                        )}
+                                        isSpeaking={activeSpeakerId === tile.peer.peerId}
+                                        audioLevel={audioLevels[tile.peer.peerId] ?? 0}
+                                        className={
+                                            focusedTileId === tileId
+                                                ? 'h-full min-h-0 !aspect-auto'
+                                                : 'h-full min-h-[160px] aspect-video'
+                                        }
+                                        isScreenShare={
+                                            peerScreenShare[tile.peer.peerId] || tile.peer.isScreenSharing
+                                        }
+                                        tileId={tileId}
+                                        isTileFocused={focusedTileId === tileId}
+                                        onToggleFocus={toggleTileFocus}
+                                    />,
+                                    'min-h-0 h-full'
+                                );
+                            })}
                         </div>
                     )}
                 </div>
@@ -701,7 +819,7 @@ const AdeebMeet = () => {
                                     }}
                                     className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest ${showParticipants ? 'text-primary border-b-2 border-primary' : 'text-white/40'}`}
                                 >
-                                    People ({participants.length})
+                                    Students ({studentCount || participants.length})
                                 </button>
                             </motion.div>
 
@@ -831,6 +949,23 @@ const AdeebMeet = () => {
                         emptyLabel="No cameras found"
                         disabled={isScreenSharing}
                     />
+                    <DeviceControl
+                        onMainClick={toggleSpeakerMute}
+                        active={!speakerMuted}
+                        icon={speakerMuted ? VolumeX : Volume2}
+                        danger={speakerMuted}
+                        label={speakerMuted ? 'Unmute speaker' : 'Speaker'}
+                        menuOpen={showSpeakerMenu}
+                        onMenuToggle={() => {
+                            setShowSpeakerMenu((v) => !v);
+                            setShowAudioMenu(false);
+                            setShowVideoMenu(false);
+                        }}
+                        devices={speakerDevices}
+                        selectedDeviceId={selectedSpeakerDevice}
+                        onSelectDevice={switchSpeaker}
+                        emptyLabel="Default speaker"
+                    />
                     <ControlBtn
                         onClick={toggleScreenShare}
                         active={isScreenSharing}
@@ -878,7 +1013,7 @@ const AdeebMeet = () => {
                         }}
                         active={showParticipants}
                         icon={Users}
-                        label="People"
+                        label="Students"
                     />
                     <ControlBtn onClick={toggleFullscreen} icon={Maximize2} label="Fullscreen" />
                 </div>
@@ -891,11 +1026,11 @@ const AdeebMeet = () => {
                         className="fixed inset-0 bg-[#0f0f0f] z-[100] flex flex-col items-center justify-center"
                     >
                         <motion.div
-                            className="w-20 h-20 bg-primary/20 rounded-3xl flex items-center justify-center mb-6 relative"
+                            className="w-20 h-20 flex items-center justify-center mb-6 relative"
                             animate={{ scale: [1, 1.05, 1] }}
                             transition={{ repeat: Infinity, duration: 2 }}
                         >
-                            <img src="/logo.png" alt="" className="w-10 h-10 brightness-0 invert" />
+                            <img src="/logo.png" alt="LMS" className="w-16 h-16 object-contain" />
                             <motion.div
                                 className="absolute inset-0 border-2 border-primary rounded-3xl"
                                 animate={{ scale: [1, 1.2], opacity: [0.5, 0] }}
@@ -939,6 +1074,10 @@ const VideoTile = ({
     isSpeaking = false,
     audioLevel = 0,
     className = '',
+    tileId,
+    isTileFocused = false,
+    onToggleFocus,
+    showTileControls = true,
 }) => {
     const internalRef = useRef(null);
     const ref = videoRef || internalRef;
@@ -965,13 +1104,37 @@ const VideoTile = ({
 
     return (
         <div
-            className={`relative bg-white/5 rounded-2xl md:rounded-3xl overflow-hidden border border-white/10 aspect-video min-h-[180px] group shadow-lg ${isSpeaking ? 'meet-tile-speaking' : ''} ${className}`}
+            className={`relative bg-white/5 rounded-2xl md:rounded-3xl overflow-hidden border border-white/10 aspect-video min-h-[180px] group shadow-lg ${isSpeaking ? 'meet-tile-speaking' : ''} ${isTileFocused ? 'ring-2 ring-primary/60' : ''} ${className}`}
+            onClick={isTileFocused && onToggleFocus ? () => onToggleFocus(tileId) : undefined}
+            role={isTileFocused ? 'button' : undefined}
+            tabIndex={isTileFocused ? 0 : undefined}
+            onKeyDown={
+                isTileFocused && onToggleFocus
+                    ? (e) => {
+                          if (e.key === 'Enter' || e.key === ' ') onToggleFocus(tileId);
+                      }
+                    : undefined
+            }
         >
+            {isTileFocused && showTileControls && onToggleFocus && (
+                <button
+                    type="button"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onToggleFocus(tileId);
+                    }}
+                    className="absolute top-2 right-2 z-20 w-8 h-8 rounded-lg bg-black/60 hover:bg-primary/80 border border-white/20 flex items-center justify-center transition-colors"
+                    title="Exit full screen"
+                >
+                    <Minimize2 className="w-4 h-4" />
+                </button>
+            )}
             <video
                 ref={ref}
                 autoPlay
                 playsInline
                 muted={isLocal}
+                data-remote={!isLocal ? 'true' : undefined}
                 disablePictureInPicture
                 className={`w-full h-full object-cover bg-[#1a1a1a] ${isLocal && !isScreenShare ? 'mirror' : ''} ${isScreenShare ? 'object-contain' : ''}`}
             />
@@ -1018,9 +1181,6 @@ const VideoTile = ({
                                     {course}
                                 </span>
                             )}
-                            <span className="text-[8px] md:text-[9px] text-white/20 uppercase tracking-[0.2em] font-black mt-3 bg-white/5 px-2 py-0.5 rounded-full border border-white/5">
-                                Camera off
-                            </span>
                         </div>
                     </motion.div>
                 )}
@@ -1036,6 +1196,9 @@ const RemoteVideoTile = ({
     audioLevel = 0,
     className = '',
     isScreenShare = false,
+    tileId,
+    isTileFocused = false,
+    onToggleFocus,
 }) => {
     if (!peer) return null;
 
@@ -1094,6 +1257,9 @@ const RemoteVideoTile = ({
             isSpeaking={isSpeaking}
             audioLevel={audioLevel}
             className={className}
+            tileId={tileId || peer.peerId}
+            isTileFocused={isTileFocused}
+            onToggleFocus={onToggleFocus}
         />
     );
 };
@@ -1157,7 +1323,13 @@ const DeviceControl = ({
                 onClick={(e) => e.stopPropagation()}
             >
                 {devices.length === 0 ? (
-                    <p className="px-3 py-2 text-[10px] text-white/40">{emptyLabel}</p>
+                    <button
+                        type="button"
+                        onClick={() => onSelectDevice('')}
+                        className="w-full text-left px-3 py-2 text-[10px] text-primary font-bold hover:bg-white/10"
+                    >
+                        {emptyLabel}
+                    </button>
                 ) : (
                     devices.map((d) => (
                         <button
