@@ -6,6 +6,8 @@ import Modal from '../../../components/ui/Modal';
 import Badge from '../../../components/ui/Badge';
 import Loader, { ButtonLoader } from '../../../components/ui/Loader';
 import { formatDate, formatDateTime } from '../../../utils/dateFormatter';
+import RichTextEditor from '../../../components/ui/RichTextEditor';
+import RichTextContent from '../../../components/ui/RichTextContent';
 
 const AssignmentsTab = ({ course, students }) => { // Accept students prop
     const [assignments, setAssignments] = useState([]);
@@ -512,7 +514,11 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                                     {isFullyGraded && <Badge variant="success">ALL GRADED</Badge>}
                                                 </div>
                                             </div>
-                                            <p className="text-sm text-gray-500 font-medium whitespace-pre-wrap">{assignment.description}</p>
+                                            <RichTextContent
+                                                html={assignment.description}
+                                                className="text-sm"
+                                                emptyText="No description"
+                                            />
                                         </div>
                                         <div className="text-right">
                                             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Submissions</p>
@@ -686,12 +692,14 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                        <textarea
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Description <span className="text-gray-400 font-normal">(visual editor)</span>
+                        </label>
+                        <RichTextEditor
                             value={newAssignment.description}
-                            onChange={(e) => setNewAssignment({ ...newAssignment, description: e.target.value })}
-                            className="w-full px-4 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-primary/20"
-                            rows="3"
+                            onChange={(html) => setNewAssignment({ ...newAssignment, description: html })}
+                            placeholder="Write assignment instructions — bold, lists, links, headings…"
+                            minHeight="200px"
                         />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
@@ -902,12 +910,16 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                            <textarea
-                                value={editingAssignment.description}
-                                onChange={(e) => setEditingAssignment({ ...editingAssignment, description: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-primary/20"
-                                rows="3"
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Description <span className="text-gray-400 font-normal">(visual editor)</span>
+                            </label>
+                            <RichTextEditor
+                                value={editingAssignment.description || ''}
+                                onChange={(html) =>
+                                    setEditingAssignment({ ...editingAssignment, description: html })
+                                }
+                                placeholder="Update assignment instructions…"
+                                minHeight="200px"
                             />
                         </div>
                         <div className="grid grid-cols-2 gap-4">

@@ -5,6 +5,8 @@ import Badge from '../../../components/ui/Badge';
 import Loader from '../../../components/ui/Loader';
 import { formatDateTime } from '../../../utils/dateFormatter';
 import api from '../../../services/api';
+import RichTextContent from '../../../components/ui/RichTextContent';
+import { stripHtmlToText } from '../../../utils/richText';
 
 const DailyTasksTab = ({ course, students = [] }) => {
     const [tasks, setTasks] = useState([]);
@@ -102,8 +104,10 @@ const DailyTasksTab = ({ course, students = [] }) => {
             if (userId !== String(selectedStudentFilter)) return false;
         }
 
-        const matchesSearch = task.user?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            task.content?.toLowerCase().includes(searchQuery.toLowerCase());
+        const contentText = stripHtmlToText(task.content).toLowerCase();
+        const matchesSearch =
+            task.user?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            contentText.includes(searchQuery.toLowerCase());
 
         return matchesSearch;
     });
@@ -308,9 +312,10 @@ const DailyTasksTab = ({ course, students = [] }) => {
                                                         SUBMITTED WORK LINK
                                                     </a>
                                                 )}
-                                                <div className="bg-gray-50 p-4 rounded-2xl text-gray-700 text-sm whitespace-pre-wrap italic border border-gray-100 leading-relaxed">
-                                                    "{task.content}"
-                                                </div>
+                                                <RichTextContent
+                                                    html={task.content}
+                                                    className="bg-gray-50 p-4 rounded-2xl border border-gray-100 italic"
+                                                />
                                             </div>
 
                                             {task.feedback && (

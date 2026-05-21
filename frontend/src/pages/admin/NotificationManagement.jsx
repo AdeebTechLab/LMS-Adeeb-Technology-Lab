@@ -8,6 +8,7 @@ import Loader, { ButtonLoader } from '../../components/ui/Loader';
 import { notificationAPI } from '../../services/api';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
+import RichTextEditor from '../../components/ui/RichTextEditor';
 
 const NotificationManagement = () => {
     const [notifications, setNotifications] = useState([]);
@@ -23,7 +24,8 @@ const NotificationManagement = () => {
         startDate: '',
         endDate: '',
         isActive: true,
-        isHtml: false,
+        isHtml: true,
+        isHtmlView: false,
         showLifetime: false,
         targetAudience: ['all']
     });
@@ -54,7 +56,8 @@ const NotificationManagement = () => {
                 startDate: data.startDate ? new Date(data.startDate).toISOString().slice(0, 16) : '',
                 endDate: data.endDate ? new Date(data.endDate).toISOString().slice(0, 16) : '',
                 isActive: data.isActive,
-                isHtml: data.isHtml || false,
+                isHtml: data.isHtml !== false,
+                isHtmlView: false,
                 showLifetime: data.showLifetime || false,
                 targetAudience: data.targetAudience || ['all']
             });
@@ -66,7 +69,8 @@ const NotificationManagement = () => {
                 startDate: new Date().toISOString().slice(0, 16),
                 endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16),
                 isActive: true,
-                isHtml: false,
+                isHtml: true,
+                isHtmlView: false,
                 showLifetime: false,
                 targetAudience: ['all']
             });
@@ -313,9 +317,11 @@ const NotificationManagement = () => {
                             </div>
                         </div>
 
-                        <div className="space-y-0">
-                            <div className="flex items-center justify-between mb-2">
-                                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Message</label>
+                        <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest ml-1">
+                                    Message <span className="text-gray-300 font-normal">(visual editor)</span>
+                                </label>
                                 <div className="flex bg-gray-100 p-0.5 rounded-lg overflow-hidden border border-gray-200">
                                     <button
                                         type="button"
@@ -329,127 +335,33 @@ const NotificationManagement = () => {
                                         onClick={() => setFormData({ ...formData, isHtmlView: true })}
                                         className={`px-3 py-1 text-[10px] font-black uppercase tracking-tight rounded-md transition-all ${formData.isHtmlView ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
                                     >
-                                        Code
+                                        HTML Code
                                     </button>
                                 </div>
                             </div>
 
-                            {/* WordPress Style Toolbar */}
-                            {!formData.isHtmlView && (
-                                <div className="mb-0 flex flex-wrap items-center gap-0.5 p-1.5 bg-[#2c3338] border border-gray-700 rounded-t-xl shadow-lg">
-                                    <select
-                                        onChange={(e) => document.execCommand('formatBlock', false, e.target.value)}
-                                        className="h-8 px-2 bg-[#3c434a] border border-gray-600 text-white text-[11px] font-bold rounded outline-none mr-2 cursor-pointer hover:bg-gray-700"
-                                    >
-                                        <option value="p">Paragraph</option>
-                                        <option value="h1">Heading 1</option>
-                                        <option value="h2">Heading 2</option>
-                                        <option value="h3">Heading 3</option>
-                                        <option value="h4">Heading 4</option>
-                                        <option value="pre">Preformatted</option>
-                                    </select>
-
-                                    <div className="flex items-center gap-0.5">
-                                        {[
-                                            { cmd: 'bold', label: 'B', title: 'Bold', class: 'font-black' },
-                                            { cmd: 'italic', label: 'I', title: 'Italic', class: 'italic font-serif' },
-                                            { cmd: 'underline', label: 'U', title: 'Underline', class: 'underline' },
-                                            { cmd: 'strikeThrough', label: 'abc', title: 'Strikethrough', class: 'line-through' }
-                                        ].map(btn => (
-                                            <button
-                                                key={btn.cmd}
-                                                type="button"
-                                                onClick={() => document.execCommand(btn.cmd, false)}
-                                                className="w-8 h-8 flex items-center justify-center text-gray-300 hover:bg-[#3c434a] hover:text-white rounded transition-colors"
-                                                title={btn.title}
-                                            >
-                                                <span className={`${btn.class} text-sm`}>{btn.label}</span>
-                                            </button>
-                                        ))}
-                                    </div>
-
-                                    <div className="w-px h-6 bg-gray-600 mx-1.5" />
-
-                                    <div className="flex items-center gap-0.5">
-                                        <button type="button" onClick={() => document.execCommand('insertUnorderedList', false)} className="w-8 h-8 flex items-center justify-center text-gray-300 hover:bg-[#3c434a] rounded" title="Bullet List">
-                                            <span className="text-lg leading-none">•</span>
-                                        </button>
-                                        <button type="button" onClick={() => document.execCommand('insertOrderedList', false)} className="w-8 h-8 flex items-center justify-center text-gray-300 hover:bg-[#3c434a] rounded" title="Numbered List">
-                                            <span className="text-[11px] font-bold">1.</span>
-                                        </button>
-                                        <button type="button" onClick={() => document.execCommand('formatBlock', false, 'blockquote')} className="w-8 h-8 flex items-center justify-center text-gray-300 hover:bg-[#3c434a] rounded" title="Blockquote">
-                                            <span className="text-lg leading-none">“</span>
-                                        </button>
-                                    </div>
-
-                                    <div className="w-px h-6 bg-gray-600 mx-1.5" />
-
-                                    <div className="flex items-center gap-0.5">
-                                        <button type="button" onClick={() => document.execCommand('justifyLeft', false)} className="w-8 h-8 flex items-center justify-center text-gray-300 hover:bg-[#3c434a] rounded" title="Align Left">
-                                            <span className="text-xs">L</span>
-                                        </button>
-                                        <button type="button" onClick={() => document.execCommand('justifyCenter', false)} className="w-8 h-8 flex items-center justify-center text-gray-300 hover:bg-[#3c434a] rounded" title="Align Center">
-                                            <span className="text-xs">C</span>
-                                        </button>
-                                        <button type="button" onClick={() => document.execCommand('justifyRight', false)} className="w-8 h-8 flex items-center justify-center text-gray-300 hover:bg-[#3c434a] rounded" title="Align Right">
-                                            <span className="text-xs">R</span>
-                                        </button>
-                                    </div>
-
-                                    <div className="w-px h-6 bg-gray-600 mx-1.5" />
-
-                                    <div className="flex items-center gap-0.5">
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                const url = prompt('Enter link URL:');
-                                                if (url) document.execCommand('createLink', false, url);
-                                            }}
-                                            className="w-8 h-8 flex items-center justify-center text-gray-300 hover:bg-[#3c434a] rounded"
-                                            title="Insert Link"
-                                        >
-                                            <span className="text-[10px] font-black text-blue-400">URL</span>
-                                        </button>
-                                        <button type="button" onClick={() => document.execCommand('unlink', false)} className="w-8 h-8 flex items-center justify-center text-gray-300 hover:bg-[#3c434a] rounded" title="Remove Link">
-                                            <span className="text-[10px] font-black text-rose-400">X</span>
-                                        </button>
-                                    </div>
-
-                                    <div className="w-px h-6 bg-gray-600 mx-1.5 ml-auto" />
-
-                                    <button
-                                        type="button"
-                                        onClick={() => document.execCommand('removeFormat', false)}
-                                        className="px-2 h-8 flex items-center justify-center text-rose-400 hover:bg-[#3c434a] rounded text-[10px] font-black"
-                                        title="Clear Formatting"
-                                    >
-                                        CLEAR
-                                    </button>
-                                </div>
+                            {formData.isHtmlView ? (
+                                <textarea
+                                    value={formData.message}
+                                    onChange={(e) =>
+                                        setFormData({ ...formData, message: e.target.value, isHtml: true })
+                                    }
+                                    className="w-full min-h-[300px] p-4 bg-[#1e1e1e] text-[#d4d4d4] font-mono text-sm leading-relaxed outline-none rounded-xl border border-gray-200"
+                                    placeholder="Enter HTML source code here..."
+                                />
+                            ) : (
+                                <RichTextEditor
+                                    value={formData.message}
+                                    onChange={(html) =>
+                                        setFormData({ ...formData, message: html, isHtml: true })
+                                    }
+                                    placeholder="Write notification message — headings, lists, links…"
+                                    minHeight="300px"
+                                />
                             )}
-
-                            {/* Editor Container */}
-                            <div className={`relative border border-gray-200 ${!formData.isHtmlView ? 'rounded-b-xl border-t-0' : 'rounded-xl'}`}>
-                                {formData.isHtmlView ? (
-                                    <textarea
-                                        value={formData.message}
-                                        onChange={(e) => setFormData({ ...formData, message: e.target.value, isHtml: true })}
-                                        className="w-full min-h-[300px] p-4 bg-[#1e1e1e] text-[#d4d4d4] font-mono text-sm leading-relaxed outline-none rounded-xl"
-                                        placeholder="Enter HTML source code here..."
-                                    />
-                                ) : (
-                                    <div
-                                        contentEditable
-                                        onInput={(e) => setFormData({ ...formData, message: e.currentTarget.innerHTML, isHtml: true })}
-                                        onBlur={(e) => setFormData({ ...formData, message: e.currentTarget.innerHTML, isHtml: true })}
-                                        className="w-full min-h-[300px] p-6 bg-white outline-none text-sm leading-relaxed overflow-y-auto rounded-b-xl prose prose-sm max-w-none"
-                                        dangerouslySetInnerHTML={{ __html: formData.message }}
-                                    ></div>
-                                )}
-                            </div>
-                            <p className="mt-2 text-[10px] font-medium text-gray-400 italic flex items-center gap-2">
+                            <p className="text-[10px] font-medium text-gray-400 italic flex items-center gap-2">
                                 <Info className="w-3 h-3" />
-                                * Tip: Use 'Visual' tab for easy formatting and 'Code' tab for advanced HTML/CSS styling.
+                                Headings 1–6, bullet/number lists, quote, and link work in Visual mode.
                             </p>
                         </div>
 

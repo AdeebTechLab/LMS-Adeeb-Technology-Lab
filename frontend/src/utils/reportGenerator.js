@@ -1,6 +1,7 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { format } from 'date-fns';
+import { toAttendanceDateKey } from './attendanceDate';
 
 // Helper to load image from URL
 // Helper to load image from URL and convert to Data URL
@@ -248,12 +249,13 @@ export const generateComprehensiveReport = async (user, enrollments, assignments
                 // Group by Month
                 const attendanceByMonth = {};
                 enrollment.attendanceDetails.forEach(record => {
-                    const date = new Date(record.date);
-                    if (!isNaN(date.getTime())) {
-                        const key = `${date.getFullYear()}-${date.getMonth()}`;
-                        if (!attendanceByMonth[key]) attendanceByMonth[key] = { date, data: {} };
-                        attendanceByMonth[key].data[format(date, 'yyyy-MM-dd')] = record.status;
-                    }
+                    const dateKey = toAttendanceDateKey(record.date);
+                    if (!dateKey) return;
+                    const [y, m] = dateKey.split('-').map(Number);
+                    const monthKey = `${y}-${m - 1}`;
+                    const calendarDate = new Date(y, m - 1, 1);
+                    if (!attendanceByMonth[monthKey]) attendanceByMonth[monthKey] = { date: calendarDate, data: {} };
+                    attendanceByMonth[monthKey].data[dateKey] = record.status;
                 });
 
                 // Iterate months and draw calendars (2 side by side if possible)

@@ -10,6 +10,9 @@ import Badge from '../../components/ui/Badge';
 import Loader, { ButtonLoader } from '../../components/ui/Loader';
 import { assignmentAPI, courseAPI, dailyTaskAPI, enrollmentAPI, chatAPI, feeAPI } from '../../services/api';
 import { formatDate } from '../../utils/dateFormatter';
+import RichTextEditor from '../../components/ui/RichTextEditor';
+import RichTextContent from '../../components/ui/RichTextContent';
+import { isRichTextEmpty } from '../../utils/richText';
 import StudentChatTab from './components/StudentChatTab';
 import StudentAttendanceTab from './components/StudentAttendanceTab';
 import StudentTestsTab from './components/StudentTestsTab';
@@ -153,7 +156,7 @@ const AssignmentSubmission = () => {
 
     const handleSubmitDailyTask = async (e) => {
         e.preventDefault();
-        if (!newTaskContent.trim()) return;
+        if (isRichTextEmpty(newTaskContent)) return;
         setIsSubmitting(true);
         try {
             await dailyTaskAPI.submit({
@@ -405,9 +408,11 @@ const AssignmentSubmission = () => {
                                                             <Badge variant={statusConfig.variant}>{statusConfig.label.toUpperCase()}</Badge>
                                                         </div>
 
-                                                        <p className="text-sm text-gray-500 dark:text-gray-400 font-medium leading-relaxed mb-6 whitespace-pre-wrap">
-                                                            {assignment.description}
-                                                        </p>
+                                                        <RichTextContent
+                                                            html={assignment.description}
+                                                            className="mb-6 dark:text-gray-400"
+                                                            emptyText="No instructions provided."
+                                                        />
 
                                                         {/* Compact Action Row */}
                                                         <div className="mt-auto pt-6 border-t border-gray-50 dark:border-slate-800/50 flex flex-wrap items-center justify-between gap-4">
@@ -522,20 +527,24 @@ const AssignmentSubmission = () => {
                                     <form onSubmit={handleSubmitDailyTask} className="space-y-6">
 
                                         <div>
-                                            <textarea 
-                                                value={newTaskContent} 
-                                                onChange={(e) => {
-                                                    setNewTaskContent(e.target.value);
-                                                    e.target.style.height = 'auto';
-                                                    e.target.style.height = `${e.target.scrollHeight}px`;
-                                                }} 
-                                                disabled={isRestricted || isCompleted} 
-                                                placeholder="Describe what you worked on today, your achievements, and any challenges..." 
-                                                rows={4} 
-                                                className="w-full px-6 py-5 bg-gray-50 dark:bg-black/40 border border-primary rounded-3xl outline-none focus:ring-4 focus:ring-primary/10 transition-all resize-none text-sm font-medium disabled:opacity-50 min-h-[120px] overflow-hidden" 
+                                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 block">
+                                                {(currentEnrollment?.course?.targetAudience ||
+                                                    myCourses.find((c) => c._id === selectedCourseId)?.targetAudience) ===
+                                                'interns'
+                                                    ? 'Daily work log'
+                                                    : 'Class activity log'}{' '}
+                                                <span className="text-primary">(visual editor)</span>
+                                            </label>
+                                            <RichTextEditor
+                                                value={newTaskContent}
+                                                onChange={setNewTaskContent}
+                                                disabled={isRestricted || isCompleted}
+                                                placeholder="Describe what you worked on today — use headings, lists, and links like WordPress…"
+                                                minHeight="200px"
+                                                className="border-primary/30"
                                             />
                                         </div>
-                                        <button type="submit" disabled={isSubmitting || !newTaskContent.trim() || isRestricted || isCompleted} className="w-full py-6 bg-primary text-white rounded-[1.5rem] font-black text-lg tracking-widest uppercase shadow-2xl transition-all active:scale-[0.98] flex items-center justify-center gap-3 disabled:grayscale disabled:opacity-50">
+                                        <button type="submit" disabled={isSubmitting || isRichTextEmpty(newTaskContent) || isRestricted || isCompleted} className="w-full py-6 bg-primary text-white rounded-[1.5rem] font-black text-lg tracking-widest uppercase shadow-2xl transition-all active:scale-[0.98] flex items-center justify-center gap-3 disabled:grayscale disabled:opacity-50">
                                             <ButtonLoader isLoading={isSubmitting} icon={<Send className="w-6 h-6" />}>
                                                 {isCompleted ? 'WORK LOG ARCHIVED' : (isRestricted ? 'PORTAL LOCKED' : (resubmittingTaskId ? 'UPDATE LOG ENTRY' : 'COMMIT DAILY LOG'))}
                                             </ButtonLoader>
@@ -609,7 +618,10 @@ const AssignmentSubmission = () => {
                                                             </div>
                                                         </div>
 
-                                                        <div className="bg-gray-50/50 dark:bg-black/20 p-5 rounded-2xl border border-gray-100 dark:border-slate-800 text-sm italic text-gray-600 dark:text-gray-400 font-medium leading-relaxed mb-4 whitespace-pre-wrap">"{task.content}"</div>
+                                                        <RichTextContent
+                                                            html={task.content}
+                                                            className="bg-gray-50/50 dark:bg-black/20 p-5 rounded-2xl border border-gray-100 dark:border-slate-800 mb-4 italic"
+                                                        />
                                                         
                                                         {task.workLink && (
                                                             <a href={task.workLink} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[10px] font-black text-primary uppercase hover:bg-primary/5 w-fit px-3 py-1.5 rounded-lg border border-primary/10 transition-all">

@@ -6,6 +6,7 @@ const Course = require('../models/Course');
 const User = require('../models/User');
 const Attendance = require('../models/Attendance');
 const Fee = require('../models/Fee');
+const moment = require('moment-timezone');
 
 // @route   GET /api/enrollments/my
 // @desc    Get current user's enrollments
@@ -94,9 +95,8 @@ router.get('/user/:userId', protect, authorize('admin', 'teacher'), async (req, 
             const courseId = e.course?._id;
 
             if (courseId) {
-                // Normalize enrollment date to start of day for accurate comparison
-                const enrollmentDate = new Date(e.createdAt);
-                enrollmentDate.setHours(0, 0, 0, 0);
+                const enrollmentDate = moment(e.createdAt).tz('Asia/Karachi').startOf('day').toDate();
+                const resolvedUserIdStr = resolvedUserId.toString();
 
                 const attendanceRecords = await Attendance.find({
                     course: courseId,
@@ -104,10 +104,12 @@ router.get('/user/:userId', protect, authorize('admin', 'teacher'), async (req, 
                 }).sort('date');
 
                 const detailedAttendance = attendanceRecords.map(record => {
-                    const userRecord = record.records.find(r => r.user.toString() === req.params.userId);
+                    const userRecord = record.records.find(
+                        (r) => r.user && r.user.toString() === resolvedUserIdStr
+                    );
                     return {
                         date: record.date,
-                        status: userRecord ? userRecord.status : 'absent' // Default to absent if no record found for this user
+                        status: userRecord ? userRecord.status : 'absent'
                     };
                 });
 

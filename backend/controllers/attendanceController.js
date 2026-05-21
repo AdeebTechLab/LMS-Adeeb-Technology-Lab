@@ -3,13 +3,14 @@ const Enrollment = require('../models/Enrollment');
 const Course = require('../models/Course');
 const SystemSetting = require('../models/SystemSetting');
 const moment = require('moment-timezone');
+const { parseAttendanceDateInput, findAttendanceByCourseDay } = require('../utils/attendanceDate');
 
 // Called by cron job at 12:00 AM Pakistan Time to auto-save and lock yesterday's attendance
 const lockTodayAttendance = async () => {
     // The cron fires at 00:00 PKT.
     // 'yesterday' in PKT: 
     const yesterdayMoment = moment().tz('Asia/Karachi').subtract(1, 'days').startOf('day');
-    const yesterday = yesterdayMoment.toDate();
+    const yesterday = parseAttendanceDateInput(yesterdayMoment.format('YYYY-MM-DD'));
 
     const yesterdayDayOfWeek = yesterdayMoment.day(); // 0=Sunday, 1=Monday, ..., 6=Saturday
 
@@ -36,10 +37,11 @@ const lockTodayAttendance = async () => {
             // Check if yesterday is a global holiday
             if (isGlobalHoliday) {
                 // Create or update attendance record as holiday
-                let attendance = await Attendance.findOne({
-                    course: course._id,
-                    date: yesterday
-                });
+                let attendance = await findAttendanceByCourseDay(
+                    Attendance,
+                    course._id,
+                    yesterdayMoment.format('YYYY-MM-DD')
+                );
 
                 if (!attendance) {
                     attendance = new Attendance({
@@ -63,13 +65,13 @@ const lockTodayAttendance = async () => {
             }
 
             // 2. Find or Create attendance record for yesterday (non-holiday)
-            let attendance = await Attendance.findOne({
-                course: course._id,
-                date: yesterday
-            });
+            let attendance = await findAttendanceByCourseDay(
+                Attendance,
+                course._id,
+                yesterdayMoment.format('YYYY-MM-DD')
+            );
 
             if (!attendance) {
-                // Create new attendance record if none exists
                 attendance = new Attendance({
                     course: course._id,
                     date: yesterday,

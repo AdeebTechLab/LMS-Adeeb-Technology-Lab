@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const moment = require('moment-timezone');
 
 const attendanceRecordSchema = new mongoose.Schema({
     user: {
@@ -45,6 +46,14 @@ const attendanceSchema = new mongoose.Schema({
     lockedAt: Date
 }, {
     timestamps: true
+});
+
+// Always store date as start-of-day Pakistan time
+attendanceSchema.pre('save', function normalizeDate(next) {
+    if (this.date) {
+        this.date = moment(this.date).tz('Asia/Karachi').startOf('day').toDate();
+    }
+    next();
 });
 
 // Compound index for course + date

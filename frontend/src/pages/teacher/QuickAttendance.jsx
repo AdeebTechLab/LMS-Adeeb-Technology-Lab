@@ -16,13 +16,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { format, differenceInDays, addDays, isBefore, parseISO } from 'date-fns';
 import { io } from 'socket.io-client';
-
-const getLocalDateString = (date) => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-};
+import { getLocalDateString, getTodayAttendanceDateKey } from '../../utils/attendanceDate';
 
 const formatLastSeen = (lastSeen) => {
     if (!lastSeen) return 'Offline';
@@ -55,7 +49,7 @@ const QuickAttendance = () => {
     const { user } = useSelector((state) => state.auth);
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
-    const [selectedDate, setSelectedDate] = useState(getLocalDateString(new Date()));
+    const [selectedDate, setSelectedDate] = useState(getTodayAttendanceDateKey());
     const [students, setStudents] = useState([]);
     const [attendanceMarks, setAttendanceMarks] = useState({});
     const [searchQuery, setSearchQuery] = useState('');
@@ -76,7 +70,7 @@ const QuickAttendance = () => {
     // Range Report States
     const [showRangeModal, setShowRangeModal] = useState(false);
     const [rangeStart, setRangeStart] = useState(getLocalDateString(new Date(new Date().setDate(new Date().getDate() - 7))));
-    const [rangeEnd, setRangeEnd] = useState(getLocalDateString(new Date()));
+    const [rangeEnd, setRangeEnd] = useState(getTodayAttendanceDateKey());
     const [isGeneratingRange, setIsGeneratingRange] = useState(false);
 
     useEffect(() => {
@@ -220,7 +214,8 @@ const QuickAttendance = () => {
     const handleDownloadPDF = () => {
         try {
             const doc = new jsPDF();
-            const dateStr = format(new Date(selectedDate), 'dd MMMM yyyy');
+            const [y, m, d] = selectedDate.split('-').map(Number);
+            const dateStr = format(new Date(y, m - 1, d), 'dd MMMM yyyy');
             const timestamp = format(new Date(), 'dd-MMM-yyyy HH:mm');
 
             // Header Section
@@ -523,7 +518,7 @@ const QuickAttendance = () => {
                             <input
                                 type="date"
                                 value={selectedDate}
-                                max={getLocalDateString(new Date())}
+                                max={getTodayAttendanceDateKey()}
                                 onChange={(e) => setSelectedDate(e.target.value)}
                                 className="pl-8 pr-3 py-2 bg-gray-50 border border-transparent focus:border-primary focus:bg-white rounded-lg text-xs font-bold outline-none transition-all cursor-pointer"
                             />
@@ -911,7 +906,7 @@ const QuickAttendance = () => {
                                             <input
                                                 type="date"
                                                 value={rangeEnd}
-                                                max={getLocalDateString(new Date())}
+                                                max={getTodayAttendanceDateKey()}
                                                 onChange={(e) => setRangeEnd(e.target.value)}
                                                 className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:border-primary rounded-2xl font-black text-sm outline-none transition-all"
                                             />

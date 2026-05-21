@@ -10,6 +10,9 @@ import api from '../../../services/api';
 import Badge from '../../../components/ui/Badge';
 import Loader from '../../../components/ui/Loader';
 import { formatDate, formatDateTime } from '../../../utils/dateFormatter';
+import RichTextContent from '../../../components/ui/RichTextContent';
+import { stripHtmlToText } from '../../../utils/richText';
+import { formatAttendanceDateDisplay, formatAttendanceWeekday } from '../../../utils/attendanceDate';
 
 const TAB_ASSIGNMENTS = 'assignments';
 const TAB_DAILY_TASKS = 'daily_tasks';
@@ -260,7 +263,9 @@ const StudentWorkView = ({ student, onBack }) => {
                                                                     </div>
                                                                 )}
                                                                 {assignment.description && (
-                                                                    <p className="text-xs text-gray-500 font-medium mt-1 line-clamp-2">{assignment.description}</p>
+                                                                    <p className="text-xs text-gray-500 font-medium mt-1 line-clamp-2">
+                                                                        {stripHtmlToText(assignment.description)}
+                                                                    </p>
                                                                 )}
                                                             </div>
                                                             <div className="text-right flex-shrink-0">
@@ -401,9 +406,10 @@ const StudentWorkView = ({ student, onBack }) => {
                                                                 </a>
                                                             )}
 
-                                                            <div className="bg-white p-4 rounded-2xl text-gray-700 text-sm whitespace-pre-wrap italic border border-gray-100 leading-relaxed font-medium">
-                                                                "{task.content}"
-                                                            </div>
+                                                            <RichTextContent
+                                                                html={task.content}
+                                                                className="bg-white p-4 rounded-2xl border border-gray-100 italic"
+                                                            />
 
                                                             {task.feedback && (
                                                                 <div className="mt-3 p-3 bg-blue-50/60 rounded-xl border border-blue-100">
@@ -500,10 +506,10 @@ const StudentWorkView = ({ student, onBack }) => {
                                                         >
                                                             <div className="flex flex-col">
                                                                 <span className="text-xs font-bold text-gray-900">
-                                                                    {formatDate(log.date)}
+                                                                    {formatAttendanceDateDisplay(log.date)}
                                                                 </span>
                                                                 <span className="text-[10px] text-gray-400 font-medium">
-                                                                    {new Date(log.date).toLocaleDateString(undefined, { weekday: 'long' })}
+                                                                    {formatAttendanceWeekday(log.date)}
                                                                 </span>
                                                             </div>
                                                             <div className={`px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${

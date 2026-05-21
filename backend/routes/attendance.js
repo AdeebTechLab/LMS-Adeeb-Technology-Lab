@@ -3,6 +3,11 @@ const router = express.Router();
 const { protect, authorize } = require('../middleware/auth');
 const moment = require('moment-timezone');
 const Attendance = require('../models/Attendance');
+const {
+    parseAttendanceDateInput,
+    formatAttendanceDate,
+    findAttendanceByCourseDay,
+} = require('../utils/attendanceDate');
 const Enrollment = require('../models/Enrollment');
 const Course = require('../models/Course');
 const { sendPushNotification } = require('../utils/pushHelper');
@@ -45,13 +50,12 @@ router.get('/:courseId/:date', protect, authorize('teacher', 'admin'), async (re
     try {
         const { courseId, date } = req.params;
 
-        // Parse date string securely to Asia/Karachi midnight
-        const attendanceDate = moment.tz(date, 'YYYY-MM-DD', 'Asia/Karachi').startOf('day').toDate();
+        const attendanceDate = parseAttendanceDateInput(date);
 
-        let attendance = await Attendance.findOne({
-            course: courseId,
-            date: attendanceDate
-        }).populate('records.user', 'name rollNo photo role');
+        let attendance = await findAttendanceByCourseDay(Attendance, courseId, date);
+        if (attendance) {
+            await attendance.populate('records.user', 'name rollNo photo role');
+        }
 
         // If no attendance record exists, create empty one
         if (!attendance) {
@@ -80,14 +84,9 @@ router.post('/', protect, authorize('teacher', 'admin'), async (req, res) => {
     try {
         const { courseId, date, records } = req.body;
 
-        // Parse date string securely to Asia/Karachi midnight
-        const attendanceDate = moment.tz(date, 'YYYY-MM-DD', 'Asia/Karachi').startOf('day').toDate();
+        const attendanceDate = parseAttendanceDateInput(date);
 
-        // Find or create attendance record
-        let attendance = await Attendance.findOne({
-            course: courseId,
-            date: attendanceDate
-        });
+        let attendance = await findAttendanceByCourseDay(Attendance, courseId, date);
 
         if (!attendance) {
             attendance = new Attendance({
@@ -362,6 +361,7 @@ router.get('/student/:userId', protect, authorize('teacher', 'admin'), async (re
 
             result[courseId].logs.push({
                 date: att.date,
+                dateKey: formatAttendanceDate(att.date),
                 status,
                 isHoliday: att.isHoliday,
                 note: att.note
