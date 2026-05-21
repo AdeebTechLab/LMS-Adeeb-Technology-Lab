@@ -144,6 +144,25 @@ html.lang-rtl textarea {
   object-fit: cover;
 }
 
+/* Screen share stage — full width, height capped at 720px */
+.adeeb-meet .meet-screen-stage {
+  width: 100%;
+  max-width: 100%;
+  max-height: 720px;
+  height: auto;
+  min-height: 0;
+  aspect-ratio: auto;
+  flex-shrink: 0;
+  align-self: center;
+}
+
+.adeeb-meet .meet-screen-stage > video {
+  width: 100%;
+  height: 100%;
+  max-height: 720px;
+  object-fit: contain;
+}
+
 /* Students sidebar — allow mouse text selection */
 .adeeb-meet .meet-students-panel,
 .adeeb-meet .meet-students-panel .student-row-text,

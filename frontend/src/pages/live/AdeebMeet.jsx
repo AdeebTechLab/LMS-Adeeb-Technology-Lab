@@ -504,7 +504,13 @@ const AdeebMeet = () => {
                     userVideoRef.current.srcObject = displayStream;
                 }
                 setIsScreenSharing(true);
+                setIsVideoOff(false);
                 setScreenFocusOn(true);
+                socketRef.current?.emit('classroom_media_state', {
+                    roomId: roomName,
+                    isMuted,
+                    isVideoOff: false,
+                });
                 toast.success('Screen sharing started');
             } else {
                 await managerRef.current.stopScreenShare();
@@ -575,6 +581,18 @@ const AdeebMeet = () => {
     const gridTileClass = 'meet-tile-fixed !aspect-square !min-h-0';
     const fullTileClass = 'meet-tile-fullwidth w-full h-full flex-1 min-h-0';
     const focusedTileClass = 'h-full min-h-0 !aspect-auto w-full';
+    const screenStageClass = 'meet-screen-stage';
+
+    /** Audio wave only on the large main DP — not strip thumbnails or grid cells */
+    const showDpWaveForTile = (tileId, className = '') => {
+        if (className.includes('min-w-[120px]')) return false;
+        if (focusedTileId) return focusedTileId === tileId;
+        return (
+            className.includes('meet-tile-fullwidth') ||
+            className.includes('meet-screen-stage') ||
+            className.includes('h-full min-h-0 !aspect-auto')
+        );
+    };
 
     const localLevel = audioLevels.local ?? 0;
 
@@ -633,6 +651,7 @@ const AdeebMeet = () => {
             isTileFocused={focusedTileId === 'local'}
             onToggleFocus={toggleTileFocus}
             showTileControls={tileOptions.showTileControls !== false}
+            showDpWave={showDpWaveForTile('local', className)}
         />
     );
 
@@ -731,9 +750,9 @@ const AdeebMeet = () => {
                 <div className="flex-1 flex flex-col min-h-0 p-2 md:p-3 overflow-hidden">
                     {showScreenLayout ? (
                         <div className="flex flex-col lg:flex-row gap-2 md:gap-3 flex-1 min-h-0 h-full">
-                            <div className="flex-1 min-h-0 min-w-0">
+                            <div className="flex-1 min-h-0 min-w-0 flex items-center justify-center overflow-hidden">
                                 {screenSharerId === mySocketId
-                                    ? renderLocalTile('h-full min-h-0 !aspect-auto')
+                                    ? renderLocalTile(screenStageClass)
                                     : (() => {
                                           const sp = peers.find((p) => p.peerId === screenSharerId);
                                           return sp ? (
@@ -743,21 +762,22 @@ const AdeebMeet = () => {
                                                   isSpeaking={isTileSpeaking(screenSharerId)}
                                                   audioLevel={audioLevels[screenSharerId] ?? 0}
                                                   handRaised={isHandRaised(screenSharerId)}
-                                                  className="h-full min-h-0 !aspect-auto"
+                                                  className={screenStageClass}
                                                   isScreenShare
+                                                  showDpWave={false}
                                               />
                                           ) : null;
                                       })()}
                             </div>
                             <div className="lg:w-48 xl:w-52 flex lg:flex-col gap-2 overflow-x-auto lg:overflow-y-auto shrink-0 max-h-full">
-                                {screenSharerId !== mySocketId &&
-                                    renderLocalTile('!aspect-video min-w-[120px] lg:min-w-0 shrink-0 max-h-[120px] lg:max-h-none')}
                                 {displayTiles
-                                    .filter((t) => (t.isLocal ? 'local' : t.key) !== screenSharerId)
+                                    .filter((t) => (t.isLocal ? mySocketId : t.key) !== screenSharerId)
                                     .map((tile) =>
                                         tile.isLocal ? (
                                             <div key="local-strip" className="shrink-0">
-                                                {renderLocalTile('!aspect-video min-w-[120px] lg:min-w-0 max-h-[120px] lg:max-h-none')}
+                                                {renderLocalTile(
+                                                    '!aspect-video min-w-[120px] lg:min-w-0 shrink-0 max-h-[120px] lg:max-h-none'
+                                                )}
                                             </div>
                                         ) : (
                                             <RemoteVideoTile
@@ -771,6 +791,7 @@ const AdeebMeet = () => {
                                                 audioLevel={audioLevels[tile.peer.peerId] ?? 0}
                                                 handRaised={isHandRaised(tile.peer.peerId)}
                                                 className="!aspect-video min-w-[120px] lg:min-w-0 shrink-0 max-h-[120px] lg:max-h-none"
+                                                showDpWave={false}
                                             />
                                         )
                                     )}
@@ -808,6 +829,8 @@ const AdeebMeet = () => {
                                         wrapperClass
                                     );
                                 }
+                                const peerSharing =
+                                    peerScreenShare[tile.peer.peerId] || tile.peer.isScreenSharing;
                                 return renderTileWrapper(
                                     tileId,
                                     <RemoteVideoTile
@@ -820,12 +843,11 @@ const AdeebMeet = () => {
                                         audioLevel={audioLevels[tile.peer.peerId] ?? 0}
                                         handRaised={isHandRaised(tile.peer.peerId)}
                                         className={sizeClass}
-                                        isScreenShare={
-                                            peerScreenShare[tile.peer.peerId] || tile.peer.isScreenSharing
-                                        }
+                                        isScreenShare={peerSharing}
                                         tileId={tileId}
                                         isTileFocused={focusedTileId === tileId}
                                         onToggleFocus={toggleTileFocus}
+                                        showDpWave={showDpWaveForTile(tileId, sizeClass)}
                                     />,
                                     wrapperClass
                                 );
@@ -1117,20 +1139,21 @@ const AudioWave = ({ active, large = false }) =>
         </div>
     ) : null;
 
-const SpeakingAvatar = ({ src, alt, sizeClass, isSpeaking, audioLevel, isMuted }) => {
+const SpeakingAvatar = ({ src, alt, sizeClass, isSpeaking, audioLevel, isMuted, showDpWave = false }) => {
     const active = (isSpeaking || audioLevel > 0.07) && !isMuted;
+    const showWave = active && showDpWave;
     return (
         <div className="flex flex-col items-center gap-2">
-            <div className={`speaking-avatar-wrap ${active ? 'is-speaking' : ''}`}>
+            <div className={`speaking-avatar-wrap ${showWave ? 'is-speaking' : ''}`}>
                 <img
                     src={src}
                     alt={alt}
                     className={`${sizeClass} rounded-full object-cover border-4 shadow-2xl ${
-                        active ? 'border-emerald-400' : 'border-white/10'
+                        showWave ? 'border-emerald-400' : 'border-white/10'
                     }`}
                 />
             </div>
-            {active && (
+            {showWave && (
                 <>
                     <AudioWave active large />
                     <span className="meet-speaking-badge text-[9px] font-black uppercase tracking-widest text-emerald-400 bg-emerald-500/20 px-2 py-0.5 rounded-full border border-emerald-500/40">
@@ -1173,6 +1196,7 @@ const VideoTile = ({
     isTileFocused = false,
     onToggleFocus,
     showTileControls = true,
+    showDpWave = false,
 }) => {
     const internalRef = useRef(null);
     const ref = videoRef || internalRef;
@@ -1195,15 +1219,17 @@ const VideoTile = ({
         };
     }, [stream, ref, isLocal]);
 
-    const showWave = (isSpeaking || audioLevel > 0.07) && !isMuted;
+    const isSpeakingActive = (isSpeaking || audioLevel > 0.07) && !isMuted;
+    const showMainDpWave = isSpeakingActive && showDpWave && !isScreenShare;
     const isFixedTile = className.includes('meet-tile-fixed');
     const isFullTile = className.includes('meet-tile-fullwidth');
+    const isScreenStage = className.includes('meet-screen-stage');
 
     return (
         <div
             className={`relative bg-white/5 rounded-2xl md:rounded-3xl overflow-hidden border border-white/10 group shadow-lg ${
-                isFixedTile || isFullTile ? '' : 'aspect-video min-h-[180px]'
-            } ${showWave ? 'meet-tile-speaking' : ''} ${isTileFocused ? 'ring-2 ring-primary/60' : ''} ${className}`}
+                isFixedTile || isFullTile || isScreenStage ? '' : 'aspect-video min-h-[180px]'
+            } ${showMainDpWave ? 'meet-tile-speaking' : ''} ${isTileFocused ? 'ring-2 ring-primary/60' : ''} ${className}`}
             onClick={isTileFocused && onToggleFocus ? () => onToggleFocus(tileId) : undefined}
             role={isTileFocused ? 'button' : undefined}
             tabIndex={isTileFocused ? 0 : undefined}
@@ -1238,34 +1264,12 @@ const VideoTile = ({
                 muted={isLocal}
                 data-remote={!isLocal ? 'true' : undefined}
                 disablePictureInPicture
-                className={`object-cover bg-[#1a1a1a] ${isFullTile ? '' : 'w-full h-full'} ${isLocal && !isScreenShare ? 'mirror' : ''} ${isScreenShare ? 'object-contain' : ''}`}
+                className={`bg-[#1a1a1a] ${isFullTile && !isScreenShare ? '' : 'w-full h-full'} ${isLocal && !isScreenShare ? 'mirror object-cover' : ''} ${isScreenShare || isScreenStage ? 'object-contain' : 'object-cover'}`}
             />
-            {showWave && !isVideoOff && (
-                <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-1 pointer-events-none">
-                    <div className="speaking-avatar-wrap is-speaking">
-                        <img
-                            src={avatarUrl}
-                            alt=""
-                            className="w-14 h-14 rounded-full object-cover border-2 border-emerald-400 shadow-lg"
-                        />
-                    </div>
-                    <AudioWave active large />
-                    <span className="meet-speaking-badge text-[8px] font-black uppercase tracking-widest text-emerald-300 bg-black/70 px-2 py-0.5 rounded-full border border-emerald-500/50">
-                        Speaking
-                    </span>
-                </div>
-            )}
             <div className="absolute bottom-3 left-3 right-3 flex items-end justify-between gap-2 z-10 pointer-events-none">
-                <div
-                    className={`flex items-center gap-2 px-2.5 py-1 rounded-lg border min-w-0 pointer-events-auto ${
-                        showWave ? 'bg-emerald-500/30 border-emerald-400/50' : 'bg-black/50 border-white/10'
-                    }`}
-                >
-                    <div className={`speaking-avatar-wrap shrink-0 ${showWave ? 'is-speaking' : ''}`}>
-                        <img src={avatarUrl} alt="" className="w-8 h-8 rounded-full object-cover" />
-                    </div>
+                <div className="flex items-center gap-2 px-2.5 py-1 rounded-lg border min-w-0 pointer-events-auto bg-black/50 border-white/10">
+                    <img src={avatarUrl} alt="" className="w-8 h-8 rounded-full object-cover shrink-0" />
                     <span className="text-[10px] font-bold truncate max-w-[120px]">{name}</span>
-                    {showWave && <AudioWave active />}
                     {isMuted && <MicOff className="w-3 h-3 text-red-400 shrink-0" />}
                     {isScreenShare && (
                         <span className="text-[8px] bg-emerald-500/80 px-1 rounded uppercase font-black shrink-0">
@@ -1289,6 +1293,7 @@ const VideoTile = ({
                             isSpeaking={isSpeaking}
                             audioLevel={audioLevel}
                             isMuted={isMuted}
+                            showDpWave={showDpWave}
                         />
                         <div className="flex flex-col items-center text-center max-w-[90%] mt-1">
                             <span className="text-xs md:text-sm font-extrabold text-white tracking-tight drop-shadow-md">
@@ -1323,6 +1328,7 @@ const RemoteVideoTile = ({
     tileId,
     isTileFocused = false,
     onToggleFocus,
+    showDpWave = false,
 }) => {
     if (!peer) return null;
 
@@ -1359,13 +1365,21 @@ const RemoteVideoTile = ({
     const name = peer.userDetails?.name || 'Guest';
     const isTeacherPeer = peer.userDetails?.role === 'teacher' || peer.userDetails?.role === 'admin';
 
-    const displayIsVideoOff = peer.mediaState?.isVideoOff !== undefined 
-        ? peer.mediaState.isVideoOff 
-        : (peer.userDetails?.isVideoOff !== undefined ? peer.userDetails.isVideoOff : isVideoOff);
+    const isSharing = isScreenShare || peer.isScreenSharing;
+    const displayIsVideoOff = isSharing
+        ? false
+        : peer.mediaState?.isVideoOff !== undefined
+          ? peer.mediaState.isVideoOff
+          : peer.userDetails?.isVideoOff !== undefined
+            ? peer.userDetails.isVideoOff
+            : isVideoOff;
 
-    const displayIsMuted = peer.mediaState?.isMuted !== undefined 
-        ? peer.mediaState.isMuted 
-        : (peer.userDetails?.isMuted !== undefined ? peer.userDetails.isMuted : isMuted);
+    const displayIsMuted =
+        peer.mediaState?.isMuted !== undefined
+            ? peer.mediaState.isMuted
+            : peer.userDetails?.isMuted !== undefined
+              ? peer.userDetails.isMuted
+              : isMuted;
 
     return (
         <VideoTile
@@ -1373,7 +1387,7 @@ const RemoteVideoTile = ({
             name={`${name}${isTeacherPeer ? ' (Teacher)' : ''}`}
             isMuted={displayIsMuted}
             isVideoOff={displayIsVideoOff}
-            isScreenShare={isScreenShare || peer.isScreenSharing}
+            isScreenShare={isSharing}
             videoRef={videoRef}
             avatarUrl={avatarUrl}
             rollNo={peer.userDetails?.rollNo}
@@ -1385,6 +1399,7 @@ const RemoteVideoTile = ({
             tileId={tileId || peer.peerId}
             isTileFocused={isTileFocused}
             onToggleFocus={onToggleFocus}
+            showDpWave={showDpWave}
         />
     );
 };
@@ -1525,21 +1540,18 @@ const ParticipantRow = ({
             }`}
         >
             <motion.div className="flex items-center gap-2 min-w-0 flex-1" whileHover={{ x: 2 }}>
-                <div className={`speaking-avatar-wrap shrink-0 ${isSpeaking ? 'is-speaking' : ''}`}>
-                    <img
-                        src={avatarUrl}
-                        alt=""
-                        className={`w-8 h-8 rounded-lg object-cover pointer-events-none ${
-                            isSpeaking ? 'border-2 border-emerald-400' : handRaised ? 'border-2 border-amber-400' : ''
-                        }`}
-                    />
-                </div>
+                <img
+                    src={avatarUrl}
+                    alt=""
+                    className={`w-8 h-8 rounded-lg object-cover pointer-events-none shrink-0 ${
+                        handRaised ? 'border-2 border-amber-400' : ''
+                    }`}
+                />
                 {handRaised && (
                     <span className="meet-hand-badge text-lg shrink-0" title="Hand raised">
                         🖐️
                     </span>
                 )}
-                {isSpeaking && <AudioWave active />}
                 <div className="min-w-0 flex-1 student-row-text">
                     <p className="text-xs font-bold break-words">
                         {name} {isSelf && '(You)'}

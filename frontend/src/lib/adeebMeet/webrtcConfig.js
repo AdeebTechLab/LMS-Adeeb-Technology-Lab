@@ -19,17 +19,17 @@ export const getSocketURL = () => {
     return rawUrl.replace(/\/api\/?$/, '');
 };
 
-/** Lighter capture — reduces GPU/CPU vs 720p@24fps */
 export const AUDIO_CONSTRAINTS = {
     echoCancellation: true,
     noiseSuppression: true,
     autoGainControl: true,
 };
 
+/** Full HD camera capture for clear video in meet */
 export const VIDEO_CONSTRAINTS = {
-    width: { ideal: 640, max: 854 },
-    height: { ideal: 360, max: 480 },
-    frameRate: { ideal: 15, max: 20 },
+    width: { ideal: 1920, max: 1920 },
+    height: { ideal: 1080, max: 1080 },
+    frameRate: { ideal: 24, max: 30 },
 };
 
 export const isMobileDevice = () =>
@@ -57,44 +57,37 @@ export const isDisplayMediaSupported = () => {
     return !!getDisplayMediaFn();
 };
 
-/** Constraint sets tried in order (mobile-first minimal) */
+/** Prefer entire screen (monitor) in the browser picker — Chrome pre-selects "Entire Screen" */
+const ENTIRE_SCREEN_VIDEO = {
+    displaySurface: 'monitor',
+    width: { max: 1920 },
+    height: { max: 720 },
+    frameRate: { max: 30 },
+};
+
+/** Constraint sets tried in order (entire screen first, then fallbacks) */
 export const getDisplayMediaAttempts = () => {
-    const isAndroid = isAndroidDevice();
     const isIOS = isIOSDevice();
     const isMobile = isMobileDevice();
 
     if (isIOS) {
         return [
-            { video: true, audio: false, preferCurrentTab: true },
+            { video: { displaySurface: 'monitor' }, audio: false },
             { video: true, audio: false },
         ];
     }
 
-    if (isAndroid || isMobile) {
+    if (isMobile) {
         return [
-            {
-                video: {
-                    width: { max: 1280 },
-                    height: { max: 720 },
-                    frameRate: { max: 24 },
-                },
-                audio: false,
-                preferCurrentTab: true,
-            },
-            { video: true, audio: false, preferCurrentTab: true },
+            { video: ENTIRE_SCREEN_VIDEO, audio: false },
+            { video: { displaySurface: 'monitor' }, audio: false },
             { video: true, audio: false },
         ];
     }
 
     return [
-        {
-            video: {
-                width: { max: 1920 },
-                height: { max: 1080 },
-                frameRate: { max: 30 },
-            },
-            audio: false,
-        },
+        { video: ENTIRE_SCREEN_VIDEO, audio: false },
+        { video: { displaySurface: 'monitor' }, audio: false },
         { video: true, audio: false },
     ];
 };
@@ -244,11 +237,7 @@ export const buildLocalMediaStream = async () => {
     const video = raw?.getVideoTracks()[0];
     if (video) {
         try {
-            await video.applyConstraints({
-                width: { ideal: 640, max: 854 },
-                height: { ideal: 360, max: 480 },
-                frameRate: { ideal: 15, max: 20 },
-            });
+            await video.applyConstraints(VIDEO_CONSTRAINTS);
         } catch {
             /* use device default */
         }

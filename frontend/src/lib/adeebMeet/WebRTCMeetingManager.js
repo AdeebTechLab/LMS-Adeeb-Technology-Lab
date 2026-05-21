@@ -1,11 +1,28 @@
 import {
     ICE_SERVERS,
+    VIDEO_CONSTRAINTS,
     acquireCameraTrack,
     acquireDisplayStream,
     acquireMicrophoneTrack,
     getScreenShareUnsupportedReason,
     isDisplayMediaSupported,
 } from './webrtcConfig';
+
+const VIDEO_SEND_BITRATE = 2_500_000;
+
+async function applyVideoSenderBitrate(pc) {
+    for (const sender of pc.getSenders()) {
+        if (sender.track?.kind !== 'video') continue;
+        try {
+            const params = sender.getParameters();
+            if (!params.encodings?.length) params.encodings = [{}];
+            params.encodings[0].maxBitrate = VIDEO_SEND_BITRATE;
+            await sender.setParameters(params);
+        } catch {
+            /* browser may reject before negotiation completes */
+        }
+    }
+}
 
 let emitPeersTimer = null;
 
@@ -170,6 +187,7 @@ export class WebRTCMeetingManager {
         };
 
         this.peers.set(remoteSocketId, entry);
+        applyVideoSenderBitrate(pc);
         this._scheduleEmitPeers();
         return entry;
     }
@@ -320,6 +338,7 @@ export class WebRTCMeetingManager {
             const sender = pc.getSenders().find((s) => s.track?.kind === 'video');
             if (sender) await sender.replaceTrack(newTrack);
             else pc.addTrack(newTrack, this.localStream);
+            await applyVideoSenderBitrate(pc);
         }
         await this._renegotiateAllPeers();
     }
@@ -418,12 +437,23 @@ export class WebRTCMeetingManager {
             this.cameraVideoTrack = this.localStream?.getVideoTracks()[0] ?? null;
         }
 
+        try {
+            await screenTrack.applyConstraints({
+                width: { ideal: 1920, max: 1920 },
+                height: { ideal: 720, max: 720 },
+                frameRate: { ideal: 30, max: 30 },
+            });
+        } catch {
+            /* use capture defaults */
+        }
+
         for (const [peerId, { pc }] of this.peers) {
             const sender = pc.getSenders().find((s) => s.track?.kind === 'video');
             if (sender) await sender.replaceTrack(screenTrack);
             else pc.addTrack(screenTrack, this.localStream);
             const entry = this.peers.get(peerId);
             if (entry) entry.isScreenSharing = true;
+            await applyVideoSenderBitrate(pc);
         }
 
         const localVideo = this.localStream?.getVideoTracks()[0];
@@ -457,11 +487,7 @@ export class WebRTCMeetingManager {
         if (!cameraTrack || cameraTrack.readyState === 'ended') {
             try {
                 const cam = await navigator.mediaDevices.getUserMedia({
-                    video: {
-                        width: { ideal: 640, max: 854 },
-                        height: { ideal: 360, max: 480 },
-                        frameRate: { ideal: 15, max: 20 },
-                    },
+                    video: VIDEO_CONSTRAINTS,
                 });
                 cameraTrack = cam.getVideoTracks()[0];
                 this.cameraVideoTrack = cameraTrack;
@@ -475,6 +501,7 @@ export class WebRTCMeetingManager {
             if (sender && cameraTrack) await sender.replaceTrack(cameraTrack);
             const entry = this.peers.get(peerId);
             if (entry) entry.isScreenSharing = false;
+            await applyVideoSenderBitrate(pc);
         }
 
         if (screenTrack) {

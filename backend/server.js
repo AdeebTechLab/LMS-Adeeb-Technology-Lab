@@ -323,6 +323,11 @@ io.on('connection', (socket) => {
     socket.on('disconnect', () => {
         if (socket.roomId) {
             const roomId = socket.roomId;
+            if (roomScreenSharers.get(roomId) === socket.id) {
+                roomScreenSharers.delete(roomId);
+                socket.to(roomId).emit('classroom_screen_share', { socketId: socket.id, active: false });
+            }
+            clearRaisedHand(roomId, socket.id);
             io.to(roomId).emit('user_left_classroom', socket.id);
             setTimeout(() => broadcastRoomUsers(roomId), 500);
         }
