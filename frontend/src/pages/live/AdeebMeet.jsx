@@ -1220,7 +1220,10 @@ const VideoTile = ({
     }, [stream, ref, isLocal]);
 
     const isSpeakingActive = (isSpeaking || audioLevel > 0.07) && !isMuted;
-    const showMainDpWave = isSpeakingActive && showDpWave && !isScreenShare;
+    const isCompactTile = className.includes('min-w-[120px]');
+    /** Main center DP (camera off) — wave on grid/full tiles, not strip thumbnails */
+    const showMainDpWaveOnAvatar = !isCompactTile;
+    const showMainDpWave = isSpeakingActive && showMainDpWaveOnAvatar && !isScreenShare;
     const isFixedTile = className.includes('meet-tile-fixed');
     const isFullTile = className.includes('meet-tile-fullwidth');
     const isScreenStage = className.includes('meet-screen-stage');
@@ -1284,7 +1287,7 @@ const VideoTile = ({
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="absolute inset-0 bg-[#141414] flex flex-col items-center justify-center p-4 z-0"
+                        className="absolute inset-0 bg-[#141414] flex flex-col items-center justify-center p-4 z-[5]"
                     >
                         <SpeakingAvatar
                             src={avatarUrl}
@@ -1293,7 +1296,7 @@ const VideoTile = ({
                             isSpeaking={isSpeaking}
                             audioLevel={audioLevel}
                             isMuted={isMuted}
-                            showDpWave={showDpWave}
+                            showDpWave={showMainDpWaveOnAvatar}
                         />
                         <div className="flex flex-col items-center text-center max-w-[90%] mt-1">
                             <span className="text-xs md:text-sm font-extrabold text-white tracking-tight drop-shadow-md">
