@@ -13,11 +13,17 @@ const http = require('http');
 dotenv.config();
 const mongoUri = process.env.MONGODB_URI || process.env.MONGO_URI;
 
-const { isEmailConfigured } = require('./utils/email');
+const { isEmailConfigured, getEmailProvider } = require('./utils/email');
 if (!isEmailConfigured()) {
-    console.warn('⚠️ EMAIL_USER / EMAIL_PASS missing — forgot-password emails will not send.');
-} else if (/your_gmail|your_16_char|app_password/i.test(process.env.EMAIL_USER + process.env.EMAIL_PASS)) {
-    console.warn('⚠️ Replace placeholder EMAIL_USER / EMAIL_PASS in backend/.env with a real Gmail App Password.');
+    console.warn('⚠️ Email not configured — add BREVO_API_KEY (Render) or EMAIL_USER + EMAIL_PASS (local).');
+} else {
+    const provider = getEmailProvider();
+    console.log(`📧 Email provider: ${provider}`);
+    if (provider === 'smtp') {
+        console.warn(
+            '⚠️ Gmail SMTP does NOT work on Render FREE tier. Add BREVO_API_KEY on Render (see README).'
+        );
+    }
 }
 
 // Validate environment variables

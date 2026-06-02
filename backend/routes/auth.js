@@ -566,37 +566,41 @@ router.put('/change-password', protect, async (req, res) => {
 // @access  Public (should optionally be protected in final prod)
 router.get('/test-email', async (req, res) => {
     try {
-        console.log('Testing Email Configuration...');
-        const user = process.env.EMAIL_USER;
-        const pass = process.env.EMAIL_PASS;
+        const { getEmailProvider, isEmailConfigured, sendEmail } = require('../utils/email');
 
-        if (!user || !pass) {
-            return res.status(500).json({ success: false, message: 'EMAIL_USER or EMAIL_PASS not set' });
+        if (!isEmailConfigured()) {
+            return res.status(500).json({
+                success: false,
+                message: 'Set BREVO_API_KEY (recommended on Render) or EMAIL_USER + EMAIL_PASS',
+            });
         }
 
-        const transporter = nodemailer.createTransport({
-            service: 'gmail',
-            auth: { user, pass }
+        const to = process.env.EMAIL_USER || req.query.to;
+        if (!to) {
+            return res.status(400).json({ success: false, message: 'EMAIL_USER not set for test recipient' });
+        }
+
+        await sendEmail({
+            to,
+            subject: 'LMS Email Test — Adeeb Technology Lab',
+            text: `Provider: ${getEmailProvider()}. If you received this, password reset emails will work.`,
+            html: `<p>Provider: <strong>${getEmailProvider()}</strong></p><p>Password reset emails are configured correctly.</p>`,
         });
 
-        await transporter.verify();
-        console.log('✅ SMTP Connection verified');
-
-        const info = await transporter.sendMail({
-            from: user,
-            to: user, // Send to self
-            subject: 'LMS Production Email Test',
-            text: 'If you received this, email sending is working on Render!'
+        res.json({
+            success: true,
+            message: `Test email sent via ${getEmailProvider()} to ${to}`,
         });
-
-        res.json({ success: true, message: 'Email passed verification and sent', info });
     } catch (error) {
         console.error('❌ Email Test Failed:', error);
         res.status(500).json({
             success: false,
             message: 'Email test failed',
             error: error.message,
-            stack: error.stack
+            hint:
+                !process.env.BREVO_API_KEY && !process.env.RESEND_API_KEY
+                    ? 'Render free tier blocks Gmail SMTP. Add BREVO_API_KEY — see README.'
+                    : undefined,
         });
     }
 });
@@ -665,13 +669,44 @@ router.post('/forgot-password', async (req, res) => {
             `,
         };
 
-        // Reply immediately — waiting on Gmail SMTP caused 30s+ timeouts (502) on Render/Vercel
-        res.json(genericSuccess);
+        try {
+            await sendEmail(emailPayload);
+            console.log(`🔑 Password reset email sent to ${user.email} (${user.role})`);
+            return res.json(genericSuccess);
+        } catch (emailError) {
+            console.error(`❌ Password reset email failed for ${user.email}:`, emailError.message);
 
-        sendEmail(emailPayload)
-            .then(() => console.log(`🔑 Password reset email sent to ${user.email} (${user.role})`))
-            .catch((err) => console.error(`❌ Password reset email failed for ${user.email}:`, err.message));
-        return;
+            const isAuthError =
+                emailError.code === 'EAUTH' ||
+                emailError.responseCode === 535 ||
+                /invalid login|authentication failed/i.test(emailError.message || '');
+
+            const renderSmtpHint =
+                /timed out|ETIMEDOUT|ESOCKET|ECONNECTION/i.test(emailError.message || '') &&
+                !process.env.BREVO_API_KEY &&
+                !process.env.RESEND_API_KEY;
+
+            if (isAuthError) {
+                return res.status(503).json({
+                    success: false,
+                    message:
+                        'Email could not be sent. Check Gmail App Password in Render, or add BREVO_API_KEY (see README).',
+                });
+            }
+
+            if (renderSmtpHint) {
+                return res.status(503).json({
+                    success: false,
+                    message:
+                        'Email server blocked SMTP (Render free tier). Add BREVO_API_KEY on Render — setup steps in README.',
+                });
+            }
+
+            return res.status(503).json({
+                success: false,
+                message: 'Could not send reset email. Please try again or contact admin.',
+            });
+        }
     } catch (error) {
         console.error('Forgot password error:', error);
 
