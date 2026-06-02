@@ -1,13 +1,12 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Mail, ArrowLeft, CheckCircle, AlertCircle, GraduationCap } from 'lucide-react';
+import { Mail, ArrowLeft, CheckCircle, AlertCircle } from 'lucide-react';
 import { authAPI } from '../../services/api';
 import WhatsAppWidget from '../../components/shared/WhatsAppWidget';
 import { ButtonLoader } from '../../components/ui/Loader';
 
 const ForgotPassword = () => {
     const [email, setEmail] = useState('');
-    const [role, setRole] = useState('student'); // Default role
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
     const [error, setError] = useState('');
@@ -21,13 +20,12 @@ const ForgotPassword = () => {
         try {
             await authAPI.forgotPassword({
                 email: email.toLowerCase().trim(),
-                role,
             });
             setSuccess(true);
         } catch (err) {
             setError(
                 err.response?.data?.message ||
-                    'Could not send reset email. Check your role selection and try again.'
+                    'Could not send reset email. Please try again.'
             );
         } finally {
             setLoading(false);
@@ -61,8 +59,8 @@ const ForgotPassword = () => {
 
                     <h1 className="text-3xl font-bold text-white mb-2">Forgot Password</h1>
                     <p className="text-gray-300 mb-6">
-                        Enter your email and select the <strong className="text-white">same role you use to login</strong>.
-                        We'll send a reset link (check spam folder too).
+                        Enter your email address. We'll find your account automatically and send a reset link.
+                        Check your spam folder too.
                     </p>
 
                     {success ? (
@@ -71,35 +69,13 @@ const ForgotPassword = () => {
                             <div>
                                 <h3 className="text-green-400 font-semibold">Check your email</h3>
                                 <p className="text-green-300 text-sm mt-1">
-                                    If an account exists for <strong>{email}</strong> as <strong>{role}</strong>,
-                                    you will receive a reset link within a few minutes. Also check Spam / Promotions.
+                                    If an account exists for <strong>{email}</strong>, you will receive a reset link
+                                    within a few minutes. Also check Spam / Promotions.
                                 </p>
                             </div>
                         </div>
                     ) : (
                         <form onSubmit={handleSubmit} className="space-y-4">
-                            {/* Role Selection */}
-                            <div className="mb-4">
-                                <label className="block text-gray-300 text-sm font-medium mb-2">
-                                    Select Role
-                                </label>
-                                <div className="grid grid-cols-2 gap-2">
-                                    {['student', 'teacher', 'intern', 'job'].map((r) => (
-                                        <button
-                                            key={r}
-                                            type="button"
-                                            onClick={() => setRole(r)}
-                                            className={`py-2 px-3 rounded-xl text-xs font-semibold border transition-all ${role === r
-                                                ? 'bg-white text-gray-900 border-white shadow-lg'
-                                                : 'bg-white/5 text-gray-300 border-white/10 hover:bg-white/10'
-                                                } capitalize`}
-                                        >
-                                            {r}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
                             {error && (
                                 <div className="bg-red-500/20 border border-red-500/50 rounded-lg p-3 flex items-center gap-2">
                                     <AlertCircle className="w-4 h-4 text-red-400" />

@@ -6,7 +6,7 @@ const getTransporter = () => {
     if (transporter) return transporter;
 
     const user = process.env.EMAIL_USER;
-    const pass = process.env.EMAIL_PASS;
+    const pass = process.env.EMAIL_PASS?.replace(/\s/g, '');
 
     if (!user || !pass) {
         throw new Error('EMAIL_USER and EMAIL_PASS must be set in backend/.env');

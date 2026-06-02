@@ -34,7 +34,7 @@ const ResetPassword = () => {
         setLoading(true);
 
         try {
-            await authAPI.resetPassword(token, password);
+            await authAPI.resetPassword(token, { password });
             setSuccess(true);
             // Clear any existing session before redirecting
             dispatch(logout());

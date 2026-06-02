@@ -606,7 +606,7 @@ router.get('/test-email', async (req, res) => {
 // @access  Public
 router.post('/forgot-password', async (req, res) => {
     try {
-        const { email, role } = req.body;
+        const { email } = req.body;
 
         const genericSuccess = {
             success: true,
@@ -627,13 +627,7 @@ router.post('/forgot-password', async (req, res) => {
             });
         }
 
-        let user = null;
-        if (role) {
-            user = await User.findOne({ email: normalizedEmail, role });
-        }
-        if (!user) {
-            user = await User.findOne({ email: normalizedEmail });
-        }
+        const user = await User.findOne({ email: normalizedEmail }).sort({ updatedAt: -1 });
 
         if (!user) {
             return res.json(genericSuccess);
