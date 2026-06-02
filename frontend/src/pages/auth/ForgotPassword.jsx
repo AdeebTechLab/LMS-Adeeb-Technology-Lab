@@ -25,7 +25,8 @@ const ForgotPassword = () => {
         } catch (err) {
             setError(
                 err.response?.data?.message ||
-                    'Could not send reset email. Please try again.'
+                    err.message ||
+                    'Could not send reset email. Email service may not be configured.'
             );
         } finally {
             setLoading(false);
