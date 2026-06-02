@@ -27,11 +27,16 @@ const ForgotPassword = () => {
             const isNetworkFailure =
                 !err.response &&
                 (err.code === 'ERR_NETWORK' || err.message === 'Network Error');
+            const isLiveSite =
+                typeof window !== 'undefined' &&
+                !['localhost', '127.0.0.1'].includes(window.location.hostname);
 
             setError(
                 serverMessage ||
                     (isNetworkFailure
-                        ? 'Cannot reach the server. Start the backend (npm run dev in backend folder) and refresh, or check your internet connection on the live site.'
+                        ? isLiveSite
+                            ? 'Cannot reach the server right now. Wait a minute (Render may be waking up) and try again, or contact admin.'
+                            : 'Cannot reach the server. Run "npm run dev" in the backend folder, then refresh this page.'
                         : err.message) ||
                     'Could not send reset email. Please try again or contact support.'
             );

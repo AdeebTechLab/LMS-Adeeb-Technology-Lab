@@ -1,30 +1,7 @@
 import axios from 'axios';
+import { getApiBaseUrl } from '../config/apiBaseUrl';
 
-const PRODUCTION_API = 'https://lms-adeeb-technology-lab.onrender.com/api';
-
-const resolveApiUrl = () => {
-    const envUrl = import.meta.env.VITE_API_URL?.trim();
-    if (envUrl) {
-        return envUrl.endsWith('/api') ? envUrl : `${envUrl.replace(/\/$/, '')}/api`;
-    }
-
-    // Dev: use Vite proxy (same origin) so forgot-password/login avoid CORS / Network Error
-    if (import.meta.env.DEV) {
-        return '/api';
-    }
-
-    // Production build without VITE_API_URL (e.g. missing Vercel env) — use live backend
-    if (typeof window !== 'undefined') {
-        const host = window.location.hostname;
-        if (host !== 'localhost' && host !== '127.0.0.1') {
-            return PRODUCTION_API;
-        }
-    }
-
-    return 'http://localhost:5000/api';
-};
-
-const API_URL = resolveApiUrl();
+const API_URL = getApiBaseUrl();
 
 console.log('🔌 [API] Base URL:', API_URL);
 
