@@ -25,6 +25,28 @@ const withTimeout = (promise, ms, label = 'operation') =>
         }),
     ]);
 
+const getBrevoApiKey = () => {
+    const key = process.env.BREVO_API_KEY?.trim();
+    if (!key) {
+        throw new Error('BREVO_API_KEY is not set on the server');
+    }
+    if (key.startsWith('xsmtpsib-')) {
+        const err = new Error(
+            'BREVO_API_KEY is an SMTP key (xsmtpsib). Use API key from Brevo → SMTP & API → API keys (starts with xkeysib).'
+        );
+        err.code = 'BREVO_WRONG_KEY_TYPE';
+        throw err;
+    }
+    if (!key.startsWith('xkeysib-')) {
+        const err = new Error(
+            'BREVO_API_KEY must start with xkeysib-. Generate it under Brevo → SMTP & API → API keys & MCP.'
+        );
+        err.code = 'BREVO_WRONG_KEY_TYPE';
+        throw err;
+    }
+    return key;
+};
+
 /** Brevo (Sendinblue) — HTTPS API, works on Render free tier */
 const sendViaBrevo = async ({ to, subject, html, text }) => {
     const senderEmail = process.env.EMAIL_FROM || process.env.EMAIL_USER;
@@ -32,11 +54,13 @@ const sendViaBrevo = async ({ to, subject, html, text }) => {
         throw new Error('EMAIL_USER or EMAIL_FROM required as Brevo sender');
     }
 
+    const apiKey = getBrevoApiKey();
+
     const response = await fetch('https://api.brevo.com/v3/smtp/email', {
         method: 'POST',
         headers: {
             accept: 'application/json',
-            'api-key': process.env.BREVO_API_KEY,
+            'api-key': apiKey,
             'content-type': 'application/json',
         },
         body: JSON.stringify({
@@ -50,7 +74,16 @@ const sendViaBrevo = async ({ to, subject, html, text }) => {
 
     const body = await response.text();
     if (!response.ok) {
-        throw new Error(`Brevo API error (${response.status}): ${body}`);
+        let detail = body;
+        try {
+            const parsed = JSON.parse(body);
+            detail = parsed.message || parsed.error || body;
+        } catch {
+            /* keep raw body */
+        }
+        const err = new Error(`Brevo API error (${response.status}): ${detail}`);
+        err.statusCode = response.status;
+        throw err;
     }
 
     console.log(`✅ [Brevo] Email sent to ${to}`);

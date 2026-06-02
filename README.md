@@ -38,7 +38,11 @@ Use **Brevo** (free HTTP API) on Render instead.
 
 6. Test in browser:  
    `https://lms-adeeb-technology-lab.onrender.com/api/auth/test-email`  
-   You should receive a test email at `EMAIL_USER`.
+   You should see `"success":true` and get a test email at `EMAIL_USER`.
+
+### Error: "Could not send reset email" or Brevo 401
+
+Render par **galat key** lagi hai. `xsmtpsib-...` = SMTP key (wrong). You need **`xkeysib-...`** from **API keys & MCP** tab, not the SMTP tab.
 
 ### Local development (optional)
 

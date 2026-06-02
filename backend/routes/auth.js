@@ -676,6 +676,26 @@ router.post('/forgot-password', async (req, res) => {
         } catch (emailError) {
             console.error(`❌ Password reset email failed for ${user.email}:`, emailError.message);
 
+            if (
+                emailError.code === 'BREVO_WRONG_KEY_TYPE' ||
+                emailError.statusCode === 401 ||
+                /key not found|unauthorized/i.test(emailError.message || '')
+            ) {
+                return res.status(503).json({
+                    success: false,
+                    message:
+                        'Email setup error: use Brevo API key (xkeysib-...) in Render BREVO_API_KEY — not the SMTP key (xsmtpsib). See README.',
+                });
+            }
+
+            if (/sender|from/i.test(emailError.message || '') && /verified|valid/i.test(emailError.message || '')) {
+                return res.status(503).json({
+                    success: false,
+                    message:
+                        'Sender email not verified in Brevo. Verify info.adeebtechlab@gmail.com under Senders, then try again.',
+                });
+            }
+
             const isAuthError =
                 emailError.code === 'EAUTH' ||
                 emailError.responseCode === 535 ||
@@ -690,7 +710,7 @@ router.post('/forgot-password', async (req, res) => {
                 return res.status(503).json({
                     success: false,
                     message:
-                        'Email could not be sent. Check Gmail App Password in Render, or add BREVO_API_KEY (see README).',
+                        'Email could not be sent. On Render use BREVO_API_KEY (xkeysib), not Gmail password.',
                 });
             }
 
@@ -698,13 +718,14 @@ router.post('/forgot-password', async (req, res) => {
                 return res.status(503).json({
                     success: false,
                     message:
-                        'Email server blocked SMTP (Render free tier). Add BREVO_API_KEY on Render — setup steps in README.',
+                        'Email server blocked SMTP on Render free tier. Add BREVO_API_KEY (xkeysib) on Render.',
                 });
             }
 
             return res.status(503).json({
                 success: false,
-                message: 'Could not send reset email. Please try again or contact admin.',
+                message:
+                    'Could not send reset email. Admin: fix BREVO_API_KEY on Render (must be xkeysib- API key).',
             });
         }
     } catch (error) {

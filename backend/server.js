@@ -19,7 +19,14 @@ if (!isEmailConfigured()) {
 } else {
     const provider = getEmailProvider();
     console.log(`📧 Email provider: ${provider}`);
-    if (provider === 'smtp') {
+    if (provider === 'brevo') {
+        const key = process.env.BREVO_API_KEY?.trim() || '';
+        if (key.startsWith('xsmtpsib-')) {
+            console.error('❌ BREVO_API_KEY is SMTP key (xsmtpsib). Replace with xkeysib- API key from Brevo → API keys & MCP.');
+        } else if (!key.startsWith('xkeysib-')) {
+            console.error('❌ BREVO_API_KEY must start with xkeysib-. Generate under Brevo → SMTP & API → API keys.');
+        }
+    } else if (provider === 'smtp') {
         console.warn(
             '⚠️ Gmail SMTP does NOT work on Render FREE tier. Add BREVO_API_KEY on Render (see README).'
         );
