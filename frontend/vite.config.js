@@ -8,6 +8,14 @@ export default defineConfig({
     global: 'window',
     'process.env': {}
   },
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:5000',
+        changeOrigin: true,
+      },
+    },
+  },
   build: {
     chunkSizeWarningLimit: 3000, // Increase warning limit to 3MB
   }

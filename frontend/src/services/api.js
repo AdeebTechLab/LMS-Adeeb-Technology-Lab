@@ -1,18 +1,37 @@
 import axios from 'axios';
 
-// Base API URL
-let API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const PRODUCTION_API = 'https://lms-adeeb-technology-lab.onrender.com/api';
 
-// Ensure the URL ends with /api correctly
-if (import.meta.env.VITE_API_URL && !import.meta.env.VITE_API_URL.endsWith('/api')) {
-    API_URL = `${import.meta.env.VITE_API_URL}/api`;
-}
+const resolveApiUrl = () => {
+    const envUrl = import.meta.env.VITE_API_URL?.trim();
+    if (envUrl) {
+        return envUrl.endsWith('/api') ? envUrl : `${envUrl.replace(/\/$/, '')}/api`;
+    }
+
+    // Dev: use Vite proxy (same origin) so forgot-password/login avoid CORS / Network Error
+    if (import.meta.env.DEV) {
+        return '/api';
+    }
+
+    // Production build without VITE_API_URL (e.g. missing Vercel env) — use live backend
+    if (typeof window !== 'undefined') {
+        const host = window.location.hostname;
+        if (host !== 'localhost' && host !== '127.0.0.1') {
+            return PRODUCTION_API;
+        }
+    }
+
+    return 'http://localhost:5000/api';
+};
+
+const API_URL = resolveApiUrl();
 
 console.log('🔌 [API] Base URL:', API_URL);
 
 // Create axios instance
 const api = axios.create({
     baseURL: API_URL,
+    timeout: 60000,
     headers: {
         'Content-Type': 'application/json'
     }

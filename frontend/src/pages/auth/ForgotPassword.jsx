@@ -23,10 +23,17 @@ const ForgotPassword = () => {
             });
             setSuccess(true);
         } catch (err) {
+            const serverMessage = err.response?.data?.message;
+            const isNetworkFailure =
+                !err.response &&
+                (err.code === 'ERR_NETWORK' || err.message === 'Network Error');
+
             setError(
-                err.response?.data?.message ||
-                    err.message ||
-                    'Could not send reset email. Email service may not be configured.'
+                serverMessage ||
+                    (isNetworkFailure
+                        ? 'Cannot reach the server. Start the backend (npm run dev in backend folder) and refresh, or check your internet connection on the live site.'
+                        : err.message) ||
+                    'Could not send reset email. Please try again or contact support.'
             );
         } finally {
             setLoading(false);

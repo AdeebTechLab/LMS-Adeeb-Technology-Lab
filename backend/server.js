@@ -13,6 +13,13 @@ const http = require('http');
 dotenv.config();
 const mongoUri = process.env.MONGODB_URI || process.env.MONGO_URI;
 
+const { isEmailConfigured } = require('./utils/email');
+if (!isEmailConfigured()) {
+    console.warn('⚠️ EMAIL_USER / EMAIL_PASS missing — forgot-password emails will not send.');
+} else if (/your_gmail|your_16_char|app_password/i.test(process.env.EMAIL_USER + process.env.EMAIL_PASS)) {
+    console.warn('⚠️ Replace placeholder EMAIL_USER / EMAIL_PASS in backend/.env with a real Gmail App Password.');
+}
+
 // Validate environment variables
 console.log('\n========================================');
 console.log('🔧 LMS BACKEND - Starting...');
@@ -47,16 +54,37 @@ const app = express();
 const server = http.createServer(app);
 
 // Socket.io Setup
+const staticOrigins = [
+    'https://lms-adeeb-technology-lab.vercel.app',
+    'https://lms-adeeb-technology-lab.onrender.com',
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+];
+
+if (process.env.CLIENT_URL) {
+    staticOrigins.push(process.env.CLIENT_URL.replace(/\/$/, ''));
+}
+
 const corsOptions = {
-    origin: [
-        'https://lms-adeeb-technology-lab.vercel.app',
-        'https://lms-adeeb-technology-lab.onrender.com',
-        'http://localhost:5173',
-        'http://localhost:3000'
-    ],
+    origin(origin, callback) {
+        if (!origin) {
+            return callback(null, true);
+        }
+        if (
+            staticOrigins.includes(origin) ||
+            /^https:\/\/[\w-]+-[\w-]+-adeeb-technology-lab\.vercel\.app$/.test(origin) ||
+            /^https:\/\/lms-adeeb-technology-lab[\w-]*\.vercel\.app$/.test(origin) ||
+            /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)
+        ) {
+            return callback(null, true);
+        }
+        return callback(new Error(`CORS blocked origin: ${origin}`));
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
 };
 
 const io = require('socket.io')(server, {
