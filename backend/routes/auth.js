@@ -642,7 +642,7 @@ router.post('/forgot-password', async (req, res) => {
         const resetUrl = `${getClientUrl()}/reset-password/${resetToken}`;
         const roleLabel = user.role.charAt(0).toUpperCase() + user.role.slice(1);
 
-        await sendEmail({
+        const emailPayload = {
             to: user.email,
             subject: 'Reset your Adeeb Technology Lab password',
             text: `Hi ${user.name},\n\nReset your password: ${resetUrl}\n\nThis link expires in 1 hour.`,
@@ -663,10 +663,15 @@ router.post('/forgot-password', async (req, res) => {
                     </div>
                 </div>
             `,
-        });
+        };
 
-        console.log(`🔑 Password reset email sent to ${user.email} (${user.role})`);
-        return res.json(genericSuccess);
+        // Reply immediately — waiting on Gmail SMTP caused 30s+ timeouts (502) on Render/Vercel
+        res.json(genericSuccess);
+
+        sendEmail(emailPayload)
+            .then(() => console.log(`🔑 Password reset email sent to ${user.email} (${user.role})`))
+            .catch((err) => console.error(`❌ Password reset email failed for ${user.email}:`, err.message));
+        return;
     } catch (error) {
         console.error('Forgot password error:', error);
 

@@ -26,17 +26,15 @@ const ForgotPassword = () => {
             const serverMessage = err.response?.data?.message;
             const isNetworkFailure =
                 !err.response &&
-                (err.code === 'ERR_NETWORK' || err.message === 'Network Error');
-            const isLiveSite =
-                typeof window !== 'undefined' &&
-                !['localhost', '127.0.0.1'].includes(window.location.hostname);
+                (err.code === 'ERR_NETWORK' ||
+                    err.code === 'ECONNABORTED' ||
+                    err.message === 'Network Error' ||
+                    /timeout/i.test(err.message || ''));
 
             setError(
                 serverMessage ||
                     (isNetworkFailure
-                        ? isLiveSite
-                            ? 'Cannot reach the server right now. Wait a minute (Render may be waking up) and try again, or contact admin.'
-                            : 'Cannot reach the server. Run "npm run dev" in the backend folder, then refresh this page.'
+                        ? 'Request timed out or server is unavailable. Wait 30 seconds and try again. If it persists, contact admin.'
                         : err.message) ||
                     'Could not send reset email. Please try again or contact support.'
             );

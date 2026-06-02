@@ -61,6 +61,16 @@ const isRetryableSmtpError = (error) => {
 /**
  * @param {{ to: string, subject: string, html: string, text?: string }} options
  */
+const EMAIL_SEND_TIMEOUT_MS = 20000;
+
+const withTimeout = (promise, ms, label = 'operation') =>
+    Promise.race([
+        promise,
+        new Promise((_, reject) => {
+            setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms);
+        }),
+    ]);
+
 const sendEmail = async ({ to, subject, html, text }) => {
     const from = process.env.EMAIL_FROM || process.env.EMAIL_USER;
     let lastError;
@@ -68,13 +78,17 @@ const sendEmail = async ({ to, subject, html, text }) => {
     for (const useAltPort of [false, true]) {
         try {
             const transport = getTransporter(useAltPort);
-            const info = await transport.sendMail({
+            const info = await withTimeout(
+                transport.sendMail({
                 from: `"Adeeb Technology Lab" <${from}>`,
                 to,
                 subject,
                 html,
                 text: text || undefined,
-            });
+                }),
+                EMAIL_SEND_TIMEOUT_MS,
+                'Email send'
+            );
 
             console.log(`✅ Email sent to ${to} (messageId: ${info.messageId})`);
             return info;

@@ -1,28 +1,20 @@
-/** Live backend on Render — used when site is on Vercel or any non-local host */
+/** Render backend — direct URL fallback */
 export const PRODUCTION_API = 'https://lms-adeeb-technology-lab.onrender.com/api';
-
-const normalizeApiUrl = (url) => {
-    const trimmed = url.replace(/\/$/, '');
-    return trimmed.endsWith('/api') ? trimmed : `${trimmed}/api`;
-};
 
 const isLocalHost = (host) => host === 'localhost' || host === '127.0.0.1';
 
-const isLiveDeployment = (host) =>
-    host.includes('vercel.app') ||
-    host.includes('onrender.com') ||
-    host.includes('adeeb-technology-lab');
+const isVercelHost = (host) => host.includes('vercel.app');
 
 /**
- * Resolves API base URL at runtime so production never calls localhost
- * even if Vercel/CI baked a wrong VITE_API_URL into the build.
+ * Live Vercel site: same-origin /api (proxied to Render in vercel.json).
+ * Avoids CORS and wrong baked-in VITE_API_URL on production builds.
  */
 export const getApiBaseUrl = () => {
     if (typeof window !== 'undefined') {
         const host = window.location.hostname;
 
-        if (isLiveDeployment(host)) {
-            return PRODUCTION_API;
+        if (isVercelHost(host)) {
+            return '/api';
         }
 
         if (isLocalHost(host)) {
@@ -43,18 +35,10 @@ export const getApiBaseUrl = () => {
 export const getBackendOrigin = () => {
     const base = getApiBaseUrl();
     if (base === '/api') {
-        if (typeof window !== 'undefined' && isLiveDeployment(window.location.hostname)) {
+        if (typeof window !== 'undefined' && isVercelHost(window.location.hostname)) {
             return 'https://lms-adeeb-technology-lab.onrender.com';
         }
         return 'http://localhost:5000';
     }
     return base.replace(/\/api\/?$/, '');
-};
-
-export const getEnvApiBaseUrl = () => {
-    const envUrl = import.meta.env.VITE_API_URL?.trim();
-    if (!envUrl || envUrl === '/api' || envUrl.includes('localhost')) {
-        return null;
-    }
-    return normalizeApiUrl(envUrl);
 };

@@ -29,6 +29,8 @@ Password reset emails need Gmail **App Password** (not your normal Gmail passwor
 If you see *"Email could not be sent"*, update `EMAIL_PASS` with a new App Password.
 If you see *"Cannot reach the server"*, run `npm run dev` in the `backend` folder.
 
+**Deploy:** Push code to GitHub so **Render** (backend) and **Vercel** (frontend) both redeploy. Forgot-password must use the latest backend (instant API response; email sends in background).
+
 
 
 

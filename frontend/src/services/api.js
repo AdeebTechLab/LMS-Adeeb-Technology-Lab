@@ -1,22 +1,17 @@
 import axios from 'axios';
 import { getApiBaseUrl } from '../config/apiBaseUrl';
 
-const API_URL = getApiBaseUrl();
-
-console.log('🔌 [API] Base URL:', API_URL);
-
 // Create axios instance
 const api = axios.create({
-    baseURL: API_URL,
-    timeout: 60000,
+    timeout: 90000,
     headers: {
         'Content-Type': 'application/json'
     }
 });
 
-// Add token to requests
-// Add token to requests
+// Resolve API URL on every request (live site uses /api → Vercel proxy → Render)
 api.interceptors.request.use((config) => {
+    config.baseURL = getApiBaseUrl();
     const token = localStorage.getItem('token') || sessionStorage.getItem('token');
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;
