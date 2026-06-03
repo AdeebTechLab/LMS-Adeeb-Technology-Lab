@@ -3,6 +3,7 @@ const nodemailer = require('nodemailer');
 let transporter = null;
 let transporterConfigKey = null;
 
+<<<<<<< HEAD
 const EMAIL_SEND_TIMEOUT_MS = 20000;
 
 const isEmailConfigured = () => {
@@ -121,6 +122,8 @@ const sendViaResend = async ({ to, subject, html, text }) => {
     return data;
 };
 
+=======
+>>>>>>> parent of 68ff33e (news)
 const buildTransportOptions = (useAltPort = false) => {
     const user = process.env.EMAIL_USER;
     const pass = process.env.EMAIL_PASS?.replace(/\s/g, '');
@@ -131,26 +134,24 @@ const buildTransportOptions = (useAltPort = false) => {
 
     if (useAltPort) {
         return {
-            service: 'gmail',
             host: process.env.SMTP_HOST || 'smtp.gmail.com',
             port: 587,
             secure: false,
             auth: { user, pass },
-            connectionTimeout: 10000,
-            greetingTimeout: 10000,
-            socketTimeout: 15000,
+            connectionTimeout: 15000,
+            greetingTimeout: 15000,
+            socketTimeout: 20000,
         };
     }
 
     return {
-        service: 'gmail',
         host: process.env.SMTP_HOST || 'smtp.gmail.com',
         port: Number(process.env.SMTP_PORT) || 465,
         secure: process.env.SMTP_SECURE !== 'false',
         auth: { user, pass },
-        connectionTimeout: 10000,
-        greetingTimeout: 10000,
-        socketTimeout: 15000,
+        connectionTimeout: 15000,
+        greetingTimeout: 15000,
+        socketTimeout: 20000,
     };
 };
 
@@ -159,10 +160,13 @@ const getTransporter = (useAltPort = false) => {
     if (transporter && transporterConfigKey === configKey) {
         return transporter;
     }
+
     transporter = nodemailer.createTransport(buildTransportOptions(useAltPort));
     transporterConfigKey = configKey;
     return transporter;
 };
+
+const isEmailConfigured = () => Boolean(process.env.EMAIL_USER && process.env.EMAIL_PASS);
 
 const isRetryableSmtpError = (error) => {
     const code = error?.code || '';
@@ -171,41 +175,48 @@ const isRetryableSmtpError = (error) => {
         code === 'ETIMEDOUT' ||
         code === 'ESOCKET' ||
         code === 'ECONNECTION' ||
-        /timeout|connection closed/i.test(message)
+        /timeout|connection closed|self signed/i.test(message)
     );
 };
 
-const sendViaSmtp = async ({ to, subject, html, text }) => {
+/**
+ * @param {{ to: string, subject: string, html: string, text?: string }} options
+ */
+const EMAIL_SEND_TIMEOUT_MS = 20000;
+
+const withTimeout = (promise, ms, label = 'operation') =>
+    Promise.race([
+        promise,
+        new Promise((_, reject) => {
+            setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms);
+        }),
+    ]);
+
+const sendEmail = async ({ to, subject, html, text }) => {
     const from = process.env.EMAIL_FROM || process.env.EMAIL_USER;
     let lastError;
 
-    for (const useAltPort of [true, false]) {
+    for (const useAltPort of [false, true]) {
         try {
             const transport = getTransporter(useAltPort);
             const info = await withTimeout(
                 transport.sendMail({
-                    from: `"Adeeb Technology Lab" <${from}>`,
-                    to,
-                    subject,
-                    html,
-                    text: text || undefined,
+                from: `"Adeeb Technology Lab" <${from}>`,
+                to,
+                subject,
+                html,
+                text: text || undefined,
                 }),
                 EMAIL_SEND_TIMEOUT_MS,
                 'Email send'
             );
-            console.log(`✅ [SMTP] Email sent to ${to} (messageId: ${info.messageId})`);
+
+            console.log(`✅ Email sent to ${to} (messageId: ${info.messageId})`);
             return info;
         } catch (error) {
             lastError = error;
-            const isAuth =
-                error.code === 'EAUTH' ||
-                error.responseCode === 535 ||
-                /invalid login|authentication failed/i.test(error.message || '');
-
-            if (isAuth) throw error;
-
-            if (useAltPort === true && isRetryableSmtpError(error)) {
-                console.warn('⚠️ SMTP port 587 failed, retrying 465...');
+            if (!useAltPort && isRetryableSmtpError(error)) {
+                console.warn('⚠️ SMTP on port 465 failed, retrying on port 587...');
                 transporter = null;
                 continue;
             }
@@ -216,25 +227,4 @@ const sendViaSmtp = async ({ to, subject, html, text }) => {
     throw lastError;
 };
 
-/**
- * Send email — prefers HTTP APIs on cloud (Render blocks SMTP on free tier).
- * @param {{ to: string, subject: string, html: string, text?: string }} options
- */
-const sendEmail = async (options) => {
-    const provider = getEmailProvider();
-
-    if (provider === 'brevo') {
-        return sendViaBrevo(options);
-    }
-    if (provider === 'resend') {
-        return sendViaResend(options);
-    }
-    return sendViaSmtp(options);
-};
-
-module.exports = {
-    sendEmail,
-    isEmailConfigured,
-    getEmailProvider,
-    getTransporter,
-};
+module.exports = { sendEmail, isEmailConfigured, getTransporter };

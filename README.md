@@ -16,13 +16,20 @@ Open http://localhost:5173 — the frontend proxies `/api` to the backend (port 
 
 ## Forgot password / reset email
 
-### Important: Render FREE tier blocks Gmail SMTP
+Password reset emails need Gmail **App Password** (not your normal Gmail password):
 
-Gmail `EMAIL_PASS` **does not send mail on Render free hosting** (ports 465/587 are blocked).  
-Use **Brevo** (free HTTP API) on Render instead.
+1. Enable 2-Step Verification on the Gmail account.
+2. Create an App Password: https://myaccount.google.com/apppasswords
+3. In `backend/.env` set:
+   - `EMAIL_USER=your@gmail.com`
+   - `EMAIL_PASS=16_character_app_password` (no spaces)
+4. On **Render** (production API), add the same `EMAIL_USER` and `EMAIL_PASS` in Environment.
+5. Restart backend after changing `.env`.
 
-### Setup Brevo on Render (5 minutes)
+If you see *"Email could not be sent"*, update `EMAIL_PASS` with a new App Password.
+If you see *"Cannot reach the server"*, run `npm run dev` in the `backend` folder.
 
+<<<<<<< HEAD
 1. Create account: [brevo.com](https://www.brevo.com)
 2. **Senders & IP** → **Add a sender** → `info.adeebtechlab@gmail.com` → verify via the link Brevo emails you
 3. **SMTP & API** → **Create API key** → copy the key
@@ -54,6 +61,9 @@ Use Gmail App Password in `backend/.env` (no `BREVO_API_KEY` needed locally):
 ### Vercel (frontend)
 
 `VITE_API_URL` = `https://lms-adeeb-technology-lab.onrender.com/api` then redeploy.
+=======
+**Deploy:** Push code to GitHub so **Render** (backend) and **Vercel** (frontend) both redeploy. Forgot-password must use the latest backend (instant API response; email sends in background).
+>>>>>>> parent of 68ff33e (news)
 
 
 
