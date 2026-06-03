@@ -15,18 +15,12 @@ const mongoUri = process.env.MONGODB_URI || process.env.MONGO_URI;
 
 const { isEmailConfigured } = require('./utils/email');
 if (!isEmailConfigured()) {
-<<<<<<< HEAD
-    console.warn('⚠️ Email not configured — add BREVO_API_KEY (Render) or EMAIL_USER + EMAIL_PASS (local).');
-} else {
-    const provider = getEmailProvider();
-    console.log(`📧 Email provider: ${provider}`);
-    if (provider === 'brevo') {
-        const key = process.env.BREVO_API_KEY?.trim() || '';
-        if (key.startsWith('xsmtpsib-')) {
-            console.error('❌ BREVO_API_KEY is SMTP key (xsmtpsib). Replace with xkeysib- API key from Brevo → API keys & MCP.');
-        } else if (!key.startsWith('xkeysib-')) {
-            console.error('❌ BREVO_API_KEY must start with xkeysib-. Generate under Brevo → SMTP & API → API keys.');
-        }
+    console.warn('⚠️ Neither BREVO_API_KEY nor EMAIL_USER+EMAIL_PASS set — forgot-password emails will not send.');
+} else if (process.env.BREVO_API_KEY) {
+    console.log('✅ Brevo API key detected — password reset emails will use Brevo.');
+} else if (/your_gmail|your_16_char|app_password/i.test(process.env.EMAIL_USER + process.env.EMAIL_PASS)) {
+    console.warn('⚠️ Replace placeholder EMAIL_USER / EMAIL_PASS in backend/.env with a real Gmail App Password.');
+}
     } else if (provider === 'smtp') {
         console.warn(
             '⚠️ Gmail SMTP does NOT work on Render FREE tier. Add BREVO_API_KEY on Render (see README).'

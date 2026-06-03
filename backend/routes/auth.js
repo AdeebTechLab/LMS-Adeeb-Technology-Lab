@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const crypto = require('crypto');
-const nodemailer = require('nodemailer');
 const { sendEmail, isEmailConfigured } = require('../utils/email');
 const { getClientUrl } = require('../config/client');
 const { protect } = require('../middleware/auth');
@@ -184,44 +183,33 @@ router.post('/register', uploadRegistration.fields([
         // For non-admins, return success message but no token
         if (user.role !== 'admin') {
             // Send Email Notification to Admin
-            const transporter = nodemailer.createTransport({
-                service: 'gmail',
-                auth: {
-                    user: process.env.EMAIL_USER,
-                    pass: process.env.EMAIL_PASS
-                }
-            });
-
-            const mailOptions = {
-                from: process.env.EMAIL_USER,
+            sendEmail({
                 to: 'info.AdeebTchLab@gmail.com',
                 subject: 'New User Registration Notification',
+                text: `New user registered:\nName: ${user.name}\nEmail: ${user.email}\nRole: ${user.role}\nPhone: ${user.phone || 'N/A'}`,
                 html: `
-                        <div style="font-family: Arial, sans-serif; max-width: 600px; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
-                            <div style="background-color: #0d2818; padding: 20px; text-align: center;">
-                                <h1 style="color: #ffffff; margin: 0;">New Signup</h1>
-                            </div>
-                            <div style="padding: 20px; color: #333333;">
-                                <p>A new user has registered on the <strong>AdeebTechLab LMS</strong>.</p>
-                                <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;">
-                                    <p style="margin: 5px 0;"><strong>Name:</strong> ${user.name}</p>
-                                    <p style="margin: 5px 0;"><strong>Email:</strong> ${user.email}</p>
-                                    <p style="margin: 5px 0;"><strong>Role:</strong> <span style="text-transform: capitalize;">${user.role}</span></p>
-                                    <p style="margin: 5px 0;"><strong>Phone:</strong> ${user.phone || 'N/A'}</p>
-                                    <p style="margin: 5px 0;"><strong>Signup Date:</strong> ${new Date().toLocaleString()}</p>
-                                </div>
-                                <p>Please log in to the admin dashboard to view and verify this user.</p>
-                                <a href="${getClientUrl()}/login" style="display: inline-block; padding: 12px 24px; background-color: #0d2818; color: white; text-decoration: none; border-radius: 5px; font-weight: bold; margin-top: 10px;">Login to Admin Panel</a>
-                            </div>
-                            <div style="background-color: #f1f1f1; padding: 10px; text-align: center; font-size: 12px; color: #666666;">
-                                This is an automated notification from AdeebTechLab LMS.
-                            </div>
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
+                        <div style="background-color: #0d2818; padding: 20px; text-align: center;">
+                            <h1 style="color: #ffffff; margin: 0;">New Signup</h1>
                         </div>
-                    `
-            };
-
-            // Send email asynchronously without awaiting
-            transporter.sendMail(mailOptions)
+                        <div style="padding: 20px; color: #333333;">
+                            <p>A new user has registered on the <strong>AdeebTechLab LMS</strong>.</p>
+                            <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                                <p style="margin: 5px 0;"><strong>Name:</strong> ${user.name}</p>
+                                <p style="margin: 5px 0;"><strong>Email:</strong> ${user.email}</p>
+                                <p style="margin: 5px 0;"><strong>Role:</strong> <span style="text-transform: capitalize;">${user.role}</span></p>
+                                <p style="margin: 5px 0;"><strong>Phone:</strong> ${user.phone || 'N/A'}</p>
+                                <p style="margin: 5px 0;"><strong>Signup Date:</strong> ${new Date().toLocaleString()}</p>
+                            </div>
+                            <p>Please log in to the admin dashboard to view and verify this user.</p>
+                            <a href="${getClientUrl()}/login" style="display: inline-block; padding: 12px 24px; background-color: #0d2818; color: white; text-decoration: none; border-radius: 5px; font-weight: bold; margin-top: 10px;">Login to Admin Panel</a>
+                        </div>
+                        <div style="background-color: #f1f1f1; padding: 10px; text-align: center; font-size: 12px; color: #666666;">
+                            This is an automated notification from AdeebTechLab LMS.
+                        </div>
+                    </div>
+                `,
+            })
                 .then(() => console.log('✅ Admin notification email sent for new user:', user.email))
                 .catch(emailError => console.error('❌ Error sending admin notification email:', emailError));
 
@@ -567,36 +555,37 @@ router.put('/change-password', protect, async (req, res) => {
 router.get('/test-email', async (req, res) => {
     try {
         console.log('Testing Email Configuration...');
-        const user = process.env.EMAIL_USER;
-        const pass = process.env.EMAIL_PASS;
 
-        if (!user || !pass) {
-            return res.status(500).json({ success: false, message: 'EMAIL_USER or EMAIL_PASS not set' });
+        if (!isEmailConfigured()) {
+            return res.status(500).json({
+                success: false,
+                message: 'No email method configured. Set BREVO_API_KEY or EMAIL_USER+EMAIL_PASS in env.',
+            });
         }
 
-        const transporter = nodemailer.createTransport({
-            service: 'gmail',
-            auth: { user, pass }
-        });
-
-        await transporter.verify();
-        console.log('✅ SMTP Connection verified');
-
-        const info = await transporter.sendMail({
-            from: user,
-            to: user, // Send to self
+        const info = await sendEmail({
+            to: process.env.EMAIL_USER || 'test@adeebtechnolab.com',
             subject: 'LMS Production Email Test',
-            text: 'If you received this, email sending is working on Render!'
+            text: 'If you received this, email sending is working on Render!',
+            html: '<p>If you received this, email sending is working on Render!</p>',
         });
 
-        res.json({ success: true, message: 'Email passed verification and sent', info });
+        res.json({ success: true, message: 'Email sent successfully', info });
     } catch (error) {
         console.error('❌ Email Test Failed:', error);
+
+        const isBrevoAuthError = error.response?.status === 401 || /key not found|unauthorized/i.test(error.message || '');
+        const isGmailAuthError = error.code === 'EAUTH' || error.responseCode === 535 || /invalid login|authentication failed/i.test(error.message || '');
+
+        let hint = '';
+        if (isBrevoAuthError) hint = 'Use xkeysib- API key in BREVO_API_KEY, not xsmtpsib SMTP key.';
+        else if (isGmailAuthError) hint = 'Update EMAIL_PASS with a valid Gmail App Password.';
+
         res.status(500).json({
             success: false,
             message: 'Email test failed',
             error: error.message,
-            stack: error.stack
+            hint,
         });
     }
 });
@@ -620,7 +609,7 @@ router.post('/forgot-password', async (req, res) => {
         const normalizedEmail = email.toLowerCase().trim();
 
         if (!isEmailConfigured()) {
-            console.error('❌ EMAIL_USER or EMAIL_PASS not set in environment');
+            console.error('❌ No email method configured (set BREVO_API_KEY or EMAIL_USER+EMAIL_PASS)');
             return res.status(503).json({
                 success: false,
                 message: 'Email service is not configured on the server. Please contact admin.',
@@ -665,82 +654,23 @@ router.post('/forgot-password', async (req, res) => {
             `,
         };
 
-        // Reply immediately — waiting on Gmail SMTP caused 30s+ timeouts (502) on Render/Vercel
+        // Reply immediately — waiting on email sending caused 30s+ timeouts (502) on Render/Vercel
         res.json(genericSuccess);
 
-<<<<<<< HEAD
-            if (
-                emailError.code === 'BREVO_WRONG_KEY_TYPE' ||
-                emailError.statusCode === 401 ||
-                /key not found|unauthorized/i.test(emailError.message || '')
-            ) {
-                return res.status(503).json({
-                    success: false,
-                    message:
-                        'Email setup error: use Brevo API key (xkeysib-...) in Render BREVO_API_KEY — not the SMTP key (xsmtpsib). See README.',
-                });
-            }
-
-            if (/sender|from/i.test(emailError.message || '') && /verified|valid/i.test(emailError.message || '')) {
-                return res.status(503).json({
-                    success: false,
-                    message:
-                        'Sender email not verified in Brevo. Verify info.adeebtechlab@gmail.com under Senders, then try again.',
-                });
-            }
-
-            const isAuthError =
-                emailError.code === 'EAUTH' ||
-                emailError.responseCode === 535 ||
-                /invalid login|authentication failed/i.test(emailError.message || '');
-
-            const renderSmtpHint =
-                /timed out|ETIMEDOUT|ESOCKET|ECONNECTION/i.test(emailError.message || '') &&
-                !process.env.BREVO_API_KEY &&
-                !process.env.RESEND_API_KEY;
-
-            if (isAuthError) {
-                return res.status(503).json({
-                    success: false,
-                    message:
-                        'Email could not be sent. On Render use BREVO_API_KEY (xkeysib), not Gmail password.',
-                });
-            }
-
-            if (renderSmtpHint) {
-                return res.status(503).json({
-                    success: false,
-                    message:
-                        'Email server blocked SMTP on Render free tier. Add BREVO_API_KEY (xkeysib) on Render.',
-                });
-            }
-
-            return res.status(503).json({
-                success: false,
-                message:
-                    'Could not send reset email. Admin: fix BREVO_API_KEY on Render (must be xkeysib- API key).',
-            });
-        }
-=======
         sendEmail(emailPayload)
             .then(() => console.log(`🔑 Password reset email sent to ${user.email} (${user.role})`))
-            .catch((err) => console.error(`❌ Password reset email failed for ${user.email}:`, err.message));
-        return;
->>>>>>> parent of 68ff33e (news)
+            .catch((err) => {
+                console.error(`❌ Password reset email failed for ${user.email}:`, err.message);
+                if (err.response?.status === 401 || /key not found|unauthorized/i.test(err.message)) {
+                    console.error('🔴 Brevo fix: use xkeysib- API key in BREVO_API_KEY, not xsmtpsib SMTP key.');
+                } else if (/sender|from|verified|valid/i.test(err.message)) {
+                    console.error('🔴 Brevo fix: verify sender email in Brevo dashboard (Senders tab).');
+                } else if (err.code === 'EAUTH' || /invalid login|authentication failed/i.test(err.message)) {
+                    console.error('🔴 Gmail SMTP fix: update EMAIL_PASS with a valid Gmail App Password.');
+                }
+            });
     } catch (error) {
         console.error('Forgot password error:', error);
-
-        const isAuthError =
-            error.code === 'EAUTH' ||
-            error.responseCode === 535 ||
-            /invalid login|authentication failed/i.test(error.message || '');
-
-        if (isAuthError) {
-            return res.status(503).json({
-                success: false,
-                message: 'Email could not be sent. Admin must configure Gmail App Password in EMAIL_PASS.',
-            });
-        }
 
         return res.status(500).json({
             success: false,

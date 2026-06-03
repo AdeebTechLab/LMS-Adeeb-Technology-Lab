@@ -16,7 +16,16 @@ Open http://localhost:5173 — the frontend proxies `/api` to the backend (port 
 
 ## Forgot password / reset email
 
-Password reset emails need Gmail **App Password** (not your normal Gmail password):
+### Option A — Brevo (Sendinblue) API (recommended for Render)
+
+1. Create a free account at https://www.brevo.com
+2. Go to **Settings → API Keys** and copy the **API key** (starts with `xkeysib-...`).
+3. In `backend/.env` set:
+   - `BREVO_API_KEY=xkeysib-...`
+4. On **Render** (production API), add `BREVO_API_KEY` in Environment.
+5. Restart backend.
+
+### Option B — Gmail App Password
 
 1. Enable 2-Step Verification on the Gmail account.
 2. Create an App Password: https://myaccount.google.com/apppasswords
@@ -26,7 +35,8 @@ Password reset emails need Gmail **App Password** (not your normal Gmail passwor
 4. On **Render** (production API), add the same `EMAIL_USER` and `EMAIL_PASS` in Environment.
 5. Restart backend after changing `.env`.
 
-If you see *"Email could not be sent"*, update `EMAIL_PASS` with a new App Password.
+**Note:** Gmail SMTP is often blocked on Render free tier. If emails fail, switch to Brevo (Option A).
+
 If you see *"Cannot reach the server"*, run `npm run dev` in the `backend` folder.
 
 <<<<<<< HEAD
