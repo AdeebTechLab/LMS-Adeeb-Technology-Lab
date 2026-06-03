@@ -48,10 +48,12 @@ const getTransporter = (useAltPort = false) => {
     return transporter;
 };
 
-const isEmailConfigured = () => Boolean(
-    process.env.BREVO_API_KEY ||
-    (process.env.EMAIL_USER && process.env.EMAIL_PASS)
-);
+const isEmailConfigured = () => {
+    if (process.env.BREVO_API_KEY) {
+        return Boolean(process.env.EMAIL_FROM || process.env.EMAIL_USER);
+    }
+    return Boolean(process.env.EMAIL_USER && process.env.EMAIL_PASS);
+};
 
 const isRetryableSmtpError = (error) => {
     const code = error?.code || '';
@@ -70,11 +72,13 @@ const sendEmailViaBrevo = async ({ to, subject, html, text }) => {
         throw new Error('BREVO_API_KEY not set');
     }
 
-    const senderEmail = process.env.EMAIL_FROM || process.env.EMAIL_USER || 'noreply@adeebtechnolab.com';
-    const senderName = 'Adeeb Technology Lab';
+    const senderEmail = process.env.EMAIL_FROM || process.env.EMAIL_USER;
+    if (!senderEmail) {
+        throw new Error('EMAIL_FROM or EMAIL_USER must be set when using Brevo. Also verify this email in Brevo Settings > Senders.');
+    }
 
     const payload = {
-        sender: { name: senderName, email: senderEmail },
+        sender: { name: 'Adeeb Technology Lab', email: senderEmail },
         to: [{ email: to }],
         subject,
         htmlContent: html,

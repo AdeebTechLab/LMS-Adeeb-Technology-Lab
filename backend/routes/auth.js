@@ -574,11 +574,15 @@ router.get('/test-email', async (req, res) => {
     } catch (error) {
         console.error('❌ Email Test Failed:', error);
 
-        const isBrevoAuthError = error.response?.status === 401 || /key not found|unauthorized/i.test(error.message || '');
-        const isGmailAuthError = error.code === 'EAUTH' || error.responseCode === 535 || /invalid login|authentication failed/i.test(error.message || '');
+        const errMsg = error.message || '';
+        const errBody = error.response?.data ? JSON.stringify(error.response.data) : '';
+        const isBrevoAuthError = error.response?.status === 401 || /key not found|unauthorized/i.test(errMsg);
+        const isSenderError = /sender|from|verified|valid|not found/i.test(errMsg + errBody);
+        const isGmailAuthError = error.code === 'EAUTH' || error.responseCode === 535 || /invalid login|authentication failed/i.test(errMsg);
 
         let hint = '';
-        if (isBrevoAuthError) hint = 'Use xkeysib- API key in BREVO_API_KEY, not xsmtpsib SMTP key.';
+        if (isBrevoAuthError) hint = 'Use xkeysib- API key (not xsmtpsib).';
+        else if (isSenderError) hint = 'Verify sender email in Brevo and set EMAIL_FROM in Render env.';
         else if (isGmailAuthError) hint = 'Update EMAIL_PASS with a valid Gmail App Password.';
 
         res.status(500).json({
@@ -660,11 +664,12 @@ router.post('/forgot-password', async (req, res) => {
         sendEmail(emailPayload)
             .then(() => console.log(`🔑 Password reset email sent to ${user.email} (${user.role})`))
             .catch((err) => {
-                console.error(`❌ Password reset email failed for ${user.email}:`, err.message);
+                const brevoBody = err.response?.data ? JSON.stringify(err.response.data) : '';
+                console.error(`❌ Password reset email failed for ${user.email}:`, err.message, brevoBody);
                 if (err.response?.status === 401 || /key not found|unauthorized/i.test(err.message)) {
                     console.error('🔴 Brevo fix: use xkeysib- API key in BREVO_API_KEY, not xsmtpsib SMTP key.');
-                } else if (/sender|from|verified|valid/i.test(err.message)) {
-                    console.error('🔴 Brevo fix: verify sender email in Brevo dashboard (Senders tab).');
+                } else if (/sender|from|verified|valid|not found/i.test(err.message + brevoBody)) {
+                    console.error('🔴 Brevo fix: verify sender email at Brevo > Settings > Senders, then set EMAIL_FROM in Render env.');
                 } else if (err.code === 'EAUTH' || /invalid login|authentication failed/i.test(err.message)) {
                     console.error('🔴 Gmail SMTP fix: update EMAIL_PASS with a valid Gmail App Password.');
                 }
