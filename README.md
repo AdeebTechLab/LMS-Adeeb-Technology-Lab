@@ -39,41 +39,12 @@ Open http://localhost:5173 — the frontend proxies `/api` to the backend (port 
 
 If you see *"Cannot reach the server"*, run `npm run dev` in the `backend` folder.
 
-<<<<<<< HEAD
-1. Create account: [brevo.com](https://www.brevo.com)
-2. **Senders & IP** → **Add a sender** → `info.adeebtechlab@gmail.com` → verify via the link Brevo emails you
-3. **SMTP & API** → **Create API key** → copy the key
-4. On [Render Dashboard](https://dashboard.render.com) → your service → **Environment** → add:
+### Common gotchas
 
-   | Key | Value |
-   |-----|--------|
-   | `BREVO_API_KEY` | paste API key |
-   | `EMAIL_USER` | `info.adeebtechlab@gmail.com` (same verified sender) |
-   | `EMAIL_FROM` | `info.adeebtechlab@gmail.com` |
-
-5. **Save** → **Manual Deploy** (restart service)
-
-6. Test in browser:  
-   `https://lms-adeeb-technology-lab.onrender.com/api/auth/test-email`  
-   You should see `"success":true` and get a test email at `EMAIL_USER`.
-
-### Error: "Could not send reset email" or Brevo 401
-
-Render par **galat key** lagi hai. `xsmtpsib-...` = SMTP key (wrong). You need **`xkeysib-...`** from **API keys & MCP** tab, not the SMTP tab.
-
-### Local development (optional)
-
-Use Gmail App Password in `backend/.env` (no `BREVO_API_KEY` needed locally):
-
-- https://myaccount.google.com/apppasswords  
-- `EMAIL_USER` + `EMAIL_PASS`
-
-### Vercel (frontend)
-
-`VITE_API_URL` = `https://lms-adeeb-technology-lab.onrender.com/api` then redeploy.
-=======
-**Deploy:** Push code to GitHub so **Render** (backend) and **Vercel** (frontend) both redeploy. Forgot-password must use the latest backend (instant API response; email sends in background).
->>>>>>> parent of 68ff33e (news)
+- **Wrong key type**: `xsmtpsib-...` is the SMTP key (wrong). Use `xkeysib-...` from **Brevo → Settings → API Keys**.
+- **Sender not verified**: Verify your sender email in Brevo dashboard under **Senders** tab.
+- **Deploy**: Push code to GitHub — Render (backend) and Vercel (frontend) redeploy automatically.
+- **Frontend**: Set `VITE_API_URL=https://lms-adeeb-technology-lab.onrender.com/api` in Vercel env.
 
 
 
