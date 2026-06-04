@@ -202,7 +202,7 @@ router.post('/register', uploadRegistration.fields([
                                 <p style="margin: 5px 0;"><strong>Signup Date:</strong> ${new Date().toLocaleString()}</p>
                             </div>
                             <p>Please log in to the admin dashboard to view and verify this user.</p>
-                            <a href="${getClientUrl()}/login" style="display: inline-block; padding: 12px 24px; background-color: #0d2818; color: white; text-decoration: none; border-radius: 5px; font-weight: bold; margin-top: 10px;">Login to Admin Panel</a>
+                            <a href="${getClientUrl(req)}/login" style="display: inline-block; padding: 12px 24px; background-color: #0d2818; color: white; text-decoration: none; border-radius: 5px; font-weight: bold; margin-top: 10px;">Login to Admin Panel</a>
                         </div>
                         <div style="background-color: #f1f1f1; padding: 10px; text-align: center; font-size: 12px; color: #666666;">
                             This is an automated notification from AdeebTechLab LMS.
@@ -632,7 +632,7 @@ router.post('/forgot-password', async (req, res) => {
         user.passwordResetExpires = Date.now() + 60 * 60 * 1000;
         await user.save({ validateBeforeSave: false });
 
-        const resetUrl = `${getClientUrl()}/reset-password/${resetToken}`;
+        const resetUrl = `${getClientUrl(req)}/reset-password/${resetToken}`;
         const roleLabel = user.role.charAt(0).toUpperCase() + user.role.slice(1);
 
         const emailPayload = {
