@@ -588,7 +588,7 @@ const ChatWidget = () => {
                         {/* Header */}
                         <div className="bg-primary p-4 text-white flex items-center justify-between">
                             <div className="flex items-center gap-4">
-                                {activeChat ? (
+                                {activeChat && user?.role === 'admin' ? (
                                     <button
                                         onClick={goBack}
                                         className="flex items-center gap-2 px-3 py-2 bg-white/10 hover:bg-white/20 rounded-2xl transition-all active:scale-95 group"
@@ -597,8 +597,8 @@ const ChatWidget = () => {
                                         <span className="font-bold text-sm">Back</span>
                                     </button>
                                 ) : (
-                                    <div className="w-14 h-14 bg-white/20 rounded-[1.25rem] flex items-center justify-center shadow-inner">
-                                        <MessageCircle className="w-7 h-7" />
+                                    <div className="w-14 h-14 flex items-center justify-center overflow-hidden">
+                                        <img src="/livechat.png" alt="Chat" className="w-full h-full object-contain" />
                                     </div>
                                 )}
                                 <div>
@@ -808,45 +808,66 @@ const ChatWidget = () => {
                                                 const myId = (user.id || user._id).toString();
                                                 const senderId = (msg.sender?._id || msg.sender || msg.senderId).toString();
                                                 const isMe = senderId === myId;
-
                                                 const isBot = msg.isBot;
+                                                
+                                                const getAvatarUrl = () => {
+                                                    if (isBot) return "/livechat.png";
+                                                    if (isMe) return user?.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || 'User')}&background=random`;
+                                                    
+                                                    const otherName = msg.sender?.name || activeChat?.userName || 'User';
+                                                    return msg.sender?.photo || activeChat?.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(otherName)}&background=random`;
+                                                };
 
                                                 return (
-                                                    <div key={index} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
-                                                        {isBot ? (
-                                                            <div className="relative max-w-[85%] px-5 py-4 rounded-2xl rounded-tl-sm text-sm font-medium shadow-lg leading-relaxed whitespace-pre-wrap bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700/50 shadow-slate-200/50 dark:shadow-slate-900/20"
-                                                                dangerouslySetInnerHTML={{ __html: msg.text.replace(/((https?:\/\/|www\.)[^\s<]+)/gi, url => `<a href="${url.startsWith('www.') ? 'https://'+url : url}" target="_blank" class="text-primary hover:text-orange-600 dark:text-orange-400 dark:hover:text-orange-300 underline decoration-primary/30 dark:decoration-orange-400/40 underline-offset-4 font-bold transition-colors">${url}</a>`) }}
-                                                            />
-                                                        ) : (
-                                                            <div className={`max-w-[85%] p-3.5 rounded-2xl text-[15px] shadow-sm leading-relaxed whitespace-pre-wrap ${isMe
-                                                                ? 'bg-primary text-white rounded-tr-none shadow-orange-100'
-                                                                : 'bg-white text-gray-800 border border-gray-100 rounded-tl-none pr-6'
-                                                                }`}>
-                                                                {msg.text}
+                                                    <div key={index} className={`flex w-full ${isMe ? 'justify-end' : 'justify-start'}`}>
+                                                        <div className={`flex gap-2 max-w-[90%] ${isMe ? 'flex-row-reverse' : 'flex-row'}`}>
+                                                            {/* Avatar */}
+                                                            <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 mt-auto mb-5 shadow-sm border border-gray-100 dark:border-gray-700 bg-white">
+                                                                <img src={getAvatarUrl()} alt="Avatar" className="w-full h-full object-cover" />
                                                             </div>
-                                                        )}
-                                                        {msg.options && msg.options.length > 0 && (
-                                                            <div className="flex flex-wrap gap-2 mt-4 max-w-[85%]">
-                                                                {msg.options.map((opt, i) => (
-                                                                    <button
-                                                                        key={i}
-                                                                        onClick={() => handleOptionClick(opt.value)}
-                                                                        className={`px-3 py-1.5 text-[11.5px] font-semibold rounded-xl transition-all duration-300 shadow-sm border-none ${
-                                                                            opt.label.toLowerCase() === 'main menu' 
-                                                                                ? 'bg-gradient-to-r from-emerald-500 to-green-600 text-white hover:shadow-lg hover:shadow-green-500/30 hover:-translate-y-0.5'
-                                                                                : opt.label.toLowerCase() === 'exit'
-                                                                                    ? 'bg-gradient-to-r from-rose-500 to-red-600 text-white hover:shadow-lg hover:shadow-red-500/30 hover:-translate-y-0.5'
-                                                                                    : 'bg-gradient-to-r from-primary to-orange-600 text-white hover:shadow-lg hover:shadow-orange-500/30 hover:-translate-y-0.5'
-                                                                        }`}
-                                                                    >
-                                                                        {opt.label}
-                                                                    </button>
-                                                                ))}
+                                                            
+                                                            {/* Message Content */}
+                                                            <div className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
+                                                                {isBot ? (
+                                                                    <div className="relative px-5 py-4 rounded-2xl rounded-bl-sm text-sm font-medium shadow-lg leading-relaxed whitespace-pre-wrap bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700/50 shadow-slate-200/50 dark:shadow-slate-900/20"
+                                                                        dangerouslySetInnerHTML={{ __html: msg.text.replace(/((https?:\/\/|www\.)[^\s<]+)/gi, url => `<a href="${url.startsWith('www.') ? 'https://'+url : url}" target="_blank" class="text-primary hover:text-orange-600 dark:text-orange-400 dark:hover:text-orange-300 underline decoration-primary/30 dark:decoration-orange-400/40 underline-offset-4 font-bold transition-colors">${url}</a>`) }}
+                                                                    />
+                                                                ) : (
+                                                                    <div className={`p-3.5 rounded-2xl text-[15px] shadow-sm leading-relaxed whitespace-pre-wrap ${isMe
+                                                                        ? 'bg-primary text-white rounded-br-none shadow-orange-100'
+                                                                        : 'bg-white text-gray-800 border border-gray-100 rounded-bl-none pr-6'
+                                                                        }`}>
+                                                                        {msg.text}
+                                                                    </div>
+                                                                )}
+                                                                
+                                                                {/* Options (Buttons) */}
+                                                                {msg.options && msg.options.length > 0 && (
+                                                                    <div className={`flex flex-wrap gap-2 mt-4 ${isMe ? 'justify-end' : 'justify-start'}`}>
+                                                                        {msg.options.map((opt, i) => (
+                                                                            <button
+                                                                                key={i}
+                                                                                onClick={() => handleOptionClick(opt.value)}
+                                                                                className={`px-3 py-1.5 text-[11.5px] font-semibold rounded-xl transition-all duration-300 shadow-sm border-none ${
+                                                                                    opt.label.toLowerCase() === 'main menu' 
+                                                                                        ? 'bg-gradient-to-r from-emerald-500 to-green-600 text-white hover:shadow-lg hover:shadow-green-500/30 hover:-translate-y-0.5'
+                                                                                        : opt.label.toLowerCase() === 'exit'
+                                                                                            ? 'bg-gradient-to-r from-rose-500 to-red-600 text-white hover:shadow-lg hover:shadow-red-500/30 hover:-translate-y-0.5'
+                                                                                            : 'bg-gradient-to-r from-primary to-orange-600 text-white hover:shadow-lg hover:shadow-orange-500/30 hover:-translate-y-0.5'
+                                                                                }`}
+                                                                            >
+                                                                                {opt.label}
+                                                                            </button>
+                                                                        ))}
+                                                                    </div>
+                                                                )}
+                                                                
+                                                                {/* Time */}
+                                                                <span className={`text-[10px] text-gray-400 mt-1.5 px-1 font-bold uppercase tracking-wider`}>
+                                                                    {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                                </span>
                                                             </div>
-                                                        )}
-                                                        <span className={`text-[10px] text-gray-400 mt-1.5 px-1 font-bold uppercase tracking-wider ${isMe ? 'mr-1' : 'ml-1'}`}>
-                                                            {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                                        </span>
+                                                        </div>
                                                     </div>
                                                 );
                                             })
