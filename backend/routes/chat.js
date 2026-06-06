@@ -74,11 +74,54 @@ router.post('/messages', protect, async (req, res) => {
 
         res.status(201).json({ success: true, data: populatedMessage });
 
-        // Trigger Google Sheet auto-reply bot check asynchronously if student/user sends a message to an admin
-        if (req.user.role !== 'admin' && populatedMessage.recipient && populatedMessage.recipient.role === 'admin') {
-            const { checkGoogleSheetAndReply } = require('../utils/chatbot');
-            checkGoogleSheetAndReply(text, senderId, recipientId, req.app);
+
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// @route   POST /api/chat/bot-reply
+// @desc    Save a bot reply so Admin can see it
+// @access  Private
+router.post('/bot-reply', protect, async (req, res) => {
+    try {
+        const { recipientId, text } = req.body; // recipientId is Admin
+        const studentId = req.user.id;
+
+        // Create message as if Admin sent it to Student
+        const message = await GlobalMessage.create({
+            sender: recipientId,
+            recipient: studentId,
+            text
+        });
+
+        const populatedMessage = await GlobalMessage.findById(message._id)
+            .populate('sender', 'name role')
+            .populate('recipient', 'name role');
+
+        // Emit via socket to Admin only (Student already shows it optimistically)
+        const io = req.app.get('io');
+        if (io) {
+            const socketData = {
+                ...populatedMessage.toObject(),
+                senderId: recipientId, // Admin is the sender in DB
+                recipientId: studentId,
+                senderName: 'Adeeb Chatbot',
+                isBot: true,
+                notifyAdmin: true // Flag to tell frontend to notify the admin
+            };
+            io.to(recipientId.toString()).emit('new_global_message', socketData);
         }
+
+        // Trigger a Web Push Notification for the Admin
+        sendPushNotification(recipientId, {
+            title: `Bot is assisting ${populatedMessage.recipient.name}`,
+            body: text,
+            icon: '/logo.png',
+            url: `/chat`
+        });
+
+        res.status(201).json({ success: true, data: populatedMessage });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }

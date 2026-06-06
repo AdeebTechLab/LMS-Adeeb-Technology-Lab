@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import Loader, { ButtonLoader } from '../ui/Loader';
 import { chatAPI, userAPI } from '../../services/api';
+import { getAnswer, isUrl, openExternalUrl } from './chatbotHelper';
 
 const getSocketURL = () => {
     const rawUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -30,6 +31,7 @@ const ChatWidget = () => {
     const [activeTab, setActiveTab] = useState('all'); // all | student | intern | teacher | job
     const [tabUnreadCounts, setTabUnreadCounts] = useState({});
     const [allUsers, setAllUsers] = useState([]); // List of all verified users for the active tab (unified directory)
+    const [isBotTyping, setIsBotTyping] = useState(false);
 
     const socketRef = useRef();
     const scrollRef = useRef();
@@ -157,11 +159,15 @@ const ChatWidget = () => {
                 }
             } else {
                 // Not the active chat
-                if (recipientId === myIdStr) {
-                    setUnreadCount(prev => prev + 1);
+                if (recipientId === myIdStr || (data.notifyAdmin && senderId === myIdStr)) {
+                    if (recipientId === myIdStr) {
+                        setUnreadCount(prev => prev + 1);
+                    }
+
+                    const notifTitle = data.notifyAdmin ? `Bot assisting a user` : (data.senderName || 'New Message');
 
                     setIncomingNotify({
-                        senderName: data.senderName || 'New Message',
+                        senderName: notifTitle,
                         text: data.text
                     });
                     // Clear notification after 5s
@@ -169,7 +175,7 @@ const ChatWidget = () => {
 
                     // Show browser notification for background messages
                     if (document.hidden || !isOpenRef.current) {
-                        showBrowserNotification(`New message from ${data.senderName || 'New Message'}`, data.text);
+                        showBrowserNotification(notifTitle, data.text);
                     }
                 }
 
@@ -392,18 +398,37 @@ const ChatWidget = () => {
                 })
                 .catch(console.error);
 
-            // Auto-send "Help" if pending for non-admin support chat
+            // Auto-send "Main Menu" if pending for non-admin support chat
             if (autoSendHelpPendingRef.current && user?.role !== 'admin') {
                 autoSendHelpPendingRef.current = false;
                 try {
-                    const sendRes = await chatAPI.sendMessage(otherUserId, 'Help');
-                    const savedMsg = sendRes.data.data;
+                    const botRes = await getAnswer("Main Menu", user?.name);
+                    const botMsg = {
+                        _id: 'bot-' + Date.now(),
+                        text: botRes.answer,
+                        senderId: 'bot',
+                        sender: { _id: 'bot', name: 'Adeeb Chatbot' },
+                        createdAt: new Date().toISOString(),
+                        isBot: true,
+                        options: botRes.options
+                    };
                     setMessages(prev => {
-                        if (prev.some(m => m._id === savedMsg._id)) return prev;
-                        return [...prev, savedMsg];
+                        if (prev.some(m => m._id === botMsg._id)) return prev;
+                        return [...prev, botMsg];
                     });
+                    
+                    // Send to backend so Admin sees it
+                    try {
+                        const adminId = adminUser ? adminUser._id : otherUserId;
+                        if (adminId) {
+                            const adminText = botRes.answer + (botRes.options?.length > 0 ? '\n\n[Options Provided: ' + botRes.options.map(o => o.label).join(' | ') + ']' : '');
+                            await chatAPI.sendBotReply(adminId, adminText);
+                        }
+                    } catch (err) {
+                        console.error('Error syncing bot menu to backend', err);
+                    }
                 } catch (e) {
-                    console.error('Error sending auto-Help message:', e);
+                    console.error('Error fetching bot menu:', e);
                 }
             }
         } catch (error) {
@@ -413,14 +438,14 @@ const ChatWidget = () => {
         }
     };
 
-    const handleSendMessage = async (e) => {
-        e.preventDefault();
+    const handleSendMessage = async (e, textOverride) => {
+        if (e) e.preventDefault();
         const recipientId = user?.role === 'admin' ? activeChat.userId : adminUser?._id;
 
-        if (!newMessage.trim() || !recipientId) return;
+        const text = textOverride || newMessage;
+        if (!text.trim() || !recipientId) return;
 
-        const text = newMessage;
-        setNewMessage('');
+        if (!textOverride) setNewMessage('');
 
         try {
             const res = await chatAPI.sendMessage(recipientId, text);
@@ -439,9 +464,61 @@ const ChatWidget = () => {
                 fetchConversations();
             }
 
+            // [NEW] Bot Logic for non-admins
+            if (user?.role !== 'admin') {
+                setIsBotTyping(true);
+                setTimeout(async () => {
+                    try {
+                        const botRes = await getAnswer(text, user?.name);
+                        const botMsg = {
+                            _id: 'bot-' + Date.now(),
+                            text: botRes.answer,
+                            senderId: 'bot',
+                            sender: { _id: 'bot', name: 'Adeeb Chatbot' },
+                            createdAt: new Date().toISOString(),
+                            isBot: true,
+                            options: botRes.options
+                        };
+                        setMessages(prev => [...prev, botMsg]);
+
+                        // Send to backend so Admin sees it
+                        try {
+                            const adminId = adminUser ? adminUser._id : activeChat?.userId;
+                            if (adminId) {
+                                const adminText = botRes.answer + (botRes.options?.length > 0 ? '\n\n[Options Provided: ' + botRes.options.map(o => o.label).join(' | ') + ']' : '');
+                                await chatAPI.sendBotReply(adminId, adminText);
+                            }
+                        } catch (err) {
+                            console.error('Error syncing bot reply to backend', err);
+                        }
+                    } catch (err) {
+                        console.error('Bot Error:', err);
+                    } finally {
+                        setIsBotTyping(false);
+                    }
+                }, 500); // slight delay for "typing" feel
+            }
+
         } catch (e) {
             console.error('Error sending message:', e);
         }
+    };
+
+    const handleOptionClick = (value) => {
+        if (isUrl(value)) {
+            openExternalUrl(value);
+            // Optionally add to chat
+            const linkMsg = {
+                _id: 'link-' + Date.now(),
+                text: value,
+                senderId: (user.id || user._id).toString(),
+                sender: user,
+                createdAt: new Date().toISOString()
+            };
+            setMessages(prev => [...prev, linkMsg]);
+            return;
+        }
+        handleSendMessage(null, value);
     };
 
     const handleDeleteChat = async () => {
@@ -732,20 +809,56 @@ const ChatWidget = () => {
                                                 const senderId = (msg.sender?._id || msg.sender || msg.senderId).toString();
                                                 const isMe = senderId === myId;
 
+                                                const isBot = msg.isBot;
+
                                                 return (
                                                     <div key={index} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
-                                                        <div className={`max-w-[85%] p-3.5 rounded-2xl text-[15px] shadow-sm leading-relaxed whitespace-pre-wrap ${isMe
-                                                            ? 'bg-primary text-white rounded-tr-none shadow-orange-100'
-                                                            : 'bg-white text-gray-800 border border-gray-100 rounded-tl-none pr-6'
-                                                            }`}>
-                                                            {msg.text}
-                                                        </div>
+                                                        {isBot ? (
+                                                            <div className="relative max-w-[85%] px-5 py-4 rounded-2xl rounded-tl-sm text-sm font-medium shadow-lg leading-relaxed whitespace-pre-wrap bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700/50 shadow-slate-200/50 dark:shadow-slate-900/20"
+                                                                dangerouslySetInnerHTML={{ __html: msg.text.replace(/((https?:\/\/|www\.)[^\s<]+)/gi, url => `<a href="${url.startsWith('www.') ? 'https://'+url : url}" target="_blank" class="text-primary hover:text-orange-600 dark:text-orange-400 dark:hover:text-orange-300 underline decoration-primary/30 dark:decoration-orange-400/40 underline-offset-4 font-bold transition-colors">${url}</a>`) }}
+                                                            />
+                                                        ) : (
+                                                            <div className={`max-w-[85%] p-3.5 rounded-2xl text-[15px] shadow-sm leading-relaxed whitespace-pre-wrap ${isMe
+                                                                ? 'bg-primary text-white rounded-tr-none shadow-orange-100'
+                                                                : 'bg-white text-gray-800 border border-gray-100 rounded-tl-none pr-6'
+                                                                }`}>
+                                                                {msg.text}
+                                                            </div>
+                                                        )}
+                                                        {msg.options && msg.options.length > 0 && (
+                                                            <div className="flex flex-wrap gap-2 mt-4 max-w-[85%]">
+                                                                {msg.options.map((opt, i) => (
+                                                                    <button
+                                                                        key={i}
+                                                                        onClick={() => handleOptionClick(opt.value)}
+                                                                        className={`px-3 py-1.5 text-[11.5px] font-semibold rounded-xl transition-all duration-300 shadow-sm border-none ${
+                                                                            opt.label.toLowerCase() === 'main menu' 
+                                                                                ? 'bg-gradient-to-r from-emerald-500 to-green-600 text-white hover:shadow-lg hover:shadow-green-500/30 hover:-translate-y-0.5'
+                                                                                : opt.label.toLowerCase() === 'exit'
+                                                                                    ? 'bg-gradient-to-r from-rose-500 to-red-600 text-white hover:shadow-lg hover:shadow-red-500/30 hover:-translate-y-0.5'
+                                                                                    : 'bg-gradient-to-r from-primary to-orange-600 text-white hover:shadow-lg hover:shadow-orange-500/30 hover:-translate-y-0.5'
+                                                                        }`}
+                                                                    >
+                                                                        {opt.label}
+                                                                    </button>
+                                                                ))}
+                                                            </div>
+                                                        )}
                                                         <span className={`text-[10px] text-gray-400 mt-1.5 px-1 font-bold uppercase tracking-wider ${isMe ? 'mr-1' : 'ml-1'}`}>
                                                             {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                                         </span>
                                                     </div>
                                                 );
                                             })
+                                        )}
+                                        {isBotTyping && (
+                                            <div className="flex items-start">
+                                                <div className="bg-gray-800 text-white border border-gray-700 rounded-2xl rounded-tl-none px-4 py-3 flex gap-1 items-center h-10 shadow-sm">
+                                                    <span className="w-1.5 h-1.5 bg-orange-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                                                    <span className="w-1.5 h-1.5 bg-orange-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                                                    <span className="w-1.5 h-1.5 bg-orange-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                                                </div>
+                                            </div>
                                         )}
                                         <div ref={scrollRef} />
                                     </div>

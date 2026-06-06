@@ -239,6 +239,7 @@ export const userNotificationAPI = {
 export const chatAPI = {
     getMessages: (otherUserId) => api.get(`/chat/messages/${otherUserId}`),
     sendMessage: (recipientId, text) => api.post('/chat/messages', { recipientId, text }),
+    sendBotReply: (recipientId, text) => api.post('/chat/bot-reply', { recipientId, text }),
     getConversations: () => api.get('/chat/conversations'),
     markAsRead: (senderId) => api.put(`/chat/read/${senderId}`),
     getUnread: () => api.get('/chat/unread'),
