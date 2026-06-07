@@ -30,8 +30,8 @@ import { calculateOutstandingFees } from '../../utils/feeHelpers';
 import { useTranslation } from 'react-i18next';
 
 const getSocketURL = () => {
-    const rawUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-    return rawUrl.replace('/api', '');
+    const rawUrl = import.meta.env.VITE_API_URL || (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1' ? 'https://lms-adeeb-technology-lab.onrender.com/api' : 'http://localhost:5000/api');
+    return rawUrl === '/api' ? 'https://lms-adeeb-technology-lab.onrender.com' : rawUrl.replace(/\/api\/?$/, '');
 };
 
 const SOCKET_URL = getSocketURL();
@@ -96,10 +96,52 @@ const StudentDashboard = () => {
         };
     }, []);
 
+    const notifyLiveClass = (liveClass) => {
+        if (!('Notification' in window)) return;
+        
+        const notifiedClasses = JSON.parse(localStorage.getItem('notifiedLiveClasses') || '[]');
+        if (notifiedClasses.includes(liveClass._id)) return;
+
+        const showNotification = () => {
+            const notification = new Notification(`Live Class: ${liveClass.title}`, {
+                body: liveClass.description || `Class by ${liveClass.createdBy?.name || 'Teacher'}. Click to join now!`,
+                icon: '/favicon.ico'
+            });
+            notification.onclick = () => {
+                window.focus();
+                if (liveClass.link?.includes('/live-meet/')) {
+                    window.open(`/live-meet/${liveClass.link.split('/').pop()}`, '_blank');
+                } else {
+                    window.open(liveClass.link, '_blank');
+                }
+                notification.close();
+            };
+            
+            notifiedClasses.push(liveClass._id);
+            // Keep array size manageable
+            if (notifiedClasses.length > 50) notifiedClasses.shift();
+            localStorage.setItem('notifiedLiveClasses', JSON.stringify(notifiedClasses));
+        };
+
+        if (Notification.permission === 'granted') {
+            showNotification();
+        } else if (Notification.permission !== 'denied') {
+            Notification.requestPermission().then(permission => {
+                if (permission === 'granted') {
+                    showNotification();
+                }
+            });
+        }
+    };
+
     const fetchActiveLiveClasses = async () => {
         try {
             const res = await liveClassAPI.getActive();
-            setActiveLiveClasses(res.data.data || []);
+            const classes = res.data.data || [];
+            setActiveLiveClasses(classes);
+            
+            // Trigger desktop notification for new classes
+            classes.forEach(c => notifyLiveClass(c));
         } catch (error) {
             console.error('Error fetching live classes:', error);
         }

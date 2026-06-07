@@ -60,9 +60,9 @@ const TeacherCourses = ({ isDashboard = false }) => {
 
     const socketRef = useRef(null);
     const getSocketURL = () => {
-        const rawUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-        return rawUrl.replace('/api', '');
-    };
+    const rawUrl = import.meta.env.VITE_API_URL || (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1' ? 'https://lms-adeeb-technology-lab.onrender.com/api' : 'http://localhost:5000/api');
+    return rawUrl === '/api' ? 'https://lms-adeeb-technology-lab.onrender.com' : rawUrl.replace(/\/api\/?$/, '');
+};
     const SOCKET_URL = getSocketURL();
 
     useEffect(() => {
@@ -299,7 +299,15 @@ const TeacherCourses = ({ isDashboard = false }) => {
 
     const handleSelectCourse = (course) => {
         // Navigate to the Attendance/Course Detail page
-        navigate(`/teacher/course/${course.id || course._id}`);
+        let targetTab = undefined;
+        if (isDashboard) {
+            if (course.unreadMessages > 0) {
+                targetTab = 'chat';
+            } else if (course.pendingAssignments > 0) {
+                targetTab = 'assignments';
+            }
+        }
+        navigate(`/teacher/course/${course.id || course._id}`, { state: { tab: targetTab } });
     };
 
     if (isLoading) {

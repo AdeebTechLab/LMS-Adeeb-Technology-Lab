@@ -6,7 +6,7 @@ import { Eye, EyeOff, Mail, Lock, ArrowLeft, GraduationCap } from 'lucide-react'
 import { loginStart, loginSuccess, loginFailure } from '../../features/auth/authSlice';
 import { authAPI } from '../../services/api';
 import { ButtonLoader } from '../../components/ui/Loader';
-import WhatsAppWidget from '../../components/shared/WhatsAppWidget';
+import GuestChatWidget from '../../components/shared/GuestChatWidget';
 import { useTranslation } from 'react-i18next';
 
 const Login = () => {
@@ -350,7 +350,7 @@ const Login = () => {
                     </form>
                 </div>
             </motion.div>
-            <WhatsAppWidget />
+            <GuestChatWidget />
         </div>
     );
 };

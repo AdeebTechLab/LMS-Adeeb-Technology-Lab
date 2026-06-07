@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import {
     GraduationCap, BookOpen, Briefcase, Users, ArrowLeft
 } from 'lucide-react';
+import GuestChatWidget from '../../components/shared/GuestChatWidget';
 
 const RoleSelection = () => {
     const roles = [
@@ -227,6 +228,7 @@ const RoleSelection = () => {
 
 
 
+            <GuestChatWidget />
         </div>
     );
 };

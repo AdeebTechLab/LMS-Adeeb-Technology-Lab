@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import Loader, { ButtonLoader } from '../../components/ui/Loader';
+import RichTextContent from '../../components/ui/RichTextContent';
 import { courseAPI, assignmentAPI } from '../../services/api';
 import { formatDate, formatDateTime } from '../../utils/dateFormatter';
 
@@ -304,7 +305,7 @@ const GradingSystem = () => {
                         {submission.notes && (
                             <div className="mt-4 p-4 bg-gray-50 rounded-xl">
                                 <p className="text-sm font-medium text-gray-700 mb-1">Student Notes:</p>
-                                <p className="text-sm text-gray-600">{submission.notes}</p>
+                                <RichTextContent html={submission.notes} className="text-sm text-gray-600" />
                             </div>
                         )}
                     </motion.div>

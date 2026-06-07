@@ -296,7 +296,7 @@ const StudentWorkView = ({ student, onBack }) => {
                                                                 {submission.notes && (
                                                                     <div className="bg-white p-3 rounded-xl border border-gray-100">
                                                                         <p className="text-[10px] font-black text-gray-400 uppercase mb-1 tracking-widest">Student Notes</p>
-                                                                        <p className="text-sm text-gray-700 italic font-medium whitespace-pre-wrap">{submission.notes}</p>
+                                                                        <RichTextContent html={submission.notes} className="text-sm text-gray-700 italic font-medium" />
                                                                     </div>
                                                                 )}
                                                                 {submission.fileUrl && (

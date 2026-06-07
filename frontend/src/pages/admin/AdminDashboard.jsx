@@ -239,9 +239,13 @@ const AdminDashboard = () => {
             accessor: 'student',
             render: (row) => (
                 <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-[10px] font-black italic">
-                        {row.student.charAt(0)}
-                    </div>
+                    {row.photo ? (
+                        <img src={getImageUrl(row.photo)} alt={row.student} className="w-10 h-10 rounded-full object-cover border border-gray-200 shadow-sm" />
+                    ) : (
+                        <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white text-[12px] font-black italic shadow-sm">
+                            {row.student.charAt(0)}
+                        </div>
+                    )}
                     <span className="font-bold text-gray-900 text-xs uppercase tracking-tighter">{row.student}</span>
                 </div>
             ),

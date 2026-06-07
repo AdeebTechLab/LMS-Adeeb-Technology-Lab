@@ -21,8 +21,8 @@ import { calculateOutstandingFees } from '../../utils/feeHelpers';
 import { io } from 'socket.io-client';
 
 const getSocketURL = () => {
-    const rawUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-    return rawUrl.replace('/api', '');
+    const rawUrl = import.meta.env.VITE_API_URL || (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1' ? 'https://lms-adeeb-technology-lab.onrender.com/api' : 'http://localhost:5000/api');
+    return rawUrl === '/api' ? 'https://lms-adeeb-technology-lab.onrender.com' : rawUrl.replace(/\/api\/?$/, '');
 };
 
 const SOCKET_URL = getSocketURL();
@@ -491,7 +491,7 @@ const AssignmentSubmission = () => {
                                     {selectedAssignment && (
                                         <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
                                             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setSelectedAssignment(null)} className="fixed inset-0 bg-[#0f172a]/80 backdrop-blur-xl" />
-                                            <motion.div initial={{ opacity: 0, scale: 0.95, y: 30 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 30 }} className="bg-white dark:bg-[#0f172a] w-full max-w-xl rounded-2xl shadow-2xl border border-white/20 relative z-10 overflow-hidden">
+                                            <motion.div initial={{ opacity: 0, scale: 0.95, y: 30 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 30 }} className="bg-white dark:bg-[#0f172a] w-full max-w-3xl rounded-2xl shadow-2xl border border-white/20 relative z-10 overflow-hidden">
                                                 <div className="bg-primary p-10 text-white relative">
                                                     <h3 className="text-2xl font-black uppercase tracking-tight leading-none mb-2">Submit Assignment</h3>
                                                     <p className="text-white/70 text-xs font-bold uppercase tracking-widest">Share your work link and notes for evaluation</p>
@@ -505,7 +505,13 @@ const AssignmentSubmission = () => {
                                                         </div>
                                                         <div>
                                                             <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-3 block">Notes</label>
-                                                            <textarea placeholder="Any additional notes for the teacher..." rows="4" value={submissionText} onChange={(e) => setSubmissionText(e.target.value)} className="w-full px-6 py-5 bg-slate-50 dark:bg-black/40 border-2 border-slate-100 dark:border-slate-800 rounded-3xl outline-none focus:border-primary font-bold transition-all resize-none text-sm" />
+                                                            <RichTextEditor
+                                                                value={submissionText}
+                                                                onChange={setSubmissionText}
+                                                                placeholder="Any additional notes for the teacher..."
+                                                                minHeight="200px"
+                                                                className="border-primary/30"
+                                                            />
                                                         </div>
                                                     </div>
                                                     <button onClick={() => handleSubmit(selectedAssignment._id)} disabled={isSubmitting} className="w-full py-5 bg-primary text-white font-black uppercase tracking-widest text-xs rounded-3xl shadow-2xl transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-3">

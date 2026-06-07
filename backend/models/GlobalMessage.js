@@ -23,7 +23,17 @@ const globalMessageSchema = new mongoose.Schema({
     isRead: {
         type: Boolean,
         default: false
-    }
+    },
+    isBot: {
+        type: Boolean,
+        default: false
+    },
+    options: [
+        {
+            label: { type: String },
+            value: { type: String }
+        }
+    ]
 }, {
     timestamps: true
 });

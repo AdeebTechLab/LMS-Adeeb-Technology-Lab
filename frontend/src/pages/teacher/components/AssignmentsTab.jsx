@@ -23,6 +23,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
     const [studentSearchTerm, setStudentSearchTerm] = useState('');
     const [assignSearchTerm, setAssignSearchTerm] = useState(''); // For searching students when assigning
     const [assignmentTitleFilter, setAssignmentTitleFilter] = useState(''); // For searching assignments by title
+    const [activeStatFilter, setActiveStatFilter] = useState('all'); // For stat block filtering
 
     // Create Form State
     const [newAssignment, setNewAssignment] = useState({
@@ -286,18 +287,24 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
             </div>
 
             {/* Quick Stats Summary Row */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                <div className="bg-primary/5 rounded-3xl p-6 border border-primary/10 text-center shadow-sm hover:shadow-md transition-all">
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
+                <button 
+                    onClick={() => setActiveStatFilter('all')}
+                    className={`w-full bg-primary/5 rounded-3xl p-6 border text-center shadow-sm hover:shadow-md transition-all focus:outline-none ${activeStatFilter === 'all' ? 'border-primary ring-2 ring-primary/20 scale-105' : 'border-primary/10 hover:border-primary/30'}`}>
                     <p className="text-2xl sm:text-3xl font-black text-primary">{assignments.length}</p>
                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Total Assignments</p>
-                </div>
-                <div className="bg-green-50 dark:bg-green-500/10 rounded-3xl p-6 border border-green-100 dark:border-green-500/20 text-center shadow-sm hover:shadow-md transition-all">
+                </button>
+                <button 
+                    onClick={() => setActiveStatFilter(activeStatFilter === 'submissions' ? 'all' : 'submissions')}
+                    className={`w-full bg-green-50 dark:bg-green-500/10 rounded-3xl p-6 border text-center shadow-sm hover:shadow-md transition-all focus:outline-none ${activeStatFilter === 'submissions' ? 'border-green-500 ring-2 ring-green-500/20 scale-105' : 'border-green-100 dark:border-green-500/20 hover:border-green-300'}`}>
                     <p className="text-2xl sm:text-3xl font-black text-green-600 dark:text-green-400">
                         {assignments.reduce((acc, a) => acc + (a.submissions?.length || 0), 0)}
                     </p>
                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Total Submissions</p>
-                </div>
-                <div className="bg-amber-50 dark:bg-amber-500/10 rounded-3xl p-6 border border-amber-100 dark:border-amber-500/20 text-center shadow-sm hover:shadow-md transition-all">
+                </button>
+                <button 
+                    onClick={() => setActiveStatFilter(activeStatFilter === 'pending' ? 'all' : 'pending')}
+                    className={`w-full bg-amber-50 dark:bg-amber-500/10 rounded-3xl p-6 border text-center shadow-sm hover:shadow-md transition-all focus:outline-none ${activeStatFilter === 'pending' ? 'border-amber-500 ring-2 ring-amber-500/20 scale-105' : 'border-amber-100 dark:border-amber-500/20 hover:border-amber-300'}`}>
                     <p className="text-2xl sm:text-3xl font-black text-amber-600 dark:text-amber-400">
                         {assignments.reduce((acc, a) => {
                             const submissions = a.submissions || [];
@@ -306,8 +313,16 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                         }, 0)}
                     </p>
                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Pending Marks</p>
-                </div>
-                <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 border border-gray-100 dark:border-gray-700 text-center shadow-sm hover:shadow-md transition-all">
+                </button>
+                <button 
+                    onClick={() => setActiveStatFilter(activeStatFilter === 'rejected' ? 'all' : 'rejected')}
+                    className={`w-full bg-red-50 dark:bg-red-500/10 rounded-3xl p-6 border text-center shadow-sm hover:shadow-md transition-all focus:outline-none ${activeStatFilter === 'rejected' ? 'border-red-500 ring-2 ring-red-500/20 scale-105' : 'border-red-100 dark:border-red-500/20 hover:border-red-300'}`}>
+                    <p className="text-2xl sm:text-3xl font-black text-red-600 dark:text-red-400">
+                        {assignments.reduce((acc, a) => acc + (a.submissions?.filter(s => s.status === 'rejected').length || 0), 0)}
+                    </p>
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Rejected Submissions</p>
+                </button>
+                <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 border border-gray-100 dark:border-gray-700 text-center shadow-sm transition-all">
                     <p className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-gray-100">{students.length}</p>
                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Total Students</p>
                 </div>
@@ -469,7 +484,21 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                 if (!titleMatch) return false;
                             }
 
-                            // 2. Filter by Selected Student
+                            // 2. Filter by Stat
+                            if (activeStatFilter === 'submissions') {
+                                if (!assignment.submissions || assignment.submissions.length === 0) return false;
+                            }
+                            if (activeStatFilter === 'pending') {
+                                const submissionCount = assignment.submissions?.length || 0;
+                                const gradedCount = assignment.submissions?.filter(s => s.status === 'graded' || s.status === 'rejected').length || 0;
+                                if (submissionCount <= gradedCount) return false;
+                            }
+                            if (activeStatFilter === 'rejected') {
+                                const hasRejected = assignment.submissions?.some(s => s.status === 'rejected');
+                                if (!hasRejected) return false;
+                            }
+
+                            // 3. Filter by Selected Student
                             if (selectedStudentFilter === 'all') return true;
 
                             // Check if student is in assignedUsers
@@ -604,7 +633,14 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                                 Student Submissions ({assignment.submissions.length})
                                             </p>
                                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-60 overflow-y-auto pr-2 custom-scrollbar p-1">
-                                                {assignment.submissions.map((sub) => (
+                                                {[...assignment.submissions].sort((a, b) => {
+                                                    const getPriority = (status) => {
+                                                        if (status !== 'graded' && status !== 'rejected') return 0; // PENDING is highest priority
+                                                        if (status === 'rejected') return 1; // REJECTED is second
+                                                        return 2; // GRADED is last
+                                                    };
+                                                    return getPriority(a.status) - getPriority(b.status);
+                                                }).map((sub) => (
                                                     <div key={sub._id} className="p-2.5 bg-gray-50/50 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 hover:shadow-sm rounded-xl border border-gray-100 dark:border-white/10 transition-all flex items-center justify-between gap-3 group">
                                                         <div className="flex items-center gap-2 overflow-hidden">
                                                             {sub.user?.photo ? (
@@ -1168,7 +1204,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                 <div className="space-y-3 mb-4">
                                     <div className="text-sm text-gray-700 bg-white p-3 rounded-lg border border-gray-100">
                                         <p className="font-black text-gray-400 text-[10px] uppercase mb-1 tracking-widest">Student Notes</p>
-                                        <p className="italic font-medium text-gray-700 whitespace-pre-wrap">{submission.notes || 'No notes provided'}</p>
+                                        <RichTextContent html={submission.notes || '<p>No notes provided</p>'} className="italic font-medium text-gray-700" />
                                     </div>
 
                                     {submission.fileUrl && (

@@ -1,3 +1,4 @@
+import GuestChatWidget from '../../components/shared/GuestChatWidget';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -784,6 +785,7 @@ const TeacherRegister = () => {
                     </form>
                 </div>
             </motion.div>
+            <GuestChatWidget />
         </div>
     );
 };

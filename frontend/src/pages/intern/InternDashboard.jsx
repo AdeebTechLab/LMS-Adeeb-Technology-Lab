@@ -14,8 +14,8 @@ import { calculateOutstandingFees } from '../../utils/feeHelpers';
 import { useTranslation } from 'react-i18next';
 
 const getSocketURL = () => {
-    const rawUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-    return rawUrl.replace('/api', '');
+    const rawUrl = import.meta.env.VITE_API_URL || (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1' ? 'https://lms-adeeb-technology-lab.onrender.com/api' : 'http://localhost:5000/api');
+    return rawUrl === '/api' ? 'https://lms-adeeb-technology-lab.onrender.com' : rawUrl.replace(/\/api\/?$/, '');
 };
 
 const SOCKET_URL = getSocketURL();

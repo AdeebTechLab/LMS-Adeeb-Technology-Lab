@@ -378,7 +378,7 @@ const DashboardLayout = () => {
                                         onClick={() => setShowUserMenu(!showUserMenu)}
                                         className="shrink-0 p-0.5 rounded-xl transition-all"
                                     >
-                                        <ProfileAvatar src={user?.photo} name={user?.name} size="sm" shape="rounded-xl" border="border border-white/20" fallbackColor="bg-gradient-to-br from-primary to-[#ffab40]" />
+                                    <ProfileAvatar src={role === 'admin' ? "https://res.cloudinary.com/adeeb-tech-lab/image/upload/v1780787310/Company%20Logo/LMS_admin.jpg" : user?.photo} name={user?.name} size="sm" shape="rounded-xl" border="border border-white/20" fallbackColor="bg-gradient-to-br from-primary to-[#ffab40]" />
                                     </button>
 
                                     {/* Mobile User Dropdown */}
@@ -637,7 +637,7 @@ const DashboardLayout = () => {
                                     onClick={() => setShowUserMenu(!showUserMenu)}
                                     className={`flex items-center gap-3 p-1.5 rounded-xl transition-colors ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`}
                                 >
-                                    <ProfileAvatar src={user?.photo} name={user?.name} size="sm" shape="rounded-xl" border="border border-white/20" fallbackColor="bg-gradient-to-br from-primary to-[#ffab40]" />
+                                    <ProfileAvatar src={role === 'admin' ? "https://res.cloudinary.com/adeeb-tech-lab/image/upload/v1780787310/Company%20Logo/LMS_admin.jpg" : user?.photo} name={user?.name} size="sm" shape="rounded-xl" border="border border-white/20" fallbackColor="bg-gradient-to-br from-primary to-[#ffab40]" />
                                     <div className="hidden md:block text-left">
                                         <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
                                             {user?.name || 'User'}

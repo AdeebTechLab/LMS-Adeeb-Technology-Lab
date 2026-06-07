@@ -11,8 +11,8 @@ import { chatAPI, userAPI } from '../../services/api';
 import { getAnswer, isUrl, openExternalUrl } from './chatbotHelper';
 
 const getSocketURL = () => {
-    const rawUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-    return rawUrl.replace('/api', '');
+    const rawUrl = import.meta.env.VITE_API_URL || (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1' ? 'https://lms-adeeb-technology-lab.onrender.com/api' : 'http://localhost:5000/api');
+    return rawUrl === '/api' ? 'https://lms-adeeb-technology-lab.onrender.com' : rawUrl.replace(/\/api\/?$/, '');
 };
 
 const SOCKET_URL = getSocketURL();
@@ -421,8 +421,7 @@ const ChatWidget = () => {
                     try {
                         const adminId = adminUser ? adminUser._id : otherUserId;
                         if (adminId) {
-                            const adminText = botRes.answer + (botRes.options?.length > 0 ? '\n\n[Options Provided: ' + botRes.options.map(o => o.label).join(' | ') + ']' : '');
-                            await chatAPI.sendBotReply(adminId, adminText);
+                            await chatAPI.sendBotReply(adminId, botRes.answer, botRes.options);
                         }
                     } catch (err) {
                         console.error('Error syncing bot menu to backend', err);
@@ -447,15 +446,33 @@ const ChatWidget = () => {
 
         if (!textOverride) setNewMessage('');
 
+        const tempId = 'temp-' + Date.now();
+        const optimisticMsg = {
+            _id: tempId,
+            text: text,
+            senderId: (user.id || user._id).toString(),
+            sender: user,
+            createdAt: new Date().toISOString()
+        };
+
+        // Real optimistic update: Add message to local state immediately
+        if (activeChat && activeChat.userId.toString() === recipientId.toString()) {
+            setMessages(prev => [...prev, optimisticMsg]);
+            scrollToBottom(true);
+        }
+
         try {
             const res = await chatAPI.sendMessage(recipientId, text);
             const savedMsg = res.data.data;
 
-            // Optimistic update: Add message to local state immediately
+            // Replace optimistic message with real message from server
             if (activeChat && activeChat.userId.toString() === recipientId.toString()) {
                 setMessages(prev => {
-                    if (prev.some(m => m._id === savedMsg._id)) return prev;
-                    return [...prev, savedMsg];
+                    const alreadyHasReal = prev.some(m => m._id === savedMsg._id);
+                    if (alreadyHasReal) {
+                        return prev.filter(m => m._id !== tempId);
+                    }
+                    return prev.map(m => m._id === tempId ? savedMsg : m);
                 });
             }
 
@@ -485,8 +502,7 @@ const ChatWidget = () => {
                         try {
                             const adminId = adminUser ? adminUser._id : activeChat?.userId;
                             if (adminId) {
-                                const adminText = botRes.answer + (botRes.options?.length > 0 ? '\n\n[Options Provided: ' + botRes.options.map(o => o.label).join(' | ') + ']' : '');
-                                await chatAPI.sendBotReply(adminId, adminText);
+                                await chatAPI.sendBotReply(adminId, botRes.answer, botRes.options);
                             }
                         } catch (err) {
                             console.error('Error syncing bot reply to backend', err);
@@ -556,7 +572,8 @@ const ChatWidget = () => {
 
         setActiveChat({
             userId: targetId,
-            userName: targetUser.name || targetUser.user?.name || 'User'
+            userName: targetUser.name || targetUser.user?.name || 'User',
+            photo: targetUser.photo || targetUser.user?.photo || null
         });
         fetchMessages(targetId);
     };
@@ -590,6 +607,7 @@ const ChatWidget = () => {
                             <div className="flex items-center gap-4">
                                 {activeChat && user?.role === 'admin' ? (
                                     <button
+                                        type="button"
                                         onClick={goBack}
                                         className="flex items-center gap-2 px-3 py-2 bg-white/10 hover:bg-white/20 rounded-2xl transition-all active:scale-95 group"
                                     >
@@ -605,14 +623,29 @@ const ChatWidget = () => {
                                     <h3 className="font-bold text-xl leading-none">
                                         {activeChat ? activeChat.userName : 'Message Center'}
                                     </h3>
-                                    <p className="text-[12px] text-orange-100 uppercase tracking-[0.2em] font-black mt-1.5 opacity-80">
-                                        {activeChat ? 'Direct Message' : (user?.role === 'admin' ? 'Recent Conversations' : 'Support Chat')}
-                                    </p>
+                                    <div className="text-[12px] text-orange-100 uppercase tracking-[0.2em] font-black mt-1.5 opacity-80 flex items-center gap-2">
+                                        {activeChat ? (
+                                            user?.role === 'admin' ? (
+                                                <span>Direct Message</span>
+                                            ) : (
+                                                <>
+                                                    <span className="relative flex h-2 w-2">
+                                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                                        <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                                                    </span>
+                                                    Adeeb Chatbot • 24/7 Online
+                                                </>
+                                            )
+                                        ) : (
+                                            user?.role === 'admin' ? <span>Recent Conversations</span> : <span>Support Chat</span>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                             <div className="flex items-center gap-2">
                                 {activeChat && user?.role === 'admin' && (
                                     <button
+                                        type="button"
                                         onClick={handleDeleteChat}
                                         className="p-3 hover:bg-white/10 rounded-full transition-all text-white/80 hover:text-white hover:bg-red-500/20"
                                         title="Clear Chat History (Messages Only)"
@@ -620,7 +653,7 @@ const ChatWidget = () => {
                                         <Trash2 className="w-5 h-5" />
                                     </button>
                                 )}
-                                <button onClick={() => setIsOpen(false)} className="p-3 hover:bg-white/10 rounded-full transition-all hover:rotate-90">
+                                <button type="button" onClick={() => setIsOpen(false)} className="p-3 hover:bg-white/10 rounded-full transition-all hover:rotate-90">
                                     <X className="w-7 h-7" />
                                 </button>
                             </div>
@@ -655,6 +688,7 @@ const ChatWidget = () => {
                                                 ].map(tab => (
                                                     <button
                                                         key={tab.id}
+                                                        type="button"
                                                         onClick={() => setActiveTab(tab.id)}
                                                         className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider whitespace-nowrap transition-all ${activeTab === tab.id
                                                             ? 'bg-primary text-white shadow-md shadow-orange-200'
@@ -749,14 +783,19 @@ const ChatWidget = () => {
                                                         {filtered.map((item) => (
                                                             <button
                                                                 key={item._id}
+                                                                type="button"
                                                                 onClick={() => startChat(item.userObj)}
                                                                 className="w-full p-5 bg-white rounded-[1.5rem] border border-gray-100 shadow-sm hover:shadow-xl hover:border-orange-100 transition-all flex items-center gap-5 text-left group relative overflow-hidden"
                                                             >
                                                                 {/* Activity Indicator */}
                                                                 <div className="absolute left-0 top-0 bottom-0 w-1 bg-transparent group-hover:bg-primary transition-all" />
 
-                                                                <div className="w-14 h-14 bg-gradient-to-br from-orange-50 to-orange-100 rounded-2xl flex items-center justify-center text-primary font-black text-xl shadow-inner text-center">
-                                                                    {(item.userObj?.name || 'U').charAt(0).toUpperCase()}
+                                                                <div className="w-14 h-14 bg-gradient-to-br from-orange-50 to-orange-100 rounded-2xl flex items-center justify-center text-primary font-black text-xl shadow-inner text-center overflow-hidden shrink-0">
+                                                                    {item.userObj?.photo ? (
+                                                                        <img src={item.userObj.photo} alt="DP" className="w-full h-full object-cover" />
+                                                                    ) : (
+                                                                        (item.userObj?.name || 'U').charAt(0).toUpperCase()
+                                                                    )}
                                                                 </div>
                                                                 <div className="flex-1 min-w-0">
                                                                     <div className="flex items-center justify-between mb-1.5">
@@ -811,8 +850,15 @@ const ChatWidget = () => {
                                                 const isBot = msg.isBot;
                                                 
                                                 const getAvatarUrl = () => {
+                                                    const adminPhoto = "https://res.cloudinary.com/adeeb-tech-lab/image/upload/v1780787310/Company%20Logo/LMS_admin.jpg";
                                                     if (isBot) return "/livechat.png";
-                                                    if (isMe) return user?.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || 'User')}&background=random`;
+                                                    if (isMe) {
+                                                        if (user?.role === 'admin') return adminPhoto;
+                                                        return user?.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || 'User')}&background=random`;
+                                                    }
+                                                    
+                                                    const isOtherAdmin = msg.sender?.role === 'admin' || activeChat?.userName?.toLowerCase().includes('admin');
+                                                    if (isOtherAdmin) return adminPhoto;
                                                     
                                                     const otherName = msg.sender?.name || activeChat?.userName || 'User';
                                                     return msg.sender?.photo || activeChat?.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(otherName)}&background=random`;
@@ -847,6 +893,7 @@ const ChatWidget = () => {
                                                                         {msg.options.map((opt, i) => (
                                                                             <button
                                                                                 key={i}
+                                                                                type="button"
                                                                                 onClick={() => handleOptionClick(opt.value)}
                                                                                 className={`px-3 py-1.5 text-[11.5px] font-semibold rounded-xl transition-all duration-300 shadow-sm border-none ${
                                                                                     opt.label.toLowerCase() === 'main menu' 
@@ -940,27 +987,41 @@ const ChatWidget = () => {
 
             {/* Bubble */}
             {!isOpen && (
-                <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => setIsOpen(true)}
-                    className="w-16 h-16 rounded-full shadow-2xl flex items-center justify-center transition-all relative bg-transparent"
-                >
-                    <img src="/livechat.png" alt="Live Chat" className="w-full h-full object-contain" />
-                    {unreadCount > 0 && (
-                        <span className="absolute -top-1 -right-1 flex h-4 w-4">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-4 w-4 bg-red-500 text-white text-[10px] items-center justify-center font-bold">
-                                {unreadCount}
+                <div className="relative">
+                    {/* Tooltip Popup */}
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 1, duration: 0.4 }}
+                        className="absolute -top-14 right-0 whitespace-nowrap bg-white text-gray-800 text-xs font-semibold px-4 py-2 rounded-xl shadow-lg border border-gray-100 flex items-center gap-2 z-50 pointer-events-none animate-bounce"
+                    >
+                        <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                        Need Help? Chat with us!
+                        {/* Triangle pointer */}
+                        <div className="absolute -bottom-1.5 right-6 w-3 h-3 bg-white border-b border-r border-gray-100 transform rotate-45"></div>
+                    </motion.div>
+
+                    <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => setIsOpen(true)}
+                        style={{ outline: '4px solid #FF8E01', outlineOffset: '2px' }}
+                        className="w-16 h-16 rounded-full shadow-2xl flex items-center justify-center transition-all relative bg-white overflow-visible"
+                    >
+                        <img src="/livechat.png" alt="Live Chat" className="w-full h-full object-contain p-1 rounded-full" />
+                        {unreadCount > 0 && (
+                            <span className="absolute -top-1 -right-1 flex h-4 w-4 z-50">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-4 w-4 bg-red-500 text-white text-[10px] items-center justify-center font-bold">
+                                    {unreadCount}
+                                </span>
                             </span>
-                        </span>
-                    )}
-                </motion.button>
+                        )}
+                    </motion.button>
+                </div>
             )}
         </div >
     );
 };
 
 export default ChatWidget;
-
-

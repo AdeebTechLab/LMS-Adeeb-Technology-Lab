@@ -831,8 +831,8 @@ const InternsManagement = () => {
                                         <div className="min-w-0">
                                             <div className="flex flex-wrap items-center gap-2 mb-1.5">
                                                 <h3 className="text-sm font-black text-gray-900 uppercase tracking-tighter truncate">{intern.name}</h3>
-                                                {(intern.rollNumber || intern.rollNo) && (
-                                                    <Badge variant="primary" size="xxs">#{intern.rollNumber || intern.rollNo}</Badge>
+                                                {intern.rollNo && (
+                                                    <Badge variant="primary" size="xxs">#{intern.rollNo}</Badge>
                                                 )}
                                             </div>
                                             <p className="text-xs font-medium text-gray-500 flex items-center gap-1.5 truncate">

@@ -29,7 +29,7 @@ router.get('/admin-dashboard', protect, authorize('admin'), async (req, res) => 
         }
 
         // Fetch all fees (we filter per-installment in JS since installments is an embedded array)
-        const fees = await Fee.find({}).populate('user', 'name').populate('course', 'title');
+        const fees = await Fee.find({}).populate('user', 'name photo').populate('course', 'title');
 
         let totalRevenue = 0;
         let recentSubmissions = [];
@@ -58,6 +58,7 @@ router.get('/admin-dashboard', protect, authorize('admin'), async (req, res) => 
                         id: inst._id,
                         feeId: fee._id,
                         student: fee.user?.name || 'Unknown',
+                        photo: fee.user?.photo || null,
                         course: fee.course?.title || 'Unknown Course',
                         amount: inst.amount,
                         date: inst.paidAt || fee.createdAt,
@@ -74,6 +75,7 @@ router.get('/admin-dashboard', protect, authorize('admin'), async (req, res) => 
                             id: inst._id,
                             feeId: fee._id,
                             student: fee.user?.name || 'Unknown',
+                            photo: fee.user?.photo || null,
                             course: fee.course?.title || 'Unknown Course',
                             amount: inst.amount,
                             date: entryDate,

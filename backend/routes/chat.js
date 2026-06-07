@@ -25,7 +25,10 @@ router.get('/messages/:otherUserId', protect, async (req, res) => {
                 { sender: myId, recipient: otherId },
                 { sender: otherId, recipient: myId }
             ]
-        }).sort('createdAt');
+        })
+        .populate('sender', 'name role photo')
+        .populate('recipient', 'name role photo')
+        .sort('createdAt');
 
         res.json({ success: true, data: messages });
     } catch (error) {
@@ -48,8 +51,8 @@ router.post('/messages', protect, async (req, res) => {
         });
 
         const populatedMessage = await GlobalMessage.findById(message._id)
-            .populate('sender', 'name role')
-            .populate('recipient', 'name role');
+            .populate('sender', 'name role photo')
+            .populate('recipient', 'name role photo');
 
         // Emit via socket for real-time update
         const io = req.app.get('io');
@@ -85,19 +88,21 @@ router.post('/messages', protect, async (req, res) => {
 // @access  Private
 router.post('/bot-reply', protect, async (req, res) => {
     try {
-        const { recipientId, text } = req.body; // recipientId is Admin
+        const { recipientId, text, options } = req.body; // recipientId is Admin
         const studentId = req.user.id;
 
         // Create message as if Admin sent it to Student
         const message = await GlobalMessage.create({
             sender: recipientId,
             recipient: studentId,
-            text
+            text,
+            isBot: true,
+            options
         });
 
         const populatedMessage = await GlobalMessage.findById(message._id)
-            .populate('sender', 'name role')
-            .populate('recipient', 'name role');
+            .populate('sender', 'name role photo')
+            .populate('recipient', 'name role photo');
 
         // Emit via socket to Admin only (Student already shows it optimistically)
         const io = req.app.get('io');
@@ -108,6 +113,7 @@ router.post('/bot-reply', protect, async (req, res) => {
                 recipientId: studentId,
                 senderName: 'Adeeb Chatbot',
                 isBot: true,
+                options,
                 notifyAdmin: true // Flag to tell frontend to notify the admin
             };
             io.to(recipientId.toString()).emit('new_global_message', socketData);
@@ -323,8 +329,8 @@ router.post('/course/:courseId/send', protect, async (req, res) => {
         });
 
         const populatedMessage = await GlobalMessage.findById(message._id)
-            .populate('sender', 'name role')
-            .populate('recipient', 'name role');
+            .populate('sender', 'name role photo')
+            .populate('recipient', 'name role photo');
 
         // Emit via socket for real-time update
         const io = req.app.get('io');
