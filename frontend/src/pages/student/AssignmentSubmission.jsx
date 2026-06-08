@@ -47,6 +47,8 @@ const AssignmentSubmission = () => {
     const [resubmittingTaskId, setResubmittingTaskId] = useState(null);
     const [currentEnrollment, setCurrentEnrollment] = useState(null);
     const [pendingFees, setPendingFees] = useState(0);
+    const [assignFilter, setAssignFilter] = useState('all');
+    const [dailyFilter, setDailyFilter] = useState('all');
     const socketRef = useRef();
 
     useEffect(() => {
@@ -199,7 +201,37 @@ const AssignmentSubmission = () => {
     const isRestricted = currentEnrollment?.isPaused || !currentEnrollment?.isActive;
     const isCompleted = currentEnrollment?.status === 'completed';
 
-    const filteredAssignments = assignments;
+    const filteredAssignments = assignments.filter((a) => {
+        const s = a.submissions?.[0]?.status || 'pending';
+        const isPast = isDeadlinePassed(a.dueDate);
+        
+        if (assignFilter === 'completed') {
+            return s === 'graded' || s === 'submitted';
+        }
+        if (assignFilter === 'pending') {
+            return (s === 'pending' || s === 'rejected') && !isPast;
+        }
+        if (assignFilter === 'overdue') {
+            return (s === 'pending' || s === 'rejected') && isPast;
+        }
+        if (assignFilter === 'rejected') {
+            return s === 'rejected';
+        }
+        return true;
+    });
+
+    const filteredDailyTasks = dailyTasks.filter(t => {
+        if (dailyFilter === 'verified') {
+            return t.status === 'verified' || t.status === 'graded';
+        }
+        if (dailyFilter === 'pending') {
+            return t.status === 'submitted' || t.status === 'pending';
+        }
+        if (dailyFilter === 'rejected') {
+            return t.status === 'rejected';
+        }
+        return true;
+    });
 
     if (isLoading && !selectedCourseId) {
         return <Loader message="Loading your workspaces..." />;
@@ -342,14 +374,19 @@ const AssignmentSubmission = () => {
                         ) : activeTab === 'assignments' ? (
                             /* ASSIGNMENTS VIEW */
                             <div className="space-y-8">
-                                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                                <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
                                     {[
-                                        { label: 'Total', icon: FileText, count: filteredAssignments.length, color: 'text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-800/30' },
-                                        { label: 'Completed', icon: CheckCircle, count: filteredAssignments.filter((a) => { const s = a.submissions?.[0]?.status; return s === 'graded' || s === 'submitted'; }).length, color: 'text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-800/30' },
-                                        { label: 'Pending', icon: Clock, count: filteredAssignments.filter((a) => { const s = a.submissions?.[0]?.status || 'pending'; return (s === 'pending' || s === 'rejected') && !isDeadlinePassed(a.dueDate); }).length, color: 'text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-800/30' },
-                                        { label: 'Overdue', icon: AlertCircle, count: filteredAssignments.filter((a) => { const s = a.submissions?.[0]?.status || 'pending'; return (s === 'pending' || s === 'rejected') && isDeadlinePassed(a.dueDate); }).length, color: 'text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border-red-100 dark:border-red-800/30' },
+                                        { id: 'all', label: 'Total', icon: FileText, count: assignments.length, color: 'text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-800/30', activeColor: 'ring-4 ring-blue-500/20 bg-blue-100 dark:bg-blue-900/40 border-blue-400 scale-105' },
+                                        { id: 'completed', label: 'Completed', icon: CheckCircle, count: assignments.filter((a) => { const s = a.submissions?.[0]?.status; return s === 'graded' || s === 'submitted'; }).length, color: 'text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-800/30', activeColor: 'ring-4 ring-emerald-500/20 bg-emerald-100 dark:bg-emerald-900/40 border-emerald-400 scale-105' },
+                                        { id: 'pending', label: 'Pending', icon: Clock, count: assignments.filter((a) => { const s = a.submissions?.[0]?.status || 'pending'; return (s === 'pending' || s === 'rejected') && !isDeadlinePassed(a.dueDate); }).length, color: 'text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-800/30', activeColor: 'ring-4 ring-amber-500/20 bg-amber-100 dark:bg-amber-900/40 border-amber-400 scale-105' },
+                                        { id: 'overdue', label: 'Overdue', icon: AlertCircle, count: assignments.filter((a) => { const s = a.submissions?.[0]?.status || 'pending'; return (s === 'pending' || s === 'rejected') && isDeadlinePassed(a.dueDate); }).length, color: 'text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border-red-100 dark:border-red-800/30', activeColor: 'ring-4 ring-red-500/20 bg-red-100 dark:bg-red-900/40 border-red-400 scale-105' },
+                                        { id: 'rejected', label: 'Rejected', icon: XCircle, count: assignments.filter((a) => { const s = a.submissions?.[0]?.status || 'pending'; return s === 'rejected'; }).length, color: 'text-pink-700 dark:text-pink-400 bg-pink-50 dark:bg-pink-900/20 border-pink-100 dark:border-pink-800/30', activeColor: 'ring-4 ring-pink-500/20 bg-pink-100 dark:bg-pink-900/40 border-pink-400 scale-105' },
                                     ].map((stat) => (
-                                        <div key={stat.label} className={`${stat.color} rounded-2xl p-4 border flex items-center justify-between shadow-sm`}>
+                                        <button 
+                                            key={stat.id} 
+                                            onClick={() => setAssignFilter(stat.id === assignFilter ? 'all' : stat.id)}
+                                            className={`${stat.color} ${assignFilter === stat.id ? stat.activeColor : 'border hover:scale-105'} rounded-2xl p-4 flex items-center justify-between shadow-sm text-left transition-all focus:outline-none`}
+                                        >
                                             <div>
                                                 <span className="text-[10px] font-black uppercase tracking-widest opacity-70 block mb-1">{stat.label}</span>
                                                 <p className="text-2xl font-black leading-none">{stat.count}</p>
@@ -357,7 +394,7 @@ const AssignmentSubmission = () => {
                                             <div className={`p-2 rounded-xl bg-white/50 dark:bg-black/20 backdrop-blur-sm`}>
                                                 <stat.icon className="w-5 h-5 opacity-80" />
                                             </div>
-                                        </div>
+                                        </button>
                                     ))}
                                 </div>
 
@@ -559,14 +596,49 @@ const AssignmentSubmission = () => {
                                 </div>
 
                                 <div className="space-y-4">
-                                    <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] text-center my-10">Activity History</h4>
-                                    {dailyTasks.length === 0 ? (
+                                    <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] text-center my-6">Activity History</h4>
+                                    
+                                    {/* Daily Tasks Filter Stats */}
+                                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                                        <button 
+                                            onClick={() => setDailyFilter(dailyFilter === 'all' ? 'all' : 'all')}
+                                            className={`w-full rounded-3xl p-6 border text-center shadow-sm hover:shadow-md transition-all focus:outline-none ${dailyFilter === 'all' ? 'bg-primary/10 border-primary ring-2 ring-primary/20 scale-105' : 'bg-primary/5 border-primary/10 hover:border-primary/30'}`}>
+                                            <p className="text-2xl sm:text-3xl font-black text-primary">{dailyTasks.length}</p>
+                                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Total Logs</p>
+                                        </button>
+                                        <button 
+                                            onClick={() => setDailyFilter(dailyFilter === 'verified' ? 'all' : 'verified')}
+                                            className={`w-full rounded-3xl p-6 border text-center shadow-sm hover:shadow-md transition-all focus:outline-none ${dailyFilter === 'verified' ? 'bg-green-100 dark:bg-green-500/20 border-green-500 ring-2 ring-green-500/20 scale-105' : 'bg-green-50 dark:bg-green-500/10 border-green-100 dark:border-green-500/20 hover:border-green-300'}`}>
+                                            <p className="text-2xl sm:text-3xl font-black text-green-600 dark:text-green-400">
+                                                {dailyTasks.filter(t => t.status === 'verified' || t.status === 'graded').length}
+                                            </p>
+                                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Verified Logs</p>
+                                        </button>
+                                        <button 
+                                            onClick={() => setDailyFilter(dailyFilter === 'pending' ? 'all' : 'pending')}
+                                            className={`w-full rounded-3xl p-6 border text-center shadow-sm hover:shadow-md transition-all focus:outline-none ${dailyFilter === 'pending' ? 'bg-amber-100 dark:bg-amber-500/20 border-amber-500 ring-2 ring-amber-500/20 scale-105' : 'bg-amber-50 dark:bg-amber-500/10 border-amber-100 dark:border-amber-500/20 hover:border-amber-300'}`}>
+                                            <p className="text-2xl sm:text-3xl font-black text-amber-600 dark:text-amber-400">
+                                                {dailyTasks.filter(t => t.status === 'submitted' || t.status === 'pending').length}
+                                            </p>
+                                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Pending Verification</p>
+                                        </button>
+                                        <button 
+                                            onClick={() => setDailyFilter(dailyFilter === 'rejected' ? 'all' : 'rejected')}
+                                            className={`w-full rounded-3xl p-6 border text-center shadow-sm hover:shadow-md transition-all focus:outline-none ${dailyFilter === 'rejected' ? 'bg-red-100 dark:bg-red-500/20 border-red-500 ring-2 ring-red-500/20 scale-105' : 'bg-red-50 dark:bg-red-500/10 border-red-100 dark:border-red-500/20 hover:border-red-300'}`}>
+                                            <p className="text-2xl sm:text-3xl font-black text-red-600 dark:text-red-400">
+                                                {dailyTasks.filter(t => t.status === 'rejected').length}
+                                            </p>
+                                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Rejected Logs</p>
+                                        </button>
+                                    </div>
+
+                                    {filteredDailyTasks.length === 0 ? (
                                         <div className="py-20 text-center bg-gray-50/50 rounded-2xl border-2 border-dashed border-gray-100">
                                             <Clock className="w-12 h-12 text-gray-200 mx-auto mb-4" />
                                             <p className="text-gray-400 font-bold uppercase tracking-widest text-[10px]">No historical data found</p>
                                         </div>
                                     ) : (
-                                        [...dailyTasks]
+                                        [...filteredDailyTasks]
                                             .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
                                             .map((task, idx) => {
                                                 // Calculate Log # for this user
