@@ -78,30 +78,19 @@ router.post('/:id/pay', protect, uploadReceipt.single('receipt'), async (req, re
             return res.status(400).json({ success: false, message: 'Installment is not in a payable status' });
         }
 
-        console.log(`!!! FORCE ATOMIC UPDATE !!! Processing payment for fee ${fee._id} installment ${installmentId}`);
-
-        // Update using atomic operator to ensure persistence
-        const updatedFee = await Fee.findOneAndUpdate(
-            { _id: req.params.id, 'installments._id': installmentId },
-            {
-                $set: {
-                    'installments.$.slipId': slipId,
-                    'installments.$.receiptUrl': req.file ? req.file.path : installment.receiptUrl,
-                    'installments.$.status': 'submitted',
-                    'installments.$.paidAt': new Date()
-                }
-            },
-            { new: true }
-        );
-
-        if (!updatedFee) {
-            console.error(`!!! UPDATE FAILED !!! Fee ${req.params.id} Installment ${installmentId} not found or match failed`);
-            throw new Error('Failed to update payment status - Record not found or match failed');
+        // Update using direct Mongoose document modification
+        installment.slipId = slipId;
+        if (req.file) {
+            installment.receiptUrl = req.file.path;
         }
+        installment.status = 'submitted';
+        installment.paidAt = new Date();
 
-        console.log(`!!! SUCCESS !!! Payment saved via atomic update. Fee ID: ${updatedFee._id}`);
+        await fee.save();
 
-        res.json({ success: true, fee: updatedFee });
+        console.log(`!!! SUCCESS !!! Payment saved. Fee ID: ${fee._id}`);
+
+        res.json({ success: true, fee: fee });
     } catch (error) {
         console.error('Payment upload error:', error);
         res.status(500).json({ success: false, message: error.message });
