@@ -19,6 +19,7 @@ const DailyTasksTab = ({ course, students = [] }) => {
     const [selectedTaskForGrading, setSelectedTaskForGrading] = useState(null);
     const [gradingMarks, setGradingMarks] = useState(10);
     const [gradingFeedback, setGradingFeedback] = useState('');
+    const [activeStatFilter, setActiveStatFilter] = useState('all');
 
     const fetchTasks = async () => {
         const courseId = course?._id || course?.id;
@@ -98,6 +99,17 @@ const DailyTasksTab = ({ course, students = [] }) => {
 
         if (!isStudentActive) return false;
 
+        // Stat filter
+        if (activeStatFilter === 'verified') {
+            if (task.status !== 'verified' && task.status !== 'graded') return false;
+        }
+        if (activeStatFilter === 'pending') {
+            if (task.status !== 'submitted' && task.status !== 'pending') return false;
+        }
+        if (activeStatFilter === 'rejected') {
+            if (task.status !== 'rejected') return false;
+        }
+
         // If a specific student is selected, filter to that user only
         if (selectedStudentFilter !== 'all') {
             const userId = String(task.user?._id || task.user);
@@ -135,23 +147,37 @@ const DailyTasksTab = ({ course, students = [] }) => {
             </div>
 
             {/* Quick Stats Summary Row */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                <div className="bg-primary/5 rounded-3xl p-6 border border-primary/10 text-center shadow-sm hover:shadow-md transition-all">
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
+                <button 
+                    onClick={() => setActiveStatFilter('all')}
+                    className={`w-full rounded-3xl p-6 border text-center shadow-sm hover:shadow-md transition-all focus:outline-none ${activeStatFilter === 'all' ? 'bg-primary/10 border-primary ring-2 ring-primary/20 scale-105' : 'bg-primary/5 border-primary/10 hover:border-primary/30'}`}>
                     <p className="text-2xl sm:text-3xl font-black text-primary">{tasks.length}</p>
                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Total Submissions</p>
-                </div>
-                <div className="bg-green-50 dark:bg-green-500/10 rounded-3xl p-6 border border-green-100 dark:border-green-500/20 text-center shadow-sm hover:shadow-md transition-all">
+                </button>
+                <button 
+                    onClick={() => setActiveStatFilter(activeStatFilter === 'verified' ? 'all' : 'verified')}
+                    className={`w-full rounded-3xl p-6 border text-center shadow-sm hover:shadow-md transition-all focus:outline-none ${activeStatFilter === 'verified' ? 'bg-green-100 dark:bg-green-500/20 border-green-500 ring-2 ring-green-500/20 scale-105' : 'bg-green-50 dark:bg-green-500/10 border-green-100 dark:border-green-500/20 hover:border-green-300'}`}>
                     <p className="text-2xl sm:text-3xl font-black text-green-600 dark:text-green-400">
                         {tasks.filter(t => t.status === 'verified' || t.status === 'graded').length}
                     </p>
                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Verified Logs</p>
-                </div>
-                <div className="bg-amber-50 dark:bg-amber-500/10 rounded-3xl p-6 border border-amber-100 dark:border-amber-500/20 text-center shadow-sm hover:shadow-md transition-all">
+                </button>
+                <button 
+                    onClick={() => setActiveStatFilter(activeStatFilter === 'pending' ? 'all' : 'pending')}
+                    className={`w-full rounded-3xl p-6 border text-center shadow-sm hover:shadow-md transition-all focus:outline-none ${activeStatFilter === 'pending' ? 'bg-amber-100 dark:bg-amber-500/20 border-amber-500 ring-2 ring-amber-500/20 scale-105' : 'bg-amber-50 dark:bg-amber-500/10 border-amber-100 dark:border-amber-500/20 hover:border-amber-300'}`}>
                     <p className="text-2xl sm:text-3xl font-black text-amber-600 dark:text-amber-400">
                         {tasks.filter(t => t.status === 'submitted' || t.status === 'pending').length}
                     </p>
                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Pending Verification</p>
-                </div>
+                </button>
+                <button 
+                    onClick={() => setActiveStatFilter(activeStatFilter === 'rejected' ? 'all' : 'rejected')}
+                    className={`w-full rounded-3xl p-6 border text-center shadow-sm hover:shadow-md transition-all focus:outline-none ${activeStatFilter === 'rejected' ? 'bg-red-100 dark:bg-red-500/20 border-red-500 ring-2 ring-red-500/20 scale-105' : 'bg-red-50 dark:bg-red-500/10 border-red-100 dark:border-red-500/20 hover:border-red-300'}`}>
+                    <p className="text-2xl sm:text-3xl font-black text-red-600 dark:text-red-400">
+                        {tasks.filter(t => t.status === 'rejected').length}
+                    </p>
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Rejected Logs</p>
+                </button>
                 <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 border border-gray-100 dark:border-gray-700 text-center shadow-sm hover:shadow-md transition-all">
                     <p className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-gray-100">{students.length}</p>
                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Total Students</p>
