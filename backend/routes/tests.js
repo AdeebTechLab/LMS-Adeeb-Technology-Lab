@@ -67,13 +67,22 @@ router.post('/', protect, authorize('teacher', 'admin'), async (req, res) => {
     try {
         const { courseId, title, description, questions, duration, dueDate, scheduledAt, assignTo, assignedUsers } = req.body;
 
-        const totalMarks = questions.length;
+        // Sanitize questions: filter empty options and blank questions
+        const sanitizedQuestions = (questions || []).map(q => ({
+            ...q,
+            question: (q.question || '').trim(),
+            options: (q.options || []).map(o => (typeof o === 'string' ? o.trim() : '')).filter(o => o.length > 0),
+            correctOption: typeof q.correctOption === 'number' ? q.correctOption : 0,
+            marks: q.marks || 1
+        })).filter(q => q.question.length > 0 && q.options.length >= 2);
+
+        const totalMarks = sanitizedQuestions.length;
 
         const test = await Test.create({
             course: courseId,
             title,
             description,
-            questions,
+            questions: sanitizedQuestions,
             totalMarks,
             duration,
             dueDate: dueDate || null,
@@ -161,6 +170,13 @@ router.post('/:id/submit', protect, async (req, res) => {
             submittedAt: new Date()
         };
 
+        // Sanitize existing questions before save to prevent validation errors on dirty data
+        test.questions = test.questions.map(q => {
+            q.options = (q.options || []).map(o => (typeof o === 'string' ? o.trim() : '')).filter(o => o.length > 0);
+            if (typeof q.correctOption !== 'number') q.correctOption = 0;
+            return q;
+        });
+
         test.submissions.push(submission);
         await test.save();
 
@@ -211,12 +227,21 @@ router.put('/:id', protect, authorize('teacher', 'admin'), async (req, res) => {
     try {
         const { title, description, questions, duration, dueDate, scheduledAt, assignTo, assignedUsers } = req.body;
 
-        const totalMarks = questions ? questions.length : 0;
+        // Sanitize questions: filter empty options and blank questions
+        const sanitizedQuestions = (questions || []).map(q => ({
+            ...q,
+            question: (q.question || '').trim(),
+            options: (q.options || []).map(o => (typeof o === 'string' ? o.trim() : '')).filter(o => o.length > 0),
+            correctOption: typeof q.correctOption === 'number' ? q.correctOption : 0,
+            marks: q.marks || 1
+        })).filter(q => q.question.length > 0 && q.options.length >= 2);
+
+        const totalMarks = sanitizedQuestions.length;
 
         const updatedData = {
             title,
             description,
-            questions,
+            questions: sanitizedQuestions,
             totalMarks,
             duration,
             dueDate: dueDate || null,

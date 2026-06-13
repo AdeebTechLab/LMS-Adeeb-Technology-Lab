@@ -6,12 +6,12 @@ const questionSchema = new mongoose.Schema({
         required: true
     },
     options: [{
-        type: String,
-        required: true
+        type: String
     }],
     correctOption: {
         type: Number, // Index of the correct option (0-3)
-        required: true
+        required: true,
+        default: 0
     },
     marks: {
         type: Number,
