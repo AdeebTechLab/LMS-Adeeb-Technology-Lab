@@ -204,6 +204,7 @@ export const taskAPI = {
     addFeedback: (id, data) => api.post(`/tasks/${id}/feedback`, data),
     editFeedback: (taskId, feedbackId, data) => api.put(`/tasks/${taskId}/feedback/${feedbackId}`, data),
     deleteFeedback: (taskId, feedbackId) => api.delete(`/tasks/${taskId}/feedback/${feedbackId}`),
+    cancel: (id) => api.post(`/tasks/${id}/cancel`),
     delete: (id) => api.delete(`/tasks/${id}`)
 };
 

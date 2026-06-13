@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useSelector } from 'react-redux';
 import {
-    Search, Calendar, Briefcase, CheckCircle, Send, Upload, CreditCard, AlertCircle, Link, Trash2, MessageSquare, ChevronLeft, ChevronRight, X
+    Search, Calendar, Briefcase, CheckCircle, Send, Upload, CreditCard, AlertCircle, Link, Trash2, MessageSquare, ChevronLeft, ChevronRight, X, XCircle
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
@@ -20,13 +20,13 @@ const BrowseTasks = () => {
     const [submitModalOpen, setSubmitModalOpen] = useState(false);
     const [viewModalOpen, setViewModalOpen] = useState(false);
     const [applicationMessage, setApplicationMessage] = useState('');
-    const [submission, setSubmission] = useState({ notes: '', projectLink: '', accountDetails: '' });
+    const [submission, setSubmission] = useState({ notes: '', projectLink: '', bankName: '', accountName: '', accountNumber: '' });
     const [tasks, setTasks] = useState([]);
     const [myTasks, setMyTasks] = useState([]);
     const [isFetching, setIsFetching] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState('');
-    const [isDeleting, setIsDeleting] = useState(false);
+    const [isCancelling, setIsCancelling] = useState(false);
     const [completedShowcase, setCompletedShowcase] = useState([]);
     const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
     const [feedbackData, setFeedbackData] = useState({ rating: 5, text: '' });
@@ -174,8 +174,8 @@ const BrowseTasks = () => {
     };
 
     const handleSubmitWork = async () => {
-        if (!submission.notes.trim() || !submission.accountDetails.trim() || !selectedTask) {
-            alert('Please fill all fields');
+        if (!submission.notes.trim() || !submission.bankName.trim() || !submission.accountName.trim() || !submission.accountNumber.trim() || !selectedTask) {
+            alert('Please fill all required fields');
             return;
         }
         setIsSubmitting(true);
@@ -184,10 +184,11 @@ const BrowseTasks = () => {
             const formData = new FormData();
             formData.append('notes', submission.notes);
             formData.append('projectLink', submission.projectLink);
-            formData.append('accountDetails', submission.accountDetails);
+            const accountDetails = `Bank: ${submission.bankName} | Account Name: ${submission.accountName} | Account Number: ${submission.accountNumber}`;
+            formData.append('accountDetails', accountDetails);
             await taskAPI.submit(selectedTask._id, formData);
             setSubmitModalOpen(false);
-            setSubmission({ notes: '', projectLink: '', accountDetails: '' });
+            setSubmission({ notes: '', projectLink: '', bankName: '', accountName: '', accountNumber: '' });
             setSelectedTask(null);
             fetchTasks();
         } catch (err) {
@@ -217,19 +218,19 @@ const BrowseTasks = () => {
         }
     };
 
-    const handleDeleteTask = async (taskId) => {
-        if (!window.confirm('Are you sure you want to PERMANENTLY delete this project from the database? This action cannot be undone.')) return;
+    const handleCancelTask = async (taskId) => {
+        if (!window.confirm('Are you sure you want to cancel your assignment for this task?')) return;
 
-        setIsDeleting(taskId);
+        setIsCancelling(taskId);
         try {
-            await taskAPI.delete(taskId);
+            await taskAPI.cancel(taskId);
             fetchTasks();
-            alert('Project deleted permanently.');
+            alert('Task assignment cancelled successfully.');
         } catch (err) {
-            console.error('Error deleting task:', err);
-            alert(err.response?.data?.message || 'Failed to delete task');
+            console.error('Error cancelling task:', err);
+            alert(err.response?.data?.message || 'Failed to cancel task');
         } finally {
-            setIsDeleting(false);
+            setIsCancelling(false);
         }
     };
 
@@ -435,15 +436,15 @@ const BrowseTasks = () => {
                                             <Upload className="w-4 h-4" />
                                             Submit
                                         </button>
-                                        <ButtonLoader
-                                            variant="danger"
-                                            onClick={() => handleDeleteTask(task._id)}
-                                            isLoading={isDeleting === task._id}
-                                            icon={<Trash2 className="w-4 h-4" />}
+                                        <button
+                                            onClick={() => handleCancelTask(task._id)}
+                                            disabled={isCancelling === task._id}
                                             className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl font-medium flex items-center justify-center gap-2 disabled:opacity-70"
                                         >
-                                            Delete
-                                        </ButtonLoader>
+                                            <ButtonLoader isLoading={isCancelling === task._id} icon={<XCircle className="w-4 h-4" />}>
+                                                Cancel
+                                            </ButtonLoader>
+                                        </button>
                                     </div>
                                 )}
                                 {submitted && !isPaid && (
@@ -549,14 +550,15 @@ const BrowseTasks = () => {
                             <button onClick={() => setFeedbackModalOpen(false)} className="flex-1 py-3 text-gray-600 hover:bg-gray-100 rounded-xl font-medium">
                                 Cancel
                             </button>
-                            <ButtonLoader
+                            <button
                                 onClick={handleFeedbackSubmit}
-                                isLoading={isSubmitting}
-                                disabled={!feedbackData.text.trim()}
+                                disabled={!feedbackData.text.trim() || isSubmitting}
                                 className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium flex items-center justify-center gap-2 disabled:opacity-50"
                             >
-                                Submit Feedback
-                            </ButtonLoader>
+                                <ButtonLoader isLoading={isSubmitting}>
+                                    Submit Feedback
+                                </ButtonLoader>
+                            </button>
                         </div>
                     </div>
                 )}
@@ -588,13 +590,15 @@ const BrowseTasks = () => {
                             <button onClick={() => setApplyModalOpen(false)} className="flex-1 py-3 text-gray-600 hover:bg-gray-100 rounded-xl font-medium">
                                 Cancel
                             </button>
-                            <ButtonLoader
+                            <button
                                 onClick={handleApply}
-                                isLoading={isSubmitting}
+                                disabled={isSubmitting}
                                 className={`flex-1 py-3 text-white rounded-xl font-medium flex items-center justify-center gap-2 disabled:opacity-70 ${selectedTask.type === 'product' ? 'bg-primary hover:bg-primary' : 'bg-primary hover:bg-purple-700'}`}
                             >
-                                {selectedTask.type === 'product' ? 'Submit Offer' : 'Submit Application'}
-                            </ButtonLoader>
+                                <ButtonLoader isLoading={isSubmitting}>
+                                    {selectedTask.type === 'product' ? 'Submit Offer' : 'Submit Application'}
+                                </ButtonLoader>
+                            </button>
                         </div>
                     </div>
                 )}
@@ -636,25 +640,43 @@ const BrowseTasks = () => {
                                 <CreditCard className="w-4 h-4 inline mr-1" />
                                 Payment Account Details *
                             </label>
-                            <input
-                                type="text"
-                                value={submission.accountDetails}
-                                onChange={(e) => setSubmission({ ...submission, accountDetails: e.target.value })}
-                                placeholder="e.g., JazzCash: 0300-1234567 or Bank: IBAN..."
-                                className="w-full px-4 py-3 border border-gray-200 rounded-xl"
-                            />
+                            <div className="space-y-2">
+                                <input
+                                    type="text"
+                                    value={submission.bankName}
+                                    onChange={(e) => setSubmission({ ...submission, bankName: e.target.value })}
+                                    placeholder="Bank Name (e.g., HBL, Meezan, JazzCash)"
+                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                                />
+                                <input
+                                    type="text"
+                                    value={submission.accountName}
+                                    onChange={(e) => setSubmission({ ...submission, accountName: e.target.value })}
+                                    placeholder="Account Name (e.g., Muhammad Ali)"
+                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                                />
+                                <input
+                                    type="text"
+                                    value={submission.accountNumber}
+                                    onChange={(e) => setSubmission({ ...submission, accountNumber: e.target.value })}
+                                    placeholder="Account Number / IBAN / Phone"
+                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                                />
+                            </div>
                         </div>
                         <div className="flex gap-3 pt-4 border-t">
                             <button onClick={() => setSubmitModalOpen(false)} className="flex-1 py-3 text-gray-600 hover:bg-gray-100 rounded-xl font-medium">
                                 Cancel
                             </button>
-                            <ButtonLoader
+                            <button
                                 onClick={handleSubmitWork}
-                                isLoading={isSubmitting}
+                                disabled={isSubmitting}
                                 className="flex-1 py-3 bg-primary hover:bg-primary text-white rounded-xl font-medium flex items-center justify-center gap-2 disabled:opacity-70"
                             >
-                                Submit Work
-                            </ButtonLoader>
+                                <ButtonLoader isLoading={isSubmitting}>
+                                    Submit Work
+                                </ButtonLoader>
+                            </button>
                         </div>
                     </div>
                 )}

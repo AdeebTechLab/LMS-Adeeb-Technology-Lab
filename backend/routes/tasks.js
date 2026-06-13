@@ -267,6 +267,51 @@ router.put('/:id/unassign', protect, authorize('admin'), async (req, res) => {
     }
 });
 
+// @route   POST /api/tasks/:id/cancel
+// @desc    Cancel/withdraw assignment from a task (by the assigned user)
+// @access  Private (Assigned user)
+router.post('/:id/cancel', protect, async (req, res) => {
+    try {
+        const task = await PaidTask.findById(req.params.id);
+
+        if (!task) {
+            return res.status(404).json({ success: false, message: 'Task not found' });
+        }
+
+        // Check if user is in the assigned list
+        const isAssigned = task.assignedTo && task.assignedTo.some(id => id.toString() === req.user.id || (id._id && id._id.toString() === req.user.id));
+
+        if (!isAssigned) {
+            return res.status(403).json({ success: false, message: 'You are not assigned to this task' });
+        }
+
+        // Remove user from assignedTo array
+        task.assignedTo = task.assignedTo.filter(id => id.toString() !== req.user.id && (!id._id || id._id.toString() !== req.user.id));
+
+        // Also remove them from applicants so they can apply again if they want
+        if (task.applicants) {
+            task.applicants = task.applicants.filter(app => app.user.toString() !== req.user.id && (!app.user._id || app.user._id.toString() !== req.user.id));
+        }
+
+        // Also remove any submission from this user if they had one
+        if (task.submissions) {
+            task.submissions = task.submissions.filter(sub => sub.user.toString() !== req.user.id && (!sub.user._id || sub.user._id.toString() !== req.user.id));
+        }
+
+        // If no one is assigned anymore, set status back to 'open'
+        if (task.assignedTo.length === 0) {
+            task.status = 'open';
+            task.assignedAt = undefined;
+        }
+
+        await task.save();
+
+        res.json({ success: true, task, message: 'Task assignment cancelled successfully' });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
 // @route   POST /api/tasks/:id/submit
 // @desc    Submit task work
 // @access  Private (Assigned user)
