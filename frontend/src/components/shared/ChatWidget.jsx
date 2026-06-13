@@ -277,7 +277,7 @@ const ChatWidget = () => {
 
     useEffect(() => {
         if (isOpen && (activeChat || messages.length > 0)) {
-            scrollToBottom(messages.length <= 1);
+            setTimeout(() => scrollToBottom(true), 300);
         }
     }, [messages, activeChat, isOpen]);
 
@@ -443,6 +443,8 @@ const ChatWidget = () => {
 
         const text = textOverride || newMessage;
         if (!text.trim() || !recipientId) return;
+
+        if (isBotTyping) return; // Prevent double clicks on bot options
 
         if (!textOverride) setNewMessage('');
 
@@ -809,7 +811,7 @@ const ChatWidget = () => {
                                                                         </div>
                                                                         {item.lastMessageAt && (
                                                                             <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
-                                                                                {new Date(item.lastMessageAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                                                {new Date(item.lastMessageAt).toLocaleString('en-US', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true })}
                                                                             </span>
                                                                         )}
                                                                     </div>
@@ -911,7 +913,7 @@ const ChatWidget = () => {
                                                                 
                                                                 {/* Time */}
                                                                 <span className={`text-[10px] text-gray-400 mt-1.5 px-1 font-bold uppercase tracking-wider`}>
-                                                                    {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                                    {new Date(msg.createdAt).toLocaleString('en-US', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true })}
                                                                 </span>
                                                             </div>
                                                         </div>

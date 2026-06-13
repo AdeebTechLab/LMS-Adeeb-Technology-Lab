@@ -35,14 +35,14 @@ const GuestChatWidget = () => {
 
     useEffect(() => {
         if (isOpen && messages.length > 0) {
-            scrollToBottom(messages.length <= 1);
+            setTimeout(() => scrollToBottom(true), 300);
         }
     }, [messages, isOpen]);
 
     // Send Main Menu on first open if empty
     useEffect(() => {
         if (isOpen && messages.length === 0) {
-            sendBotMessage("Main Menu");
+            setTimeout(() => sendBotMessage("Main Menu"), 100);
         }
     }, [isOpen]);
 
@@ -72,6 +72,8 @@ const GuestChatWidget = () => {
 
         const text = textOverride || newMessage;
         if (!text.trim()) return;
+        
+        if (isBotTyping) return; // Prevent double-clicks causing duplicate messages
 
         if (!textOverride) setNewMessage('');
 
@@ -163,13 +165,22 @@ const GuestChatWidget = () => {
                                                 <div className="whitespace-pre-wrap text-[13px] leading-relaxed" dangerouslySetInnerHTML={{ __html: msg.text.replace(/((https?:\/\/|www\.)[^\s<]+)/gi, url => `<a href="${url.startsWith('www.') ? 'https://'+url : url}" target="_blank" class="${isMe ? 'text-white hover:text-orange-100' : 'text-primary hover:text-orange-600'} underline decoration-current/40 underline-offset-4 font-bold transition-colors">${url}</a>`) }} />
                                             </div>
                                         </div>
+                                        {msg.createdAt && (
+                                            <span className={`text-[10px] text-gray-400 mt-1 ${isMe ? 'mr-10' : 'ml-10'}`}>
+                                                {new Date(msg.createdAt).toLocaleString('en-US', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true })}
+                                            </span>
+                                        )}
 
                                         {isBot && msg.options && msg.options.length > 0 && (
                                             <div className="mt-2 ml-10 flex flex-wrap gap-2 max-w-[85%]">
                                                 {msg.options.map((opt, i) => (
                                                     <button
                                                         key={i}
-                                                        onClick={() => handleOptionClick(opt.value)}
+                                                        onClick={(e) => {
+                                                            e.preventDefault();
+                                                            e.stopPropagation();
+                                                            handleOptionClick(opt.value);
+                                                        }}
                                                         className="px-3 py-1.5 bg-white border border-orange-200 text-primary text-xs font-bold rounded-lg hover:bg-orange-50 transition-all shadow-sm active:scale-95 text-left"
                                                     >
                                                         {opt.label}

@@ -543,7 +543,7 @@ const AdeebMeet = () => {
             senderId: myUserId,
             senderName: user?.name,
             senderPhoto: user?.photo,
-            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }),
         };
         managerRef.current.sendChatMessage(roomName, data);
         appendMessage(data);

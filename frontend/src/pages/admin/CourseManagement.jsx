@@ -28,6 +28,7 @@ const CourseManagement = () => {
     const [courses, setCourses] = useState([]);
     const [teachers, setTeachers] = useState([]);
     const [error, setError] = useState('');
+    const [imagePreview, setImagePreview] = useState(null);
     const [formData, setFormData] = useState({
         title: '',
         description: '',
@@ -39,6 +40,7 @@ const CourseManagement = () => {
         city: '',
         category: '', // Added category
         bookLink: '',
+        image: null,
     });
 
     // Filters State
@@ -105,12 +107,14 @@ const CourseManagement = () => {
                 fee: course.fee?.toString() || '',
                 originalPrice: course.originalPrice?.toString() || '',
                 durationMonths: course.durationMonths?.toString() || '',
-                teachers: course.teachers?.map(t => t._id) || [],
+                teachers: course.teachers?.map(t => t._id?.toString()) || [],
                 targetAudience: course.targetAudience || 'students',
                 city: course.city || '',
                 category: course.category || '',
                 bookLink: course.bookLink || '',
+                image: null,
             });
+            setImagePreview(course.image || null);
         } else {
             setEditingCourse(null);
             setFormData({
@@ -124,7 +128,9 @@ const CourseManagement = () => {
                 city: '',
                 category: '',
                 bookLink: '',
+                image: null,
             });
+            setImagePreview(null);
         }
         setIsModalOpen(true);
     };
@@ -132,6 +138,7 @@ const CourseManagement = () => {
     const handleCloseModal = () => {
         setIsModalOpen(false);
         setEditingCourse(null);
+        setImagePreview(null);
     };
 
     const handleSubmit = async (e) => {
@@ -140,24 +147,30 @@ const CourseManagement = () => {
         setError('');
 
         try {
-            const courseData = {
-                title: formData.title,
-                description: formData.description,
-                fee: formData.fee, // Send as string
-                originalPrice: formData.originalPrice, // Send as string
-                durationMonths: Number(formData.durationMonths),
-                teachers: formData.teachers,
-                targetAudience: formData.targetAudience,
-                location: formData.city.toLowerCase(),
-                category: formData.category, // Send category
-                city: formData.city,
-                bookLink: formData.bookLink,
-            };
+            const submitData = new FormData();
+            submitData.append('title', formData.title);
+            submitData.append('description', formData.description);
+            submitData.append('fee', formData.fee);
+            if (formData.originalPrice) submitData.append('originalPrice', formData.originalPrice);
+            submitData.append('durationMonths', formData.durationMonths);
+            submitData.append('targetAudience', formData.targetAudience);
+            submitData.append('location', formData.city.toLowerCase());
+            submitData.append('category', formData.category);
+            submitData.append('city', formData.city);
+            if (formData.bookLink) submitData.append('bookLink', formData.bookLink);
+            
+            formData.teachers.forEach(t => submitData.append('teachers', t));
+
+            if (formData.image instanceof File) {
+                submitData.append('image', formData.image);
+            } else if (imagePreview && typeof imagePreview === 'string' && !imagePreview.startsWith('blob:')) {
+                submitData.append('existingImage', imagePreview);
+            }
 
             if (editingCourse) {
-                await courseAPI.update(editingCourse._id, courseData);
+                await courseAPI.update(editingCourse._id, submitData);
             } else {
-                await courseAPI.create(courseData);
+                await courseAPI.create(submitData);
             }
 
             handleCloseModal();
@@ -319,25 +332,34 @@ const CourseManagement = () => {
                         transition={{ delay: index * 0.1 }}
                         className="bg-white rounded-2xl p-6 border border-gray-100 hover:shadow-lg transition-all duration-300"
                     >
-                        <div className="flex items-start justify-between mb-4">
-                            {(() => {
-                                const style = getCourseStyle(course.category, course.title);
-                                const Icon = style.icon;
-                                return (
-                                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-br ${style.gradient}`}>
-                                        <Icon className="w-6 h-6 text-white" />
+                        {(() => {
+                            const style = getCourseStyle(course.category, course.title);
+                            const Icon = style.icon;
+                            return (
+                                <div className={`mb-4 aspect-video rounded-xl overflow-hidden relative bg-gray-100`}>
+                                    {course.image ? (
+                                        <img src={course.image} alt={course.title} className="w-full h-full object-cover" />
+                                    ) : (
+                                        <div className={`absolute inset-0 flex items-center justify-center bg-gradient-to-br ${course.targetAudience === 'interns' ? 'from-purple-600 via-indigo-600 to-violet-700' : style.gradient}`}>
+                                            <Icon className="w-16 h-16 text-white/30" />
+                                        </div>
+                                    )}
+
+                                    {/* Location badge - top left */}
+                                    <div className="absolute top-2 left-2">
+                                        <Badge variant="info" size="sm">
+                                            {course.city || 'N/A'}
+                                        </Badge>
                                     </div>
-                                );
-                            })()}
-                            <div className="flex items-center gap-2">
-                                <Badge variant="info">
-                                    {course.city || 'N/A'}
-                                </Badge>
-                                <Badge variant={course.targetAudience === 'students' ? 'success' : 'purple'}>
-                                    {course.targetAudience}
-                                </Badge>
-                            </div>
-                        </div>
+                                    {/* Audience badge - top right */}
+                                    <div className="absolute top-2 right-2">
+                                        <Badge variant={course.targetAudience === 'students' ? 'success' : 'purple'} size="sm">
+                                            {course.targetAudience}
+                                        </Badge>
+                                    </div>
+                                </div>
+                            );
+                        })()}
 
                         <h3 className="font-bold text-gray-900 mb-2">{course.title}</h3>
                         <p className="text-sm text-gray-500 mb-4 line-clamp-2">{course.description}</p>
@@ -444,6 +466,44 @@ const CourseManagement = () => {
                         />
                     </div>
 
+                    {/* Course Image */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Course Cover Image <span className="text-xs text-gray-400 font-normal">(16:9 ratio recommended)</span>
+                        </label>
+                        <div className="flex flex-wrap items-center gap-4">
+                            {imagePreview && (
+                                <div className="relative mt-2">
+                                    <img src={imagePreview} alt="Course preview" className="w-28 h-16 rounded-xl object-cover border border-gray-200" />
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setFormData({ ...formData, image: null });
+                                            setImagePreview(null);
+                                        }}
+                                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+                                        title="Remove image"
+                                    >
+                                        <X className="w-3 h-3" />
+                                    </button>
+                                </div>
+                            )}
+                            <input
+                                type="file"
+                                accept="image/*"
+                                onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file && file.type.startsWith('image/')) {
+                                        setFormData({ ...formData, image: file });
+                                        setImagePreview(URL.createObjectURL(file));
+                                    }
+                                    e.target.value = '';
+                                }}
+                                className="w-full mt-2 text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-primary/5 file:text-primary hover:file:bg-primary/10 transition-colors"
+                            />
+                        </div>
+                    </div>
+
                     {/* Description */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -473,12 +533,12 @@ const CourseManagement = () => {
                                         <label key={teacher._id} className="flex items-center gap-3 p-2 hover:bg-white rounded-lg cursor-pointer transition-colors">
                                             <input
                                                 type="checkbox"
-                                                checked={formData.teachers.includes(teacher._id)}
+                                                checked={formData.teachers.some(id => id.toString() === teacher._id.toString())}
                                                 onChange={(e) => {
                                                     if (e.target.checked) {
-                                                        setFormData({ ...formData, teachers: [...formData.teachers, teacher._id] });
+                                                        setFormData({ ...formData, teachers: [...formData.teachers, teacher._id.toString()] });
                                                     } else {
-                                                        setFormData({ ...formData, teachers: formData.teachers.filter(id => id !== teacher._id) });
+                                                        setFormData({ ...formData, teachers: formData.teachers.filter(id => id.toString() !== teacher._id.toString()) });
                                                     }
                                                 }}
                                                 className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"

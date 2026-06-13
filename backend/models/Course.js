@@ -10,6 +10,10 @@ const courseSchema = new mongoose.Schema({
         type: String,
         required: [true, 'Description is required']
     },
+    image: {
+        type: String,
+        default: ''
+    },
     fee: {
         type: String, // Changed to String to allow text (e.g., "Coming Soon")
         required: [true, 'Fee is required']

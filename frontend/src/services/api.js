@@ -19,6 +19,10 @@ api.interceptors.request.use((config) => {
     } else {
         console.warn(`⚠️ [API] Request: ${config.method.toUpperCase()} ${config.url} WITHOUT token`);
     }
+    // Let the browser set multipart boundary (manual Content-Type breaks file uploads)
+    if (config.data instanceof FormData) {
+        delete config.headers['Content-Type'];
+    }
     return config;
 });
 
@@ -85,8 +89,14 @@ export const courseAPI = {
     getOne: (id) => api.get(`/courses/${id}`),
     addView: (id) => api.post(`/courses/${id}/view`),
     addLike: (id) => api.post(`/courses/${id}/like`),
-    create: (data) => api.post('/courses', data),
-    update: (id, data) => api.put(`/courses/${id}`, data),
+    create: (data) => {
+        const config = data instanceof FormData ? { headers: { 'Content-Type': 'multipart/form-data' } } : {};
+        return api.post('/courses', data, config);
+    },
+    update: (id, data) => {
+        const config = data instanceof FormData ? { headers: { 'Content-Type': 'multipart/form-data' } } : {};
+        return api.put(`/courses/${id}`, data, config);
+    },
     delete: (id) => api.delete(`/courses/${id}`),
     getStudents: (id) => api.get(`/courses/${id}/students`),
     getTeacherDashboard: () => api.get('/courses/teacher/dashboard'),

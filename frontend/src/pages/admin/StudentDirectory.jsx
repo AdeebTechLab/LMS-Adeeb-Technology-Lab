@@ -121,7 +121,7 @@ const StudentDirectory = () => {
                     </button>
                     <div>
                         <h1 className="text-2xl font-black text-gray-900 uppercase tracking-tight">
-                            Unified Directory ({filteredUsers.length})
+                            Directory ({filteredUsers.length})
                         </h1>
                         <p className="text-gray-500 text-sm">All students, interns and teachers - sorted by roll number</p>
                     </div>
@@ -194,6 +194,7 @@ const StudentDirectory = () => {
                                     <th className="px-4 py-4 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">Phone</th>
                                     <th className="px-4 py-4 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">Courses</th>
                                     <th className="px-4 py-4 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">Status</th>
+                                    <th className="px-4 py-4 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">Last Seen</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-50">
@@ -280,6 +281,19 @@ const StudentDirectory = () => {
                                                         <GraduationCap className="w-3 h-3" />
                                                         {user.certificatesCount}
                                                     </span>
+                                                )}
+                                            </div>
+                                        </td>
+
+                                        {/* Last Seen */}
+                                        <td className="px-4 py-3">
+                                            <div className="text-xs font-medium">
+                                                {user.lastSeen ? (
+                                                    <span className="text-gray-600">
+                                                        {new Date(user.lastSeen).toLocaleDateString()} <span className="text-gray-400">{new Date(user.lastSeen).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}</span>
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-gray-400 italic">Never</span>
                                                 )}
                                             </div>
                                         </td>

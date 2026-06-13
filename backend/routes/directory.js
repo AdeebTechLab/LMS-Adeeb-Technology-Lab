@@ -21,7 +21,7 @@ router.get('/', protect, authorize('admin'), async (req, res) => {
         const users = await User.find({
             role: { $in: roleFilter },
             isVerified: isVerifiedFilter
-        }).select('name email phone cnic rollNo role photo createdAt').lean();
+        }).select('name email phone cnic rollNo role photo createdAt lastSeen').lean();
 
         // Get all enrollments
         const enrollments = await Enrollment.find()
@@ -90,7 +90,8 @@ router.get('/', protect, authorize('admin'), async (req, res) => {
                 isCertified,
                 certificatesCount: userCerts.length,
                 enrollmentsCount: userEnrollments.length,
-                createdAt: user.createdAt
+                createdAt: user.createdAt,
+                lastSeen: user.lastSeen
             };
         });
 

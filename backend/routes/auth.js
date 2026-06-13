@@ -287,6 +287,10 @@ router.post('/login', async (req, res) => {
             });
         }
 
+        // Update last seen
+        user.lastSeen = new Date();
+        await user.save({ validateBeforeSave: false });
+
         // Generate token
         // If rememberMe is true, expire in 365 days. Otherwise, expire in 2 hours.
         const expiresIn = rememberMe ? '365d' : '2h';

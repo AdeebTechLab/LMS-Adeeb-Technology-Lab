@@ -80,7 +80,10 @@ const AdminDashboard = () => {
         socket.on('new_submission', () => fetchStats());
         socket.on('new_assignment', () => fetchStats());
         socket.on('new_global_message', () => fetchStats());
-        socket.on('active_users_count', (count) => setLiveCount(count));
+        socket.on('active_users_count', (count) => {
+            setLiveCount(count);
+            fetchStats();
+        });
 
         return () => socket.disconnect();
     }, []);
@@ -382,7 +385,7 @@ const AdminDashboard = () => {
                         className="flex items-center justify-center gap-2 bg-white text-gray-700 px-3 py-2.5 sm:px-6 sm:py-3 rounded-xl sm:rounded-2xl font-black uppercase tracking-widest text-[10px] sm:text-xs border border-gray-200 shadow-sm hover:border-primary hover:text-primary transition-all active:scale-95"
                     >
                         <BookOpen className="w-4 h-4 hidden sm:block" />
-                        Unified Directory
+                        Directory
                     </button>
                     <button
                         onClick={() => navigate('/admin/teacher-directory')}
@@ -627,7 +630,7 @@ const AdminDashboard = () => {
                             onClick={() => navigate('/admin/directory')}
                             className="w-full mt-6 py-3 bg-gray-50 hover:bg-primary/5 text-[9px] font-black text-gray-500 hover:text-primary rounded-xl uppercase tracking-[0.2em] transition-all"
                         >
-                            View Unified Directory
+                            View Directory
                         </button>
                     </div>
                 </div>

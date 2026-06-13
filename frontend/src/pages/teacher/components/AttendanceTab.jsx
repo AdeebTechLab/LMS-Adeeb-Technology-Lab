@@ -288,7 +288,7 @@ const AttendanceTab = ({ course, students }) => {
                             <p className="text-sm text-gray-500 font-medium">{selectedDate === getTodayAttendanceDateKey() ? "Current Session" : "Historical Record"}</p>
                             {lastSaved && (
                                 <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded font-bold uppercase animate-pulse">
-                                    Auto-saved {lastSaved.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                                    Auto-saved {lastSaved.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true })}
                                 </span>
                             )}
                         </div>
@@ -435,7 +435,7 @@ const AttendanceTab = ({ course, students }) => {
                                         </div>
                                     </td>
                                     <td className="px-4 py-3 text-xs text-gray-400">
-                                        {attendanceMarks[student.id]?.markedAt ? new Date(attendanceMarks[student.id].markedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-'}
+                                        {attendanceMarks[student.id]?.markedAt ? new Date(attendanceMarks[student.id].markedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : '-'}
                                     </td>
                                 </tr>
                             ))}

@@ -10,6 +10,7 @@ import { feeAPI } from '../../services/api';
 import { showToast } from '../../utils/customToast';
 import Loader, { ButtonLoader } from '../../components/ui/Loader';
 import { formatDate } from '../../utils/dateFormatter';
+import { io } from 'socket.io-client';
 
 const FeeVerification = () => {
     const [activeTab, setActiveTab] = useState('pending');
@@ -45,6 +46,28 @@ const FeeVerification = () => {
         } else {
             fetchAllFees();
         }
+    }, [activeTab]);
+
+    useEffect(() => {
+        const getSocketURL = () => {
+            const rawUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+            return rawUrl.replace('/api', '');
+        };
+        const socket = io(getSocketURL(), { withCredentials: true });
+
+        const user = JSON.parse(localStorage.getItem('user'));
+        const myId = user?.id || user?._id;
+        if (myId) socket.emit('join_chat', myId);
+
+        socket.on('fee_submitted', () => {
+            if (activeTab === 'pending') {
+                fetchPendingFees();
+            } else {
+                fetchAllFees();
+            }
+        });
+
+        return () => socket.disconnect();
     }, [activeTab]);
 
     const fetchPendingFees = async () => {

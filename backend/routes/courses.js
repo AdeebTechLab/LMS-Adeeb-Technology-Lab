@@ -6,6 +6,7 @@ const Enrollment = require('../models/Enrollment');
 const Assignment = require('../models/Assignment');
 const Attendance = require('../models/Attendance');
 const GlobalMessage = require('../models/GlobalMessage');
+const { uploadCourse } = require('../config/cloudinary');
 
 // @route   GET /api/courses/teacher/dashboard
 // @desc    Get all teacher's courses with stats in ONE query (optimized)
@@ -234,9 +235,27 @@ router.get('/:id', async (req, res) => {
 // @route   POST /api/courses
 // @desc    Create new course
 // @access  Private (Admin only)
-router.post('/', protect, authorize('admin'), async (req, res) => {
+router.post('/', protect, authorize('admin'), uploadCourse.single('image'), async (req, res) => {
     try {
-        const course = await Course.create(req.body);
+        const bodyData = { ...req.body };
+
+        if (req.file) {
+            bodyData.image = req.file.path;
+        }
+
+        if (bodyData.durationMonths) {
+            bodyData.durationMonths = Number(bodyData.durationMonths);
+        }
+
+        // Handle teachers array from FormData properly
+        if (bodyData.teachers) {
+            let teachersArray = Array.isArray(bodyData.teachers) ? bodyData.teachers : [bodyData.teachers];
+            bodyData.teachers = teachersArray.map(t => t.toString().replace(/[\[\]\'\"\s]/g, '').split(',')).flat().filter(Boolean);
+        } else {
+            bodyData.teachers = [];
+        }
+
+        const course = await Course.create(bodyData);
         res.status(201).json({ success: true, course });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
@@ -246,9 +265,30 @@ router.post('/', protect, authorize('admin'), async (req, res) => {
 // @route   PUT /api/courses/:id
 // @desc    Update course
 // @access  Private (Admin only)
-router.put('/:id', protect, authorize('admin'), async (req, res) => {
+router.put('/:id', protect, authorize('admin'), uploadCourse.single('image'), async (req, res) => {
     try {
-        const course = await Course.findByIdAndUpdate(req.params.id, req.body, {
+        const bodyData = { ...req.body };
+
+        if (req.file) {
+            bodyData.image = req.file.path;
+        } else if (bodyData.existingImage) {
+            bodyData.image = bodyData.existingImage;
+        }
+        delete bodyData.existingImage;
+
+        if (bodyData.durationMonths) {
+            bodyData.durationMonths = Number(bodyData.durationMonths);
+        }
+
+        // Handle teachers array from FormData properly
+        if (bodyData.teachers) {
+            let teachersArray = Array.isArray(bodyData.teachers) ? bodyData.teachers : [bodyData.teachers];
+            bodyData.teachers = teachersArray.map(t => t.toString().replace(/[\[\]\'\"\s]/g, '').split(',')).flat().filter(Boolean);
+        } else {
+            bodyData.teachers = [];
+        }
+
+        const course = await Course.findByIdAndUpdate(req.params.id, bodyData, {
             new: true,
             runValidators: true
         });

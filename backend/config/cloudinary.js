@@ -42,6 +42,16 @@ const uploadPhoto = multer({ storage: photoStorage });
 const uploadReceipt = multer({ storage: receiptStorage });
 const uploadSubmission = multer({ storage: submissionStorage });
 
+// Storage for course images
+const courseStorage = new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: {
+        folder: 'lms/courses',
+        allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'heic', 'heif', 'bmp', 'tiff']
+    }
+});
+const uploadCourse = multer({ storage: courseStorage });
+
 // Unified storage for registration (handles both photo and receipt)
 const registrationStorage = new CloudinaryStorage({
     cloudinary: cloudinary,
@@ -72,5 +82,6 @@ module.exports = {
     uploadPhoto,
     uploadReceipt,
     uploadSubmission,
+    uploadCourse,
     uploadRegistration
 };

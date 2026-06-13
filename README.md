@@ -59,3 +59,11 @@ Results/Certificates: 🏆 Award icon
 Live Classes/Meetings: 📅 Calendar icon
 Urgent Notices: ⚡ Zap icon
 Aesthetics: Improved the layout with soft gradients, better shadows, and full support for both light and dark modes.
+
+
+
+Aap picture banate waqt in dimensions (sizes) mein se koi bhi use kar sakte hain taake picture perfectly fit aaye aur kati (crop) na ho:
+
+1280 x 720 pixels (HD) - Sab se best aur recommended size hai.
+1920 x 1080 pixels (Full HD) - High quality ke liye.
+800 x 450 pixels - Agar file size kam rakhna ho.

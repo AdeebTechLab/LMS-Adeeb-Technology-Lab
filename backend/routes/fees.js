@@ -88,6 +88,11 @@ router.post('/:id/pay', protect, uploadReceipt.single('receipt'), async (req, re
 
         await fee.save();
 
+        const io = req.app.get('io');
+        if (io) {
+            io.emit('fee_submitted');
+        }
+
         console.log(`!!! SUCCESS !!! Payment saved. Fee ID: ${fee._id}`);
 
         res.json({ success: true, fee: fee });

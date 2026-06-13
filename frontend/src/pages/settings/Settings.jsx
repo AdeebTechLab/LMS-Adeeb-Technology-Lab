@@ -144,7 +144,7 @@ function ThemePreviewCard({ theme: themeData, isActive, onSelect, actionLabel })
 
 const Settings = () => {
     const { t } = useTranslation();
-    const { theme, setTheme, isDark, toggleTheme } = useTheme();
+    const { theme, setTheme, isDark, toggleTheme, dateFormat, setDateFormat, timeFormat, setTimeFormat } = useTheme();
     const [showSuccess, setShowSuccess] = useState(false);
 
     const activeThemeMeta = APP_THEMES.find((t) => t.id === theme) || APP_THEMES[0];
@@ -243,6 +243,60 @@ const Settings = () => {
                                             animate={{ x: isDark ? 24 : 0 }}
                                             className="w-4 h-4 bg-white rounded-full shadow-lg"
                                         />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section className="bg-white dark:bg-[#1a1f2e] rounded-2xl sm:rounded-[2rem] p-4 sm:p-6 md:p-8 border border-gray-100 dark:border-gray-800 shadow-xl shadow-gray-200/20 dark:shadow-none transition-all md:hover:shadow-2xl">
+                        <div className="space-y-6">
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 bg-blue-50 dark:bg-blue-500/10 rounded-2xl flex items-center justify-center text-blue-500 shadow-inner">
+                                    <Layout className="w-6 h-6" />
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-black text-gray-900 dark:text-white uppercase italic leading-none">
+                                        {t('settings.regional')}
+                                    </h3>
+                                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">
+                                        Date & Time
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-[10px] sm:text-xs font-black uppercase tracking-widest text-gray-500 mb-2">
+                                        {t('settings.dateFormat')}
+                                    </label>
+                                    <select
+                                        value={dateFormat}
+                                        onChange={(e) => setDateFormat(e.target.value)}
+                                        className="w-full bg-gray-50 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white text-sm rounded-xl focus:ring-primary focus:border-primary block p-2.5 outline-none font-medium"
+                                    >
+                                        <option value="DD MMM YYYY">12 May 2026 (DD MMM YYYY)</option>
+                                        <option value="MM/DD/YYYY">05/12/2026 (MM/DD/YYYY)</option>
+                                        <option value="DD/MM/YYYY">12/05/2026 (DD/MM/YYYY)</option>
+                                        <option value="YYYY-MM-DD">2026-05-12 (YYYY-MM-DD)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] sm:text-xs font-black uppercase tracking-widest text-gray-500 mb-2">
+                                        {t('settings.timeFormat')}
+                                    </label>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <button
+                                            onClick={() => setTimeFormat('12-hour')}
+                                            className={`py-2.5 px-4 rounded-xl text-xs font-bold transition-all ${timeFormat === '12-hour' ? 'bg-primary text-white shadow-md' : 'bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
+                                        >
+                                            12-Hour (02:30 PM)
+                                        </button>
+                                        <button
+                                            onClick={() => setTimeFormat('24-hour')}
+                                            className={`py-2.5 px-4 rounded-xl text-xs font-bold transition-all ${timeFormat === '24-hour' ? 'bg-primary text-white shadow-md' : 'bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
+                                        >
+                                            24-Hour (14:30)
+                                        </button>
                                     </div>
                                 </div>
                             </div>

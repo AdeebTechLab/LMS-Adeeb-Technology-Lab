@@ -1,4 +1,5 @@
-const DEFAULT_CSV_URL = "/data/auto-reply-sheet1.csv";
+const GOOGLE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1hCz8S0JFTFEESV7IRejWZipyB4isVDh7GKDRPH010dQ/export?format=csv&gid=0";
+const FALLBACK_CSV_URL = "/data/auto-reply-sheet1.csv";
 
 const aliasMap = new Map([
   ["0", "Main Menu"],
@@ -64,7 +65,7 @@ export async function getAnswer(userMessage, name = "Visitor") {
   const options = extractButtonsFromAnswer(answerText);
   
   // Remove quotes from the final answer text so they don't show up in the chat bubble
-  const finalAnswer = answerText.replace(/["“”'']/g, '');
+  const finalAnswer = answerText.replace(/["""'']/g, '');
 
   return {
     answer: finalAnswer,
@@ -74,28 +75,43 @@ export async function getAnswer(userMessage, name = "Visitor") {
 }
 
 async function loadRows() {
-  // Try fetching from Google Sheet
-  const csvUrl = DEFAULT_CSV_URL;
-
-  // Don't reload too often (cache for 1 hour)
-  if (rows.length > 0 && (Date.now() - lastLoadedAt < 3600000)) {
+  // Cache for 5 minutes so Google Sheet changes show up quickly
+  if (rows.length > 0 && (Date.now() - lastLoadedAt < 300000)) {
     return;
   }
 
+  // Try Google Sheet first
   try {
-    const text = await downloadCsvText(csvUrl);
+    const text = await downloadCsvText(GOOGLE_SHEET_CSV_URL);
     const parsedRows = parseCsvText(text);
     if (parsedRows.length) {
       rows = parsedRows;
       rowsByNormalizedKey = new Map(rows.map((row) => [normalize(row.key), row]));
       lastLoadedAt = Date.now();
+      console.log("[Chatbot] Loaded", parsedRows.length, "rows from Google Sheet");
       return;
     }
   } catch (error) {
-    console.error("CSV could not be loaded:", error);
+    console.warn("[Chatbot] Google Sheet fetch failed, trying local fallback:", error.message);
+  }
+
+  // Fallback to local CSV
+  try {
+    const text = await downloadCsvText(FALLBACK_CSV_URL);
+    const parsedRows = parseCsvText(text);
+    if (parsedRows.length) {
+      rows = parsedRows;
+      rowsByNormalizedKey = new Map(rows.map((row) => [normalize(row.key), row]));
+      lastLoadedAt = Date.now();
+      console.log("[Chatbot] Loaded", parsedRows.length, "rows from local CSV fallback");
+      return;
+    }
+  } catch (error) {
+    console.error("[Chatbot] Both Google Sheet and local CSV failed:", error);
     throw error;
   }
 }
+
 
 async function downloadCsvText(url) {
   const response = await fetch(addCacheBuster(url), {

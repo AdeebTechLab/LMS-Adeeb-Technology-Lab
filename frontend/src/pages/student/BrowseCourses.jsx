@@ -394,10 +394,14 @@ const BrowseCourses = () => {
                                 const style = getCourseStyle(course.category, course.title);
                                 const Icon = style.icon;
                                 return (
-                                    <div className={`h-40 relative bg-gradient-to-br ${style.gradient}`}>
-                                        <div className="absolute inset-0 flex items-center justify-center">
-                                            <Icon className="w-16 h-16 text-white/30" />
-                                        </div>
+                                    <div className={`aspect-video relative bg-gradient-to-br ${style.gradient}`}>
+                                        {course.image ? (
+                                            <img src={course.image} alt={course.title} className="w-full h-full object-cover" />
+                                        ) : (
+                                            <div className="absolute inset-0 flex items-center justify-center">
+                                                <Icon className="w-16 h-16 text-white/30" />
+                                            </div>
+                                        )}
                                         {course.city && (
                                             <div className="absolute top-4 right-4">
                                                 <Badge variant="primary" size="sm">{course.city}</Badge>
@@ -499,9 +503,6 @@ const BrowseCourses = () => {
                                         <Heart className={`w-4 h-4 ${(course.isLiked || course.likedBy?.includes(user?.id || user?._id)) ? 'fill-current' : 'fill-transparent stroke-current'}`} />
                                         {formatCompactCount(course.likes)}
                                     </button>
-                                    <span className="text-[10px] font-bold uppercase tracking-wide text-gray-400 border-l border-gray-200 pl-3 ml-1">
-                                        Views & Likes
-                                    </span>
                                 </div>
 
                                 {/* Completed - Show Grade */}

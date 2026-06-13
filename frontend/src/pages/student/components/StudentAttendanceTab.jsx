@@ -164,7 +164,7 @@ const StudentAttendanceTab = ({ course }) => {
                                         <config.icon className={`w-3 h-3 sm:w-5 sm:h-5 mt-1 ${config.text}`} />
                                         {record.markedAt && (
                                             <span className={`text-[7px] sm:text-[10px] font-bold mt-1 opacity-60 ${config.text}`}>
-                                                {new Date(record.markedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                {new Date(record.markedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}
                                             </span>
                                         )}
                                     </div>

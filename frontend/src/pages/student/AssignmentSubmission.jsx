@@ -679,7 +679,7 @@ const AssignmentSubmission = () => {
                                                                     </div>
                                                                     <p className="text-[10px] text-gray-400 font-medium flex items-center gap-1.5 uppercase tracking-wider">
                                                                         <Clock className="w-3.5 h-3.5" />
-                                                                        {new Date(task.date || task.createdAt).toLocaleDateString('en-GB')} at {new Date(task.createdAt).toLocaleTimeString()}
+                                                                        {new Date(task.date || task.createdAt).toLocaleDateString('en-GB')} at {new Date(task.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}
                                                                     </p>
                                                                 </div>
                                                             </div>
