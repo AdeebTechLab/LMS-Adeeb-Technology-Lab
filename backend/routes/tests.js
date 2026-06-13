@@ -170,15 +170,11 @@ router.post('/:id/submit', protect, async (req, res) => {
             submittedAt: new Date()
         };
 
-        // Sanitize existing questions before save to prevent validation errors on dirty data
-        test.questions = test.questions.map(q => {
-            q.options = (q.options || []).map(o => (typeof o === 'string' ? o.trim() : '')).filter(o => o.length > 0);
-            if (typeof q.correctOption !== 'number') q.correctOption = 0;
-            return q;
-        });
-
-        test.submissions.push(submission);
-        await test.save();
+        // Use updateOne to add the submission without triggering full document validation
+        await Test.updateOne(
+            { _id: test._id },
+            { $push: { submissions: submission } }
+        );
 
         // Notify teachers
         const io = req.app.get('io');
