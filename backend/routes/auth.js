@@ -264,15 +264,21 @@ router.post('/login', async (req, res) => {
             return res.status(401).json({ success: false, message: 'Invalid credentials' });
         }
 
-        // Try to find the user where the password matches
-        let user = null;
+        // Try to find all users where the password matches
+        let matchedUsers = [];
         for (const u of users) {
             const isMatch = await u.matchPassword(password);
             if (isMatch) {
-                user = u;
-                break;
+                matchedUsers.push(u);
             }
         }
+
+        if (matchedUsers.length === 0) {
+            return res.status(401).json({ success: false, message: 'Invalid credentials' });
+        }
+
+        // Prioritize 'job' (Freelancer) role if available, otherwise pick the first matching account
+        let user = matchedUsers.find(u => u.role === 'job') || matchedUsers[0];
 
         if (!user) {
             return res.status(401).json({ success: false, message: 'Invalid credentials' });

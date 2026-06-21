@@ -52,11 +52,7 @@ export async function getAnswer(userMessage, name = "Visitor") {
 
   // Fallback if still no row
   if (!row) {
-    return {
-      answer: "I am Adeeb Chatbot. I could not understand your request. Here is the Main Menu:",
-      matched_key: "Unknown",
-      options: [{ label: "Main Menu", value: "Main Menu" }]
-    };
+    return null;
   }
 
   const answerText = String(row.clean_answer || row.answer || "")
@@ -225,19 +221,7 @@ function findBestRow(message) {
     }
   }
 
-  let bestRow = null;
-  let bestScore = 0;
-
-  for (const row of rows) {
-    const score = tokenSetScore(msg, row.search_text);
-    if (score > bestScore) {
-      bestScore = score;
-      bestRow = row;
-    }
-  }
-
-  if (bestRow && bestScore >= 55) return bestRow;
-  return getByKey("Main Menu") || getByKey("Help") || rows[0];
+  return null;
 }
 
 function getByKey(key) {

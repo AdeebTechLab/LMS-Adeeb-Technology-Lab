@@ -6,6 +6,9 @@ const Course = require('../models/Course');
 const User = require('../models/User');
 const Attendance = require('../models/Attendance');
 const Fee = require('../models/Fee');
+const Assignment = require('../models/Assignment');
+const Test = require('../models/Test');
+const DailyTask = require('../models/DailyTask');
 const moment = require('moment-timezone');
 
 // @route   GET /api/enrollments/my
@@ -43,9 +46,52 @@ router.get('/my', protect, async (req, res) => {
                     records: { $elemMatch: { user: req.user.id, status: 'present' } }
                 });
 
+                const userId = req.user.id.toString();
+
+                const courseAssignments = await Assignment.find({ course: courseId });
+                const applicableAssignments = courseAssignments.filter(a => 
+                    a.assignTo === 'all' || (a.assignedUsers && a.assignedUsers.map(id => id.toString()).includes(userId))
+                );
+                const totalAssignments = applicableAssignments.length;
+                const submittedAssignments = applicableAssignments.filter(a => 
+                    a.submissions && a.submissions.some(sub => sub.user.toString() === userId)
+                ).length;
+
+                const courseTests = await Test.find({ course: courseId });
+                const applicableTests = courseTests.filter(t => 
+                    t.assignTo === 'all' || (t.assignedUsers && t.assignedUsers.map(id => id.toString()).includes(userId))
+                );
+                const totalTests = applicableTests.length;
+                const submittedTests = applicableTests.filter(t => 
+                    t.submissions && t.submissions.some(sub => sub.user.toString() === userId)
+                ).length;
+
+                const submittedDailyTasks = await DailyTask.countDocuments({ course: courseId, user: req.user.id });
+
+                const attendanceProg = totalClasses > 0 ? (attendedClasses / totalClasses) * 100 : 0;
+                const assignmentProg = totalAssignments > 0 ? (submittedAssignments / totalAssignments) * 100 : 0;
+                const testProg = totalTests > 0 ? (submittedTests / totalTests) * 100 : 0;
+                const classLogProg = totalClasses > 0 ? (submittedDailyTasks / totalClasses) * 100 : 0;
+
+                let activeMetricsCount = 0;
+                let totalPercent = 0;
+
+                if (totalClasses > 0) {
+                    activeMetricsCount += 2;
+                    totalPercent += attendanceProg + classLogProg;
+                }
+                if (totalAssignments > 0) {
+                    activeMetricsCount += 1;
+                    totalPercent += assignmentProg;
+                }
+                if (totalTests > 0) {
+                    activeMetricsCount += 1;
+                    totalPercent += testProg;
+                }
+
                 eObj.totalClasses = totalClasses;
                 eObj.attendedClasses = attendedClasses;
-                eObj.progress = totalClasses > 0 ? Math.round((attendedClasses / totalClasses) * 100) : 0;
+                eObj.progress = activeMetricsCount > 0 ? Math.round(totalPercent / activeMetricsCount) : 0;
             } else {
                 eObj.totalClasses = 0;
                 eObj.attendedClasses = 0;
@@ -116,10 +162,53 @@ router.get('/user/:userId', protect, authorize('admin', 'teacher'), async (req, 
                 const totalClasses = attendanceRecords.length;
                 const attendedClasses = detailedAttendance.filter(r => r.status === 'present').length;
 
+                const userId = resolvedUserIdStr;
+
+                const courseAssignments = await Assignment.find({ course: courseId });
+                const applicableAssignments = courseAssignments.filter(a => 
+                    a.assignTo === 'all' || (a.assignedUsers && a.assignedUsers.map(id => id.toString()).includes(userId))
+                );
+                const totalAssignments = applicableAssignments.length;
+                const submittedAssignments = applicableAssignments.filter(a => 
+                    a.submissions && a.submissions.some(sub => sub.user.toString() === userId)
+                ).length;
+
+                const courseTests = await Test.find({ course: courseId });
+                const applicableTests = courseTests.filter(t => 
+                    t.assignTo === 'all' || (t.assignedUsers && t.assignedUsers.map(id => id.toString()).includes(userId))
+                );
+                const totalTests = applicableTests.length;
+                const submittedTests = applicableTests.filter(t => 
+                    t.submissions && t.submissions.some(sub => sub.user.toString() === userId)
+                ).length;
+
+                const submittedDailyTasks = await DailyTask.countDocuments({ course: courseId, user: resolvedUserId });
+
+                const attendanceProg = totalClasses > 0 ? (attendedClasses / totalClasses) * 100 : 0;
+                const assignmentProg = totalAssignments > 0 ? (submittedAssignments / totalAssignments) * 100 : 0;
+                const testProg = totalTests > 0 ? (submittedTests / totalTests) * 100 : 0;
+                const classLogProg = totalClasses > 0 ? (submittedDailyTasks / totalClasses) * 100 : 0;
+
+                let activeMetricsCount = 0;
+                let totalPercent = 0;
+
+                if (totalClasses > 0) {
+                    activeMetricsCount += 2;
+                    totalPercent += attendanceProg + classLogProg;
+                }
+                if (totalAssignments > 0) {
+                    activeMetricsCount += 1;
+                    totalPercent += assignmentProg;
+                }
+                if (totalTests > 0) {
+                    activeMetricsCount += 1;
+                    totalPercent += testProg;
+                }
+
                 eObj.totalClasses = totalClasses;
                 eObj.attendedClasses = attendedClasses;
                 eObj.attendanceDetails = detailedAttendance;
-                eObj.progress = totalClasses > 0 ? Math.round((attendedClasses / totalClasses) * 100) : 0;
+                eObj.progress = activeMetricsCount > 0 ? Math.round(totalPercent / activeMetricsCount) : 0;
             } else {
                 eObj.totalClasses = 0;
                 eObj.attendedClasses = 0;
@@ -346,7 +435,7 @@ router.put('/:id/complete', protect, authorize('admin'), async (req, res) => {
 router.get('/all', protect, authorize('admin', 'teacher'), async (req, res) => {
     try {
         const enrollments = await Enrollment.find()
-            .populate('user', 'name email rollNo role photo lastSeen')
+            .populate('user', 'name email rollNo role photo guardianPhone attendType lastSeen')
             .populate('course', 'title city durationMonths')
             .sort('-createdAt');
 

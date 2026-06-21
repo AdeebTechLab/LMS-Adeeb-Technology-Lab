@@ -4,7 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     CheckCircle, Clock, Calendar, Search, Filter, AlertCircle, XCircle, ChevronLeft, ChevronRight,
-    BookOpen, GraduationCap, ArrowRight, ExternalLink, Send, FileText, ClipboardList, Plus, Link as LinkIcon, MessageCircle, MapPin, Zap, X
+    BookOpen, GraduationCap, ArrowRight, ExternalLink, Send, FileText, ClipboardList, Plus, Link as LinkIcon, MessageCircle, MapPin, Zap, X, Pencil, Trash2
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import Loader, { ButtonLoader } from '../../components/ui/Loader';
@@ -45,6 +45,8 @@ const AssignmentSubmission = () => {
     const [newTaskLink, setNewTaskLink] = useState('');
     const [newTaskContent, setNewTaskContent] = useState('');
     const [resubmittingTaskId, setResubmittingTaskId] = useState(null);
+    const [editingTask, setEditingTask] = useState(null); // { id, content, workLink }
+    const [deletingTaskId, setDeletingTaskId] = useState(null);
     const [currentEnrollment, setCurrentEnrollment] = useState(null);
     const [pendingFees, setPendingFees] = useState(0);
     const [assignFilter, setAssignFilter] = useState('all');
@@ -175,6 +177,37 @@ const AssignmentSubmission = () => {
             alert(error.response?.data?.message || 'Failed to post daily log');
         } finally {
             setIsSubmitting(false);
+        }
+    };
+
+    const handleEditTask = async (e) => {
+        e.preventDefault();
+        if (!editingTask || isRichTextEmpty(editingTask.content)) return;
+        setIsSubmitting(true);
+        try {
+            await dailyTaskAPI.edit(editingTask.id, {
+                content: editingTask.content,
+                workLink: editingTask.workLink
+            });
+            setEditingTask(null);
+            fetchCourseData();
+        } catch (error) {
+            alert(error.response?.data?.message || 'Failed to edit log');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleDeleteTask = async (taskId) => {
+        if (!window.confirm('Kya aap ye class log delete karna chahte hain?')) return;
+        setDeletingTaskId(taskId);
+        try {
+            await dailyTaskAPI.delete(taskId);
+            fetchCourseData();
+        } catch (error) {
+            alert(error.response?.data?.message || 'Failed to delete log');
+        } finally {
+            setDeletingTaskId(null);
         }
     };
 
@@ -438,7 +471,11 @@ const AssignmentSubmission = () => {
                                                                     <FileText className="w-6 h-6" />
                                                                 </div>
                                                                 <div>
-                                                                    <span className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest block mb-1">TASK #{index + 1}</span>
+                                                                    {(() => {
+                                                                        const sortedAssignments = [...assignments].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+                                                                        const assignmentNumber = sortedAssignments.findIndex(a => String(a._id || a.id) === String(assignment._id || assignment.id)) + 1;
+                                                                        return <span className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest block mb-1">ASSIGNMENT #{assignmentNumber}</span>;
+                                                                    })()}
                                                                     <h3 className="font-black text-gray-900 dark:text-white text-lg uppercase tracking-tight group-hover:text-primary transition-colors">{assignment.title}</h3>
                                                                 </div>
                                                             </div>
@@ -563,9 +600,43 @@ const AssignmentSubmission = () => {
                         ) : activeTab === 'daily_tasks' ? (
                             /* DAILY LOGS VIEW */
                             <div className="space-y-8">
+                                    {/* Daily Tasks Filter Stats */}
+                                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                                        <button 
+                                            onClick={() => setDailyFilter(dailyFilter === 'all' ? 'all' : 'all')}
+                                            className={`w-full rounded-3xl p-6 border text-center shadow-sm hover:shadow-md transition-all focus:outline-none ${dailyFilter === 'all' ? 'bg-primary/10 border-primary ring-2 ring-primary/20 scale-105' : 'bg-primary/5 border-primary/10 hover:border-primary/30'}`}>
+                                            <p className="text-2xl sm:text-3xl font-black text-primary">{dailyTasks.length}</p>
+                                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Total Classes</p>
+                                        </button>
+                                        <button 
+                                            onClick={() => setDailyFilter(dailyFilter === 'verified' ? 'all' : 'verified')}
+                                            className={`w-full rounded-3xl p-6 border text-center shadow-sm hover:shadow-md transition-all focus:outline-none ${dailyFilter === 'verified' ? 'bg-green-100 dark:bg-green-500/20 border-green-500 ring-2 ring-green-500/20 scale-105' : 'bg-green-50 dark:bg-green-500/10 border-green-100 dark:border-green-500/20 hover:border-green-300'}`}>
+                                            <p className="text-2xl sm:text-3xl font-black text-green-600 dark:text-green-400">
+                                                {dailyTasks.filter(t => t.status === 'verified' || t.status === 'graded').length}
+                                            </p>
+                                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Verified Classes</p>
+                                        </button>
+                                        <button 
+                                            onClick={() => setDailyFilter(dailyFilter === 'pending' ? 'all' : 'pending')}
+                                            className={`w-full rounded-3xl p-6 border text-center shadow-sm hover:shadow-md transition-all focus:outline-none ${dailyFilter === 'pending' ? 'bg-amber-100 dark:bg-amber-500/20 border-amber-500 ring-2 ring-amber-500/20 scale-105' : 'bg-amber-50 dark:bg-amber-500/10 border-amber-100 dark:border-amber-500/20 hover:border-amber-300'}`}>
+                                            <p className="text-2xl sm:text-3xl font-black text-amber-600 dark:text-amber-400">
+                                                {dailyTasks.filter(t => t.status === 'submitted' || t.status === 'pending').length}
+                                            </p>
+                                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Pending Verification</p>
+                                        </button>
+                                        <button 
+                                            onClick={() => setDailyFilter(dailyFilter === 'rejected' ? 'all' : 'rejected')}
+                                            className={`w-full rounded-3xl p-6 border text-center shadow-sm hover:shadow-md transition-all focus:outline-none ${dailyFilter === 'rejected' ? 'bg-red-100 dark:bg-red-500/20 border-red-500 ring-2 ring-red-500/20 scale-105' : 'bg-red-50 dark:bg-red-500/10 border-red-100 dark:border-red-500/20 hover:border-red-300'}`}>
+                                            <p className="text-2xl sm:text-3xl font-black text-red-600 dark:text-red-400">
+                                                {dailyTasks.filter(t => t.status === 'rejected').length}
+                                            </p>
+                                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Rejected Classes</p>
+                                        </button>
+                                    </div>
+
                                 <div className="bg-white dark:bg-slate-900/40 rounded-2xl p-10 border border-gray-100 dark:border-slate-800 shadow-sm">
                                     <div className="flex items-center justify-between mb-8">
-                                        <h3 className="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tight">Post Daily Activity Log</h3>
+                                        <h3 className="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tight">Post Daily Class</h3>
                                     </div>
                                     <form onSubmit={handleSubmitDailyTask} className="space-y-6">
 
@@ -589,7 +660,7 @@ const AssignmentSubmission = () => {
                                         </div>
                                         <button type="submit" disabled={isSubmitting || isRichTextEmpty(newTaskContent) || isRestricted || isCompleted} className="w-full py-6 bg-primary text-white rounded-[1.5rem] font-black text-lg tracking-widest uppercase shadow-2xl transition-all active:scale-[0.98] flex items-center justify-center gap-3 disabled:grayscale disabled:opacity-50">
                                             <ButtonLoader isLoading={isSubmitting} icon={<Send className="w-6 h-6" />}>
-                                                {isCompleted ? 'WORK LOG ARCHIVED' : (isRestricted ? 'PORTAL LOCKED' : (resubmittingTaskId ? 'UPDATE LOG ENTRY' : 'COMMIT DAILY LOG'))}
+                                                {isCompleted ? 'CLASS ARCHIVED' : (isRestricted ? 'PORTAL LOCKED' : (resubmittingTaskId ? 'UPDATE CLASS ENTRY' : 'COMMIT DAILY CLASS'))}
                                             </ButtonLoader>
                                         </button>
                                     </form>
@@ -598,39 +669,7 @@ const AssignmentSubmission = () => {
                                 <div className="space-y-4">
                                     <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] text-center my-6">Activity History</h4>
                                     
-                                    {/* Daily Tasks Filter Stats */}
-                                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                                        <button 
-                                            onClick={() => setDailyFilter(dailyFilter === 'all' ? 'all' : 'all')}
-                                            className={`w-full rounded-3xl p-6 border text-center shadow-sm hover:shadow-md transition-all focus:outline-none ${dailyFilter === 'all' ? 'bg-primary/10 border-primary ring-2 ring-primary/20 scale-105' : 'bg-primary/5 border-primary/10 hover:border-primary/30'}`}>
-                                            <p className="text-2xl sm:text-3xl font-black text-primary">{dailyTasks.length}</p>
-                                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Total Logs</p>
-                                        </button>
-                                        <button 
-                                            onClick={() => setDailyFilter(dailyFilter === 'verified' ? 'all' : 'verified')}
-                                            className={`w-full rounded-3xl p-6 border text-center shadow-sm hover:shadow-md transition-all focus:outline-none ${dailyFilter === 'verified' ? 'bg-green-100 dark:bg-green-500/20 border-green-500 ring-2 ring-green-500/20 scale-105' : 'bg-green-50 dark:bg-green-500/10 border-green-100 dark:border-green-500/20 hover:border-green-300'}`}>
-                                            <p className="text-2xl sm:text-3xl font-black text-green-600 dark:text-green-400">
-                                                {dailyTasks.filter(t => t.status === 'verified' || t.status === 'graded').length}
-                                            </p>
-                                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Verified Logs</p>
-                                        </button>
-                                        <button 
-                                            onClick={() => setDailyFilter(dailyFilter === 'pending' ? 'all' : 'pending')}
-                                            className={`w-full rounded-3xl p-6 border text-center shadow-sm hover:shadow-md transition-all focus:outline-none ${dailyFilter === 'pending' ? 'bg-amber-100 dark:bg-amber-500/20 border-amber-500 ring-2 ring-amber-500/20 scale-105' : 'bg-amber-50 dark:bg-amber-500/10 border-amber-100 dark:border-amber-500/20 hover:border-amber-300'}`}>
-                                            <p className="text-2xl sm:text-3xl font-black text-amber-600 dark:text-amber-400">
-                                                {dailyTasks.filter(t => t.status === 'submitted' || t.status === 'pending').length}
-                                            </p>
-                                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Pending Verification</p>
-                                        </button>
-                                        <button 
-                                            onClick={() => setDailyFilter(dailyFilter === 'rejected' ? 'all' : 'rejected')}
-                                            className={`w-full rounded-3xl p-6 border text-center shadow-sm hover:shadow-md transition-all focus:outline-none ${dailyFilter === 'rejected' ? 'bg-red-100 dark:bg-red-500/20 border-red-500 ring-2 ring-red-500/20 scale-105' : 'bg-red-50 dark:bg-red-500/10 border-red-100 dark:border-red-500/20 hover:border-red-300'}`}>
-                                            <p className="text-2xl sm:text-3xl font-black text-red-600 dark:text-red-400">
-                                                {dailyTasks.filter(t => t.status === 'rejected').length}
-                                            </p>
-                                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Rejected Logs</p>
-                                        </button>
-                                    </div>
+
 
                                     {filteredDailyTasks.length === 0 ? (
                                         <div className="py-20 text-center bg-gray-50/50 rounded-2xl border-2 border-dashed border-gray-100">
@@ -683,23 +722,61 @@ const AssignmentSubmission = () => {
                                                                     </p>
                                                                 </div>
                                                             </div>
-                                                            <div className="flex items-center gap-3">
-                                                                <Badge variant={task.status === 'verified' ? 'success' : 'warning'}>{task.status.toUpperCase()}</Badge>
-                                                                {task.status === 'rejected' && (
-                                                                    <button 
-                                                                        onClick={() => { setResubmittingTaskId(task._id); setNewTaskContent(task.content); window.scrollTo({ top: 0, behavior: 'smooth' }); }} 
-                                                                        className="text-[10px] font-black text-primary underline uppercase tracking-widest"
-                                                                    >
-                                                                        Edit & Re-commit
-                                                                    </button>
+                                                            <div className="flex items-center gap-3 flex-wrap">
+                                                                <Badge variant={task.status === 'verified' || task.status === 'graded' ? 'success' : task.status === 'rejected' ? 'error' : 'warning'}>{task.status.toUpperCase()}</Badge>
+                                                                {/* Edit/Delete only when NOT graded or verified */}
+                                                                {(task.status !== 'verified' && task.status !== 'graded') && (
+                                                                    <>
+                                                                        <button
+                                                                            onClick={() => setEditingTask({ id: task._id, content: task.content, workLink: task.workLink || '' })}
+                                                                            className="flex items-center gap-1 text-[10px] font-black text-blue-500 bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded-lg border border-blue-100 uppercase tracking-widest transition-all"
+                                                                        >
+                                                                            <Pencil className="w-3 h-3" /> Edit
+                                                                        </button>
+                                                                        <button
+                                                                            disabled={deletingTaskId === task._id}
+                                                                            onClick={() => handleDeleteTask(task._id)}
+                                                                            className="flex items-center gap-1 text-[10px] font-black text-red-500 bg-red-50 hover:bg-red-100 px-2 py-1 rounded-lg border border-red-100 uppercase tracking-widest transition-all disabled:opacity-50"
+                                                                        >
+                                                                            <Trash2 className="w-3 h-3" /> {deletingTaskId === task._id ? '...' : 'Delete'}
+                                                                        </button>
+                                                                    </>
                                                                 )}
                                                             </div>
                                                         </div>
 
+                                                        {/* Inline edit form */}
+                                                        {editingTask?.id === task._id ? (
+                                                            <form onSubmit={handleEditTask} className="space-y-3 mb-4 bg-blue-50 dark:bg-blue-900/20 p-4 rounded-2xl border border-blue-100 dark:border-blue-800/30">
+                                                                <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest">Edit Class Log</p>
+                                                                <RichTextEditor
+                                                                    value={editingTask.content}
+                                                                    onChange={(v) => setEditingTask(prev => ({ ...prev, content: v }))}
+                                                                    placeholder="Update your class log..."
+                                                                    minHeight="150px"
+                                                                />
+                                                                <input
+                                                                    type="url"
+                                                                    value={editingTask.workLink}
+                                                                    onChange={(e) => setEditingTask(prev => ({ ...prev, workLink: e.target.value }))}
+                                                                    placeholder="Work link (optional)"
+                                                                    className="w-full text-xs px-3 py-2 border border-blue-100 rounded-xl focus:outline-none focus:border-blue-400"
+                                                                />
+                                                                <div className="flex gap-2">
+                                                                    <button type="submit" disabled={isSubmitting} className="px-4 py-2 bg-blue-500 text-white rounded-xl font-black text-[10px] uppercase tracking-widest disabled:opacity-50">
+                                                                        {isSubmitting ? 'Saving...' : 'Save Changes'}
+                                                                    </button>
+                                                                    <button type="button" onClick={() => setEditingTask(null)} className="px-4 py-2 bg-gray-100 text-gray-600 rounded-xl font-black text-[10px] uppercase tracking-widest">
+                                                                        Cancel
+                                                                    </button>
+                                                                </div>
+                                                            </form>
+                                                        ) : (
                                                         <RichTextContent
                                                             html={task.content}
                                                             className="bg-gray-50/50 dark:bg-black/20 p-5 rounded-2xl border border-gray-100 dark:border-slate-800 mb-4 italic"
                                                         />
+                                                        )}
                                                         
                                                         {task.workLink && (
                                                             <a href={task.workLink} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[10px] font-black text-primary uppercase hover:bg-primary/5 w-fit px-3 py-1.5 rounded-lg border border-primary/10 transition-all">

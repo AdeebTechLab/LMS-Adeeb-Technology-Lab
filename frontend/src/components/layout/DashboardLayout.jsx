@@ -2,6 +2,14 @@ import { useState, useEffect } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
+import { io } from 'socket.io-client';
+
+const getSocketURL = () => {
+    const rawUrl = import.meta.env.VITE_API_URL || (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1' ? 'https://lms-adeeb-technology-lab.onrender.com/api' : 'http://localhost:5000/api');
+    return rawUrl === '/api' ? 'https://lms-adeeb-technology-lab.onrender.com' : rawUrl.replace(/\/api\/?$/, '');
+};
+
+const SOCKET_URL = getSocketURL();
 import {
     Menu,
     Bell,
@@ -64,11 +72,35 @@ const DashboardLayout = () => {
     useEffect(() => {
         fetchNotifications();
         fetchPendingTasks();
+        
+        // Initial fallback poll
         const interval = setInterval(() => {
             fetchNotifications();
             fetchPendingTasks();
-        }, 30000); // Poll every 30 seconds
-        return () => clearInterval(interval);
+        }, 60000); // Relaxed poll to 1 min since we have sockets
+
+        if (!user) return () => clearInterval(interval);
+
+        const socket = io(SOCKET_URL, {
+            query: { userId: user.id || user._id }
+        });
+
+        // Whenever a relevant socket event is received, refresh data
+        const handleRefresh = () => {
+            fetchNotifications();
+            fetchPendingTasks();
+        };
+
+        socket.on('new_browser_notification', handleRefresh);
+        socket.on('new_assignment', handleRefresh);
+        socket.on('new_submission', handleRefresh);
+        socket.on('attendance_updated', handleRefresh);
+        socket.on('new_daily_task', handleRefresh);
+
+        return () => {
+            clearInterval(interval);
+            socket.disconnect();
+        };
     }, [role, user]);
 
 
@@ -327,9 +359,9 @@ const DashboardLayout = () => {
                                         className={`relative p-2.5 rounded-xl transition-all flex items-center ${isDark ? 'hover:bg-white/10 text-white/70' : 'hover:bg-gray-100 text-gray-600'}`}
                                     >
                                         <Bell className="w-5 h-5" />
-                                        {unreadCount + pendingTasks.length > 0 && (
+                                        {notifications.length + pendingTasks.length > 0 && (
                                             <span className="absolute top-0 right-0 w-4 h-4 bg-primary text-white text-[8px] rounded-full flex items-center justify-center font-bold shadow-sm">
-                                                {unreadCount + pendingTasks.length}
+                                                {notifications.length + pendingTasks.length}
                                             </span>
                                         )}
                                     </button>
@@ -512,9 +544,9 @@ const DashboardLayout = () => {
                                     className={`relative p-2.5 rounded-full transition-all flex items-center justify-center sm:w-10 sm:h-10 ${isDark ? 'hover:bg-white/10 text-white/70' : 'hover:bg-gray-100 text-gray-600'}`}
                                 >
                                     <Bell className="w-5 h-5" />
-                                    {unreadCount + pendingTasks.length > 0 && (
+                                    {notifications.length + pendingTasks.length > 0 && (
                                         <span className="absolute -top-1 -right-1 w-5 h-5 bg-primary text-white text-[10px] rounded-full flex items-center justify-center font-bold shadow-sm">
-                                            {unreadCount + pendingTasks.length}
+                                            {notifications.length + pendingTasks.length}
                                         </span>
                                     )}
                                 </button>
@@ -573,6 +605,9 @@ const DashboardLayout = () => {
                                                         <div className="flex-1">
                                                             <p className={`text-sm font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
                                                                 {task.title}
+                                                            </p>
+                                                            <p className={`text-xs mt-0.5 ${isDark ? 'text-white/50' : 'text-gray-600'}`}>
+                                                                {task.message}
                                                             </p>
                                                             <p className={`text-[10px] mt-1 font-bold uppercase tracking-wider ${isDark ? 'text-primary/70' : 'text-primary'}`}>
                                                                 {new Date(task.date).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}

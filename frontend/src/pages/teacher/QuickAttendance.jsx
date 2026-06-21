@@ -139,6 +139,7 @@ const QuickAttendance = () => {
                                 audience: course.targetAudience,
                                 location: course.city || course.location || 'N/A',
                                 attendType: e.user?.attendType || 'Physical',
+                                guardianPhone: e.user?.guardianPhone || '',
                                 lastSeen: e.user?.lastSeen
                             });
                         }
@@ -189,6 +190,24 @@ const QuickAttendance = () => {
             ...prev,
             [markKey]: { status, mode: defaultMode }
         }));
+
+        // WHATSAPP POPUP LOGIC (Triggered before await to bypass browser popup blocker)
+        if (student.guardianPhone) {
+            const academyName = "The Computer Courses";
+            const campus = student.location && student.location !== 'N/A' ? `*${student.location}*` : "";
+            const dt = new Date().toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
+            const message = `*DAILY ATTENDANCE REPORT*\n${academyName} ${campus}\n\nStudent: *${student.name}*\nCourse: *${student.courseName}*\nDate: ${dt}\nStatus: *${status.toUpperCase()}*`;
+            
+            const formattedPhone = student.guardianPhone.replace(/\D/g, '');
+            let finalPhone = formattedPhone;
+            if (finalPhone.startsWith('0')) {
+                finalPhone = '92' + finalPhone.substring(1);
+            } else if (!finalPhone.startsWith('92') && finalPhone.length === 10) {
+                finalPhone = '92' + finalPhone; 
+            }
+
+            window.open(`https://wa.me/${finalPhone}?text=${encodeURIComponent(message)}`, '_blank');
+        }
 
         try {
             // OPTIMIZED: Only send the changed student to the backend to prevent notification storms 

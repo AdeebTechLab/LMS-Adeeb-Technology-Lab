@@ -214,6 +214,7 @@ export const dailyTaskAPI = {
     getByCourse: (courseId) => api.get(`/daily-tasks/course/${courseId}`),
     getMy: (courseId) => api.get(`/daily-tasks/my/${courseId}`),
     grade: (id, data) => api.put(`/daily-tasks/${id}/grade`, data),
+    edit: (id, data) => api.put(`/daily-tasks/${id}`, data),
     delete: (id) => api.delete(`/daily-tasks/${id}`),
     getUserDailyTasks: (userId) => api.get(`/daily-tasks/user/${userId}`)
 };

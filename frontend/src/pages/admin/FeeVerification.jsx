@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
     Search, Eye, CheckCircle, XCircle, Clock, AlertCircle,
-    Plus, Trash2, Calendar, DollarSign, FileText, ArrowLeft, MapPin, Users, CheckCircle2, Mail
+    Plus, Trash2, Calendar, DollarSign, FileText, ArrowLeft, MapPin, Users, CheckCircle2, Mail, Download
 } from 'lucide-react';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
-import { feeAPI } from '../../services/api';
+import { feeAPI, userAPI } from '../../services/api';
 import { showToast } from '../../utils/customToast';
 import Loader, { ButtonLoader } from '../../components/ui/Loader';
 import { formatDate } from '../../utils/dateFormatter';
@@ -209,6 +211,90 @@ const FeeVerification = () => {
         } catch (err) {
             console.error('Error deleting fee:', err);
             showToast.error('Delete Failed', 'Failed to delete fee record. Please check your connection.');
+        } finally {
+            setIsProcessing(false);
+        }
+    };
+
+    const exportCourseStudentsPDF = async (statusType) => {
+        setIsProcessing(true);
+        try {
+            const response = await userAPI.getAll();
+            const allUsers = response.data.data || [];
+
+            const courseUserIds = getFilteredFees(allFees)
+                .filter(fee => String(fee.course?._id) === String(selectedCourse))
+                .map(fee => String(fee.user?._id));
+
+            let courseStudents = allUsers.filter(s => courseUserIds.includes(String(s._id)));
+
+            const getStudentStatus = (s) => {
+                const total = s.totalEnrollments || 0;
+                const completed = s.completedEnrollments || 0;
+                const paused = s.pausedEnrollments || 0;
+                if (total > 0 && total === completed) return 'Completed';
+                if (total > 0 && completed < total && (total - completed) === paused) return 'Inactive';
+                return 'Active';
+            };
+
+            courseStudents = courseStudents.filter(s => {
+                const stat = getStudentStatus(s);
+                if (statusType === 'completed') return stat === 'Completed';
+                if (statusType === 'active') return stat === 'Active' || stat === 'Inactive';
+                return true;
+            });
+
+            if (courseStudents.length === 0) {
+                alert(`No ${statusType} students found for this course.`);
+                setIsProcessing(false);
+                return;
+            }
+
+            const doc = new jsPDF('l', 'mm', 'a4');
+            const courseData = allFees.find(f => String(f.course?._id) === String(selectedCourse))?.course;
+            const courseName = courseData?.title || 'Course';
+            const courseCity = courseData?.city ? courseData.city.charAt(0).toUpperCase() + courseData.city.slice(1) : 'Unknown Location';
+            const targetAudience = courseData?.targetAudience ? courseData.targetAudience.charAt(0).toUpperCase() + courseData.targetAudience.slice(1) : 'Unknown Target';
+
+            const title = `Adeeb Technology Lab - ${courseName} - ${statusType.charAt(0).toUpperCase() + statusType.slice(1)} Students`;
+
+            doc.setFontSize(20);
+            doc.text(title, 14, 22);
+            doc.setFontSize(11);
+            doc.setTextColor(100);
+            doc.text(`Location: ${courseCity} | Target: ${targetAudience}`, 14, 30);
+            doc.text(`Generated on: ${formatDate(new Date())}`, 14, 37);
+            doc.text(`Total Records: ${courseStudents.length}`, 14, 44);
+
+            const headers = [['Roll No', 'Name', 'Email', 'Phone', 'CNIC', 'Gender', 'Location', 'Mode', 'Guardian', 'Guardian Ph', 'Address']];
+            const body = courseStudents.map(s => [
+                s.rollNo || 'N/A',
+                s.name || 'N/A',
+                s.email || 'N/A',
+                s.phone || 'N/A',
+                s.cnic || 'N/A',
+                s.gender || 'N/A',
+                s.location ? (s.location.charAt(0).toUpperCase() + s.location.slice(1)) : 'N/A',
+                (s.attendType === 'Physical' || s.attendType === 'On-Site') ? 'Onsite' : (s.attendType === 'Online' ? 'Remote' : (s.attendType || 'N/A')),
+                s.guardianName || 'N/A',
+                s.guardianPhone || 'N/A',
+                s.address || 'N/A'
+            ]);
+
+            autoTable(doc, {
+                startY: 52,
+                head: headers,
+                body: body,
+                theme: 'grid',
+                headStyles: { fillColor: [13, 40, 24] },
+                styles: { fontSize: 6, overflow: 'linebreak', cellPadding: 2 }
+            });
+
+            const fileName = `${courseName.replace(/\s+/g, '_')}_${statusType}_Students_${new Date().toISOString().split('T')[0]}.pdf`;
+            doc.save(fileName);
+        } catch (error) {
+            console.error('Error generating PDF:', error);
+            alert('Failed to generate PDF. Please try again.');
         } finally {
             setIsProcessing(false);
         }
@@ -791,22 +877,38 @@ const FeeVerification = () => {
                                 Back to All Courses
                             </button>
 
-                            <div className="bg-indigo-50 border border-indigo-100 p-4 rounded-xl flex items-center gap-3 mb-6">
-                                <FileText className="w-5 h-5 text-indigo-600" />
-                                <span className="font-semibold text-indigo-900">
-                                    {allFees.find(f => String(f.course?._id) === String(selectedCourse))?.course?.title || 'Selected Course'}
-                                </span>
-                                <span className="bg-white text-indigo-700 px-3 py-1 rounded-lg text-xs font-bold capitalize border border-indigo-100 flex items-center gap-1.5 shadow-sm">
-                                    <MapPin className="w-3.5 h-3.5 text-indigo-500" />
-                                    {allFees.find(f => String(f.course?._id) === String(selectedCourse))?.course?.city || 'N/A'}
-                                </span>
-                                <span className="bg-white text-indigo-700 px-3 py-1 rounded-lg text-xs font-bold capitalize border border-indigo-100 flex items-center gap-1.5 shadow-sm">
-                                    <Users className="w-3.5 h-3.5 text-indigo-500" />
-                                    {allFees.find(f => String(f.course?._id) === String(selectedCourse))?.course?.targetAudience || 'N/A'}
-                                </span>
-                                <span className="bg-white text-indigo-600 px-2 py-0.5 rounded text-xs border border-indigo-100">
-                                    {getFilteredFees(allFees).filter(f => String(f.course?._id) === String(selectedCourse)).length} Students
-                                </span>
+                            <div className="bg-indigo-50 border border-indigo-100 p-4 rounded-xl flex items-center justify-between gap-3 mb-6">
+                                <div className="flex items-center gap-3 flex-wrap">
+                                    <FileText className="w-5 h-5 text-indigo-600" />
+                                    <span className="font-semibold text-indigo-900">
+                                        {allFees.find(f => String(f.course?._id) === String(selectedCourse))?.course?.title || 'Selected Course'}
+                                    </span>
+                                    <span className="bg-white text-indigo-700 px-3 py-1 rounded-lg text-xs font-bold capitalize border border-indigo-100 flex items-center gap-1.5 shadow-sm">
+                                        <MapPin className="w-3.5 h-3.5 text-indigo-500" />
+                                        {allFees.find(f => String(f.course?._id) === String(selectedCourse))?.course?.city || 'N/A'}
+                                    </span>
+                                    <span className="bg-white text-indigo-700 px-3 py-1 rounded-lg text-xs font-bold capitalize border border-indigo-100 flex items-center gap-1.5 shadow-sm">
+                                        <Users className="w-3.5 h-3.5 text-indigo-500" />
+                                        {allFees.find(f => String(f.course?._id) === String(selectedCourse))?.course?.targetAudience || 'N/A'}
+                                    </span>
+                                    <span className="bg-white text-indigo-600 px-2 py-0.5 rounded text-xs border border-indigo-100">
+                                        {getFilteredFees(allFees).filter(f => String(f.course?._id) === String(selectedCourse)).length} Students
+                                    </span>
+                                </div>
+                                <div className="relative group shrink-0">
+                                    <button disabled={isProcessing} className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-all shadow-sm disabled:opacity-50">
+                                        {isProcessing ? <ButtonLoader /> : <Download className="w-4 h-4" />}
+                                        EXPORT DATA
+                                    </button>
+                                    <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-20">
+                                        <button onClick={() => exportCourseStudentsPDF('active')} className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 border-b border-gray-50 transition-colors">
+                                            Active Students
+                                        </button>
+                                        <button onClick={() => exportCourseStudentsPDF('completed')} className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors">
+                                            Completed Students
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
 
                             <div className="grid gap-4">

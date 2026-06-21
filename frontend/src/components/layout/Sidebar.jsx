@@ -1,6 +1,6 @@
 import { useSelector, useDispatch } from 'react-redux';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { assignmentAPI, courseAPI, dailyTaskAPI } from '../../services/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -43,6 +43,25 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     const [availableRoles, setAvailableRoles] = useState([]);
     const [isSwitchingRole, setIsSwitchingRole] = useState(false);
     const [showRoleMenu, setShowRoleMenu] = useState(false);
+    const dropdownRef = useRef(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setShowRoleMenu(false);
+            }
+        };
+
+        if (showRoleMenu) {
+            document.addEventListener('mousedown', handleClickOutside);
+        } else {
+            document.removeEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [showRoleMenu]);
 
     useEffect(() => {
         if (role === 'student' || role === 'intern') {
@@ -65,7 +84,9 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             try {
                 const res = await authAPI.getAvailableRoles();
                 if (res.data.success) {
-                    setAvailableRoles(res.data.roles);
+                    const roleOrder = { 'job': 1, 'teacher': 2, 'intern': 3, 'student': 4, 'admin': 5 };
+                    const sortedRoles = res.data.roles.sort((a, b) => (roleOrder[a] || 99) - (roleOrder[b] || 99));
+                    setAvailableRoles(sortedRoles);
                 }
             } catch (err) {
                 console.error('Error fetching available roles:', err);
@@ -308,7 +329,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                     </div>
                 </div>
 
-                <div className="relative mx-4 mt-4">
+                <div className="relative mx-4 mt-4" ref={dropdownRef}>
                     <div 
                         className={`p-4 bg-[var(--bg-sidebar-light)]/40 rounded-xl border border-[var(--border-sidebar)] shadow-inner transition-colors ${availableRoles.length > 1 ? 'cursor-pointer hover:bg-[var(--bg-sidebar-light)]/60' : ''}`}
                         onClick={() => {

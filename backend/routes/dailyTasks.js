@@ -259,8 +259,9 @@ router.delete('/:id', protect, async (req, res) => {
             return res.status(403).json({ success: false, message: 'Unauthorized' });
         }
 
-        if (isOwner && !isTeacher && task.status === 'verified') {
-            return res.status(400).json({ success: false, message: 'Cannot delete a verified task' });
+        // Owner (student/intern) cannot delete if task is verified or graded by teacher
+        if (isOwner && !isTeacher && (task.status === 'verified' || task.status === 'graded')) {
+            return res.status(400).json({ success: false, message: 'Cannot delete a task that has been graded by the teacher.' });
         }
 
         await task.deleteOne();
@@ -269,6 +270,37 @@ router.delete('/:id', protect, async (req, res) => {
             success: true,
             message: 'Task deleted successfully'
         });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// @route   PUT /api/daily-tasks/:id
+// @desc    Edit a daily task (Student/Intern - only if not graded)
+// @access  Private (Student, Intern)
+router.put('/:id', protect, authorize('student', 'intern'), async (req, res) => {
+    try {
+        const task = await DailyTask.findById(req.params.id);
+        if (!task) {
+            return res.status(404).json({ success: false, message: 'Task not found' });
+        }
+
+        // Only the owner can edit
+        if (task.user.toString() !== req.user.id) {
+            return res.status(403).json({ success: false, message: 'Unauthorized' });
+        }
+
+        // Cannot edit if teacher has graded or verified
+        if (task.status === 'verified' || task.status === 'graded') {
+            return res.status(400).json({ success: false, message: 'Cannot edit a task that has already been graded by the teacher.' });
+        }
+
+        const { content, workLink } = req.body;
+        task.content = content || task.content;
+        task.workLink = workLink !== undefined ? workLink : task.workLink;
+        await task.save();
+
+        res.json({ success: true, data: task });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }

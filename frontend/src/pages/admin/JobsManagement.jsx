@@ -151,12 +151,12 @@ const JobsManagement = () => {
 
         const doc = new jsPDF();
 
-        // Purple header for freelancer matching UI
-        doc.setFillColor(147, 51, 234);
+        // Purple header for job matching UI
+        doc.setFillColor(139, 92, 246);
         doc.rect(0, 0, 210, 40, 'F');
         doc.setTextColor(255, 255, 255);
         doc.setFontSize(24);
-        doc.text('FREELANCER PROFILE', 14, 25);
+        doc.text('JOB PROFILE', 14, 25);
 
         doc.setTextColor(0, 0, 0);
         doc.setFontSize(10);
@@ -225,7 +225,7 @@ const JobsManagement = () => {
                 });
             }
 
-            doc.save(`Freelancer_${user.name?.replace(/\s+/g, '_')}.pdf`);
+            doc.save(`Job_${user.name?.replace(/\s+/g, '_')}.pdf`);
         };
 
         if (user.photo) {
@@ -321,7 +321,7 @@ const JobsManagement = () => {
         const doc = new jsPDF();
         doc.setFontSize(20);
         doc.setTextColor(147, 51, 234); // Purple for Job/Freelance branding
-        doc.text('Freelancers Report', 14, 20);
+        doc.text('Jobs Report', 14, 20);
         doc.setFontSize(10);
         doc.setTextColor(100);
         doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 28);
@@ -373,7 +373,7 @@ const JobsManagement = () => {
             alternateRowStyles: { fillColor: [250, 245, 255] }
         });
 
-        doc.save(`Freelancers_${type}_${new Date().toLocaleDateString()}.pdf`);
+        doc.save(`Jobs_${type}_${new Date().toLocaleDateString()}.pdf`);
         setShowExportOptions(false);
     };
 
@@ -388,7 +388,7 @@ const JobsManagement = () => {
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Freelancers / Job Applicants</h1>
+                    <h1 className="text-2xl font-bold text-gray-900">Job Applicants</h1>
                     <p className="text-gray-500 text-sm">View and manage registered job seekers</p>
                 </div>
                 <div className="flex items-center gap-2 w-full md:w-auto">

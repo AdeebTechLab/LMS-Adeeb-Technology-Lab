@@ -13,7 +13,7 @@
     "students": "Students",
     "teachers": "Teachers",
     "interns": "Interns",
-    "freelancers": "Freelancers",
+    "freelancers": "Jobs",
     "notifications": "Notifications",
     "feeVerification": "Fee Verification",
     "myProfile": "My Profile",
@@ -33,7 +33,7 @@
     "teacher": "Teacher",
     "student": "Student",
     "intern": "Intern",
-    "job": "Freelancer",
+    "job": "Job",
     "user": "User"
   },
   "layout": {

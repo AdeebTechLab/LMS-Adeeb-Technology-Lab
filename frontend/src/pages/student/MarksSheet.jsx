@@ -88,7 +88,7 @@ const MarksSheet = () => {
                         .filter(t => t.status === 'graded' || t.status === 'verified')
                         .sort((a, b) => new Date(a.date || a.createdAt) - new Date(b.date || b.createdAt))
                         .map((t, index) => ({
-                            assessment: `Work Log: ${formatDate(t.date || t.createdAt)}`,
+                            assessment: `Class: ${formatDate(t.date || t.createdAt)}`,
                             number: index + 1,
                             type: 'Daily Task',
                             marks: t.marks,
@@ -399,9 +399,9 @@ const MarksSheet = () => {
                                         <div className="flex items-center justify-between mb-6 px-2">
                                             <div className="flex items-center gap-3">
                                                 <div className="p-2 bg-primary/5 rounded-lg"><RefreshCw className="w-5 h-5 text-primary" /></div>
-                                                <h4 className="font-black text-gray-900 uppercase tracking-widest">Daily work logs</h4>
+                                                <h4 className="font-black text-gray-900 uppercase tracking-widest">Daily classes</h4>
                                             </div>
-                                            {dailyAvgMarks && <span className="text-[10px] font-black text-primary bg-primary/5 px-3 py-1.5 rounded-xl border border-primary/10 uppercase">Work Log Avg Score: {dailyAvgMarks}/10</span>}
+                                            {dailyAvgMarks && <span className="text-[10px] font-black text-primary bg-primary/5 px-3 py-1.5 rounded-xl border border-primary/10 uppercase">Class Avg Score: {dailyAvgMarks}/10</span>}
                                         </div>
                                         {dailyTaskGrades.length > 0 ? (
                                             <div className="overflow-x-auto no-scrollbar rounded-2xl border border-gray-100">
@@ -418,7 +418,7 @@ const MarksSheet = () => {
                                                             const perc = calculatePercentage(grade.marks, grade.total);
                                                             return (
                                                                 <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
-                                                                    <td className="py-4 px-6 font-black text-gray-300">LOG #{grade.number}</td>
+                                                                    <td className="py-4 px-6 font-black text-gray-300">Class #{grade.number}</td>
                                                                     <td className="py-4 px-6 font-bold text-gray-900">{grade.assessment.split(': ')[1]}</td>
                                                                     <td className="py-4 px-6 font-medium text-gray-600">
                                                                         <span className="text-gray-900 font-bold">{grade.marks}</span><span className="text-xs opacity-50">/10</span>
@@ -429,7 +429,7 @@ const MarksSheet = () => {
                                                     </tbody>
                                                 </table>
                                             </div>
-                                        ) : <p className="text-center py-8 text-gray-400 font-medium italic bg-gray-50 rounded-2xl border border-dashed">No work logs graded yet.</p>}
+                                        ) : <p className="text-center py-8 text-gray-400 font-medium italic bg-gray-50 rounded-2xl border border-dashed">No classes graded yet.</p>}
                                     </div>
 
                                     {/* Tests */}

@@ -242,6 +242,7 @@ const AttendanceSheet = () => {
                         email: e.user?.email || '',
                         photo: e.user?.photo || '',
                         role: e.user?.role || 'student',
+                        guardianPhone: e.user?.guardianPhone || '',
                         courseName: course.title || course.name,
                         course: course,
                     });
@@ -397,6 +398,9 @@ const AttendanceSheet = () => {
             email: e.user?.email || '',
             photo: e.user?.photo || '',
             role: e.user?.role || 'intern',
+            guardianPhone: e.user?.guardianPhone || '',
+            location: course.city || course.location || 'N/A',
+            courseName: course.title || course.name,
             enrolledAt: e.enrolledAt,
             lastSeen: e.user?.lastSeen
         }));

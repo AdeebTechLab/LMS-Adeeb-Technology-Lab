@@ -142,12 +142,31 @@ const AttendanceTab = ({ course, students }) => {
         const cacheKey = `attendance_${course._id}_${selectedDate}`;
         localStorage.setItem(cacheKey, JSON.stringify(newMarks));
 
+        const student = students.find(s => s.id === studentId);
+
+        // WHATSAPP POPUP LOGIC (Triggered before await to bypass browser popup blocker)
+        if (student && student.guardianPhone) {
+            const academyName = "The Computer Courses";
+            const campus = student.location && student.location !== 'N/A' ? `*${student.location}*` : "";
+            const dt = new Date().toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
+            const message = `*DAILY ATTENDANCE REPORT*\n${academyName} ${campus}\n\nStudent: *${student.name}*\nCourse: *${student.courseName || course?.title || course?.name || ''}*\nDate: ${dt}\nStatus: *${status.toUpperCase()}*`;
+            
+            const formattedPhone = student.guardianPhone.replace(/\D/g, '');
+            let finalPhone = formattedPhone;
+            if (finalPhone.startsWith('0')) {
+                finalPhone = '92' + finalPhone.substring(1);
+            } else if (!finalPhone.startsWith('92') && finalPhone.length === 10) {
+                finalPhone = '92' + finalPhone; 
+            }
+
+            window.open(`https://wa.me/${finalPhone}?text=${encodeURIComponent(message)}`, '_blank');
+        }
+
         // 3. Auto-save to server
         setIsSaving(true);
         try {
             // OPTIMIZED: Only send the changed student to the backend to prevent notification storms 
             // and reduce server load.
-            const student = students.find(s => s.id === studentId);
             const defaultMode = (student?.attendType || '').toLowerCase().includes('online') ? 'online' : 'onsite';
 
             const record = {

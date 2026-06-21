@@ -9,6 +9,7 @@ import {
 import { authAPI, enrollmentAPI, settingsAPI } from '../../services/api';
 import { updateUser } from '../../features/auth/authSlice';
 import Loader, { ButtonLoader } from '../../components/ui/Loader';
+import ImageCropper from '../../components/ui/ImageCropper';
 import { formatDate } from '../../utils/dateFormatter';
 
 const InfoField = ({ icon: Icon, label, value, name, type = 'text', editable = true, isEditing, editForm, onChange }) => (
@@ -104,6 +105,9 @@ const StudentProfile = () => {
     });
 
     const [editForm, setEditForm] = useState({ ...profileData });
+    const [photoFile, setPhotoFile] = useState(null);
+    const [photoPreview, setPhotoPreview] = useState(null);
+    const [cropperSrc, setCropperSrc] = useState(null);
 
     useEffect(() => {
         fetchUserData();
@@ -205,40 +209,53 @@ const StudentProfile = () => {
         setIsEditing(true);
     };
 
-    const handleCancel = () => {
+    const handleCancelEdit = () => {
         setEditForm({ ...profileData });
+        setPhotoFile(null);
+        setPhotoPreview(null);
         setIsEditing(false);
+    };
+
+    const handleCrop = (croppedFile) => {
+        setPhotoFile(croppedFile);
+        setPhotoPreview(URL.createObjectURL(croppedFile));
+        setCropperSrc(null);
     };
 
     const handleSave = async () => {
         setIsSaving(true);
         try {
-            const response = await authAPI.updateProfile({
-                name: editForm.fullName,
-                phone: editForm.phone,
-                cnic: editForm.cnic,
-                fatherName: editForm.fatherName,
-                dob: editForm.dob,
-                gender: editForm.gender,
-                education: editForm.education,
-                guardianName: editForm.guardianName,
-                guardianPhone: editForm.guardianPhone,
-                guardianOccupation: editForm.guardianOccupation,
-                address: editForm.address,
-                city: editForm.city,
-                country: editForm.country,
-                attendType: editForm.attendType,
-                location: editForm.cityToAttend,
-                rollNumber: editForm.rollNumber,
-                heardAbout: editForm.heardAbout,
-                degree: editForm.degree,
-                university: editForm.university,
-                department: editForm.department,
-                semester: editForm.semester,
-                cgpa: editForm.cgpa,
-                majorSubjects: editForm.majorSubjects,
-                resumeUrl: editForm.resumeUrl
-            });
+            const formData = new FormData();
+            formData.append('name', editForm.fullName || '');
+            formData.append('phone', editForm.phone || '');
+            formData.append('cnic', editForm.cnic || '');
+            formData.append('fatherName', editForm.fatherName || '');
+            formData.append('dob', editForm.dob || '');
+            formData.append('gender', editForm.gender || '');
+            formData.append('education', editForm.education || '');
+            formData.append('guardianName', editForm.guardianName || '');
+            formData.append('guardianPhone', editForm.guardianPhone || '');
+            formData.append('guardianOccupation', editForm.guardianOccupation || '');
+            formData.append('address', editForm.address || '');
+            formData.append('city', editForm.city || '');
+            formData.append('country', editForm.country || '');
+            formData.append('attendType', editForm.attendType || '');
+            formData.append('location', editForm.cityToAttend || '');
+            formData.append('rollNumber', editForm.rollNumber || '');
+            formData.append('heardAbout', editForm.heardAbout || '');
+            formData.append('degree', editForm.degree || '');
+            formData.append('university', editForm.university || '');
+            formData.append('department', editForm.department || '');
+            formData.append('semester', editForm.semester || '');
+            formData.append('cgpa', editForm.cgpa || '');
+            formData.append('majorSubjects', editForm.majorSubjects || '');
+            formData.append('resumeUrl', editForm.resumeUrl || '');
+
+            if (photoFile) {
+                formData.append('photo', photoFile);
+            }
+
+            const response = await authAPI.updateProfile(formData);
 
             setProfileData({ ...editForm });
             setIsEditing(false);
@@ -260,8 +277,6 @@ const StudentProfile = () => {
         setEditForm(prev => ({ ...prev, [name]: value }));
     };
 
-
-
     return (
         <div className="space-y-6">
             {/* Header Card */}
@@ -275,16 +290,38 @@ const StudentProfile = () => {
                 <div className="flex flex-col md:flex-row items-center gap-6 relative z-10">
                     {/* Profile Picture */}
                     <div className="relative">
-                        <div className="w-28 h-28 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-4xl font-bold border-4 border-white/30 overflow-hidden">
-                            {user?.photo ? (
-                                <img src={user.photo} alt={user.name} className="w-full h-full object-cover" />
+                        <div className="w-28 h-28 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-4xl font-bold border-4 border-white/30 overflow-hidden relative group">
+                            {photoPreview || user?.photo ? (
+                                <img src={photoPreview || user?.photo} alt={user?.name} className="w-full h-full object-cover" />
                             ) : (
                                 profileData.fullName.charAt(0).toUpperCase()
                             )}
+                            
+                            {isEditing && (
+                                <label className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <Camera className="w-8 h-8 text-white mb-1" />
+                                    <span className="text-[10px] font-bold text-white uppercase tracking-widest">Change</span>
+                                    <input 
+                                        type="file" 
+                                        accept="image/*" 
+                                        className="hidden" 
+                                        onChange={(e) => {
+                                            if (e.target.files[0]) {
+                                                const file = e.target.files[0];
+                                                const reader = new FileReader();
+                                                reader.onloadend = () => setCropperSrc(reader.result);
+                                                reader.readAsDataURL(file);
+                                            }
+                                        }} 
+                                    />
+                                </label>
+                            )}
                         </div>
-                        <button className="absolute -bottom-2 -right-2 w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-lg hover:bg-gray-50 transition-colors">
-                            <Camera className="w-5 h-5 text-primary" />
-                        </button>
+                        {isEditing && (
+                            <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-lg pointer-events-none">
+                                <Camera className="w-5 h-5 text-primary" />
+                            </div>
+                        )}
                     </div>
 
                     {/* Basic Info */}
@@ -338,7 +375,7 @@ const StudentProfile = () => {
                                     Save
                                 </button>
                                 <button
-                                    onClick={handleCancel}
+                                    onClick={handleCancelEdit}
                                     className="px-5 py-3 bg-white/20 text-white font-semibold rounded-xl hover:bg-white/30 transition-colors flex items-center gap-2"
                                 >
                                     <X className="w-4 h-4" />
@@ -513,12 +550,16 @@ const StudentProfile = () => {
                     )}
                 </motion.div>
             </div>
-            {/* Announcements Popup - Only on Main Profile Page */}
+            
+            {cropperSrc && (
+                <ImageCropper
+                    imageSrc={cropperSrc}
+                    onCrop={handleCrop}
+                    onCancel={() => setCropperSrc(null)}
+                />
+            )}
         </div>
     );
 };
 
 export default StudentProfile;
-
-
-

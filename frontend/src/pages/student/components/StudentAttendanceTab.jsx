@@ -4,16 +4,42 @@ import { CheckCircle, XCircle, Clock, Calendar, ChevronLeft, ChevronRight, Trend
 import Loader from '../../../components/ui/Loader';
 import Badge from '../../../components/ui/Badge';
 import { attendanceAPI } from '../../../services/api';
+import { useSelector } from 'react-redux';
 import { toAttendanceDateKey } from '../../../utils/attendanceDate';
+import { io } from 'socket.io-client';
+
+const getSocketURL = () => {
+    if (window.location.hostname === 'localhost') return 'http://localhost:5000';
+    return window.location.origin;
+};
+
+const SOCKET_URL = getSocketURL();
 
 const StudentAttendanceTab = ({ course }) => {
     const [attendanceData, setAttendanceData] = useState([]);
     const [currentMonth, setCurrentMonth] = useState(new Date());
     const [isLoading, setIsLoading] = useState(true);
+    const { user } = useSelector((state) => state.auth);
 
     useEffect(() => {
         fetchAttendance();
-    }, [course]);
+
+        const socket = io(SOCKET_URL, { withCredentials: true });
+        const myId = String(user?.id || user?._id || '');
+        if (myId) {
+            socket.emit('join_chat', myId);
+        }
+
+        socket.on('attendance_updated', (data) => {
+            if (String(data.courseId) === String(course._id)) {
+                fetchAttendance();
+            }
+        });
+
+        return () => {
+            socket.disconnect();
+        };
+    }, [course, user]);
 
     const fetchAttendance = async () => {
         setIsLoading(true);

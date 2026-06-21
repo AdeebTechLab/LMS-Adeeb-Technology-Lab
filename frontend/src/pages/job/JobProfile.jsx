@@ -179,7 +179,7 @@ const JobProfile = () => {
                         <h1 className="text-3xl font-bold mb-2">{profileData.fullName || user?.name}</h1>
                         <p className="text-primary/10 text-lg mb-3">
                             <Briefcase className="w-5 h-5 inline mr-2" />
-                            Freelancer / Job Seeker
+                            Job Seeker
                         </p>
                         <div className="flex flex-wrap gap-3 justify-center md:justify-start">
                             <span className={`px-3 py-1 rounded-full text-sm ${profileData.status === 'Verified' ? 'bg-green-500/20' : 'bg-white/20'}`}>

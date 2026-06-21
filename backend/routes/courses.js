@@ -35,7 +35,7 @@ router.get('/teacher/dashboard', protect, authorize('teacher', 'admin'), async (
         // 2. Get all enrollments for these courses in ONE query
         const enrollments = await Enrollment.find({ course: { $in: courseIds } })
             .select('course user isActive status isPaused')
-            .populate('user', 'name email rollNo photo role attendType lastSeen')
+            .populate('user', 'name email rollNo photo role attendType guardianPhone lastSeen')
             .lean();
 
         // 3. Get all assignments for these courses in ONE query

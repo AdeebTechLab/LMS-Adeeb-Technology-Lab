@@ -162,6 +162,12 @@ router.post('/', protect, authorize('teacher', 'admin'), async (req, res) => {
                     message: notifPayload.body,
                     url: notifPayload.url
                 });
+                
+                io.to(studentId).emit('attendance_updated', {
+                    courseId: courseId,
+                    date: date,
+                    status: record.status
+                });
             }
 
             // Web push notification (works even when tab closed)
