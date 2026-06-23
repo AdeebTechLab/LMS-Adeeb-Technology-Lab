@@ -58,7 +58,9 @@ const ChatWidget = () => {
 
     const [searchQuery, setSearchQuery] = useState('');
 
-    const [onlineUsers, setOnlineUsers] = useState({});
+    const [onlineUsers, setOnlineUsers] = useState({});
+
+    const [, setTick] = useState(0); // Force re-render for online dot
 
     const [activeTab, setActiveTab] = useState('all'); // all | student | intern | teacher | job
 
@@ -502,7 +504,10 @@ const ChatWidget = () => {
 
             }
 
-        }, 30000); // Pulse every 30 seconds
+        }, 30000); // Pulse every 30 seconds
+
+        // Force re-render every 30s so online dot stays accurate
+        const tickInterval = setInterval(() => setTick(n => n + 1), 30000);
 
 
 
@@ -512,7 +517,8 @@ const ChatWidget = () => {
 
             window.removeEventListener('openChatWidget', handleToggleChat);
 
-            clearInterval(heartbeatInterval);
+            clearInterval(heartbeatInterval);
+            clearInterval(tickInterval);
 
         };
 
@@ -1638,7 +1644,8 @@ const ChatWidget = () => {
 
 
 
-                                                                <div className="w-14 h-14 bg-gradient-to-br from-orange-50 to-orange-100 rounded-2xl flex items-center justify-center text-primary font-black text-xl shadow-inner text-center overflow-hidden shrink-0">
+                                                                <div className="relative shrink-0">
+                                                                    <div className="w-14 h-14 bg-gradient-to-br from-orange-50 to-orange-100 rounded-2xl flex items-center justify-center text-primary font-black text-xl shadow-inner text-center overflow-hidden">
 
                                                                     {item.userObj?.photo ? (
 
@@ -1650,6 +1657,14 @@ const ChatWidget = () => {
 
                                                                     )}
 
+                                                                </div>
+                                                                    {/* Online Dot */}
+                                                                    {onlineUsers[item.userObj?._id] && (Date.now() - new Date(onlineUsers[item.userObj._id]).getTime() < 120000) && (
+                                                                        <span className="absolute bottom-0 right-0 flex h-3.5 w-3.5">
+                                                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                                                            <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-green-500 border-2 border-white"></span>
+                                                                        </span>
+                                                                    )}
                                                                 </div>
 
                                                                 <div className="flex-1 min-w-0">
@@ -2044,83 +2059,44 @@ const ChatWidget = () => {
 
 
 
-            {/* Bubble */}
-
-            {!isOpen && (
-
-                <div className="relative">
-
-                    {/* Tooltip Popup */}
-
-                    <motion.div
-
-                        initial={{ opacity: 0, scale: 0.8 }}
-
-                        animate={{ opacity: 1, scale: 1 }}
-
-                        transition={{ delay: 1, duration: 0.4 }}
-
-                        className="absolute -top-14 right-0 whitespace-nowrap bg-white text-gray-800 text-xs font-semibold px-4 py-2 rounded-xl shadow-lg border border-gray-100 flex items-center gap-2 z-50 pointer-events-none animate-bounce"
-
-                    >
-
-                        <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-
-                        Need Help? Chat with us!
-
-                        {/* Triangle pointer */}
-
-                        <div className="absolute -bottom-1.5 right-6 w-3 h-3 bg-white border-b border-r border-gray-100 transform rotate-45"></div>
-
-                    </motion.div>
-
-
-
-                    <motion.button
-
-                        whileHover={{ scale: 1.05 }}
-
-                        whileTap={{ scale: 0.95 }}
-
-                        onClick={() => setIsOpen(true)}
-
-                        style={{ outline: '4px solid #FF8E01', outlineOffset: '2px' }}
-
-                        className="w-16 h-16 rounded-full shadow-2xl flex items-center justify-center transition-all relative bg-white overflow-visible"
-
-                    >
-
-                        <img src="/livechat.png" alt="Live Chat" className="w-full h-full object-contain p-1 rounded-full" />
-
-                        {unreadCount > 0 && (
-
-                            <span className="absolute -top-1 -right-1 flex h-4 w-4 z-50">
-
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-
-                                <span className="relative inline-flex rounded-full h-4 w-4 bg-red-500 text-white text-[10px] items-center justify-center font-bold">
-
-                                    {unreadCount}
-
-                                </span>
-
-                            </span>
-
-                        )}
-
-                    </motion.button>
-
-                </div>
-
-            )}
-
-        </div >
-
-    );
-
-};
-
-
-
+                            {/* Bubble */}
+        {!isOpen && (
+            <div className="relative">
+                {/* Tooltip Popup */}
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 1, duration: 0.4 }}
+                    className="absolute -top-14 right-0 whitespace-nowrap bg-white text-gray-800 text-xs font-semibold px-4 py-2 rounded-xl shadow-lg border border-gray-100 flex items-center gap-2 z-50 pointer-events-none animate-bounce"
+                >
+                    <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                    Need Help? Chat with us!
+                    {/* Triangle pointer */}
+                    <div className="absolute -bottom-1.5 right-6 w-3 h-3 bg-white border-b border-r border-gray-100 transform rotate-45"></div>
+                </motion.div>
+
+                <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setIsOpen(true)}
+                    style={{ outline: '4px solid #FF8E01', outlineOffset: '2px' }}
+                    className="w-16 h-16 rounded-full shadow-2xl flex items-center justify-center transition-all relative bg-white overflow-visible"
+                >
+                    <img src="/livechat.png" alt="Live Chat" className="w-full h-full object-contain p-1 rounded-full" />
+                    {unreadCount > 0 && (
+                        <span className="absolute -top-1 -right-1 flex h-4 w-4 z-50">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-4 w-4 bg-red-500 text-white text-[10px] items-center justify-center font-bold">
+                                {unreadCount}
+                            </span>
+                        </span>
+                    )}
+                </motion.button>
+            </div>
+        )}
+    </div >
+);
+};
+
 export default ChatWidget;
 

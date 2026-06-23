@@ -28,6 +28,7 @@ import { getCourseIcon, getCourseColor, getCourseStyle } from '../../utils/cours
 import { formatDate } from '../../utils/dateFormatter';
 import { calculateOutstandingFees } from '../../utils/feeHelpers';
 import { useTranslation } from 'react-i18next';
+import { requestNotificationPermission, showAssignmentNotification, showGradingNotification, showAttendanceNotification } from '../../utils/desktopNotifications';
 
 const getSocketURL = () => {
     const rawUrl = import.meta.env.VITE_API_URL || (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1' ? 'https://lms-adeeb-technology-lab.onrender.com/api' : 'http://localhost:5000/api');
@@ -54,6 +55,9 @@ const StudentDashboard = () => {
         fetchDashboardData();
         fetchActiveLiveClasses();
 
+        // Request notification permission on dashboard load
+        requestNotificationPermission();
+
         // Socket connection
         socketRef.current = io(SOCKET_URL, { withCredentials: true });
 
@@ -72,11 +76,26 @@ const StudentDashboard = () => {
 
         socketRef.current.on('new_assignment', (data) => {
             console.log('🆕 New assignment received:', data);
+            // Show desktop notification for new assignment
+            showAssignmentNotification(
+                data.courseName || 'Course',
+                data.assignmentTitle || data.title || 'New assignment',
+                () => navigate('/assignments')
+            );
             fetchDashboardData();
         });
 
         socketRef.current.on('new_browser_notification', (data) => {
             console.log('🔔 New notification received:', data);
+            // Show desktop notification for grading results
+            if (data.type === 'assignment_graded' || data.type === 'test_graded' || data.type === 'dailyTask_graded') {
+                showGradingNotification(
+                    data.type.replace('_graded', ''),
+                    data.itemName || data.title || 'Result',
+                    data.marks,
+                    () => navigate(data.url || '/assignments')
+                );
+            }
             fetchDashboardData();
         });
 
@@ -86,6 +105,31 @@ const StudentDashboard = () => {
         });
 
         socketRef.current.on('fee_updated', () => {
+            fetchDashboardData();
+        });
+
+        socketRef.current.on('new_test_submission', (data) => {
+            console.log('📝 Test submitted:', data);
+            // Show notification when test is auto-graded
+            showGradingNotification(
+                'test',
+                data.testName || data.title || 'Test Result',
+                data.marks,
+                () => navigate('/tests')
+            );
+            fetchDashboardData();
+        });
+
+        socketRef.current.on('attendance_updated', (data) => {
+            console.log('✅ Attendance updated:', data);
+            // Show notification when attendance is marked
+            if (data.courseName && data.status) {
+                showAttendanceNotification(
+                    data.courseName,
+                    data.status.toUpperCase(),
+                    () => navigate('/attendance')
+                );
+            }
             fetchDashboardData();
         });
 

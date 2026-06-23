@@ -733,22 +733,18 @@ const InternshipRegister = () => {
                             <div id="field-heardAbout" className="md:col-span-2">
                                 <SelectField label="How did you hear about us? *" name="heardAbout" options={HEARD_OPTIONS} placeholder="Select Option" value={formData.heardAbout} onChange={handleChange} error={errors.heardAbout} />
                             </div>
-                        </div>
-
-                        {/* Checkboxes */}
-                        <div className="space-y-4 mb-8">
-                            <label className={`flex items-start gap-3 p-4 rounded-xl border ${errors.termsAccepted ? 'border-red-300 bg-red-50' : 'border-gray-200 bg-gray-50'} cursor-pointer hover:bg-gray-100 transition-colors`}>
-                                <input
-                                    type="checkbox"
-                                    name="termsAccepted"
-                                    checked={formData.termsAccepted}
-                                    onChange={handleChange}
-                                    className="w-5 h-5 mt-0.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                                />
-                                <span className="text-sm text-gray-700">I Accept All Terms and Conditions</span>
-                            </label>
-
-                            
+                            <div className="md:col-span-2">
+                                <label className={`flex items-start gap-3 p-4 rounded-xl border ${errors.termsAccepted ? 'border-red-300 bg-red-50' : 'border-gray-200 bg-gray-50'} cursor-pointer hover:bg-gray-100 transition-colors`}>
+                                    <input
+                                        type="checkbox"
+                                        name="termsAccepted"
+                                        checked={formData.termsAccepted}
+                                        onChange={handleChange}
+                                        className="w-5 h-5 mt-0.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                    />
+                                    <span className="text-sm text-gray-700">I Accept All Terms and Conditions</span>
+                                </label>
+                            </div>
                         </div>
 
                         {/* Submit */}

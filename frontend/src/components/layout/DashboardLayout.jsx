@@ -35,7 +35,7 @@ import {
     Lock
 } from 'lucide-react';
 import { useDispatch } from 'react-redux';
-import { logout } from '../../features/auth/authSlice';
+import { logout, updateUser } from '../../features/auth/authSlice';
 import Sidebar from './Sidebar';
 import NotificationPopup from '../shared/NotificationPopup';
 import ChatWidget from '../shared/ChatWidget';
@@ -96,6 +96,15 @@ const DashboardLayout = () => {
         socket.on('new_submission', handleRefresh);
         socket.on('attendance_updated', handleRefresh);
         socket.on('new_daily_task', handleRefresh);
+        socket.on('user_updated', (data) => {
+            try {
+                if (data && data.updates) {
+                    dispatch(updateUser(data.updates));
+                }
+            } catch (e) {
+                console.error('Error applying user_updated data:', e);
+            }
+        });
 
         return () => {
             clearInterval(interval);

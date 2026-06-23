@@ -653,16 +653,7 @@ const FeeManagement = () => {
             }} title="Upload Payment Receipt" size="md" noScroll={true}>
                 {selectedFee && selectedInstallment && (
                     <div className="space-y-6">
-                        <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
-                            <div className="flex items-center justify-between mb-2">
-                                <p className="font-medium text-gray-900">
-                                    {selectedFee.course?.title}
-                                    {selectedFee.course?.city && <span className="text-gray-500 font-normal ml-1">({selectedFee.course?.city})</span>}
-                                </p>
-                                <p className="text-xl font-bold text-primary">Rs {(selectedInstallment.amount || 0).toLocaleString()}</p>
-                            </div>
-                            <p className="text-sm text-gray-500">Monthly Course Fee</p>
-                        </div>
+                        {/* Course/amount summary removed per UX request */}
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Bank Slip ID (Transaction ID) <span className="text-red-500">*</span></label>
@@ -683,11 +674,11 @@ const FeeManagement = () => {
                             )}
                         </div>
 
-                        <div className="border-2 border-dashed border-gray-200 rounded-xl p-8 text-center hover:border-primary transition-colors group cursor-pointer relative">
+                        <div className="border-2 border-dashed border-gray-200 rounded-xl p-4 text-center hover:border-primary transition-colors group cursor-pointer relative">
                             {uploadedFile ? (
                                 <div className="space-y-3">
                                     {previewUrl ? (
-                                        <div className="relative w-full max-h-48 rounded-lg overflow-hidden border border-gray-100 mb-3 group/preview">
+                                        <div className="relative w-full max-h-36 rounded-lg overflow-hidden border border-gray-100 mb-3 group/preview">
                                             <img src={previewUrl} alt="Preview" className="w-full h-full object-contain bg-gray-50" />
                                             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/preview:opacity-100 transition-opacity flex items-center justify-center">
                                                 <button 
@@ -699,26 +690,28 @@ const FeeManagement = () => {
                                             </div>
                                         </div>
                                     ) : (
-                                        <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto text-primary">
-                                            <FileImage className="w-6 h-6" />
+                                        <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center mx-auto text-primary">
+                                            <FileImage className="w-5 h-5" />
                                         </div>
                                     )}
-                                    <div>
-                                        <p className="font-medium text-gray-900">{uploadedFile.name}</p>
-                                        <p className="text-sm text-gray-500">{(uploadedFile.size / 1024 / 1024).toFixed(2)} MB</p>
+                                    <div className="flex flex-col items-center">
+                                        <p className="font-medium text-sm text-gray-900">{uploadedFile.name}</p>
+                                        <p className="text-xs text-gray-500">{(uploadedFile.size / 1024 / 1024).toFixed(2)} MB</p>
                                     </div>
                                     <button onClick={(e) => { e.stopPropagation(); setUploadedFile(null); setPreviewUrl(null); }} className="text-sm text-red-500 hover:text-red-700 font-medium underline">
                                         Remove file
                                     </button>
                                 </div>
                             ) : (
-                                <label className="cursor-pointer block w-full h-full">
-                                    <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center mx-auto text-gray-400 group-hover:bg-primary/5 group-hover:text-primary transition-colors mb-3">
-                                        <Upload className="w-6 h-6" />
+                                <label className="cursor-pointer w-full inline-flex items-center justify-center gap-4 py-3">
+                                    <div className="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 group-hover:bg-primary/5 group-hover:text-primary transition-colors">
+                                        <Upload className="w-5 h-5" />
                                     </div>
-                                    <p className="text-gray-900 font-medium mb-1">Click to upload receipt</p>
-                                    <p className="text-xs text-red-500 font-medium mb-1">⚠️ Upload image less than 1MB</p>
-                                    <p className="text-sm text-gray-400">PNG, JPG, HEIC, WebP</p>
+                                    <div className="text-left">
+                                        <p className="text-gray-900 font-medium">Click to upload receipt</p>
+                                        <p className="text-[11px] text-red-500 font-medium">⚠️ Upload image less than 1MB</p>
+                                        <p className="text-xs text-gray-400">PNG, JPG, HEIC, WebP</p>
+                                    </div>
                                     <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
                                 </label>
                             )}

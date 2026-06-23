@@ -147,9 +147,43 @@ const AttendanceTab = ({ course, students }) => {
         // WHATSAPP POPUP LOGIC (Triggered before await to bypass browser popup blocker)
         if (student && student.guardianPhone) {
             const academyName = course?.targetAudience === 'interns' ? "Adeeb Technology Lab" : "The Computer Courses";
-            const campus = student.location && student.location !== 'N/A' ? `*${student.location}*` : "";
+            const campusName = student.location && student.location !== 'N/A' ? student.location : "";
             const dt = new Date().toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
-            const message = `*DAILY ATTENDANCE REPORT*\n${academyName} ${campus}\n\nStudent: *${student.name}*\nCourse: *${student.courseName || course?.title || course?.name || ''}*\nDate: ${dt}\nStatus: *${status.toUpperCase()}*`;
+            const statusEmoji = status === 'present' ? ' ✅' : ' ❌';
+
+            // Sanitize user-provided strings to remove invisible/control characters and asterisks
+            const sanitize = (s) => {
+                if (s === undefined || s === null) return '';
+                try {
+                    return String(s)
+                        .normalize('NFKC')
+                        .replace(/[\u200B-\u200D\uFEFF]/g, '') // zero-width
+                        .replace(/[\x00-\x1F\x7F]/g, '') // control chars
+                        .replace(/\*/g, '') // remove asterisks that break WhatsApp formatting
+                        .trim();
+                } catch (e) {
+                    return String(s);
+                }
+            };
+
+            const studentName = sanitize(student.name);
+            const courseName = sanitize(student.courseName || course?.title || course?.name || '');
+            const campusDisplay = sanitize(campusName);
+
+            // Build message with emoji only (no duplicate status text)
+            let headerLine = academyName;
+            if (campusDisplay) headerLine += ' - *' + campusDisplay + '*';
+
+            const statusIndicator = status === 'present' ? '✅' : '❎';
+            const message = `*DAILY ATTENDANCE REPORT*\n${headerLine}\n\n*Student:* ${studentName}\n*Course:* ${courseName}\n*Date:* ${dt}\n*Status:* ${status.toUpperCase()} ${statusIndicator}`;
+
+            // Debug: log plain and encoded message to help diagnose rendering issues
+            try {
+                console.debug('WhatsApp attendance message:', message);
+                console.debug('WhatsApp encoded:', encodeURIComponent(message));
+            } catch (e) {
+                // ignore logging errors
+            }
             
             const formattedPhone = student.guardianPhone.replace(/\D/g, '');
             let finalPhone = formattedPhone;

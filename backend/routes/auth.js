@@ -518,6 +518,27 @@ router.put('/profile', protect, uploadPhoto.single('photo'), async (req, res) =>
                 { email: currentUser.email, _id: { $ne: req.user.id } },
                 { $set: syncData }
             );
+            // Notify active socket sessions for all accounts with this email so open portals refresh
+            try {
+                const io = req.app.get('io');
+                if (io) {
+                    const usersToNotify = await User.find({ email: currentUser.email }).select('_id');
+                    const payload = {
+                        type: 'user_profile_updated',
+                        userId: req.user.id,
+                        updates: syncData
+                    };
+                    usersToNotify.forEach(u => {
+                        try {
+                            io.to(u._id.toString()).emit('user_updated', payload);
+                        } catch (e) {
+                            // ignore socket errors for offline users
+                        }
+                    });
+                }
+            } catch (emitErr) {
+                console.error('Error emitting user_updated sockets:', emitErr);
+            }
         }
 
         res.json({ success: true, user });

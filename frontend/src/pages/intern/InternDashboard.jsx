@@ -12,6 +12,7 @@ import { enrollmentAPI, assignmentAPI, feeAPI, liveClassAPI, chatAPI } from '../
 import { getCourseIcon } from '../../utils/courseIcons';
 import { calculateOutstandingFees } from '../../utils/feeHelpers';
 import { useTranslation } from 'react-i18next';
+import { requestNotificationPermission, showTaskNotification, showGradingNotification, showAttendanceNotification } from '../../utils/desktopNotifications';
 
 const getSocketURL = () => {
     const rawUrl = import.meta.env.VITE_API_URL || (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1' ? 'https://lms-adeeb-technology-lab.onrender.com/api' : 'http://localhost:5000/api');
@@ -35,15 +36,60 @@ const InternDashboard = () => {
         fetchDashboardData();
         fetchActiveLiveClasses();
 
+        // Request notification permission on dashboard load
+        requestNotificationPermission();
+
         // Socket connection for live class updates
         socketRef.current = io(SOCKET_URL, { withCredentials: true });
         
+        const myId = user?.id || user?._id;
+        if (myId) {
+            socketRef.current.emit('join_chat', myId);
+        }
+
         socketRef.current.on('live_class_started', () => {
             fetchActiveLiveClasses();
         });
 
         socketRef.current.on('live_class_ended', () => {
             fetchActiveLiveClasses();
+        });
+
+        // Listen for new task assignments
+        socketRef.current.on('new_assignment', (data) => {
+            console.log('🆕 New task received:', data);
+            showTaskNotification(
+                data.assignmentTitle || data.title || 'New task assigned',
+                () => navigate('/tasks')
+            );
+            fetchDashboardData();
+        });
+
+        // Listen for task grading/feedback
+        socketRef.current.on('new_browser_notification', (data) => {
+            console.log('🔔 New notification received:', data);
+            if (data.type === 'task_graded' || data.type === 'task_feedback') {
+                showGradingNotification(
+                    'task',
+                    data.itemName || data.title || 'Task',
+                    data.marks,
+                    () => navigate(data.url || '/tasks')
+                );
+            }
+            fetchDashboardData();
+        });
+
+        socketRef.current.on('attendance_updated', (data) => {
+            console.log('✅ Attendance updated:', data);
+            // Show notification when attendance is marked
+            if (data.courseName && data.status) {
+                showAttendanceNotification(
+                    data.courseName,
+                    data.status.toUpperCase(),
+                    () => navigate('/attendance')
+                );
+            }
+            fetchDashboardData();
         });
 
         return () => {

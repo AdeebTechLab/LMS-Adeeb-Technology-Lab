@@ -33,6 +33,7 @@ import { getCourseIcon, getCourseStyle } from '../../utils/courseIcons';
 import { formatDate } from '../../utils/dateFormatter';
 import BirthdayWish from '../../components/dashboard/BirthdayWish';
 import { useTranslation } from 'react-i18next';
+import { requestNotificationPermission, showGradingNotification } from '../../utils/desktopNotifications';
 
 const TeacherDashboard = () => {
     const { t } = useTranslation();
@@ -71,6 +72,9 @@ const TeacherDashboard = () => {
             fetchActiveLiveClasses();
             fetchMyCertificate();
 
+            // Request notification permission on dashboard load
+            requestNotificationPermission();
+
             // Setup real-time updates
             socketRef.current = io(SOCKET_URL, { withCredentials: true });
             const myId = user?.id || user?._id;
@@ -80,6 +84,13 @@ const TeacherDashboard = () => {
 
             socketRef.current.on('new_submission', (data) => {
                 console.log('📥 New submission received:', data);
+                // Show notification for new submissions
+                showGradingNotification(
+                    data.type || 'assignment',
+                    data.studentName ? `${data.studentName} submitted: ${data.itemName || 'submission'}` : data.itemName || 'New submission',
+                    null,
+                    () => navigate('/grading')
+                );
                 fetchDashboardData();
             });
 

@@ -703,23 +703,6 @@ const TeacherRegister = () => {
                                 {errors.email && <p className="mt-1 text-sm text-red-500">{errors.email}</p>}
                             </div>
 
-                            <div id="field-heardAbout" className="md:col-span-2">
-                                <label className="block text-sm font-medium text-gray-700 mb-1.5">How did you hear about us? *</label>
-                                <div className="relative">
-                                    <select
-                                        name="heardAbout"
-                                        value={formData.heardAbout}
-                                        onChange={handleChange}
-                                        className={`w-full px-4 py-3 border ${errors.heardAbout ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50 appearance-none cursor-pointer`}
-                                    >
-                                        <option value="">Select Option</option>
-                                        {HEARD_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                                    </select>
-                                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
-                                </div>
-                                {errors.heardAbout && <p className="mt-1 text-sm text-red-500">{errors.heardAbout}</p>}
-                            </div>
-
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1.5">Password *</label>
                                 <div className="relative">
@@ -765,23 +748,40 @@ const TeacherRegister = () => {
                                 </div>
                                 {errors.confirmPassword && <p className="mt-1 text-sm text-red-500">{errors.confirmPassword}</p>}
                             </div>
-                        </div>
 
-                        {/* Terms Checkbox */}
-                        <div className="flex items-start pt-2">
-                            <input
-                                type="checkbox"
-                                name="termsAccepted"
-                                id="termsAccepted"
-                                checked={formData.termsAccepted}
-                                onChange={handleChange}
-                                className="w-5 h-5 mt-0.5 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
-                            />
-                            <label htmlFor="termsAccepted" className="ml-2 text-sm text-gray-600 cursor-pointer">
-                                I Accept All Terms and Conditions
-                            </label>
+                            <div id="field-heardAbout" className="md:col-span-2">
+                                <label className="block text-sm font-medium text-gray-700 mb-1.5">How did you hear about us? *</label>
+                                <div className="relative">
+                                    <select
+                                        name="heardAbout"
+                                        value={formData.heardAbout}
+                                        onChange={handleChange}
+                                        className={`w-full px-4 py-3 border ${errors.heardAbout ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50 appearance-none cursor-pointer`}
+                                    >
+                                        <option value="">Select Option</option>
+                                        {HEARD_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                                    </select>
+                                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+                                </div>
+                                {errors.heardAbout && <p className="mt-1 text-sm text-red-500">{errors.heardAbout}</p>}
+                            </div>
+                            
+                            {/* Terms Checkbox */}
+                            <div className="md:col-span-2">
+                                <label htmlFor="termsAccepted" className={`flex items-start gap-3 p-4 rounded-xl border ${errors.termsAccepted ? 'border-red-300 bg-red-50' : 'border-gray-200 bg-gray-50'} cursor-pointer hover:bg-gray-100 transition-colors`}>
+                                    <input
+                                        type="checkbox"
+                                        name="termsAccepted"
+                                        id="termsAccepted"
+                                        checked={formData.termsAccepted}
+                                        onChange={handleChange}
+                                        className="w-5 h-5 mt-0.5 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
+                                    />
+                                    <span className="text-sm text-gray-700">I Accept All Terms and Conditions</span>
+                                </label>
+                                {errors.termsAccepted && <p className="mt-2 text-sm text-red-500">{errors.termsAccepted}</p>}
+                            </div>
                         </div>
-                        {errors.termsAccepted && <p className="text-sm text-red-500">{errors.termsAccepted}</p>}
 
                         {/* Submit Button */}
                         <motion.button
