@@ -68,6 +68,7 @@ const userSchema = new mongoose.Schema({
     gender: String,
     education: String,
     guardianName: String,
+    guardianRelation: String,
     guardianPhone: String,
     guardianOccupation: String,
     address: String,

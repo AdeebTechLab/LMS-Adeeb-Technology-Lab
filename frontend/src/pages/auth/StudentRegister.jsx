@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
     ArrowLeft, User, Mail, Phone, CreditCard, Calendar,
-    MapPin, BookOpen, Users, Camera, Receipt, ChevronDown, GraduationCap, Eye, EyeOff, X
+    MapPin, BookOpen, Users, Camera, Receipt, ChevronDown, GraduationCap, Eye, EyeOff, X, Briefcase, Lock
 } from 'lucide-react';
 import { authAPI } from '../../services/api';
 import ImageCropper from '../../components/ui/ImageCropper';
@@ -21,11 +21,12 @@ const COURSES = [
 ];
 
 const ATTEND_CITIES = ['Bahawalpur', 'Islamabad'];
-const CITIES = PAKISTAN_CITIES;
 const HEARD_OPTIONS = [
-    'Poster & Panaflex', 'Facebook', 'Instagram', 'WhatsApp', 'Website',
-    'YouTube', 'Event / Seminar', 'Friends & Family', 'Twitter', 'LinkedIn', 'Other'
+    'Poster & Panaflex', 'Facebook', 'Instagram', 'WhatsApp Group', 'Website',
+    'YouTube', 'Friends & Family', 'Twitter', 'LinkedIn', 'Other'
 ];
+
+const GUARDIAN_RELATIONS = ['Father', 'Mother', 'Brother', 'Sister', 'Uncle', 'Aunt', 'Grandfather', 'Grandmother', 'Other'];
 
 // Reusable Input Component - defined outside to prevent re-creation
 const InputField = ({ id, label, name, type = 'text', icon: Icon, placeholder, value, onChange, error, ...props }) => (
@@ -93,6 +94,7 @@ const StudentRegister = () => {
         attendClasses: '',
         education: '',
         guardianName: '',
+        guardianRelation: '',
         guardianPhone: '',
         guardianOccupation: '',
         address: '',
@@ -104,7 +106,6 @@ const StudentRegister = () => {
         feeScreenshotUrl: '',
         heardAbout: '',
         termsAccepted: false,
-        dataConfirmed: false,
         password: '',
         confirmPassword: ''
     });
@@ -131,7 +132,6 @@ const StudentRegister = () => {
                 dob: value,
                 age: age.toString()
             }));
-            if (errors.age) setErrors(prev => ({ ...prev, age: '' }));
         } else {
             setFormData(prev => ({
                 ...prev,
@@ -191,12 +191,12 @@ const StudentRegister = () => {
         else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Invalid email format';
         if (!formData.cnic) newErrors.cnic = 'CNIC/BForm is required';
         if (!formData.dob) newErrors.dob = 'Date of birth is required';
-        if (!formData.age) newErrors.age = 'Age is required';
         if (!formData.gender) newErrors.gender = 'Gender is required';
         if (!formData.cityToAttend) newErrors.cityToAttend = 'City to attend is required';
         if (!formData.attendClasses) newErrors.attendClasses = 'Class type is required';
         if (!formData.education) newErrors.education = 'Education is required';
         if (!formData.guardianName) newErrors.guardianName = 'Guardian name is required';
+        if (!formData.guardianRelation) newErrors.guardianRelation = 'Guardian relationship is required';
         if (!formData.guardianPhone) newErrors.guardianPhone = 'Guardian WhatsApp Number is required';
         if (!formData.guardianOccupation) newErrors.guardianOccupation = 'Guardian occupation is required';
         if (!formData.address) newErrors.address = 'Address is required';
@@ -207,7 +207,6 @@ const StudentRegister = () => {
         else if (formData.password.length < 6) newErrors.password = 'Password must be at least 6 characters';
         if (formData.password !== formData.confirmPassword) newErrors.confirmPassword = 'Passwords do not match';
         if (!formData.termsAccepted) newErrors.termsAccepted = 'You must accept terms';
-        if (!formData.dataConfirmed) newErrors.dataConfirmed = 'You must confirm data accuracy';
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -217,10 +216,10 @@ const StudentRegister = () => {
         // Priority order of fields to scroll to
         const fieldOrder = [
             'photo', 'fullName', 'fatherName', 'phone', 'email', 'cnic', 'dob',
-            'age', 'gender', 'cityToAttend', 'attendClasses', 'education',
-            'guardianName', 'guardianPhone', 'guardianOccupation',
+            'gender', 'cityToAttend', 'attendClasses', 'education',
+            'guardianName', 'guardianRelation', 'guardianPhone', 'guardianOccupation',
             'city', 'country', 'address', 'heardAbout', 'password', 'confirmPassword',
-            'termsAccepted', 'dataConfirmed'
+            'termsAccepted'
         ];
         for (const field of fieldOrder) {
             if (newErrors[field]) {
@@ -248,12 +247,12 @@ const StudentRegister = () => {
             if (!formData.email) currentErrors.email = true;
             if (!formData.cnic) currentErrors.cnic = true;
             if (!formData.dob) currentErrors.dob = true;
-            if (!formData.age) currentErrors.age = true;
             if (!formData.gender) currentErrors.gender = true;
             if (!formData.cityToAttend) currentErrors.cityToAttend = true;
             if (!formData.attendClasses) currentErrors.attendClasses = true;
             if (!formData.education) currentErrors.education = true;
             if (!formData.guardianName) currentErrors.guardianName = true;
+            if (!formData.guardianRelation) currentErrors.guardianRelation = true;
             if (!formData.guardianPhone) currentErrors.guardianPhone = true;
             if (!formData.guardianOccupation) currentErrors.guardianOccupation = true;
             if (!formData.address) currentErrors.address = true;
@@ -263,7 +262,6 @@ const StudentRegister = () => {
             if (!formData.password) currentErrors.password = true;
             if (formData.password !== formData.confirmPassword) currentErrors.confirmPassword = true;
             if (!formData.termsAccepted) currentErrors.termsAccepted = true;
-            if (!formData.dataConfirmed) currentErrors.dataConfirmed = true;
             scrollToFirstError(currentErrors);
             return;
         }
@@ -287,6 +285,7 @@ const StudentRegister = () => {
             submitData.append('gender', formData.gender);
             submitData.append('education', formData.education);
             submitData.append('guardianName', formData.guardianName);
+            submitData.append('guardianRelation', formData.guardianRelation);
             submitData.append('guardianPhone', formData.guardianPhone);
             submitData.append('guardianOccupation', formData.guardianOccupation);
             submitData.append('address', formData.address);
@@ -513,36 +512,51 @@ const StudentRegister = () => {
                         </div>
 
                         {/* Personal Information */}
-                        <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-2 border-b">Personal Information</h2>
+                        <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-2 border-b flex items-center gap-2">
+                            <User className="w-5 h-5 text-blue-600" /> Personal Information
+                        </h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
                             <InputField label="Full Name *" name="fullName" icon={User} placeholder="Enter your full name" value={formData.fullName} onChange={handleChange} error={errors.fullName} />
                             <InputField label="Father Name *" name="fatherName" icon={User} placeholder="Father's full name" value={formData.fatherName} onChange={handleChange} error={errors.fatherName} />
                             <InputField label="WhatsApp Number *" name="phone" type="tel" icon={Phone} placeholder="+92 300 1234567" value={formData.phone} onChange={handleChange} error={errors.phone} />
-                            <InputField label="Email *" name="email" type="email" icon={Mail} placeholder="your@email.com" value={formData.email} onChange={handleChange} error={errors.email} />
                             <InputField label="CNIC/BForm *" name="cnic" icon={CreditCard} placeholder="XXXXX-XXXXXXX-X" value={formData.cnic} onChange={handleCNICChange} error={errors.cnic} />
                             <InputField label="Date of Birth *" name="dob" type="date" icon={Calendar} value={formData.dob} onChange={handleChange} error={errors.dob} />
-                            <InputField label="Age (Auto) *" name="age" type="number" placeholder="Calculated automatically" value={formData.age} onChange={handleChange} error={errors.age} readOnly />
+                            
                             <SelectField label="Gender *" name="gender" options={['Male', 'Female']} placeholder="Select Gender" value={formData.gender} onChange={handleChange} error={errors.gender} />
                         </div>
 
-                        {/* Course & Attendance */}
-                        <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-2 border-b">Course Details</h2>
+                        {/* Campus Details */}
+                        <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-2 border-b flex items-center gap-2">
+                            <BookOpen className="w-5 h-5 text-blue-600" /> Campus Details
+                        </h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
-                             <SelectField label="City to Attend Classes *" name="cityToAttend" options={ATTEND_CITIES} placeholder="Select City" value={formData.cityToAttend} onChange={handleChange} error={errors.cityToAttend} />
+                             <SelectField label="Campus City *" name="cityToAttend" options={ATTEND_CITIES} placeholder="Select Campus City" value={formData.cityToAttend} onChange={handleChange} error={errors.cityToAttend} />
                             <SelectField label="Attend Classes *" name="attendClasses" options={['Online', 'Physical']} placeholder="Select Type" value={formData.attendClasses} onChange={handleChange} error={errors.attendClasses} />
+                        </div>
+
+                        {/* Educational Details */}
+                        <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-2 border-b flex items-center gap-2">
+                            <Briefcase className="w-5 h-5 text-blue-600" /> Educational Details
+                        </h2>
+                        <div className="grid grid-cols-1 gap-5 mb-8">
                             <InputField label="Education *" name="education" icon={BookOpen} placeholder="Your highest education" value={formData.education} onChange={handleChange} error={errors.education} />
                         </div>
 
                         {/* Guardian Information */}
-                        <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-2 border-b">Guardian Information</h2>
+                        <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-2 border-b flex items-center gap-2">
+                            <Users className="w-5 h-5 text-blue-600" /> Guardian Information
+                        </h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
                             <InputField label="Guardian Name *" name="guardianName" icon={Users} placeholder="Guardian's full name" value={formData.guardianName} onChange={handleChange} error={errors.guardianName} />
+                            <SelectField label="Relationship with Guardian *" name="guardianRelation" options={GUARDIAN_RELATIONS} placeholder="Select Relationship" value={formData.guardianRelation} onChange={handleChange} error={errors.guardianRelation} />
                             <InputField label="Guardian WhatsApp Number *" name="guardianPhone" type="tel" icon={Phone} placeholder="Guardian's WhatsApp number" value={formData.guardianPhone} onChange={handleChange} error={errors.guardianPhone} />
                             <InputField label="Guardian Occupation *" name="guardianOccupation" placeholder="Guardian's occupation" value={formData.guardianOccupation} onChange={handleChange} error={errors.guardianOccupation} />
                         </div>
 
                         {/* Address Details */}
-                        <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-2 border-b">Address Details</h2>
+                        <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-2 border-b flex items-center gap-2">
+                            <MapPin className="w-5 h-5 text-blue-600" /> Address Details
+                        </h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
                             <SelectField label="City *" name="city" options={PAKISTAN_CITIES} placeholder="Select City" value={formData.city} onChange={handleChange} error={errors.city} />
                             {formData.city === 'Other' && (
@@ -578,8 +592,13 @@ const StudentRegister = () => {
                         )}
 
                         {/* Additional Info */}
-                        <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-2 border-b">Account Setup</h2>
+                        <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-2 border-b flex items-center gap-2">
+                            <Lock className="w-5 h-5 text-primary" /> Account Setup
+                        </h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
+                            <div className="md:col-span-2">
+                                <InputField label="Email *" name="email" type="email" icon={Mail} placeholder="your@email.com" value={formData.email} onChange={handleChange} error={errors.email} />
+                            </div>
                             <div id="field-password">
                                 <label className="block text-sm font-medium text-gray-700 mb-1.5">Password *</label>
                                 <div className="relative">
@@ -622,7 +641,9 @@ const StudentRegister = () => {
                                 </div>
                                 {errors.confirmPassword && <p className="mt-1 text-sm text-red-500">{errors.confirmPassword}</p>}
                             </div>
-                            <SelectField label="How did you hear about us? *" name="heardAbout" options={HEARD_OPTIONS} placeholder="Select Option" value={formData.heardAbout} onChange={handleChange} error={errors.heardAbout} />
+                            <div id="field-heardAbout" className="md:col-span-2">
+                                <SelectField label="How did you hear about us? *" name="heardAbout" options={HEARD_OPTIONS} placeholder="Select Option" value={formData.heardAbout} onChange={handleChange} error={errors.heardAbout} />
+                            </div>
                         </div>
 
                         {/* Checkboxes */}
@@ -637,23 +658,12 @@ const StudentRegister = () => {
                                 />
                                 <span className="text-sm text-gray-700">I Accept All Terms and Conditions</span>
                             </label>
-
-                            <label id="field-dataConfirmed" className={`flex items-start gap-3 p-4 rounded-xl border ${errors.dataConfirmed ? 'border-red-300 bg-red-50' : 'border-gray-200 bg-gray-50'} cursor-pointer hover:bg-gray-100 transition-colors`}>
-                                <input
-                                    type="checkbox"
-                                    name="dataConfirmed"
-                                    checked={formData.dataConfirmed}
-                                    onChange={handleChange}
-                                    className="w-5 h-5 mt-0.5 rounded border-gray-300 text-primary focus:ring-primary"
-                                />
-                                <span className="text-sm text-gray-700">I confirm that all provided data is correct and I agree to abide by the organisation's requirements if admitted.</span>
-                            </label>
                         </div>
 
                         {/* Submit */}
                         <button
                             type="submit"
-                            disabled={isLoading || !formData.termsAccepted || !formData.dataConfirmed}
+                            disabled={isLoading || !formData.termsAccepted}
                             className="w-full py-4 bg-primary hover:bg-primary disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 active:scale-95"
                         >
                             <ButtonLoader isLoading={isLoading}>

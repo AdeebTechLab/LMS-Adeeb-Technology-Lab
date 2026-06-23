@@ -20,6 +20,10 @@ const QUALIFICATIONS = [
     'Certificate Course',
     'Other'
 ];
+const HEARD_OPTIONS = [
+    'Poster & Panaflex', 'Facebook', 'Instagram', 'WhatsApp Group', 'Website',
+    'YouTube', 'Friends & Family', 'Twitter', 'LinkedIn', 'Other'
+];
 
 const TeacherRegister = () => {
     const navigate = useNavigate();
@@ -47,7 +51,8 @@ const TeacherRegister = () => {
         gender: '',
         password: '',
         confirmPassword: '',
-        agreeTerms: false,
+        termsAccepted: false,
+        heardAbout: ''
     });
 
     const calculateAge = (dob) => {
@@ -142,6 +147,10 @@ const TeacherRegister = () => {
             newErrors.password = 'Password must be at least 6 characters';
         }
 
+        if (!formData.heardAbout) {
+            newErrors.heardAbout = 'This field is required';
+        }
+
         if (formData.password !== formData.confirmPassword) {
             newErrors.confirmPassword = 'Passwords do not match';
         }
@@ -154,8 +163,8 @@ const TeacherRegister = () => {
             newErrors.country = 'Please select a country';
         }
 
-        if (!formData.agreeTerms) {
-            newErrors.agreeTerms = 'You must agree to the terms';
+        if (!formData.termsAccepted) {
+            newErrors.termsAccepted = 'You must agree to the terms';
         }
 
         setErrors(newErrors);
@@ -231,6 +240,7 @@ const TeacherRegister = () => {
             submitData.append('age', formData.age);
             submitData.append('gender', formData.gender);
             submitData.append('address', formData.address);
+            submitData.append('heardAbout', formData.heardAbout);
 
             if (photoFile) {
                 submitData.append('photo', photoFile);
@@ -409,7 +419,7 @@ const TeacherRegister = () => {
                     {/* Registration Form */}
                     <form onSubmit={handleSubmit} className="space-y-4">
                         {/* Photo Upload */}
-                        <div className="flex flex-col items-center mb-6">
+                            <div className="flex flex-col items-center mb-6">
                             <div className="relative group">
                                 <div className="w-24 h-24 rounded-2xl bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden transition-all group-hover:border-primary">
                                     {photoPreview ? (
@@ -442,42 +452,44 @@ const TeacherRegister = () => {
                             {errors.photo && <p className="mt-1 text-xs text-red-500">{errors.photo}</p>}
                         </div>
 
-                        {/* Full Name */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1.5">Full Name *</label>
-                            <div className="relative">
-                                <input
-                                    type="text"
-                                    name="name"
-                                    value={formData.name}
-                                    onChange={handleChange}
-                                    placeholder="Dr. Ahmad Khan"
-                                    className={`w-full px-4 py-3 pl-11 border ${errors.name ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50`}
-                                />
-                                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                            </div>
-                            {errors.name && <p className="mt-1 text-sm text-red-500">{errors.name}</p>}
-                        </div>
+                        {/* Personal Information */}
+                        <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-2 border-b flex items-center gap-2">
+                            <User className="w-5 h-5 text-blue-600" /> Personal Information
+                        </h2>
 
-                        {/* Email */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1.5">Email Address *</label>
-                            <div className="relative">
-                                <input
-                                    type="email"
-                                    name="email"
-                                    value={formData.email}
-                                    onChange={handleChange}
-                                    placeholder="ahmad@example.com"
-                                    className={`w-full px-4 py-3 pl-11 border ${errors.email ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50`}
-                                />
-                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1.5">Full Name *</label>
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        name="name"
+                                        value={formData.name}
+                                        onChange={handleChange}
+                                        placeholder="Enter your full name"
+                                        className={`w-full px-4 py-3 pl-11 border ${errors.name ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50`}
+                                    />
+                                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                </div>
+                                {errors.name && <p className="mt-1 text-sm text-red-500">{errors.name}</p>}
                             </div>
-                            {errors.email && <p className="mt-1 text-sm text-red-500">{errors.email}</p>}
-                        </div>
 
-                        {/* Phone and CNIC Row */}
-                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1.5">Father Name *</label>
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        name="fatherName"
+                                        value={formData.fatherName}
+                                        onChange={handleChange}
+                                        placeholder="Father's full name"
+                                        className={`w-full px-4 py-3 pl-11 border ${errors.fatherName ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50`}
+                                    />
+                                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                </div>
+                                {errors.fatherName && <p className="mt-1 text-sm text-red-500">{errors.fatherName}</p>}
+                            </div>
+
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1.5">WhatsApp Number *</label>
                                 <div className="relative">
@@ -486,49 +498,30 @@ const TeacherRegister = () => {
                                         name="phone"
                                         value={formData.phone}
                                         onChange={handleChange}
-                                        placeholder="0300-1234567"
+                                        placeholder="+92 300 1234567"
                                         className={`w-full px-4 py-3 pl-11 border ${errors.phone ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50`}
                                     />
                                     <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                                 </div>
                                 {errors.phone && <p className="mt-1 text-sm text-red-500">{errors.phone}</p>}
                             </div>
+
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1.5">CNIC *</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-1.5">CNIC / B-Form *</label>
                                 <div className="relative">
                                     <input
                                         type="text"
                                         name="cnic"
                                         value={formData.cnic}
                                         onChange={handleCNICChange}
-                                        placeholder="31234-5678901-2"
+                                        placeholder="XXXXX-XXXXXXX-X"
                                         className={`w-full px-4 py-3 pl-11 border ${errors.cnic ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50`}
                                     />
                                     <CreditCard className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                                 </div>
                                 {errors.cnic && <p className="mt-1 text-sm text-red-500">{errors.cnic}</p>}
                             </div>
-                        </div>
 
-                        {/* Father Name */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1.5">Father Name *</label>
-                            <div className="relative">
-                                <input
-                                    type="text"
-                                    name="fatherName"
-                                    value={formData.fatherName}
-                                    onChange={handleChange}
-                                    placeholder="Father's Name"
-                                    className={`w-full px-4 py-3 pl-11 border ${errors.fatherName ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50`}
-                                />
-                                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                            </div>
-                            {errors.fatherName && <p className="mt-1 text-sm text-red-500">{errors.fatherName}</p>}
-                        </div>
-
-                        {/* DOB and Gender */}
-                        <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1.5">Date of Birth *</label>
                                 <div className="relative">
@@ -541,42 +534,28 @@ const TeacherRegister = () => {
                                     />
                                     <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                                 </div>
+                                <p className="mt-1 text-xs text-gray-500">dd-----yyyy</p>
                                 {errors.dob && <p className="mt-1 text-sm text-red-500">{errors.dob}</p>}
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1.5">Age (Auto)</label>
-                                <div className="relative">
-                                    <input
-                                        type="number"
-                                        name="age"
-                                        value={formData.age}
-                                        readOnly
-                                        placeholder="Auto"
-                                        className="w-full px-4 py-3 pl-11 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50"
-                                    />
-                                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                                </div>
-                            </div>
-                        </div>
 
-                        {/* Gender */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1.5">Gender *</label>
-                            <div className="relative">
-                                <select
-                                    name="gender"
-                                    value={formData.gender}
-                                    onChange={handleChange}
-                                    className={`w-full px-4 py-3 pl-11 border ${errors.gender ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50 appearance-none cursor-pointer`}
-                                >
-                                    <option value="">Select Gender</option>
-                                    <option value="Male">Male</option>
-                                    <option value="Female">Female</option>
-                                </select>
-                                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1.5">Gender *</label>
+                                <div className="relative">
+                                    <select
+                                        name="gender"
+                                        value={formData.gender}
+                                        onChange={handleChange}
+                                        className={`w-full px-4 py-3 pl-11 border ${errors.gender ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50 appearance-none cursor-pointer`}
+                                    >
+                                        <option value="">Select Gender</option>
+                                        <option value="Male">Male</option>
+                                        <option value="Female">Female</option>
+                                    </select>
+                                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+                                </div>
+                                {errors.gender && <p className="mt-1 text-sm text-red-500">{errors.gender}</p>}
                             </div>
-                            {errors.gender && <p className="mt-1 text-sm text-red-500">{errors.gender}</p>}
                         </div>
 
                         {/* Qualification */}
@@ -665,6 +644,11 @@ const TeacherRegister = () => {
                             </div>
                         </div>
 
+                        {/* Address Details */}
+                        <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-2 border-b flex items-center gap-2">
+                            <MapPin className="w-5 h-5 text-blue-600" /> Address Details
+                        </h2>
+
                         {/* Country */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1.5">Country *</label>
@@ -698,76 +682,106 @@ const TeacherRegister = () => {
                             )}
                         </div>
 
-                        {/* Password */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1.5">Password *</label>
-                            <div className="relative">
-                                <input
-                                    type={showPassword ? 'text' : 'password'}
-                                    name="password"
-                                    value={formData.password}
-                                    onChange={handleChange}
-                                    placeholder="••••••••"
-                                    className={`w-full px-4 py-3 pl-11 pr-11 border ${errors.password ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50`}
-                                />
-                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                                >
-                                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                                </button>
+                        {/* Account Setup */}
+                        <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-2 border-b flex items-center gap-2">
+                            <Lock className="w-5 h-5 text-primary" /> Account Setup
+                        </h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
+                            <div className="md:col-span-2">
+                                <label className="block text-sm font-medium text-gray-700 mb-1.5">Email Address *</label>
+                                <div className="relative">
+                                    <input
+                                        type="email"
+                                        name="email"
+                                        value={formData.email}
+                                        onChange={handleChange}
+                                        placeholder="ahmad@example.com"
+                                        className={`w-full px-4 py-3 pl-11 border ${errors.email ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50`}
+                                    />
+                                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                </div>
+                                {errors.email && <p className="mt-1 text-sm text-red-500">{errors.email}</p>}
                             </div>
-                            {errors.password && <p className="mt-1 text-sm text-red-500">{errors.password}</p>}
-                        </div>
 
-                        {/* Confirm Password */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1.5">Confirm Password *</label>
-                            <div className="relative">
-                                <input
-                                    type={showConfirmPassword ? 'text' : 'password'}
-                                    name="confirmPassword"
-                                    value={formData.confirmPassword}
-                                    onChange={handleChange}
-                                    placeholder="••••••••"
-                                    className={`w-full px-4 py-3 pl-11 pr-11 border ${errors.confirmPassword ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50`}
-                                />
-                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                                >
-                                    {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                                </button>
+                            <div id="field-heardAbout" className="md:col-span-2">
+                                <label className="block text-sm font-medium text-gray-700 mb-1.5">How did you hear about us? *</label>
+                                <div className="relative">
+                                    <select
+                                        name="heardAbout"
+                                        value={formData.heardAbout}
+                                        onChange={handleChange}
+                                        className={`w-full px-4 py-3 border ${errors.heardAbout ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50 appearance-none cursor-pointer`}
+                                    >
+                                        <option value="">Select Option</option>
+                                        {HEARD_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                                    </select>
+                                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+                                </div>
+                                {errors.heardAbout && <p className="mt-1 text-sm text-red-500">{errors.heardAbout}</p>}
                             </div>
-                            {errors.confirmPassword && <p className="mt-1 text-sm text-red-500">{errors.confirmPassword}</p>}
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1.5">Password *</label>
+                                <div className="relative">
+                                    <input
+                                        type={showPassword ? 'text' : 'password'}
+                                        name="password"
+                                        value={formData.password}
+                                        onChange={handleChange}
+                                        placeholder="••••••••"
+                                        className={`w-full px-4 py-3 pl-11 pr-11 border ${errors.password ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50`}
+                                    />
+                                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                    >
+                                        {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                    </button>
+                                </div>
+                                {errors.password && <p className="mt-1 text-sm text-red-500">{errors.password}</p>}
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1.5">Confirm Password *</label>
+                                <div className="relative">
+                                    <input
+                                        type={showConfirmPassword ? 'text' : 'password'}
+                                        name="confirmPassword"
+                                        value={formData.confirmPassword}
+                                        onChange={handleChange}
+                                        placeholder="••••••••"
+                                        className={`w-full px-4 py-3 pl-11 pr-11 border ${errors.confirmPassword ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50`}
+                                    />
+                                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                    >
+                                        {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                    </button>
+                                </div>
+                                {errors.confirmPassword && <p className="mt-1 text-sm text-red-500">{errors.confirmPassword}</p>}
+                            </div>
                         </div>
 
                         {/* Terms Checkbox */}
                         <div className="flex items-start pt-2">
                             <input
                                 type="checkbox"
-                                name="agreeTerms"
-                                id="agreeTerms"
-                                checked={formData.agreeTerms}
+                                name="termsAccepted"
+                                id="termsAccepted"
+                                checked={formData.termsAccepted}
                                 onChange={handleChange}
                                 className="w-5 h-5 mt-0.5 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
                             />
-                            <label htmlFor="agreeTerms" className="ml-2 text-sm text-gray-600 cursor-pointer">
-                                I agree to the{' '}
-                                <Link to="/terms" className="font-semibold text-gray-900 underline">
-                                    Terms & Conditions
-                                </Link>{' '}
-                                and{' '}
-                                <Link to="/privacy" className="font-semibold text-gray-900 underline">
-                                    Privacy Policy
-                                </Link>
+                            <label htmlFor="termsAccepted" className="ml-2 text-sm text-gray-600 cursor-pointer">
+                                I Accept All Terms and Conditions
                             </label>
                         </div>
-                        {errors.agreeTerms && <p className="text-sm text-red-500">{errors.agreeTerms}</p>}
+                        {errors.termsAccepted && <p className="text-sm text-red-500">{errors.termsAccepted}</p>}
 
                         {/* Submit Button */}
                         <motion.button
@@ -775,7 +789,7 @@ const TeacherRegister = () => {
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.65 }}
                             type="submit"
-                            disabled={isLoading}
+                            disabled={isLoading || !formData.termsAccepted}
                             className="w-full py-4 mt-4 bg-primary hover:bg-orange-700 text-white font-bold rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 active:scale-95 disabled:opacity-70"
                         >
                             <ButtonLoader isLoading={isLoading}>

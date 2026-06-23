@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
     ArrowLeft, User, Mail, Phone, CreditCard, Calendar,
-    MapPin, BookOpen, Building, GraduationCap, FileText, Camera, Receipt, ChevronDown, Eye, EyeOff, Users, Briefcase, X
+    MapPin, BookOpen, Building, GraduationCap, FileText, Camera, Receipt, ChevronDown, Eye, EyeOff, Users, Briefcase, X, Lock
 } from 'lucide-react';
 import { authAPI } from '../../services/api';
 import ImageCropper from '../../components/ui/ImageCropper';
@@ -27,6 +27,8 @@ const HEARD_OPTIONS = [
     'Poster & Panaflex', 'Facebook', 'Instagram', 'WhatsApp', 'Website',
     'YouTube', 'Event / Seminar', 'Friends & Family', 'Other'
 ];
+
+const GUARDIAN_RELATIONS = ['Father', 'Mother', 'Brother', 'Sister', 'Uncle', 'Aunt', 'Grandfather', 'Grandmother', 'Other'];
 
 const InputField = ({ id, label, name, type = 'text', icon: Icon, placeholder, value, onChange, error, ...props }) => (
     <div id={id || `field-${name}`}>
@@ -103,6 +105,7 @@ const InternshipRegister = () => {
         requirements: [],
         resumeUrl: '',
         guardianName: '',
+        guardianRelation: '',
         guardianPhone: '',
         guardianOccupation: '',
         feeUrl: '',
@@ -112,7 +115,7 @@ const InternshipRegister = () => {
         password: '',
         confirmPassword: '',
         termsAccepted: false,
-        dataConfirmed: false
+        
     });
 
     const calculateAge = (dob) => {
@@ -215,6 +218,7 @@ const InternshipRegister = () => {
         if (!formData.internType) newErrors.internType = 'Type is required';
         if (formData.requirements.length === 0) newErrors.requirements = 'Requirements selection is required';
         if (!formData.guardianName.trim()) newErrors.guardianName = "Guardian's name is required";
+        if (!formData.guardianRelation) newErrors.guardianRelation = 'Guardian relationship is required';
         if (!formData.guardianPhone) newErrors.guardianPhone = 'Guardian WhatsApp number is required';
         if (!formData.guardianOccupation) newErrors.guardianOccupation = 'Guardian occupation is required';
         if (!formData.reason) newErrors.reason = 'Reason is required';
@@ -223,7 +227,6 @@ const InternshipRegister = () => {
         else if (formData.password.length < 6) newErrors.password = 'Minimum 6 characters';
         if (formData.password !== formData.confirmPassword) newErrors.confirmPassword = 'Passwords do not match';
         if (!formData.termsAccepted) newErrors.termsAccepted = 'Required';
-        if (!formData.dataConfirmed) newErrors.dataConfirmed = 'Required';
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -231,11 +234,11 @@ const InternshipRegister = () => {
 
     const scrollToFirstError = (newErrors) => {
         const fieldOrder = [
-            'photo', 'fullName', 'fatherName', 'dob', 'gender', 'cnic', 'contact', 'email',
+            'photo', 'fullName', 'fatherName', 'cnic', 'contact', 'dob', 'gender', 'email',
             'homeAddress', 'city', 'degree', 'university', 'semester',
             'rollNumber', 'cgpa', 'majorSubjects', 'internCity', 'internType',
-            'requirements', 'guardianName', 'guardianPhone', 'guardianOccupation', 'reason', 'heardAbout',
-            'password', 'confirmPassword', 'termsAccepted', 'dataConfirmed'
+            'requirements', 'guardianName', 'guardianRelation', 'guardianPhone', 'guardianOccupation', 'reason', 'heardAbout',
+            'password', 'confirmPassword', 'termsAccepted'
         ];
         for (const field of fieldOrder) {
             if (newErrors[field]) {
@@ -274,6 +277,7 @@ const InternshipRegister = () => {
             if (!formData.internType) errs.internType = true;
             if (formData.requirements.length === 0) errs.requirements = true;
             if (!formData.guardianName.trim()) errs.guardianName = true;
+            if (!formData.guardianRelation) errs.guardianRelation = true;
             if (!formData.guardianPhone) errs.guardianPhone = true;
             if (!formData.guardianOccupation) errs.guardianOccupation = true;
             if (!formData.reason) errs.reason = true;
@@ -281,7 +285,7 @@ const InternshipRegister = () => {
             if (!formData.password) errs.password = true;
             if (formData.password !== formData.confirmPassword) errs.confirmPassword = true;
             if (!formData.termsAccepted) errs.termsAccepted = true;
-            if (!formData.dataConfirmed) errs.dataConfirmed = true;
+            
             scrollToFirstError(errs);
             return;
         }
@@ -315,6 +319,7 @@ const InternshipRegister = () => {
             submitData.append('majorSubjects', formData.majorSubjects);
             submitData.append('attendType', formData.internType);
             submitData.append('heardAbout', formData.heardAbout);
+            submitData.append('guardianRelation', formData.guardianRelation);
             submitData.append('guardianPhone', formData.guardianPhone);
             submitData.append('guardianOccupation', formData.guardianOccupation);
 
@@ -567,12 +572,11 @@ const InternshipRegister = () => {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
                             <InputField label="Full Name *" name="fullName" icon={User} placeholder="Your full name" value={formData.fullName} onChange={handleChange} error={errors.fullName} />
                             <InputField label="Father's Name *" name="fatherName" icon={User} placeholder="Father's name" value={formData.fatherName} onChange={handleChange} error={errors.fatherName} />
-                            <InputField label="Date of Birth *" name="dob" type="date" icon={Calendar} value={formData.dob} onChange={handleChange} error={errors.dob} />
-                            <InputField label="Age (Auto) *" name="age" type="number" placeholder="Calculated automatically" value={formData.age} onChange={handleChange} error={errors.age} readOnly />
-                            <SelectField label="Gender *" name="gender" options={['Male', 'Female']} placeholder="Select Gender" value={formData.gender} onChange={handleChange} error={errors.gender} />
                             <InputField label="CNIC / B-Form *" name="cnic" icon={CreditCard} placeholder="XXXXX-XXXXXXX-X" value={formData.cnic} onChange={handleCNICChange} error={errors.cnic} />
                             <InputField label="WhatsApp Number *" name="contact" type="tel" icon={Phone} placeholder="+92 300 1234567" value={formData.contact} onChange={handleChange} error={errors.contact} />
-                            <InputField label="Email Address *" name="email" type="email" icon={Mail} placeholder="your@email.com" value={formData.email} onChange={handleChange} error={errors.email} />
+                            <InputField label="Date of Birth *" name="dob" type="date" icon={Calendar} value={formData.dob} onChange={handleChange} error={errors.dob} />
+                            <SelectField label="Gender *" name="gender" options={[ 'Male', 'Female' ]} placeholder="Select Gender" value={formData.gender} onChange={handleChange} error={errors.gender} />
+                            
                         </div>
 
                         {/* Guardian Information */}
@@ -580,33 +584,10 @@ const InternshipRegister = () => {
                             <Users className="w-5 h-5 text-blue-600" /> Guardian Information
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
-                            <div className="md:col-span-2">
-                                <InputField
-                                    label="Guardian Name *"
-                                    name="guardianName"
-                                    icon={Users}
-                                    placeholder="Guardian's Full Name"
-                                    value={formData.guardianName}
-                                    onChange={handleChange}
-                                    error={errors.guardianName}
-                                />
-                            </div>
-                            <InputField
-                                label="Guardian WhatsApp Number *"
-                                name="guardianPhone"
-                                icon={Phone}
-                                placeholder="Guardian's Phone"
-                                value={formData.guardianPhone}
-                                onChange={handleChange}
-                            />
-                            <InputField
-                                label="Guardian Occupation *"
-                                name="guardianOccupation"
-                                icon={Briefcase}
-                                placeholder="Guardian's Occupation"
-                                value={formData.guardianOccupation}
-                                onChange={handleChange}
-                            />
+                            <InputField label="Guardian Name *" name="guardianName" icon={Users} placeholder="Guardian's Full Name" value={formData.guardianName} onChange={handleChange} error={errors.guardianName} />
+                            <SelectField label="Relationship with Guardian *" name="guardianRelation" options={GUARDIAN_RELATIONS} placeholder="Select Relationship" value={formData.guardianRelation} onChange={handleChange} error={errors.guardianRelation} />
+                            <InputField label="Guardian WhatsApp Number *" name="guardianPhone" icon={Phone} placeholder="Guardian's Phone" value={formData.guardianPhone} onChange={handleChange} error={errors.guardianPhone} />
+                            <InputField label="Guardian Occupation *" name="guardianOccupation" icon={Briefcase} placeholder="Guardian's Occupation" value={formData.guardianOccupation} onChange={handleChange} error={errors.guardianOccupation} />
                         </div>
 
                         {/* Address Details */}
@@ -639,9 +620,7 @@ const InternshipRegister = () => {
                             <InputField label="Semester *" name="semester" placeholder="e.g. 6th Semester" value={formData.semester} onChange={handleChange} error={errors.semester} />
                             <InputField label="University Roll Number *" name="rollNumber" placeholder="Your university roll number" value={formData.rollNumber} onChange={handleChange} error={errors.rollNumber} />
                             <InputField label="CGPA *" name="cgpa" placeholder="e.g. 3.5 or 85%" value={formData.cgpa} onChange={handleChange} error={errors.cgpa} />
-                            <div className="md:col-span-2">
-                                <InputField label="Major Subjects / Courses *" name="majorSubjects" placeholder="List your major subjects" value={formData.majorSubjects} onChange={handleChange} error={errors.majorSubjects} />
-                            </div>
+                            <InputField label="Major Subjects / Courses *" name="majorSubjects" placeholder="List your major subjects" value={formData.majorSubjects} onChange={handleChange} error={errors.majorSubjects} />
                         </div>
 
                         {/* Campus Details */}
@@ -698,12 +677,17 @@ const InternshipRegister = () => {
                                 />
                                 {errors.reason && <p className="mt-1 text-sm text-red-500">{errors.reason}</p>}
                             </div>
-                            <SelectField label="How did you hear about us? *" name="heardAbout" options={HEARD_OPTIONS} placeholder="Select Option" value={formData.heardAbout} onChange={handleChange} error={errors.heardAbout} />
+                            
                         </div>
 
                         {/* Account Setup */}
-                        <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-2 border-b">Account Setup</h2>
+                        <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-2 border-b flex items-center gap-2">
+                            <Lock className="w-5 h-5 text-primary" /> Account Setup
+                        </h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
+                            <div className="md:col-span-2">
+                                <InputField label="Email *" name="email" type="email" icon={Mail} placeholder="your@email.com" value={formData.email} onChange={handleChange} error={errors.email} />
+                            </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1.5">Password *</label>
                                 <div className="relative">
@@ -746,6 +730,9 @@ const InternshipRegister = () => {
                                 </div>
                                 {errors.confirmPassword && <p className="mt-1 text-sm text-red-500">{errors.confirmPassword}</p>}
                             </div>
+                            <div id="field-heardAbout" className="md:col-span-2">
+                                <SelectField label="How did you hear about us? *" name="heardAbout" options={HEARD_OPTIONS} placeholder="Select Option" value={formData.heardAbout} onChange={handleChange} error={errors.heardAbout} />
+                            </div>
                         </div>
 
                         {/* Checkboxes */}
@@ -761,22 +748,13 @@ const InternshipRegister = () => {
                                 <span className="text-sm text-gray-700">I Accept All Terms and Conditions</span>
                             </label>
 
-                            <label className={`flex items-start gap-3 p-4 rounded-xl border ${errors.dataConfirmed ? 'border-red-300 bg-red-50' : 'border-gray-200 bg-gray-50'} cursor-pointer hover:bg-gray-100 transition-colors`}>
-                                <input
-                                    type="checkbox"
-                                    name="dataConfirmed"
-                                    checked={formData.dataConfirmed}
-                                    onChange={handleChange}
-                                    className="w-5 h-5 mt-0.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                                />
-                                <span className="text-sm text-gray-700">I confirm that all provided data is correct and I agree to abide by the organisation's requirements if selected.</span>
-                            </label>
+                            
                         </div>
 
                         {/* Submit */}
                         <button
                             type="submit"
-                            disabled={isLoading || !formData.termsAccepted || !formData.dataConfirmed}
+                            disabled={isLoading || !formData.termsAccepted}
                             className="w-full py-4 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 active:scale-95"
                         >
                             <ButtonLoader isLoading={isLoading}>
