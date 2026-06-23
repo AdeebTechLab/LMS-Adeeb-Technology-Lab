@@ -27,7 +27,8 @@ const NotificationManagement = () => {
         isHtml: true,
         isHtmlView: false,
         showLifetime: false,
-        targetAudience: ['all']
+        targetAudience: ['all'],
+        targetLocation: ['both']
     });
 
     useEffect(() => {
@@ -57,9 +58,10 @@ const NotificationManagement = () => {
                 endDate: data.endDate ? new Date(data.endDate).toISOString().slice(0, 16) : '',
                 isActive: data.isActive,
                 isHtml: data.isHtml !== false,
-                isHtmlView: false,
+                isHtmlView: data.isHtml !== false,
                 showLifetime: data.showLifetime || false,
-                targetAudience: data.targetAudience || ['all']
+                targetAudience: data.targetAudience || ['all'],
+                targetLocation: data.targetLocation || ['both']
             });
         } else {
             setFormData({
@@ -72,7 +74,8 @@ const NotificationManagement = () => {
                 isHtml: true,
                 isHtmlView: false,
                 showLifetime: false,
-                targetAudience: ['all']
+                targetAudience: ['all'],
+                targetLocation: ['both']
             });
         }
     };
@@ -89,7 +92,8 @@ const NotificationManagement = () => {
                 isActive: formData.isActive,
                 isHtml: formData.isHtml,
                 showLifetime: formData.showLifetime,
-                targetAudience: formData.targetAudience
+                targetAudience: formData.targetAudience,
+                targetLocation: formData.targetLocation
             };
 
             // Only include dates if not lifetime
@@ -217,9 +221,16 @@ const NotificationManagement = () => {
                                         </div>
 
                                         <h3 className="text-lg font-bold text-gray-900 mb-2 truncate">{n.title}</h3>
-                                        <p className="text-sm text-gray-500 line-clamp-3 mb-6 flex-1">
-                                            {n.message}
-                                        </p>
+                                        {n.isHtml ? (
+                                            <div
+                                                className="text-sm text-gray-500 line-clamp-3 mb-6 flex-1 prose prose-sm max-w-none"
+                                                dangerouslySetInnerHTML={{ __html: n.message }}
+                                            />
+                                        ) : (
+                                            <p className="text-sm text-gray-500 line-clamp-3 mb-6 flex-1">
+                                                {n.message}
+                                            </p>
+                                        )}
 
                                         <div className="space-y-2 mb-6 text-xs text-gray-400 font-medium">
                                             <div className="flex items-center gap-2">
@@ -320,12 +331,14 @@ const NotificationManagement = () => {
                         <div className="space-y-2">
                             <div className="flex items-center justify-between">
                                 <label className="block text-xs font-black text-gray-400 uppercase tracking-widest ml-1">
-                                    Message <span className="text-gray-300 font-normal">(visual editor)</span>
+                                    Message <span className="text-gray-300 font-normal">{formData.isHtmlView ? '(html code)' : '(visual editor)'}</span>
                                 </label>
                                 <div className="flex bg-gray-100 p-0.5 rounded-lg overflow-hidden border border-gray-200">
                                     <button
                                         type="button"
-                                        onClick={() => setFormData({ ...formData, isHtmlView: false })}
+                                        onClick={() => {
+                                            setFormData({ ...formData, isHtmlView: false });
+                                        }}
                                         className={`px-3 py-1 text-[10px] font-black uppercase tracking-tight rounded-md transition-all ${!formData.isHtmlView ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
                                     >
                                         Visual
@@ -342,6 +355,7 @@ const NotificationManagement = () => {
 
                             {formData.isHtmlView ? (
                                 <textarea
+                                    key="html-editor"
                                     value={formData.message}
                                     onChange={(e) =>
                                         setFormData({ ...formData, message: e.target.value, isHtml: true })
@@ -351,6 +365,7 @@ const NotificationManagement = () => {
                                 />
                             ) : (
                                 <RichTextEditor
+                                    key="visual-editor"
                                     value={formData.message}
                                     onChange={(html) =>
                                         setFormData({ ...formData, message: html, isHtml: true })
@@ -361,7 +376,9 @@ const NotificationManagement = () => {
                             )}
                             <p className="text-[10px] font-medium text-gray-400 italic flex items-center gap-2">
                                 <Info className="w-3 h-3" />
-                                Headings 1–6, bullet/number lists, quote, and link work in Visual mode.
+                                {formData.isHtmlView
+                                    ? 'HTML Code mode — paste animations, custom styles, or raw HTML. This is saved exactly as typed.'
+                                    : 'Headings 1–6, bullet/number lists, quote, and link work in Visual mode.'}
                             </p>
                         </div>
 
@@ -476,6 +493,53 @@ const NotificationManagement = () => {
                                                 role === 'student' ? '🎓 Students' :
                                                     role === 'teacher' ? '👨‍🏫 Teachers' :
                                                         role === 'intern' ? '💼 Interns' : '🔍 Job Seekers'}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* Target Location Selector */}
+                        <div className="mt-6">
+                            <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 ml-1">Target Location</label>
+                            <div className="flex flex-wrap gap-2">
+                                {['both', 'islamabad', 'bahawalpur'].map(loc => {
+                                    const isSelected = (formData.targetLocation || ['both']).includes(loc);
+                                    return (
+                                        <button
+                                            key={loc}
+                                            type="button"
+                                            onClick={() => {
+                                                const current = formData.targetLocation || ['both'];
+                                                let newLocation;
+
+                                                if (loc === 'both') {
+                                                    newLocation = ['both'];
+                                                } else {
+                                                    // If clicking a specific loc, remove 'both'
+                                                    let withoutBoth = current.filter(r => r !== 'both');
+
+                                                    if (current.includes(loc)) {
+                                                        // Toggle off
+                                                        newLocation = withoutBoth.filter(r => r !== loc);
+                                                    } else {
+                                                        // Toggle on
+                                                        newLocation = [...withoutBoth, loc];
+                                                    }
+
+                                                    // If nothing selected, default back to 'both'
+                                                    if (newLocation.length === 0) newLocation = ['both'];
+                                                }
+                                                setFormData({ ...formData, targetLocation: newLocation });
+                                            }}
+                                            className={`px-4 py-2 rounded-xl text-sm font-bold border transition-all ${isSelected
+                                                ? 'bg-purple-600 text-white border-purple-600 shadow-lg shadow-purple-500/20'
+                                                : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                                                }`}
+                                        >
+                                            {loc === 'both' ? '🌍 Both' :
+                                                loc === 'islamabad' ? '🏙️ Islamabad' :
+                                                    '🕌 Bahawalpur'}
                                         </button>
                                     );
                                 })}

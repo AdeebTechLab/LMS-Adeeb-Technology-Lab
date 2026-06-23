@@ -364,7 +364,7 @@ const AssignmentSubmission = () => {
                     <div className="flex items-center gap-2 bg-white dark:bg-slate-900/40 rounded-2xl p-1.5 border border-gray-100 dark:border-slate-800 shadow-sm overflow-x-auto no-scrollbar">
                         {[
                             { id: 'daily_tasks', label: 'Class Log', icon: ClipboardList },
-                            { id: 'assignments', label: role === 'intern' ? 'Daily Task' : 'Assignments', icon: FileText },
+                            { id: 'assignments', label: role === 'intern' ? 'Project' : 'Assignments', icon: FileText },
                             { id: 'tests', label: 'Tests', icon: Zap },
                             { id: 'attendance', label: 'Attendance', icon: Calendar },
                             { id: 'chat', label: 'Chat', icon: MessageCircle },

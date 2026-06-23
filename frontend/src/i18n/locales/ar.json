@@ -16,17 +16,17 @@
     "freelancers": "المستقلون",
     "notifications": "الإشعارات",
     "feeVerification": "التحقق من الرسوم",
-    "myProfile": "ملفي الشخصي",
-    "myCourses": "دوراتي",
+    "myProfile": "الملف الشخصي",
+    "myCourses": "الدورات",
     "attendance": "الحضور",
     "feePayment": "دفع الرسوم",
-    "myAttendance": "حضوري",
+    "myAttendance": "الحضور",
     "classLogs": "سجلات الحصص",
     "assignments": "الواجبات",
-    "dailyTask": "المهمة اليومية",
-    "myTests": "اختباراتي",
+    "dailyTask": "مشروع",
+    "myTests": "الاختبارات",
     "marksSheet": "كشف الدرجات",
-    "mySkills": "مهاراتي"
+    "mySkills": "المهارات"
   },
   "roles": {
     "admin": "المسؤول",

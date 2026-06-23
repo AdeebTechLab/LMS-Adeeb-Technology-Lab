@@ -193,7 +193,7 @@ const QuickAttendance = () => {
 
         // WHATSAPP POPUP LOGIC (Triggered before await to bypass browser popup blocker)
         if (student.guardianPhone) {
-            const academyName = "The Computer Courses";
+            const academyName = student.audience === 'interns' ? "Adeeb Technology Lab" : "The Computer Courses";
             const campus = student.location && student.location !== 'N/A' ? `*${student.location}*` : "";
             const dt = new Date().toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
             const message = `*DAILY ATTENDANCE REPORT*\n${academyName} ${campus}\n\nStudent: *${student.name}*\nCourse: *${student.courseName}*\nDate: ${dt}\nStatus: *${status.toUpperCase()}*`;

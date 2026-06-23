@@ -16,17 +16,17 @@
     "freelancers": "Jobs",
     "notifications": "Notifications",
     "feeVerification": "Fee Verification",
-    "myProfile": "My Profile",
-    "myCourses": "My Courses",
+    "myProfile": "Profile",
+    "myCourses": "Courses",
     "attendance": "Attendance",
     "feePayment": "Fee Payment",
-    "myAttendance": "My Attendance",
+    "myAttendance": "Attendance",
     "classLogs": "Class Logs",
     "assignments": "Assignments",
-    "dailyTask": "Daily Task",
-    "myTests": "My Tests",
+    "dailyTask": "Project",
+    "myTests": "Tests",
     "marksSheet": "Marks Sheet",
-    "mySkills": "My Skills"
+    "mySkills": "Skills"
   },
   "roles": {
     "admin": "Administrator",

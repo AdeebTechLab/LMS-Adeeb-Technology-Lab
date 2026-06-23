@@ -16,17 +16,17 @@
     "freelancers": "فری لانسرز",
     "notifications": "اطلاعات",
     "feeVerification": "فیس کی تصدیق",
-    "myProfile": "میری پروفائل",
-    "myCourses": "میرے کورسز",
+    "myProfile": "پروفائل",
+    "myCourses": "کورسز",
     "attendance": "حاضری",
     "feePayment": "فیس کی ادائیگی",
-    "myAttendance": "میری حاضری",
+    "myAttendance": "حاضری",
     "classLogs": "کلاس لاگز",
     "assignments": "اسائنمنٹس",
-    "dailyTask": "روزانہ ٹاسک",
-    "myTests": "میرے ٹیسٹ",
+    "dailyTask": "پروجیکٹ",
+    "myTests": "ٹیسٹ",
     "marksSheet": "مارکس شیٹ",
-    "mySkills": "میری مہارتیں"
+    "mySkills": "مہارتیں"
   },
   "roles": {
     "admin": "منتظم",

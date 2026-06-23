@@ -134,7 +134,7 @@ const DailyTasksTab = ({ course, students = [] }) => {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <h3 className="text-lg font-bold text-gray-900 uppercase italic">
-                    {course.targetAudience === 'interns' ? 'Daily Task Submissions' : 'Class Log Submissions'}
+                    {course.targetAudience === 'interns' ? 'Project Submissions' : 'Class Log Submissions'}
                 </h3>
                 <button
                     onClick={fetchTasks}

@@ -16,17 +16,17 @@
     "freelancers": "फ्रीलांसर",
     "notifications": "सूचनाएं",
     "feeVerification": "शुल्क सत्यापन",
-    "myProfile": "मेरी प्रोफ़ाइल",
-    "myCourses": "मेरे कोर्स",
+    "myProfile": "प्रोफ़ाइल",
+    "myCourses": "कोर्स",
     "attendance": "उपस्थिति",
     "feePayment": "शुल्क भुगतान",
-    "myAttendance": "मेरी उपस्थिति",
+    "myAttendance": "उपस्थिति",
     "classLogs": "कक्षा लॉग",
     "assignments": "असाइनमेंट",
-    "dailyTask": "दैनिक कार्य",
-    "myTests": "मेरे परीक्षण",
+    "dailyTask": "प्रोजेक्ट",
+    "myTests": "परीक्षण",
     "marksSheet": "अंक पत्र",
-    "mySkills": "मेरे कौशल"
+    "mySkills": "कौशल"
   },
   "roles": {
     "admin": "प्रशासक",

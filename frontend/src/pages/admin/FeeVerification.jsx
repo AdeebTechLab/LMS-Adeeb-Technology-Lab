@@ -8,7 +8,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
-import { feeAPI, userAPI } from '../../services/api';
+import { feeAPI, userAPI, enrollmentAPI } from '../../services/api';
 import { showToast } from '../../utils/customToast';
 import Loader, { ButtonLoader } from '../../components/ui/Loader';
 import { formatDate } from '../../utils/dateFormatter';
@@ -22,6 +22,8 @@ const FeeVerification = () => {
     const [isImageModalOpen, setIsImageModalOpen] = useState(false);
     const [isInstallmentModalOpen, setIsInstallmentModalOpen] = useState(false);
     const [selectedCourse, setSelectedCourse] = useState(null); // For Course Grouping
+    const [studentStatusFilter, setStudentStatusFilter] = useState('all'); // 'all', 'active', 'completed'
+    const [allEnrollments, setAllEnrollments] = useState([]);
 
     // Filters State
     const [selectedRoles, setSelectedRoles] = useState([]); // 'students', 'interns'
@@ -75,8 +77,12 @@ const FeeVerification = () => {
     const fetchPendingFees = async () => {
         setIsFetching(true);
         try {
-            const response = await feeAPI.getPending();
-            setFees(response.data.data || []);
+            const [feeRes, enrollRes] = await Promise.all([
+                feeAPI.getPending(),
+                enrollmentAPI.getAll().catch(() => ({ data: { data: [] } }))
+            ]);
+            setFees(feeRes.data.data || []);
+            setAllEnrollments(enrollRes.data.data || []);
         } catch (err) {
             console.error('Error fetching pending fees:', err);
             setError('Failed to load pending fees. Please try again.');
@@ -88,8 +94,12 @@ const FeeVerification = () => {
     const fetchAllFees = async () => {
         setIsFetching(true);
         try {
-            const response = await feeAPI.getAll();
-            setAllFees(response.data.data || []);
+            const [feeRes, enrollRes] = await Promise.all([
+                feeAPI.getAll(),
+                enrollmentAPI.getAll().catch(() => ({ data: { data: [] } }))
+            ]);
+            setAllFees(feeRes.data.data || []);
+            setAllEnrollments(enrollRes.data.data || []);
         } catch (err) {
             console.error('Error fetching all fees:', err);
             setError('Failed to load all fees. Please try again.');
@@ -895,17 +905,25 @@ const FeeVerification = () => {
                                         {getFilteredFees(allFees).filter(f => String(f.course?._id) === String(selectedCourse)).length} Students
                                     </span>
                                 </div>
+                                <div className="flex items-center gap-2 overflow-x-auto">
+                                    <button onClick={() => setStudentStatusFilter('all')} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${studentStatusFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-white text-indigo-600 border border-indigo-200 hover:bg-indigo-50'}`}>All</button>
+                                    <button onClick={() => setStudentStatusFilter('active')} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${studentStatusFilter === 'active' ? 'bg-indigo-600 text-white' : 'bg-white text-indigo-600 border border-indigo-200 hover:bg-indigo-50'}`}>Active</button>
+                                    <button onClick={() => setStudentStatusFilter('completed')} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${studentStatusFilter === 'completed' ? 'bg-indigo-600 text-white' : 'bg-white text-indigo-600 border border-indigo-200 hover:bg-indigo-50'}`}>Completed</button>
+                                </div>
                                 <div className="relative group shrink-0">
                                     <button disabled={isProcessing} className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-all shadow-sm disabled:opacity-50">
                                         {isProcessing ? <ButtonLoader /> : <Download className="w-4 h-4" />}
                                         EXPORT DATA
                                     </button>
                                     <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-20">
+                                        <button onClick={() => exportCourseStudentsPDF('all')} className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 border-b border-gray-50 transition-colors">
+                                            All
+                                        </button>
                                         <button onClick={() => exportCourseStudentsPDF('active')} className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 border-b border-gray-50 transition-colors">
-                                            Active Students
+                                            Active
                                         </button>
                                         <button onClick={() => exportCourseStudentsPDF('completed')} className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors">
-                                            Completed Students
+                                            Completed
                                         </button>
                                     </div>
                                 </div>
@@ -914,6 +932,18 @@ const FeeVerification = () => {
                             <div className="grid gap-4">
                                 {getFilteredFees(allFees)
                                     .filter(fee => String(fee.course?._id) === String(selectedCourse))
+                                    .filter(fee => {
+                                        if (studentStatusFilter === 'all') return true;
+                                        // Find the specific enrollment for this user+course combination
+                                        const enrollment = allEnrollments.find(e =>
+                                            String(e.user?._id || e.user) === String(fee.user?._id) &&
+                                            String(e.course?._id || e.course) === String(selectedCourse)
+                                        );
+                                        if (!enrollment) return studentStatusFilter === 'active'; // no enrollment yet = treat as active (pending)
+                                        if (studentStatusFilter === 'completed') return enrollment.status === 'completed';
+                                        if (studentStatusFilter === 'active') return enrollment.status !== 'completed';
+                                        return true;
+                                    })
                                     .map(fee => (
                                         <div key={fee._id} className="bg-white p-6 rounded-2xl border border-gray-100 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                                             <div className="flex items-center gap-4">

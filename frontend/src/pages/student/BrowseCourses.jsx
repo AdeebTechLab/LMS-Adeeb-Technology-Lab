@@ -531,7 +531,7 @@ const BrowseCourses = () => {
                                         </div>
                                     </div>
 
-                                    {status === 'available' && (
+                                    {status === 'available' && !isNaN(Number(course.fee)) && (
                                         <button
                                             onClick={() => handleEnrollClick(course)}
                                             className="px-4 py-2 bg-primary-dark hover:bg-primary text-white rounded-lg font-medium transition-all"

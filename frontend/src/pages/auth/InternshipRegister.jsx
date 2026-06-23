@@ -28,8 +28,8 @@ const HEARD_OPTIONS = [
     'YouTube', 'Event / Seminar', 'Friends & Family', 'Other'
 ];
 
-const InputField = ({ label, name, type = 'text', icon: Icon, placeholder, value, onChange, error, ...props }) => (
-    <div>
+const InputField = ({ id, label, name, type = 'text', icon: Icon, placeholder, value, onChange, error, ...props }) => (
+    <div id={id || `field-${name}`}>
         <label className="block text-sm font-medium text-gray-700 mb-1.5">{label}</label>
         <div className="relative">
             <input
@@ -48,8 +48,8 @@ const InputField = ({ label, name, type = 'text', icon: Icon, placeholder, value
     </div>
 );
 
-const SelectField = ({ label, name, options, placeholder, value, onChange, error }) => (
-    <div>
+const SelectField = ({ id, label, name, options, placeholder, value, onChange, error }) => (
+    <div id={id || `field-${name}`}>
         <label className="block text-sm font-medium text-gray-700 mb-1.5">{label}</label>
         <div className="relative">
             <select
@@ -231,9 +231,63 @@ const InternshipRegister = () => {
         return Object.keys(newErrors).length === 0;
     };
 
+    const scrollToFirstError = (newErrors) => {
+        const fieldOrder = [
+            'photo', 'fullName', 'fatherName', 'dob', 'gender', 'cnic', 'contact', 'email',
+            'homeAddress', 'city', 'degree', 'university', 'department', 'semester',
+            'rollNumber', 'cgpa', 'majorSubjects', 'duration', 'internCity', 'internType',
+            'requirements', 'guardianPhone', 'guardianOccupation', 'reason', 'heardAbout',
+            'password', 'confirmPassword', 'termsAccepted', 'dataConfirmed'
+        ];
+        for (const field of fieldOrder) {
+            if (newErrors[field]) {
+                const el = document.getElementById(`field-${field}`);
+                if (el) {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    const input = el.querySelector('input, select, textarea');
+                    if (input) setTimeout(() => input.focus(), 400);
+                }
+                break;
+            }
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!validateForm()) return;
+        if (!validateForm()) {
+            const errs = {};
+            if (!photoFile) errs.photo = true;
+            if (!formData.fullName.trim()) errs.fullName = true;
+            if (!formData.fatherName.trim()) errs.fatherName = true;
+            if (!formData.dob) errs.dob = true;
+            if (!formData.gender) errs.gender = true;
+            if (!formData.cnic) errs.cnic = true;
+            if (!formData.contact) errs.contact = true;
+            if (!formData.email) errs.email = true;
+            if (!formData.homeAddress) errs.homeAddress = true;
+            if (!formData.city) errs.city = true;
+            if (!formData.degree) errs.degree = true;
+            if (!formData.university) errs.university = true;
+            if (!formData.department) errs.department = true;
+            if (!formData.semester) errs.semester = true;
+            if (!formData.rollNumber) errs.rollNumber = true;
+            if (!formData.cgpa) errs.cgpa = true;
+            if (!formData.majorSubjects) errs.majorSubjects = true;
+            if (!formData.duration) errs.duration = true;
+            if (!formData.internCity) errs.internCity = true;
+            if (!formData.internType) errs.internType = true;
+            if (formData.requirements.length === 0) errs.requirements = true;
+            if (!formData.guardianPhone) errs.guardianPhone = true;
+            if (!formData.guardianOccupation) errs.guardianOccupation = true;
+            if (!formData.reason) errs.reason = true;
+            if (!formData.heardAbout) errs.heardAbout = true;
+            if (!formData.password) errs.password = true;
+            if (formData.password !== formData.confirmPassword) errs.confirmPassword = true;
+            if (!formData.termsAccepted) errs.termsAccepted = true;
+            if (!formData.dataConfirmed) errs.dataConfirmed = true;
+            scrollToFirstError(errs);
+            return;
+        }
 
         setIsLoading(true);
         setApiError('');
@@ -477,7 +531,7 @@ const InternshipRegister = () => {
                         )}
 
                         {/* Photo Upload */}
-                        <div className="flex flex-col items-center mb-6">
+                        <div id="field-photo" className="flex flex-col items-center mb-6">
                             <div className="relative group">
                                 <div className="w-24 h-24 rounded-2xl bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden transition-all group-hover:border-blue-500">
                                     {photoPreview ? (
@@ -559,7 +613,7 @@ const InternshipRegister = () => {
                                 <InputField label="Specify Country *" name="otherCountry" placeholder="Enter your country" value={formData.otherCountry} onChange={handleChange} error={errors.otherCountry} />
                             )}
 
-                            <div className="md:col-span-2">
+                            <div id="field-homeAddress" className="md:col-span-2">
                                 <InputField label="Home Address *" name="homeAddress" icon={MapPin} placeholder="Complete address" value={formData.homeAddress} onChange={handleChange} error={errors.homeAddress} />
                             </div>
                         </div>
@@ -588,7 +642,7 @@ const InternshipRegister = () => {
                             <SelectField label="Duration *" name="duration" options={DURATIONS} placeholder="Select Duration" value={formData.duration} onChange={handleChange} error={errors.duration} />
                             <SelectField label="City for Internship *" name="internCity" options={INTERN_CITIES} placeholder="Select City" value={formData.internCity} onChange={handleChange} error={errors.internCity} />
                             <SelectField label="Internship Type *" name="internType" options={['Physical', 'Online']} placeholder="Select Type" value={formData.internType} onChange={handleChange} error={errors.internType} />
-                            <div className="md:col-span-2">
+                            <div id="field-requirements" className="md:col-span-2">
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Requirements</label>
                                 <div className="flex flex-wrap gap-3">
                                     {requirementOptions.map(req => (
@@ -622,7 +676,7 @@ const InternshipRegister = () => {
 
                         {/* Additional Info */}
                         <div className="grid grid-cols-1 gap-5 mb-8">
-                            <div>
+                            <div id="field-reason">
                                 <label className="block text-sm font-medium text-gray-700 mb-1.5">Why do you want to join this internship?</label>
                                 <textarea
                                     name="reason"

@@ -28,8 +28,8 @@ const HEARD_OPTIONS = [
 ];
 
 // Reusable Input Component - defined outside to prevent re-creation
-const InputField = ({ label, name, type = 'text', icon: Icon, placeholder, value, onChange, error, ...props }) => (
-    <div className="form-group">
+const InputField = ({ id, label, name, type = 'text', icon: Icon, placeholder, value, onChange, error, ...props }) => (
+    <div id={id || `field-${name}`} className="form-group">
         <label className="block text-sm font-medium text-gray-700 mb-1.5">{label}</label>
         <div className="relative">
             {Icon && <Icon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />}
@@ -49,8 +49,8 @@ const InputField = ({ label, name, type = 'text', icon: Icon, placeholder, value
 );
 
 // Reusable Select Component - defined outside to prevent re-creation
-const SelectField = ({ label, name, options, placeholder, value, onChange, error }) => (
-    <div className="form-group">
+const SelectField = ({ id, label, name, options, placeholder, value, onChange, error }) => (
+    <div id={id || `field-${name}`} className="form-group">
         <label className="block text-sm font-medium text-gray-700 mb-1.5">{label}</label>
         <div className="relative">
             <select
@@ -213,9 +213,60 @@ const StudentRegister = () => {
         return Object.keys(newErrors).length === 0;
     };
 
+    const scrollToFirstError = (newErrors) => {
+        // Priority order of fields to scroll to
+        const fieldOrder = [
+            'photo', 'fullName', 'fatherName', 'phone', 'email', 'cnic', 'dob',
+            'age', 'gender', 'cityToAttend', 'attendClasses', 'education',
+            'guardianName', 'guardianPhone', 'guardianOccupation',
+            'city', 'country', 'address', 'heardAbout', 'password', 'confirmPassword',
+            'termsAccepted', 'dataConfirmed'
+        ];
+        for (const field of fieldOrder) {
+            if (newErrors[field]) {
+                const el = document.getElementById(`field-${field}`);
+                if (el) {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    // Focus first input/select inside
+                    const input = el.querySelector('input, select, textarea');
+                    if (input) setTimeout(() => input.focus(), 400);
+                }
+                break;
+            }
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!validateForm()) return;
+        if (!validateForm()) {
+            // Get the current errors
+            const currentErrors = {};
+            if (!photoFile) currentErrors.photo = true;
+            if (!formData.fullName.trim()) currentErrors.fullName = true;
+            if (!formData.fatherName.trim()) currentErrors.fatherName = true;
+            if (!formData.phone) currentErrors.phone = true;
+            if (!formData.email) currentErrors.email = true;
+            if (!formData.cnic) currentErrors.cnic = true;
+            if (!formData.dob) currentErrors.dob = true;
+            if (!formData.age) currentErrors.age = true;
+            if (!formData.gender) currentErrors.gender = true;
+            if (!formData.cityToAttend) currentErrors.cityToAttend = true;
+            if (!formData.attendClasses) currentErrors.attendClasses = true;
+            if (!formData.education) currentErrors.education = true;
+            if (!formData.guardianName) currentErrors.guardianName = true;
+            if (!formData.guardianPhone) currentErrors.guardianPhone = true;
+            if (!formData.guardianOccupation) currentErrors.guardianOccupation = true;
+            if (!formData.address) currentErrors.address = true;
+            if (!formData.city) currentErrors.city = true;
+            if (!formData.country) currentErrors.country = true;
+            if (!formData.heardAbout) currentErrors.heardAbout = true;
+            if (!formData.password) currentErrors.password = true;
+            if (formData.password !== formData.confirmPassword) currentErrors.confirmPassword = true;
+            if (!formData.termsAccepted) currentErrors.termsAccepted = true;
+            if (!formData.dataConfirmed) currentErrors.dataConfirmed = true;
+            scrollToFirstError(currentErrors);
+            return;
+        }
 
         setIsLoading(true);
         setApiError('');
@@ -428,7 +479,7 @@ const StudentRegister = () => {
                         className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8"
                     >
                         {/* Photo Upload */}
-                        <div className="flex flex-col items-center mb-6">
+                        <div id="field-photo" className="flex flex-col items-center mb-6">
                             <div className="relative group">
                                 <div className="w-24 h-24 rounded-2xl bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden transition-all group-hover:border-primary">
                                     {photoPreview ? (
@@ -503,7 +554,7 @@ const StudentRegister = () => {
                                 <InputField label="Specify Country *" name="otherCountry" placeholder="Enter your country" value={formData.otherCountry} onChange={handleChange} error={errors.otherCountry} />
                             )}
 
-                            <div className="md:col-span-2">
+                            <div id="field-address" className="md:col-span-2">
                                 <label className="block text-sm font-medium text-gray-700 mb-1.5">Address *</label>
                                 <textarea
                                     name="address"
@@ -529,7 +580,7 @@ const StudentRegister = () => {
                         {/* Additional Info */}
                         <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-2 border-b">Account Setup</h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
-                            <div>
+                            <div id="field-password">
                                 <label className="block text-sm font-medium text-gray-700 mb-1.5">Password *</label>
                                 <div className="relative">
                                     <input
@@ -550,7 +601,7 @@ const StudentRegister = () => {
                                 </div>
                                 {errors.password && <p className="mt-1 text-sm text-red-500">{errors.password}</p>}
                             </div>
-                            <div>
+                            <div id="field-confirmPassword">
                                 <label className="block text-sm font-medium text-gray-700 mb-1.5">Confirm Password *</label>
                                 <div className="relative">
                                     <input
@@ -576,7 +627,7 @@ const StudentRegister = () => {
 
                         {/* Checkboxes */}
                         <div className="space-y-4 mb-8">
-                            <label className={`flex items-start gap-3 p-4 rounded-xl border ${errors.termsAccepted ? 'border-red-300 bg-red-50' : 'border-gray-200 bg-gray-50'} cursor-pointer hover:bg-gray-100 transition-colors`}>
+                            <label id="field-termsAccepted" className={`flex items-start gap-3 p-4 rounded-xl border ${errors.termsAccepted ? 'border-red-300 bg-red-50' : 'border-gray-200 bg-gray-50'} cursor-pointer hover:bg-gray-100 transition-colors`}>
                                 <input
                                     type="checkbox"
                                     name="termsAccepted"
@@ -587,7 +638,7 @@ const StudentRegister = () => {
                                 <span className="text-sm text-gray-700">I Accept All Terms and Conditions</span>
                             </label>
 
-                            <label className={`flex items-start gap-3 p-4 rounded-xl border ${errors.dataConfirmed ? 'border-red-300 bg-red-50' : 'border-gray-200 bg-gray-50'} cursor-pointer hover:bg-gray-100 transition-colors`}>
+                            <label id="field-dataConfirmed" className={`flex items-start gap-3 p-4 rounded-xl border ${errors.dataConfirmed ? 'border-red-300 bg-red-50' : 'border-gray-200 bg-gray-50'} cursor-pointer hover:bg-gray-100 transition-colors`}>
                                 <input
                                     type="checkbox"
                                     name="dataConfirmed"

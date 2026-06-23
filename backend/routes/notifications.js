@@ -72,6 +72,7 @@ router.get('/active', protect, async (req, res) => {
     try {
         const now = new Date();
         const userRole = req.user.role; // Assumes user is attached by protect middleware
+        const userLocation = (req.user.location || '').toLowerCase();
 
         const notifications = await Notification.find({
             isActive: true,
@@ -83,7 +84,8 @@ router.get('/active', protect, async (req, res) => {
                 }
             ],
             // Filter by target audience: either 'all' or explicitly includes user's role
-            targetAudience: { $in: ['all', userRole] }
+            targetAudience: { $in: ['all', userRole] },
+            targetLocation: { $in: ['all', 'both', userLocation] }
         }).sort('-createdAt');
 
         res.json({ success: true, data: notifications });
@@ -109,7 +111,7 @@ router.get('/', protect, authorize('admin'), async (req, res) => {
 // @access  Private (Admin)
 router.post('/', protect, authorize('admin'), async (req, res) => {
     try {
-        const { title, message, type, startDate, endDate, isHtml, showLifetime, isActive, targetAudience } = req.body;
+        const { title, message, type, startDate, endDate, isHtml, showLifetime, isActive, targetAudience, targetLocation } = req.body;
 
         // Sanitize message if HTML is enabled
         const sanitizedMessage = message;
@@ -122,6 +124,7 @@ router.post('/', protect, authorize('admin'), async (req, res) => {
             showLifetime: showLifetime || false,
             isActive: isActive !== undefined ? isActive : true,
             targetAudience: targetAudience || ['all'],
+            targetLocation: targetLocation || ['both'],
             createdBy: req.user.id
         };
 

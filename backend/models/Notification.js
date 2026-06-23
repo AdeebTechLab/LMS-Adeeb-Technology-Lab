@@ -45,6 +45,11 @@ const notificationSchema = new mongoose.Schema({
         enum: ['all', 'student', 'teacher', 'intern', 'course_creator', 'job'],
         default: ['all']
     },
+    targetLocation: {
+        type: [String],
+        enum: ['all', 'both', 'islamabad', 'bahawalpur'],
+        default: ['both']
+    },
     createdBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',

@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
-import { courseAPI, userAPI } from '../../services/api';
+import { courseAPI, userAPI, enrollmentAPI } from '../../services/api';
 import { getCourseIcon, getCourseColor, getCourseStyle } from '../../utils/courseIcons';
 import Loader, { ButtonLoader } from '../../components/ui/Loader';
 
@@ -27,6 +27,8 @@ const CourseManagement = () => {
     const [editingCourse, setEditingCourse] = useState(null);
     const [courses, setCourses] = useState([]);
     const [teachers, setTeachers] = useState([]);
+    const [enrollments, setEnrollments] = useState([]);
+    const [selectedStatus, setSelectedStatus] = useState('all'); // 'all', 'active', 'completed'
     const [error, setError] = useState('');
     const [imagePreview, setImagePreview] = useState(null);
     const [formData, setFormData] = useState({
@@ -56,12 +58,14 @@ const CourseManagement = () => {
         setIsFetching(true);
         setError('');
         try {
-            const [coursesRes, teachersRes] = await Promise.all([
+            const [coursesRes, teachersRes, enrollsRes] = await Promise.all([
                 courseAPI.getAll(),
-                userAPI.getVerifiedByRole('teacher')
+                userAPI.getVerifiedByRole('teacher'),
+                enrollmentAPI.getAll().catch(() => ({ data: { data: [] } }))
             ]);
             setCourses(coursesRes.data.data || []);
             setTeachers(teachersRes.data.data || []);
+            setEnrollments(enrollsRes.data.data || []);
         } catch (err) {
             console.error('Error fetching data:', err);
             setError('Failed to load data. Please try again.');
@@ -76,8 +80,18 @@ const CourseManagement = () => {
 
         const matchesRole = selectedRoles.length === 0 || selectedRoles.includes(course.targetAudience);
         const matchesCity = selectedCities.length === 0 || selectedCities.includes(course.city);
+        
+        let matchesStatus = true;
+        if (selectedStatus !== 'all') {
+            const courseEnrolls = enrollments.filter(e => String(e.course?._id || e.course) === String(course._id));
+            if (selectedStatus === 'active') {
+                matchesStatus = courseEnrolls.some(e => e.status === 'enrolled' || e.status === 'pending');
+            } else if (selectedStatus === 'completed') {
+                matchesStatus = courseEnrolls.some(e => e.status === 'completed');
+            }
+        }
 
-        return matchesSearch && matchesRole && matchesCity;
+        return matchesSearch && matchesRole && matchesCity && matchesStatus;
     });
 
     const toggleFilter = (type, value) => {
@@ -310,6 +324,16 @@ const CourseManagement = () => {
                             ))}
                         </div>
                     </div>
+                    
+                    {/* Status Filters */}
+                    <div className="space-y-2">
+                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Status</span>
+                        <div className="flex items-center gap-2 bg-gray-50 p-1.5 rounded-2xl">
+                            <button onClick={() => setSelectedStatus('all')} className={`flex-1 px-3 py-2 rounded-xl font-bold text-xs transition-all ${selectedStatus === 'all' ? 'bg-white text-primary shadow-md border border-primary/10' : 'text-gray-500 hover:text-gray-700 hover:bg-white/50'}`}>All</button>
+                            <button onClick={() => setSelectedStatus('active')} className={`flex-1 px-3 py-2 rounded-xl font-bold text-xs transition-all ${selectedStatus === 'active' ? 'bg-white text-primary shadow-md border border-primary/10' : 'text-gray-500 hover:text-gray-700 hover:bg-white/50'}`}>Active</button>
+                            <button onClick={() => setSelectedStatus('completed')} className={`flex-1 px-3 py-2 rounded-xl font-bold text-xs transition-all ${selectedStatus === 'completed' ? 'bg-white text-primary shadow-md border border-primary/10' : 'text-gray-500 hover:text-gray-700 hover:bg-white/50'}`}>Certified</button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -398,9 +422,21 @@ const CourseManagement = () => {
                         </div>
 
                         <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                            <div className="flex items-center gap-1 text-gray-500">
-                                <Users className="w-4 h-4" />
-                                <span className="text-sm">{getEnrolledCount(course)} enrolled</span>
+                            <div className="flex flex-col gap-1">
+                                <div className="flex items-center gap-1.5">
+                                    <Users className="w-4 h-4 text-gray-400" />
+                                    <span className="text-sm font-medium text-gray-600">
+                                        {selectedStatus === 'active' ? enrollments.filter(e => String(e.course?._id || e.course) === String(course._id) && (e.status === 'enrolled' || e.status === 'pending')).length : 
+                                         selectedStatus === 'completed' ? enrollments.filter(e => String(e.course?._id || e.course) === String(course._id) && e.status === 'completed').length : 
+                                         course.enrolledCount} Students
+                                    </span>
+                                </div>
+                                {selectedStatus === 'all' && course.enrolledCount > 0 && (
+                                    <div className="flex gap-2 text-[10px] font-bold text-gray-400">
+                                        <span className="text-primary">{enrollments.filter(e => String(e.course?._id || e.course) === String(course._id) && (e.status === 'enrolled' || e.status === 'pending')).length} Active</span>
+                                        <span className="text-indigo-500">{enrollments.filter(e => String(e.course?._id || e.course) === String(course._id) && e.status === 'completed').length} Certified</span>
+                                    </div>
+                                )}
                             </div>
                             <div className="flex flex-col items-end">
                                 {course.originalPrice && !isNaN(parseFloat(course.originalPrice)) && parseFloat(course.originalPrice) > parseFloat(course.fee) && (

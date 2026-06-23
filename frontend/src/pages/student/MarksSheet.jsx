@@ -399,7 +399,7 @@ const MarksSheet = () => {
                                         <div className="flex items-center justify-between mb-6 px-2">
                                             <div className="flex items-center gap-3">
                                                 <div className="p-2 bg-primary/5 rounded-lg"><RefreshCw className="w-5 h-5 text-primary" /></div>
-                                                <h4 className="font-black text-gray-900 uppercase tracking-widest">Daily classes</h4>
+                                                <h4 className="font-black text-gray-900 uppercase tracking-widest">{role === 'intern' ? 'Projects' : 'Daily classes'}</h4>
                                             </div>
                                             {dailyAvgMarks && <span className="text-[10px] font-black text-primary bg-primary/5 px-3 py-1.5 rounded-xl border border-primary/10 uppercase">Class Avg Score: {dailyAvgMarks}/10</span>}
                                         </div>

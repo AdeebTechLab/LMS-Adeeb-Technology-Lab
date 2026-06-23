@@ -15,6 +15,7 @@ const CertificateManagement = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCities, setSelectedCities] = useState([]); // Array of strings
     const [selectedTypes, setSelectedTypes] = useState([]);  // Array of strings
+    const [enrollmentStatusFilter, setEnrollmentStatusFilter] = useState('all'); // 'all', 'active', 'completed'
     const [expandedCourse, setExpandedCourse] = useState(null);
 
     // Helper to get local date string YYYY-MM-DD
@@ -328,10 +329,25 @@ const CertificateManagement = () => {
 
         const matchesCity = selectedCities.length === 0 || selectedCities.includes(c.city || c.location);
         const matchesType = selectedTypes.length === 0 || selectedTypes.includes(c.targetAudience);
-        const hasStudents = c.students.length > 0;
+
+        // Filter students by enrollment status
+        const filteredStudents = c.students.filter(s => {
+            if (enrollmentStatusFilter === 'all') return true;
+            if (enrollmentStatusFilter === 'completed') return s.enrollmentStatus === 'completed' || s.certificateIssued;
+            if (enrollmentStatusFilter === 'active') return s.enrollmentStatus !== 'completed' && !s.certificateIssued;
+            return true;
+        });
+        const hasStudents = filteredStudents.length > 0;
 
         return matchesSearch && matchesCity && matchesType && hasStudents;
-    });
+    }).map(c => ({
+        ...c,
+        students: enrollmentStatusFilter === 'all' ? c.students : c.students.filter(s => {
+            if (enrollmentStatusFilter === 'completed') return s.enrollmentStatus === 'completed' || s.certificateIssued;
+            if (enrollmentStatusFilter === 'active') return s.enrollmentStatus !== 'completed' && !s.certificateIssued;
+            return true;
+        })
+    }));
 
     const filteredRequests = requests.filter(r => {
         const matchesSearch = (r.user?.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -405,6 +421,16 @@ const CertificateManagement = () => {
                                 <p className="text-xl font-bold text-amber-500 leading-none">{teachersPendingCount}</p>
                                 <p className="text-[9px] text-amber-600/80 font-black uppercase tracking-wider mt-1">Pending</p>
                             </div>
+                        </div>
+                    </div>
+
+                    {/* Enrollment Status Filter */}
+                    <div className="space-y-2">
+                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Status</span>
+                        <div className="flex items-center gap-2 bg-gray-50 p-1.5 rounded-2xl">
+                            <button onClick={() => setEnrollmentStatusFilter('all')} className={`flex-1 px-3 py-2 rounded-xl font-bold text-xs transition-all ${enrollmentStatusFilter === 'all' ? 'bg-white text-primary shadow-md border border-primary/10' : 'text-gray-500 hover:text-gray-700 hover:bg-white/50'}`}>All</button>
+                            <button onClick={() => setEnrollmentStatusFilter('active')} className={`flex-1 px-3 py-2 rounded-xl font-bold text-xs transition-all ${enrollmentStatusFilter === 'active' ? 'bg-white text-primary shadow-md border border-primary/10' : 'text-gray-500 hover:text-gray-700 hover:bg-white/50'}`}>Active</button>
+                            <button onClick={() => setEnrollmentStatusFilter('completed')} className={`flex-1 px-3 py-2 rounded-xl font-bold text-xs transition-all ${enrollmentStatusFilter === 'completed' ? 'bg-white text-primary shadow-md border border-primary/10' : 'text-gray-500 hover:text-gray-700 hover:bg-white/50'}`}>Completed</button>
                         </div>
                     </div>
                 </div>

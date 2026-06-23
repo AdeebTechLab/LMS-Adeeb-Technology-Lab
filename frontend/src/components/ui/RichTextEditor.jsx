@@ -44,7 +44,7 @@ const ToolbarBtn = ({ onClick, active, disabled, title, children }) => (
         className={`p-2 rounded-lg transition-colors ${
             active
                 ? 'bg-primary text-white shadow-sm'
-                : 'text-gray-600 hover:bg-gray-100 hover:text-primary'
+                : 'text-gray-600 hover:bg-gray-100 hover:text-primary dark:text-gray-400 dark:hover:bg-slate-700 dark:hover:text-white'
         } disabled:opacity-40 disabled:cursor-not-allowed`}
     >
         {children}
@@ -95,7 +95,7 @@ const RichTextEditor = ({
         },
         editorProps: {
             attributes: {
-                class: 'rich-text-editor__body ProseMirror outline-none min-h-[120px] px-4 py-3 text-sm text-gray-800',
+                class: 'rich-text-editor__body ProseMirror outline-none min-h-[120px] px-4 py-3 text-sm text-gray-800 dark:text-gray-200',
                 'data-placeholder': placeholder,
             },
         },
@@ -172,7 +172,7 @@ const RichTextEditor = ({
     if (!editor) {
         return (
             <div
-                className={`rich-text-editor border border-gray-200 rounded-xl bg-gray-50 animate-pulse ${className}`}
+                className={`rich-text-editor border border-gray-200 dark:border-slate-700 rounded-xl bg-gray-50 dark:bg-slate-800 animate-pulse ${className}`}
                 style={{ minHeight }}
             />
         );
@@ -180,16 +180,16 @@ const RichTextEditor = ({
 
     return (
         <div
-            className={`rich-text-editor border-2 border-gray-200 rounded-xl overflow-hidden bg-white focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/10 transition-all ${disabled ? 'opacity-60 pointer-events-none' : ''} ${className}`}
+            className={`rich-text-editor border-2 border-gray-200 dark:border-slate-700 rounded-xl overflow-hidden bg-white dark:bg-slate-900 focus-within:border-primary dark:focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/10 transition-all ${disabled ? 'opacity-60 pointer-events-none' : ''} ${className}`}
             style={{ minHeight }}
         >
-            <div className="rich-text-editor__toolbar flex flex-wrap items-center gap-0.5 p-2 border-b border-gray-100 bg-gray-50/80">
+            <div className="rich-text-editor__toolbar flex flex-wrap items-center gap-0.5 p-2 border-b border-gray-100 dark:border-slate-800 bg-gray-50/80 dark:bg-slate-800/80">
                 <select
                     value={getHeadingValue()}
                     onMouseDown={(e) => e.preventDefault()}
                     onChange={(e) => applyHeading(e.target.value)}
                     disabled={disabled}
-                    className="h-9 px-2 mr-1 text-xs font-bold text-gray-700 bg-white border border-gray-200 rounded-lg outline-none focus:border-primary cursor-pointer"
+                    className="h-9 px-2 mr-1 text-xs font-bold text-gray-700 dark:text-gray-300 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg outline-none focus:border-primary cursor-pointer"
                     title="Heading style"
                 >
                     {HEADING_OPTIONS.map((opt) => (
@@ -199,7 +199,7 @@ const RichTextEditor = ({
                     ))}
                 </select>
 
-                <span className="w-px h-6 bg-gray-200 mx-0.5" />
+                <span className="w-px h-6 bg-gray-200 dark:bg-slate-700 mx-0.5" />
 
                 <ToolbarBtn
                     onClick={() => runCommand(editor, (c) => c.toggleBold().run())}
@@ -226,7 +226,7 @@ const RichTextEditor = ({
                     <UnderlineIcon className="w-4 h-4" />
                 </ToolbarBtn>
 
-                <span className="w-px h-6 bg-gray-200 mx-0.5" />
+                <span className="w-px h-6 bg-gray-200 dark:bg-slate-700 mx-0.5" />
 
                 <ToolbarBtn
                     onClick={() => runCommand(editor, (c) => c.toggleBulletList().run())}
@@ -253,7 +253,7 @@ const RichTextEditor = ({
                     <Quote className="w-4 h-4" />
                 </ToolbarBtn>
 
-                <span className="w-px h-6 bg-gray-200 mx-0.5" />
+                <span className="w-px h-6 bg-gray-200 dark:bg-slate-700 mx-0.5" />
 
                 <ToolbarBtn onClick={setLink} active={editor.isActive('link')} disabled={disabled} title="Insert link">
                     <Link2 className="w-4 h-4" />
@@ -287,7 +287,7 @@ const RichTextEditor = ({
                     <AlignRight className="w-4 h-4" />
                 </ToolbarBtn>
 
-                <span className="w-px h-6 bg-gray-200 mx-0.5" />
+                <span className="w-px h-6 bg-gray-200 dark:bg-slate-700 mx-0.5" />
 
                 <ToolbarBtn
                     onClick={() => runCommand(editor, (c) => c.undo().run())}
