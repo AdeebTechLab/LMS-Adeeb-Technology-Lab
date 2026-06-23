@@ -84,17 +84,20 @@ const JobRegister = () => {
         email: '',
         phone: '',
         cnic: '',
+        address: '',
         city: '',
         otherCity: '',
         country: '',
         otherCountry: '',
+        guardianName: '',
+        guardianPhone: '',
+        guardianOccupation: '',
         qualification: '',
         teachingExp: '',
         experienceDetails: '',
         skills: [],
+        otherSkills: '',
         cvUrl: '',
-        preferredCity: '',
-        preferredMode: '',
         heardAbout: '',
         password: '',
         confirmPassword: '',
@@ -181,14 +184,19 @@ const JobRegister = () => {
         if (!formData.phone) newErrors.phone = 'Phone is required';
         if (!formData.cnic) newErrors.cnic = 'CNIC is required';
         if (!formData.dob) newErrors.dob = 'Date of Birth is required';
+        if (!formData.address) newErrors.address = 'Address is required';
         if (!formData.city) newErrors.city = 'City is required';
+        if (!formData.guardianName.trim()) newErrors.guardianName = 'Guardian name is required';
+        if (!formData.guardianPhone) newErrors.guardianPhone = 'Guardian phone is required';
+        if (!formData.guardianOccupation) newErrors.guardianOccupation = 'Guardian occupation is required';
         if (!formData.country) newErrors.country = 'Country is required';
         if (!formData.qualification) newErrors.qualification = 'Qualification is required';
         if (!formData.teachingExp) newErrors.teachingExp = 'This field is required';
         if (!formData.experienceDetails.trim()) newErrors.experienceDetails = 'Experience details are required';
         if (formData.skills.length === 0) newErrors.skills = 'Select at least one skill';
-        if (!formData.preferredCity) newErrors.preferredCity = 'Preferred city is required';
-        if (!formData.preferredMode) newErrors.preferredMode = 'Preferred mode is required';
+        if (formData.skills.includes('Other') && !formData.otherSkills.trim()) {
+            newErrors.otherSkills = 'Please specify your other skills';
+        }
         if (!formData.heardAbout) newErrors.heardAbout = 'This field is required';
         if (!formData.password) newErrors.password = 'Password is required';
         else if (formData.password.length < 6) newErrors.password = 'Minimum 6 characters';
@@ -199,9 +207,58 @@ const JobRegister = () => {
         return Object.keys(newErrors).length === 0;
     };
 
+    
+    const scrollToFirstError = (newErrors) => {
+        const fieldOrder = [
+            'photo', 'fullName', 'fatherName', 'email', 'phone', 'cnic', 'dob',
+            'guardianName', 'guardianPhone', 'guardianOccupation',
+            'address', 'city', 'country',
+            'qualification', 'teachingExp', 'experienceDetails', 'skills', 'otherSkills',
+            'cvUrl', 'heardAbout', 'password', 'confirmPassword', 'termsAccepted'
+        ];
+        for (const field of fieldOrder) {
+            if (newErrors[field]) {
+                const el = document.getElementById(`field-${field}`);
+                if (el) {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    const input = el.querySelector('input, select, textarea');
+                    if (input) setTimeout(() => input.focus(), 400);
+                }
+                break;
+            }
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!validateForm()) return;
+        if (!validateForm()) {
+            const errs = {};
+            if (!photoFile) errs.photo = true;
+            if (!formData.fullName.trim()) errs.fullName = true;
+            if (!formData.fatherName.trim()) errs.fatherName = true;
+            if (!formData.email) errs.email = true;
+            if (!formData.phone) errs.phone = true;
+            if (!formData.cnic) errs.cnic = true;
+            if (!formData.dob) errs.dob = true;
+            if (!formData.guardianName.trim()) errs.guardianName = true;
+            if (!formData.guardianPhone) errs.guardianPhone = true;
+            if (!formData.guardianOccupation) errs.guardianOccupation = true;
+            if (!formData.address) errs.address = true;
+            if (!formData.city) errs.city = true;
+            if (!formData.country) errs.country = true;
+            if (!formData.qualification) errs.qualification = true;
+            if (!formData.teachingExp) errs.teachingExp = true;
+            if (!formData.experienceDetails.trim()) errs.experienceDetails = true;
+            if (formData.skills.length === 0) errs.skills = true;
+            if (formData.skills.includes('Other') && !formData.otherSkills.trim()) errs.otherSkills = true;
+            if (!formData.heardAbout) errs.heardAbout = true;
+            if (!formData.password) errs.password = true;
+            if (formData.password !== formData.confirmPassword) errs.confirmPassword = true;
+            if (!formData.termsAccepted) errs.termsAccepted = true;
+            scrollToFirstError(errs);
+            return;
+        }
+
 
         setIsLoading(true);
         setApiError('');
@@ -214,10 +271,18 @@ const JobRegister = () => {
             submitData.append('role', 'job');
             submitData.append('location', formData.city === 'Other' ? formData.otherCity : formData.city);
             submitData.append('country', formData.country === 'Other' ? formData.otherCountry : formData.country);
+            submitData.append('address', formData.address);
+            submitData.append('guardianName', formData.guardianName);
+            submitData.append('guardianPhone', formData.guardianPhone);
+            submitData.append('guardianOccupation', formData.guardianOccupation);
             submitData.append('cnic', formData.cnic);
             submitData.append('dob', formData.dob);
             submitData.append('age', formData.age);
-            submitData.append('skills', formData.skills.join(', '));
+            let finalSkills = formData.skills.filter(s => s !== 'Other');
+            if (formData.skills.includes('Other') && formData.otherSkills.trim()) {
+                finalSkills = [...finalSkills, ...formData.otherSkills.split(',').map(s => s.trim()).filter(Boolean)];
+            }
+            submitData.append('skills', finalSkills.join(', '));
             submitData.append('experience', formData.experienceDetails);
             submitData.append('portfolio', formData.cvUrl);
 
@@ -433,65 +498,7 @@ const JobRegister = () => {
                             <InputField label="CNIC Number *" name="cnic" icon={CreditCard} placeholder="XXXXX-XXXXXXX-X" value={formData.cnic} onChange={handleCNICChange} error={errors.cnic} />
                             <InputField label="Date of Birth *" name="dob" type="date" icon={Calendar} value={formData.dob} onChange={handleChange} error={errors.dob} />
                             <InputField label="Age (Auto) *" name="age" type="number" placeholder="Calculated automatically" value={formData.age} onChange={handleChange} error={errors.age} readOnly />
-                            <SelectField label="City *" name="city" options={PAKISTAN_CITIES} placeholder="Select City" value={formData.city} onChange={handleChange} error={errors.city} />
-                            {formData.city === 'Other' && (
-                                <InputField label="Specify City *" name="otherCity" placeholder="Enter your city" value={formData.otherCity} onChange={handleChange} error={errors.otherCity} />
-                            )}
-
-                            <SelectField label="Country *" name="country" options={COUNTRIES} placeholder="Select Country" value={formData.country} onChange={handleChange} error={errors.country} />
-                            {formData.country === 'Other' && (
-                                <InputField label="Specify Country *" name="otherCountry" placeholder="Enter your country" value={formData.otherCountry} onChange={handleChange} error={errors.otherCountry} />
-                            )}
-                        </div>
-
-                        {/* Professional Details */}
-                        <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-2 border-b flex items-center gap-2">
-                            <Briefcase className="w-5 h-5 text-primary" /> Professional Details
-                        </h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
-                            <InputField label="Highest Qualification *" name="qualification" placeholder="e.g. M.Sc Computer Science" value={formData.qualification} onChange={handleChange} error={errors.qualification} />
-                            <SelectField label="Any Work Experience *" name="teachingExp" options={['Yes', 'No']} placeholder="Select" value={formData.teachingExp} onChange={handleChange} error={errors.teachingExp} />
-                            <div className="md:col-span-2">
-                                <label className="block text-sm font-medium text-gray-700 mb-1.5">Experience Details *</label>
-                                <textarea
-                                    name="experienceDetails"
-                                    value={formData.experienceDetails}
-                                    onChange={handleChange}
-                                    rows={3}
-                                    placeholder="Write about your experience..."
-                                    className={`w-full px-4 py-3 border ${errors.experienceDetails ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50`}
-                                />
-                                {errors.experienceDetails && <p className="mt-1 text-sm text-red-500">{errors.experienceDetails}</p>}
-                            </div>
-                            <div className="md:col-span-2">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Skills or Fields you specialize in * <span className="text-gray-400 text-xs">(select multiple)</span></label>
-                                <div className="flex flex-wrap gap-2">
-                                    {SKILLS.map(skill => (
-                                        <label
-                                            key={skill}
-                                            className={`px-4 py-2 rounded-full border cursor-pointer transition-all text-sm ${formData.skills.includes(skill)
-                                                ? 'bg-primary/10 border-primary text-purple-700'
-                                                : 'bg-gray-50 border-gray-200 text-gray-600 hover:border-gray-300'
-                                                }`}
-                                        >
-                                            <input
-                                                type="checkbox"
-                                                checked={formData.skills.includes(skill)}
-                                                onChange={() => {
-                                                    setFormData(prev => ({
-                                                        ...prev,
-                                                        skills: prev.skills.includes(skill)
-                                                            ? prev.skills.filter(s => s !== skill)
-                                                            : [...prev.skills, skill]
-                                                    }));
-                                                }}
-                                                className="hidden"
-                                            />
-                                            {skill}
-                                        </label>
-                                    ))}
-                                </div>
-                                {errors.skills && <p className="mt-1 text-sm text-red-500">{errors.skills}</p>}
+                            
                             </div>
                         </div>
 
@@ -501,15 +508,13 @@ const JobRegister = () => {
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
                             <InputField label="CV/Resume URL (Drive/Dropbox)" name="cvUrl" type="url" icon={FileText} placeholder="https://drive.google.com/..." value={formData.cvUrl} onChange={handleChange} error={errors.cvUrl} />
-                            <SelectField label="Preferred City *" name="preferredCity" options={CITIES} placeholder="Select City" value={formData.preferredCity} onChange={handleChange} error={errors.preferredCity} />
-                            <SelectField label="Preferred Mode *" name="preferredMode" options={['Remote', 'On-Site']} placeholder="Select Mode" value={formData.preferredMode} onChange={handleChange} error={errors.preferredMode} />
-                            <div className="md:col-span-2">
-                                <SelectField label="How did you hear about us? *" name="heardAbout" options={HEARD_OPTIONS} placeholder="Select Option" value={formData.heardAbout} onChange={handleChange} error={errors.heardAbout} />
-                            </div>
+                            <SelectField label="How did you hear about us? *" name="heardAbout" options={HEARD_OPTIONS} placeholder="Select Option" value={formData.heardAbout} onChange={handleChange} error={errors.heardAbout} />
                         </div>
 
                         {/* Account Setup */}
-                        <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-2 border-b">Account Setup</h2>
+                        <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-2 border-b flex items-center gap-2">
+                            <Lock className="w-5 h-5 text-blue-600" /> Account Setup
+                        </h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1.5">Password *</label>
@@ -576,7 +581,7 @@ const JobRegister = () => {
                             className="w-full py-4 bg-primary hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 active:scale-95"
                         >
                             <ButtonLoader isLoading={isLoading}>
-                                {isLoading ? 'Submitting...' : 'Submit Application'}
+                                {isLoading ? 'Submitting...' : 'Register Now'}
                             </ButtonLoader>
                         </button>
                     </form>

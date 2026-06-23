@@ -541,8 +541,8 @@ const StudentRegister = () => {
                             <InputField label="Guardian Occupation *" name="guardianOccupation" placeholder="Guardian's occupation" value={formData.guardianOccupation} onChange={handleChange} error={errors.guardianOccupation} />
                         </div>
 
-                        {/* Address */}
-                        <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-2 border-b">Address</h2>
+                        {/* Address Details */}
+                        <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-2 border-b">Address Details</h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
                             <SelectField label="City *" name="city" options={PAKISTAN_CITIES} placeholder="Select City" value={formData.city} onChange={handleChange} error={errors.city} />
                             {formData.city === 'Other' && (

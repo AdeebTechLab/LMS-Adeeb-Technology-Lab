@@ -94,16 +94,15 @@ const InternshipRegister = () => {
         otherCountry: '',
         degree: '',
         university: '',
-        department: '',
         semester: '',
         rollNumber: '',
         cgpa: '',
         majorSubjects: '',
-        duration: '',
         internCity: '',
         internType: '',
         requirements: [],
         resumeUrl: '',
+        guardianName: '',
         guardianPhone: '',
         guardianOccupation: '',
         feeUrl: '',
@@ -208,15 +207,14 @@ const InternshipRegister = () => {
         if (!formData.city) newErrors.city = 'City is required';
         if (!formData.degree) newErrors.degree = 'Degree is required';
         if (!formData.university) newErrors.university = 'University is required';
-        if (!formData.department) newErrors.department = 'Department is required';
         if (!formData.semester) newErrors.semester = 'Semester is required';
         if (!formData.rollNumber) newErrors.rollNumber = 'University roll number is required';
         if (!formData.cgpa) newErrors.cgpa = 'CGPA is required';
         if (!formData.majorSubjects) newErrors.majorSubjects = 'Major subjects are required';
-        if (!formData.duration) newErrors.duration = 'Duration is required';
         if (!formData.internCity) newErrors.internCity = 'City is required';
         if (!formData.internType) newErrors.internType = 'Type is required';
         if (formData.requirements.length === 0) newErrors.requirements = 'Requirements selection is required';
+        if (!formData.guardianName.trim()) newErrors.guardianName = "Guardian's name is required";
         if (!formData.guardianPhone) newErrors.guardianPhone = 'Guardian WhatsApp number is required';
         if (!formData.guardianOccupation) newErrors.guardianOccupation = 'Guardian occupation is required';
         if (!formData.reason) newErrors.reason = 'Reason is required';
@@ -234,9 +232,9 @@ const InternshipRegister = () => {
     const scrollToFirstError = (newErrors) => {
         const fieldOrder = [
             'photo', 'fullName', 'fatherName', 'dob', 'gender', 'cnic', 'contact', 'email',
-            'homeAddress', 'city', 'degree', 'university', 'department', 'semester',
-            'rollNumber', 'cgpa', 'majorSubjects', 'duration', 'internCity', 'internType',
-            'requirements', 'guardianPhone', 'guardianOccupation', 'reason', 'heardAbout',
+            'homeAddress', 'city', 'degree', 'university', 'semester',
+            'rollNumber', 'cgpa', 'majorSubjects', 'internCity', 'internType',
+            'requirements', 'guardianName', 'guardianPhone', 'guardianOccupation', 'reason', 'heardAbout',
             'password', 'confirmPassword', 'termsAccepted', 'dataConfirmed'
         ];
         for (const field of fieldOrder) {
@@ -268,15 +266,14 @@ const InternshipRegister = () => {
             if (!formData.city) errs.city = true;
             if (!formData.degree) errs.degree = true;
             if (!formData.university) errs.university = true;
-            if (!formData.department) errs.department = true;
             if (!formData.semester) errs.semester = true;
             if (!formData.rollNumber) errs.rollNumber = true;
             if (!formData.cgpa) errs.cgpa = true;
             if (!formData.majorSubjects) errs.majorSubjects = true;
-            if (!formData.duration) errs.duration = true;
             if (!formData.internCity) errs.internCity = true;
             if (!formData.internType) errs.internType = true;
             if (formData.requirements.length === 0) errs.requirements = true;
+            if (!formData.guardianName.trim()) errs.guardianName = true;
             if (!formData.guardianPhone) errs.guardianPhone = true;
             if (!formData.guardianOccupation) errs.guardianOccupation = true;
             if (!formData.reason) errs.reason = true;
@@ -305,14 +302,13 @@ const InternshipRegister = () => {
             submitData.append('age', formData.age);
             submitData.append('gender', formData.gender);
             submitData.append('fatherName', formData.fatherName);
-            submitData.append('guardianName', formData.fatherName); // Keep fallback if needed
+            submitData.append('guardianName', formData.guardianName);
             submitData.append('address', formData.homeAddress);
             submitData.append('city', formData.city === 'Other' ? formData.otherCity : formData.city);
             submitData.append('country', formData.country === 'Other' ? formData.otherCountry : formData.country);
             submitData.append('education', `${formData.degree} - ${formData.university}`);
             submitData.append('degree', formData.degree);
             submitData.append('university', formData.university);
-            submitData.append('department', formData.department);
             submitData.append('semester', formData.semester);
             submitData.append('rollNumber', formData.rollNumber);
             submitData.append('cgpa', formData.cgpa);
@@ -584,6 +580,17 @@ const InternshipRegister = () => {
                             <Users className="w-5 h-5 text-blue-600" /> Guardian Information
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
+                            <div className="md:col-span-2">
+                                <InputField
+                                    label="Guardian Name *"
+                                    name="guardianName"
+                                    icon={Users}
+                                    placeholder="Guardian's Full Name"
+                                    value={formData.guardianName}
+                                    onChange={handleChange}
+                                    error={errors.guardianName}
+                                />
+                            </div>
                             <InputField
                                 label="Guardian WhatsApp Number *"
                                 name="guardianPhone"
@@ -602,6 +609,10 @@ const InternshipRegister = () => {
                             />
                         </div>
 
+                        {/* Address Details */}
+                        <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-2 border-b flex items-center gap-2">
+                            <MapPin className="w-5 h-5 text-blue-600" /> Address Details
+                        </h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
                             <SelectField label="City *" name="city" options={PAKISTAN_CITIES} placeholder="Select City" value={formData.city} onChange={handleChange} error={errors.city} />
                             {formData.city === 'Other' && (
@@ -623,26 +634,33 @@ const InternshipRegister = () => {
                             <GraduationCap className="w-5 h-5 text-blue-600" /> Educational Details
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
-                            <InputField label="Current Degree Program *" name="degree" icon={GraduationCap} placeholder="e.g. BS Computer Science" value={formData.degree} onChange={handleChange} error={errors.degree} />
-                            <InputField label="Institution / University *" name="university" icon={Building} placeholder="University name" value={formData.university} onChange={handleChange} error={errors.university} />
-                            <InputField label="Department / Faculty *" name="department" icon={BookOpen} placeholder="Your department" value={formData.department} onChange={handleChange} error={errors.department} />
-                            <InputField label="Current Semester / Year *" name="semester" placeholder="e.g. 6th Semester" value={formData.semester} onChange={handleChange} error={errors.semester} />
+                            <InputField label="Degree/Program *" name="degree" icon={GraduationCap} placeholder="e.g. BS Computer Science" value={formData.degree} onChange={handleChange} error={errors.degree} />
+                            <InputField label="College/University *" name="university" icon={Building} placeholder="University name" value={formData.university} onChange={handleChange} error={errors.university} />
+                            <InputField label="Semester *" name="semester" placeholder="e.g. 6th Semester" value={formData.semester} onChange={handleChange} error={errors.semester} />
                             <InputField label="University Roll Number *" name="rollNumber" placeholder="Your university roll number" value={formData.rollNumber} onChange={handleChange} error={errors.rollNumber} />
-                            <InputField label="CGPA or Percentage *" name="cgpa" placeholder="e.g. 3.5 or 85%" value={formData.cgpa} onChange={handleChange} error={errors.cgpa} />
+                            <InputField label="CGPA *" name="cgpa" placeholder="e.g. 3.5 or 85%" value={formData.cgpa} onChange={handleChange} error={errors.cgpa} />
                             <div className="md:col-span-2">
                                 <InputField label="Major Subjects / Courses *" name="majorSubjects" placeholder="List your major subjects" value={formData.majorSubjects} onChange={handleChange} error={errors.majorSubjects} />
                             </div>
                         </div>
 
-                        {/* Internship Details */}
+                        {/* Campus Details */}
                         <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-2 border-b flex items-center gap-2">
-                            <BookOpen className="w-5 h-5 text-blue-600" /> Internship Details
+                            <BookOpen className="w-5 h-5 text-blue-600" /> Campus Details
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
-                            <SelectField label="Duration *" name="duration" options={DURATIONS} placeholder="Select Duration" value={formData.duration} onChange={handleChange} error={errors.duration} />
                             <SelectField label="City for Internship *" name="internCity" options={INTERN_CITIES} placeholder="Select City" value={formData.internCity} onChange={handleChange} error={errors.internCity} />
                             <SelectField label="Internship Type *" name="internType" options={['Physical', 'Online']} placeholder="Select Type" value={formData.internType} onChange={handleChange} error={errors.internType} />
-                            <div id="field-requirements" className="md:col-span-2">
+                        </div>
+
+                        {/* Attachments */}
+                        <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-2 border-b flex items-center gap-2">
+                            <FileText className="w-5 h-5 text-blue-600" /> Attachments
+                        </h2>
+                        <div className="grid grid-cols-1 gap-5 mb-8">
+                            <InputField label="Resume / CV (Google Drive Link)" name="resumeUrl" type="url" icon={FileText} placeholder="https://drive.google.com/..." value={formData.resumeUrl} onChange={handleChange} error={errors.resumeUrl} />
+                            
+                            <div id="field-requirements">
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Requirements</label>
                                 <div className="flex flex-wrap gap-3">
                                     {requirementOptions.map(req => (
@@ -664,14 +682,6 @@ const InternshipRegister = () => {
                                     ))}
                                 </div>
                             </div>
-                        </div>
-
-                        {/* Attachments */}
-                        <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-2 border-b flex items-center gap-2">
-                            <FileText className="w-5 h-5 text-blue-600" /> Attachments
-                        </h2>
-                        <div className="grid grid-cols-1 gap-5 mb-8">
-                            <InputField label="Resume / CV (Google Drive Link)" name="resumeUrl" type="url" icon={FileText} placeholder="https://drive.google.com/..." value={formData.resumeUrl} onChange={handleChange} error={errors.resumeUrl} />
                         </div>
 
                         {/* Additional Info */}
