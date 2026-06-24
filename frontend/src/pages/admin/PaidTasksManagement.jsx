@@ -357,13 +357,26 @@ const PaidTasksManagement = () => {
         );
     }
 
+    const totalApplicantsCount = tasks.reduce((sum, task) => sum + (task.applicants?.length || 0), 0);
+    const totalAssignedCount = tasks.reduce((sum, task) => sum + (task.assignedTo?.length || 0), 0);
+
     return (
         <div className="space-y-6">
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Paid Tasks</h1>
-                    <p className="text-gray-500 text-sm">Create and manage freelance tasks</p>
+                    <div className="flex items-center gap-3">
+                        <h1 className="text-2xl font-bold text-gray-900">Job Posting</h1>
+                        <div className="flex gap-2">
+                            <span className="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs font-bold rounded-lg border border-yellow-200">
+                                Applicants: {totalApplicantsCount}
+                            </span>
+                            <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-lg border border-green-200">
+                                Assigned: {totalAssignedCount}
+                            </span>
+                        </div>
+                    </div>
+                    <p className="text-gray-500 text-sm mt-1">Create and manage freelance tasks</p>
                 </div>
                 <div className="flex items-center gap-3">
                     <button

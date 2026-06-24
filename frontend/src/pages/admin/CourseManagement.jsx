@@ -325,15 +325,7 @@ const CourseManagement = () => {
                         </div>
                     </div>
                     
-                    {/* Status Filters */}
-                    <div className="space-y-2">
-                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Status</span>
-                        <div className="flex items-center gap-2 bg-gray-50 p-1.5 rounded-2xl">
-                            <button onClick={() => setSelectedStatus('all')} className={`flex-1 px-3 py-2 rounded-xl font-bold text-xs transition-all ${selectedStatus === 'all' ? 'bg-white text-primary shadow-md border border-primary/10' : 'text-gray-500 hover:text-gray-700 hover:bg-white/50'}`}>All</button>
-                            <button onClick={() => setSelectedStatus('active')} className={`flex-1 px-3 py-2 rounded-xl font-bold text-xs transition-all ${selectedStatus === 'active' ? 'bg-white text-primary shadow-md border border-primary/10' : 'text-gray-500 hover:text-gray-700 hover:bg-white/50'}`}>Active</button>
-                            <button onClick={() => setSelectedStatus('completed')} className={`flex-1 px-3 py-2 rounded-xl font-bold text-xs transition-all ${selectedStatus === 'completed' ? 'bg-white text-primary shadow-md border border-primary/10' : 'text-gray-500 hover:text-gray-700 hover:bg-white/50'}`}>Certified</button>
-                        </div>
-                    </div>
+
                 </div>
             </div>
 
@@ -426,17 +418,13 @@ const CourseManagement = () => {
                                 <div className="flex items-center gap-1.5">
                                     <Users className="w-4 h-4 text-gray-400" />
                                     <span className="text-sm font-medium text-gray-600">
-                                        {selectedStatus === 'active' ? enrollments.filter(e => String(e.course?._id || e.course) === String(course._id) && (e.status === 'enrolled' || e.status === 'pending')).length : 
-                                         selectedStatus === 'completed' ? enrollments.filter(e => String(e.course?._id || e.course) === String(course._id) && e.status === 'completed').length : 
-                                         course.enrolledCount} Students
+                                        {enrollments.filter(e => String(e.course?._id || e.course) === String(course._id)).length} Students
                                     </span>
                                 </div>
-                                {selectedStatus === 'all' && course.enrolledCount > 0 && (
-                                    <div className="flex gap-2 text-[10px] font-bold text-gray-400">
-                                        <span className="text-primary">{enrollments.filter(e => String(e.course?._id || e.course) === String(course._id) && (e.status === 'enrolled' || e.status === 'pending')).length} Active</span>
-                                        <span className="text-indigo-500">{enrollments.filter(e => String(e.course?._id || e.course) === String(course._id) && e.status === 'completed').length} Certified</span>
-                                    </div>
-                                )}
+                                <div className="flex gap-2 text-[10px] font-bold text-gray-400">
+                                    <span className="text-primary">{enrollments.filter(e => String(e.course?._id || e.course) === String(course._id) && (e.status === 'enrolled' || e.status === 'pending')).length} Active</span>
+                                    <span className="text-indigo-500">{enrollments.filter(e => String(e.course?._id || e.course) === String(course._id) && e.status === 'completed').length} Certified</span>
+                                </div>
                             </div>
                             <div className="flex flex-col items-end">
                                 {course.originalPrice && !isNaN(parseFloat(course.originalPrice)) && parseFloat(course.originalPrice) > parseFloat(course.fee) && (

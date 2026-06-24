@@ -211,7 +211,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 { id: 'dashboard', labelKey: 'nav.dashboard', icon: LayoutDashboard, path: '/admin/dashboard' },
                 { id: 'directory', labelKey: 'nav.directory', icon: FolderOpen, path: '/admin/directory' },
                 { id: 'courses', labelKey: 'nav.courses', icon: BookOpen, path: '/admin/courses' },
-                { id: 'paid-tasks', labelKey: 'nav.paidTasks', icon: Briefcase, path: '/admin/paid-tasks' },
+                { id: 'paid-tasks', labelKey: 'nav.paidTasks', icon: Briefcase, path: '/admin/paid-tasks', badge: adminPendingCounts.newApplicants },
                 { id: 'certificates', labelKey: 'nav.certificates', icon: Award, path: '/admin/certificates' },
                 { id: 'students', labelKey: 'nav.students', icon: Users, path: '/admin/students', badge: adminPendingCounts.studentRegisteredNew },
                 { id: 'teachers', labelKey: 'nav.teachers', icon: GraduationCap, path: '/admin/teachers', badge: adminPendingCounts.teacherRegisteredNew },

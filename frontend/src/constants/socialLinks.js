@@ -42,7 +42,7 @@ export const SOCIAL_LINK_GROUPS = [
         badge: 'Academy',
         links: [
             { platform: 'website', label: 'Website', href: 'https://the-computer-courses-web.vercel.app' },
-            { platform: 'email', label: 'Email', href: 'mailto:TheComputerCurses@gmail.com' },
+            { platform: 'email', label: 'Email', href: 'mailto:info.TheComputerCourse@gmail.com' },
             { platform: 'whatsapp', label: 'WhatsApp', href: 'https://www.whatsapp.com/channel/0029VaC5PtjEgGfEQtQZUh1p' },
             { platform: 'facebook', label: 'Facebook', href: 'https://www.facebook.com/TheComputerCourses' },
             { platform: 'instagram', label: 'Instagram', href: 'https://www.instagram.com/thecomputercourses' },

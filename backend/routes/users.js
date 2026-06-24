@@ -4,6 +4,7 @@ const { protect, authorize } = require('../middleware/auth');
 const User = require('../models/User');
 const Fee = require('../models/Fee');
 const Enrollment = require('../models/Enrollment');
+const PaidTask = require('../models/PaidTask');
 const { uploadPhoto } = require('../config/cloudinary');
 const moment = require('moment-timezone');
 const { sendPushNotification } = require('../utils/pushHelper');
@@ -207,6 +208,18 @@ router.get('/pending-counts', protect, authorize('admin'), async (req, res) => {
         result.studentRegisteredNew = await countRegisteredNew('student');
         result.teacherRegisteredNew = await countRegisteredNew('teacher');
         result.internRegisteredNew = await countRegisteredNew('intern');
+
+        // Count total applicants across all paid tasks (new/unassigned applicants)
+        const allTasks = await PaidTask.find({}, { applicants: 1, assignedTo: 1 });
+        let totalNewApplicants = 0;
+        allTasks.forEach(task => {
+            const assignedIds = (task.assignedTo || []).map(id => String(id));
+            const unassigned = (task.applicants || []).filter(
+                a => !assignedIds.includes(String(a.user))
+            );
+            totalNewApplicants += unassigned.length;
+        });
+        result.newApplicants = totalNewApplicants;
 
         res.json({ success: true, data: result });
     } catch (error) {

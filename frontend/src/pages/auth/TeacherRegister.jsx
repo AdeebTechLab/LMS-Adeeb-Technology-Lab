@@ -327,7 +327,7 @@ const TeacherRegister = () => {
                                 {/* Status Banner */}
                                 <div className="bg-red-500/20 backdrop-blur-sm rounded-xl p-4 border border-red-500/30">
                                     <div className="flex justify-between items-center mb-2">
-                                        <h3 className="text-lg font-bold">Jobs Application Form</h3>
+                                        <h3 className="text-lg font-bold">Freelancers Application Form</h3>
                                         <span className="px-2 py-1 bg-red-500 text-white text-xs font-bold rounded">Closed</span>
                                     </div>
                                     <p className="text-sm font-semibold text-red-400">Hiring is closed Now!</p>

@@ -10,7 +10,7 @@ import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
-import { userAPI, settingsAPI, enrollmentAPI, assignmentAPI, feeAPI } from '../../services/api';
+import { userAPI, settingsAPI, enrollmentAPI, assignmentAPI, feeAPI, courseAPI } from '../../services/api';
 import { generateComprehensiveReport } from '../../utils/reportGenerator';
 import ImageCropper from '../../components/ui/ImageCropper';
 
@@ -26,7 +26,9 @@ const InternsManagement = () => {
     const [editModal, setEditModal] = useState({ open: false, user: null });
     const [editForm, setEditForm] = useState({});
     const [isProcessing, setIsProcessing] = useState(false);
-    const [showExportOptions, setShowExportOptions] = useState(false);
+    const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+    const [exportConfig, setExportConfig] = useState({ format: 'full', status: 'all', courseId: 'all', campus: 'all' });
+    const [coursesList, setCoursesList] = useState([]);
     const [selectedFile, setSelectedFile] = useState(null);
     const [photoPreview, setPhotoPreview] = useState(null);
     const [enrollModal, setEnrollModal] = useState({ open: false, user: null });
@@ -46,7 +48,17 @@ const InternsManagement = () => {
     useEffect(() => {
         fetchInterns();
         fetchSettings();
+        fetchCourses();
     }, []);
+
+    const fetchCourses = async () => {
+        try {
+            const res = await courseAPI.getAll();
+            setCoursesList(res.data.data || []);
+        } catch (error) {
+            console.error('Error fetching courses:', error);
+        }
+    };
 
     const fetchSettings = async () => {
         try {
@@ -224,6 +236,9 @@ const InternsManagement = () => {
             city: intern.city || '',
             address: intern.address || '',
             guardianName: intern.guardianName || intern.fatherName || '',
+            guardianRelation: intern.guardianRelation || '',
+            resumeUrl: intern.resumeUrl || '',
+            reason: intern.reason || '',
             guardianPhone: intern.guardianPhone || '',
             guardianOccupation: intern.guardianOccupation || '',
             degree: degree,
@@ -254,7 +269,16 @@ const InternsManagement = () => {
         return i.isVerified ? 'Verified' : 'Pending';
     };
 
-    const downloadPDF = async (type = 'full') => {
+    const handleGenerateExport = () => {
+        setIsExportModalOpen(false);
+        downloadPDF(exportConfig);
+    };
+
+    const downloadPDF = async ({ format = 'full', status = 'all', courseId = 'all', campus = 'all' }) => {
+        const type = format;
+        const courseName = courseId === 'all' ? 'All Courses' : (coursesList.find(c => c._id === courseId)?.title || 'All Courses');
+        const campusName = campus === 'all' ? 'All Campuses' : (campus === 'islamabad' ? 'Islamabad' : 'Bahawalpur');
+        const statusName = status === 'all' ? 'All' : (status === 'active' ? 'Active' : 'Certified');
         // Fetch enrollments to build userId -> courses map
         let userCoursesMap = {};
         try {
@@ -275,6 +299,29 @@ const InternsManagement = () => {
         }
 
         const doc = new jsPDF('l', 'mm', 'a4');
+
+        // Start with all interns, ignoring UI search and filters
+        let finalExportInterns = interns;
+
+        if (status === 'active') {
+            finalExportInterns = finalExportInterns.filter(i => getInternStatus(i) === 'Enrolled (Active)');
+        } else if (status === 'certified') {
+            finalExportInterns = finalExportInterns.filter(i => getInternStatus(i) === 'Completed');
+        }
+
+        if (courseId !== 'all') {
+            const selectedCourse = coursesList.find(c => c._id === courseId);
+            if (selectedCourse) {
+                finalExportInterns = finalExportInterns.filter(i => 
+                    userCoursesMap[i._id] && userCoursesMap[i._id].includes(selectedCourse.title)
+                );
+            }
+        }
+
+        if (campus !== 'all') {
+            finalExportInterns = finalExportInterns.filter(i => i.location?.toLowerCase() === campus.toLowerCase());
+        }
+
         const title = type === 'phone' ? 'AdeebTechLab - Interns Phone Directory' :
             type === 'email' ? 'AdeebTechLab - Interns Email List' :
                 type === 'academic' ? 'AdeebTechLab - Interns Academic Profile' :
@@ -286,19 +333,22 @@ const InternsManagement = () => {
         doc.setFontSize(11);
         doc.setTextColor(100);
         doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 30);
-        doc.text(`Total Records: ${filteredInterns.length}`, 14, 37);
+        doc.text(`Total Records: ${finalExportInterns.length}`, 14, 37);
+        doc.setFontSize(10);
+        doc.text(`Filters -> Campus: ${campusName} | Course: ${courseName} | Status: ${statusName}`, 14, 44);
 
         let headers, body;
 
         if (type === 'phone') {
-            headers = [['Name', 'Phone', 'Identity']];
-            body = filteredInterns.map(i => [i.name || 'N/A', i.phone || 'N/A', 'Intern']);
+            headers = [['LMS Roll No', 'Name', 'Phone', 'Identity']];
+            body = finalExportInterns.map(i => [i.rollNo || 'N/A', i.name || 'N/A', i.phone || 'N/A', 'Intern']);
         } else if (type === 'email') {
-            headers = [['Name', 'Email', 'Identity']];
-            body = filteredInterns.map(i => [i.name || 'N/A', i.email || 'N/A', 'Intern']);
+            headers = [['LMS Roll No', 'Name', 'Email', 'Identity']];
+            body = finalExportInterns.map(i => [i.rollNo || 'N/A', i.name || 'N/A', i.email || 'N/A', 'Intern']);
         } else if (type === 'academic') {
-            headers = [['University Roll No', 'Name', 'Degree', 'University', 'CGPA', 'Semester', 'Registered Courses']];
-            body = filteredInterns.map(i => [
+            headers = [['LMS Roll No', 'University Roll No', 'Name', 'Degree', 'University', 'CGPA', 'Semester', 'Registered Courses']];
+            body = finalExportInterns.map(i => [
+                i.rollNo || 'N/A',
                 i.rollNumber || 'N/A',
                 i.name || 'N/A',
                 i.degree || 'N/A',
@@ -309,7 +359,8 @@ const InternsManagement = () => {
             ]);
         } else if (type === 'address') {
             headers = [['University Roll No', 'Name', 'Address', 'City']];
-            body = filteredInterns.map(i => [
+            body = finalExportInterns.map(i => [
+                i.rollNo || 'N/A',
                 i.rollNumber || 'N/A',
                 i.name || 'N/A',
                 i.homeAddress || 'N/A',
@@ -317,7 +368,8 @@ const InternsManagement = () => {
             ]);
         } else {
             headers = [['University Roll No', 'Name', 'Email', 'Phone', 'CNIC', 'DOB', 'Degree', 'University', 'CGPA', 'Location', 'Mode', 'Registered Courses', 'Status']];
-            body = filteredInterns.map(i => [
+            body = finalExportInterns.map(i => [
+                i.rollNo || 'N/A',
                 i.rollNumber || 'N/A',
                 i.name || 'N/A',
                 i.email || 'N/A',
@@ -335,7 +387,7 @@ const InternsManagement = () => {
         }
 
         autoTable(doc, {
-            startY: 45,
+            startY: 52,
             head: headers,
             body: body,
             theme: 'grid',
@@ -348,7 +400,7 @@ const InternsManagement = () => {
 
         const fileName = `Interns_${type.charAt(0).toUpperCase() + type.slice(1)}_${new Date().toISOString().split('T')[0]}.pdf`;
         doc.save(fileName);
-        setShowExportOptions(false);
+
     };
 
     const downloadInternPDF = (i) => {
@@ -683,39 +735,12 @@ const InternsManagement = () => {
 
                     <div className="relative flex-1 md:flex-none">
                         <button
-                            onClick={() => setShowExportOptions(!showExportOptions)}
-                            className="w-full px-4 py-2.5 bg-white border border-blue-100 rounded-xl font-black text-[10px] uppercase tracking-widest text-blue-700 hover:bg-blue-50 transition-all flex items-center justify-center gap-2 shadow-sm"
+                            onClick={() => setIsExportModalOpen(true)}
+                            className="w-full px-4 py-2.5 bg-white border border-gray-200 hover:bg-gray-50 rounded-xl transition-all flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-700 shadow-sm"
                         >
                             <Download className="w-4 h-4 text-blue-600" />
                             EXPORT DATA
                         </button>
-
-                        {showExportOptions && (
-                            <>
-                                <div className="fixed inset-0 z-10" onClick={() => setShowExportOptions(false)}></div>
-                                <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-100 rounded-2xl shadow-2xl z-20 py-2 overflow-hidden animate-in fade-in zoom-in duration-200">
-                                    <div className="px-4 py-2 border-b border-gray-50 mb-1">
-                                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Select Format</p>
-                                    </div>
-                                    {[
-                                        { id: 'full', label: 'Complete Report', icon: FileText },
-                                        { id: 'phone', label: 'Phone Directory', icon: Phone },
-                                        { id: 'email', label: 'Email List', icon: Mail },
-                                        { id: 'academic', label: 'Academic Info', icon: GraduationCap },
-                                        { id: 'address', label: 'Address List', icon: MapPin }
-                                    ].map((opt) => (
-                                        <button
-                                            key={opt.id}
-                                            onClick={() => downloadPDF(opt.id)}
-                                            className="w-full px-4 py-2.5 text-left text-[11px] font-bold text-gray-700 hover:bg-blue-50 hover:text-blue-700 flex items-center gap-3 transition-colors"
-                                        >
-                                            <opt.icon className="w-4 h-4" />
-                                            {opt.label}
-                                        </button>
-                                    ))}
-                                </div>
-                            </>
-                        )}
                     </div>
                 </div>
             </div>
@@ -818,7 +843,8 @@ const InternsManagement = () => {
                                 transition={{ delay: index * 0.05 }}
                                 className="bg-white rounded-2xl p-6 border border-gray-100"
                             >
-                                <div className="flex flex-col lg:flex-row lg:items-center gap-6">
+                                <div className="flex flex-col gap-4">
+                                    <div className="flex flex-col lg:flex-row lg:items-center gap-6">
                                     {/* Photo & Basic Info */}
                                     <div className="flex items-center gap-4 min-w-0">
                                         <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center overflow-hidden shrink-0 shadow-lg shadow-blue-900/10">
@@ -841,8 +867,7 @@ const InternsManagement = () => {
                                         </div>
                                     </div>
 
-                                    {/* Stats Grid */}
-                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-6 flex-1 bg-gray-50/50 p-4 rounded-2xl border border-gray-100">
+                                    <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-8 gap-3 sm:gap-4 flex-1 bg-gray-50/50 p-4 rounded-2xl border border-gray-100">
                                         <div className="space-y-1">
                                             <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Phone</p>
                                             <p className="text-xs font-bold text-gray-700">{intern.phone || 'N/A'}</p>
@@ -853,17 +878,49 @@ const InternsManagement = () => {
                                         </div>
                                         <div className="space-y-1">
                                             <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Education</p>
-                                            <p className="text-xs font-bold text-gray-700 truncate">{intern.education || 'N/A'}</p>
+                                            <p className="text-xs font-bold text-gray-700 truncate" title={intern.education || 'N/A'}>{intern.education || 'N/A'}</p>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">City</p>
+                                            <p className="text-xs font-bold text-gray-700 capitalize">{intern.location || intern.city || 'N/A'}</p>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Father Name</p>
+                                            <p className="text-xs font-bold text-gray-700 truncate" title={intern.fatherName || intern.guardianName || 'N/A'}>{intern.fatherName || intern.guardianName || 'N/A'}</p>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Father Phone</p>
+                                            <p className="text-xs font-bold text-gray-700">{intern.guardianPhone || intern.parentPhone || 'N/A'}</p>
                                         </div>
                                         <div className="space-y-1">
                                             <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Location</p>
-                                            <p className="text-xs font-bold text-gray-700 capitalize">{intern.location || 'N/A'}</p>
+                                            <p className="text-xs font-bold text-gray-700 truncate" title={intern.address || 'N/A'}>{intern.address || 'N/A'}</p>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Campus</p>
+                                            <p className="text-xs font-bold text-gray-700 capitalize">
+                                                {(intern.attendType === 'Physical' || intern.attendType === 'On-Site') ? 'Onsite' : (intern.attendType === 'Online' ? 'Remote' : (intern.attendType || 'N/A'))}
+                                            </p>
                                         </div>
                                     </div>
 
+                                    <div className="h-8 w-px bg-gray-100 hidden lg:block mx-1" />
+                                    <button
+                                        onClick={() => setConfirmModal({ open: true, action: intern.isVerified ? 'unverify' : 'verify', user: intern })}
+                                        className={`px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all shadow-lg ${intern.isVerified
+                                            ? 'bg-amber-500 hover:bg-amber-600 text-white shadow-amber-900/10'
+                                            : 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-900/10'
+                                            } flex items-center justify-center gap-2 min-w-[120px] active:scale-95 shrink-0`}
+                                    >
+                                        {intern.isVerified ? <UserX className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
+                                        {intern.isVerified ? 'Revoke' : 'Verify'}
+                                    </button>
+
+                                    </div>
+
                                     {/* Actions */}
-                                    <div className="flex flex-wrap items-center justify-end gap-2 shrink-0 border-t lg:border-t-0 pt-4 lg:pt-0">
-                                        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2 lg:pb-0">
+                                    <div className="flex flex-wrap items-center justify-end gap-2 pt-4 border-t border-gray-100 w-full">
+                                        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2 lg:pb-0 w-full lg:w-auto justify-end">
                                             {(intern.totalEnrollments || 0) === 0 && !intern.registeredOld && (
                                                 <button
                                                     onClick={() => handleReminder(intern)}
@@ -972,18 +1029,6 @@ const InternsManagement = () => {
                                             </button>
                                         </div>
 
-                                        <div className="h-8 w-px bg-gray-100 hidden lg:block mx-1" />
-
-                                        <button
-                                            onClick={() => setConfirmModal({ open: true, action: intern.isVerified ? 'unverify' : 'verify', user: intern })}
-                                            className={`px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all shadow-lg ${intern.isVerified
-                                                ? 'bg-amber-500 hover:bg-amber-600 text-white shadow-amber-900/10'
-                                                : 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-900/10'
-                                                } flex items-center justify-center gap-2 min-w-[120px] active:scale-95`}
-                                        >
-                                            {intern.isVerified ? <UserX className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
-                                            {intern.isVerified ? 'Revoke' : 'Verify'}
-                                        </button>
                                     </div>
                                 </div>
                             </motion.div>
@@ -1225,7 +1270,7 @@ const InternsManagement = () => {
                     {/* Profile Picture Section */}
                     <div className="flex flex-col items-center justify-center pb-6 border-b border-gray-100 mb-6">
                         <div className="relative group">
-                            <div className="w-24 h-24 rounded-2xl bg-gray-100 flex items-center justify-center overflow-hidden border-2 border-dashed border-gray-200 group-hover:border-primary transition-all">
+                            <div className="w-24 h-24 rounded-2xl bg-gray-100 flex items-center justify-center overflow-hidden border-2 border-dashed border-gray-200 group-hover:border-blue-500 transition-all">
                                 {photoPreview ? (
                                     <img src={photoPreview} alt="Preview" className="w-full h-full object-cover" />
                                 ) : (
@@ -1241,7 +1286,7 @@ const InternsManagement = () => {
                                     className="absolute inset-0 opacity-0 cursor-pointer"
                                 />
                             </div>
-                            <div className="absolute -bottom-2 -right-2 bg-primary text-white p-1.5 rounded-lg shadow-lg">
+                            <div className="absolute -bottom-2 -right-2 bg-blue-600 text-white p-1.5 rounded-lg shadow-lg">
                                 <Plus className="w-3.5 h-3.5" />
                             </div>
                         </div>
@@ -1262,7 +1307,7 @@ const InternsManagement = () => {
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">Father Name</label>
+                            <label className="text-sm font-medium text-gray-700">Father's Name</label>
                             <input
                                 type="text"
                                 value={editForm.fatherName}
@@ -1271,40 +1316,20 @@ const InternsManagement = () => {
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">Email Address *</label>
-                            <input
-                                type="email"
-                                value={editForm.email}
-                                onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
-                                required
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">Password *</label>
-                            <input
-                                type="text"
-                                value={editForm.password}
-                                onChange={(e) => setEditForm({ ...editForm, password: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none font-mono"
-                                required
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">Phone Number</label>
-                            <input
-                                type="text"
-                                value={editForm.phone}
-                                onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">CNIC Number</label>
+                            <label className="text-sm font-medium text-gray-700">CNIC / B-Form</label>
                             <input
                                 type="text"
                                 value={editForm.cnic}
                                 onChange={(e) => setEditForm({ ...editForm, cnic: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">WhatsApp Number</label>
+                            <input
+                                type="text"
+                                value={editForm.phone}
+                                onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
                                 className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
                             />
                         </div>
@@ -1329,92 +1354,6 @@ const InternsManagement = () => {
                                 <option value="Female">Female</option>
                             </select>
                         </div>
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">Roll No <span className="text-xs text-gray-400">(System / Directory)</span></label>
-                            <input
-                                type="text"
-                                value={editForm.rollNo}
-                                onChange={(e) => setEditForm({ ...editForm, rollNo: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">University Roll Number</label>
-                            <input
-                                type="text"
-                                value={editForm.rollNumber}
-                                onChange={(e) => setEditForm({ ...editForm, rollNumber: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
-                            />
-                        </div>
-                    </div>
-
-                    {/* Academic Information */}
-                    <h3 className="font-semibold text-gray-900 pb-2 border-b mt-6">Academic Information</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">Degree</label>
-                            <input
-                                type="text"
-                                value={editForm.degree}
-                                onChange={(e) => setEditForm({ ...editForm, degree: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">University</label>
-                            <input
-                                type="text"
-                                value={editForm.university}
-                                onChange={(e) => setEditForm({ ...editForm, university: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">Department</label>
-                            <input
-                                type="text"
-                                value={editForm.department}
-                                onChange={(e) => setEditForm({ ...editForm, department: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">Semester</label>
-                            <input
-                                type="text"
-                                value={editForm.semester}
-                                onChange={(e) => setEditForm({ ...editForm, semester: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">CGPA</label>
-                            <input
-                                type="text"
-                                value={editForm.cgpa}
-                                onChange={(e) => setEditForm({ ...editForm, cgpa: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">Major Subjects</label>
-                            <input
-                                type="text"
-                                value={editForm.majorSubjects}
-                                onChange={(e) => setEditForm({ ...editForm, majorSubjects: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">Education</label>
-                            <input
-                                type="text"
-                                value={editForm.education}
-                                onChange={(e) => setEditForm({ ...editForm, education: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
-                            />
-                        </div>
                     </div>
 
                     {/* Guardian Information */}
@@ -1430,7 +1369,26 @@ const InternsManagement = () => {
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">Guardian Phone</label>
+                            <label className="text-sm font-medium text-gray-700">Relationship with Guardian</label>
+                            <select
+                                value={editForm.guardianRelation || ''}
+                                onChange={(e) => setEditForm({ ...editForm, guardianRelation: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                            >
+                                <option value="">Select Relationship</option>
+                                <option value="Father">Father</option>
+                                <option value="Mother">Mother</option>
+                                <option value="Brother">Brother</option>
+                                <option value="Sister">Sister</option>
+                                <option value="Uncle">Uncle</option>
+                                <option value="Aunt">Aunt</option>
+                                <option value="Grandfather">Grandfather</option>
+                                <option value="Grandmother">Grandmother</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">Guardian WhatsApp Number</label>
                             <input
                                 type="text"
                                 value={editForm.guardianPhone}
@@ -1449,8 +1407,8 @@ const InternsManagement = () => {
                         </div>
                     </div>
 
-                    {/* Address Information */}
-                    <h3 className="font-semibold text-gray-900 pb-2 border-b mt-6">Address Information</h3>
+                    {/* Address Details */}
+                    <h3 className="font-semibold text-gray-900 pb-2 border-b mt-6">Address Details</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-700">City</label>
@@ -1462,7 +1420,89 @@ const InternsManagement = () => {
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">Location</label>
+                            <label className="text-sm font-medium text-gray-700">Country</label>
+                            <input
+                                type="text"
+                                value={editForm.country}
+                                onChange={(e) => setEditForm({ ...editForm, country: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                            />
+                        </div>
+                        <div className="space-y-2 md:col-span-2">
+                            <label className="text-sm font-medium text-gray-700">Home Address</label>
+                            <textarea
+                                value={editForm.address}
+                                onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
+                                rows={2}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Educational Details */}
+                    <h3 className="font-semibold text-gray-900 pb-2 border-b mt-6">Educational Details</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">Degree/Program</label>
+                            <input
+                                type="text"
+                                value={editForm.degree}
+                                onChange={(e) => setEditForm({ ...editForm, degree: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">College/University</label>
+                            <input
+                                type="text"
+                                value={editForm.university}
+                                onChange={(e) => setEditForm({ ...editForm, university: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">Semester</label>
+                            <input
+                                type="text"
+                                value={editForm.semester}
+                                onChange={(e) => setEditForm({ ...editForm, semester: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">University Roll Number</label>
+                            <input
+                                type="text"
+                                value={editForm.rollNo}
+                                onChange={(e) => setEditForm({ ...editForm, rollNo: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">CGPA</label>
+                            <input
+                                type="text"
+                                value={editForm.cgpa}
+                                onChange={(e) => setEditForm({ ...editForm, cgpa: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">Major Subjects / Courses</label>
+                            <input
+                                type="text"
+                                value={editForm.majorSubjects}
+                                onChange={(e) => setEditForm({ ...editForm, majorSubjects: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Campus Details */}
+                    <h3 className="font-semibold text-gray-900 pb-2 border-b mt-6">Campus Details</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">City for Internship</label>
                             <select
                                 value={editForm.location}
                                 onChange={(e) => setEditForm({ ...editForm, location: e.target.value })}
@@ -1473,23 +1513,67 @@ const InternsManagement = () => {
                                 <option value="bahawalpur">Bahawalpur</option>
                             </select>
                         </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">Attendance Type</label>
+                            <label className="text-sm font-medium text-gray-700">Internship Type</label>
                             <select
                                 value={editForm.attendType}
                                 onChange={(e) => setEditForm({ ...editForm, attendType: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none font-medium"
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
                             >
                                 <option value="">Select Type</option>
                                 <option value="OnSite">Onsite</option>
                                 <option value="Remote">Remote</option>
                             </select>
                         </div>
+                    </div>
+
+                    {/* Attachments */}
+                    <h3 className="font-semibold text-gray-900 pb-2 border-b mt-6">Attachments</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2 md:col-span-2">
+                            <label className="text-sm font-medium text-gray-700">Resume / CV (Google Drive Link)</label>
+                            <input
+                                type="url"
+                                value={editForm.resumeUrl || ''}
+                                onChange={(e) => setEditForm({ ...editForm, resumeUrl: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                            />
+                        </div>
+                        <div className="space-y-2 md:col-span-2">
+                            <label className="text-sm font-medium text-gray-700">Reason</label>
+                            <textarea
+                                value={editForm.reason || ''}
+                                onChange={(e) => setEditForm({ ...editForm, reason: e.target.value })}
+                                rows={2}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Account Setup */}
+                    <h3 className="font-semibold text-gray-900 pb-2 border-b mt-6">Account Setup</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">Heard About Us</label>
+                            <label className="text-sm font-medium text-gray-700">Email Address *</label>
+                            <input
+                                type="email"
+                                value={editForm.email}
+                                onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                                required
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">Password</label>
+                            <input
+                                type="text"
+                                value={editForm.password}
+                                onChange={(e) => setEditForm({ ...editForm, password: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none font-mono"
+                            />
+                        </div>
+                        <div className="space-y-2 md:col-span-2">
+                            <label className="text-sm font-medium text-gray-700">How did you hear about us?</label>
                             <input
                                 type="text"
                                 value={editForm.heardAbout}
@@ -1499,15 +1583,6 @@ const InternsManagement = () => {
                         </div>
                     </div>
 
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700">Address</label>
-                        <textarea
-                            value={editForm.address}
-                            onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
-                            rows={2}
-                            className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
-                        />
-                    </div>
                     <div className="flex gap-3 pt-4">
                         <button
                             type="button"
@@ -1532,9 +1607,40 @@ const InternsManagement = () => {
             {/* Monthly Fee Management Modal */}
             <Modal isOpen={isInstallmentModalOpen} onClose={() => setIsInstallmentModalOpen(false)} title="Manage Months" size="lg">
                 <div className="space-y-6">
-                    <div className="bg-blue-50 p-4 rounded-xl text-sm text-blue-800 border border-blue-100">
-                        <p>Set up the monthly fee plan for <strong>{selectedFee?.user?.name || viewFeeModal.internName}</strong>.</p>
-                        <p className="mt-1">Course Fee: <strong>Rs {(selectedFee?.totalFee || 0).toLocaleString()}</strong></p>
+                    <div className="bg-blue-50 p-4 rounded-xl text-sm text-blue-800 border border-blue-100 flex items-start justify-between">
+                        <div>
+                            <p>Set up the monthly fee plan for <strong>{selectedFee?.user?.name || viewFeeModal.internName}</strong>.</p>
+                            <p className="mt-1">Course Fee: <strong>Rs {(selectedFee?.totalFee || 0).toLocaleString()}</strong></p>
+                        </div>
+                        <button
+                            onClick={async () => {
+                                if (window.confirm('Are you sure you want to delete this course enrollment? This action cannot be undone.')) {
+                                    setIsProcessing(true);
+                                    try {
+                                        await feeAPI.delete(selectedFee._id);
+                                        setFeeRecords(prev => prev.filter(f => f._id !== selectedFee._id));
+                                        setIsInstallmentModalOpen(false);
+                                        if (viewFeeModal.open && feeRecords.length <= 1) {
+                                            setViewFeeModal({ open: false, userId: null, internName: '' });
+                                        }
+                                        alert('The fee and enrollment record has been permanently removed.');
+                                        fetchInterns(); // Refresh data
+                                    } catch (err) {
+                                        console.error('Delete failed', err);
+                                        alert('Failed to delete record');
+                                    } finally {
+                                        setIsProcessing(false);
+                                    }
+                                }
+                            }}
+                            disabled={isProcessing}
+                            className="p-2 text-red-500 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors border border-red-200 bg-white shadow-sm flex items-center gap-2 text-xs font-bold shrink-0 disabled:opacity-50"
+                            title="Permanently remove this course enrollment"
+                            type="button"
+                        >
+                            <Trash2 className="w-4 h-4" />
+                            Delete Course
+                        </button>
                     </div>
 
                     <div className="bg-red-50 p-4 rounded-xl text-sm text-red-700 border border-red-200">
@@ -1682,10 +1788,98 @@ const InternsManagement = () => {
                     accentColor="blue"
                 />
             )}
+            
+            {/* EXPORT MODAL INJECTION */}
+            <Modal
+                isOpen={isExportModalOpen}
+                onClose={() => setIsExportModalOpen(false)}
+                title="Generate Report"
+                size="md"
+            >
+                <div className="space-y-6">
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700">Report Format</label>
+                        <select
+                            value={exportConfig.format}
+                            onChange={(e) => setExportConfig({ ...exportConfig, format: e.target.value })}
+                            className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                        >
+                            <option value="full">Complete Report</option>
+                            <option value="phone">Phone Directory</option>
+                            <option value="email">Email List</option>
+                            <option value="guardian">Guardian Info</option>
+                            <option value="academic">Academic Info</option>
+                            <option value="address">Address List</option>
+                        </select>
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700">Filter by Campus</label>
+                        <select
+                            value={exportConfig.campus}
+                            onChange={(e) => {
+                                setExportConfig({ ...exportConfig, campus: e.target.value, courseId: 'all' });
+                            }}
+                            className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                        >
+                            <option value="all">All Campuses</option>
+                            <option value="islamabad">Islamabad</option>
+                            <option value="bahawalpur">Bahawalpur</option>
+                        </select>
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700">Filter by Course</label>
+                        <select
+                            value={exportConfig.courseId}
+                            onChange={(e) => setExportConfig({ ...exportConfig, courseId: e.target.value })}
+                            className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                        >
+                            <option value="all">All Courses</option>
+                            {coursesList
+                                .filter(course => course.targetAudience === 'interns')
+                                .filter(course => exportConfig.campus === 'all' || course.location?.toLowerCase() === exportConfig.campus.toLowerCase() || course.city?.toLowerCase() === exportConfig.campus.toLowerCase())
+                                .map(course => (
+                                    <option key={course._id} value={course._id}>{course.title}</option>
+                                ))}
+                        </select>
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700">Filter by Intern Status</label>
+                        <select
+                            value={exportConfig.status}
+                            onChange={(e) => setExportConfig({ ...exportConfig, status: e.target.value })}
+                            className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                        >
+                            <option value="all">All Interns</option>
+                            <option value="active">Active Interns</option>
+                            <option value="certified">Certified / Completed</option>
+                        </select>
+                    </div>
+
+                    <div className="flex gap-3 pt-4 border-t border-gray-100">
+                        <button
+                            type="button"
+                            onClick={() => setIsExportModalOpen(false)}
+                            className="flex-1 py-3 text-gray-600 hover:bg-gray-100 rounded-xl font-medium"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="button"
+                            onClick={handleGenerateExport}
+                            className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium flex items-center justify-center gap-2"
+                        >
+                            <Download className="w-5 h-5" />
+                            Generate Report
+                        </button>
+                    </div>
+                </div>
+            </Modal>
         </div>
     );
 };
-
 export default InternsManagement;
 
 

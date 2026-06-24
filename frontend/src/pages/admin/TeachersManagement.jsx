@@ -150,7 +150,10 @@ const TeachersManagement = () => {
             location: teacher.location || '',
             address: teacher.address || '',
             password: teacher.password || '',
-            fatherName: teacher.fatherName || ''
+            fatherName: teacher.fatherName || '',
+            city: teacher.city || '',
+            country: teacher.country || '',
+            heardAbout: teacher.heardAbout || ''
         });
     };
 
@@ -892,47 +895,35 @@ const TeachersManagement = () => {
                 size="lg"
             >
                 <form onSubmit={handleUpdate} className="space-y-4">
-                    {/* Personal Information */}
-                    <h3 className="font-semibold text-gray-900 pb-2 border-b">Personal Information</h3>
-
-                    {/* Profile Picture Upload */}
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700">Profile Picture</label>
-                        <div className="flex items-center gap-4 p-3 bg-gray-50 rounded-xl border border-gray-100">
-                            {/* Preview Current or Selected */}
-                            <div className="w-12 h-12 rounded-full overflow-hidden bg-white border border-gray-200 flex-shrink-0 flex items-center justify-center">
+                    {/* Profile Picture Section */}
+                    <div className="flex flex-col items-center justify-center pb-6 border-b border-gray-100 mb-6">
+                        <div className="relative group">
+                            <div className="w-24 h-24 rounded-2xl bg-gray-100 flex items-center justify-center overflow-hidden border-2 border-dashed border-gray-200 group-hover:border-primary transition-all">
                                 {photoPreview ? (
                                     <img src={photoPreview} alt="Preview" className="w-full h-full object-cover" />
                                 ) : (
-                                    <User className="w-6 h-6 text-gray-400" />
+                                    <Camera className="w-8 h-8 text-gray-400" />
                                 )}
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                    <Upload className="w-6 h-6 text-white" />
+                                </div>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handlePhotoChange}
+                                    className="absolute inset-0 opacity-0 cursor-pointer"
+                                />
                             </div>
-                            <input
-                                type="file"
-                                accept="image/*"
-                                onChange={handlePhotoChange}
-                                className="block w-full text-sm text-gray-500
-                                    file:mr-4 file:py-2 file:px-4
-                                    file:rounded-xl file:border-0
-                                    file:text-xs file:font-semibold
-                                    file:bg-primary file:text-white
-                                    hover:file:bg-primary
-                                    cursor-pointer"
-                            />
+                            <div className="absolute -bottom-2 -right-2 bg-primary text-white p-1.5 rounded-lg shadow-lg">
+                                <Plus className="w-3.5 h-3.5" />
+                            </div>
                         </div>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-3">Click to update profile photo</p>
                     </div>
 
+                    {/* Personal Information */}
+                    <h3 className="font-semibold text-gray-900 pb-2 border-b">Personal Information</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2 md:col-span-2">
-                            <label className="text-sm font-medium text-gray-700">Teacher Unique ID</label>
-                            <input
-                                type="text"
-                                value={editForm.rollNo}
-                                onChange={(e) => setEditForm({ ...editForm, rollNo: e.target.value })}
-                                placeholder="e.g. TCH-2024-001"
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-mono"
-                            />
-                        </div>
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-700">Full Name *</label>
                             <input
@@ -944,7 +935,7 @@ const TeachersManagement = () => {
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">Father Name</label>
+                            <label className="text-sm font-medium text-gray-700">Father's Name</label>
                             <input
                                 type="text"
                                 value={editForm.fatherName}
@@ -953,27 +944,7 @@ const TeachersManagement = () => {
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">Email Address *</label>
-                            <input
-                                type="email"
-                                value={editForm.email}
-                                onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
-                                required
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">Password *</label>
-                            <input
-                                type="text"
-                                value={editForm.password}
-                                onChange={(e) => setEditForm({ ...editForm, password: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-mono"
-                                required
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">Phone Number</label>
+                            <label className="text-sm font-medium text-gray-700">WhatsApp Number</label>
                             <input
                                 type="text"
                                 value={editForm.phone}
@@ -982,7 +953,7 @@ const TeachersManagement = () => {
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">CNIC Number</label>
+                            <label className="text-sm font-medium text-gray-700">CNIC / B-Form</label>
                             <input
                                 type="text"
                                 value={editForm.cnic}
@@ -1011,13 +982,8 @@ const TeachersManagement = () => {
                                 <option value="Female">Female</option>
                             </select>
                         </div>
-                    </div>
-
-                    {/* Professional Information */}
-                    <h3 className="font-semibold text-gray-900 pb-2 border-b mt-6">Professional Information</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">Qualification</label>
+                            <label className="text-sm font-medium text-gray-700">Highest Qualification</label>
                             <input
                                 type="text"
                                 value={editForm.qualification}
@@ -1035,16 +1001,7 @@ const TeachersManagement = () => {
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">Department</label>
-                            <input
-                                type="text"
-                                value={editForm.department}
-                                onChange={(e) => setEditForm({ ...editForm, department: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">Experience</label>
+                            <label className="text-sm font-medium text-gray-700">Years of Experience</label>
                             <input
                                 type="text"
                                 value={editForm.experience}
@@ -1052,13 +1009,36 @@ const TeachersManagement = () => {
                                 className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
                             />
                         </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">City</label>
+                            <input
+                                type="text"
+                                value={editForm.city || ''}
+                                onChange={(e) => setEditForm({ ...editForm, city: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+                            />
+                        </div>
                     </div>
 
-                    {/* Address Information */}
-                    <h3 className="font-semibold text-gray-900 pb-2 border-b mt-6">Address Information</h3>
+                    {/* Address Details */}
+                    <h3 className="font-semibold text-gray-900 pb-2 border-b mt-6">Address Details</h3>
+                    <div className="grid grid-cols-1 gap-4">
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">Country</label>
+                            <input
+                                type="text"
+                                value={editForm.country || ''}
+                                onChange={(e) => setEditForm({ ...editForm, country: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Additional Options (Admin Extra) */}
+                    <h3 className="font-semibold text-gray-900 pb-2 border-b mt-6">Admin Settings</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">Location</label>
+                            <label className="text-sm font-medium text-gray-700">Campus Location</label>
                             <select
                                 value={editForm.location}
                                 onChange={(e) => setEditForm({ ...editForm, location: e.target.value })}
@@ -1069,16 +1049,68 @@ const TeachersManagement = () => {
                                 <option value="bahawalpur">Bahawalpur</option>
                             </select>
                         </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">Department</label>
+                            <input
+                                type="text"
+                                value={editForm.department}
+                                onChange={(e) => setEditForm({ ...editForm, department: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">Roll Number</label>
+                            <input
+                                type="text"
+                                value={editForm.rollNo}
+                                onChange={(e) => setEditForm({ ...editForm, rollNo: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">Address / Notes</label>
+                            <textarea
+                                value={editForm.address}
+                                onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
+                                rows={2}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+                            />
+                        </div>
                     </div>
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700">Address</label>
-                        <textarea
-                            value={editForm.address}
-                            onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
-                            rows={2}
-                            className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
-                        />
+
+                    {/* Account Setup */}
+                    <h3 className="font-semibold text-gray-900 pb-2 border-b mt-6">Account Setup</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">Email Address *</label>
+                            <input
+                                type="email"
+                                value={editForm.email}
+                                onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+                                required
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">Password</label>
+                            <input
+                                type="text"
+                                value={editForm.password}
+                                onChange={(e) => setEditForm({ ...editForm, password: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-mono"
+                            />
+                        </div>
+                        <div className="space-y-2 md:col-span-2">
+                            <label className="text-sm font-medium text-gray-700">How did you hear about us?</label>
+                            <input
+                                type="text"
+                                value={editForm.heardAbout || ''}
+                                onChange={(e) => setEditForm({ ...editForm, heardAbout: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+                            />
+                        </div>
                     </div>
+
                     <div className="flex gap-3 pt-4">
                         <button
                             type="button"

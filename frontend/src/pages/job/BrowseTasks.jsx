@@ -248,8 +248,8 @@ const BrowseTasks = () => {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Paid Tasks</h1>
-                    <p className="text-gray-500">Browse, apply, and complete paid tasks</p>
+                    <h1 className="text-2xl font-bold text-gray-900">Job Posting</h1>
+                    <p className="text-gray-500">Browse, apply, and complete job postings</p>
                 </div>
             </div>
 

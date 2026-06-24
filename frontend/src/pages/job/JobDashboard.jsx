@@ -134,8 +134,8 @@ const JobDashboard = () => {
                                 <Briefcase className="w-5 h-5 text-primary" />
                             </div>
                             <div className="text-left">
-                                <p className="font-semibold text-purple-900">Browse Tasks</p>
-                                <p className="text-sm text-primary">Find available paid tasks</p>
+                                <h3 className="font-bold text-gray-900 group-hover:text-primary transition-colors">Job Posting</h3>
+                                <p className="text-sm text-primary">Find available job postings</p>
                             </div>
                         </button>
                         <button

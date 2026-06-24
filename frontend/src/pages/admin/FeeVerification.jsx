@@ -238,17 +238,29 @@ const FeeVerification = () => {
 
             let courseStudents = allUsers.filter(s => courseUserIds.includes(String(s._id)));
 
-            const getStudentStatus = (s) => {
-                const total = s.totalEnrollments || 0;
-                const completed = s.completedEnrollments || 0;
-                const paused = s.pausedEnrollments || 0;
-                if (total > 0 && total === completed) return 'Completed';
-                if (total > 0 && completed < total && (total - completed) === paused) return 'Inactive';
+            // Fetch enrollments to check per-course status accurately
+            let enrollmentsForCourse = [];
+            try {
+                const enrollRes = await enrollmentAPI.getAll();
+                enrollmentsForCourse = (enrollRes.data.data || []).filter(
+                    e => String(e.course?._id || e.course) === String(selectedCourse)
+                );
+            } catch (e) {
+                console.error('Could not fetch enrollments for status check', e);
+            }
+
+            const getCourseSpecificStatus = (studentId) => {
+                const enrollment = enrollmentsForCourse.find(
+                    e => String(e.user?._id || e.user) === String(studentId)
+                );
+                if (!enrollment) return 'Active'; // has fee but no enrollment = new/pending
+                if (enrollment.status === 'completed') return 'Completed';
+                if (enrollment.status === 'paused') return 'Inactive';
                 return 'Active';
             };
 
             courseStudents = courseStudents.filter(s => {
-                const stat = getStudentStatus(s);
+                const stat = getCourseSpecificStatus(s._id);
                 if (statusType === 'completed') return stat === 'Completed';
                 if (statusType === 'active') return stat === 'Active' || stat === 'Inactive';
                 return true;
@@ -859,12 +871,25 @@ const FeeVerification = () => {
                                         <h3 className="font-bold text-lg text-gray-900 mb-2 truncate" title={course.title}>
                                             {course.title}
                                         </h3>
-                                        <div className="flex items-center justify-between text-gray-500 text-sm">
-                                            <span>{course.students} Students Enrolled</span>
-                                            <span className="flex items-center gap-1.5 px-3 py-1 bg-primary/5 text-primary rounded-lg font-bold text-xs capitalize border border-primary/10">
-                                                <MapPin className="w-3.5 h-3.5" />
-                                                {course.location}
-                                            </span>
+                                        <div className="flex flex-col gap-2 pt-2 border-t border-gray-100">
+                                            <div className="flex items-center justify-between text-gray-500 text-sm">
+                                                <span>{course.students} Students Enrolled</span>
+                                                <span className="flex items-center gap-1.5 px-3 py-1 bg-primary/5 text-primary rounded-lg font-bold text-xs capitalize border border-primary/10">
+                                                    <MapPin className="w-3.5 h-3.5" />
+                                                    {course.location}
+                                                </span>
+                                            </div>
+                                            {(() => {
+                                                const activeCount = allEnrollments.filter(e => String(e.course?._id || e.course) === String(course.id) && (e.status === 'enrolled' || e.status === 'pending')).length;
+                                                const completedCount = allEnrollments.filter(e => String(e.course?._id || e.course) === String(course.id) && e.status === 'completed').length;
+                                                return (
+                                                    <div className="flex flex-wrap gap-1 text-[10px] font-bold">
+                                                        <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded-md">All: {course.students}</span>
+                                                        <span className="bg-primary/10 text-primary px-2 py-1 rounded-md">Active: {activeCount}</span>
+                                                        <span className="bg-green-100 text-green-600 px-2 py-1 rounded-md">Completed: {completedCount}</span>
+                                                    </div>
+                                                );
+                                            })()}
                                         </div>
                                     </motion.div>
                                 ))}
@@ -906,9 +931,29 @@ const FeeVerification = () => {
                                     </span>
                                 </div>
                                 <div className="flex items-center gap-2 overflow-x-auto">
-                                    <button onClick={() => setStudentStatusFilter('all')} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${studentStatusFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-white text-indigo-600 border border-indigo-200 hover:bg-indigo-50'}`}>All</button>
-                                    <button onClick={() => setStudentStatusFilter('active')} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${studentStatusFilter === 'active' ? 'bg-indigo-600 text-white' : 'bg-white text-indigo-600 border border-indigo-200 hover:bg-indigo-50'}`}>Active</button>
-                                    <button onClick={() => setStudentStatusFilter('completed')} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${studentStatusFilter === 'completed' ? 'bg-indigo-600 text-white' : 'bg-white text-indigo-600 border border-indigo-200 hover:bg-indigo-50'}`}>Completed</button>
+                                    {(() => {
+                                        const baseFees = getFilteredFees(allFees).filter(f => String(f.course?._id) === String(selectedCourse));
+                                        let allCnt = 0, activeCnt = 0, completedCnt = 0;
+                                        baseFees.forEach(fee => {
+                                            const enrollment = allEnrollments.find(e =>
+                                                String(e.user?._id || e.user) === String(fee.user?._id || fee.user) &&
+                                                String(e.course?._id || e.course) === String(selectedCourse)
+                                            );
+                                            allCnt++;
+                                            if (!enrollment || enrollment.status !== 'completed') {
+                                                activeCnt++;
+                                            } else if (enrollment.status === 'completed') {
+                                                completedCnt++;
+                                            }
+                                        });
+                                        return (
+                                            <>
+                                                <button onClick={() => setStudentStatusFilter('all')} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${studentStatusFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-white text-indigo-600 border border-indigo-200 hover:bg-indigo-50'}`}>All ({allCnt})</button>
+                                                <button onClick={() => setStudentStatusFilter('active')} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${studentStatusFilter === 'active' ? 'bg-indigo-600 text-white' : 'bg-white text-indigo-600 border border-indigo-200 hover:bg-indigo-50'}`}>Active ({activeCnt})</button>
+                                                <button onClick={() => setStudentStatusFilter('completed')} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${studentStatusFilter === 'completed' ? 'bg-indigo-600 text-white' : 'bg-white text-indigo-600 border border-indigo-200 hover:bg-indigo-50'}`}>Completed ({completedCnt})</button>
+                                            </>
+                                        );
+                                    })()}
                                 </div>
                                 <div className="relative group shrink-0">
                                     <button disabled={isProcessing} className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-all shadow-sm disabled:opacity-50">

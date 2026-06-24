@@ -9,7 +9,7 @@ import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
-import { userAPI, settingsAPI, enrollmentAPI, assignmentAPI, feeAPI } from '../../services/api';
+import { userAPI, settingsAPI, enrollmentAPI, assignmentAPI, feeAPI, courseAPI } from '../../services/api';
 import { generateComprehensiveReport } from '../../utils/reportGenerator';
 import Loader, { ButtonLoader } from '../../components/ui/Loader';
 import ImageCropper from '../../components/ui/ImageCropper';
@@ -21,8 +21,9 @@ const StudentsManagement = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [isProcessing, setIsProcessing] = useState(false);
     const [modal, setModal] = useState({ open: false, data: null });
-    const [showExportOptions, setShowExportOptions] = useState(false);
-    const [exportType, setExportType] = useState('full'); // full | phone | email
+    const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+    const [exportConfig, setExportConfig] = useState({ format: 'full', status: 'all', courseId: 'all', campus: 'all' });
+    const [coursesList, setCoursesList] = useState([]);
     const [editModal, setEditModal] = useState({ open: false, user: null });
     const [editForm, setEditForm] = useState({});
     const [filterStatus, setFilterStatus] = useState('registered');
@@ -49,7 +50,17 @@ const StudentsManagement = () => {
     useEffect(() => {
         fetchStudents();
         fetchSettings();
+        fetchCourses();
     }, []);
+
+    const fetchCourses = async () => {
+        try {
+            const res = await courseAPI.getAll();
+            setCoursesList(res.data.data || []);
+        } catch (error) {
+            console.error('Error fetching courses:', error);
+        }
+    };
 
     const fetchSettings = async () => {
         try {
@@ -209,6 +220,7 @@ const StudentsManagement = () => {
             location: student.location || '',
             rollNo: student.rollNo || '',
             guardianName: student.guardianName || '',
+            guardianRelation: student.guardianRelation || '',
             fatherName: student.fatherName || student.guardianName || '',
             guardianPhone: student.guardianPhone || '',
             guardianOccupation: student.guardianOccupation || '',
@@ -353,7 +365,16 @@ const StudentsManagement = () => {
         return s.isVerified ? 'Verified' : 'Pending';
     };
 
-    const downloadPDF = async (type = 'full') => {
+    const handleGenerateExport = () => {
+        setIsExportModalOpen(false);
+        downloadPDF(exportConfig);
+    };
+
+    const downloadPDF = async ({ format = 'full', status = 'all', courseId = 'all', campus = 'all' }) => {
+        const type = format;
+        const courseName = courseId === 'all' ? 'All Courses' : (coursesList.find(c => c._id === courseId)?.title || 'All Courses');
+        const campusName = campus === 'all' ? 'All Campuses' : (campus === 'islamabad' ? 'Islamabad' : 'Bahawalpur');
+        const statusName = status === 'all' ? 'All' : (status === 'active' ? 'Active' : 'Certified');
         // Fetch enrollments to build userId -> courses map
         let userCoursesMap = {};
         try {
@@ -374,6 +395,29 @@ const StudentsManagement = () => {
         }
 
         const doc = new jsPDF('l', 'mm', 'a4'); // Use landscape for wide tables
+
+        // Start with all students, completely ignoring UI search and status filters
+        let finalExportStudents = students;
+        
+        if (status === 'active') {
+            finalExportStudents = finalExportStudents.filter(s => getStudentStatus(s) === 'Enrolled (Active)');
+        } else if (status === 'certified') {
+            finalExportStudents = finalExportStudents.filter(s => getStudentStatus(s) === 'Completed');
+        }
+
+        if (courseId !== 'all') {
+            const selectedCourse = coursesList.find(c => c._id === courseId);
+            if (selectedCourse) {
+                finalExportStudents = finalExportStudents.filter(s => 
+                    userCoursesMap[s._id] && userCoursesMap[s._id].includes(selectedCourse.title)
+                );
+            }
+        }
+
+        if (campus !== 'all') {
+            finalExportStudents = finalExportStudents.filter(s => s.location?.toLowerCase() === campus.toLowerCase());
+        }
+
         const title = type === 'phone' ? 'Adeeb Technology Lab - Students Phone Directory' :
             type === 'email' ? 'Adeeb Technology Lab - Students Email List' :
                 type === 'guardian' ? 'Adeeb Technology Lab - Students Guardian Information' :
@@ -386,19 +430,21 @@ const StudentsManagement = () => {
         doc.setFontSize(11);
         doc.setTextColor(100);
         doc.text(`Generated on: ${formatDate(new Date())}`, 14, 30);
-        doc.text(`Total Records: ${filteredStudents.length}`, 14, 37);
+        doc.text(`Total Records: ${finalExportStudents.length}`, 14, 37);
+        doc.setFontSize(10);
+        doc.text(`Filters -> Campus: ${campusName} | Course: ${courseName} | Status: ${statusName}`, 14, 44);
 
         let headers, body;
 
         if (type === 'phone') {
-            headers = [['Roll No', 'Name', 'Phone', 'Identity']];
-            body = filteredStudents.map(s => [s.rollNo || 'N/A', s.name || 'N/A', s.phone || 'N/A', 'Student']);
+            headers = [['LMS Roll No', 'Name', 'Phone', 'Identity']];
+            body = finalExportStudents.map(s => [s.rollNo || 'N/A', s.name || 'N/A', s.phone || 'N/A', 'Student']);
         } else if (type === 'email') {
-            headers = [['Roll No', 'Name', 'Email', 'Identity']];
-            body = filteredStudents.map(s => [s.rollNo || 'N/A', s.name || 'N/A', s.email || 'N/A', 'Student']);
+            headers = [['LMS Roll No', 'Name', 'Email', 'Identity']];
+            body = finalExportStudents.map(s => [s.rollNo || 'N/A', s.name || 'N/A', s.email || 'N/A', 'Student']);
         } else if (type === 'guardian') {
-            headers = [['Roll No', 'Name', 'Guardian Name', 'Guardian Phone', 'Guardian Job']];
-            body = filteredStudents.map(s => [
+            headers = [['LMS Roll No', 'Name', 'Guardian Name', 'Guardian Phone', 'Guardian Job']];
+            body = finalExportStudents.map(s => [
                 s.rollNo || 'N/A',
                 s.name || 'N/A',
                 s.guardianName || 'N/A',
@@ -406,8 +452,8 @@ const StudentsManagement = () => {
                 s.guardianOccupation || 'N/A'
             ]);
         } else if (type === 'academic') {
-            headers = [['Roll No', 'Name', 'Course', 'Education', 'Registered Courses', 'Status']];
-            body = filteredStudents.map(s => [
+            headers = [['LMS Roll No', 'Name', 'Course', 'Education', 'Registered Courses', 'Status']];
+            body = finalExportStudents.map(s => [
                 s.rollNo || 'N/A',
                 s.name || 'N/A',
                 s.course || 'N/A',
@@ -416,8 +462,8 @@ const StudentsManagement = () => {
                 getStudentStatus(s)
             ]);
         } else if (type === 'address') {
-            headers = [['Roll No', 'Name', 'Address', 'City', 'Country']];
-            body = filteredStudents.map(s => [
+            headers = [['LMS Roll No', 'Name', 'Address', 'City', 'Country']];
+            body = finalExportStudents.map(s => [
                 s.rollNo || 'N/A',
                 s.name || 'N/A',
                 s.address || 'N/A',
@@ -426,8 +472,8 @@ const StudentsManagement = () => {
             ]);
         } else {
             // Full Report
-            headers = [['Roll No', 'Name', 'Email', 'Phone', 'CNIC', 'DOB', 'Age', 'Gender', 'Location', 'Mode', 'Guardian', 'Guardian Ph', 'Address', 'Registered Courses', 'Status']];
-            body = filteredStudents.map(s => [
+            headers = [['LMS Roll No', 'Name', 'Email', 'Phone', 'CNIC', 'DOB', 'Age', 'Gender', 'Location', 'Mode', 'Guardian', 'Guardian Ph', 'Address', 'Registered Courses', 'Status']];
+            body = finalExportStudents.map(s => [
                 s.rollNo || 'N/A',
                 s.name || 'N/A',
                 s.email || 'N/A',
@@ -447,7 +493,7 @@ const StudentsManagement = () => {
         }
 
         autoTable(doc, {
-            startY: 45,
+            startY: 52,
             head: headers,
             body: body,
             theme: 'grid',
@@ -461,7 +507,7 @@ const StudentsManagement = () => {
 
         const fileName = `Students_${type.charAt(0).toUpperCase() + type.slice(1)}_${new Date().toISOString().split('T')[0]}.pdf`;
         doc.save(fileName);
-        setShowExportOptions(false);
+
     };
 
     const downloadStudentPDF = (s) => {
@@ -686,65 +732,12 @@ const StudentsManagement = () => {
                     </button>
                     <div className="relative flex-1 md:flex-none">
                         <button
-                            onClick={() => setShowExportOptions(!showExportOptions)}
+                            onClick={() => setIsExportModalOpen(true)}
                             className="w-full px-4 py-2.5 bg-white border border-gray-200 hover:bg-gray-50 rounded-xl transition-all flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-700 shadow-sm"
                         >
                             <Download className="w-4 h-4 text-primary" />
                             EXPORT DATA
                         </button>
-
-                        {showExportOptions && (
-                            <>
-                                <div className="fixed inset-0 z-10" onClick={() => setShowExportOptions(false)}></div>
-                                <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-100 rounded-2xl shadow-2xl z-20 py-2 overflow-hidden animate-in fade-in zoom-in duration-200">
-                                    <div className="px-4 py-2 border-b border-gray-50 mb-1">
-                                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Select Format</p>
-                                    </div>
-                                    <button
-                                        onClick={() => downloadPDF('full')}
-                                        className="w-full px-4 py-2.5 text-left text-sm font-bold text-gray-700 hover:bg-primary/5 hover:text-primary flex items-center gap-3 transition-colors"
-                                    >
-                                        <FileText className="w-4 h-4" />
-                                        Complete Report
-                                    </button>
-                                    <button
-                                        onClick={() => downloadPDF('phone')}
-                                        className="w-full px-4 py-2.5 text-left text-sm font-bold text-gray-700 hover:bg-primary/5 hover:text-primary flex items-center gap-3 transition-colors"
-                                    >
-                                        <Phone className="w-4 h-4" />
-                                        Phone Directory
-                                    </button>
-                                    <button
-                                        onClick={() => downloadPDF('email')}
-                                        className="w-full px-4 py-2.5 text-left text-sm font-bold text-gray-700 hover:bg-primary/5 hover:text-primary flex items-center gap-3 transition-colors"
-                                    >
-                                        <Mail className="w-4 h-4" />
-                                        Email List
-                                    </button>
-                                    <button
-                                        onClick={() => downloadPDF('guardian')}
-                                        className="w-full px-4 py-2.5 text-left text-sm font-bold text-gray-700 hover:bg-primary/5 hover:text-primary flex items-center gap-3 transition-colors"
-                                    >
-                                        <Users className="w-4 h-4" />
-                                        Guardian Info
-                                    </button>
-                                    <button
-                                        onClick={() => downloadPDF('academic')}
-                                        className="w-full px-4 py-2.5 text-left text-sm font-bold text-gray-700 hover:bg-primary/5 hover:text-primary flex items-center gap-3 transition-colors"
-                                    >
-                                        <GraduationCap className="w-4 h-4" />
-                                        Academic Info
-                                    </button>
-                                    <button
-                                        onClick={() => downloadPDF('address')}
-                                        className="w-full px-4 py-2.5 text-left text-sm font-bold text-gray-700 hover:bg-primary/5 hover:text-primary flex items-center gap-3 transition-colors"
-                                    >
-                                        <MapPin className="w-4 h-4" />
-                                        Address List
-                                    </button>
-                                </div>
-                            </>
-                        )}
                     </div>
                 </div>
             </div>
@@ -845,7 +838,8 @@ const StudentsManagement = () => {
                                 transition={{ delay: index * 0.05 }}
                                 className="bg-white rounded-2xl p-6 border border-gray-100"
                             >
-                                <div className="flex flex-col lg:flex-row lg:items-center gap-6">
+                                <div className="flex flex-col gap-4">
+                                    <div className="flex flex-col lg:flex-row lg:items-center gap-6">
                                     {/* Student Basic Info */}
                                     <div className="flex items-center gap-4 min-w-0">
                                         <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-primary to-primary flex items-center justify-center overflow-hidden shrink-0 shadow-lg shadow-primary/10">
@@ -868,8 +862,7 @@ const StudentsManagement = () => {
                                         </div>
                                     </div>
 
-                                    {/* Stats Grid */}
-                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-6 flex-1 bg-gray-50/50 p-4 rounded-2xl border border-gray-100">
+                                    <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-8 gap-3 sm:gap-4 flex-1 bg-gray-50/50 p-4 rounded-2xl border border-gray-100">
                                         <div className="space-y-1">
                                             <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Phone</p>
                                             <p className="text-xs font-bold text-gray-700">{student.phone || 'N/A'}</p>
@@ -880,17 +873,48 @@ const StudentsManagement = () => {
                                         </div>
                                         <div className="space-y-1">
                                             <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Education</p>
-                                            <p className="text-xs font-bold text-gray-700 truncate">{student.education || 'N/A'}</p>
+                                            <p className="text-xs font-bold text-gray-700 truncate" title={student.education || 'N/A'}>{student.education || 'N/A'}</p>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">City</p>
+                                            <p className="text-xs font-bold text-gray-700 capitalize">{student.location || student.city || 'N/A'}</p>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Father Name</p>
+                                            <p className="text-xs font-bold text-gray-700 truncate" title={student.fatherName || student.guardianName || 'N/A'}>{student.fatherName || student.guardianName || 'N/A'}</p>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Father Phone</p>
+                                            <p className="text-xs font-bold text-gray-700">{student.guardianPhone || student.parentPhone || 'N/A'}</p>
                                         </div>
                                         <div className="space-y-1">
                                             <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Location</p>
-                                            <p className="text-xs font-bold text-gray-700 capitalize">{student.location || 'N/A'}</p>
+                                            <p className="text-xs font-bold text-gray-700 truncate" title={student.address || 'N/A'}>{student.address || 'N/A'}</p>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Campus</p>
+                                            <p className="text-xs font-bold text-gray-700 capitalize">
+                                                {(student.attendType === 'Physical' || student.attendType === 'On-Site') ? 'Onsite' : (student.attendType === 'Online' ? 'Remote' : (student.attendType || 'N/A'))}
+                                            </p>
                                         </div>
                                     </div>
 
+                                    <div className="h-8 w-px bg-gray-100 hidden lg:block mx-1" />
+                                    <button
+                                        onClick={() => setConfirmModal({ open: true, action: student.isVerified ? 'unverify' : 'verify', user: student })}
+                                        className={`px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all shadow-lg ${student.isVerified
+                                            ? 'bg-amber-500 hover:bg-amber-600 text-white shadow-amber-900/10'
+                                            : 'bg-primary hover:bg-primary text-white shadow-primary/10'
+                                            } flex items-center justify-center gap-2 min-w-[120px] active:scale-95 shrink-0`}
+                                    >
+                                        {student.isVerified ? <UserX className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
+                                        {student.isVerified ? 'Revoke' : 'Verify'}
+                                    </button>
+                                    </div>
+
                                     {/* Action Buttons */}
-                                    <div className="flex flex-wrap items-center justify-end gap-2 shrink-0 border-t lg:border-t-0 pt-4 lg:pt-0">
-                                        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2 lg:pb-0">
+                                    <div className="flex flex-wrap items-center justify-end gap-2 pt-4 border-t border-gray-100 w-full">
+                                        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2 lg:pb-0 w-full lg:w-auto justify-end">
                                             {(student.totalEnrollments || 0) === 0 && !student.registeredOld && (
                                                 <button
                                                     onClick={() => handleReminder(student)}
@@ -990,18 +1014,6 @@ const StudentsManagement = () => {
                                             </button>
                                         </div>
 
-                                        <div className="h-8 w-px bg-gray-100 hidden lg:block mx-1" />
-
-                                        <button
-                                            onClick={() => setConfirmModal({ open: true, action: student.isVerified ? 'unverify' : 'verify', user: student })}
-                                            className={`px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all shadow-lg ${student.isVerified
-                                                ? 'bg-amber-500 hover:bg-amber-600 text-white shadow-amber-900/10'
-                                                : 'bg-primary hover:bg-primary text-white shadow-primary/10'
-                                                } flex items-center justify-center gap-2 min-w-[120px] active:scale-95`}
-                                        >
-                                            {student.isVerified ? <UserX className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
-                                            {student.isVerified ? 'Revoke' : 'Verify'}
-                                        </button>
                                     </div>
                                 </div>
                             </motion.div>
@@ -1299,27 +1311,7 @@ const StudentsManagement = () => {
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">Email Address *</label>
-                            <input
-                                type="email"
-                                value={editForm.email}
-                                onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
-                                required
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">Password *</label>
-                            <input
-                                type="text"
-                                value={editForm.password}
-                                onChange={(e) => setEditForm({ ...editForm, password: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-mono"
-                                required
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">Phone Number</label>
+                            <label className="text-sm font-medium text-gray-700">WhatsApp Number</label>
                             <input
                                 type="text"
                                 value={editForm.phone}
@@ -1328,7 +1320,7 @@ const StudentsManagement = () => {
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">CNIC Number</label>
+                            <label className="text-sm font-medium text-gray-700">CNIC/BForm</label>
                             <input
                                 type="text"
                                 value={editForm.cnic}
@@ -1346,15 +1338,6 @@ const StudentsManagement = () => {
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">Age</label>
-                            <input
-                                type="text"
-                                value={editForm.age}
-                                onChange={(e) => setEditForm({ ...editForm, age: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
-                            />
-                        </div>
-                        <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-700">Gender</label>
                             <select
                                 value={editForm.gender}
@@ -1366,26 +1349,13 @@ const StudentsManagement = () => {
                                 <option value="Female">Female</option>
                             </select>
                         </div>
+                    </div>
+
+                    {/* Campus Details */}
+                    <h3 className="font-semibold text-gray-900 pb-2 border-b mt-6">Campus Details</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">Roll Number</label>
-                            <input
-                                type="text"
-                                value={editForm.rollNo}
-                                onChange={(e) => setEditForm({ ...editForm, rollNo: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">Education</label>
-                            <input
-                                type="text"
-                                value={editForm.education}
-                                onChange={(e) => setEditForm({ ...editForm, education: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">Location</label>
+                            <label className="text-sm font-medium text-gray-700">Campus City</label>
                             <select
                                 value={editForm.location}
                                 onChange={(e) => setEditForm({ ...editForm, location: e.target.value })}
@@ -1395,6 +1365,42 @@ const StudentsManagement = () => {
                                 <option value="islamabad">Islamabad</option>
                                 <option value="bahawalpur">Bahawalpur</option>
                             </select>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">Attend Classes</label>
+                            <select
+                                value={editForm.attendType}
+                                onChange={(e) => setEditForm({ ...editForm, attendType: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+                            >
+                                <option value="">Select Type</option>
+                                <option value="OnSite">Onsite</option>
+                                <option value="Remote">Remote</option>
+                            </select>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">Roll Number</label>
+                            <input
+                                type="text"
+                                value={editForm.rollNo}
+                                onChange={(e) => setEditForm({ ...editForm, rollNo: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+                                placeholder="LMS Roll Number"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Educational Details */}
+                    <h3 className="font-semibold text-gray-900 pb-2 border-b mt-6">Educational Details</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">Education</label>
+                            <input
+                                type="text"
+                                value={editForm.education}
+                                onChange={(e) => setEditForm({ ...editForm, education: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+                            />
                         </div>
                     </div>
 
@@ -1411,7 +1417,26 @@ const StudentsManagement = () => {
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">Guardian Phone</label>
+                            <label className="text-sm font-medium text-gray-700">Relationship with Guardian</label>
+                            <select
+                                value={editForm.guardianRelation || ''}
+                                onChange={(e) => setEditForm({ ...editForm, guardianRelation: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+                            >
+                                <option value="">Select Relationship</option>
+                                <option value="Father">Father</option>
+                                <option value="Mother">Mother</option>
+                                <option value="Brother">Brother</option>
+                                <option value="Sister">Sister</option>
+                                <option value="Uncle">Uncle</option>
+                                <option value="Aunt">Aunt</option>
+                                <option value="Grandfather">Grandfather</option>
+                                <option value="Grandmother">Grandmother</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">Guardian WhatsApp Number</label>
                             <input
                                 type="text"
                                 value={editForm.guardianPhone}
@@ -1430,8 +1455,8 @@ const StudentsManagement = () => {
                         </div>
                     </div>
 
-                    {/* Address Information */}
-                    <h3 className="font-semibold text-gray-900 pb-2 border-b mt-6">Address Information</h3>
+                    {/* Address Details */}
+                    <h3 className="font-semibold text-gray-900 pb-2 border-b mt-6">Address Details</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-700">City</label>
@@ -1451,33 +1476,40 @@ const StudentsManagement = () => {
                                 className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
                             />
                         </div>
-                    </div>
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700">Address</label>
-                        <textarea
-                            value={editForm.address}
-                            onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
-                            rows={2}
-                            className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
-                        />
+                        <div className="space-y-2 md:col-span-2">
+                            <label className="text-sm font-medium text-gray-700">Address</label>
+                            <textarea
+                                value={editForm.address}
+                                onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
+                                rows={2}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+                            />
+                        </div>
                     </div>
 
-                    {/* Additional Information */}
-                    <h3 className="font-semibold text-gray-900 pb-2 border-b mt-6">Additional Information</h3>
+                    {/* Account Setup */}
+                    <h3 className="font-semibold text-gray-900 pb-2 border-b mt-6">Account Setup</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">Attend Type</label>
-                            <select
-                                value={editForm.attendType}
-                                onChange={(e) => setEditForm({ ...editForm, attendType: e.target.value })}
+                            <label className="text-sm font-medium text-gray-700">Email Address *</label>
+                            <input
+                                type="email"
+                                value={editForm.email}
+                                onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
                                 className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
-                            >
-                                <option value="">Select Type</option>
-                                <option value="OnSite">Onsite</option>
-                                <option value="Remote">Remote</option>
-                            </select>
+                                required
+                            />
                         </div>
                         <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">Password</label>
+                            <input
+                                type="text"
+                                value={editForm.password}
+                                onChange={(e) => setEditForm({ ...editForm, password: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-mono"
+                            />
+                        </div>
+                        <div className="space-y-2 md:col-span-2">
                             <label className="text-sm font-medium text-gray-700">How did you hear about us?</label>
                             <input
                                 type="text"
@@ -1520,9 +1552,40 @@ const StudentsManagement = () => {
             {/* Monthly Fee Management Modal */}
             <Modal isOpen={isInstallmentModalOpen} onClose={() => setIsInstallmentModalOpen(false)} title="Manage Months" size="lg">
                 <div className="space-y-6">
-                    <div className="bg-blue-50 p-4 rounded-xl text-sm text-blue-800 border border-blue-100">
-                        <p>Set up the monthly fee plan for <strong>{selectedFee?.user?.name || viewFeeModal.studentName}</strong>.</p>
-                        <p className="mt-1">Course Fee: <strong>Rs {(selectedFee?.totalFee || 0).toLocaleString()}</strong></p>
+                    <div className="bg-blue-50 p-4 rounded-xl text-sm text-blue-800 border border-blue-100 flex items-start justify-between">
+                        <div>
+                            <p>Set up the monthly fee plan for <strong>{selectedFee?.user?.name || viewFeeModal.studentName}</strong>.</p>
+                            <p className="mt-1">Course Fee: <strong>Rs {(selectedFee?.totalFee || 0).toLocaleString()}</strong></p>
+                        </div>
+                        <button
+                            onClick={async () => {
+                                if (window.confirm('Are you sure you want to delete this course enrollment? This action cannot be undone.')) {
+                                    setIsProcessing(true);
+                                    try {
+                                        await feeAPI.delete(selectedFee._id);
+                                        setFeeRecords(prev => prev.filter(f => f._id !== selectedFee._id));
+                                        setIsInstallmentModalOpen(false);
+                                        if (viewFeeModal.open && feeRecords.length <= 1) {
+                                            setViewFeeModal({ open: false, userId: null, studentName: '' });
+                                        }
+                                        alert('The fee and enrollment record has been permanently removed.');
+                                        fetchStudents(); // Refresh data
+                                    } catch (err) {
+                                        console.error('Delete failed', err);
+                                        alert('Failed to delete record');
+                                    } finally {
+                                        setIsProcessing(false);
+                                    }
+                                }
+                            }}
+                            disabled={isProcessing}
+                            className="p-2 text-red-500 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors border border-red-200 bg-white shadow-sm flex items-center gap-2 text-xs font-bold shrink-0 disabled:opacity-50"
+                            title="Permanently remove this course enrollment"
+                            type="button"
+                        >
+                            <Trash2 className="w-4 h-4" />
+                            Delete Course
+                        </button>
                     </div>
 
                     {/* Auto-generation notice */}
@@ -1660,6 +1723,97 @@ const StudentsManagement = () => {
                     </div>
                 </div>
             </Modal>
+
+            {/* EXPORT MODAL INJECTION */}
+            <Modal
+                isOpen={isExportModalOpen}
+                onClose={() => setIsExportModalOpen(false)}
+                title="Generate Report"
+                size="md"
+            >
+                <div className="space-y-6">
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700">Report Format</label>
+                        <select
+                            value={exportConfig.format}
+                            onChange={(e) => setExportConfig({ ...exportConfig, format: e.target.value })}
+                            className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+                        >
+                            <option value="full">Complete Report</option>
+                            <option value="phone">Phone Directory</option>
+                            <option value="email">Email List</option>
+                            <option value="guardian">Guardian Info</option>
+                            <option value="academic">Academic Info</option>
+                            <option value="address">Address List</option>
+                        </select>
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700">Filter by Campus</label>
+                        <select
+                            value={exportConfig.campus}
+                            onChange={(e) => {
+                                // Reset course when campus changes
+                                setExportConfig({ ...exportConfig, campus: e.target.value, courseId: 'all' });
+                            }}
+                            className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+                        >
+                            <option value="all">All Campuses</option>
+                            <option value="islamabad">Islamabad</option>
+                            <option value="bahawalpur">Bahawalpur</option>
+                        </select>
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700">Filter by Course</label>
+                        <select
+                            value={exportConfig.courseId}
+                            onChange={(e) => setExportConfig({ ...exportConfig, courseId: e.target.value })}
+                            className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+                        >
+                            <option value="all">All Courses</option>
+                            {coursesList
+                                .filter(course => course.targetAudience === 'students')
+                                .filter(course => exportConfig.campus === 'all' || course.location?.toLowerCase() === exportConfig.campus.toLowerCase() || course.city?.toLowerCase() === exportConfig.campus.toLowerCase())
+                                .map(course => (
+                                    <option key={course._id} value={course._id}>{course.title}</option>
+                                ))}
+                        </select>
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700">Filter by Student Status</label>
+                        <select
+                            value={exportConfig.status}
+                            onChange={(e) => setExportConfig({ ...exportConfig, status: e.target.value })}
+                            className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+                        >
+                            <option value="all">All Students</option>
+                            <option value="active">Active Students</option>
+                            <option value="certified">Certified / Completed</option>
+                        </select>
+                    </div>
+
+                    <div className="flex gap-3 pt-4 border-t border-gray-100">
+                        <button
+                            type="button"
+                            onClick={() => setIsExportModalOpen(false)}
+                            className="flex-1 py-3 text-gray-600 hover:bg-gray-100 rounded-xl font-medium"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="button"
+                            onClick={handleGenerateExport}
+                            className="flex-1 py-3 bg-primary hover:bg-primary text-white rounded-xl font-medium flex items-center justify-center gap-2"
+                        >
+                            <Download className="w-5 h-5" />
+                            Generate Report
+                        </button>
+                    </div>
+                </div>
+            </Modal>
+
         </div>
     );
 };
