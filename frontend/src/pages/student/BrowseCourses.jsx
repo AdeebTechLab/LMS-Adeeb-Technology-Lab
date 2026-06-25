@@ -42,8 +42,8 @@ const BrowseCourses = () => {
         fetchData();
 
         // Handle initial tab from navigation state
-        if (location.state?.activeTab) {
-            setActiveTab(location.state.activeTab);
+        if (location.state?.tab || location.state?.activeTab) {
+            setActiveTab(location.state.tab || location.state.activeTab);
         }
     }, [location.state]);
 
@@ -399,7 +399,7 @@ const BrowseCourses = () => {
                                             <img src={course.image} alt={course.title} className="w-full h-full object-cover" />
                                         ) : (
                                             <div className="absolute inset-0 flex items-center justify-center">
-                                                <Icon className="w-16 h-16 text-white/30" />
+                                                
                                             </div>
                                         )}
                                         {course.city && (
@@ -609,7 +609,7 @@ const BrowseCourses = () => {
                     <div className="space-y-6">
                         <div className="p-4 bg-gray-50 rounded-xl">
                             <h3 className="font-semibold text-gray-900 mb-2">{selectedCourse.title}</h3>
-                            <p className="text-sm text-gray-500">{selectedCourse.description}</p>
+                            <p className="text-sm text-gray-500 whitespace-pre-wrap leading-relaxed">{selectedCourse.description}</p>
                             <div className="flex items-center gap-4 mt-3 text-sm text-gray-500">
                                 <span className="flex items-center gap-1">
                                     <Calendar className="w-4 h-4" />

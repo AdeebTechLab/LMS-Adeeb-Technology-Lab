@@ -12,6 +12,18 @@ import Loader, { ButtonLoader } from '../../../components/ui/Loader';
 import { showToast } from '../../../utils/customToast';
 import { formatDate, formatDateTime } from '../../../utils/dateFormatter';
 
+const getAutomaticFeedback = (percentage) => {
+    if (!percentage || isNaN(percentage)) return '-';
+    if (percentage >= 90) return "Excellent! Perfect execution and great attention to detail. Keep it up!";
+    if (percentage >= 85) return "Outstanding effort! Very well done.";
+    if (percentage >= 80) return "Great job! Keep up the consistent effort.";
+    if (percentage >= 75) return "Good work! Solid understanding of the concepts.";
+    if (percentage >= 70) return "Satisfactory effort. Try to focus more on the requirements.";
+    if (percentage >= 65) return "Average work. Needs more attention and focus.";
+    if (percentage >= 60) return "Below expectations. Please review the instructions carefully.";
+    return "Poor performance. Let's work on the basics and improve.";
+};
+
 const TestsTab = ({ course, students }) => {
     const [tests, setTests] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -336,26 +348,22 @@ const TestsTab = ({ course, students }) => {
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                    <div className="bg-primary/5 rounded-3xl p-6 border border-primary/10 text-center shadow-sm hover:shadow-md transition-all">
-                        <p className="text-2xl sm:text-3xl font-black text-primary">{tests.length}</p>
-                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Total Tests</p>
-                    </div>
-                    <div className="bg-green-50 dark:bg-green-500/10 rounded-3xl p-6 border border-green-100 dark:border-green-500/20 text-center shadow-sm hover:shadow-md transition-all">
-                        <p className="text-2xl sm:text-3xl font-black text-green-600 dark:text-green-400">
-                            {tests.reduce((acc, t) => acc + (t.submissions?.length || 0), 0)}
-                        </p>
-                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Recent Submissions</p>
-                    </div>
-                    <div className="bg-amber-50 dark:bg-amber-500/10 rounded-3xl p-6 border border-amber-100 dark:border-amber-500/20 text-center shadow-sm hover:shadow-md transition-all">
-                        <p className="text-2xl sm:text-3xl font-black text-amber-600 dark:text-amber-400">
-                            {tests.reduce((acc, t) => acc + (t.questions?.length || 0), 0)}
-                        </p>
-                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Total MCQs</p>
-                    </div>
-                    <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 border border-gray-100 dark:border-gray-700 text-center shadow-sm hover:shadow-md transition-all">
-                        <p className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-gray-100">{students.length}</p>
-                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Total Students</p>
-                    </div>
+                    {[
+                        { label: 'Total Tests', icon: FileText, count: tests.length, color: 'text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-800/30' },
+                        { label: 'Total Submissions', icon: CheckCircle, count: tests.reduce((acc, t) => acc + (t.submissions?.length || 0), 0), color: 'text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-800/30' },
+                        { label: 'Total MCQs', icon: List, count: tests.reduce((acc, t) => acc + (t.questions?.length || 0), 0), color: 'text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-800/30' },
+                        { label: 'Total Students', icon: Users, count: students.length, color: 'text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-800/50 border-gray-100 dark:border-gray-700' },
+                    ].map((stat, i) => (
+                        <div key={i} className={`${stat.color} border rounded-2xl p-4 flex items-center justify-between shadow-sm`}>
+                            <div>
+                                <span className="text-[10px] font-black uppercase tracking-widest opacity-70 block mb-1">{stat.label}</span>
+                                <p className="text-2xl font-black leading-none">{stat.count}</p>
+                            </div>
+                            <div className="p-2 rounded-xl bg-white/50 dark:bg-black/20 backdrop-blur-sm">
+                                <stat.icon className="w-5 h-5 opacity-80" />
+                            </div>
+                        </div>
+                    ))}
                 </div>
 
                 <div className="flex items-center gap-3">
@@ -491,14 +499,12 @@ const TestsTab = ({ course, students }) => {
                             layout
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="bg-white rounded-[2.5rem] border border-gray-100 overflow-hidden shadow-sm hover:shadow-xl hover:shadow-primary/10/20 transition-all group"
+                            className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-xl hover:shadow-primary/10/20 transition-all group"
                         >
                             <div className="p-6 space-y-4">
                                 <div className="flex justify-between items-start">
-                                    <div className="p-3 bg-primary/5 rounded-2xl group-hover:bg-primary group-hover:text-white transition-colors">
-                                        <FileText className="w-6 h-6 text-primary group-hover:text-white" />
-                                    </div>
-                                    <div className="flex items-center gap-1">
+                                    <h4 className="text-lg font-black text-primary uppercase leading-tight">{test.title}</h4>
+                                    <div className="flex items-center gap-1 shrink-0">
                                         <button
                                             onClick={() => {
                                                 setEditingTest(test);
@@ -517,10 +523,7 @@ const TestsTab = ({ course, students }) => {
                                     </div>
                                 </div>
 
-                                <div>
-                                    <h4 className="text-lg font-black text-gray-900 uppercase leading-tight mb-1">{test.title}</h4>
-                                    <p className="text-xs text-gray-500 font-medium line-clamp-2">{test.description}</p>
-                                </div>
+                                <p className="text-xs text-gray-500 font-medium line-clamp-2">{test.description}</p>
 
                                 <div className="grid grid-cols-2 gap-4 pt-2">
                                     <div className="flex items-center gap-2">
@@ -1306,7 +1309,7 @@ const TestsTab = ({ course, students }) => {
                                                 </p>
                                             </div>
                                         </div>
-                                        <div className="text-right">
+                                        <div className="text-right flex flex-col items-end">
                                             <Badge variant={submission.score >= (totalMarks / 2) ? 'success' : 'error'}>
                                                 {submission.score >= (totalMarks / 2) ? 'PASSED' : 'FAILED'}
                                             </Badge>
@@ -1315,6 +1318,12 @@ const TestsTab = ({ course, students }) => {
                                                 <span className="text-xs font-bold text-gray-400">/{totalMarks}</span>
                                             </p>
                                         </div>
+                                    </div>
+                                    <div className="mt-4 pt-4 border-t border-gray-100">
+                                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Generated Feedback</p>
+                                        <p className="text-xs font-medium text-gray-600">
+                                            {getAutomaticFeedback((submission.score / totalMarks) * 100)}
+                                        </p>
                                     </div>
                                 </div>
                             );

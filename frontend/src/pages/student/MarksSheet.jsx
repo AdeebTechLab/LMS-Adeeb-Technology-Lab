@@ -46,7 +46,7 @@ const MarksSheet = () => {
                 // Get assignment marks for this course (Sort by date for consistent numbering)
                 const courseAssignments = assignments
                     .filter(a => String(a.course?._id || a.course) === String(courseId))
-                    .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate)) // Oldest first for #1, #2...
+                    .sort((a, b) => new Date(a.dueDate || a.createdAt) - new Date(b.dueDate || b.createdAt)) // Oldest first for #1, #2...
                     .map((a, index) => {
                         const mySub = a.submissions?.find(s =>
                             String(s.user?._id || s.user) === String(user?._id || user?.id)
@@ -54,10 +54,12 @@ const MarksSheet = () => {
                         if (mySub && (mySub.marks !== undefined && mySub.marks !== null)) {
                             return {
                                 assessment: a.title,
+                                date: formatDate(a.dueDate || a.createdAt),
                                 number: index + 1,
                                 type: 'Assignment',
                                 marks: mySub.marks,
-                                total: a.totalMarks || 100
+                                total: a.totalMarks || 100,
+                                feedback: mySub.feedback
                             };
                         }
                         return null;
@@ -88,17 +90,20 @@ const MarksSheet = () => {
                         .filter(t => t.status === 'graded' || t.status === 'verified')
                         .sort((a, b) => new Date(a.date || a.createdAt) - new Date(b.date || b.createdAt))
                         .map((t, index) => ({
-                            assessment: `Class: ${formatDate(t.date || t.createdAt)}`,
+                            assessment: 'Class Activity',
+                            date: formatDate(t.date || t.createdAt),
                             number: index + 1,
                             type: 'Daily Task',
                             marks: t.marks,
-                            total: 10
+                            total: 10,
+                            feedback: t.feedback
                         }));
 
                     // Fetch Tests
                     const testRes = await testAPI.getByCourse(course.courseId);
                     const tests = testRes?.data?.tests || [];
-                    const gradedTests = tests
+                    const gradedTests = [...tests]
+                        .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
                         .map((t, index) => {
                             if (!t) return null;
                             const mySub = t.submissions?.find(s => 
@@ -107,6 +112,7 @@ const MarksSheet = () => {
                             if (mySub) {
                                 return {
                                     assessment: t.title || 'Untitled Test',
+                                    date: formatDate(t.createdAt),
                                     number: index + 1,
                                     type: 'Test',
                                     marks: mySub.score || 0,
@@ -163,14 +169,26 @@ const MarksSheet = () => {
 
     const getGrade = (percentage) => {
         if (!percentage || isNaN(percentage)) return { grade: 'N/A', color: 'text-gray-400' };
-        if (percentage >= 90) return { grade: 'A+', color: 'text-primary' };
-        if (percentage >= 85) return { grade: 'A', color: 'text-primary' };
-        if (percentage >= 80) return { grade: 'B+', color: 'text-blue-600' };
-        if (percentage >= 75) return { grade: 'B', color: 'text-blue-600' };
-        if (percentage >= 70) return { grade: 'C+', color: 'text-amber-600' };
-        if (percentage >= 65) return { grade: 'C', color: 'text-amber-600' };
-        if (percentage >= 60) return { grade: 'D', color: 'text-primary' };
-        return { grade: 'F', color: 'text-red-600' };
+        if (percentage >= 90) return { grade: 'A+', color: 'text-emerald-500 dark:text-emerald-400' };
+        if (percentage >= 85) return { grade: 'A', color: 'text-emerald-500 dark:text-emerald-400' };
+        if (percentage >= 80) return { grade: 'B+', color: 'text-sky-500 dark:text-sky-400' };
+        if (percentage >= 75) return { grade: 'B', color: 'text-sky-500 dark:text-sky-400' };
+        if (percentage >= 70) return { grade: 'C+', color: 'text-amber-500 dark:text-amber-400' };
+        if (percentage >= 65) return { grade: 'C', color: 'text-amber-500 dark:text-amber-400' };
+        if (percentage >= 60) return { grade: 'D', color: 'text-red-500 dark:text-red-400' };
+        return { grade: 'F', color: 'text-red-600 dark:text-red-500' };
+    };
+
+    const getAutomaticFeedback = (percentage) => {
+        if (!percentage || isNaN(percentage)) return '-';
+        if (percentage >= 90) return "Excellent! Perfect execution and great attention to detail. Keep it up!";
+        if (percentage >= 85) return "Outstanding effort! Very well done.";
+        if (percentage >= 80) return "Great job! Keep up the consistent effort.";
+        if (percentage >= 75) return "Good work! Solid understanding of the concepts.";
+        if (percentage >= 70) return "Satisfactory effort. Try to focus more on the requirements.";
+        if (percentage >= 65) return "Average work. Needs more attention and focus.";
+        if (percentage >= 60) return "Below expectations. Please review the instructions carefully.";
+        return "Poor performance. Let's work on the basics and improve.";
     };
 
 
@@ -207,14 +225,14 @@ const MarksSheet = () => {
     }
 
     const GRADE_SCALE = [
-        { grade: 'A+', range: '90–100', color: 'bg-primary/5 text-primary border-primary' },
-        { grade: 'A', range: '85–89', color: 'bg-primary/5 text-primary border-primary' },
-        { grade: 'B+', range: '80–84', color: 'bg-blue-50 text-blue-700 border-blue-200' },
-        { grade: 'B', range: '75–79', color: 'bg-blue-50 text-blue-700 border-blue-200' },
-        { grade: 'C+', range: '70–74', color: 'bg-amber-50 text-amber-700 border-amber-200' },
-        { grade: 'C', range: '65–69', color: 'bg-amber-50 text-amber-700 border-amber-200' },
-        { grade: 'D', range: '60–64', color: 'bg-primary/5 text-orange-700 border-orange-200' },
-        { grade: 'F', range: '0–59', color: 'bg-red-50 text-red-700 border-red-200' },
+        { grade: 'A+', range: '90–100', color: 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-800' },
+        { grade: 'A', range: '85–89', color: 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-800' },
+        { grade: 'B+', range: '80–84', color: 'bg-sky-50 text-sky-600 border-sky-200 dark:bg-sky-900/20 dark:text-sky-400 dark:border-sky-800' },
+        { grade: 'B', range: '75–79', color: 'bg-sky-50 text-sky-600 border-sky-200 dark:bg-sky-900/20 dark:text-sky-400 dark:border-sky-800' },
+        { grade: 'C+', range: '70–74', color: 'bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800' },
+        { grade: 'C', range: '65–69', color: 'bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800' },
+        { grade: 'D', range: '60–64', color: 'bg-red-50 text-red-600 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800' },
+        { grade: 'F', range: '0–59', color: 'bg-red-50 text-red-600 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800' },
     ];
 
     return (
@@ -368,8 +386,10 @@ const MarksSheet = () => {
                                                     <thead>
                                                         <tr className="bg-gray-50/50 border-b border-gray-100">
                                                             <th className="py-4 px-6 text-[10px] font-black text-gray-400 uppercase tracking-widest">#</th>
+                                                            <th className="py-4 px-6 text-[10px] font-black text-gray-400 uppercase tracking-widest">Date</th>
                                                             <th className="py-4 px-6 text-[10px] font-black text-gray-400 uppercase tracking-widest">Assignment Name</th>
                                                             <th className="py-4 px-6 text-[10px] font-black text-gray-400 uppercase tracking-widest">Score</th>
+                                                            <th className="py-4 px-6 text-[10px] font-black text-gray-400 uppercase tracking-widest">Feedback</th>
                                                             <th className="py-4 px-6 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Grade</th>
                                                         </tr>
                                                     </thead>
@@ -380,9 +400,13 @@ const MarksSheet = () => {
                                                             return (
                                                                 <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
                                                                     <td className="py-4 px-6 font-black text-gray-300">ASGN #{grade.number}</td>
+                                                                    <td className="py-4 px-6 font-medium text-gray-500 text-xs">{grade.date}</td>
                                                                     <td className="py-4 px-6 font-bold text-gray-900">{grade.assessment}</td>
                                                                     <td className="py-4 px-6 font-medium text-gray-600">
                                                                         <span className="text-gray-900 font-bold">{grade.marks}</span><span className="text-xs opacity-50">/{grade.total}</span>
+                                                                    </td>
+                                                                    <td className="py-4 px-6">
+                                                                        <p className="text-xs font-medium text-gray-500 max-w-[200px] truncate" title={grade.feedback}>{grade.feedback || '-'}</p>
                                                                     </td>
                                                                     <td className={`py-4 px-6 font-black text-right ${gInfo.color}`}>{gInfo.grade} ({perc}%)</td>
                                                                 </tr>
@@ -411,18 +435,25 @@ const MarksSheet = () => {
                                                             <th className="py-4 px-6 text-[10px] font-black text-gray-400 uppercase tracking-widest">#</th>
                                                             <th className="py-4 px-6 text-[10px] font-black text-gray-400 uppercase tracking-widest">Date</th>
                                                             <th className="py-4 px-6 text-[10px] font-black text-gray-400 uppercase tracking-widest">Score</th>
+                                                            <th className="py-4 px-6 text-[10px] font-black text-gray-400 uppercase tracking-widest">Feedback</th>
+                                                            <th className="py-4 px-6 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Grade</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody className="divide-y divide-gray-50">
                                                         {dailyTaskGrades.map((grade, idx) => {
                                                             const perc = calculatePercentage(grade.marks, grade.total);
+                                                            const gInfo = getGrade(parseFloat(perc));
                                                             return (
                                                                 <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
                                                                     <td className="py-4 px-6 font-black text-gray-300">Class #{grade.number}</td>
-                                                                    <td className="py-4 px-6 font-bold text-gray-900">{grade.assessment.split(': ')[1]}</td>
+                                                                    <td className="py-4 px-6 font-bold text-gray-900">{grade.date}</td>
                                                                     <td className="py-4 px-6 font-medium text-gray-600">
                                                                         <span className="text-gray-900 font-bold">{grade.marks}</span><span className="text-xs opacity-50">/10</span>
                                                                     </td>
+                                                                    <td className="py-4 px-6">
+                                                                        <p className="text-xs font-medium text-gray-500 max-w-[200px] truncate" title={grade.feedback}>{grade.feedback || '-'}</p>
+                                                                    </td>
+                                                                    <td className={`py-4 px-6 font-black text-right ${gInfo.color}`}>{gInfo.grade} ({perc}%)</td>
                                                                 </tr>
                                                             );
                                                         })}
@@ -455,8 +486,10 @@ const MarksSheet = () => {
                                                                 <thead>
                                                                     <tr className="bg-gray-50/50 border-b border-gray-100">
                                                                         <th className="py-4 px-6 text-[10px] font-black text-gray-400 uppercase tracking-widest">#</th>
+                                                                        <th className="py-4 px-6 text-[10px] font-black text-gray-400 uppercase tracking-widest">Date</th>
                                                                         <th className="py-4 px-6 text-[10px] font-black text-gray-400 uppercase tracking-widest">Test Title</th>
                                                                         <th className="py-4 px-6 text-[10px] font-black text-gray-400 uppercase tracking-widest">Score</th>
+                                                                        <th className="py-4 px-6 text-[10px] font-black text-gray-400 uppercase tracking-widest">Feedback</th>
                                                                         <th className="py-4 px-6 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Grade</th>
                                                                     </tr>
                                                                 </thead>
@@ -467,9 +500,13 @@ const MarksSheet = () => {
                                                                         return (
                                                                             <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
                                                                                 <td className="py-4 px-6 font-black text-gray-300">TEST #{grade.number}</td>
+                                                                                <td className="py-4 px-6 font-medium text-gray-500 text-xs">{grade.date}</td>
                                                                                 <td className="py-4 px-6 font-bold text-gray-900">{grade.assessment}</td>
                                                                                 <td className="py-4 px-6 font-medium text-gray-600">
                                                                                     <span className="text-gray-900 font-bold">{grade.marks}</span><span className="text-xs opacity-50">/{grade.total}</span>
+                                                                                </td>
+                                                                                <td className="py-4 px-6">
+                                                                                    <p className="text-xs font-medium text-gray-500 max-w-[200px] truncate" title={grade.feedback || getAutomaticFeedback(parseFloat(perc))}>{grade.feedback || getAutomaticFeedback(parseFloat(perc))}</p>
                                                                                 </td>
                                                                                 <td className={`py-4 px-6 font-black text-right ${gInfo.color}`}>{gInfo.grade} ({perc}%)</td>
                                                                             </tr>

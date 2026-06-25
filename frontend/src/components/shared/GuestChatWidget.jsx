@@ -89,6 +89,35 @@ const GuestChatWidget = () => {
         setMessages(prev => [...prev, userMsg]);
         scrollToBottom(true);
         
+        const disabledUntil = localStorage.getItem('guestDisableBotUntil');
+        const now = Date.now();
+
+        if (text.toLowerCase().trim() === 'main menu') {
+            localStorage.removeItem('guestDisableBotUntil');
+        } else if (disabledUntil && now < parseInt(disabledUntil, 10)) {
+            return;
+        }
+
+        if (text.toLowerCase().trim() === 'chat with adeeb') {
+            setIsBotTyping(true);
+            setTimeout(() => {
+                const autoReply = `Assalam o Alaikum! Adeeb is currently not available, but he will read your message and reply to you as soon as possible. Please leave your message here.\n\nIf you want to use the bot again, just click or type \'Main Menu\'.`;
+                const botMsg = {
+                    _id: 'bot-' + Date.now(),
+                    text: autoReply,
+                    senderId: 'bot',
+                    sender: { _id: 'bot', name: 'Adeeb Chatbot' },
+                    createdAt: new Date().toISOString(),
+                    isBot: true,
+                    options: [{ label: 'Main Menu', value: 'Main Menu' }]
+                };
+                setMessages(prev => [...prev, botMsg]);
+                localStorage.setItem('guestDisableBotUntil', (Date.now() + 2 * 60 * 60 * 1000).toString());
+                setIsBotTyping(false);
+            }, 500);
+            return;
+        }
+
         setIsBotTyping(true);
         setTimeout(() => {
             sendBotMessage(text);

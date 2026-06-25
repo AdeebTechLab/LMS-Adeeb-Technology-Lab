@@ -67,3 +67,14 @@ Aap picture banate waqt in dimensions (sizes) mein se koi bhi use kar sakte hain
 1280 x 720 pixels (HD) - Sab se best aur recommended size hai.
 1920 x 1080 pixels (Full HD) - High quality ke liye.
 800 x 450 pixels - Agar file size kam rakhna ho.
+
+
+
+A+ (90-100): "Excellent! Perfect execution and great attention to detail. Keep it up!"
+A (85-89): "Outstanding effort! Very well done."
+B+ (80-84): "Great job! Keep up the consistent effort."
+B (75-79): "Good work! Solid understanding of the concepts."
+C+ (70-74): "Satisfactory effort. Try to focus more on the requirements."
+C (65-69): "Average work. Needs more attention and focus."
+D (60-64): "Below expectations. Please review the instructions carefully."
+F (0-59): "Poor performance. Let's work on the basics and improve."

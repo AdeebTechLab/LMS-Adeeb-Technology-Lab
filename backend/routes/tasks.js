@@ -566,7 +566,7 @@ router.get('/completed-showcase', protect, async (req, res) => {
         const tasks = await PaidTask.find({ status: 'completed' })
             .populate('assignedTo', 'name email photo')
             .populate('feedback.user', 'name photo')
-            .select('title description budget skills category status assignedTo feedback completedAt paymentSentAt createdAt')
+            .select('title description budget skills category status assignedTo feedback completedAt paymentSentAt createdAt images image')
             .sort('-paymentSentAt');
 
         res.json({ success: true, data: tasks });

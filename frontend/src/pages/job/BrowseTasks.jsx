@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useSelector } from 'react-redux';
+import { useLocation } from 'react-router-dom';
 import {
     Search, Calendar, Briefcase, CheckCircle, Send, Upload, CreditCard, AlertCircle, Link, Trash2, MessageSquare, ChevronLeft, ChevronRight, X, XCircle
 } from 'lucide-react';
@@ -33,6 +34,14 @@ const BrowseTasks = () => {
     const [galleryOpen, setGalleryOpen] = useState(false);
     const [galleryImages, setGalleryImages] = useState([]);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+    const location = useLocation();
+    
+    useEffect(() => {
+        if (location.state?.tab) {
+            setActiveTab(location.state.tab);
+        }
+    }, [location.state]);
 
     const openGallery = (task) => {
         const imgs = task.images && task.images.length > 0 ? task.images : (task.image ? [task.image] : []);
@@ -261,49 +270,7 @@ const BrowseTasks = () => {
                 </div>
             )}
 
-            {/* Tabs */}
-            <div className="flex flex-wrap items-center gap-4">
-                <div className="flex flex-wrap gap-2 bg-gray-100 p-1 rounded-xl w-fit">
-                    <button
-                        onClick={() => setActiveTab('available')}
-                        className={`px-5 py-2.5 rounded-lg font-medium transition-all ${activeTab === 'available' ? 'bg-white text-primary shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
-                    >
-                        Available ({availableTasks.length})
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('applied')}
-                        className={`px-5 py-2.5 rounded-lg font-medium transition-all ${activeTab === 'applied' ? 'bg-white text-primary shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
-                    >
-                        My Applications ({appliedTasks.length})
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('assigned')}
-                        className={`px-5 py-2.5 rounded-lg font-medium transition-all ${activeTab === 'assigned' ? 'bg-white text-primary shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
-                    >
-                        Assigned ({assignedTasks.length})
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('completed')}
-                        className={`px-5 py-2.5 rounded-lg font-medium transition-all ${activeTab === 'completed' ? 'bg-white text-primary shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
-                    >
-                        Completed ({completedTasks.length})
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('expired')}
-                        className={`px-5 py-2.5 rounded-lg font-medium transition-all ${activeTab === 'expired' ? 'bg-white text-red-600 shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
-                    >
-                        Expired ({expiredTasks.length})
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('showcase')}
-                        className={`px-5 py-2.5 rounded-lg font-medium transition-all flex items-center justify-center gap-2 ${activeTab === 'showcase' ? 'bg-white text-primary shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
-                        title="View tasks completed by our jobbers with feedback"
-                    >
-                        <MessageSquare className="w-4 h-4" />
-                        Work Feedback ({completedShowcase.length})
-                    </button>
-                </div>
-            </div>
+            
 
             {/* Search */}
             <div className="bg-white rounded-2xl p-4 border border-gray-100">
@@ -336,17 +303,29 @@ const BrowseTasks = () => {
                             transition={{ delay: index * 0.1 }}
                             className={`bg-white rounded-2xl p-6 border border-gray-100 hover:shadow-lg transition-all ${submitted && !isPaid ? 'opacity-75' : ''}`}
                         >
-                            <div className="flex items-start justify-between mb-4">
-                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${getCategoryBg(task.category)}`}>
-                                    {renderCategoryIcon(task.category)}
-                                </div>
-                                <div className="flex items-center gap-2">
+                            <div className="flex items-start justify-end mb-4">
+                                  <div className="flex items-center gap-2">
                                     {expired && <Badge variant="danger">Deadline Over</Badge>}
-                                    {task.applicants?.length > 0 && !expired && (
-                                        <span className="px-2.5 py-1 bg-yellow-400 text-yellow-900 text-xs font-extrabold rounded-lg shadow-sm">
-                                            {task.applicants.length} Applicant{task.applicants.length !== 1 ? 's' : ''}
-                                        </span>
-                                    )}
+                                                                          {task.applicants?.length > 0 && !expired && (
+                                          <div className="flex items-center gap-2 px-2 py-1 bg-gray-50 border border-gray-200 rounded-xl" title="Applicants">
+                                              <div className="flex -space-x-2">
+                                                  {task.applicants.slice(0, 3).map((a, i) => (
+                                                      <div key={i} className="w-6 h-6 rounded-full border-2 border-white overflow-hidden bg-gradient-to-br from-primary to-indigo-600 flex items-center justify-center text-white text-[10px] font-bold shrink-0 relative z-[1]">
+                                                          {a.user?.photo ? (
+                                                              <img src={a.user.photo} alt={a.user?.name} className="w-full h-full object-cover" />
+                                                          ) : (
+                                                              a.user?.name?.charAt(0) || '?'
+                                                          )}
+                                                      </div>
+                                                  ))}
+                                              </div>
+                                              <div className="text-xs font-bold text-gray-700">
+                                                  {task.applicants.length === 1 
+                                                      ? task.applicants[0].user?.name?.split(' ')[0] 
+                                                      : `${task.applicants.length} Applicants`}
+                                              </div>
+                                          </div>
+                                      )}
                                     {hasApplied(task) && !assigned && <Badge variant="warning">Applied</Badge>}
                                     {assigned && !submitted && <Badge variant="info">Assigned</Badge>}
                                     {submitted && !isPaid && <Badge variant="warning">Pending Payment</Badge>}

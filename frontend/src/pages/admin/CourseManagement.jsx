@@ -357,7 +357,7 @@ const CourseManagement = () => {
                                         <img src={course.image} alt={course.title} className="w-full h-full object-cover" />
                                     ) : (
                                         <div className={`absolute inset-0 flex items-center justify-center bg-gradient-to-br ${course.targetAudience === 'interns' ? 'from-purple-600 via-indigo-600 to-violet-700' : style.gradient}`}>
-                                            <Icon className="w-16 h-16 text-white/30" />
+                                            
                                         </div>
                                     )}
 

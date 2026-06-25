@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { FileText, CheckCircle, Clock, Search, RefreshCw, ExternalLink, Trash2, Users, ChevronDown, Check, X } from 'lucide-react';
+import { FileText, CheckCircle, Clock, Search, RefreshCw, ExternalLink, Trash2, Users, ChevronDown, Check, X, BookOpen, XCircle } from 'lucide-react';
 import Badge from '../../../components/ui/Badge';
 import Loader from '../../../components/ui/Loader';
 import { formatDateTime } from '../../../utils/dateFormatter';
@@ -50,6 +50,24 @@ const DailyTasksTab = ({ course, students = [] }) => {
         setSelectedTaskForGrading(task);
         setGradingMarks(task.marks !== undefined ? task.marks : 10);
         setGradingFeedback(task.feedback || '');
+    };
+
+    const handleMarksChange = (e) => {
+        const val = e.target.value;
+        setGradingMarks(val);
+        
+        const numVal = parseFloat(val);
+        if (!isNaN(numVal)) {
+            const percentage = (numVal / 10) * 100;
+            if (percentage >= 90) setGradingFeedback('Excellent! Perfect execution and great attention to detail. Keep it up!');
+            else if (percentage >= 85) setGradingFeedback('Outstanding effort! Very well done.');
+            else if (percentage >= 80) setGradingFeedback('Great job! Keep up the consistent effort.');
+            else if (percentage >= 75) setGradingFeedback('Good work! Solid understanding of the concepts.');
+            else if (percentage >= 70) setGradingFeedback('Satisfactory effort. Try to focus more on the requirements.');
+            else if (percentage >= 65) setGradingFeedback('Average work. Needs more attention and focus.');
+            else if (percentage >= 60) setGradingFeedback('Below expectations. Please review the instructions carefully.');
+            else setGradingFeedback("Poor performance. Let's work on the basics and improve.");
+        }
     };
 
     const handleReject = async (task) => {
@@ -148,39 +166,34 @@ const DailyTasksTab = ({ course, students = [] }) => {
 
             {/* Quick Stats Summary Row */}
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
-                <button 
-                    onClick={() => setActiveStatFilter('all')}
-                    className={`w-full rounded-3xl p-6 border text-center shadow-sm hover:shadow-md transition-all focus:outline-none ${activeStatFilter === 'all' ? 'bg-primary/10 border-primary ring-2 ring-primary/20 scale-105' : 'bg-primary/5 border-primary/10 hover:border-primary/30'}`}>
-                    <p className="text-2xl sm:text-3xl font-black text-primary">{tasks.length}</p>
-                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Total Submissions</p>
-                </button>
-                <button 
-                    onClick={() => setActiveStatFilter(activeStatFilter === 'verified' ? 'all' : 'verified')}
-                    className={`w-full rounded-3xl p-6 border text-center shadow-sm hover:shadow-md transition-all focus:outline-none ${activeStatFilter === 'verified' ? 'bg-green-100 dark:bg-green-500/20 border-green-500 ring-2 ring-green-500/20 scale-105' : 'bg-green-50 dark:bg-green-500/10 border-green-100 dark:border-green-500/20 hover:border-green-300'}`}>
-                    <p className="text-2xl sm:text-3xl font-black text-green-600 dark:text-green-400">
-                        {tasks.filter(t => t.status === 'verified' || t.status === 'graded').length}
-                    </p>
-                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Verified Logs</p>
-                </button>
-                <button 
-                    onClick={() => setActiveStatFilter(activeStatFilter === 'pending' ? 'all' : 'pending')}
-                    className={`w-full rounded-3xl p-6 border text-center shadow-sm hover:shadow-md transition-all focus:outline-none ${activeStatFilter === 'pending' ? 'bg-amber-100 dark:bg-amber-500/20 border-amber-500 ring-2 ring-amber-500/20 scale-105' : 'bg-amber-50 dark:bg-amber-500/10 border-amber-100 dark:border-amber-500/20 hover:border-amber-300'}`}>
-                    <p className="text-2xl sm:text-3xl font-black text-amber-600 dark:text-amber-400">
-                        {tasks.filter(t => t.status === 'submitted' || t.status === 'pending').length}
-                    </p>
-                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Pending Verification</p>
-                </button>
-                <button 
-                    onClick={() => setActiveStatFilter(activeStatFilter === 'rejected' ? 'all' : 'rejected')}
-                    className={`w-full rounded-3xl p-6 border text-center shadow-sm hover:shadow-md transition-all focus:outline-none ${activeStatFilter === 'rejected' ? 'bg-red-100 dark:bg-red-500/20 border-red-500 ring-2 ring-red-500/20 scale-105' : 'bg-red-50 dark:bg-red-500/10 border-red-100 dark:border-red-500/20 hover:border-red-300'}`}>
-                    <p className="text-2xl sm:text-3xl font-black text-red-600 dark:text-red-400">
-                        {tasks.filter(t => t.status === 'rejected').length}
-                    </p>
-                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Rejected Logs</p>
-                </button>
-                <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 border border-gray-100 dark:border-gray-700 text-center shadow-sm hover:shadow-md transition-all">
-                    <p className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-gray-100">{students.length}</p>
-                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Total Students</p>
+                {[
+                    { id: 'all', label: 'Total Submissions', icon: BookOpen, count: tasks.length, color: 'text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-800/30', activeColor: 'ring-4 ring-blue-500/20 bg-blue-100 dark:bg-blue-900/40 border-blue-400 scale-105', onClick: () => setActiveStatFilter('all') },
+                    { id: 'verified', label: 'Verified Logs', icon: CheckCircle, count: tasks.filter(t => t.status === 'verified' || t.status === 'graded').length, color: 'text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-800/30', activeColor: 'ring-4 ring-emerald-500/20 bg-emerald-100 dark:bg-emerald-900/40 border-emerald-400 scale-105', onClick: () => setActiveStatFilter(activeStatFilter === 'verified' ? 'all' : 'verified') },
+                    { id: 'pending', label: 'Pending Verification', icon: Clock, count: tasks.filter(t => t.status === 'submitted' || t.status === 'pending').length, color: 'text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-800/30', activeColor: 'ring-4 ring-amber-500/20 bg-amber-100 dark:bg-amber-900/40 border-amber-400 scale-105', onClick: () => setActiveStatFilter(activeStatFilter === 'pending' ? 'all' : 'pending') },
+                    { id: 'rejected', label: 'Rejected Logs', icon: XCircle, count: tasks.filter(t => t.status === 'rejected').length, color: 'text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border-red-100 dark:border-red-800/30', activeColor: 'ring-4 ring-red-500/20 bg-red-100 dark:bg-red-900/40 border-red-400 scale-105', onClick: () => setActiveStatFilter(activeStatFilter === 'rejected' ? 'all' : 'rejected') },
+                ].map((stat) => (
+                    <button
+                        key={stat.id}
+                        onClick={stat.onClick}
+                        className={`${stat.color} ${activeStatFilter === stat.id ? stat.activeColor : 'border hover:scale-105'} rounded-2xl p-4 flex items-center justify-between shadow-sm text-left transition-all focus:outline-none`}
+                    >
+                        <div>
+                            <span className="text-[10px] font-black uppercase tracking-widest opacity-70 block mb-1">{stat.label}</span>
+                            <p className="text-2xl font-black leading-none">{stat.count}</p>
+                        </div>
+                        <div className="p-2 rounded-xl bg-white/50 dark:bg-black/20 backdrop-blur-sm">
+                            <stat.icon className="w-5 h-5 opacity-80" />
+                        </div>
+                    </button>
+                ))}
+                <div className="text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 rounded-2xl p-4 flex items-center justify-between shadow-sm">
+                    <div>
+                        <span className="text-[10px] font-black uppercase tracking-widest opacity-70 block mb-1">Total Students</span>
+                        <p className="text-2xl font-black leading-none">{students.length}</p>
+                    </div>
+                    <div className="p-2 rounded-xl bg-white/50 dark:bg-black/20 backdrop-blur-sm">
+                        <Users className="w-5 h-5 opacity-80" />
+                    </div>
                 </div>
             </div>
 
@@ -438,7 +451,10 @@ const DailyTasksTab = ({ course, students = [] }) => {
                         <div className="p-8 space-y-6">
                             <div className="bg-gray-50 dark:bg-slate-800/50 p-5 rounded-2xl border border-gray-100 dark:border-slate-800 mb-6">
                                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Student Log Content</p>
-                                <p className="text-sm font-medium text-gray-600 dark:text-gray-400 italic">"{selectedTaskForGrading.content}"</p>
+                                <RichTextContent 
+                                    html={selectedTaskForGrading.content} 
+                                    className="text-sm font-medium text-gray-600 dark:text-gray-400 italic"
+                                />
                             </div>
 
                             <div>
@@ -449,7 +465,7 @@ const DailyTasksTab = ({ course, students = [] }) => {
                                         min="0"
                                         max="10"
                                         value={gradingMarks}
-                                        onChange={(e) => setGradingMarks(e.target.value)}
+                                        onChange={handleMarksChange}
                                         className="w-full px-6 py-4 bg-gray-50 dark:bg-black/20 border-2 border-gray-100 dark:border-slate-800 rounded-2xl outline-none focus:border-primary font-black text-lg transition-all"
                                     />
                                     <span className="absolute right-6 top-1/2 -translate-y-1/2 font-black text-gray-300 text-lg">/10</span>
@@ -457,7 +473,7 @@ const DailyTasksTab = ({ course, students = [] }) => {
                             </div>
 
                             <div>
-                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 block">Evaluation Feedback</label>
+                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 block">Teacher Feedback</label>
                                 <textarea
                                     rows="3"
                                     value={gradingFeedback}

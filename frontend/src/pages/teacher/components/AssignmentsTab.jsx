@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { FileText, Plus, Calendar, MoreHorizontal, Users, RefreshCw, CheckCircle, Clock, X, Upload, Edit2, Search, ChevronDown, Check, Trash2 } from 'lucide-react';
+import { FileText, Plus, Calendar, MoreHorizontal, Users, RefreshCw, CheckCircle, Clock, X, Upload, Edit2, Search, ChevronDown, Check, Trash2, Eye } from 'lucide-react';
 import api, { assignmentAPI } from '../../../services/api';
 import Modal from '../../../components/ui/Modal';
 import Badge from '../../../components/ui/Badge';
@@ -8,6 +8,18 @@ import Loader, { ButtonLoader } from '../../../components/ui/Loader';
 import { formatDate, formatDateTime } from '../../../utils/dateFormatter';
 import RichTextEditor from '../../../components/ui/RichTextEditor';
 import RichTextContent from '../../../components/ui/RichTextContent';
+
+const getAutomaticFeedback = (percentage) => {
+    if (!percentage || isNaN(percentage)) return '-';
+    if (percentage >= 90) return 'Excellent! Perfect execution and great attention to detail. Keep it up!';
+    if (percentage >= 85) return 'Outstanding effort! Very well done.';
+    if (percentage >= 80) return 'Great job! Keep up the consistent effort.';
+    if (percentage >= 75) return 'Good work! Solid understanding of the concepts.';
+    if (percentage >= 70) return 'Satisfactory effort. Try to focus more on the requirements.';
+    if (percentage >= 65) return 'Average work. Needs more attention and focus.';
+    if (percentage >= 60) return 'Below expectations. Please review the instructions carefully.';
+    return "Poor performance. Let's work on the basics and improve.";
+};
 
 const AssignmentsTab = ({ course, students }) => { // Accept students prop
     const [assignments, setAssignments] = useState([]);
@@ -24,6 +36,8 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
     const [assignSearchTerm, setAssignSearchTerm] = useState(''); // For searching students when assigning
     const [assignmentTitleFilter, setAssignmentTitleFilter] = useState(''); // For searching assignments by title
     const [activeStatFilter, setActiveStatFilter] = useState('all'); // For stat block filtering
+    const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+    const [reviewAssignment, setReviewAssignment] = useState(null);
 
     // Create Form State
     const [newAssignment, setNewAssignment] = useState({
@@ -288,43 +302,34 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
 
             {/* Quick Stats Summary Row */}
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
-                <button 
-                    onClick={() => setActiveStatFilter('all')}
-                    className={`w-full bg-primary/5 rounded-3xl p-6 border text-center shadow-sm hover:shadow-md transition-all focus:outline-none ${activeStatFilter === 'all' ? 'border-primary ring-2 ring-primary/20 scale-105' : 'border-primary/10 hover:border-primary/30'}`}>
-                    <p className="text-2xl sm:text-3xl font-black text-primary">{assignments.length}</p>
-                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Total Assignments</p>
-                </button>
-                <button 
-                    onClick={() => setActiveStatFilter(activeStatFilter === 'submissions' ? 'all' : 'submissions')}
-                    className={`w-full bg-green-50 dark:bg-green-500/10 rounded-3xl p-6 border text-center shadow-sm hover:shadow-md transition-all focus:outline-none ${activeStatFilter === 'submissions' ? 'border-green-500 ring-2 ring-green-500/20 scale-105' : 'border-green-100 dark:border-green-500/20 hover:border-green-300'}`}>
-                    <p className="text-2xl sm:text-3xl font-black text-green-600 dark:text-green-400">
-                        {assignments.reduce((acc, a) => acc + (a.submissions?.length || 0), 0)}
-                    </p>
-                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Total Submissions</p>
-                </button>
-                <button 
-                    onClick={() => setActiveStatFilter(activeStatFilter === 'pending' ? 'all' : 'pending')}
-                    className={`w-full bg-amber-50 dark:bg-amber-500/10 rounded-3xl p-6 border text-center shadow-sm hover:shadow-md transition-all focus:outline-none ${activeStatFilter === 'pending' ? 'border-amber-500 ring-2 ring-amber-500/20 scale-105' : 'border-amber-100 dark:border-amber-500/20 hover:border-amber-300'}`}>
-                    <p className="text-2xl sm:text-3xl font-black text-amber-600 dark:text-amber-400">
-                        {assignments.reduce((acc, a) => {
-                            const submissions = a.submissions || [];
-                            const gradedCount = submissions.filter(s => s.status === 'graded' || s.status === 'rejected').length;
-                            return acc + (submissions.length - gradedCount);
-                        }, 0)}
-                    </p>
-                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Pending Marks</p>
-                </button>
-                <button 
-                    onClick={() => setActiveStatFilter(activeStatFilter === 'rejected' ? 'all' : 'rejected')}
-                    className={`w-full bg-red-50 dark:bg-red-500/10 rounded-3xl p-6 border text-center shadow-sm hover:shadow-md transition-all focus:outline-none ${activeStatFilter === 'rejected' ? 'border-red-500 ring-2 ring-red-500/20 scale-105' : 'border-red-100 dark:border-red-500/20 hover:border-red-300'}`}>
-                    <p className="text-2xl sm:text-3xl font-black text-red-600 dark:text-red-400">
-                        {assignments.reduce((acc, a) => acc + (a.submissions?.filter(s => s.status === 'rejected').length || 0), 0)}
-                    </p>
-                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Rejected Submissions</p>
-                </button>
-                <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 border border-gray-100 dark:border-gray-700 text-center shadow-sm transition-all">
-                    <p className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-gray-100">{students.length}</p>
-                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Total Students</p>
+                {[
+                    { id: 'all', label: 'Total Assignments', icon: FileText, count: assignments.length, color: 'text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-800/30', activeColor: 'ring-4 ring-blue-500/20 bg-blue-100 dark:bg-blue-900/40 border-blue-400 scale-105', onClick: () => setActiveStatFilter('all') },
+                    { id: 'submissions', label: 'Total Submissions', icon: CheckCircle, count: assignments.reduce((acc, a) => acc + (a.submissions?.length || 0), 0), color: 'text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-800/30', activeColor: 'ring-4 ring-emerald-500/20 bg-emerald-100 dark:bg-emerald-900/40 border-emerald-400 scale-105', onClick: () => setActiveStatFilter(activeStatFilter === 'submissions' ? 'all' : 'submissions') },
+                    { id: 'pending', label: 'Pending Marks', icon: Clock, count: assignments.reduce((acc, a) => { const submissions = a.submissions || []; const gradedCount = submissions.filter(s => s.status === 'graded' || s.status === 'rejected').length; return acc + (submissions.length - gradedCount); }, 0), color: 'text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-800/30', activeColor: 'ring-4 ring-amber-500/20 bg-amber-100 dark:bg-amber-900/40 border-amber-400 scale-105', onClick: () => setActiveStatFilter(activeStatFilter === 'pending' ? 'all' : 'pending') },
+                    { id: 'rejected', label: 'Rejected', icon: X, count: assignments.reduce((acc, a) => acc + (a.submissions?.filter(s => s.status === 'rejected').length || 0), 0), color: 'text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border-red-100 dark:border-red-800/30', activeColor: 'ring-4 ring-red-500/20 bg-red-100 dark:bg-red-900/40 border-red-400 scale-105', onClick: () => setActiveStatFilter(activeStatFilter === 'rejected' ? 'all' : 'rejected') },
+                ].map((stat) => (
+                    <button
+                        key={stat.id}
+                        onClick={stat.onClick}
+                        className={`${stat.color} ${activeStatFilter === stat.id ? stat.activeColor : 'border hover:scale-105'} rounded-2xl p-4 flex items-center justify-between shadow-sm text-left transition-all focus:outline-none`}
+                    >
+                        <div>
+                            <span className="text-[10px] font-black uppercase tracking-widest opacity-70 block mb-1">{stat.label}</span>
+                            <p className="text-2xl font-black leading-none">{stat.count}</p>
+                        </div>
+                        <div className="p-2 rounded-xl bg-white/50 dark:bg-black/20 backdrop-blur-sm">
+                            <stat.icon className="w-5 h-5 opacity-80" />
+                        </div>
+                    </button>
+                ))}
+                <div className="text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 rounded-2xl p-4 flex items-center justify-between shadow-sm">
+                    <div>
+                        <span className="text-[10px] font-black uppercase tracking-widest opacity-70 block mb-1">Total Students</span>
+                        <p className="text-2xl font-black leading-none">{students.length}</p>
+                    </div>
+                    <div className="p-2 rounded-xl bg-white/50 dark:bg-black/20 backdrop-blur-sm">
+                        <Users className="w-5 h-5 opacity-80" />
+                    </div>
                 </div>
             </div>
 
@@ -690,12 +695,23 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                                 </div>
                                             )}
                                         </div>
-                                        <button
-                                            onClick={() => handleViewSubmissions(assignment)}
-                                            className="px-6 py-2.5 bg-primary hover:bg-primary text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-lg active:scale-95"
-                                        >
-                                            {isFullyGraded ? 'REVIEW GRADES' : 'GRADE SUBMISSIONS'}
-                                        </button>
+                                        <div className="flex items-center gap-2">
+                                            {gradedCount > 0 && (
+                                                <button
+                                                    onClick={() => { setReviewAssignment(assignment); setIsReviewModalOpen(true); }}
+                                                    className="flex items-center gap-1.5 px-4 py-2.5 bg-primary/5 hover:bg-primary/10 text-primary border border-primary/20 rounded-xl text-xs font-black uppercase tracking-widest transition-all active:scale-95"
+                                                >
+                                                    <Eye className="w-3.5 h-3.5" />
+                                                    REVIEW GRADES
+                                                </button>
+                                            )}
+                                            <button
+                                                onClick={() => handleViewSubmissions(assignment)}
+                                                className="px-6 py-2.5 bg-primary hover:bg-primary text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-lg active:scale-95"
+                                            >
+                                                {isFullyGraded ? 'GRADE SUBMISSIONS' : 'GRADE SUBMISSIONS'}
+                                            </button>
+                                        </div>
                                     </div>
                                 </motion.div>
                             );
@@ -1221,7 +1237,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
 
                                     {submission.feedback && (
                                         <div className="text-sm text-blue-700 bg-blue-50/50 p-3 rounded-lg border border-blue-100">
-                                            <p className="font-black text-blue-500 text-[10px] uppercase mb-1 tracking-widest">Feedback Given</p>
+                                            <p className="font-black text-blue-500 text-[10px] uppercase mb-1 tracking-widest">Teacher Feedback</p>
                                             <p className="italic font-medium">{submission.feedback}</p>
                                         </div>
                                     )}
@@ -1238,7 +1254,25 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                                             type="number"
                                                             placeholder="0"
                                                             value={gradeMarks}
-                                                            onChange={(e) => setGradeMarks(e.target.value)}
+                                                            onChange={(e) => {
+                                                                const val = e.target.value;
+                                                                setGradeMarks(val);
+                                                                
+                                                                const numVal = parseFloat(val);
+                                                                const total = selectedAssignment?.totalMarks || 100;
+                                                                
+                                                                if (!isNaN(numVal) && total > 0) {
+                                                                    const percentage = (numVal / total) * 100;
+                                                                    if (percentage >= 90) setGradeFeedback('Excellent! Perfect execution and great attention to detail. Keep it up!');
+                                                                    else if (percentage >= 85) setGradeFeedback('Outstanding effort! Very well done.');
+                                                                    else if (percentage >= 80) setGradeFeedback('Great job! Keep up the consistent effort.');
+                                                                    else if (percentage >= 75) setGradeFeedback('Good work! Solid understanding of the concepts.');
+                                                                    else if (percentage >= 70) setGradeFeedback('Satisfactory effort. Try to focus more on the requirements.');
+                                                                    else if (percentage >= 65) setGradeFeedback('Average work. Needs more attention and focus.');
+                                                                    else if (percentage >= 60) setGradeFeedback('Below expectations. Please review the instructions carefully.');
+                                                                    else setGradeFeedback("Poor performance. Let's work on the basics and improve.");
+                                                                }
+                                                            }}
                                                             className="w-full px-4 py-2 text-sm border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 font-bold"
                                                             max={selectedAssignment.totalMarks}
                                                             required
@@ -1379,11 +1413,89 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                     )}
                 </div>
             </Modal>
+
+            {/* Review Grades Modal */}
+            <Modal
+                isOpen={isReviewModalOpen}
+                onClose={() => { setIsReviewModalOpen(false); setReviewAssignment(null); }}
+                title={`Review Grades: ${reviewAssignment?.title}`}
+                size="xl"
+            >
+                <div className="space-y-4 max-h-[65vh] overflow-y-auto py-2 pr-2">
+                    {reviewAssignment?.submissions && reviewAssignment.submissions.filter(s => s.status === 'graded').length > 0 ? (
+                        reviewAssignment.submissions
+                            .filter(s => s.status === 'graded')
+                            .sort((a, b) => (b.marks || 0) - (a.marks || 0))
+                            .map((submission, idx) => {
+                                const percentage = reviewAssignment.totalMarks > 0
+                                    ? Math.round((submission.marks / reviewAssignment.totalMarks) * 100)
+                                    : 0;
+                                const feedback = submission.feedback || getAutomaticFeedback(percentage);
+                                const isPass = percentage >= 50;
+                                return (
+                                    <div key={submission._id} className="bg-gray-50 rounded-2xl border border-gray-100 overflow-hidden">
+                                        <div className="flex items-center justify-between p-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-black text-sm border-2 border-white shadow-sm shrink-0">
+                                                    {idx + 1}
+                                                </div>
+                                                {submission.user?.photo ? (
+                                                    <img src={submission.user.photo} alt="" className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm" />
+                                                ) : (
+                                                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-black text-sm border-2 border-white shadow-sm">
+                                                        {submission.user?.name?.charAt(0)}
+                                                    </div>
+                                                )}
+                                                <div>
+                                                    <div className="flex items-center gap-2 flex-wrap">
+                                                        <span className="font-black text-gray-900 text-sm">{submission.user?.name}</span>
+                                                        {submission.user?.rollNo && (
+                                                            <span className="text-[10px] font-black text-red-500 bg-red-50 px-2 py-0.5 rounded-lg border border-red-100 uppercase">
+                                                                {submission.user.rollNo}
+                                                            </span>
+                                                        )}
+                                                        <span className={`text-[9px] font-black px-2 py-0.5 rounded-full border uppercase ${submission.user?.role === 'intern' ? 'bg-purple-50 text-primary border-primary/10' : 'bg-blue-50 text-blue-600 border-blue-100'}`}>
+                                                            {submission.user?.role || 'student'}
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-[11px] text-gray-400 font-medium mt-0.5">{formatDateTime(submission.submittedAt)}</p>
+                                                </div>
+                                            </div>
+                                            <div className="text-right shrink-0">
+                                                <span className={`text-[10px] font-black px-3 py-1 rounded-full border ${isPass ? 'bg-green-50 text-green-600 border-green-100' : 'bg-red-50 text-red-500 border-red-100'}`}>
+                                                    {isPass ? 'PASSED' : 'FAILED'}
+                                                </span>
+                                                <p className="text-2xl font-black text-primary mt-1 leading-none">
+                                                    {submission.marks}<span className="text-sm opacity-50">/{reviewAssignment.totalMarks}</span>
+                                                </p>
+                                                <p className="text-[10px] font-black text-gray-400 mt-0.5">{percentage}%</p>
+                                            </div>
+                                        </div>
+                                        <div className="px-4 pb-4 pt-2 border-t border-gray-100 bg-white/60">
+                                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Teacher Feedback</p>
+                                            <p className="text-xs font-medium text-gray-600 italic">"{feedback}"</p>
+                                        </div>
+                                    </div>
+                                );
+                            })
+                    ) : (
+                        <div className="text-center py-12">
+                            <div className="w-16 h-16 rounded-full bg-gray-50 flex items-center justify-center mx-auto mb-4 border border-dashed border-gray-200">
+                                <Users className="w-8 h-8 text-gray-300" />
+                            </div>
+                            <h4 className="text-lg font-bold text-gray-900 uppercase">No Graded Submissions</h4>
+                            <p className="text-xs text-gray-500 mt-1">Grade some submissions first to review them here.</p>
+                        </div>
+                    )}
+                </div>
+            </Modal>
         </div>
     );
 };
 
 export default AssignmentsTab;
+
+
 
 
 

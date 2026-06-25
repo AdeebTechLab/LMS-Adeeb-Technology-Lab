@@ -1,13 +1,25 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-    Zap, Clock, CheckCircle, FileText, 
+    Zap, Clock, CheckCircle, FileText, XCircle,
     ChevronRight, AlertCircle, PlayCircle, Award, X
 } from 'lucide-react';
 import Loader, { ButtonLoader } from '../../../components/ui/Loader';
 import { testAPI } from '../../../services/api';
 import Badge from '../../../components/ui/Badge';
 import { formatDate } from '../../../utils/dateFormatter';
+
+const getAutomaticFeedback = (percentage) => {
+    if (!percentage || isNaN(percentage)) return '-';
+    if (percentage >= 90) return "Excellent! Perfect execution and great attention to detail. Keep it up!";
+    if (percentage >= 85) return "Outstanding effort! Very well done.";
+    if (percentage >= 80) return "Great job! Keep up the consistent effort.";
+    if (percentage >= 75) return "Good work! Solid understanding of the concepts.";
+    if (percentage >= 70) return "Satisfactory effort. Try to focus more on the requirements.";
+    if (percentage >= 65) return "Average work. Needs more attention and focus.";
+    if (percentage >= 60) return "Below expectations. Please review the instructions carefully.";
+    return "Poor performance. Let's work on the basics and improve.";
+};
 
 const StudentTestsTab = ({ courseId, isRestricted }) => {
     const [tests, setTests] = useState([]);
@@ -218,6 +230,7 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
             setShuffledQuestions(processedQuestions);
             setSelectedTest(test);
             setIsTakingTest(true);
+            document.body.setAttribute('data-taking-test', 'true');
             setTimeLeft((test.duration || 30) * 60);
             setAnswers({});
             setCurrentQuestionIndex(0);
@@ -310,50 +323,65 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-6">
-                        <div className="hidden sm:flex flex-col items-end">
-                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Status</span>
-                            <span className="text-[10px] font-black text-primary uppercase leading-none">In Progress</span>
-                        </div>
+                    <div className="flex items-center gap-2">
+                        {/* Only Finish Button - always visible */}
+                        <button
+                            onClick={handleSubmitTest}
+                            disabled={isSubmitting || Object.keys(answers).length < shuffledQuestions.length}
+                            className={`px-5 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center gap-2 ${
+                                Object.keys(answers).length < shuffledQuestions.length
+                                ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                                : 'bg-slate-900 text-white hover:bg-black shadow-lg'
+                            }`}
+                        >
+                            <ButtonLoader isLoading={isSubmitting} icon={<CheckCircle className="w-3.5 h-3.5" />}>
+                                Finish Test
+                            </ButtonLoader>
+                        </button>
                     </div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-4 sm:p-6 flex flex-col items-center no-scrollbar">
-                    <div className="max-w-4xl w-full py-4">
-                        {/* Progress and Label */}
-                        <div className="flex flex-col items-center space-y-1.5 mb-6">
-                            <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em]">Progress</span>
-                            <div className="flex items-center gap-3 w-full">
-                                <div className="flex-1 h-2 bg-slate-100 dark:bg-slate-800/50 rounded-full overflow-hidden p-0.5 border border-white dark:border-white/5 shadow-inner">
-                                    <motion.div 
-                                        initial={{ width: 0 }}
-                                        animate={{ width: `${progress}%` }}
-                                        className="h-full bg-gradient-to-r from-primary to-[#ffa534] rounded-full shadow-lg"
-                                    />
-                                </div>
+                <div className="flex-1 overflow-hidden flex flex-row">
+
+                    {/* Left Sidebar: Question Numbers */}
+                    <div className="w-16 sm:w-20 shrink-0 overflow-y-auto no-scrollbar bg-slate-50 dark:bg-[#1a1f2e] border-r-2 border-slate-200 dark:border-white/5 py-4 flex flex-col items-center gap-2">
+                        <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1">Q#</span>
+                        {shuffledQuestions.map((_, i) => (
+                            <button
+                                key={i}
+                                onClick={() => {
+                                    setDirection(i > currentQuestionIndex ? 1 : -1);
+                                    setCurrentQuestionIndex(i);
+                                }}
+                                className={`w-10 h-10 rounded-xl font-black text-sm transition-all border-2 ${
+                                    currentQuestionIndex === i
+                                    ? 'bg-primary border-primary text-white shadow-xl shadow-primary/30 scale-110 z-10'
+                                    : answers[shuffledQuestions[i]._id] !== undefined
+                                    ? 'bg-primary/10 border-primary/30 text-primary font-black'
+                                    : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-white/5 text-slate-500 dark:text-slate-600 hover:border-primary/30 hover:text-primary dark:hover:border-white/10'
+                                }`}
+                            >
+                                {i + 1}
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* Right: Progress + Question Content */}
+                    <div className="flex-1 overflow-y-auto p-4 sm:p-6 flex flex-col no-scrollbar">
+
+                        {/* Progress Bar - Full Width */}
+                        <div className="flex flex-col space-y-1.5 mb-6 w-full">
+                            <div className="flex items-center justify-between">
+                                <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em]">Progress</span>
                                 <span className="text-[10px] font-black text-slate-800 dark:text-slate-200 tabular-nums">{Math.round(progress)}%</span>
                             </div>
-                        </div>
-
-                        <div className="bg-white dark:bg-[#1a1f2e] p-2.5 rounded-2xl border-2 border-slate-50 dark:border-white/5 flex flex-wrap gap-2 justify-center shadow-sm mb-8">
-                            {shuffledQuestions.map((_, i) => (
-                                <button
-                                    key={i}
-                                    onClick={() => {
-                                        setDirection(i > currentQuestionIndex ? 1 : -1);
-                                        setCurrentQuestionIndex(i);
-                                    }}
-                                    className={`w-10 h-10 rounded-xl font-black text-xs transition-all border-2 ${
-                                        currentQuestionIndex === i
-                                        ? 'bg-primary border-primary text-white shadow-xl shadow-primary/10 scale-110 z-10'
-                                        : answers[shuffledQuestions[i]._id] !== undefined
-                                        ? 'bg-primary/5 border-primary/10 text-primary'
-                                        : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-white/5 text-slate-300 dark:text-slate-600 hover:border-slate-200 dark:hover:border-white/10'
-                                    }`}
-                                >
-                                    {i + 1}
-                                </button>
-                            ))}
+                            <div className="w-full h-2.5 bg-slate-100 dark:bg-slate-800/50 rounded-full overflow-hidden border border-white dark:border-white/5 shadow-inner">
+                                <motion.div 
+                                    initial={{ width: 0 }}
+                                    animate={{ width: `${progress}%` }}
+                                    className="h-full bg-gradient-to-r from-primary to-[#ffa534] rounded-full shadow-lg"
+                                />
+                            </div>
                         </div>
 
                         <AnimatePresence mode="wait" custom={direction}>
@@ -367,7 +395,7 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
                                     x: { type: "spring", stiffness: 100, damping: 20 },
                                     opacity: { duration: 0.5 }
                                 }}
-                                className="bg-white dark:bg-[#1a1f2e] p-8 sm:p-12 rounded-[3rem] border-2 border-primary/10 dark:border-white/5 shadow-xl shadow-primary/10/20 space-y-10 relative overflow-hidden"
+                                className="bg-white dark:bg-[#1a1f2e] p-6 sm:p-10 rounded-[2.5rem] border-2 border-primary/10 dark:border-white/5 shadow-xl shadow-primary/10/20 space-y-8 relative overflow-hidden"
                             >
                                 {/* Background Accent */}
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 dark:bg-primary/10 rounded-bl-[5rem] -mr-10 -mt-10" />
@@ -386,74 +414,27 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
                                         <button
                                             key={oIdx}
                                             onClick={() => setAnswers({...answers, [currentQuestion._id]: opt.originalIndex})}
-                                            className={`group p-5 rounded-[2rem] text-left border-2 transition-all flex items-center gap-6 ${
+                                            className={`group p-5 rounded-2xl text-left border-2 transition-all flex items-center gap-6 ${
                                                 answers[currentQuestion._id] === opt.originalIndex
-                                                ? 'border-primary bg-white dark:bg-slate-800 shadow-xl shadow-primary/10/50 translate-x-2'
-                                                : 'border-slate-50 dark:border-white/5 bg-slate-50/50 dark:bg-white/5 hover:border-primary/10 hover:bg-white dark:hover:bg-slate-800 hover:translate-x-1'
+                                                ? 'border-primary bg-primary/5 dark:bg-slate-800 shadow-xl shadow-primary/20 translate-x-2'
+                                                : 'border-slate-200 dark:border-white/5 bg-white dark:bg-white/5 hover:border-primary/40 hover:bg-primary/5 dark:hover:bg-slate-800 hover:translate-x-1 hover:shadow-md'
                                             }`}
                                         >
-                                            <div className={`w-10 h-10 shrink-0 rounded-2xl border-2 flex items-center justify-center font-black text-base transition-all ${
+                                            <div className={`w-10 h-10 shrink-0 rounded-xl border-2 flex items-center justify-center font-black text-base transition-all ${
                                                 answers[currentQuestion._id] === opt.originalIndex
                                                 ? 'bg-primary border-primary text-white shadow-lg shadow-orange-200'
-                                                : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-white/10 text-slate-400 group-hover:border-primary/5 group-hover:text-primary'
+                                                : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-white/10 text-slate-600 group-hover:border-primary/40 group-hover:text-primary group-hover:bg-primary/5'
                                             }`}>
                                                 {String.fromCharCode(65 + oIdx)}
                                             </div>
                                             <span className={`text-lg font-bold transition-colors ${
-                                                answers[currentQuestion._id] === opt.originalIndex ? 'text-slate-900 dark:text-white' : 'text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white'
+                                                answers[currentQuestion._id] === opt.originalIndex ? 'text-slate-900 dark:text-white' : 'text-slate-700 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white'
                                             }`}>{opt.text}</span>
                                         </button>
                                     ))}
                                 </div>
                             </motion.div>
                         </AnimatePresence>
-                    </div>
-                </div>
-
-                {/* Footer Navigation */}
-                <div className="shrink-0 p-4 bg-white dark:bg-[#1a1f2e] border-t dark:border-white/5 flex items-center justify-center">
-                    <div className="max-w-4xl w-full flex items-center justify-between">
-                        <button 
-                            disabled={currentQuestionIndex === 0}
-                            onClick={() => {
-                                setDirection(-1);
-                                setCurrentQuestionIndex(prev => prev - 1);
-                            }}
-                            className="flex items-center gap-2 px-6 py-3 rounded-xl font-black text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-widest hover:bg-slate-50 dark:hover:bg-slate-800 transition-all disabled:opacity-0"
-                        >
-                            <ChevronRight className="w-4 h-4 rotate-180" />
-                            Previous
-                        </button>
-
-                        {currentQuestionIndex === shuffledQuestions.length - 1 ? (
-                            <button
-                                onClick={handleSubmitTest}
-                                disabled={isSubmitting || Object.keys(answers).length < shuffledQuestions.length}
-                                className={`px-8 py-3 rounded-xl font-black text-xs uppercase tracking-widest transition-all shadow-lg flex items-center gap-3 group ${
-                                    Object.keys(answers).length < shuffledQuestions.length
-                                    ? 'bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed shadow-none'
-                                    : 'bg-slate-900 dark:bg-primary text-white hover:bg-black dark:hover:bg-primary-dark'
-                                }`}
-                            >
-                                <ButtonLoader
-                                    isLoading={isSubmitting}
-                                    icon={<CheckCircle className="w-4 h-4" />}
-                                >
-                                    Finish Test
-                                </ButtonLoader>
-                            </button>
-                        ) : (
-                            <button 
-                                onClick={() => {
-                                    setDirection(1);
-                                    setCurrentQuestionIndex(prev => prev + 1);
-                                }}
-                                className="px-8 py-3 bg-primary text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-[#e67e01] transition-all shadow-lg flex items-center gap-3 group"
-                            >
-                                Next Question
-                                <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                            </button>
-                        )}
                     </div>
                 </div>
 
@@ -480,7 +461,7 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
                                 </div>
                             </div>
 
-                            <div className="flex-1 overflow-y-auto p-6 sm:p-12 space-y-8 no-scrollbar bg-slate-50/50 dark:bg-[#0f1117]">
+                            <div className="flex-1 overflow-y-auto p-6 sm:p-12 space-y-8 bg-slate-50/50 dark:bg-[#0f1117]">
                                 <div className="max-w-5xl mx-auto space-y-8 pb-12">
                                     {/* Final Score Card at Top */}
                                     <div className="bg-gradient-to-br from-slate-900 to-slate-800 p-8 sm:p-10 rounded-[3rem] text-center shadow-2xl shadow-slate-200 relative overflow-hidden">
@@ -501,12 +482,23 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
                                                 <span className="text-[10px] font-black text-red-400 uppercase tracking-widest block mb-1">Incorrect</span>
                                                 <span className="text-xl font-black text-white">{(testResult?.questions || []).filter(q => testResult.userAnswers?.[q._id] !== q.correctOption).length}</span>
                                             </div>
+                                            <div className="w-px h-6 bg-slate-700" />
+                                            <div className="text-center">
+                                                <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest block mb-1">Grade</span>
+                                                {(() => {
+                                                    const pct = Math.round((testResult.score / testResult.totalMarks) * 100);
+                                                    const grade = pct >= 90 ? 'A+' : pct >= 85 ? 'A' : pct >= 80 ? 'B+' : pct >= 75 ? 'B' : pct >= 70 ? 'C+' : pct >= 65 ? 'C' : pct >= 60 ? 'D' : 'F';
+                                                    const gradeColor = pct >= 85 ? 'text-emerald-400' : pct >= 75 ? 'text-sky-400' : pct >= 65 ? 'text-yellow-400' : 'text-red-400';
+                                                    return <span className={`text-xl font-black ${gradeColor}`}>{grade}</span>;
+                                                })()}
+                                            </div>
                                         </div>
 
                                         <button 
                                             onClick={() => {
                                                 exitFullscreen();
                                                 setIsTakingTest(false);
+                                                document.body.removeAttribute('data-taking-test');
                                                 setSelectedTest(null);
                                                 setTestResult(null);
                                                 setShowReview(false);
@@ -610,6 +602,28 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
                 </div>
             </div>
 
+            {/* Stats Row */}
+            {tests.length > 0 && (
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    {[
+                        { label: 'Total Tests', icon: FileText, count: tests.length, color: 'text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-800/30' },
+                        { label: 'Completed', icon: CheckCircle, count: tests.filter(t => t.submissions?.[0]).length, color: 'text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-800/30' },
+                        { label: 'Pending', icon: Clock, count: tests.filter(t => !t.submissions?.[0]).length, color: 'text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-800/30' },
+                        { label: 'Passed', icon: Award, count: tests.filter(t => { const s = t.submissions?.[0]; if (!s) return false; const total = t.totalMarks || t.questions?.length || 1; return (s.score / total) >= 0.5; }).length, color: 'text-purple-700 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20 border-purple-100 dark:border-purple-800/30' },
+                    ].map((stat, i) => (
+                        <div key={i} className={`${stat.color} border rounded-2xl p-4 flex items-center justify-between shadow-sm`}>
+                            <div>
+                                <span className="text-[10px] font-black uppercase tracking-widest opacity-70 block mb-1">{stat.label}</span>
+                                <p className="text-2xl font-black leading-none">{stat.count}</p>
+                            </div>
+                            <div className="p-2 rounded-xl bg-white/50 dark:bg-black/20 backdrop-blur-sm">
+                                <stat.icon className="w-5 h-5 opacity-80" />
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
+
             {tests.length === 0 ? (
                 <div className="bg-gray-50 rounded-3xl p-12 text-center border-2 border-dashed border-gray-200">
                     <Zap className="w-12 h-12 text-gray-300 mx-auto mb-4" />
@@ -648,6 +662,7 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
                                 <p className="text-sm text-gray-500 mb-6 line-clamp-2">{test.description || 'No instructions provided'}</p>
                                 
                                 {isCompleted ? (
+                                <div className="space-y-3">
                                     <div className="bg-primary/5 rounded-2xl p-4 border border-primary/10 flex items-center justify-between">
                                         <div className="flex items-center gap-3">
                                             <div className="p-2 bg-white rounded-xl">
@@ -665,6 +680,13 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
                                             </p>
                                         </div>
                                     </div>
+                                    <div className="bg-gray-50 dark:bg-slate-800/50 rounded-2xl p-4 border border-gray-100 dark:border-slate-700">
+                                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Teacher Feedback</p>
+                                        <p className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                                            {getAutomaticFeedback((submission.score / test.totalMarks) * 100)}
+                                        </p>
+                                    </div>
+                                </div>
                                 ) : (
                                     <div className="space-y-4">
                                         <div className="grid grid-cols-2 gap-3">

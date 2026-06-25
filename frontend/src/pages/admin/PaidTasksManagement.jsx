@@ -43,6 +43,29 @@ const PaidTasksManagement = () => {
     });
     const [imagePreviews, setImagePreviews] = useState([]);
 
+    const [galleryOpen, setGalleryOpen] = useState(false);
+    const [galleryImages, setGalleryImages] = useState([]);
+    const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+    const openGallery = (task) => {
+        const imgs = task.images && task.images.length > 0 ? task.images : (task.image ? [task.image] : []);
+        if (imgs.length > 0) {
+            setGalleryImages(imgs);
+            setCurrentImageIndex(0);
+            setGalleryOpen(true);
+        }
+    };
+
+    const nextImage = (e) => {
+        e?.stopPropagation();
+        setCurrentImageIndex((prev) => (prev + 1) % galleryImages.length);
+    };
+
+    const prevImage = (e) => {
+        e?.stopPropagation();
+        setCurrentImageIndex((prev) => (prev === 0 ? galleryImages.length - 1 : prev - 1));
+    };
+
     useEffect(() => {
         const title = (formData.title || '').toLowerCase();
 
@@ -489,19 +512,30 @@ const PaidTasksManagement = () => {
                                         transition={{ delay: index * 0.1 }}
                                         className="bg-white rounded-2xl p-6 border border-gray-100 hover:shadow-lg transition-all"
                                     >
-                                        <div className="flex items-start justify-between mb-4">
-                                            {(() => {
-                                                const IconComponent = getCategoryIcon(task.category);
-                                                return (
-                                                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${getCategoryBg(task.category)}`}>
-                                                        <IconComponent className={`w-6 h-6 ${getCategoryColor(task.category)}`} />
-                                                    </div>
-                                                );
-                                            })()}
-                                            <Badge variant="success"><CheckCircle className="w-3 h-3 mr-1" />Completed</Badge>
+                                        <div className="flex items-start justify-end mb-4">
+                                              <Badge variant="success"><CheckCircle className="w-3 h-3 mr-1" />Completed</Badge>
                                         </div>
 
-                                        <h3 className="font-bold text-gray-900 mb-2">{task.title}</h3>
+                                                                                <h3 className="font-bold text-gray-900 mb-2">{task.title}</h3>
+                                        
+                                        {((task.images && task.images.length > 0) || task.image) && (
+                                            <div 
+                                                className="mb-4 aspect-video rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center cursor-pointer relative group"
+                                                onClick={() => openGallery(task)}
+                                            >
+                                                <img src={task.images && task.images.length > 0 ? task.images[0] : task.image} alt={task.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                                                     <span className="opacity-0 group-hover:opacity-100 bg-white text-gray-900 px-3 py-1.5 rounded-lg text-sm font-medium shadow-lg transition-opacity duration-300">
+                                                        View Pictures
+                                                     </span>
+                                                </div>
+                                                {((task.images && task.images.length > 1)) && (
+                                                    <div className="absolute top-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded-md max-w-max">
+                                                        {task.images.length} images
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
                                         <p className="text-sm text-gray-500 mb-4 line-clamp-2">{task.description}</p>
 
                                         <div className="flex flex-wrap gap-1 mb-4">
@@ -579,16 +613,8 @@ const PaidTasksManagement = () => {
                             transition={{ delay: index * 0.1 }}
                             className={`bg-white rounded-2xl p-6 border border-gray-100 ${task.status === 'assigned' ? 'opacity-95' : ''}`}
                         >
-                            <div className="flex items-start justify-between mb-4">
-                                {(() => {
-                                    const IconComponent = getCategoryIcon(task.category);
-                                    return (
-                                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${getCategoryBg(task.category)}`}>
-                                            <IconComponent className={`w-6 h-6 ${getCategoryColor(task.category)}`} />
-                                        </div>
-                                    );
-                                })()}
-                                <div className="flex flex-wrap items-center justify-end gap-2">
+                            <div className="flex items-start justify-end mb-4">
+                                              <div className="flex flex-wrap items-center justify-end gap-2">
                                     {task.applicants?.length > 0 && (
                                         <button
                                             onClick={() => handleViewApplicants(task)}

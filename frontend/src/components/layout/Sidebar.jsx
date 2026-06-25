@@ -23,6 +23,9 @@ import {
     Bell,
     FolderOpen,
     Zap,
+    CheckCircle,
+    Clock,
+    MessageSquare
 } from 'lucide-react';
 import { logout, loginSuccess } from '../../features/auth/authSlice';
 import { userAPI, authAPI } from '../../services/api';
@@ -237,6 +240,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 { id: 'assignments', labelKey: 'nav.assignments', icon: FileText, path: '/student/assignments', state: { tab: 'assignments' } },
                 { id: 'tests', labelKey: 'nav.myTests', icon: Zap, path: '/student/assignments', state: { tab: 'tests' } },
                 { id: 'marks', labelKey: 'nav.marksSheet', icon: BarChart3, path: '/student/marks' },
+                { id: 'certificates', labelKey: 'Certificates', icon: Award, path: '/student/courses', state: { tab: 'completed' } },
             ],
             intern: [
                 { id: 'dashboard', labelKey: 'nav.dashboard', icon: LayoutDashboard, path: '/intern/dashboard' },
@@ -248,9 +252,15 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 { id: 'assignments', labelKey: 'nav.dailyTask', icon: FileText, path: '/intern/assignments', state: { tab: 'assignments' } },
                 { id: 'tests', labelKey: 'nav.myTests', icon: Zap, path: '/intern/assignments', state: { tab: 'tests' } },
                 { id: 'marks', labelKey: 'nav.marksSheet', icon: BarChart3, path: '/intern/marks' },
+                { id: 'certificates', labelKey: 'Certificates', icon: Award, path: '/intern/courses', state: { tab: 'completed' } },
             ],
-            job: [
-                { id: 'tasks', labelKey: 'nav.paidTasks', icon: Briefcase, path: '/job/tasks' },
+                        job: [
+                { id: 'available', labelKey: 'Available', icon: Briefcase, path: '/job/tasks', state: { tab: 'available' } },
+                { id: 'applied', labelKey: 'Applications', icon: FileText, path: '/job/tasks', state: { tab: 'applied' } },
+                { id: 'assigned', labelKey: 'Assigned', icon: CheckCircle, path: '/job/tasks', state: { tab: 'assigned' } },
+                { id: 'completed', labelKey: 'Completed', icon: Award, path: '/job/tasks', state: { tab: 'completed' } },
+                { id: 'expired', labelKey: 'Expired', icon: Clock, path: '/job/tasks', state: { tab: 'expired' } },
+                { id: 'showcase', labelKey: 'Feedback', icon: MessageSquare, path: '/job/tasks', state: { tab: 'showcase' } },
                 { id: 'profile', labelKey: 'nav.myProfile', icon: User, path: '/job/profile' },
             ],
         };

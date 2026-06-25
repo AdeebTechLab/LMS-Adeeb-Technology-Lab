@@ -514,15 +514,19 @@ const AssignmentSubmission = () => {
 
                                                                 {/* Graded Summary */}
                                                                 {submissionStatus === 'graded' && submissionMarks !== undefined && (
-                                                                    <div className="flex items-center gap-2 px-3 py-2 bg-primary/5 dark:bg-primary/20 rounded-xl border border-primary/10 dark:border-primary/30">
-                                                                        <span className="text-[10px] font-black text-primary uppercase tracking-widest">Score:</span>
-                                                                        <span className="text-sm font-black text-primary">{submissionMarks}/{assignment.totalMarks}</span>
+                                                                    <>
                                                                         {submissionLink && (
-                                                                            <a href={submissionLink} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-[10px] font-black text-blue-600 hover:text-blue-700 bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded-lg border border-blue-100 dark:border-blue-800/30 transition-colors ml-1 uppercase">
-                                                                                <LinkIcon className="w-3 h-3" /> My Work
+                                                                            <a href={submissionLink} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-[10px] font-black text-blue-600 hover:text-blue-700 bg-blue-50 dark:bg-blue-900/20 px-3 py-2 rounded-xl border border-blue-100 dark:border-blue-800/30 transition-colors uppercase">
+                                                                                <LinkIcon className="w-3.5 h-3.5" /> My Work
                                                                             </a>
                                                                         )}
-                                                                    </div>
+                                                                        {submissionFeedback && (
+                                                                            <div className="flex items-start gap-2 px-3 py-2 bg-gray-50 dark:bg-slate-800/50 rounded-xl border border-gray-100 dark:border-slate-700 max-w-[600px]">
+                                                                                <span className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest shrink-0 mt-0.5">Teacher Feedback:</span>
+                                                                                <span className="text-[11px] font-bold text-gray-600 dark:text-gray-300 italic break-words">"{submissionFeedback}"</span>
+                                                                            </div>
+                                                                        )}
+                                                                    </>
                                                                 )}
 
                                                                 {/* Submitted but Pending Grade Summary */}
@@ -538,8 +542,15 @@ const AssignmentSubmission = () => {
                                                                 )}
                                                             </div>
 
-                                                            {/* Action Button on Right */}
-                                                            {(canSubmit || canResubmit) && selectedAssignment?._id !== assignment._id && (
+                                                            {/* Action Button / Graded Score on Right */}
+                                                            <div className="flex items-center gap-4 shrink-0 ml-auto">
+                                                                {submissionStatus === 'graded' && submissionMarks !== undefined && (
+                                                                    <div className="text-right bg-primary/5 px-4 py-2 rounded-2xl border border-primary/10">
+                                                                        <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-1">Score</p>
+                                                                        <p className="text-3xl font-black text-primary leading-none">{submissionMarks}<span className="text-lg opacity-50">/{assignment.totalMarks}</span></p>
+                                                                    </div>
+                                                                )}
+                                                                {(canSubmit || canResubmit) && selectedAssignment?._id !== assignment._id && (
                                                                 <button
                                                                     onClick={() => {
                                                                         setSelectedAssignment(assignment);
@@ -548,10 +559,11 @@ const AssignmentSubmission = () => {
                                                                     }}
                                                                     disabled={isRestricted}
                                                                     className={`px-10 py-3.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all text-white shadow-xl hover:shadow-2xl hover:scale-[1.05] active:scale-95 ${submissionStatus === 'rejected' ? 'bg-red-600 hover:bg-red-700' : canResubmit ? 'bg-blue-600 hover:bg-blue-700' : 'bg-primary hover:bg-[#e67e00]'} disabled:opacity-50`}
-                                                                >
-                                                                    {submissionStatus === 'rejected' ? 'RESUBMIT' : canResubmit ? 'RESUBMIT' : 'SUBMIT WORK'}
-                                                                </button>
-                                                            )}
+                                                                    >
+                                                                        {submissionStatus === 'rejected' ? 'RESUBMIT' : canResubmit ? 'RESUBMIT' : 'SUBMIT WORK'}
+                                                                    </button>
+                                                                )}
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </motion.div>
@@ -602,36 +614,26 @@ const AssignmentSubmission = () => {
                             <div className="space-y-8">
                                     {/* Daily Tasks Filter Stats */}
                                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                                        <button 
-                                            onClick={() => setDailyFilter(dailyFilter === 'all' ? 'all' : 'all')}
-                                            className={`w-full rounded-3xl p-6 border text-center shadow-sm hover:shadow-md transition-all focus:outline-none ${dailyFilter === 'all' ? 'bg-primary/10 border-primary ring-2 ring-primary/20 scale-105' : 'bg-primary/5 border-primary/10 hover:border-primary/30'}`}>
-                                            <p className="text-2xl sm:text-3xl font-black text-primary">{dailyTasks.length}</p>
-                                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Total Classes</p>
-                                        </button>
-                                        <button 
-                                            onClick={() => setDailyFilter(dailyFilter === 'verified' ? 'all' : 'verified')}
-                                            className={`w-full rounded-3xl p-6 border text-center shadow-sm hover:shadow-md transition-all focus:outline-none ${dailyFilter === 'verified' ? 'bg-green-100 dark:bg-green-500/20 border-green-500 ring-2 ring-green-500/20 scale-105' : 'bg-green-50 dark:bg-green-500/10 border-green-100 dark:border-green-500/20 hover:border-green-300'}`}>
-                                            <p className="text-2xl sm:text-3xl font-black text-green-600 dark:text-green-400">
-                                                {dailyTasks.filter(t => t.status === 'verified' || t.status === 'graded').length}
-                                            </p>
-                                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Verified Classes</p>
-                                        </button>
-                                        <button 
-                                            onClick={() => setDailyFilter(dailyFilter === 'pending' ? 'all' : 'pending')}
-                                            className={`w-full rounded-3xl p-6 border text-center shadow-sm hover:shadow-md transition-all focus:outline-none ${dailyFilter === 'pending' ? 'bg-amber-100 dark:bg-amber-500/20 border-amber-500 ring-2 ring-amber-500/20 scale-105' : 'bg-amber-50 dark:bg-amber-500/10 border-amber-100 dark:border-amber-500/20 hover:border-amber-300'}`}>
-                                            <p className="text-2xl sm:text-3xl font-black text-amber-600 dark:text-amber-400">
-                                                {dailyTasks.filter(t => t.status === 'submitted' || t.status === 'pending').length}
-                                            </p>
-                                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Pending Verification</p>
-                                        </button>
-                                        <button 
-                                            onClick={() => setDailyFilter(dailyFilter === 'rejected' ? 'all' : 'rejected')}
-                                            className={`w-full rounded-3xl p-6 border text-center shadow-sm hover:shadow-md transition-all focus:outline-none ${dailyFilter === 'rejected' ? 'bg-red-100 dark:bg-red-500/20 border-red-500 ring-2 ring-red-500/20 scale-105' : 'bg-red-50 dark:bg-red-500/10 border-red-100 dark:border-red-500/20 hover:border-red-300'}`}>
-                                            <p className="text-2xl sm:text-3xl font-black text-red-600 dark:text-red-400">
-                                                {dailyTasks.filter(t => t.status === 'rejected').length}
-                                            </p>
-                                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Rejected Classes</p>
-                                        </button>
+                                        {[
+                                            { id: 'all', label: 'Total Classes', icon: BookOpen, count: dailyTasks.length, color: 'text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-800/30', activeColor: 'ring-4 ring-blue-500/20 bg-blue-100 dark:bg-blue-900/40 border-blue-400 scale-105' },
+                                            { id: 'verified', label: 'Verified Classes', icon: CheckCircle, count: dailyTasks.filter(t => t.status === 'verified' || t.status === 'graded').length, color: 'text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-800/30', activeColor: 'ring-4 ring-emerald-500/20 bg-emerald-100 dark:bg-emerald-900/40 border-emerald-400 scale-105' },
+                                            { id: 'pending', label: 'Pending Verification', icon: Clock, count: dailyTasks.filter(t => t.status === 'submitted' || t.status === 'pending').length, color: 'text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-800/30', activeColor: 'ring-4 ring-amber-500/20 bg-amber-100 dark:bg-amber-900/40 border-amber-400 scale-105' },
+                                            { id: 'rejected', label: 'Rejected Classes', icon: XCircle, count: dailyTasks.filter(t => t.status === 'rejected').length, color: 'text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border-red-100 dark:border-red-800/30', activeColor: 'ring-4 ring-red-500/20 bg-red-100 dark:bg-red-900/40 border-red-400 scale-105' },
+                                        ].map((stat) => (
+                                            <button
+                                                key={stat.id}
+                                                onClick={() => setDailyFilter(stat.id === dailyFilter ? 'all' : stat.id)}
+                                                className={`${stat.color} ${dailyFilter === stat.id ? stat.activeColor : 'border hover:scale-105'} rounded-2xl p-4 flex items-center justify-between shadow-sm text-left transition-all focus:outline-none`}
+                                            >
+                                                <div>
+                                                    <span className="text-[10px] font-black uppercase tracking-widest opacity-70 block mb-1">{stat.label}</span>
+                                                    <p className="text-2xl font-black leading-none">{stat.count}</p>
+                                                </div>
+                                                <div className="p-2 rounded-xl bg-white/50 dark:bg-black/20 backdrop-blur-sm">
+                                                    <stat.icon className="w-5 h-5 opacity-80" />
+                                                </div>
+                                            </button>
+                                        ))}
                                     </div>
 
                                 <div className="bg-white dark:bg-slate-900/40 rounded-2xl p-10 border border-gray-100 dark:border-slate-800 shadow-sm">
