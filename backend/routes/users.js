@@ -535,5 +535,26 @@ router.put('/change-password-by-email', protect, authorize('admin'), async (req,
         res.status(500).json({ success: false, message: error.message });
     }
 });
+// @route   PUT /api/users/:id/class-time
+// @desc    Update user class time (admin/teacher only)
+// @access  Private/Admin/Teacher
+router.put('/:id/class-time', protect, authorize('admin', 'teacher'), async (req, res) => {
+    try {
+        const { classTime } = req.body;
+        const user = await User.findByIdAndUpdate(
+            req.params.id,
+            { classTime: classTime || null },
+            { new: true, runValidators: true }
+        ).select('-password');
+        
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+        
+        res.json({ success: true, data: user });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
 
 module.exports = router;

@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Bell, Info, AlertCircle, CheckCircle, CreditCard, FileText, Award, Calendar, Zap, GraduationCap, Megaphone } from 'lucide-react';
-import { notificationAPI } from '../../services/api';
+import { X, Bell, Info, AlertCircle, CheckCircle, CreditCard, FileText, Award, Calendar, Zap, GraduationCap, Megaphone, Clock } from 'lucide-react';
+import { notificationAPI, authAPI } from '../../services/api';
+import { useDispatch } from 'react-redux';
+import { updateUser } from '../../features/auth/authSlice';
 import { useTheme } from '../../context/ThemeContext';
 
 const NotificationPopup = () => {
@@ -12,6 +14,7 @@ const NotificationPopup = () => {
     const { user, role } = useSelector((state) => state.auth);
     const location = useLocation();
     const { isDark } = useTheme();
+    const dispatch = useDispatch();
 
     useEffect(() => {
         // Only show popup on Dashboard or Tasks pages
@@ -19,12 +22,42 @@ const NotificationPopup = () => {
             location.pathname.endsWith('/dashboard') ||
             location.pathname.endsWith('/tasks');
 
-        if (!isDashboardOrTasks || role === 'admin') return;
+        if (!isDashboardOrTasks || role === 'admin' || !user) return;
 
         const fetchActive = async () => {
             try {
+                // Fetch latest user data from server to get updated classTime
+                let latestUser = user;
+                try {
+                    const meRes = await authAPI.getMe();
+                    if (meRes.data?.user) {
+                        latestUser = meRes.data.user;
+                        dispatch(updateUser(latestUser));
+                    }
+                } catch (e) {
+                    console.error("Failed to fetch latest user data", e);
+                }
+
                 const response = await notificationAPI.getActive();
                 const fetched = response.data.data || [];
+                
+                // Inject Class Time Notification using fresh data
+                if (latestUser?.classTime) {
+                    const isIntern = latestUser.role === 'intern';
+                    const classTimeMsg = isIntern
+                        ? `Your designated class time is <strong>${latestUser.classTime}</strong>. Please ensure you are punctual for all your sessions.`
+                        : `Aap ki class ka waqt <strong>${latestUser.classTime}</strong> hai. Meharbani farma kar apni class mein waqt par pahunchein.`;
+                    const classTimeTitle = isIntern ? 'Class Time Assigned' : 'Class Time Muqarrar Ho Gaya';
+                    fetched.unshift({
+                        _id: 'class-time-notice',
+                        title: classTimeTitle,
+                        message: classTimeMsg,
+                        type: 'info',
+                        isHtml: true,
+                        createdAt: new Date().toISOString()
+                    });
+                }
+
                 if (fetched.length > 0) {
                     setActiveNotifications(fetched);
                     setIsVisible(true);
@@ -35,7 +68,7 @@ const NotificationPopup = () => {
         };
 
         fetchActive();
-    }, [location.pathname]);
+    }, [location.pathname, user?.classTime, role]);
 
     const handleDismiss = () => {
         setIsVisible(false);
@@ -198,6 +231,7 @@ const NotificationPopup = () => {
                                     <p className={`text-[10px] md:text-xs font-medium ${isDark ? 'text-gray-300' : 'text-slate-500'}`}>
                                         You have <span className="text-primary font-bold">{activeNotifications.length}</span> {activeNotifications.length === 1 ? 'notification' : 'notifications'} to review
                                     </p>
+
                                 </div>
                             </div>
                             <button

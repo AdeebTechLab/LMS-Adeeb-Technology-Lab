@@ -7,10 +7,19 @@ import {
     Users, Save, AlertCircle, RefreshCw,
     UserCheck, UserX, Clock, Filter, Download, MapPin, GraduationCap
 } from 'lucide-react';
-import { courseAPI, attendanceAPI } from '../../services/api';
+import { courseAPI, attendanceAPI, userAPI, settingsAPI } from '../../services/api';
 import ProfileAvatar from '../../components/ui/ProfileAvatar';
 import Badge from '../../components/ui/Badge';
 import Loader, { ButtonLoader } from '../../components/ui/Loader';
+
+const DEFAULT_CLASS_TIME_OPTIONS = [
+    { label: "Class 1 11AM", value: "Class 1 11AM" },
+    { label: "Class 2 3PM", value: "Class 2 3PM" },
+    { label: "Class 3 5PM", value: "Class 3 5PM" },
+    { label: "Class 3 9PM", value: "Class 3 9PM" }
+];
+
+export { DEFAULT_CLASS_TIME_OPTIONS };
 import { showToast } from '../../utils/customToast';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -57,8 +66,11 @@ const QuickAttendance = () => {
     const [filterStatus, setFilterStatus] = useState(location.state?.initialFilter || 'all');
     const [filterLocation, setFilterLocation] = useState('all');
     const [filterCategory, setFilterCategory] = useState(location.state?.initialCategory || 'all');
+    const [filterAttendType, setFilterAttendType] = useState('all');
+    const [filterClassTime, setFilterClassTime] = useState('all');
     const [courses, setCourses] = useState([]);
     const [holidayDays, setHolidayDays] = useState([]);
+    const [classTimeOptions, setClassTimeOptions] = useState(DEFAULT_CLASS_TIME_OPTIONS);
     const socketRef = useRef(null);
 
     const getSocketURL = () => {
@@ -119,6 +131,15 @@ const QuickAttendance = () => {
             const activeCourses = (coursesRes.data.data || []).filter(c => c.status !== 'inactive');
             setCourses(activeCourses);
 
+            // Fetch class time settings
+            try {
+                const settingsRes = await settingsAPI.getAll();
+                const savedSlots = settingsRes.data.data?.class_time_slots;
+                if (Array.isArray(savedSlots) && savedSlots.length > 0) {
+                    setClassTimeOptions(savedSlots.map(s => ({ label: s, value: s })));
+                }
+            } catch { /* use defaults */ }
+
             // 2. Flatten Students
             const allStudents = [];
             const seen = new Set();
@@ -139,6 +160,7 @@ const QuickAttendance = () => {
                                 audience: course.targetAudience,
                                 location: course.city || course.location || 'N/A',
                                 attendType: e.user?.attendType || 'Physical',
+                                classTime: e.user?.classTime || null,
                                 guardianPhone: e.user?.guardianPhone || '',
                                 lastSeen: e.user?.lastSeen
                             });
@@ -180,6 +202,18 @@ const QuickAttendance = () => {
         }
     };
 
+    const handleClassTimeChange = async (studentId, newTime) => {
+        try {
+            await userAPI.updateClassTime(studentId, newTime);
+            setStudents(prev => prev.map(s => 
+                s.id === studentId ? { ...s, classTime: newTime } : s
+            ));
+            showToast.success('Updated', 'Class time updated successfully');
+        } catch (error) {
+            console.error('Error updating class time:', error);
+            showToast.error('Error', 'Failed to update class time');
+        }
+    };
     const handleMark = async (student, status) => {
         const markKey = `${student.courseId}-${student.id}`;
         const defaultMode = (student.attendType || '').toLowerCase().includes('online') ? 'online' : 'onsite';
@@ -462,6 +496,8 @@ const QuickAttendance = () => {
         const matchesCourse = filterCourse === 'all' || s.courseId === filterCourse;
         const matchesLocation = filterLocation === 'all' || s.location?.toLowerCase() === filterLocation.toLowerCase();
         const matchesCategory = filterCategory === 'all' || s.audience?.toLowerCase() === filterCategory.toLowerCase();
+        const matchesAttendType = filterAttendType === 'all' || s.attendType?.toLowerCase() === filterAttendType.toLowerCase();
+        const matchesClassTime = filterClassTime === 'all' || s.classTime === filterClassTime;
 
         const markKey = `${s.courseId}-${s.id}`;
         const currentData = attendanceMarks[markKey];
@@ -471,7 +507,7 @@ const QuickAttendance = () => {
             (filterStatus === 'absent' && currentMark === 'absent') ||
             (filterStatus === 'not_marked' && !currentMark);
 
-        return matchesSearch && matchesCourse && matchesLocation && matchesCategory && matchesStatus;
+        return matchesSearch && matchesCourse && matchesLocation && matchesCategory && matchesAttendType && matchesClassTime && matchesStatus;
     });
 
     const isDateHoliday = () => {
@@ -546,7 +582,7 @@ const QuickAttendance = () => {
                 </div>
             </div>
 
-            {/* Attendance Progress — top bar */}
+            {/* Attendance Progress â€” top bar */}
             {!isDateHoliday() && (
                 <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-2.5 sm:p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6">
                     <div className="w-full flex-1 min-w-[180px] space-y-1.5">
@@ -690,6 +726,40 @@ const QuickAttendance = () => {
                                 </button>
                             ))}
                         </div>
+
+                        {/* Attend Type Filter - Buttons */}
+                        <div className="flex items-center gap-1.5 bg-gray-50/50 p-0.5 rounded-lg border border-gray-100">
+                            {[
+                                { id: 'all', label: 'All Modes' },
+                                { id: 'physical', label: 'Onsite' },
+                                { id: 'online', label: 'Online' }
+                            ].map(type => (
+                                <button
+                                    key={type.id}
+                                    onClick={() => setFilterAttendType(type.id)}
+                                    className={`px-2 py-1 rounded-md text-[8px] font-black uppercase tracking-wider transition-all ${filterAttendType === type.id
+                                        ? 'bg-primary text-white shadow-md'
+                                        : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+                                        }`}
+                                >
+                                    {type.label}
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* Class Time Filter */}
+                        <div className="flex items-center gap-1.5 bg-gray-50/50 p-0.5 rounded-lg border border-gray-100">
+                            <select
+                                value={filterClassTime}
+                                onChange={(e) => setFilterClassTime(e.target.value)}
+                                className="px-2 py-1 rounded-md text-[10px] font-bold text-gray-700 bg-transparent border-none focus:ring-0 outline-none w-32 cursor-pointer max-w-[150px] truncate"
+                            >
+                                <option value="all">All Times</option>
+                                {classTimeOptions.map(opt => (
+                                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                ))}
+                            </select>
+                        </div>
                     </div>
                 </div>
 
@@ -743,7 +813,7 @@ const QuickAttendance = () => {
                                 <th className="px-1.5 py-2 text-[9px] font-black text-white/90 uppercase tracking-tighter min-w-[100px]">Course</th>
                                 <th className="hidden sm:table-cell px-1.5 py-2 text-[9px] font-black text-white/90 uppercase tracking-tighter whitespace-nowrap">Location</th>
                                 <th className="hidden sm:table-cell px-1.5 py-2 text-[9px] font-black text-white/90 uppercase tracking-tighter whitespace-nowrap">Type</th>
-                                <th className="hidden sm:table-cell px-1.5 py-2 text-[9px] font-black text-white/90 uppercase tracking-tighter whitespace-nowrap">Mode</th>
+                                <th className="hidden sm:table-cell px-1.5 py-2 text-[9px] font-black text-white/90 uppercase tracking-tighter min-w-[120px]">Class Time</th>
                                 <th className="px-2 py-2 text-[9px] font-black text-white/90 uppercase tracking-tighter text-center whitespace-nowrap">Mark</th>
                             </tr>
                         </thead>
@@ -831,10 +901,16 @@ const QuickAttendance = () => {
                                                 </span>
                                             </td>
                                             <td className="hidden sm:table-cell px-1.5 py-1.5">
-                                                {(student.attendType || '').toLowerCase().includes('online')
-                                                    ? <span className="bg-rose-50 text-rose-600 border-rose-200 text-[8px] px-1 py-0.5 rounded-md font-black uppercase tracking-widest border whitespace-nowrap">Remote</span>
-                                                    : <span className="bg-primary/5 text-primary border-primary text-[8px] px-1 py-0.5 rounded-md font-black uppercase tracking-widest border whitespace-nowrap">OnSite</span>
-                                                }
+                                                <select
+                                                    value={student.classTime || ''}
+                                                    onChange={(e) => handleClassTimeChange(student.id, e.target.value)}
+                                                    className="px-1.5 py-1 rounded border border-gray-200 text-[9px] font-bold text-gray-700 bg-white focus:ring-1 focus:ring-primary outline-none max-w-[120px] truncate"
+                                                >
+                                                    <option value="">Unassigned</option>
+                                                    {classTimeOptions.map(opt => (
+                                                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                                    ))}
+                                                </select>
                                             </td>
                                             <td className="px-3 py-1.5">
                                                 <div className="flex items-center justify-center gap-1 flex-nowrap">
@@ -966,6 +1042,7 @@ const QuickAttendance = () => {
 };
 
 export default QuickAttendance;
+
 
 
 

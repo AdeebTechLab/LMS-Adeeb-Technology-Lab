@@ -36,6 +36,7 @@ import JobsManagement from './pages/admin/JobsManagement';
 import NotificationManagement from './pages/admin/NotificationManagement';
 import StudentDirectory from './pages/admin/StudentDirectory';
 import TeacherDirectory from './pages/admin/TeacherDirectory';
+import AttendanceSettings from './pages/admin/AttendanceSettings';
 
 // Teacher Pages (handles both Students and Interns)
 import TeacherProfile from './pages/teacher/TeacherProfile';
@@ -146,6 +147,7 @@ const AppRoutes = () => {
         <Route path="directory" element={<StudentDirectory />} />
         <Route path="teacher-directory" element={<TeacherDirectory />} />
         <Route path="settings" element={<Settings />} />
+        <Route path="attendance-settings" element={<AttendanceSettings />} />
         <Route path="help-support" element={<HelpSupport />} />
       </Route>
 

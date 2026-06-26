@@ -38,7 +38,7 @@ const FeeManagement = () => {
     };
 
     const socketRef = useRef(null);
-    const { user } = useSelector((state) => state.auth);
+    const { user, role } = useSelector((state) => state.auth);
 
     const getSocketURL = () => {
     const rawUrl = import.meta.env.VITE_API_URL || (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1' ? 'https://lms-adeeb-technology-lab.onrender.com/api' : 'http://localhost:5000/api');
@@ -739,7 +739,7 @@ const FeeManagement = () => {
             <Modal
                 isOpen={withdrawModal.open}
                 onClose={() => setWithdrawModal({ ...withdrawModal, open: false })}
-                title="Revoke Course Application"
+                title={role === 'intern' ? 'Remove Skill Application' : 'Remove Course Application'}
                 size="sm"
             >
                 <div className="space-y-4">
@@ -748,8 +748,8 @@ const FeeManagement = () => {
                         <div>
                             <h4 className="font-bold text-red-700 text-sm">Are you sure?</h4>
                             <p className="text-xs text-red-600 mt-1">
-                                You are about to withdraw from <strong>{withdrawModal.courseTitle}</strong>.
-                                This will remove the course and any pending fee records permanently.
+                                You are about to remove <strong>{withdrawModal.courseTitle}</strong>.
+                                This will remove the {role === 'intern' ? 'skill' : 'course'} and any pending fee records permanently.
                             </p>
                         </div>
                     </div>
@@ -765,7 +765,7 @@ const FeeManagement = () => {
                             onClick={confirmWithdraw}
                             className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium"
                         >
-                            Confirm Revoke
+                            Confirm Remove
                         </button>
                     </div>
                 </div>

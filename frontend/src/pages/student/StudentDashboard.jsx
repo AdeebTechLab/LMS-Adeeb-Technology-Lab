@@ -690,7 +690,7 @@ const StudentDashboard = () => {
                                                             className="flex items-center gap-1 text-red-500 hover:text-red-600 hover:bg-red-50 px-2 py-1 rounded transition-colors z-10"
                                                         >
                                                             <Trash2 className="w-3 h-3" />
-                                                            {t('dashboard.revoke')}
+                                                            {role === 'intern' ? 'Remove my Skill' : 'Remove My Course'}
                                                         </button>
                                                     )}
                                                 </div>
@@ -708,15 +708,18 @@ const StudentDashboard = () => {
             <Modal
                 isOpen={withdrawModal.open}
                 onClose={() => setWithdrawModal({ ...withdrawModal, open: false })}
-                title={t('dashboard.revokeTitle')}
+                title={role === 'intern' ? 'Remove Skill Application' : 'Remove Course Application'}
                 size="sm"
             >
                 <div className="space-y-4">
                     <div className="bg-red-50 p-4 rounded-xl flex items-start gap-3">
                         <Trash2 className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                        <div>
+                        <div className="flex-1 mt-0.5">
                             <h4 className="font-bold text-red-700 text-sm">{t('dashboard.areYouSure')}</h4>
-                            <p className="text-xs text-red-600 mt-1" dangerouslySetInnerHTML={{ __html: t('dashboard.revokeWarning', { courseTitle: withdrawModal.courseTitle }) }} />
+                            <p className="text-xs text-red-600 mt-1">
+                                You are about to remove <strong>{withdrawModal.courseTitle}</strong>. 
+                                This will remove the {role === 'intern' ? 'skill' : 'course'} and any pending fee records permanently.
+                            </p>
                         </div>
                     </div>
 
@@ -729,9 +732,9 @@ const StudentDashboard = () => {
                         </button>
                         <button
                             onClick={confirmWithdraw}
-                            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium"
+                            className="w-full sm:w-auto px-6 py-2.5 rounded-xl text-sm font-bold text-white bg-red-600 hover:bg-red-700 active:scale-95 transition-all shadow-sm"
                         >
-                            {t('dashboard.confirmRevoke')}
+                            Confirm Remove
                         </button>
                     </div>
                 </div>

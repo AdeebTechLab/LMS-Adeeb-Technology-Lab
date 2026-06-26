@@ -222,6 +222,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 { id: 'jobs', labelKey: 'nav.freelancers', icon: Briefcase, path: '/admin/jobs', badge: adminPendingCounts.job },
                 { id: 'notifications', labelKey: 'nav.notifications', icon: Bell, path: '/admin/notifications' },
                 { id: 'fees', labelKey: 'nav.feeVerification', icon: CreditCard, path: '/admin/fees', badge: adminPendingCounts.fees },
+                { id: 'attendance-settings', labelKey: 'nav.attendanceSettings', icon: ClipboardList, path: '/admin/attendance-settings' },
             ],
             teacher: [
                 { id: 'dashboard', labelKey: 'nav.dashboard', icon: LayoutDashboard, path: '/teacher/dashboard', submissionBadge: teacherSubmissionCount },

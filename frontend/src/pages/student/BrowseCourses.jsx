@@ -540,21 +540,23 @@ const BrowseCourses = () => {
                                         </button>
                                     )}
                                     {status === 'pending' && (
-                                        <div className="flex gap-2 w-full">
+                                        <div className="flex items-center gap-1.5 ml-2">
                                             {enrollment && (
                                                 <button
                                                     onClick={() => setWithdrawModal({ open: true, enrollmentId: enrollment._id, courseTitle: course.title })}
-                                                    className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors border border-gray-200"
-                                                    title="Revoke Application"
+                                                    className="px-2.5 py-1.5 text-red-500 hover:text-white hover:bg-red-500 rounded-lg transition-colors border border-red-200 hover:border-red-500 flex items-center justify-center gap-1 text-[10px] sm:text-xs font-bold whitespace-nowrap"
+                                                    title={role === 'intern' ? 'Remove my Skill' : 'Remove My Course'}
                                                 >
-                                                    <Trash2 className="w-5 h-5" />
+                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                    <span className="hidden sm:inline">{role === 'intern' ? 'Remove my Skill' : 'Remove My Course'}</span>
+                                                    <span className="sm:hidden">Remove</span>
                                                 </button>
                                             )}
                                             <button
                                                 onClick={() => navigate(`/${role === 'intern' ? 'intern' : 'student'}/fees`)}
-                                                className="flex-1 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-medium transition-all flex items-center justify-center gap-2"
+                                                className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg transition-all flex items-center justify-center gap-1.5 text-xs font-bold whitespace-nowrap shadow-sm"
                                             >
-                                                <Upload className="w-4 h-4" />
+                                                <Upload className="w-3.5 h-3.5" />
                                                 Upload Receipt
                                             </button>
                                         </div>
@@ -664,7 +666,7 @@ const BrowseCourses = () => {
             <Modal
                 isOpen={withdrawModal.open}
                 onClose={() => setWithdrawModal({ ...withdrawModal, open: false })}
-                title="Revoke Course Application"
+                title={role === 'intern' ? 'Remove Skill Application' : 'Revoke Course Application'}
                 size="sm"
             >
                 <div className="space-y-4">
@@ -674,7 +676,7 @@ const BrowseCourses = () => {
                             <h4 className="font-bold text-red-700 text-sm">Are you sure?</h4>
                             <p className="text-xs text-red-600 mt-1">
                                 You are about to withdraw from <strong>{withdrawModal.courseTitle}</strong>.
-                                This will remove the course and any pending fee records permanently.
+                                This will remove the {role === 'intern' ? 'skill' : 'course'} and any pending fee records permanently.
                             </p>
                         </div>
                     </div>

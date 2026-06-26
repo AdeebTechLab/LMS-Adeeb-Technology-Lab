@@ -75,6 +75,7 @@ const userSchema = new mongoose.Schema({
     city: String,
     country: { type: String, default: 'Pakistan' },
     attendType: String, // Physical/Online
+    classTime: String, // E.g., '11:00 AM to 01:00 PM'
     heardAbout: String,
     // Intern academic fields
     degree: String,

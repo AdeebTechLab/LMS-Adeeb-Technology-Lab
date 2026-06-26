@@ -75,6 +75,7 @@ export const userAPI = {
     getPendingCounts: () => api.get('/users/pending-counts'),
     verify: (id) => api.put(`/users/${id}/verify`),
     unverify: (id) => api.put(`/users/${id}/unverify`),
+    updateClassTime: (id, classTime) => api.put(`/users/${id}/class-time`, { classTime }),
     delete: (id) => api.delete(`/users/${id}`),
     update: (id, data) => {
         const config = data instanceof FormData ? { headers: { 'Content-Type': 'multipart/form-data' } } : {};

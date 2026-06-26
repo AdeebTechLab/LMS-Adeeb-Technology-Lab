@@ -33,7 +33,7 @@ import DataTable from '../../components/ui/DataTable';
 import Badge from '../../components/ui/Badge';
 import { BarChart, DoughnutChart } from '../../components/charts/Charts';
 import { statsAPI, feeAPI } from '../../services/api';
-import HolidaySettings from './components/HolidaySettings';
+
 import Loader, { ButtonLoader } from '../../components/ui/Loader';
 import BirthdayWish from '../../components/dashboard/BirthdayWish';
 import { formatDate } from '../../utils/dateFormatter';
@@ -511,7 +511,7 @@ const AdminDashboard = () => {
                     </div>
 
                     {/* Weekly Off Days Settings */}
-                    <HolidaySettings />
+
 
                     {/* Active Users - Online Now */}
                     <div className="bg-white rounded-[2.5rem] p-8 border border-gray-100 shadow-sm mt-6">
