@@ -661,6 +661,8 @@ const StudentsManagement = () => {
         const matchesSearch = (s.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
             (s.email || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
             (s.rollNo || '').includes(searchQuery) ||
+            (s.phone || '').includes(searchQuery) ||
+            (s.guardianPhone || '').includes(searchQuery) ||
             (s.cnic || '').includes(searchQuery);
 
         if (!matchesSearch) return false;
@@ -747,7 +749,7 @@ const StudentsManagement = () => {
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                     <input
                         type="text"
-                        placeholder="Search by name, email, roll no, or CNIC..."
+                        placeholder="Search by name, email, roll no, phone, or CNIC..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-transparent focus:border-primary focus:bg-white rounded-2xl transition-all outline-none text-sm font-medium"
