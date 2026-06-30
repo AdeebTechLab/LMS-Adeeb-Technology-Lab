@@ -249,7 +249,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 { id: 'courses', labelKey: 'nav.mySkills', icon: BookOpen, path: '/intern/courses' },
                 { id: 'fees', labelKey: 'nav.feePayment', icon: CreditCard, path: '/intern/fees' },
                 { id: 'attendance', labelKey: 'nav.myAttendance', icon: Calendar, path: '/intern/assignments', state: { tab: 'attendance' } },
-                { id: 'class-logs', labelKey: 'nav.classLogs', icon: ClipboardList, path: '/intern/assignments', state: { tab: 'daily_tasks' } },
+                { id: 'class-logs', labelKey: 'nav.meetingLogs', icon: ClipboardList, path: '/intern/assignments', state: { tab: 'daily_tasks' } },
                 { id: 'assignments', labelKey: 'nav.dailyTask', icon: FileText, path: '/intern/assignments', state: { tab: 'assignments' } },
                 { id: 'tests', labelKey: 'nav.myTests', icon: Zap, path: '/intern/assignments', state: { tab: 'tests' } },
                 { id: 'marks', labelKey: 'nav.marksSheet', icon: BarChart3, path: '/intern/marks' },

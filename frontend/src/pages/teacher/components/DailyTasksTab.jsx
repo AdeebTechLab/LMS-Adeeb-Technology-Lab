@@ -152,7 +152,7 @@ const DailyTasksTab = ({ course, students = [] }) => {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <h3 className="text-lg font-bold text-gray-900 uppercase italic">
-                    {course.targetAudience === 'interns' ? 'Project Submissions' : 'Class Log Submissions'}
+                    {course.targetAudience === 'interns' ? 'Meeting Log Submissions' : 'Class Log Submissions'}
                 </h3>
                 <button
                     onClick={fetchTasks}
@@ -425,7 +425,7 @@ const DailyTasksTab = ({ course, students = [] }) => {
 
             {/* Grading Modal */}
             {selectedTaskForGrading && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
@@ -435,9 +435,9 @@ const DailyTasksTab = ({ course, students = [] }) => {
                     <motion.div
                         initial={{ opacity: 0, scale: 0.95, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
-                        className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-[2.5rem] shadow-2xl relative z-10 overflow-hidden border border-gray-100 dark:border-slate-800"
+                        className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-[2.5rem] shadow-2xl relative z-10 border border-gray-100 dark:border-slate-800 flex flex-col" style={{ maxHeight: '90vh' }}
                     >
-                        <div className="bg-primary p-8 text-white relative">
+                        <div className="bg-primary p-8 text-white relative rounded-t-[2.5rem]">
                             <button
                                 onClick={() => setSelectedTaskForGrading(null)}
                                 className="absolute top-6 right-6 p-2 hover:bg-white/10 rounded-full transition-colors"
@@ -448,8 +448,9 @@ const DailyTasksTab = ({ course, students = [] }) => {
                             <p className="text-white/70 text-[10px] font-black uppercase tracking-widest">Assign marks and feedback for {selectedTaskForGrading.user?.name}</p>
                         </div>
 
-                        <div className="p-8 space-y-6">
-                            <div className="bg-gray-50 dark:bg-slate-800/50 p-5 rounded-2xl border border-gray-100 dark:border-slate-800 mb-6">
+                        {/* Scrollable Content Area */}
+                        <div className="overflow-y-auto flex-1 p-8 space-y-6">
+                            <div className="bg-gray-50 dark:bg-slate-800/50 p-5 rounded-2xl border border-gray-100 dark:border-slate-800">
                                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Student Log Content</p>
                                 <RichTextContent 
                                     html={selectedTaskForGrading.content} 
@@ -482,22 +483,23 @@ const DailyTasksTab = ({ course, students = [] }) => {
                                     className="w-full px-6 py-4 bg-gray-50 dark:bg-black/20 border-2 border-gray-100 dark:border-slate-800 rounded-2xl outline-none focus:border-primary font-medium text-sm transition-all resize-none"
                                 />
                             </div>
+                        </div>
 
-                            <div className="flex gap-3 pt-4">
-                                <button
-                                    onClick={() => setSelectedTaskForGrading(null)}
-                                    className="flex-1 py-4 px-6 border-2 border-gray-100 dark:border-slate-800 rounded-2xl font-black text-[10px] uppercase tracking-widest text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800 transition-all"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    onClick={() => submitVerification(selectedTaskForGrading._id, 'verified')}
-                                    disabled={isSubmitting}
-                                    className="flex-2 py-4 px-10 bg-primary text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-primary/20 hover:shadow-2xl hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
-                                >
-                                    {isSubmitting ? 'Processing...' : 'Verify & Post Results'}
-                                </button>
-                            </div>
+                        {/* Fixed Bottom Buttons */}
+                        <div className="flex gap-3 px-8 py-5 border-t border-gray-100 dark:border-slate-800 bg-white dark:bg-slate-900 rounded-b-[2.5rem]">
+                            <button
+                                onClick={() => setSelectedTaskForGrading(null)}
+                                className="flex-1 py-4 px-6 border-2 border-gray-100 dark:border-slate-800 rounded-2xl font-black text-[10px] uppercase tracking-widest text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800 transition-all"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={() => submitVerification(selectedTaskForGrading._id, 'verified')}
+                                disabled={isSubmitting}
+                                className="flex-2 py-4 px-10 bg-primary text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-primary/20 hover:shadow-2xl hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
+                            >
+                                {isSubmitting ? 'Processing...' : 'Verify & Post Results'}
+                            </button>
                         </div>
                     </motion.div>
                 </div>

@@ -24,7 +24,8 @@
     "myAttendance": "Attendance",
     "classLogs": "Class Logs",
     "assignments": "Assignments",
-    "dailyTask": "Project",
+    "dailyTask": "Projects",
+    "meetingLogs": "Meeting Logs",
     "myTests": "Tests",
     "marksSheet": "Marks Sheet",
     "mySkills": "Skills"

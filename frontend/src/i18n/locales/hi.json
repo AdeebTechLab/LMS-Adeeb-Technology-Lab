@@ -1,4 +1,4 @@
-﻿{
+{
   "app": {
     "name": "अदीब टेक्नोलॉजी लैब",
     "tagline": "डिजिटल टेक विशेषज्ञ सॉफ्टवेयर हाउस LMS",
@@ -23,7 +23,8 @@
     "myAttendance": "उपस्थिति",
     "classLogs": "कक्षा लॉग",
     "assignments": "असाइनमेंट",
-    "dailyTask": "प्रोजेक्ट",
+    "dailyTask": "प्रोजेक्ट्स",
+    "meetingLogs": "मीटिंग लॉग्स",
     "myTests": "परीक्षण",
     "marksSheet": "अंक पत्र",
     "mySkills": "कौशल"

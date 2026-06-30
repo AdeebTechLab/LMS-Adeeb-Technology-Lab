@@ -199,7 +199,7 @@ const AssignmentSubmission = () => {
     };
 
     const handleDeleteTask = async (taskId) => {
-        if (!window.confirm('Kya aap ye class log delete karna chahte hain?')) return;
+        if (!window.confirm(role === 'intern' ? 'Kya aap ye meeting log delete karna chahte hain?' : 'Kya aap ye class log delete karna chahte hain?')) return;
         setDeletingTaskId(taskId);
         try {
             await dailyTaskAPI.delete(taskId);
@@ -363,8 +363,8 @@ const AssignmentSubmission = () => {
                     {/* Navigation Tabs - Separate Row like Teacher Portal */}
                     <div className="flex items-center gap-2 bg-white dark:bg-slate-900/40 rounded-2xl p-1.5 border border-gray-100 dark:border-slate-800 shadow-sm overflow-x-auto no-scrollbar">
                         {[
-                            { id: 'daily_tasks', label: 'Class Log', icon: ClipboardList },
-                            { id: 'assignments', label: role === 'intern' ? 'Project' : 'Assignments', icon: FileText },
+                            { id: 'daily_tasks', label: role === 'intern' ? 'Meeting logs' : 'Class Log', icon: ClipboardList },
+                            { id: 'assignments', label: role === 'intern' ? 'Projects' : 'Assignments', icon: FileText },
                             { id: 'tests', label: 'Tests', icon: Zap },
                             { id: 'attendance', label: 'Attendance', icon: Calendar },
                             { id: 'chat', label: 'Chat', icon: MessageCircle },
@@ -434,8 +434,8 @@ const AssignmentSubmission = () => {
                                 {filteredAssignments.length === 0 ? (
                                     <div className="bg-white dark:bg-slate-900/40 rounded-2xl p-20 border border-gray-100 dark:border-slate-800 text-center">
                                         <FileText className="w-20 h-20 text-gray-200 mx-auto mb-6" />
-                                        <h3 className="text-2xl font-black text-gray-400 uppercase tracking-widest">No Assignments Found</h3>
-                                        <p className="text-gray-400 font-medium mt-2">Check back later for new tasks</p>
+                                        <h3 className="text-2xl font-black text-gray-400 uppercase tracking-widest">{role === 'intern' ? 'No Projects Found' : 'No Assignments Found'}</h3>
+                                        <p className="text-gray-400 font-medium mt-2">{role === 'intern' ? 'Check back later for new projects' : 'Check back later for new tasks'}</p>
                                     </div>
                                 ) : (
                                     <div className="space-y-6">
@@ -638,7 +638,7 @@ const AssignmentSubmission = () => {
 
                                 <div className="bg-white dark:bg-slate-900/40 rounded-2xl p-10 border border-gray-100 dark:border-slate-800 shadow-sm">
                                     <div className="flex items-center justify-between mb-8">
-                                        <h3 className="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tight">Post Daily Class</h3>
+                                        <h3 className="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tight">{role === 'intern' ? 'Post Daily Meeting Log' : 'Post Daily Class'}</h3>
                                     </div>
                                     <form onSubmit={handleSubmitDailyTask} className="space-y-6">
 
@@ -750,11 +750,11 @@ const AssignmentSubmission = () => {
                                                         {/* Inline edit form */}
                                                         {editingTask?.id === task._id ? (
                                                             <form onSubmit={handleEditTask} className="space-y-3 mb-4 bg-blue-50 dark:bg-blue-900/20 p-4 rounded-2xl border border-blue-100 dark:border-blue-800/30">
-                                                                <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest">Edit Class Log</p>
+                                                                <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest">{role === 'intern' ? 'Edit Meeting Log' : 'Edit Class Log'}</p>
                                                                 <RichTextEditor
                                                                     value={editingTask.content}
                                                                     onChange={(v) => setEditingTask(prev => ({ ...prev, content: v }))}
-                                                                    placeholder="Update your class log..."
+                                                                    placeholder={role === 'intern' ? 'Update your meeting log...' : 'Update your class log...'}
                                                                     minHeight="150px"
                                                                 />
                                                                 <input
