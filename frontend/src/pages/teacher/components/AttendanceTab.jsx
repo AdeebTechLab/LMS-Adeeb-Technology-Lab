@@ -147,7 +147,8 @@ const AttendanceTab = ({ course, students }) => {
         // WHATSAPP POPUP LOGIC (Triggered before await to bypass browser popup blocker)
         if (student && student.guardianPhone) {
             const isIntern = course?.targetAudience === 'interns';
-            const academyName = isIntern ? "Adeeb Technology Lab\nDigital Tech Expert Software House" : "The Computer Courses\nLearn and Earn";
+            const academyName = isIntern ? "Adeeb Technology Lab" : "The Computer Courses";
+            const tagline = isIntern ? "Digital Tech Expert Software House" : "Learn and Earn";
             const campusName = student.location && student.location !== 'N/A' ? student.location : "";
             const dt = new Date().toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
 
@@ -170,12 +171,12 @@ const AttendanceTab = ({ course, students }) => {
             const courseName = sanitize(student.courseName || course?.title || course?.name || '');
             const campusDisplay = sanitize(campusName);
 
-            // Build message with emoji only (no duplicate status text)
-            let headerLine = academyName;
-            if (campusDisplay) headerLine += '\n*Campus:* ' + campusDisplay;
+            // Build header: Academy Name - Campus on line 1, tagline on line 2
+            let firstLine = academyName;
+            if (campusDisplay) firstLine += ' ' + campusDisplay;
 
             const statusIndicator = status === 'present' ? '✅' : (status === 'absent' ? '❌' : '');
-            const message = `*DAILY ATTENDANCE REPORT*\n${headerLine}\n\n*Student:* ${studentName}\n*Course:* ${courseName}\n*Date:* ${dt}\n*Status:* ${status.toUpperCase()} ${statusIndicator}`;
+            const message = `📋 *DAILY ATTENDANCE REPORT*\n${firstLine}\n${tagline}\n\n*Student:* ${studentName}\n*Course:* ${courseName}\n*Date:* ${dt}\n*Status:* ${status.toUpperCase()} ${statusIndicator}`;
 
             // Debug: log plain and encoded message to help diagnose rendering issues
             try {
