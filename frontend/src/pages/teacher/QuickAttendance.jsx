@@ -227,10 +227,12 @@ const QuickAttendance = () => {
 
         // WHATSAPP POPUP LOGIC (Triggered before await to bypass browser popup blocker)
         if (student.guardianPhone) {
-            const academyName = student.audience === 'interns' ? "Adeeb Technology Lab" : "The Computer Courses";
-            const campus = student.location && student.location !== 'N/A' ? `*${student.location}*` : "";
+            const isIntern = student.audience === 'interns';
+            const academyName = isIntern ? "Adeeb Technology Lab\nDigital Tech Expert Software House" : "The Computer Courses\nLearn and Earn";
+            const campus = student.location && student.location !== 'N/A' ? `\n*Campus:* ${student.location}` : "";
             const dt = new Date().toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
-            const message = `*DAILY ATTENDANCE REPORT*\n${academyName} ${campus}\n\nStudent: *${student.name}*\nCourse: *${student.courseName}*\nDate: ${dt}\nStatus: *${status.toUpperCase()}*`;
+            const statusIndicator = status === 'present' ? '✅' : (status === 'absent' ? '❌' : '');
+            const message = `*DAILY ATTENDANCE REPORT*\n${academyName}${campus}\n\n*Student:* ${student.name}\n*Course:* ${student.courseName}\n*Date:* ${dt}\n*Status:* ${status.toUpperCase()} ${statusIndicator}`;
             
             const formattedPhone = student.guardianPhone.replace(/\D/g, '');
             let finalPhone = formattedPhone;

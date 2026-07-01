@@ -346,11 +346,11 @@ const AssignmentSubmission = () => {
                             {myCourses.find(c => c._id === selectedCourseId)?.bookLink && (
                                 <button
                                     onClick={() => window.open(myCourses.find(c => c._id === selectedCourseId)?.bookLink, '_blank')}
-                                    className="group relative flex items-center gap-2.5 px-6 py-2.5 rounded-2xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-black uppercase tracking-widest text-xs hover:-translate-y-0.5 active:translate-y-0 transition-all shadow-lg hover:shadow-xl shadow-gray-900/20 dark:shadow-white/20 border border-gray-800 dark:border-gray-200"
+                                    className="group relative flex items-center gap-2.5 px-6 py-2.5 rounded-2xl bg-primary hover:bg-primary/90 text-white font-black uppercase tracking-widest text-xs hover:-translate-y-0.5 active:translate-y-0 transition-all shadow-lg hover:shadow-xl shadow-primary/20 border border-primary/30"
                                     title="Open Course Book"
                                 >
-                                    <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/20 to-primary/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl"></div>
-                                    <div className="bg-white/20 dark:bg-black/10 p-1.5 rounded-lg group-hover:-rotate-12 transition-transform duration-300 relative z-10">
+                                    <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl"></div>
+                                    <div className="bg-white/20 p-1.5 rounded-lg group-hover:-rotate-12 transition-transform duration-300 relative z-10">
                                         <BookOpen className="w-4 h-4" />
                                     </div>
                                     <span className="hidden sm:inline relative z-10">Read Book</span>

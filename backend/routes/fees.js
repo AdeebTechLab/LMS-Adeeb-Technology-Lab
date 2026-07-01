@@ -165,7 +165,17 @@ router.put('/:feeId/installments/:installmentId/verify', protect, authorize('adm
                 await Course.findByIdAndUpdate(fee.course, { $inc: { enrolledCount: 1 } });
             }
             updatedEnrollment.status = 'enrolled';
+            
+            // Mark the array as modified so Mongoose saves the updated verified status
+            updatedEnrollment.markModified('installments');
+            
+            // Re-calculate the active status, but if this is verified, force it active 
+            // so there is no 5-10 minute delay waiting for a cron job to sync statuses.
             updatedEnrollment.updateActiveStatus();
+            
+            // Force active instantly upon any admin verification (overrides any calculation quirks)
+            updatedEnrollment.isActive = true;
+            
             updatedEnrollment.feeStatus = fee.status === 'verified' ? 'verified' : 'partial';
             await updatedEnrollment.save();
         } else {

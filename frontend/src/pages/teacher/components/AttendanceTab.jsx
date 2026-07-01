@@ -146,10 +146,10 @@ const AttendanceTab = ({ course, students }) => {
 
         // WHATSAPP POPUP LOGIC (Triggered before await to bypass browser popup blocker)
         if (student && student.guardianPhone) {
-            const academyName = course?.targetAudience === 'interns' ? "Adeeb Technology Lab" : "The Computer Courses";
+            const isIntern = course?.targetAudience === 'interns';
+            const academyName = isIntern ? "Adeeb Technology Lab\nDigital Tech Expert Software House" : "The Computer Courses\nLearn and Earn";
             const campusName = student.location && student.location !== 'N/A' ? student.location : "";
             const dt = new Date().toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
-            const statusEmoji = status === 'present' ? ' ✅' : ' ❌';
 
             // Sanitize user-provided strings to remove invisible/control characters and asterisks
             const sanitize = (s) => {
@@ -172,9 +172,9 @@ const AttendanceTab = ({ course, students }) => {
 
             // Build message with emoji only (no duplicate status text)
             let headerLine = academyName;
-            if (campusDisplay) headerLine += ' - *' + campusDisplay + '*';
+            if (campusDisplay) headerLine += '\n*Campus:* ' + campusDisplay;
 
-            const statusIndicator = status === 'present' ? '✅' : '❎';
+            const statusIndicator = status === 'present' ? '✅' : (status === 'absent' ? '❌' : '');
             const message = `*DAILY ATTENDANCE REPORT*\n${headerLine}\n\n*Student:* ${studentName}\n*Course:* ${courseName}\n*Date:* ${dt}\n*Status:* ${status.toUpperCase()} ${statusIndicator}`;
 
             // Debug: log plain and encoded message to help diagnose rendering issues
