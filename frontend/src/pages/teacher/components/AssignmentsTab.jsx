@@ -867,12 +867,12 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                 </div>
 
                                 {/* List */}
-                                <div className="border border-gray-200 rounded-xl max-h-48 overflow-y-auto divide-y divide-gray-100 bg-white shadow-inner">
+                                <div className="border border-gray-200 dark:border-white/10 rounded-xl max-h-48 overflow-y-auto divide-y divide-gray-100 dark:divide-white/5 bg-white dark:bg-slate-800 shadow-inner">
                                     {students?.filter(s =>
                                         s.name?.toLowerCase().includes(assignSearchTerm.toLowerCase()) ||
                                         s.rollNo?.toLowerCase().includes(assignSearchTerm.toLowerCase())
                                     ).map(student => (
-                                        <label key={student.id || student._id} className="flex items-center gap-3 p-3 hover:bg-gray-50 cursor-pointer transition-colors">
+                                        <label key={student.id || student._id} className="flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-white/5 cursor-pointer transition-colors">
                                             <input
                                                 type="checkbox"
                                                 checked={newAssignment.assignedUsers?.includes(student.id || student._id)}
@@ -885,7 +885,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                                         setNewAssignment({ ...newAssignment, assignedUsers: current.filter(id => id !== sId) });
                                                     }
                                                 }}
-                                                className="w-4 h-4 rounded text-primary focus:ring-primary border-gray-300"
+                                                className="w-4 h-4 rounded text-primary focus:ring-primary border-gray-300 dark:border-white/20"
                                             />
                                             <div className="flex-1 flex items-center justify-between">
                                                 <div className="flex items-center gap-3">
@@ -897,8 +897,8 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                                         </div>
                                                     )}
                                                     <div>
-                                                        <p className="text-sm font-medium text-gray-900">{student.name}</p>
-                                                        <p className="text-xs text-gray-400">{student.rollNo}</p>
+                                                        <p className="text-sm font-medium text-gray-900 dark:text-white">{student.name}</p>
+                                                        <p className="text-xs text-gray-400 dark:text-gray-400">{student.rollNo}</p>
                                                     </div>
                                                 </div>
                                                 {newAssignment.assignedUsers?.includes(student.id || student._id) && (
@@ -1086,12 +1086,12 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                     </div>
 
                                     {/* List */}
-                                    <div className="border border-gray-200 rounded-xl max-h-48 overflow-y-auto divide-y divide-gray-100 bg-white shadow-inner">
+                                    <div className="border border-gray-200 dark:border-white/10 rounded-xl max-h-48 overflow-y-auto divide-y divide-gray-100 dark:divide-white/5 bg-white dark:bg-slate-800 shadow-inner">
                                         {students?.filter(s =>
                                             s.name?.toLowerCase().includes(assignSearchTerm.toLowerCase()) ||
                                             s.rollNo?.toLowerCase().includes(assignSearchTerm.toLowerCase())
                                         ).map(student => (
-                                            <label key={student.id || student._id} className="flex items-center gap-3 p-3 hover:bg-gray-50 cursor-pointer transition-colors">
+                                            <label key={student.id || student._id} className="flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-white/5 cursor-pointer transition-colors">
                                                 <input
                                                     type="checkbox"
                                                     checked={editingAssignment.assignedUsers?.includes(student.id || student._id)}
@@ -1104,7 +1104,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                                             setEditingAssignment({ ...editingAssignment, assignedUsers: current.filter(id => id !== sId) });
                                                         }
                                                     }}
-                                                    className="w-4 h-4 rounded text-primary focus:ring-primary border-gray-300"
+                                                    className="w-4 h-4 rounded text-primary focus:ring-primary border-gray-300 dark:border-white/20"
                                                 />
                                                 <div className="flex-1 flex items-center justify-between">
                                                     <div className="flex items-center gap-3">
@@ -1116,8 +1116,8 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                                             </div>
                                                         )}
                                                         <div>
-                                                            <p className="text-sm font-medium text-gray-900">{student.name}</p>
-                                                            <p className="text-xs text-gray-400">{student.rollNo}</p>
+                                                            <p className="text-sm font-medium text-gray-900 dark:text-white">{student.name}</p>
+                                                            <p className="text-xs text-gray-400 dark:text-gray-400">{student.rollNo}</p>
                                                         </div>
                                                     </div>
                                                     {editingAssignment.assignedUsers?.includes(student.id || student._id) && (
