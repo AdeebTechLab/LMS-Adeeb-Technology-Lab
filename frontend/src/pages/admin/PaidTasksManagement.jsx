@@ -6,8 +6,9 @@ import {
 import Loader, { ButtonLoader } from '../../components/ui/Loader';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
-import { taskAPI, userNotificationAPI } from '../../services/api';
+import { taskAPI, userNotificationAPI, userAPI } from '../../services/api';
 import { useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import { getCategoryIcon, getCategoryColor, getCategoryBg } from '../../utils/taskCategoryIcons';
 
 const PaidTasksManagement = () => {
@@ -17,6 +18,7 @@ const PaidTasksManagement = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [isFetching, setIsFetching] = useState(true);
     const { user } = useSelector((state) => state.auth);
+    const navigate = useNavigate();
     const [isDeleting, setIsDeleting] = useState(false);
     const [selectedTask, setSelectedTask] = useState(null);
     const [editingTask, setEditingTask] = useState(null);
@@ -28,6 +30,7 @@ const PaidTasksManagement = () => {
     const [editFeedbackData, setEditFeedbackData] = useState({ text: '', rating: 5 });
     const [isSavingFeedback, setIsSavingFeedback] = useState(false);
     const [error, setError] = useState('');
+    const [teachers, setTeachers] = useState([]);
 
     const [formData, setFormData] = useState({
         title: '',
@@ -39,7 +42,8 @@ const PaidTasksManagement = () => {
         type: 'task',
         images: [],
         isLifetime: false,
-        manualStatus: 'none'
+        manualStatus: 'none',
+        jobManagers: []
     });
     const [imagePreviews, setImagePreviews] = useState([]);
 
@@ -119,6 +123,11 @@ const PaidTasksManagement = () => {
     // Fetch tasks on component mount
     useEffect(() => {
         fetchTasks();
+        if (user?.role === 'admin') {
+            userAPI.getByRole('teacher')
+                .then(res => setTeachers(res.data.data || []))
+                .catch(() => setTeachers([]));
+        }
     }, []);
 
     const fetchTasks = async () => {
@@ -129,7 +138,11 @@ const PaidTasksManagement = () => {
                 taskAPI.getAll(),
                 taskAPI.getCompletedShowcase()
             ]);
-            setTasks(allRes.data.data || []);
+            const loadedTasks = allRes.data.data || [];
+            setTasks(user?.role === 'teacher' ? loadedTasks.filter(task => {
+                const managerIds = task.jobManagers?.length ? task.jobManagers.map(manager => manager?._id || manager) : [task.jobManager?._id || task.jobManager || task.createdBy?._id || task.createdBy];
+                return managerIds.some(id => String(id) === String(user?.id || user?._id));
+            }) : loadedTasks);
             setCompletedShowcase(showcaseRes.data.data || []);
         } catch (err) {
             console.error('Error fetching tasks:', err);
@@ -226,7 +239,7 @@ const PaidTasksManagement = () => {
             submitData.append('budget', formData.budget);
             submitData.append('deadline', formData.deadline);
             submitData.append('skills', formData.skills);
-            submitData.append('category', formData.category);
+            if (user?.role === 'admin') formData.jobManagers.forEach(managerId => submitData.append('jobManagers', managerId));
             submitData.append('type', formData.type);
             submitData.append('isLifetime', formData.isLifetime);
             submitData.append('manualStatus', formData.manualStatus);
@@ -248,7 +261,7 @@ const PaidTasksManagement = () => {
             }
             setIsModalOpen(false);
             setEditingTask(null);
-            setFormData({ title: '', description: '', budget: '', deadline: '', skills: '', category: 'web', type: 'task', images: [], isLifetime: false, manualStatus: 'none' });
+            setFormData({ title: '', description: '', budget: '', deadline: '', skills: '', category: 'web', type: 'task', images: [], isLifetime: false, manualStatus: 'none', jobManagers: [] });
             setImagePreviews([]);
             fetchTasks(); // Refresh list
         } catch (err) {
@@ -272,6 +285,7 @@ const PaidTasksManagement = () => {
             images: task.images && task.images.length > 0 ? task.images : (task.image ? [task.image] : []),
             isLifetime: task.isLifetime || false,
             manualStatus: task.manualStatus || 'none',
+            jobManagers: task.jobManagers?.length ? task.jobManagers.map(manager => String(manager?._id || manager)) : (task.jobManager ? [String(task.jobManager?._id || task.jobManager)] : []),
         });
         setImagePreviews(task.images && task.images.length > 0 ? task.images : (task.image ? [task.image] : []));
         setIsModalOpen(true);
@@ -334,10 +348,29 @@ const PaidTasksManagement = () => {
     };
 
     const handleVerifyAndPay = async (taskId) => {
-        if (!window.confirm("ARE YOU SURE? Only proceed if payment is clear. This will mark the task as COMPLETED and signify payment has been sent.")) return;
+        const task = tasks.find(item => item._id === taskId) || selectedTask;
+        const payableUsers = [...new Map((task?.submissions || []).filter(sub => sub.user).map(sub => [String(sub.user._id || sub.user), sub.user])).values()];
+        if (!payableUsers.length) {
+            alert('No submitted users found for payment.');
+            return;
+        }
+
+        const payments = [];
+        for (const payableUser of payableUsers) {
+            const amountInput = window.prompt(`Payment amount for ${payableUser.name || 'this user'} (Rs):`, '');
+            if (amountInput === null) return;
+            const amount = Number(String(amountInput).replace(/,/g, '').trim());
+            if (!Number.isFinite(amount) || amount <= 0) {
+                alert('Please enter a valid payment amount.');
+                return;
+            }
+            payments.push({ userId: payableUser._id || payableUser, amount });
+        }
+
+        if (!window.confirm(`Confirm payment for ${payments.length} submitted user(s)?`)) return;
 
         try {
-            await taskAPI.adminComplete(taskId);
+            await taskAPI.adminComplete(taskId, payments);
             setViewMode(null);
             setSelectedTask(null);
             setActiveTab('completed'); // Switch to completed tab
@@ -372,6 +405,16 @@ const PaidTasksManagement = () => {
         });
     };
 
+    const getLatestApplicants = (task) => {
+        const latestByUser = new Map();
+        (task.applicants || []).forEach(applicant => {
+            const userId = String(applicant.user?._id || applicant.user);
+            const existing = latestByUser.get(userId);
+            if (!existing || (applicant.cycle || 1) >= (existing.cycle || 1)) latestByUser.set(userId, applicant);
+        });
+        return [...latestByUser.values()];
+    };
+
     if (isFetching) {
         return (
             <div className="flex items-center justify-center min-h-[400px]">
@@ -403,9 +446,15 @@ const PaidTasksManagement = () => {
                 </div>
                 <div className="flex items-center gap-3">
                     <button
+                        onClick={() => navigate(`/${user?.role}/job-chat`)}
+                        className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-primary/20 text-primary rounded-xl font-bold text-xs uppercase tracking-widest"
+                    >
+                        <MessageSquare className="w-5 h-5" /> Applicant Chat
+                    </button>
+                    <button
                         onClick={() => {
                             setEditingTask(null);
-                            setFormData({ title: '', description: '', budget: '', deadline: '', skills: '', category: 'web', type: 'task', images: [], isLifetime: false, manualStatus: 'none' });
+                            setFormData({ title: '', description: '', budget: '', deadline: '', skills: '', category: 'web', type: 'task', images: [], isLifetime: false, manualStatus: 'none', jobManagers: [] });
                             setImagePreviews([]);
                             setIsModalOpen(true);
                         }}
@@ -572,21 +621,22 @@ const PaidTasksManagement = () => {
                                                         </div>
                                                     </div>
                                                     <p className="text-sm text-indigo-800 italic mb-3">"{f.text}"</p>
+                                                    <p className="text-xs font-bold text-emerald-600 mb-2">Total Earnings: Rs {Number(f.user?.totalEarnings || 0).toLocaleString()}</p>
                                                     <div className="flex items-center gap-2 pt-2 border-t border-indigo-100">
-                                                        <button
+                                                        {user?.role === 'admin' && <button
                                                             onClick={() => handleEditFeedback(task, f)}
                                                             className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-indigo-600 bg-white hover:bg-indigo-100 rounded-lg border border-indigo-200 transition-all"
                                                         >
                                                             <PenSquare className="w-3 h-3" />
                                                             Edit
-                                                        </button>
-                                                        <button
+                                                        </button>}
+                                                        {user?.role === 'admin' && <button
                                                             onClick={() => handleDeleteFeedback(task._id, f._id)}
                                                             className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-red-600 bg-white hover:bg-red-50 rounded-lg border border-red-200 transition-all"
                                                         >
                                                             <Trash2 className="w-3 h-3" />
                                                             Delete
-                                                        </button>
+                                                        </button>}
                                                     </div>
                                                 </div>
                                             ))}
@@ -615,22 +665,7 @@ const PaidTasksManagement = () => {
                         >
                             <div className="flex items-start justify-end mb-4">
                                               <div className="flex flex-wrap items-center justify-end gap-2">
-                                    {task.applicants?.length > 0 && (
-                                        <button
-                                            onClick={() => handleViewApplicants(task)}
-                                            className="px-2.5 py-1 bg-yellow-400 hover:bg-yellow-500 text-yellow-900 text-xs font-extrabold rounded-lg shadow-sm transition-colors"
-                                        >
-                                            {task.applicants.length} Applicant{task.applicants.length !== 1 ? 's' : ''}
-                                        </button>
-                                    )}
-                                    {hasNewApplicants && (
-                                        <span className="px-2.5 py-1 bg-red-100 text-red-700 border border-red-200 text-xs font-extrabold rounded-lg shadow-sm animate-pulse flex items-center gap-1">
-                                            <AlertCircle className="w-3 h-3" />
-                                            {unassignedApplicantsCount} New!
-                                        </span>
-                                    )}
-                                    <Badge variant={statusConfig.variant}>{statusConfig.label}</Badge>
-                                    <button
+                                    {user?.role === 'admin' && <button
                                         onClick={() => handleDeleteTask(task._id)}
                                         disabled={isDeleting === task._id}
                                         className="px-3 py-1 bg-red-50 text-red-600 hover:bg-red-600 hover:text-white rounded-lg transition-all disabled:opacity-50 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider shadow-sm border border-red-100"
@@ -639,7 +674,7 @@ const PaidTasksManagement = () => {
                                         <ButtonLoader isLoading={isDeleting === task._id} icon={<Trash2 className="w-3 h-3" />}>
                                             Delete
                                         </ButtonLoader>
-                                    </button>
+                                    </button>}
                                     <button
                                         onClick={() => handleEditClick(task)}
                                         className="px-3 py-1 bg-purple-50 text-primary hover:bg-primary hover:text-white rounded-lg transition-all flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider shadow-sm border border-primary/10"
@@ -752,14 +787,14 @@ const PaidTasksManagement = () => {
                                                 <span className="absolute top-0 right-0 -mr-1 -mt-1 w-3 h-3 bg-red-500 rounded-full animate-pulse border-2 border-white"></span>
                                             )}
                                         </button>
-                                        <button
+                                        {user?.role === 'admin' && <button
                                             onClick={() => handleVerifyAndPay(task._id)}
                                             className="px-4 py-2 text-sm font-medium text-primary bg-primary/5 hover:bg-primary/10 rounded-xl flex items-center justify-center gap-1"
                                             title="Complete & Pay Task"
                                         >
                                             <CheckCircle className="w-4 h-4" />
                                             Complete & Pay
-                                        </button>
+                                        </button>}
                                     </div>
                                 )}
                                 {task.status === 'submitted' && (
@@ -779,14 +814,14 @@ const PaidTasksManagement = () => {
                                             <Users className="w-4 h-4" />
                                             Applicants
                                         </button>
-                                        <button
+                                        {user?.role === 'admin' && <button
                                             onClick={() => handleVerifyAndPay(task._id)}
                                             className="px-4 py-2 text-sm font-medium text-primary bg-primary/5 hover:bg-primary/10 rounded-xl flex items-center justify-center gap-1"
                                             title="Complete & Pay Task"
                                         >
                                             <CheckCircle className="w-4 h-4" />
                                             Complete & Pay
-                                        </button>
+                                        </button>}
                                     </div>
                                 )}
                                 {task.status === 'completed' && (
@@ -913,47 +948,58 @@ const PaidTasksManagement = () => {
                                     className="w-full px-4 py-3 border border-gray-200 rounded-xl"
                                 />
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Task Category *</label>
-                                <select
-                                    value={formData.category}
-                                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white"
-                                    required={formData.type !== 'product'}
-                                >
-                            <option value="web">Web Development (General)</option>
-                            <option value="ai">AI (General)</option>
-                            <option value="Web Development">Web Development (Full Stack)</option>
-                            <option value="Web Dev Without Coding">Web Dev Without Coding</option>
-                            <option value="App Development">App Development</option>
-                            <option value="App Dev Without Coding">App Dev Without Coding</option>
-                            <option value="Software Development">Software Development</option>
-                            <option value="Programming">Programming</option>
-                            <option value="Cyber Security">Cyber Security</option>
-                            <option value="Machine learning">Machine learning</option>
-                            <option value="Internet of Thing [IOT]">Internet of Thing [IOT]</option>
-                            <option value="Office Work [IT]">Office Work [IT]</option>
-                            <option value="Freelancing">Freelancing</option>
-                            <option value="Digital Marketing, Ads">Digital Marketing, Ads</option>
-                            <option value="E-Commerce">E-Commerce</option>
-                            <option value="Video Editing">Video Editing</option>
-                            <option value="Graphic Designer">Graphic Designer</option>
-                            <option value="UX/UI Designing">UX/UI Designing</option>
-                            <option value="Youtuber Course">Youtuber Course</option>
-                            <option value="Home Architecture">Home Architecture</option>
-                                <option value="Taxation">Taxation</option>
-                                <option value="Trading">Trading</option>
-                                <option value="Truck Dispatching">Truck Dispatching</option>
-                                <option value="other">Other</option>
-                            </select>
-                        </div>
+                            {user?.role === 'admin' && <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+                                    Assign Teacher <span className="text-red-500">*</span>
+                                </label>
+                                <div className="border border-gray-200 dark:border-gray-700 rounded-xl p-4 max-h-48 overflow-y-auto bg-gray-50 dark:bg-gray-900">
+                                    {teachers.length === 0 ? (
+                                        <p className="text-sm text-gray-400 dark:text-gray-500">No teachers available</p>
+                                    ) : (
+                                        <div className="space-y-2">
+                                            {teachers.map(teacher => {
+                                                const isSelected = formData.jobManagers.some(id => String(id) === String(teacher._id));
+                                                return (
+                                                    <label key={teacher._id} className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-colors ${isSelected ? 'bg-white dark:bg-gray-800 ring-1 ring-primary/30' : 'hover:bg-white dark:hover:bg-gray-800'}`}>
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={isSelected}
+                                                            onChange={(e) => setFormData({
+                                                                ...formData,
+                                                                jobManagers: e.target.checked
+                                                                    ? [...formData.jobManagers, teacher._id]
+                                                                    : formData.jobManagers.filter(id => String(id) !== String(teacher._id))
+                                                            })}
+                                                            className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
+                                                        />
+                                                        {teacher.photo ? (
+                                                            <img src={teacher.photo} alt={teacher.name} className="w-8 h-8 rounded-full object-cover mr-2" />
+                                                        ) : (
+                                                            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-bold mr-2">
+                                                                {teacher.name?.charAt(0)}
+                                                            </div>
+                                                        )}
+                                                        <div className="flex-1 min-w-0">
+                                                            <span className="text-sm font-medium text-gray-700 dark:text-gray-100">{teacher.name}</span>
+                                                            <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">({teacher.specialization || teacher.email})</span>
+                                                        </div>
+                                                    </label>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+                                </div>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                    {formData.jobManagers.length} teacher(s) selected — all selected teachers can edit this job and chat with applicants.
+                                </p>
+                            </div>}
                     </>
                 )}
                     <div className="flex gap-3 pt-4 border-t">
                         <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-3 text-gray-600 hover:bg-gray-100 rounded-xl font-medium">
                             Cancel
                         </button>
-                        <button type="submit" disabled={isLoading} className={`flex-1 py-3 text-white rounded-xl font-medium flex items-center justify-center gap-2 ${formData.type === 'product' ? 'bg-primary hover:bg-primary' : 'bg-primary hover:bg-purple-700'}`}>
+                        <button type="submit" disabled={isLoading || (!editingTask && user?.role === 'admin' && formData.type !== 'product' && formData.jobManagers.length === 0)} className={`flex-1 py-3 text-white rounded-xl font-medium flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed ${formData.type === 'product' ? 'bg-primary hover:bg-primary' : 'bg-primary hover:bg-purple-700'}`}>
                             <ButtonLoader isLoading={isLoading}>
                                 {editingTask ? 'Update ' + (formData.type === 'product' ? 'Item' : 'Task') : 'Create ' + (formData.type === 'product' ? 'Item' : 'Task')}
                             </ButtonLoader>
@@ -977,7 +1023,7 @@ const PaidTasksManagement = () => {
                             </div>
                         ) : (
                             <div className="space-y-4">
-                                {selectedTask.applicants.map((applicant) => {
+                                {getLatestApplicants(selectedTask).map((applicant) => {
                                     const isAssigned = isAssignedTo(selectedTask, applicant.user?._id);
                                     return (
                                         <div key={applicant.user?._id || applicant._id} className={`p-4 rounded-2xl border-2 transition-all ${isAssigned ? 'bg-amber-50 border-amber-200 shadow-sm' : 'bg-white border-gray-100 hover:border-primary/10'}`}>
@@ -1003,6 +1049,7 @@ const PaidTasksManagement = () => {
                                                             {isAssigned && <span className="px-2 py-0.5 bg-amber-100 text-amber-700 text-[10px] font-black uppercase rounded-lg">Assigned</span>}
                                                         </div>
                                                         <p className="text-xs text-gray-500 truncate">{applicant.user?.email}</p>
+                                                        <p className="text-xs font-bold text-emerald-600 mt-1">Total Earnings: Rs {Number(applicant.user?.totalEarnings || 0).toLocaleString()}</p>
                                                         {applicant.user?.rating && (
                                                             <div className="flex items-center gap-1 mt-1">
                                                                 <div className="flex text-amber-500 text-[10px]">
@@ -1016,12 +1063,12 @@ const PaidTasksManagement = () => {
                                                     </div>
                                                 </div>
                                                 <div className="flex items-center gap-2">
-                                                    <button
+                                                    {user?.role === 'admin' && <button
                                                         onClick={() => setViewingProfile(applicant.user)}
                                                         className="flex-1 sm:flex-none px-4 py-2 text-primary bg-purple-50 hover:bg-primary/10 text-xs rounded-xl font-black uppercase tracking-widest transition-all"
                                                     >
                                                         Profile
-                                                    </button>
+                                                    </button>}
                                                     {isAssigned ? (
                                                         <button
                                                             onClick={() => handleUnassignTask(selectedTask._id, applicant.user?._id)}

@@ -28,6 +28,7 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import CourseManagement from './pages/admin/CourseManagement';
 import FeeVerification from './pages/admin/FeeVerification';
 import PaidTasksManagement from './pages/admin/PaidTasksManagement';
+import JobChat from './pages/shared/JobChat';
 import CertificateManagement from './pages/admin/CertificateManagement';
 import TeachersManagement from './pages/admin/TeachersManagement';
 import StudentsManagement from './pages/admin/StudentsManagement';
@@ -137,6 +138,7 @@ const AppRoutes = () => {
         <Route path="dashboard" element={<AdminDashboard />} />
         <Route path="courses" element={<CourseManagement />} />
         <Route path="paid-tasks" element={<PaidTasksManagement />} />
+        <Route path="job-chat" element={<JobChat />} />
         <Route path="certificates" element={<CertificateManagement />} />
         <Route path="students" element={<StudentsManagement />} />
         <Route path="teachers" element={<TeachersManagement />} />
@@ -166,6 +168,8 @@ const AppRoutes = () => {
         <Route path="quick-attendance" element={<QuickAttendance />} />
         <Route path="course/:id" element={<AttendanceSheet />} />
         <Route path="certificates" element={<TeacherCertificates />} />
+        <Route path="jobs" element={<PaidTasksManagement />} />
+        <Route path="job-chat" element={<JobChat />} />
         <Route path="settings" element={<Settings />} />
         <Route path="help-support" element={<HelpSupport />} />
       </Route>
@@ -209,6 +213,7 @@ const AppRoutes = () => {
       >
         <Route index element={<Navigate to="tasks" replace />} />
         <Route path="tasks" element={<BrowseTasks />} />
+        <Route path="job-chat" element={<JobChat />} />
         <Route path="profile" element={<JobProfile />} />
         <Route path="settings" element={<Settings />} />
         <Route path="help-support" element={<HelpSupport />} />

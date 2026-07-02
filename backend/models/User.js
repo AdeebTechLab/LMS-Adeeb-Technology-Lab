@@ -54,6 +54,7 @@ const userSchema = new mongoose.Schema({
     cvUrl: String,
     completedTasks: { type: Number, default: 0 },
     rating: { type: Number, default: 0 },
+    totalEarnings: { type: Number, default: 0 },
     // Location preference
     location: {
         type: String,

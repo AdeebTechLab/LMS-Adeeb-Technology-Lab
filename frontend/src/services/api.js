@@ -202,7 +202,7 @@ export const taskAPI = {
         headers: { 'Content-Type': 'multipart/form-data' }
     }),
     complete: (id) => api.put(`/tasks/${id}/complete`),
-    adminComplete: (id) => api.put(`/tasks/${id}/admin-complete`),
+    adminComplete: (id, payments) => api.put(`/tasks/${id}/admin-complete`, { payments }),
     addFeedback: (id, data) => api.post(`/tasks/${id}/feedback`, data),
     editFeedback: (taskId, feedbackId, data) => api.put(`/tasks/${taskId}/feedback/${feedbackId}`, data),
     deleteFeedback: (taskId, feedbackId) => api.delete(`/tasks/${taskId}/feedback/${feedbackId}`),
@@ -271,7 +271,12 @@ export const chatAPI = {
         return api.get(`/chat/search${params}`);
     },
     markCourseAsRead: (courseId, senderId) => api.put(`/chat/course/${courseId}/read/${senderId}`),
-    clearCourseChat: (courseId, userId) => api.post(`/chat/course/${courseId}/clear/${userId}`)
+    clearCourseChat: (courseId, userId) => api.post(`/chat/course/${courseId}/clear/${userId}`),
+    getJobChats: () => api.get('/chat/job/tasks'),
+    getJobMessages: (taskId, userId) => api.get(`/chat/job/${taskId}/messages/${userId}`),
+    sendJobMessage: (taskId, recipientId, text) => api.post(`/chat/job/${taskId}/send`, { recipientId, text }),
+    markJobChatRead: (taskId, senderId) => api.put(`/chat/job/${taskId}/read/${senderId}`),
+    clearJobChat: (taskId, userId) => api.delete(`/chat/job/${taskId}/messages/${userId}`)
 };
 
 // Stats APIs

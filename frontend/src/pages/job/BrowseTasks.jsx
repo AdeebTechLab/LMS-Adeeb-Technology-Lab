@@ -88,8 +88,30 @@ const BrowseTasks = () => {
     };
 
     // Check if user has applied to a task
+    const getCurrentApplication = (task) => {
+        const userId = String(user?.id || user?._id);
+        return (task.applicants || [])
+            .filter(application => String(application.user?._id || application.user) === userId)
+            .sort((a, b) => (b.cycle || 1) - (a.cycle || 1))[0];
+    };
+
     const hasApplied = (task) => {
-        return task.applicants?.some(a => a.user?._id === user?.id || a.user === user?.id);
+        const application = getCurrentApplication(task);
+        if (!application) return false;
+        if (application.status) return application.status !== 'completed';
+        const hasHistoricalFeedback = task.feedback?.some(feedback => String(feedback.user?._id || feedback.user) === String(user?.id || user?._id));
+        return isAssignedToMe(task) || !hasHistoricalFeedback;
+    };
+
+    const hasCurrentFeedback = (task) => {
+        const cycle = getCurrentApplication(task)?.cycle || 1;
+        return task.feedback?.some(feedback => String(feedback.user?._id || feedback.user) === String(user?.id || user?._id) && (feedback.cycle || 1) === cycle);
+    };
+
+    const getUniqueApplicants = (task) => {
+        const latestByUser = new Map();
+        (task.applicants || []).forEach(applicant => latestByUser.set(String(applicant.user?._id || applicant.user), applicant));
+        return [...latestByUser.values()];
     };
 
     // Check if task is assigned to current user
@@ -108,7 +130,8 @@ const BrowseTasks = () => {
     // Check if I have submitted
     const hasSubmitted = (task) => {
         if (!task.submissions || !Array.isArray(task.submissions)) return false;
-        return task.submissions.some(s => s.user === user?.id || s.user?._id === user?.id);
+        const cycle = getCurrentApplication(task)?.cycle || 1;
+        return task.submissions.some(s => (String(s.user?._id || s.user) === String(user?.id || user?._id)) && (s.cycle || 1) === cycle);
     };
 
     // Check if task deadline has passed
@@ -130,14 +153,12 @@ const BrowseTasks = () => {
         isAssignedToMe(t) &&
         (t.status === 'assigned' ||
             (t.status === 'submitted' && !t.paymentSent) ||
-            (t.status === 'completed' && t.paymentSent && !t.feedback?.some(f => f.user?._id === user?.id || f.user === user?.id)))
+            (t.status === 'completed' && t.paymentSent && !hasCurrentFeedback(t)))
     );
 
     // Get completed tasks (payment received AND feedback submitted)
     const completedTasks = myTasks.filter(t =>
-        isAssignedToMe(t) &&
-        t.paymentSent &&
-        t.feedback?.some(f => f.user?._id === user?.id || f.user === user?.id)
+        t.feedback?.some(f => String(f.user?._id || f.user) === String(user?.id || user?._id))
     );
 
     // Get expired tasks (deadline passed without assignment)
@@ -293,7 +314,7 @@ const BrowseTasks = () => {
                     const submitted = hasSubmitted(task);
                     const isPaid = task.paymentSent && task.status === 'completed';
                     const expired = isExpired(task);
-                    const hasUserFeedback = task.feedback?.some(f => f.user?._id === user?.id || f.user === user?.id);
+                    const hasUserFeedback = hasCurrentFeedback(task);
 
                     return (
                         <motion.div
@@ -447,6 +468,7 @@ const BrowseTasks = () => {
                                                     </div>
                                                 </div>
                                                 <p className="text-sm text-indigo-800 italic">"{f.text}"</p>
+                                                <p className="text-xs font-bold text-emerald-600 mt-1">Total Earnings: Rs {Number(f.user?.totalEarnings || 0).toLocaleString()}</p>
                                                 <div className="flex text-amber-500 text-sm mt-1" aria-label={`${f.rating || 0} out of 5 stars`}>
                                                     {[...Array(5)].map((_, starIndex) => (
                                                         <span key={starIndex}>{starIndex < (f.rating || 0) ? '★' : '☆'}</span>
@@ -461,10 +483,10 @@ const BrowseTasks = () => {
                             {task.applicants?.length > 0 && !expired && activeTab !== 'showcase' && (
                                 <div className="mt-4 pt-4 border-t border-gray-100">
                                     <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">
-                                        Applied Users ({task.applicants.length})
+                                        Applied Users ({getUniqueApplicants(task).length})
                                     </p>
                                     <div className="flex flex-wrap gap-2">
-                                        {task.applicants.map((applicant, applicantIndex) => (
+                                        {getUniqueApplicants(task).map((applicant, applicantIndex) => (
                                             <div
                                                 key={applicant.user?._id || applicantIndex}
                                                 className="flex items-center gap-2 bg-gray-50 border border-gray-100 rounded-full pr-3 py-1 pl-1"
@@ -477,7 +499,7 @@ const BrowseTasks = () => {
                                                     )}
                                                 </div>
                                                 <span className="text-xs font-semibold text-gray-700">
-                                                    {applicant.user?.name || 'Applicant'}
+                                                    {applicant.user?.name || 'Applicant'} · Rs {Number(applicant.user?.totalEarnings || 0).toLocaleString()}
                                                 </span>
                                             </div>
                                         ))}

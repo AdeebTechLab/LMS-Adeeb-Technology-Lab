@@ -21,6 +21,8 @@ router.get('/messages/:otherUserId', protect, async (req, res) => {
         }
 
         const messages = await GlobalMessage.find({
+            course: null,
+            task: null,
             $or: [
                 { sender: myId, recipient: otherId },
                 { sender: otherId, recipient: myId }
@@ -144,6 +146,8 @@ router.get('/conversations', protect, authorize('admin'), async (req, res) => {
         const conversations = await GlobalMessage.aggregate([
             {
                 $match: {
+                    course: null,
+                    task: null,
                     $or: [{ sender: adminId }, { recipient: adminId }]
                 }
             },
@@ -233,7 +237,8 @@ router.get('/unread', protect, async (req, res) => {
         const count = await GlobalMessage.countDocuments({
             recipient: req.user.id,
             isRead: false,
-            course: null
+            course: null,
+            task: null
         });
         res.json({ success: true, count });
     } catch (error) {
@@ -290,6 +295,103 @@ router.post('/action/clear-messages/:userId', protect, authorize('admin'), async
 
 const Enrollment = require('../models/Enrollment');
 const Course = require('../models/Course');
+const PaidTask = require('../models/PaidTask');
+
+// =====================================================
+// JOB-BASED CHAT ROUTES
+// =====================================================
+
+router.get('/job/tasks', protect, authorize('admin', 'teacher', 'job'), async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const query = req.user.role === 'admin'
+            ? { 'applicants.0': { $exists: true } }
+            : req.user.role === 'teacher'
+                ? { $or: [{ jobManagers: userId }, { jobManager: userId }, { jobManagers: { $size: 0 }, jobManager: null, createdBy: userId }], 'applicants.0': { $exists: true } }
+                : { 'applicants.user': userId };
+
+        const tasks = await PaidTask.find(query)
+            .populate('createdBy', 'name photo role')
+            .populate('jobManager', 'name photo role')
+            .populate('jobManagers', 'name photo role')
+            .populate('applicants.user', 'name email photo role')
+            .select('title createdBy jobManager jobManagers applicants status')
+            .sort('-updatedAt');
+
+        const data = await Promise.all(tasks.map(async task => {
+            const managers = task.jobManagers?.length ? task.jobManagers : (task.jobManager ? [task.jobManager] : (task.createdBy ? [task.createdBy] : []));
+            const contacts = req.user.role === 'job'
+                ? managers
+                : task.applicants.map(a => a.user).filter(Boolean);
+            const contactsWithUnread = await Promise.all(contacts.map(async contact => {
+                const unreadQuery = { task: task._id, sender: contact._id, recipient: userId, isRead: false };
+                return {
+                    _id: contact._id,
+                    name: contact.name,
+                    email: contact.email,
+                    photo: contact.photo,
+                    role: contact.role,
+                    unreadCount: await GlobalMessage.countDocuments(unreadQuery)
+                };
+            }));
+            const totalUnread = req.user.role === 'job'
+                ? await GlobalMessage.countDocuments({ task: task._id, recipient: userId, isRead: false })
+                : contactsWithUnread.reduce((n, c) => n + c.unreadCount, 0);
+            return { _id: task._id, title: task.title, status: task.status, contacts: contactsWithUnread, totalUnread };
+        }));
+        res.json({ success: true, data, totalUnread: data.reduce((n, t) => n + t.totalUnread, 0), totalApplicants: data.reduce((n, t) => n + (req.user.role === 'job' ? 0 : t.contacts.length), 0) });
+    } catch (error) { res.status(500).json({ success: false, message: error.message }); }
+});
+
+const canAccessJobChat = async (task, user, otherUserId) => {
+    if (user.role === 'admin') return true;
+    const managerIds = (task.jobManagers?.length ? task.jobManagers : [task.jobManager || task.createdBy]).filter(Boolean).map(String);
+    if (user.role === 'teacher') return managerIds.includes(String(user.id)) && task.applicants.some(a => String(a.user) === String(otherUserId));
+    return user.role === 'job' && task.applicants.some(a => String(a.user) === String(user.id)) && managerIds.includes(String(otherUserId));
+};
+
+router.get('/job/:taskId/messages/:userId', protect, authorize('admin', 'teacher', 'job'), async (req, res) => {
+    try {
+        const task = await PaidTask.findById(req.params.taskId);
+        if (!task || !(await canAccessJobChat(task, req.user, req.params.userId))) return res.status(403).json({ success: false, message: 'Job chat access denied' });
+        const messageQuery = req.user.role === 'job'
+            ? { task: task._id, $or: [{ sender: req.user.id }, { recipient: req.user.id }] }
+            : { task: task._id, $or: [{ sender: req.params.userId }, { recipient: req.params.userId }] };
+        const messages = await GlobalMessage.find(messageQuery).populate('sender recipient', 'name photo role').sort('createdAt');
+        res.json({ success: true, data: messages });
+    } catch (error) { res.status(500).json({ success: false, message: error.message }); }
+});
+
+router.post('/job/:taskId/send', protect, authorize('admin', 'teacher', 'job'), async (req, res) => {
+    try {
+        const { recipientId, text } = req.body;
+        const task = await PaidTask.findById(req.params.taskId);
+        if (!text?.trim() || !task || !(await canAccessJobChat(task, req.user, recipientId))) return res.status(403).json({ success: false, message: 'Job chat access denied' });
+        const message = await GlobalMessage.create({ sender: req.user.id, recipient: recipientId, text: text.trim(), task: task._id });
+        const populated = await GlobalMessage.findById(message._id).populate('sender recipient', 'name photo role');
+        const io = req.app.get('io');
+        if (io) {
+            const payload = { ...populated.toObject(), senderId: req.user.id, recipientId, taskId: String(task._id) };
+            io.to(String(recipientId)).emit('new_global_message', payload);
+            io.to(String(req.user.id)).emit('new_global_message', payload);
+        }
+        res.status(201).json({ success: true, data: populated });
+    } catch (error) { res.status(500).json({ success: false, message: error.message }); }
+});
+
+router.put('/job/:taskId/read/:senderId', protect, async (req, res) => {
+    try {
+        await GlobalMessage.updateMany({ task: req.params.taskId, recipient: req.user.id, isRead: false }, { $set: { isRead: true } });
+        res.json({ success: true });
+    } catch (error) { res.status(500).json({ success: false, message: error.message }); }
+});
+
+router.delete('/job/:taskId/messages/:userId', protect, authorize('admin'), async (req, res) => {
+    try {
+        const result = await GlobalMessage.deleteMany({ task: req.params.taskId, $or: [{ sender: req.params.userId }, { recipient: req.params.userId }] });
+        res.json({ success: true, deletedCount: result.deletedCount });
+    } catch (error) { res.status(500).json({ success: false, message: error.message }); }
+});
 
 // @route   GET /api/chat/course/:courseId/messages/:userId
 // @desc    Get messages in a course between two users

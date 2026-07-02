@@ -59,7 +59,8 @@ const JobProfile = () => {
         joinedAt: user?.createdAt || new Date().toISOString(),
         status: user?.isVerified ? 'Verified' : 'Pending',
         completedTasks: user?.completedTasks || 0,
-        rating: user?.rating || 0
+        rating: user?.rating || 0,
+        totalEarnings: user?.totalEarnings || 0
     });
 
     const [editForm, setEditForm] = useState({ ...profileData });
@@ -96,6 +97,11 @@ const JobProfile = () => {
                 t.submissions?.some(s => s.user?._id === user?._id || s.user === user?._id)
             );
             setMyTasks(userTasks);
+            const userId = String(user?.id || user?._id);
+            const calculatedEarnings = userTasks.reduce((total, task) => total + (task.paymentHistory || []).reduce((sum, payment) => {
+                return String(payment.user?._id || payment.user) === userId ? sum + Number(payment.amount || 0) : sum;
+            }, 0), 0);
+            setProfileData(prev => ({ ...prev, totalEarnings: calculatedEarnings }));
         } catch (error) {
             console.error('Error fetching tasks:', error);
         }
@@ -147,6 +153,7 @@ const JobProfile = () => {
         { label: 'Tasks Applied', value: myTasks.length.toString(), icon: FileText, color: 'bg-blue-100 text-blue-600' },
         { label: 'Completed Tasks', value: profileData.completedTasks.toString(), icon: Award, color: 'bg-primary/10 text-primary' },
         { label: 'Rating', value: profileData.rating > 0 ? profileData.rating.toFixed(1) : 'N/A', icon: Star, color: 'bg-amber-100 text-amber-600' },
+        { label: 'Total Earnings', value: `Rs ${Number(profileData.totalEarnings || 0).toLocaleString()}`, icon: Briefcase, color: 'bg-emerald-100 text-emerald-600' },
     ];
 
     return (

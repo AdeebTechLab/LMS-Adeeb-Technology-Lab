@@ -448,11 +448,11 @@ const ChatWidget = () => {
 
 
 
-            // Skip course-based messages - they're handled by course chat tabs
+            // Skip course/job messages - they have dedicated collaboration screens
 
 
 
-            if (data.course || data.courseId) return;
+            if (data.course || data.courseId || data.task || data.taskId) return;
 
 
 

@@ -10,7 +10,9 @@ const applicantSchema = new mongoose.Schema({
     appliedAt: {
         type: Date,
         default: Date.now
-    }
+    },
+    cycle: { type: Number, default: 1 },
+    status: { type: String, enum: ['applied', 'assigned', 'submitted', 'paid', 'completed'], default: 'applied' }
 });
 
 const paidTaskSchema = new mongoose.Schema({
@@ -85,7 +87,8 @@ const paidTaskSchema = new mongoose.Schema({
         projectLink: String,
         fileUrl: String,
         accountDetails: String,
-        submittedAt: Date
+        submittedAt: Date,
+        cycle: { type: Number, default: 1 }
     }],
     paymentSent: {
         type: Boolean,
@@ -103,15 +106,33 @@ const paidTaskSchema = new mongoose.Schema({
             min: 1,
             max: 5
         },
+        cycle: { type: Number, default: 1 },
+        earning: { type: Number, default: 0 },
         createdAt: {
             type: Date,
             default: Date.now
         }
     }],
+    paymentHistory: [{
+        user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+        amount: { type: Number, required: true, min: 0 },
+        cycle: { type: Number, default: 1 },
+        paidAt: { type: Date, default: Date.now },
+        feedbackSubmitted: { type: Boolean, default: false }
+    }],
     createdBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
-    }
+    },
+    jobManager: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        default: null
+    },
+    jobManagers: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    }]
 }, {
     timestamps: true
 });

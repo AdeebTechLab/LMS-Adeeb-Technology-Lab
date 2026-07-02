@@ -24,10 +24,14 @@ router.get('/', async (req, res) => {
         }
 
         const tasks = await PaidTask.find(query)
+            .populate('createdBy', 'name photo role')
+            .populate('jobManager', 'name email photo role')
+            .populate('jobManagers', 'name email photo role')
             .populate('assignedTo', 'name email photo')
             .populate('submissions.user', 'name email photo')
-            .populate('feedback.user', 'name photo')
-            .populate('applicants.user', 'name email phone skills experience portfolio completedTasks rating cvUrl photo education address city cnic')
+            .populate('feedback.user', 'name photo totalEarnings')
+            .populate('paymentHistory.user', 'name photo totalEarnings')
+            .populate('applicants.user', 'name email phone skills experience portfolio completedTasks rating totalEarnings cvUrl photo education address city cnic')
             .sort('-createdAt');
 
         res.json({ success: true, data: tasks });
@@ -39,7 +43,7 @@ router.get('/', async (req, res) => {
 // @route   POST /api/tasks
 // @desc    Create new task
 // @access  Private (Admin)
-router.post('/', protect, authorize('admin'), uploadSubmission.array('images', 10), async (req, res) => {
+router.post('/', protect, authorize('admin', 'teacher'), uploadSubmission.array('images', 10), async (req, res) => {
     try {
         const bodyData = { ...req.body };
         if (req.files && req.files.length > 0) {
@@ -47,9 +51,18 @@ router.post('/', protect, authorize('admin'), uploadSubmission.array('images', 1
             bodyData.image = bodyData.images[0]; // backward compatibility
         }
 
+        const requestedManagers = bodyData.jobManagers
+            ? (Array.isArray(bodyData.jobManagers) ? bodyData.jobManagers : [bodyData.jobManagers])
+            : (bodyData.jobManager ? [bodyData.jobManager] : []);
+        if (req.user.role === 'admin') {
+            const validTeacherCount = await User.countDocuments({ _id: { $in: requestedManagers }, role: 'teacher' });
+            if (!requestedManagers.length || validTeacherCount !== requestedManagers.length) return res.status(400).json({ success: false, message: 'Please select valid teachers' });
+        }
         const task = await PaidTask.create({
             ...bodyData,
-            createdBy: req.user.id
+            createdBy: req.user.id,
+            jobManager: req.user.role === 'teacher' ? req.user.id : (requestedManagers[0] || null),
+            jobManagers: req.user.role === 'teacher' ? [req.user.id] : requestedManagers
         });
 
         res.status(201).json({ success: true, task });
@@ -61,7 +74,7 @@ router.post('/', protect, authorize('admin'), uploadSubmission.array('images', 1
 // @route   PUT /api/tasks/:id
 // @desc    Update task details
 // @access  Private (Admin)
-router.put('/:id', protect, authorize('admin'), uploadSubmission.array('images', 10), async (req, res) => {
+router.put('/:id', protect, authorize('admin', 'teacher'), uploadSubmission.array('images', 10), async (req, res) => {
     try {
         let task = await PaidTask.findById(req.params.id);
 
@@ -69,7 +82,23 @@ router.put('/:id', protect, authorize('admin'), uploadSubmission.array('images',
             return res.status(404).json({ success: false, message: 'Task not found' });
         }
 
+        const managerIds = (task.jobManagers?.length ? task.jobManagers : [task.jobManager || task.createdBy]).map(String);
+        if (req.user.role === 'teacher' && !managerIds.includes(String(req.user.id))) {
+            return res.status(403).json({ success: false, message: 'Teachers can only edit jobs they created' });
+        }
+
         const bodyData = { ...req.body };
+        if (req.user.role === 'teacher') {
+            delete bodyData.jobManager;
+            delete bodyData.jobManagers;
+        }
+        if (req.user.role === 'admin' && bodyData.jobManagers) {
+            const selectedManagers = Array.isArray(bodyData.jobManagers) ? bodyData.jobManagers : [bodyData.jobManagers];
+            const validTeacherCount = await User.countDocuments({ _id: { $in: selectedManagers }, role: 'teacher' });
+            if (!selectedManagers.length || validTeacherCount !== selectedManagers.length) return res.status(400).json({ success: false, message: 'Please select valid teachers' });
+            bodyData.jobManagers = selectedManagers;
+            bodyData.jobManager = selectedManagers[0];
+        }
         // If old files are kept, client sends them as `oldImages` array or we figure out logic.
         // But for append logic, let's keep it simple: new files replace entirely?
         // Usually frontend sends new files + remaining old URLs inside bodyData.images if they managed it.
@@ -88,10 +117,33 @@ router.put('/:id', protect, authorize('admin'), uploadSubmission.array('images',
             bodyData.image = bodyData.images[0] || '';
         }
 
+        const previousManagerIds = (task.jobManagers?.length ? task.jobManagers : [task.jobManager]).filter(Boolean).map(String);
         task = await PaidTask.findByIdAndUpdate(req.params.id, bodyData, {
             new: true,
             runValidators: true
         });
+
+        const newManagerIds = (task.jobManagers?.length ? task.jobManagers : [task.jobManager]).filter(Boolean).map(String);
+        const newlyAssignedManagers = newManagerIds.filter(id => !previousManagerIds.includes(id));
+        if (req.user.role === 'admin' && newlyAssignedManagers.length) {
+            await Promise.all(newlyAssignedManagers.map(newManagerId => UserNotification.create({
+                user: newManagerId,
+                title: 'Job Assigned to You',
+                message: `You are now managing "${task.title}" and its ${task.applicants?.length || 0} applicant(s).`,
+                type: 'task_assigned',
+                relatedTask: task._id
+            })));
+
+            const io = req.app.get('io');
+            newlyAssignedManagers.forEach(newManagerId => {
+                if (io) io.to(newManagerId).emit('new_browser_notification', {
+                    title: 'Job Assigned to You',
+                    message: `You can now edit "${task.title}" and chat with its applicants.`,
+                    url: '/teacher/jobs'
+                });
+                sendPushNotification(newManagerId, { title: 'New Job to Manage', body: `You can now manage "${task.title}" and its applicants.`, icon: '/logo.png', url: '/teacher/jobs' });
+            });
+        }
 
         res.json({ success: true, task });
     } catch (error) {
@@ -116,26 +168,43 @@ router.post('/:id/apply', protect, authorize('job'), async (req, res) => {
         }
 
         // Check if already applied
-        const alreadyApplied = task.applicants.some(
-            a => a.user.toString() === req.user.id
-        );
+        const userApplications = task.applicants.filter(a => a.user.toString() === req.user.id);
+        const latestApplication = userApplications.sort((a, b) => (b.cycle || 1) - (a.cycle || 1))[0];
+        const alreadyApplied = latestApplication && !['completed'].includes(latestApplication.status);
         if (alreadyApplied) {
             return res.status(400).json({ success: false, message: 'Already applied for this task' });
         }
 
+        const nextCycle = latestApplication ? (latestApplication.cycle || 1) + 1 : 1;
+
         task.applicants.push({
             user: req.user.id,
             message,
-            appliedAt: new Date()
+            appliedAt: new Date(),
+            cycle: nextCycle,
+            status: 'assigned'
         });
+
+        if (!task.assignedTo.some(id => id.toString() === req.user.id)) {
+            task.assignedTo.push(req.user.id);
+        }
+        task.assignedAt = new Date();
+        task.status = 'assigned';
+        task.paymentSent = false;
 
         await task.save();
 
         // Create notification for all admin users
         const admins = await User.find({ role: 'admin' });
-        const notificationPromises = admins.map(admin =>
+        const recipients = [...admins];
+        const managerIdsForNotice = task.jobManagers?.length ? task.jobManagers : [task.jobManager || task.createdBy];
+        const managers = await User.find({ _id: { $in: managerIdsForNotice.filter(Boolean) } });
+        managers.forEach(manager => {
+            if (!recipients.some(u => String(u._id) === String(manager._id))) recipients.push(manager);
+        });
+        const notificationPromises = recipients.map(recipient =>
             UserNotification.create({
-                user: admin._id,
+                user: recipient._id,
                 title: 'New Job Application',
                 message: `${req.user.name} applied for "${task.title}"`,
                 type: 'task_application',
@@ -146,14 +215,14 @@ router.post('/:id/apply', protect, authorize('job'), async (req, res) => {
         await Promise.all(notificationPromises);
         
         // Push Notification for Admins
-        admins.forEach(admin => {
-            sendPushNotification(admin._id.toString(), {
+        recipients.forEach(recipient => {
+            sendPushNotification(recipient._id.toString(), {
                 title: 'New Job Application 💼',
                 body: `${req.user.name} applied for "${task.title}"`,
                 icon: '/logo.png',
                 image: '/logo.png',
                 badge: '/logo.png',
-                url: '/admin/paid-tasks'
+                url: recipient.role === 'teacher' ? '/teacher/jobs' : '/admin/paid-tasks'
             });
         });
 
@@ -165,8 +234,8 @@ router.post('/:id/apply', protect, authorize('job'), async (req, res) => {
 
 // @route   PUT /api/tasks/:id/assign
 // @desc    Assign task to an applicant (can be multiple)
-// @access  Private (Admin)
-router.put('/:id/assign', protect, authorize('admin'), async (req, res) => {
+// @access  Private (Admin or assigned job manager teacher)
+router.put('/:id/assign', protect, authorize('admin', 'teacher'), async (req, res) => {
     try {
         const { userId } = req.body;
         const task = await PaidTask.findById(req.params.id);
@@ -185,6 +254,9 @@ router.put('/:id/assign', protect, authorize('admin'), async (req, res) => {
 
         task.assignedTo.push(userId);
         task.assignedAt = new Date();
+        const assignApplications = task.applicants.filter(applicant => String(applicant.user) === String(userId));
+        const assignApplication = assignApplications.sort((a, b) => (b.cycle || 1) - (a.cycle || 1))[0];
+        if (assignApplication) assignApplication.status = 'assigned';
 
         // Keep status as 'assigned' if at least one person is working on it
         // If it was 'open', change to 'assigned'. If it was already 'assigned', it stays 'assigned'.
@@ -232,8 +304,8 @@ router.put('/:id/assign', protect, authorize('admin'), async (req, res) => {
 
 // @route   PUT /api/tasks/:id/unassign
 // @desc    Unassign task from a user
-// @access  Private (Admin)
-router.put('/:id/unassign', protect, authorize('admin'), async (req, res) => {
+// @access  Private (Admin or assigned job manager teacher)
+router.put('/:id/unassign', protect, authorize('admin', 'teacher'), async (req, res) => {
     try {
         const { userId } = req.body;
         const task = await PaidTask.findById(req.params.id);
@@ -242,11 +314,34 @@ router.put('/:id/unassign', protect, authorize('admin'), async (req, res) => {
             return res.status(404).json({ success: false, message: 'Task not found' });
         }
 
+        if (req.user.role === 'teacher') {
+            const managerIds = (task.jobManagers?.length ? task.jobManagers : [task.jobManager || task.createdBy]).filter(Boolean).map(String);
+            if (!managerIds.includes(String(req.user.id))) {
+                return res.status(403).json({ success: false, message: 'You can only assign users to jobs you manage' });
+            }
+        }
+
+        const isApplicant = (task.applicants || []).some(applicant => String(applicant.user) === String(userId));
+        if (!isApplicant) {
+            return res.status(400).json({ success: false, message: 'Only applicants can be assigned to this job' });
+        }
+
+        if (req.user.role === 'teacher') {
+            const managerIds = (task.jobManagers?.length ? task.jobManagers : [task.jobManager || task.createdBy]).filter(Boolean).map(String);
+            if (!managerIds.includes(String(req.user.id))) {
+                return res.status(403).json({ success: false, message: 'You can only unassign users from jobs you manage' });
+            }
+        }
+
         // Initialize if undefined
         if (!task.assignedTo) task.assignedTo = [];
 
         // Remove user from assignedTo array
         task.assignedTo = task.assignedTo.filter(id => id.toString() !== userId.toString());
+        task.submissions = (task.submissions || []).filter(submission => String(submission.user) !== String(userId));
+        const unassignApplications = task.applicants.filter(applicant => String(applicant.user) === String(userId));
+        const unassignApplication = unassignApplications.sort((a, b) => (b.cycle || 1) - (a.cycle || 1))[0];
+        if (unassignApplication && unassignApplication.status !== 'completed') unassignApplication.status = 'applied';
 
         // Also remove any submission from this user? 
         // Typically yes, if we revoke assignment, their submission might be invalid.
@@ -260,6 +355,21 @@ router.put('/:id/unassign', protect, authorize('admin'), async (req, res) => {
         }
 
         await task.save();
+
+        await UserNotification.create({
+            user: userId,
+            title: 'Job Unassigned',
+            message: `You have been unassigned from "${task.title}".`,
+            type: 'task_assigned',
+            relatedTask: task._id
+        });
+
+        const io = req.app.get('io');
+        if (io) io.to(String(userId)).emit('new_browser_notification', {
+            title: 'Job Unassigned',
+            message: `"${task.title}" has been removed from your Assigned jobs.`,
+            url: '/job/tasks'
+        });
 
         res.json({ success: true, task });
     } catch (error) {
@@ -336,7 +446,10 @@ router.post('/:id/submit', protect, uploadSubmission.single('file'), async (req,
         if (!task.submissions) task.submissions = [];
 
         // Check if already submitted
-        const alreadySubmitted = task.submissions.some(sub => sub.user.toString() === req.user.id);
+        const userApplications = task.applicants.filter(a => String(a.user) === String(req.user.id));
+        const currentApplication = userApplications.sort((a, b) => (b.cycle || 1) - (a.cycle || 1))[0];
+        const currentCycle = currentApplication?.cycle || 1;
+        const alreadySubmitted = task.submissions.some(sub => sub.user.toString() === req.user.id && (sub.cycle || 1) === currentCycle);
         if (alreadySubmitted) {
             return res.status(400).json({ success: false, message: 'You have already submitted work for this task' });
         }
@@ -347,8 +460,11 @@ router.post('/:id/submit', protect, uploadSubmission.single('file'), async (req,
             projectLink,
             fileUrl: req.file ? req.file.path : null,
             accountDetails,
-            submittedAt: new Date()
+            submittedAt: new Date(),
+            cycle: currentCycle
         });
+
+        if (currentApplication) currentApplication.status = 'submitted';
 
         // We do NOT change the global task status to 'submitted' immediately because others might still be working.
         // It stays 'assigned' until Admin marks it completed? 
@@ -387,14 +503,24 @@ router.post('/:id/submit', protect, uploadSubmission.single('file'), async (req,
 // @access  Private (Admin)
 router.put('/:id/admin-complete', protect, authorize('admin'), async (req, res) => {
     try {
+        const payments = Array.isArray(req.body.payments) ? req.body.payments : [];
         const task = await PaidTask.findById(req.params.id);
 
         if (!task) {
             return res.status(404).json({ success: false, message: 'Task not found' });
         }
 
-        if (task.status === 'completed') {
+        if (task.status === 'completed' && task.paymentSent) {
             return res.status(400).json({ success: false, message: 'Task is already completed' });
+        }
+
+        const payableUsers = [...new Set((task.submissions || []).map(submission => String(submission.user)))];
+        if (!payableUsers.length) return res.status(400).json({ success: false, message: 'No submitted work is available for payment' });
+
+        const paymentMap = new Map(payments.map(payment => [String(payment.userId), Number(payment.amount)]));
+        for (const userId of payableUsers) {
+            const amount = paymentMap.get(userId);
+            if (!Number.isFinite(amount) || amount <= 0) return res.status(400).json({ success: false, message: 'Enter a valid payment amount for every submitted user' });
         }
 
         task.status = 'completed';
@@ -403,22 +529,28 @@ router.put('/:id/admin-complete', protect, authorize('admin'), async (req, res) 
 
         await task.save();
 
-        // Update ALL assigned users' completed tasks count
-        if (task.assignedTo && task.assignedTo.length > 0) {
-            await User.updateMany(
-                { _id: { $in: task.assignedTo } },
-                { $inc: { completedTasks: 1 } }
-            );
+        if (payableUsers.length > 0) {
+            for (const userId of payableUsers) {
+                const userApplications = task.applicants.filter(applicant => String(applicant.user) === userId);
+                const currentApplication = userApplications.sort((a, b) => (b.cycle || 1) - (a.cycle || 1))[0];
+                const cycle = currentApplication?.cycle || 1;
+                const amount = paymentMap.get(userId);
+                task.paymentHistory.push({ user: userId, amount, cycle, paidAt: new Date(), feedbackSubmitted: false });
+                if (currentApplication) currentApplication.status = 'paid';
+                await User.findByIdAndUpdate(userId, { $inc: { completedTasks: 1, totalEarnings: amount } });
+            }
+
+            await task.save();
 
             // Notify users that payment is completed
             const UserNotificationModel = require('../models/UserNotification');
             const io = req.app.get('io');
 
-            const notificationPromises = task.assignedTo.map(userId =>
+            const notificationPromises = payableUsers.map(userId =>
                 UserNotificationModel.create({
                     user: userId,
                     title: 'Payment Received!',
-                    message: `Payment for "${task.title}" has been completed! Please submit your feedback.`,
+                    message: `Payment of Rs ${paymentMap.get(String(userId)).toLocaleString()} for "${task.title}" has been completed! Please submit your feedback.`,
                     type: 'task_paid',
                     relatedTask: task._id
                 })
@@ -426,11 +558,11 @@ router.put('/:id/admin-complete', protect, authorize('admin'), async (req, res) 
             await Promise.all(notificationPromises);
 
             if (io) {
-                task.assignedTo.forEach(userId => {
+                payableUsers.forEach(userId => {
                     const userIdStr = userId.toString();
                     io.to(userIdStr).emit('new_browser_notification', {
                         title: 'Payment Received!',
-                        message: `Payment for "${task.title}" has been completed!`,
+                        message: `Payment of Rs ${paymentMap.get(String(userId)).toLocaleString()} for "${task.title}" has been completed!`,
                         url: '/job/tasks'
                     });
 
@@ -475,9 +607,24 @@ router.post('/:id/feedback', protect, authorize('job'), async (req, res) => {
             return res.status(403).json({ success: false, message: 'Only assigned users can leave feedback' });
         }
 
-        // Check if already left feedback
+        const userApplications = task.applicants.filter(a => String(a.user) === String(req.user.id));
+        const currentApplication = userApplications.sort((a, b) => (b.cycle || 1) - (a.cycle || 1))[0];
+        const currentCycle = currentApplication?.cycle || 1;
+        let paymentRecord = [...(task.paymentHistory || [])].reverse().find(payment => String(payment.user) === String(req.user.id) && (payment.cycle || 1) === currentCycle && !payment.feedbackSubmitted);
+        if (!paymentRecord && task.paymentSent) {
+            task.paymentHistory.push({
+                user: req.user.id,
+                amount: 0,
+                cycle: currentCycle,
+                paidAt: task.paymentSentAt || new Date(),
+                feedbackSubmitted: false
+            });
+            paymentRecord = task.paymentHistory[task.paymentHistory.length - 1];
+        }
+        if (!paymentRecord) return res.status(400).json({ success: false, message: 'Payment is not confirmed for this work cycle yet' });
+
         if (!task.feedback) task.feedback = [];
-        const alreadyFeedback = task.feedback.some(f => f.user.toString() === req.user.id);
+        const alreadyFeedback = task.feedback.some(f => f.user.toString() === req.user.id && (f.cycle || 1) === currentCycle);
         if (alreadyFeedback) {
             return res.status(400).json({ success: false, message: 'You have already submitted feedback for this task' });
         }
@@ -486,8 +633,20 @@ router.post('/:id/feedback', protect, authorize('job'), async (req, res) => {
             user: req.user.id,
             text,
             rating: rating || 5,
+            cycle: currentCycle,
+            earning: paymentRecord.amount || 0,
             createdAt: new Date()
         });
+
+        paymentRecord.feedbackSubmitted = true;
+        if (currentApplication) currentApplication.status = 'completed';
+        task.assignedTo = (task.assignedTo || []).filter(id => String(id) !== String(req.user.id));
+        task.submissions = (task.submissions || []).filter(submission => String(submission.user) !== String(req.user.id));
+        if (task.assignedTo.length === 0) {
+            task.status = 'open';
+            task.paymentSent = false;
+            task.paymentSentAt = undefined;
+        }
 
         await task.save();
 
@@ -563,12 +722,9 @@ router.put('/:id/complete', protect, authorize('admin'), async (req, res) => {
 // @access  Private (any authenticated user)
 router.get('/completed-showcase', protect, async (req, res) => {
     try {
-        const tasks = await PaidTask.find({
-            status: 'completed',
-            'feedback.0': { $exists: true }
-        })
+        const tasks = await PaidTask.find({ 'feedback.0': { $exists: true } })
             .populate('assignedTo', 'name email photo')
-            .populate('feedback.user', 'name photo')
+            .populate('feedback.user', 'name photo totalEarnings')
             .select('title description budget skills category status assignedTo feedback completedAt paymentSentAt createdAt images image')
             .sort('-paymentSentAt');
 
@@ -591,7 +747,9 @@ router.get('/my', protect, authorize('job'), async (req, res) => {
             ]
         })
             .populate('assignedTo', 'name email photo')
-            .populate('feedback.user', 'name photo')
+            .populate('feedback.user', 'name photo totalEarnings')
+            .populate('paymentHistory.user', 'name photo totalEarnings')
+            .populate('applicants.user', 'name email photo totalEarnings completedTasks rating')
             .sort('-createdAt');
 
         res.json({ success: true, data: tasks });
@@ -603,22 +761,13 @@ router.get('/my', protect, authorize('job'), async (req, res) => {
 
 // @route   DELETE /api/tasks/:id
 // @desc    Permanently delete a task
-// @access  Private (Admin or Assigned User)
-router.delete('/:id', protect, async (req, res) => {
+// @access  Private (Admin only)
+router.delete('/:id', protect, authorize('admin'), async (req, res) => {
     try {
         const task = await PaidTask.findById(req.params.id);
 
         if (!task) {
             return res.status(404).json({ success: false, message: 'Task not found' });
-        }
-
-        // Check if user is admin or the assigned user
-        const isAdmin = req.user.role === 'admin';
-        // isAssigned check handles array
-        const isAssigned = task.assignedTo && task.assignedTo.some(id => id.toString() === req.user.id);
-
-        if (!isAdmin && !isAssigned) {
-            return res.status(403).json({ success: false, message: 'Not authorized to delete this task' });
         }
 
         await PaidTask.findByIdAndDelete(req.params.id);

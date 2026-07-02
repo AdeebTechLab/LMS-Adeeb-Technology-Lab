@@ -1,7 +1,7 @@
 import { useSelector, useDispatch } from 'react-redux';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
-import { assignmentAPI, courseAPI, dailyTaskAPI } from '../../services/api';
+import { assignmentAPI, courseAPI, dailyTaskAPI, chatAPI } from '../../services/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     LayoutDashboard,
@@ -43,10 +43,24 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     const [pendingCount, setPendingCount] = useState(0);
     const [adminPendingCounts, setAdminPendingCounts] = useState({});
     const [teacherSubmissionCount, setTeacherSubmissionCount] = useState(0);
+    const [jobChatSummary, setJobChatSummary] = useState({ totalUnread: 0, totalApplicants: 0 });
     const [availableRoles, setAvailableRoles] = useState([]);
     const [isSwitchingRole, setIsSwitchingRole] = useState(false);
     const [showRoleMenu, setShowRoleMenu] = useState(false);
     const dropdownRef = useRef(null);
+
+    useEffect(() => {
+        if (!['admin', 'teacher', 'job'].includes(role)) return;
+        const loadJobSummary = async () => {
+            try {
+                const res = await chatAPI.getJobChats();
+                setJobChatSummary({ totalUnread: res.data.totalUnread || 0, totalApplicants: res.data.totalApplicants || 0 });
+            } catch (_) { /* no job chats yet */ }
+        };
+        loadJobSummary();
+        const timer = setInterval(loadJobSummary, 30000);
+        return () => clearInterval(timer);
+    }, [role]);
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -215,6 +229,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 { id: 'directory', labelKey: 'nav.directory', icon: FolderOpen, path: '/admin/directory' },
                 { id: 'courses', labelKey: 'nav.courses', icon: BookOpen, path: '/admin/courses' },
                 { id: 'paid-tasks', labelKey: 'nav.paidTasks', icon: Briefcase, path: '/admin/paid-tasks', badge: adminPendingCounts.newApplicants },
+                { id: 'job-chat', labelKey: 'Job Chats', icon: MessageSquare, path: '/admin/job-chat', badge: jobChatSummary.totalUnread },
                 { id: 'certificates', labelKey: 'nav.certificates', icon: Award, path: '/admin/certificates' },
                 { id: 'students', labelKey: 'nav.students', icon: Users, path: '/admin/students', badge: adminPendingCounts.studentRegisteredNew },
                 { id: 'teachers', labelKey: 'nav.teachers', icon: GraduationCap, path: '/admin/teachers', badge: adminPendingCounts.teacherRegisteredNew },
@@ -230,6 +245,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 { id: 'courses', labelKey: 'nav.myCourses', icon: BookOpen, path: '/teacher/courses' },
                 { id: 'attendance', labelKey: 'nav.attendance', icon: Calendar, path: '/teacher/quick-attendance' },
                 { id: 'certificates', labelKey: 'nav.certificates', icon: Award, path: '/teacher/certificates' },
+                { id: 'jobs', labelKey: 'Job Posting', icon: Briefcase, path: '/teacher/jobs', badge: jobChatSummary.totalApplicants + jobChatSummary.totalUnread },
+                { id: 'job-chat', labelKey: 'Applicant Chats', icon: MessageSquare, path: '/teacher/job-chat', badge: jobChatSummary.totalUnread },
             ],
             student: [
                 { id: 'dashboard', labelKey: 'nav.dashboard', icon: LayoutDashboard, path: '/student/dashboard' },
@@ -258,7 +275,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                         job: [
                 { id: 'available', labelKey: 'Available', icon: Briefcase, path: '/job/tasks', state: { tab: 'available' } },
                 { id: 'applied', labelKey: 'Applications', icon: FileText, path: '/job/tasks', state: { tab: 'applied' } },
-                { id: 'assigned', labelKey: 'Assigned', icon: CheckCircle, path: '/job/tasks', state: { tab: 'assigned' } },
+                { id: 'assigned', labelKey: 'Assigned', icon: CheckCircle, path: '/job/tasks', state: { tab: 'assigned' }, badge: jobChatSummary.totalUnread },
+                { id: 'job-chat', labelKey: 'Job Chat', icon: MessageSquare, path: '/job/job-chat', badge: jobChatSummary.totalUnread },
                 { id: 'completed', labelKey: 'Completed', icon: Award, path: '/job/tasks', state: { tab: 'completed' } },
                 { id: 'expired', labelKey: 'Expired', icon: Clock, path: '/job/tasks', state: { tab: 'expired' } },
                 { id: 'showcase', labelKey: 'Feedback', icon: MessageSquare, path: '/job/tasks', state: { tab: 'showcase' } },

@@ -18,7 +18,11 @@ const userNotificationSchema = new mongoose.Schema({
     },
     type: {
         type: String,
-        enum: ['task_application', 'task_assigned', 'task_submitted', 'task_completed', 'assignment_assigned', 'test_assigned', 'graded', 'general'],
+        enum: [
+            'task_application', 'task_assigned', 'task_submitted', 'task_completed', 'task_paid',
+            'assignment_assigned', 'assignment_submission', 'new_assignment',
+            'test_assigned', 'graded', 'user_profile_updated', 'general'
+        ],
         default: 'general'
     },
     relatedTask: {
