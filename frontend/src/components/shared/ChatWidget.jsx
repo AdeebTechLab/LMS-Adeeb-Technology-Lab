@@ -2414,7 +2414,19 @@ const ChatWidget = () => {
 
 
 
-            photo: targetUser.photo || targetUser.user?.photo || null
+            photo: targetUser.photo || targetUser.user?.photo || null,
+
+
+
+            role: targetUser.role || targetUser.user?.role || '',
+
+
+
+            phone: targetUser.phone || targetUser.user?.phone || '',
+
+
+
+            rollNo: targetUser.rollNo || targetUser.user?.rollNo || ''
 
 
 
@@ -2626,7 +2638,13 @@ const ChatWidget = () => {
 
 
 
-                                                <span>Direct Message</span>
+                                                <span className="normal-case tracking-normal font-bold">
+                                                    {[
+                                                        activeChat.role ? activeChat.role.charAt(0).toUpperCase() + activeChat.role.slice(1) : null,
+                                                        activeChat.rollNo ? `Roll #${activeChat.rollNo}` : null,
+                                                        activeChat.phone || null
+                                                    ].filter(Boolean).join(' • ') || 'Direct Message'}
+                                                </span>
 
 
 

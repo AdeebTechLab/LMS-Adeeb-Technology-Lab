@@ -32,7 +32,9 @@ import {
     GraduationCap, 
     X, 
     Megaphone,
-    Lock
+    Lock,
+    Eye,
+    EyeOff
 } from 'lucide-react';
 import { useDispatch } from 'react-redux';
 import { logout, updateUser } from '../../features/auth/authSlice';
@@ -56,6 +58,8 @@ const DashboardLayout = () => {
     const [showUserMenu, setShowUserMenu] = useState(false);
     const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
     const [resetPasswordForm, setResetPasswordForm] = useState({ newPassword: '', confirmPassword: '' });
+    const [showNewPassword, setShowNewPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [isResettingPassword, setIsResettingPassword] = useState(false);
     const [resetPasswordError, setResetPasswordError] = useState('');
     const [notifications, setNotifications] = useState([]);
@@ -238,6 +242,8 @@ const DashboardLayout = () => {
             await authAPI.changePassword({ newPassword: resetPasswordForm.newPassword });
             setShowResetPasswordModal(false);
             setResetPasswordForm({ newPassword: '', confirmPassword: '' });
+            setShowNewPassword(false);
+            setShowConfirmPassword(false);
             alert('Password successfully updated!');
         } catch (err) {
             setResetPasswordError(err.response?.data?.message || 'Failed to update password');
@@ -815,37 +821,59 @@ const DashboardLayout = () => {
                                     <label className={`block text-sm font-medium mb-1.5 ${isDark ? 'text-white/70' : 'text-gray-700'}`}>
                                         New Password
                                     </label>
-                                    <input
-                                        type="password"
-                                        value={resetPasswordForm.newPassword}
-                                        onChange={(e) => setResetPasswordForm({ ...resetPasswordForm, newPassword: e.target.value })}
-                                        className={`w-full px-4 py-2.5 rounded-xl border focus:ring-2 focus:ring-primary/20 outline-none transition-all ${
-                                            isDark 
-                                            ? 'bg-black/20 border-white/10 text-white focus:border-primary/50' 
-                                            : 'bg-white border-gray-200 text-gray-900 focus:border-primary'
-                                        }`}
-                                        placeholder="Enter new password"
-                                        required
-                                        minLength={6}
-                                    />
+                                    <div className="relative">
+                                        <input
+                                            type={showNewPassword ? 'text' : 'password'}
+                                            value={resetPasswordForm.newPassword}
+                                            onChange={(e) => setResetPasswordForm({ ...resetPasswordForm, newPassword: e.target.value })}
+                                            className={`w-full pl-4 pr-12 py-2.5 rounded-xl border focus:ring-2 focus:ring-primary/20 outline-none transition-all ${
+                                                isDark 
+                                                ? 'bg-black/20 border-white/10 text-white focus:border-primary/50' 
+                                                : 'bg-white border-gray-200 text-gray-900 focus:border-primary'
+                                            }`}
+                                            placeholder="Enter new password"
+                                            required
+                                            minLength={6}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowNewPassword((visible) => !visible)}
+                                            aria-label={showNewPassword ? 'Hide new password' : 'Show new password'}
+                                            title={showNewPassword ? 'Hide password' : 'Show password'}
+                                            className={`absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg transition-colors ${isDark ? 'text-white/50 hover:text-white hover:bg-white/10' : 'text-gray-400 hover:text-primary hover:bg-gray-100'}`}
+                                        >
+                                            {showNewPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                        </button>
+                                    </div>
                                 </div>
                                 <div>
                                     <label className={`block text-sm font-medium mb-1.5 ${isDark ? 'text-white/70' : 'text-gray-700'}`}>
                                         Confirm Password
                                     </label>
-                                    <input
-                                        type="password"
-                                        value={resetPasswordForm.confirmPassword}
-                                        onChange={(e) => setResetPasswordForm({ ...resetPasswordForm, confirmPassword: e.target.value })}
-                                        className={`w-full px-4 py-2.5 rounded-xl border focus:ring-2 focus:ring-primary/20 outline-none transition-all ${
-                                            isDark 
-                                            ? 'bg-black/20 border-white/10 text-white focus:border-primary/50' 
-                                            : 'bg-white border-gray-200 text-gray-900 focus:border-primary'
-                                        }`}
-                                        placeholder="Confirm new password"
-                                        required
-                                        minLength={6}
-                                    />
+                                    <div className="relative">
+                                        <input
+                                            type={showConfirmPassword ? 'text' : 'password'}
+                                            value={resetPasswordForm.confirmPassword}
+                                            onChange={(e) => setResetPasswordForm({ ...resetPasswordForm, confirmPassword: e.target.value })}
+                                            className={`w-full pl-4 pr-12 py-2.5 rounded-xl border focus:ring-2 focus:ring-primary/20 outline-none transition-all ${
+                                                isDark 
+                                                ? 'bg-black/20 border-white/10 text-white focus:border-primary/50' 
+                                                : 'bg-white border-gray-200 text-gray-900 focus:border-primary'
+                                            }`}
+                                            placeholder="Confirm new password"
+                                            required
+                                            minLength={6}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowConfirmPassword((visible) => !visible)}
+                                            aria-label={showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'}
+                                            title={showConfirmPassword ? 'Hide password' : 'Show password'}
+                                            className={`absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg transition-colors ${isDark ? 'text-white/50 hover:text-white hover:bg-white/10' : 'text-gray-400 hover:text-primary hover:bg-gray-100'}`}
+                                        >
+                                            {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                        </button>
+                                    </div>
                                 </div>
                                 <div className="pt-4 flex justify-end gap-3">
                                     <button

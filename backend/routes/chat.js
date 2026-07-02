@@ -191,7 +191,9 @@ router.get('/conversations', protect, authorize('admin'), async (req, res) => {
                     "user.name": 1,
                     "user.role": 1,
                     "user.email": 1,
-                    "user.photo": 1
+                    "user.photo": 1,
+                    "user.phone": 1,
+                    "user.rollNo": 1
                 }
             },
             { $sort: { lastMessageAt: -1 } }

@@ -169,7 +169,7 @@ const CourseManagement = () => {
             submitData.append('durationMonths', formData.durationMonths);
             submitData.append('targetAudience', formData.targetAudience);
             submitData.append('location', formData.city.toLowerCase());
-            submitData.append('category', formData.category);
+            if (editingCourse && formData.category) submitData.append('category', formData.category);
             submitData.append('city', formData.city);
             if (formData.bookLink) submitData.append('bookLink', formData.bookLink);
             
@@ -673,43 +673,6 @@ const CourseManagement = () => {
                             <option value="">Select city</option>
                             <option value="Bahawalpur">Bahawalpur</option>
                             <option value="Islamabad">Islamabad</option>
-                        </select>
-                    </div>
-
-                    {/* Category */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Category <span className="text-red-500">*</span>
-                        </label>
-                        <select
-                            value={formData.category}
-                            onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-white"
-                            required
-                        >
-                            <option value="">Select category</option>
-                            <option value="Office Work [IT]">Office Work [IT]</option>
-                            <option value="Freelancing">Freelancing</option>
-                            <option value="Digital Marketing, Ads">Digital Marketing, Ads</option>
-                            <option value="Video Editing">Video Editing</option>
-                            <option value="Graphic Designer">Graphic Designer</option>
-                            <option value="E-Commerce">E-Commerce</option>
-                            <option value="UX/UI Designing">UX/UI Designing</option>
-                            <option value="Youtuber Course">Youtuber Course</option>
-                            <option value="Home Architecture">Home Architecture</option>
-                            <option value="Web Development">Web Development</option>
-                            <option value="App Development">App Development</option>
-                            <option value="App Dev Without Coding">App Dev Without Coding</option>
-                            <option value="Web Dev Without Coding">Web Dev Without Coding</option>
-                            <option value="Cyber Security">Cyber Security</option>
-                            <option value="Machine learning">Machine learning</option>
-                            <option value="Internet of Thing [IOT]">Internet of Thing [IOT]</option>
-                            <option value="Programming">Programming</option>
-                            <option value="Taxation">Taxation</option>
-                            <option value="Trading">Trading</option>
-                            <option value="Truck Dispatching">Truck Dispatching</option>
-                            <option value="Software Development">Software Development</option>
-                            <option value="SEO">SEO</option>
                         </select>
                     </div>
 
