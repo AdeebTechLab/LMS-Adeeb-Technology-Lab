@@ -5,6 +5,7 @@ const moment = require('moment-timezone');
 const Attendance = require('../models/Attendance');
 const {
     parseAttendanceDateInput,
+    getAttendanceDayRange,
     formatAttendanceDate,
     findAttendanceByCourseDay,
 } = require('../utils/attendanceDate');
@@ -38,6 +39,51 @@ router.get('/my/:courseId', protect, async (req, res) => {
         });
 
         res.json({ success: true, attendances: myHistory });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// @route   POST /api/attendance/range-report
+// @desc    Get attendance for several courses and dates in one request
+// @access  Private (Teacher, Admin)
+router.post('/range-report', protect, authorize('teacher', 'admin'), async (req, res) => {
+    try {
+        const { courseIds, startDate, endDate } = req.body;
+        if (!Array.isArray(courseIds) || courseIds.length === 0 || !startDate || !endDate) {
+            return res.status(400).json({ success: false, message: 'Courses, start date and end date are required' });
+        }
+
+        const start = getAttendanceDayRange(startDate).start;
+        const end = getAttendanceDayRange(endDate).end;
+        if (start > end) {
+            return res.status(400).json({ success: false, message: 'Start date cannot be after end date' });
+        }
+
+        const requestedCourseIds = [...new Set(courseIds.map(String))];
+        let allowedCourseIds = requestedCourseIds;
+        if (req.user.role === 'teacher') {
+            const teacherCourses = await Course.find({
+                _id: { $in: requestedCourseIds },
+                teachers: req.user.id
+            }).select('_id');
+            allowedCourseIds = teacherCourses.map((course) => course._id);
+        }
+
+        const attendances = await Attendance.find({
+            course: { $in: allowedCourseIds },
+            date: { $gte: start, $lte: end }
+        })
+            .populate('records.user', 'name rollNo photo role')
+            .sort({ date: 1 });
+
+        const data = attendances.map((attendance) => ({
+            courseId: String(attendance.course),
+            date: formatAttendanceDate(attendance.date),
+            records: attendance.records
+        }));
+
+        res.json({ success: true, data });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }

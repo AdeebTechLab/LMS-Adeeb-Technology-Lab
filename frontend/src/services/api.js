@@ -137,6 +137,7 @@ export const feeAPI = {
 // Attendance APIs
 export const attendanceAPI = {
     get: (courseId, date) => api.get(`/attendance/${courseId}/${date}`),
+    getRange: (courseIds, startDate, endDate) => api.post('/attendance/range-report', { courseIds, startDate, endDate }),
     mark: (data) => api.post('/attendance', data),
     getReport: (courseId) => api.get(`/attendance/report/${courseId}`),
     getMy: (courseId) => api.get(`/attendance/my/${courseId}`),

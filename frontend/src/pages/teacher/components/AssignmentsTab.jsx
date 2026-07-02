@@ -22,6 +22,11 @@ const getAutomaticFeedback = (percentage) => {
 };
 
 const AssignmentsTab = ({ course, students }) => { // Accept students prop
+    const isProjectCourse = ['intern', 'interns'].includes(String(course?.targetAudience || '').toLowerCase()) || (students?.length > 0 && students.every((student) => student.role === 'intern'));
+    const itemLabel = isProjectCourse ? 'Project' : 'Assignment';
+    const itemsLabel = isProjectCourse ? 'Projects' : 'Assignments';
+    const itemLabelLower = itemLabel.toLowerCase();
+    const itemsLabelLower = itemsLabel.toLowerCase();
     const [assignments, setAssignments] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -267,7 +272,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
-                <h3 className="font-bold text-gray-900 text-lg">Assignments</h3>
+                <h3 className="font-bold text-gray-900 text-lg">{itemsLabel}</h3>
                 <div className="flex items-center gap-2">
                     <button
                         onClick={fetchAssignments}
@@ -295,7 +300,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                         className="px-6 py-2.5 bg-primary hover:bg-primary/90 text-white rounded-xl font-black text-xs uppercase tracking-widest transition-all flex items-center gap-2 shadow-lg shadow-primary/10 active:scale-95"
                     >
                         <Plus className="w-4 h-4" />
-                        Create Assignment
+                        Create {itemLabel}
                     </button>
                 </div>
             </div>
@@ -303,7 +308,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
             {/* Quick Stats Summary Row */}
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
                 {[
-                    { id: 'all', label: 'Total Assignments', icon: FileText, count: assignments.length, color: 'text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-800/30', activeColor: 'ring-4 ring-blue-500/20 bg-blue-100 dark:bg-blue-900/40 border-blue-400 scale-105', onClick: () => setActiveStatFilter('all') },
+                    { id: 'all', label: `Total ${itemsLabel}`, icon: FileText, count: assignments.length, color: 'text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-800/30', activeColor: 'ring-4 ring-blue-500/20 bg-blue-100 dark:bg-blue-900/40 border-blue-400 scale-105', onClick: () => setActiveStatFilter('all') },
                     { id: 'submissions', label: 'Total Submissions', icon: CheckCircle, count: assignments.reduce((acc, a) => acc + (a.submissions?.length || 0), 0), color: 'text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-800/30', activeColor: 'ring-4 ring-emerald-500/20 bg-emerald-100 dark:bg-emerald-900/40 border-emerald-400 scale-105', onClick: () => setActiveStatFilter(activeStatFilter === 'submissions' ? 'all' : 'submissions') },
                     { id: 'pending', label: 'Pending Marks', icon: Clock, count: assignments.reduce((acc, a) => { const submissions = a.submissions || []; const gradedCount = submissions.filter(s => s.status === 'graded' || s.status === 'rejected').length; return acc + (submissions.length - gradedCount); }, 0), color: 'text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-800/30', activeColor: 'ring-4 ring-amber-500/20 bg-amber-100 dark:bg-amber-900/40 border-amber-400 scale-105', onClick: () => setActiveStatFilter(activeStatFilter === 'pending' ? 'all' : 'pending') },
                     { id: 'rejected', label: 'Rejected', icon: X, count: assignments.reduce((acc, a) => acc + (a.submissions?.filter(s => s.status === 'rejected').length || 0), 0), color: 'text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border-red-100 dark:border-red-800/30', activeColor: 'ring-4 ring-red-500/20 bg-red-100 dark:bg-red-900/40 border-red-400 scale-105', onClick: () => setActiveStatFilter(activeStatFilter === 'rejected' ? 'all' : 'rejected') },
@@ -337,7 +342,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
             <div className="relative">
                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2 mb-2">
                     <Users className="w-3 h-3" />
-                    Filter Assignments by Student
+                    Filter {itemsLabel} by Student
                 </p>
 
                 <div className="flex flex-wrap items-center gap-3">
@@ -351,7 +356,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                 <Users className="w-4 h-4 text-primary" />
                                 <span className="text-sm font-bold text-gray-700">
                                     {selectedStudentFilter === 'all'
-                                        ? 'All Students (View All Assignments)'
+                                        ? `All Students (View All ${itemsLabel})`
                                         : students.find(s => s.id === selectedStudentFilter)?.name || 'Select Student'}
                                 </span>
                             </div>
@@ -390,7 +395,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                             : 'text-gray-600 hover:bg-gray-50'
                                             }`}
                                     >
-                                        View All Assignments
+                                        View All {itemsLabel}
                                         {selectedStudentFilter === 'all' && <Check className="w-4 h-4" />}
                                     </button>
 
@@ -461,7 +466,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                     <input
                         type="text"
-                        placeholder="Search assignment title..."
+                        placeholder={`Search ${itemLabelLower} title...`}
                         value={assignmentTitleFilter}
                         onChange={(e) => setAssignmentTitleFilter(e.target.value)}
                         className="w-full pl-12 pr-4 py-3.5 bg-gray-50/50 dark:bg-white/5 border border-transparent focus:border-primary focus:bg-white dark:focus:bg-white/10 rounded-2xl transition-all outline-none text-sm font-medium"
@@ -478,7 +483,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
             </div>
 
             {isLoading && assignments.length === 0 ? (
-                <Loader message="Loading assignments..." />
+                <Loader message={`Loading ${itemsLabelLower}...`} />
             ) : (
                 <div className="space-y-4">
                     {assignments
@@ -566,7 +571,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                             <button
                                                 onClick={() => handleEditAssignment(assignment)}
                                                 className="p-2 hover:bg-blue-50 text-blue-600 rounded-lg transition-colors border border-transparent hover:border-blue-100"
-                                                title="Edit Assignment"
+                                                title={`Edit ${itemLabel}`}
                                             >
                                                 <Edit2 className="w-4 h-4" />
                                             </button>
@@ -719,18 +724,18 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
 
                     {assignments.length === 0 && (
                         <div className="text-center py-12 text-gray-400">
-                            No assignments created yet.
+                            No {itemsLabelLower} created yet.
                         </div>
                     )}
                 </div>
             )}
 
-            {/* Create Assignment Modal */}
+            {/* Create {itemLabel} Modal */}
             <Modal
                 key={isCreateModalOpen ? 'create-modal-open' : 'create-modal-closed'}
                 isOpen={isCreateModalOpen}
                 onClose={() => setIsCreateModalOpen(false)}
-                title="Create New Assignment"
+                title={`Create New ${itemLabel}`}
             >
                 <form onSubmit={handleCreateAssignment} className="space-y-4">
                     <div>
@@ -937,7 +942,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                             className="px-6 py-2.5 bg-primary hover:bg-primary text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-primary/10 flex items-center gap-2"
                         >
                             {isCreating ? <ButtonLoader /> : <Plus className="w-4 h-4" />}
-                            Create Assignment
+                            Create {itemLabel}
                         </button>
                     </div>
                 </form>
@@ -947,7 +952,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
             <Modal
                 isOpen={isEditModalOpen}
                 onClose={() => setIsEditModalOpen(false)}
-                title="Edit Assignment"
+                title={`Edit ${itemLabel}`}
             >
                 {editingAssignment && (
                     <form onSubmit={handleUpdateAssignment} className="space-y-4">

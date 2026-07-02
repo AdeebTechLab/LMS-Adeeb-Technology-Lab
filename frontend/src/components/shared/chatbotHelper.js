@@ -36,6 +36,7 @@ const aliasMap = new Map([
 let rows = [];
 let rowsByNormalizedKey = new Map();
 let lastLoadedAt = 0;
+const LIVE_SHEET_REFRESH_MS = 15_000;
 
 export async function getAnswer(userMessage, name = "Visitor") {
   await loadRows();
@@ -71,8 +72,8 @@ export async function getAnswer(userMessage, name = "Visitor") {
 }
 
 async function loadRows() {
-  // Cache for 5 minutes so Google Sheet changes show up quickly
-  if (rows.length > 0 && (Date.now() - lastLoadedAt < 300000)) {
+  // Keep a very short cache so live Google Sheet edits appear almost immediately.
+  if (rows.length > 0 && (Date.now() - lastLoadedAt < LIVE_SHEET_REFRESH_MS)) {
     return;
   }
 
@@ -235,6 +236,7 @@ function extractButtonsFromAnswer(answerText) {
 
   const addOption = (raw) => {
     let label = fixTextEncoding(String(raw || ""))
+      .replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N})]+$/gu, "")
       .replace(/[“”‘’]/g, "")
       .replace(/^[\s:;,.\-–—|]+|[\s:;,.\-–—|]+$/g, "")
       .replace(/\s+/g, " ")
@@ -256,6 +258,8 @@ function extractButtonsFromAnswer(answerText) {
     /''([^'\n]{1,80})''/g,
     /“([^”\n]{1,80})”/g,
     /‘([^’\n]{1,80})’/g,
+    /“([^”\n]{1,80})”/g,
+    /‘([^’\n]{1,80})’/g,
   ];
 
   patterns.forEach((pattern) => {
@@ -265,7 +269,12 @@ function extractButtonsFromAnswer(answerText) {
 
   text.split(/\r?\n/).forEach((line) => {
     const cleaned = line.replace(/[📱💻🌐💰📲📘▶️🛠️❓💬📥🎨🗺️🤖📊🧑🏢📞🎓📚🖌️🎬📐📝🏗️🌍📄📽️📖✨⬇️🤔]/g, "").trim();
-    const dangling = cleaned.match(/^(.{2,60})''$/);
+    // Live-sheet rows are sometimes saved with only the opening quote marker,
+    // for example: "''Graphic Designing". They are still intended as buttons.
+    const openingOnly = cleaned.match(/^(?:''|"|“|‘)\s*(.{1,80}?)(?:''|"|”|’)?$/u);
+    if (openingOnly) addOption(openingOnly[1]);
+
+    const dangling = cleaned.match(/^(.{2,80}?)(?:''|"|”|’)$/u);
     if (dangling) addOption(dangling[1]);
 
     if (/^chat with adeeb$/i.test(cleaned)) addOption("Chat with Adeeb");

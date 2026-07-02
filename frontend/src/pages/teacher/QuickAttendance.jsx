@@ -347,6 +347,19 @@ const QuickAttendance = () => {
     };
 
     const handleDownloadRangePDF = async () => {
+        if (!rangeStart || !rangeEnd) {
+            showToast.error('Invalid Range', 'Please select both start and end dates');
+            return;
+        }
+        if (isBefore(parseISO(rangeEnd), parseISO(rangeStart))) {
+            showToast.error('Invalid Range', 'Start date cannot be after end date');
+            return;
+        }
+        if (isBefore(parseISO(getTodayAttendanceDateKey()), parseISO(rangeEnd))) {
+            showToast.error('Invalid Range', 'End date cannot be in the future');
+            return;
+        }
+
         setIsGeneratingRange(true);
         try {
             const doc = new jsPDF({ orientation: 'landscape' });
@@ -379,10 +392,13 @@ const QuickAttendance = () => {
             // Student Summary Object with daily marks
             const summary = {};
             students.forEach(s => {
-                summary[s.id] = {
+                const summaryKey = `${s.courseId}-${s.id}`;
+                summary[summaryKey] = {
                     name: s.name,
                     rollNo: s.rollNo,
                     course: s.courseName,
+                    courseId: s.courseId,
+                    userId: s.id,
                     location: s.location,
                     daily: {}, // Will store date: status
                     present: 0,
@@ -391,33 +407,33 @@ const QuickAttendance = () => {
                 };
             });
 
-            // Fetch and aggregate (Sequential for stability)
-            for (const date of dateRange) {
-                const dateObj = parseISO(date);
-                if (holidayDays.includes(dateObj.getDay())) continue;
+            // Fetch the complete range in one request instead of hundreds of
+            // sequential course/day requests.
+            const rangeResponse = await attendanceAPI.getRange(
+                courses.map((course) => course._id),
+                rangeStart,
+                rangeEnd
+            );
+            const rangeAttendances = rangeResponse.data.data || [];
 
-                for (const course of courses) {
-                    try {
-                        const res = await attendanceAPI.get(course._id, date);
-                        const records = res.data.attendance?.records || [];
-                        records.forEach(r => {
-                            const uid = r.user?._id || r.user;
-                            if (uid && summary[uid]) {
-                                // Only count if we haven't marked this user for this date yet 
-                                // (to avoid double counting if user is in multiple courses - though rare in this context)
-                                if (!summary[uid].daily[date]) {
-                                    summary[uid].totalDays++;
-                                    summary[uid].daily[date] = r.status === 'present' ? 'P' : 'A';
-                                    if (r.status === 'present') summary[uid].present++;
-                                    else if (r.status === 'absent') summary[uid].absent++;
-                                }
-                            }
-                        });
-                    } catch (err) {
-                        console.warn(`Could not fetch attendance for ${course.title || course.name} on ${date}`);
+            rangeAttendances.forEach((attendance) => {
+                const date = attendance.date;
+                if (!date || holidayDays.includes(parseISO(date).getDay())) return;
+
+                (attendance.records || []).forEach((record) => {
+                    const userId = String(record.user?._id || record.user || '');
+                    const summaryKey = `${attendance.courseId}-${userId}`;
+                    const studentSummary = summary[summaryKey];
+                    if (!studentSummary || studentSummary.daily[date]) return;
+
+                    if (record.status === 'present' || record.status === 'absent') {
+                        studentSummary.totalDays += 1;
+                        studentSummary.daily[date] = record.status === 'present' ? 'P' : 'A';
+                        if (record.status === 'present') studentSummary.present += 1;
+                        else studentSummary.absent += 1;
                     }
-                }
-            }
+                });
+            });
 
             // Build Matrix Columns
             const dateHeaders = dateRange.filter(d => !holidayDays.includes(parseISO(d).getDay()))
@@ -995,6 +1011,7 @@ const QuickAttendance = () => {
                                             <input
                                                 type="date"
                                                 value={rangeStart}
+                                                max={rangeEnd || getTodayAttendanceDateKey()}
                                                 onChange={(e) => setRangeStart(e.target.value)}
                                                 className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:border-primary rounded-2xl font-black text-sm outline-none transition-all"
                                             />
@@ -1004,6 +1021,7 @@ const QuickAttendance = () => {
                                             <input
                                                 type="date"
                                                 value={rangeEnd}
+                                                min={rangeStart}
                                                 max={getTodayAttendanceDateKey()}
                                                 onChange={(e) => setRangeEnd(e.target.value)}
                                                 className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:border-primary rounded-2xl font-black text-sm outline-none transition-all"
@@ -1021,7 +1039,7 @@ const QuickAttendance = () => {
                                     </div>
 
                                     <button
-                                        disabled={isGeneratingRange}
+                                        disabled={isGeneratingRange || !rangeStart || !rangeEnd || rangeStart > rangeEnd}
                                         onClick={handleDownloadRangePDF}
                                         className="w-full py-5 bg-gray-900 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-xl hover:bg-primary transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-3"
                                     >
