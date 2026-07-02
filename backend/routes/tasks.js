@@ -563,7 +563,10 @@ router.put('/:id/complete', protect, authorize('admin'), async (req, res) => {
 // @access  Private (any authenticated user)
 router.get('/completed-showcase', protect, async (req, res) => {
     try {
-        const tasks = await PaidTask.find({ status: 'completed' })
+        const tasks = await PaidTask.find({
+            status: 'completed',
+            'feedback.0': { $exists: true }
+        })
             .populate('assignedTo', 'name email photo')
             .populate('feedback.user', 'name photo')
             .select('title description budget skills category status assignedTo feedback completedAt paymentSentAt createdAt images image')

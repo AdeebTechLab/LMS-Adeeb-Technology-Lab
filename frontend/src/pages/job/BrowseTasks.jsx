@@ -149,7 +149,7 @@ const BrowseTasks = () => {
             case 'assigned': return assignedTasks;
             case 'completed': return completedTasks;
             case 'expired': return expiredTasks;
-            case 'showcase': return completedShowcase;
+            case 'showcase': return completedShowcase.filter(task => task.feedback?.length > 0);
             default: return availableTasks;
         }
     };
@@ -303,39 +303,6 @@ const BrowseTasks = () => {
                             transition={{ delay: index * 0.1 }}
                             className={`bg-white rounded-2xl p-6 border border-gray-100 hover:shadow-lg transition-all ${submitted && !isPaid ? 'opacity-75' : ''}`}
                         >
-                            <div className="flex items-start justify-end mb-4">
-                                  <div className="flex items-center gap-2">
-                                    {expired && <Badge variant="danger">Deadline Over</Badge>}
-                                                                          {task.applicants?.length > 0 && !expired && (
-                                          <div className="flex items-center gap-2 px-2 py-1 bg-gray-50 border border-gray-200 rounded-xl" title="Applicants">
-                                              <div className="flex -space-x-2">
-                                                  {task.applicants.slice(0, 3).map((a, i) => (
-                                                      <div key={i} className="w-6 h-6 rounded-full border-2 border-white overflow-hidden bg-gradient-to-br from-primary to-indigo-600 flex items-center justify-center text-white text-[10px] font-bold shrink-0 relative z-[1]">
-                                                          {a.user?.photo ? (
-                                                              <img src={a.user.photo} alt={a.user?.name} className="w-full h-full object-cover" />
-                                                          ) : (
-                                                              a.user?.name?.charAt(0) || '?'
-                                                          )}
-                                                      </div>
-                                                  ))}
-                                              </div>
-                                              <div className="text-xs font-bold text-gray-700">
-                                                  {task.applicants.length === 1 
-                                                      ? task.applicants[0].user?.name?.split(' ')[0] 
-                                                      : `${task.applicants.length} Applicants`}
-                                              </div>
-                                          </div>
-                                      )}
-                                    {hasApplied(task) && !assigned && <Badge variant="warning">Applied</Badge>}
-                                    {assigned && !submitted && <Badge variant="info">Assigned</Badge>}
-                                    {submitted && !isPaid && <Badge variant="warning">Pending Payment</Badge>}
-                                    {isPaid && !hasUserFeedback && <Badge variant="warning">Awaiting Feedback</Badge>}
-                                    {isPaid && hasUserFeedback && <Badge variant="success"><CheckCircle className="w-3 h-3 mr-1" />Completed</Badge>}
-                                </div>
-                            </div>
-
-                            <h3 className="font-bold text-gray-900 mb-2">{task.title}</h3>
-                            
                             {(task.images && task.images.length > 0 || task.image) && (
                                 <div 
                                     className="mb-4 aspect-video rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center cursor-pointer relative group"
@@ -354,6 +321,18 @@ const BrowseTasks = () => {
                                     )}
                                 </div>
                             )}
+
+                            <div className="flex items-start justify-between gap-3 mb-3">
+                                <h3 className="font-bold text-gray-900">{task.title}</h3>
+                                <div className="flex items-center gap-2 shrink-0">
+                                    {expired && <Badge variant="danger">Deadline Over</Badge>}
+                                    {hasApplied(task) && !assigned && <Badge variant="warning">Applied</Badge>}
+                                    {assigned && !submitted && <Badge variant="info">Assigned</Badge>}
+                                    {submitted && !isPaid && <Badge variant="warning">Pending Payment</Badge>}
+                                    {isPaid && !hasUserFeedback && <Badge variant="warning">Awaiting Feedback</Badge>}
+                                    {isPaid && hasUserFeedback && <Badge variant="success"><CheckCircle className="w-3 h-3 mr-1" />Completed</Badge>}
+                                </div>
+                            </div>
 
                             <div className="mb-4">
                                 <p className="text-sm text-gray-500 line-clamp-2">{task.description}</p>
@@ -455,7 +434,7 @@ const BrowseTasks = () => {
                                         <p className="text-xs font-bold text-indigo-700 uppercase tracking-widest">Jobber Feedback</p>
                                         {task.feedback.map((f, i) => (
                                             <div key={i} className="border-t border-indigo-100 pt-2 first:border-0 first:pt-0">
-                                                <div className="flex items-center justify-between mb-1">
+                                                <div className="flex items-center gap-2 mb-1">
                                                     <div className="flex items-center gap-2">
                                                         <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center overflow-hidden border border-indigo-200 shadow-sm">
                                                             {f.user?.photo ? (
@@ -466,18 +445,46 @@ const BrowseTasks = () => {
                                                         </div>
                                                         <span className="text-sm font-semibold text-indigo-900">{f.user?.name || 'Anonymous'}</span>
                                                     </div>
-                                                    <div className="flex text-amber-500 text-[10px]">
-                                                        {[...Array(5)].map((_, i) => (
-                                                            <span key={i}>{i < f.rating ? '★' : '☆'}</span>
-                                                        ))}
-                                                    </div>
                                                 </div>
                                                 <p className="text-sm text-indigo-800 italic">"{f.text}"</p>
+                                                <div className="flex text-amber-500 text-sm mt-1" aria-label={`${f.rating || 0} out of 5 stars`}>
+                                                    {[...Array(5)].map((_, starIndex) => (
+                                                        <span key={starIndex}>{starIndex < (f.rating || 0) ? '★' : '☆'}</span>
+                                                    ))}
+                                                </div>
                                             </div>
                                         ))}
                                     </div>
                                 )}
                             </div>
+
+                            {task.applicants?.length > 0 && !expired && activeTab !== 'showcase' && (
+                                <div className="mt-4 pt-4 border-t border-gray-100">
+                                    <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">
+                                        Applied Users ({task.applicants.length})
+                                    </p>
+                                    <div className="flex flex-wrap gap-2">
+                                        {task.applicants.map((applicant, applicantIndex) => (
+                                            <div
+                                                key={applicant.user?._id || applicantIndex}
+                                                className="flex items-center gap-2 bg-gray-50 border border-gray-100 rounded-full pr-3 py-1 pl-1"
+                                            >
+                                                <div className="w-7 h-7 rounded-full overflow-hidden bg-gradient-to-br from-primary to-indigo-600 flex items-center justify-center text-white text-xs font-bold shrink-0">
+                                                    {applicant.user?.photo ? (
+                                                        <img src={applicant.user.photo} alt={applicant.user?.name || 'Applicant'} className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        applicant.user?.name?.charAt(0) || '?'
+                                                    )}
+                                                </div>
+                                                <span className="text-xs font-semibold text-gray-700">
+                                                    {applicant.user?.name || 'Applicant'}
+                                                </span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
                         </motion.div>
                     );
                 })}
