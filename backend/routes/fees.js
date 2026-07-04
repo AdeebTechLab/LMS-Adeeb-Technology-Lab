@@ -441,6 +441,7 @@ router.get('/all', protect, authorize('admin'), async (req, res) => {
 router.get('/user/:userId', protect, authorize('admin'), async (req, res) => {
     try {
         const fees = await Fee.find({ user: req.params.userId })
+            .populate('user', 'name email rollNo photo phone guardianPhone')
             .populate('course', 'title fee city location targetAudience')
             .sort('-createdAt');
 

@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSelector } from 'react-redux';
 import {
-    CheckCircle, X, Search, Calendar, ChevronLeft,
+    X, Search, Calendar, ChevronLeft,
     Users, Save, AlertCircle, RefreshCw,
     UserCheck, UserX, Clock, Filter, Download, MapPin, GraduationCap
 } from 'lucide-react';
@@ -578,43 +578,23 @@ const QuickAttendance = () => {
                         <Calendar className="w-3.5 h-3.5" />
                         Range Export
                     </button>
-                    <button
-                        onClick={handleDownloadPDF}
-                        className="flex items-center justify-center gap-1.5 bg-white text-primary px-3 py-2 rounded-lg font-black uppercase tracking-wider text-[10px] border border-primary/15 hover:border-primary hover:shadow-primary/10 transition-all active:scale-95"
-                    >
-                        <Download className="w-3.5 h-3.5" />
-                        Download Today
-                    </button>
-                    <div className="flex flex-col">
-                        <label className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Selection Date</label>
-                        <div className="relative">
-                            <Calendar className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-primary" />
-                            <input
-                                type="date"
-                                value={selectedDate}
-                                max={getTodayAttendanceDateKey()}
-                                onChange={(e) => setSelectedDate(e.target.value)}
-                                className="pl-8 pr-3 py-2 bg-gray-50 border border-transparent focus:border-primary focus:bg-white rounded-lg text-xs font-bold outline-none transition-all cursor-pointer"
-                            />
-                        </div>
-                    </div>
                 </div>
             </div>
 
             {/* Attendance Progress â€” top bar */}
             {!isDateHoliday() && (
-                <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-2.5 sm:p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6">
+                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm p-4 sm:p-5 flex flex-col gap-4">
                     <div className="w-full flex-1 min-w-[180px] space-y-1.5">
                         <div className="flex items-center justify-between gap-1.5">
-                            <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider shrink-0">Attendance Progress</span>
-                            <span className="text-xs font-black text-gray-900 tabular-nums whitespace-nowrap">
+                            <span className="text-[10px] font-black text-gray-400 dark:text-slate-400 uppercase tracking-[0.18em] shrink-0">Attendance Progress</span>
+                            <span className="px-3 py-1.5 rounded-xl bg-primary/10 border border-primary/20 text-sm font-black text-primary tabular-nums whitespace-nowrap">
                                 {markedCount}/{totalCount}
-                                <span className="text-gray-400 font-bold"> ({progressPercent}%)</span>
+                                <span className="font-bold"> · {progressPercent}%</span>
                             </span>
                         </div>
-                        <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                        <div className="h-2.5 bg-gray-100 dark:bg-slate-700 rounded-full overflow-hidden">
                             <motion.div
-                                className="h-full bg-primary rounded-full shadow-[0_0_8px_rgba(255,142,1,0.3)]"
+                                className="h-full bg-gradient-to-r from-primary to-amber-400 rounded-full shadow-[0_0_8px_rgba(255,142,1,0.3)]"
                                 initial={{ width: 0 }}
                                 animate={{ width: `${progressPercent}%` }}
                                 transition={{ duration: 0.4 }}
@@ -622,35 +602,28 @@ const QuickAttendance = () => {
                         </div>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 shrink-0">
-                        <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-100 shadow-sm shadow-emerald-500/5">
-                            <UserCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                        <div className="flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-800/60">
+                            <div className="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-900/60 flex items-center justify-center shrink-0"><UserCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-300" /></div>
                             <div>
-                                <span className="text-[8px] font-black text-emerald-600/80 uppercase tracking-wider block leading-none">Present</span>
-                                <span className="text-sm font-black text-emerald-700 tabular-nums leading-tight">{presentCount}</span>
+                                <span className="text-base font-black text-emerald-700 dark:text-emerald-300 tabular-nums leading-none block">{presentCount}</span>
+                                <span className="text-[8px] sm:text-[9px] font-black text-emerald-600/80 dark:text-emerald-400 uppercase tracking-wider">Present</span>
                             </div>
                         </div>
-                        <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-rose-50 border border-rose-100 shadow-sm shadow-rose-500/5">
-                            <UserX className="w-3.5 h-3.5 text-rose-600 shrink-0" />
+                        <div className="flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-100 dark:border-rose-800/60">
+                            <div className="w-8 h-8 rounded-lg bg-rose-100 dark:bg-rose-900/60 flex items-center justify-center shrink-0"><UserX className="w-4 h-4 text-rose-600 dark:text-rose-300" /></div>
                             <div>
-                                <span className="text-[8px] font-black text-rose-600/80 uppercase tracking-wider block leading-none">Absent</span>
-                                <span className="text-sm font-black text-rose-700 tabular-nums leading-tight">{absentCount}</span>
+                                <span className="text-base font-black text-rose-700 dark:text-rose-300 tabular-nums leading-none block">{absentCount}</span>
+                                <span className="text-[8px] sm:text-[9px] font-black text-rose-600/80 dark:text-rose-400 uppercase tracking-wider">Absent</span>
                             </div>
                         </div>
-                        <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-100 shadow-sm shadow-amber-500/5">
-                            <Clock className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                        <div className="flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-100 dark:border-amber-800/60">
+                            <div className="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-900/60 flex items-center justify-center shrink-0"><Clock className="w-4 h-4 text-amber-600 dark:text-amber-300" /></div>
                             <div>
-                                <span className="text-[8px] font-black text-amber-600/80 uppercase tracking-wider block leading-none">Pending</span>
-                                <span className="text-sm font-black text-amber-700 tabular-nums leading-tight">{totalCount - markedCount}</span>
+                                <span className="text-base font-black text-amber-700 dark:text-amber-300 tabular-nums leading-none block">{totalCount - markedCount}</span>
+                                <span className="text-[8px] sm:text-[9px] font-black text-amber-600/80 dark:text-amber-400 uppercase tracking-wider">Pending</span>
                             </div>
                         </div>
-                        <button
-                            onClick={() => navigate('/teacher/dashboard')}
-                            className="px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-xl font-black text-[10px] uppercase tracking-wider transition-all active:scale-95 flex items-center gap-2 whitespace-nowrap shadow-lg shadow-primary/20"
-                        >
-                            <CheckCircle className="w-4 h-4" />
-                            Finish Marking
-                        </button>
                     </div>
                 </div>
             )}
@@ -673,31 +646,17 @@ const QuickAttendance = () => {
             )}
 
             {/* Professional Filter Toolbar */}
-            <div className="bg-white/80 backdrop-blur-xl p-2.5 sm:p-3 rounded-xl border border-gray-100 shadow-sm space-y-2.5">
+            <div className="bg-white/80 dark:bg-slate-900/90 backdrop-blur-xl p-2.5 sm:p-3 rounded-xl border border-gray-100 dark:border-slate-700 shadow-sm space-y-2.5">
                 <div className="flex flex-col lg:flex-row gap-2 items-center">
-                    {/* Search Bar - Sleek Design */}
-                    <div className="relative flex-1 w-full group">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <Search className="w-3.5 h-3.5 text-gray-400 group-focus-within:text-primary transition-colors" />
-                        </div>
-                        <input
-                            type="text"
-                            placeholder="Search by name or roll number..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-9 pr-3 py-2 !bg-gray-50/50 dark:!bg-white/5 border border-gray-100 focus:border-primary/30 focus:!bg-white dark:focus:!bg-white/10 focus:ring-2 focus:ring-primary/5 rounded-lg text-xs font-bold outline-none transition-all placeholder:text-gray-400 dark:text-white"
-                        />
-                    </div>
-
                     {/* Filters Row */}
-                    <div className="flex flex-wrap items-center gap-1.5 w-full lg:w-auto">
+                    <div className="hidden">
                         {/* Course Filter */}
                         <div className="relative flex-1 lg:w-48">
                             <Filter className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3 h-3 text-primary" />
                             <select
                                 value={filterCourse}
                                 onChange={(e) => setFilterCourse(e.target.value)}
-                                className="w-full pl-9 pr-8 py-1.5 bg-gray-50/50 border border-gray-100 rounded-lg text-[8px] font-black uppercase tracking-wider outline-none focus:border-primary/30 focus:bg-white transition-all cursor-pointer appearance-none"
+                                className="w-full pl-9 pr-8 py-1.5 bg-gray-50/50 dark:bg-slate-800 border border-gray-100 dark:border-slate-600 text-gray-700 dark:text-slate-100 rounded-lg text-[8px] font-black uppercase tracking-wider outline-none focus:border-primary/30 focus:bg-white dark:focus:bg-slate-800 transition-all cursor-pointer appearance-none"
                             >
                                 <option value="all">All Courses</option>
                                 {courses.map(c => (
@@ -707,7 +666,7 @@ const QuickAttendance = () => {
                         </div>
 
                         {/* Location Filter - Buttons */}
-                        <div className="flex items-center gap-1.5 bg-gray-50/50 p-0.5 rounded-lg border border-gray-100">
+                        <div className="flex items-center gap-1.5 bg-gray-50/50 dark:bg-slate-800 p-0.5 rounded-lg border border-gray-100 dark:border-slate-600">
                             {[
                                 { id: 'all', label: 'All Locations' },
                                 { id: 'Bahawalpur', label: 'Bahawalpur' },
@@ -718,7 +677,7 @@ const QuickAttendance = () => {
                                     onClick={() => setFilterLocation(loc.id)}
                                     className={`px-2 py-1 rounded-md text-[8px] font-black uppercase tracking-wider transition-all ${filterLocation === loc.id
                                         ? 'bg-primary text-white shadow-md'
-                                        : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+                                        : 'text-gray-400 dark:text-slate-300 hover:text-gray-600 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-700'
                                         }`}
                                 >
                                     {loc.label}
@@ -727,7 +686,7 @@ const QuickAttendance = () => {
                         </div>
 
                         {/* Category Filter - Buttons */}
-                        <div className="flex items-center gap-1.5 bg-gray-50/50 p-0.5 rounded-lg border border-gray-100">
+                        <div className="flex items-center gap-1.5 bg-gray-50/50 dark:bg-slate-800 p-0.5 rounded-lg border border-gray-100 dark:border-slate-600">
                             {[
                                 { id: 'all', label: 'All Categories' },
                                 { id: 'students', label: 'Students' },
@@ -738,7 +697,7 @@ const QuickAttendance = () => {
                                     onClick={() => setFilterCategory(cat.id)}
                                     className={`px-2 py-1 rounded-md text-[8px] font-black uppercase tracking-wider transition-all ${filterCategory === cat.id
                                         ? 'bg-primary text-white shadow-md'
-                                        : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+                                        : 'text-gray-400 dark:text-slate-300 hover:text-gray-600 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-700'
                                         }`}
                                 >
                                     {cat.label}
@@ -747,7 +706,7 @@ const QuickAttendance = () => {
                         </div>
 
                         {/* Attend Type Filter - Buttons */}
-                        <div className="flex items-center gap-1.5 bg-gray-50/50 p-0.5 rounded-lg border border-gray-100">
+                        <div className="flex items-center gap-1.5 bg-gray-50/50 dark:bg-slate-800 p-0.5 rounded-lg border border-gray-100 dark:border-slate-600">
                             {[
                                 { id: 'all', label: 'All Modes' },
                                 { id: 'physical', label: 'Onsite' },
@@ -758,7 +717,7 @@ const QuickAttendance = () => {
                                     onClick={() => setFilterAttendType(type.id)}
                                     className={`px-2 py-1 rounded-md text-[8px] font-black uppercase tracking-wider transition-all ${filterAttendType === type.id
                                         ? 'bg-primary text-white shadow-md'
-                                        : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+                                        : 'text-gray-400 dark:text-slate-300 hover:text-gray-600 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-700'
                                         }`}
                                 >
                                     {type.label}
@@ -767,11 +726,11 @@ const QuickAttendance = () => {
                         </div>
 
                         {/* Class Time Filter */}
-                        <div className="flex items-center gap-1.5 bg-gray-50/50 p-0.5 rounded-lg border border-gray-100">
+                        <div className="flex items-center gap-1.5 bg-gray-50/50 dark:bg-slate-800 p-0.5 rounded-lg border border-gray-100 dark:border-slate-600">
                             <select
                                 value={filterClassTime}
                                 onChange={(e) => setFilterClassTime(e.target.value)}
-                                className="px-2 py-1 rounded-md text-[10px] font-bold text-gray-700 bg-transparent border-none focus:ring-0 outline-none w-32 cursor-pointer max-w-[150px] truncate"
+                                className="px-2 py-1 rounded-md text-[10px] font-bold text-gray-700 dark:text-slate-100 bg-transparent border-none focus:ring-0 outline-none w-32 cursor-pointer max-w-[150px] truncate"
                             >
                                 <option value="all">All Times</option>
                                 {classTimeOptions.map(opt => (
@@ -783,13 +742,21 @@ const QuickAttendance = () => {
                 </div>
 
                 {/* Status Chips - Interactive Filtering */}
-                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 pt-2 border-t border-gray-50">
-                    <div className="flex items-center gap-2 px-2 py-1 bg-gray-50 rounded-full shrink-0 border border-gray-100">
-                        <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></div>
-                        <span className="text-[8px] font-black text-gray-500 uppercase tracking-wider">Quick Status Filter</span>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 pt-2 border-t border-gray-50 dark:border-slate-700">
+                    <div className="relative w-full sm:flex-1 sm:min-w-[240px] group">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <Search className="w-3.5 h-3.5 text-gray-400 group-focus-within:text-primary transition-colors" />
+                        </div>
+                        <input
+                            type="text"
+                            placeholder="Search by name or roll number..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full pl-9 pr-3 py-2 !bg-gray-50/50 dark:!bg-white/5 border border-gray-100 dark:border-slate-600 focus:border-primary/30 focus:!bg-white dark:focus:!bg-white/10 focus:ring-2 focus:ring-primary/5 rounded-lg text-xs font-bold outline-none transition-all placeholder:text-gray-400 dark:text-white"
+                        />
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-2">
+                    <div className="hidden">
                         {[
                             { id: 'all', label: 'All Students', icon: Users, baseColor: 'gray', activeClass: 'bg-gray-900 border-gray-900 text-white shadow-gray-200' },
                             { id: 'present', label: 'Present', icon: UserCheck, baseColor: 'emerald', activeClass: 'bg-present-fixed border-present-fixed text-white shadow-emerald-100' },
@@ -801,7 +768,7 @@ const QuickAttendance = () => {
                                 onClick={() => setFilterStatus(btn.id)}
                                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[8px] font-black uppercase tracking-wider transition-all border ${filterStatus === btn.id
                                     ? `${btn.activeClass} `
-                                    : `bg-white border-gray-100 text-gray-500 hover:border-${btn.baseColor}-200 hover:bg-${btn.baseColor}-50/50 hover:text-${btn.baseColor}-600`
+                                    : `bg-white dark:bg-slate-800 border-gray-100 dark:border-slate-600 text-gray-500 dark:text-slate-200 hover:border-${btn.baseColor}-200 hover:bg-${btn.baseColor}-50/50 dark:hover:bg-slate-700 hover:text-${btn.baseColor}-600 dark:hover:text-white`
                                     }`}
                             >
                                 <btn.icon className={`w-3 h-3 ${filterStatus === btn.id ? 'opacity-100' : 'opacity-60'}`} />
@@ -817,10 +784,31 @@ const QuickAttendance = () => {
 
             {/* Student List Table */}
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col">
-                <div className="px-4 py-2.5 bg-gray-50 border-b border-gray-100 flex items-center justify-between gap-2 shrink-0">
+                <div className="px-4 py-3 bg-gray-50 dark:bg-slate-800 border-b border-gray-100 dark:border-slate-700 flex flex-col sm:flex-row sm:items-end justify-between gap-3 shrink-0">
                     <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">
                         Showing {filteredStudents.length} student{filteredStudents.length !== 1 ? 's' : ''}
                     </span>
+                    <div className="flex flex-wrap items-end gap-2">
+                        <div className="flex flex-col">
+                            <div className="relative">
+                                <Calendar className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-primary" />
+                                <input
+                                    type="date"
+                                    value={selectedDate}
+                                    max={getTodayAttendanceDateKey()}
+                                    onChange={(e) => setSelectedDate(e.target.value)}
+                                    className="pl-8 pr-3 py-2 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-600 text-gray-800 dark:text-white focus:border-primary rounded-lg text-xs font-bold outline-none transition-all cursor-pointer dark:[color-scheme:dark]"
+                                />
+                            </div>
+                        </div>
+                        <button
+                            onClick={handleDownloadPDF}
+                            className="flex items-center justify-center gap-1.5 bg-white dark:bg-slate-900 text-primary px-3 py-2 rounded-lg font-black uppercase tracking-wider text-[10px] border border-primary/20 hover:border-primary hover:shadow-primary/10 transition-all active:scale-95"
+                        >
+                            <Download className="w-3.5 h-3.5" />
+                            Download Today
+                        </button>
+                    </div>
                 </div>
                 <div className="w-full overflow-x-auto">
                     <table className="w-full min-w-full text-left border-collapse">
@@ -988,7 +976,7 @@ const QuickAttendance = () => {
                             initial={{ opacity: 0, scale: 0.95, y: 20 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                            className="relative w-full max-w-md bg-white rounded-[2.5rem] shadow-2xl overflow-hidden"
+                            className="relative w-full max-w-2xl max-h-[92vh] bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl overflow-y-auto"
                         >
                             <div className="p-8">
                                 <div className="flex items-center justify-between mb-8">
@@ -1005,7 +993,7 @@ const QuickAttendance = () => {
                                 </div>
 
                                 <div className="space-y-6">
-                                    <div className="grid grid-cols-1 gap-4">
+                                    <div className="grid grid-cols-2 gap-3 sm:gap-4">
                                         <div className="space-y-2">
                                             <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Start Date</label>
                                             <input
@@ -1013,7 +1001,7 @@ const QuickAttendance = () => {
                                                 value={rangeStart}
                                                 max={rangeEnd || getTodayAttendanceDateKey()}
                                                 onChange={(e) => setRangeStart(e.target.value)}
-                                                className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:border-primary rounded-2xl font-black text-sm outline-none transition-all"
+                                                className="w-full min-w-0 px-3 sm:px-6 py-4 bg-gray-50 border-2 border-transparent focus:border-primary rounded-2xl font-black text-xs sm:text-sm outline-none transition-all"
                                             />
                                         </div>
                                         <div className="space-y-2">
@@ -1024,8 +1012,78 @@ const QuickAttendance = () => {
                                                 min={rangeStart}
                                                 max={getTodayAttendanceDateKey()}
                                                 onChange={(e) => setRangeEnd(e.target.value)}
-                                                className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:border-primary rounded-2xl font-black text-sm outline-none transition-all"
+                                                className="w-full min-w-0 px-3 sm:px-6 py-4 bg-gray-50 border-2 border-transparent focus:border-primary rounded-2xl font-black text-xs sm:text-sm outline-none transition-all"
                                             />
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-3 p-4 bg-gray-50 dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700">
+                                        <p className="text-[10px] font-black text-gray-400 dark:text-slate-300 uppercase tracking-widest">Report Filters</p>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                            <select
+                                                value={filterCourse}
+                                                onChange={(e) => setFilterCourse(e.target.value)}
+                                                className="w-full px-3 py-2.5 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-600 text-gray-700 dark:text-white rounded-xl text-xs font-bold outline-none focus:border-primary"
+                                            >
+                                                <option value="all">All Courses</option>
+                                                {courses.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
+                                            </select>
+                                            <select
+                                                value={filterLocation}
+                                                onChange={(e) => setFilterLocation(e.target.value)}
+                                                className="w-full px-3 py-2.5 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-600 text-gray-700 dark:text-white rounded-xl text-xs font-bold outline-none focus:border-primary"
+                                            >
+                                                <option value="all">All Locations</option>
+                                                <option value="Bahawalpur">Bahawalpur</option>
+                                                <option value="Islamabad">Islamabad</option>
+                                            </select>
+                                            <select
+                                                value={filterCategory}
+                                                onChange={(e) => setFilterCategory(e.target.value)}
+                                                className="w-full px-3 py-2.5 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-600 text-gray-700 dark:text-white rounded-xl text-xs font-bold outline-none focus:border-primary"
+                                            >
+                                                <option value="all">All Categories</option>
+                                                <option value="students">Students</option>
+                                                <option value="interns">Interns</option>
+                                            </select>
+                                            <select
+                                                value={filterAttendType}
+                                                onChange={(e) => setFilterAttendType(e.target.value)}
+                                                className="w-full px-3 py-2.5 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-600 text-gray-700 dark:text-white rounded-xl text-xs font-bold outline-none focus:border-primary"
+                                            >
+                                                <option value="all">All Modes</option>
+                                                <option value="physical">Onsite</option>
+                                                <option value="online">Online</option>
+                                            </select>
+                                            <select
+                                                value={filterClassTime}
+                                                onChange={(e) => setFilterClassTime(e.target.value)}
+                                                className="w-full px-3 py-2.5 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-600 text-gray-700 dark:text-white rounded-xl text-xs font-bold outline-none focus:border-primary sm:col-span-2"
+                                            >
+                                                <option value="all">All Times</option>
+                                                {classTimeOptions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                                            </select>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                            {[
+                                                { id: 'all', label: 'All Students' },
+                                                { id: 'present', label: 'Present' },
+                                                { id: 'absent', label: 'Absent' },
+                                                { id: 'not_marked', label: 'Not Marked' }
+                                            ].map(status => (
+                                                <button
+                                                    key={status.id}
+                                                    type="button"
+                                                    onClick={() => setFilterStatus(status.id)}
+                                                    className={`px-3 py-2 rounded-xl border text-[9px] font-black uppercase tracking-wider transition-all ${filterStatus === status.id
+                                                        ? 'bg-primary border-primary text-white'
+                                                        : 'bg-white dark:bg-slate-900 border-gray-200 dark:border-slate-600 text-gray-500 dark:text-slate-200 hover:border-primary'
+                                                        }`}
+                                                >
+                                                    {status.label}
+                                                </button>
+                                            ))}
                                         </div>
                                     </div>
 
@@ -1034,7 +1092,7 @@ const QuickAttendance = () => {
                                             <AlertCircle className="w-5 h-5" />
                                         </div>
                                         <p className="text-[10px] font-bold text-primary uppercase leading-relaxed">
-                                            Report will include summary for all students in this range.
+                                            Report will include students matching the selected filters in this range.
                                         </p>
                                     </div>
 

@@ -1609,9 +1609,18 @@ const InternsManagement = () => {
             {/* Monthly Fee Management Modal */}
             <Modal isOpen={isInstallmentModalOpen} onClose={() => setIsInstallmentModalOpen(false)} title="Manage Months" size="lg">
                 <div className="space-y-6">
-                    <div className="bg-blue-50 p-4 rounded-xl text-sm text-blue-800 border border-blue-100 flex items-start justify-between">
+                    <div className="bg-blue-50 dark:bg-slate-800 p-4 rounded-xl text-sm text-blue-800 dark:text-slate-100 border border-blue-100 dark:border-slate-600 flex items-start justify-between">
                         <div>
-                            <p>Set up the monthly fee plan for <strong>{selectedFee?.user?.name || viewFeeModal.internName}</strong>.</p>
+                            <p>
+                                Set up the monthly fee plan for course:{' '}
+                                <strong>{selectedFee?.course?.title || 'Unknown Course'}</strong>.
+                            </p>
+                            <p className="mt-1">
+                                Intern: <strong>{selectedFee?.user?.name || viewFeeModal.internName || 'Unknown Intern'}</strong>
+                            </p>
+                            <p className="mt-1">
+                                Roll Number: <strong>{selectedFee?.user?.rollNo || 'Not assigned'}</strong>
+                            </p>
                             <p className="mt-1">Course Fee: <strong>Rs {(selectedFee?.totalFee || 0).toLocaleString()}</strong></p>
                         </div>
                         <button
@@ -1636,7 +1645,7 @@ const InternsManagement = () => {
                                 }
                             }}
                             disabled={isProcessing}
-                            className="p-2 text-red-500 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors border border-red-200 bg-white shadow-sm flex items-center gap-2 text-xs font-bold shrink-0 disabled:opacity-50"
+                            className="p-2 text-red-500 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-700 hover:text-red-600 dark:hover:text-white rounded-lg transition-colors border border-red-200 dark:border-red-700 bg-white dark:bg-slate-900 shadow-sm flex items-center gap-2 text-xs font-bold shrink-0 disabled:opacity-50"
                             title="Permanently remove this course enrollment"
                             type="button"
                         >
@@ -1645,38 +1654,38 @@ const InternsManagement = () => {
                         </button>
                     </div>
 
-                    <div className="bg-red-50 p-4 rounded-xl text-sm text-red-700 border border-red-200">
+                    <div className="bg-red-50 dark:bg-red-950/40 p-4 rounded-xl text-sm text-red-700 dark:text-red-200 border border-red-200 dark:border-red-800">
                         <p className="font-bold flex items-center gap-2 text-xs">
                             <AlertCircle className="w-4 h-4" />
                             Next month's installment will be automatically created by the system.
                         </p>
-                        <p className="mt-1 text-[10px] text-red-600">After the first installment is verified, new installments will be auto-generated monthly using the course fee.</p>
+                        <p className="mt-1 text-[10px] text-red-600 dark:text-red-300">After the first installment is verified, new installments will be auto-generated monthly using the course fee.</p>
                     </div>
 
                     <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2">
                         {installmentPlan.map((inst, idx) => (
-                            <div key={idx} className="flex items-center gap-3 p-3 bg-gray-50/50 rounded-xl border border-gray-100">
+                            <div key={idx} className="flex items-center gap-3 p-3 bg-gray-50/50 dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-600">
                                 <div className="w-24 shrink-0">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1 block">Amount</label>
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 dark:text-slate-300 mb-1 block">Amount</label>
                                     <input
                                         type="number"
                                         value={inst.amount}
                                         onChange={(e) => handleInstallmentChange(idx, 'amount', e.target.value)}
-                                        className="w-full px-2 py-1.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm font-bold"
+                                        className="w-full px-2 py-1.5 border border-gray-200 dark:border-slate-500 bg-white dark:bg-slate-900 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm font-bold"
                                         placeholder="0"
                                     />
                                 </div>
                                 <div className="w-32 shrink-0">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1 block">Due Date</label>
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 dark:text-slate-300 mb-1 block">Due Date</label>
                                     <input
                                         type="date"
                                         value={inst.dueDate}
                                         onChange={(e) => handleInstallmentChange(idx, 'dueDate', e.target.value)}
-                                        className="w-full px-2 py-1.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary text-xs"
+                                        className="w-full px-2 py-1.5 border border-gray-200 dark:border-slate-500 bg-white dark:bg-slate-900 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary text-xs dark:[color-scheme:dark]"
                                     />
                                 </div>
                                 <div className="flex-1">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1 block">Status</label>
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 dark:text-slate-300 mb-1 block">Status</label>
                                     <div className="flex items-center gap-2">
                                         <Badge variant={inst.status === 'verified' ? 'success' : inst.status === 'submitted' ? 'info' : inst.status === 'rejected' ? 'error' : 'warning'}>
                                             {inst.status === 'verified' ? 'PAID ✓' : (inst.status?.toUpperCase() || 'PENDING')}
@@ -1711,8 +1720,8 @@ const InternsManagement = () => {
                         <Plus className="w-4 h-4" /> Add Month Fee
                     </button>
 
-                    <div className="border-t pt-4 flex justify-end gap-3">
-                        <button onClick={() => setIsInstallmentModalOpen(false)} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg font-medium">Cancel</button>
+                    <div className="border-t dark:border-slate-700 pt-4 flex justify-end gap-3">
+                        <button onClick={() => setIsInstallmentModalOpen(false)} className="px-4 py-2 text-gray-600 dark:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg font-medium">Cancel</button>
                         <button
                             onClick={handleSaveInstallments}
                             disabled={isProcessing}
