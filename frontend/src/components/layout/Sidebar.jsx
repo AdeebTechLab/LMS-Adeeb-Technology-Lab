@@ -1,7 +1,7 @@
 import { useSelector, useDispatch } from 'react-redux';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
-import { assignmentAPI, courseAPI, dailyTaskAPI, chatAPI } from '../../services/api';
+import { assignmentAPI, courseAPI, dailyTaskAPI, chatAPI, enrollmentAPI, feeAPI, certificateAPI, testAPI } from '../../services/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     LayoutDashboard,
@@ -25,7 +25,8 @@ import {
     Zap,
     CheckCircle,
     Clock,
-    MessageSquare
+    MessageSquare,
+    Wallet
 } from 'lucide-react';
 import { logout, loginSuccess } from '../../features/auth/authSlice';
 import { userAPI, authAPI } from '../../services/api';
@@ -44,6 +45,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     const [adminPendingCounts, setAdminPendingCounts] = useState({});
     const [teacherSubmissionCount, setTeacherSubmissionCount] = useState(0);
     const [jobChatSummary, setJobChatSummary] = useState({ totalUnread: 0, totalApplicants: 0 });
+    const [studentNavCounts, setStudentNavCounts] = useState({});
     const [availableRoles, setAvailableRoles] = useState([]);
     const [isSwitchingRole, setIsSwitchingRole] = useState(false);
     const [showRoleMenu, setShowRoleMenu] = useState(false);
@@ -83,8 +85,13 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     useEffect(() => {
         if (role === 'student' || role === 'intern') {
             fetchPendingCount();
+            if (role === 'student') fetchStudentNavCounts();
             const interval = setInterval(fetchPendingCount, 5 * 60 * 1000);
-            return () => clearInterval(interval);
+            const navInterval = role === 'student' ? setInterval(fetchStudentNavCounts, 60 * 1000) : null;
+            return () => {
+                clearInterval(interval);
+                if (navInterval) clearInterval(navInterval);
+            };
         } else if (role === 'admin') {
             fetchAdminPendingCounts();
             const interval = setInterval(fetchAdminPendingCounts, 2 * 60 * 1000); // Admin refresh more frequent
@@ -216,6 +223,72 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         }
     };
 
+    const fetchStudentNavCounts = async () => {
+        try {
+            const userId = String(user?._id || user?.id || '');
+            if (!userId) return;
+
+            const [enrollmentResult, feeResult, assignmentResult, certificateResult, chatResult] = await Promise.allSettled([
+                enrollmentAPI.getMy(),
+                feeAPI.getMy(),
+                assignmentAPI.getMy(),
+                certificateAPI.getMy(),
+                chatAPI.getStudentCourses()
+            ]);
+
+            const enrollments = enrollmentResult.status === 'fulfilled' ? (enrollmentResult.value.data.data || []) : [];
+            const fees = feeResult.status === 'fulfilled' ? (feeResult.value.data.data || []) : [];
+            const assignments = assignmentResult.status === 'fulfilled' ? (assignmentResult.value.data.assignments || []) : [];
+            const certificates = certificateResult.status === 'fulfilled' ? (certificateResult.value.data.certificates || []) : [];
+            const chatCourses = chatResult.status === 'fulfilled' ? (chatResult.value.data.data || []) : [];
+            const courseIds = enrollments.map(e => String(e.course?._id || e.course || '')).filter(Boolean);
+
+            const [dailyResults, testResults] = await Promise.all([
+                Promise.allSettled(courseIds.map(courseId => dailyTaskAPI.getMy(courseId))),
+                Promise.allSettled(courseIds.map(courseId => testAPI.getByCourse(courseId)))
+            ]);
+
+            const ungradedLogs = dailyResults.reduce((total, result) => {
+                if (result.status !== 'fulfilled') return total;
+                const logs = result.value.data.data || [];
+                return total + logs.filter(log => !['graded', 'verified'].includes(log.status)).length;
+            }, 0);
+
+            const pendingTests = testResults.reduce((total, result) => {
+                if (result.status !== 'fulfilled') return total;
+                const tests = result.value.data.tests || [];
+                return total + tests.filter(test => !(test.submissions || []).length).length;
+            }, 0);
+
+            const pendingAssignments = assignments.filter(assignment => {
+                const mySubmission = (assignment.submissions || []).find(submission =>
+                    String(submission.user?._id || submission.user || '') === userId
+                );
+                if (!mySubmission) return true;
+                const hasMarks = typeof mySubmission.marks === 'number';
+                return !hasMarks && !['graded', 'verified'].includes(mySubmission.status);
+            }).length;
+
+            const pendingFees = fees.reduce((total, fee) => total + (fee.installments || [])
+                .filter(installment => installment.status !== 'verified').length, 0);
+            const unreadChat = chatCourses.reduce((total, course) => total + Number(course.totalUnread || 0), 0);
+            const actionableTotal = pendingFees + ungradedLogs + pendingAssignments + pendingTests + unreadChat;
+
+            setStudentNavCounts({
+                dashboard: actionableTotal,
+                courses: enrollments.length,
+                fees: pendingFees,
+                classLogs: ungradedLogs,
+                assignments: pendingAssignments,
+                tests: pendingTests,
+                certificates: certificates.length,
+                chat: unreadChat
+            });
+        } catch (error) {
+            console.error('Error fetching student navigation counts:', error);
+        }
+    };
+
     const handleLogout = () => {
         dispatch(logout());
         navigate('/login');
@@ -237,6 +310,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 { id: 'jobs', labelKey: 'nav.freelancers', icon: Briefcase, path: '/admin/jobs', badge: adminPendingCounts.job },
                 { id: 'notifications', labelKey: 'nav.notifications', icon: Bell, path: '/admin/notifications' },
                 { id: 'fees', labelKey: 'nav.feeVerification', icon: CreditCard, path: '/admin/fees', badge: adminPendingCounts.fees },
+                { id: 'expense', labelKey: 'Expense', icon: Wallet, path: '/admin/expense' },
                 { id: 'attendance-settings', labelKey: 'nav.attendanceSettings', icon: ClipboardList, path: '/admin/attendance-settings' },
             ],
             teacher: [
@@ -249,16 +323,17 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 { id: 'job-chat', labelKey: 'Applicant Chats', icon: MessageSquare, path: '/teacher/job-chat', badge: jobChatSummary.totalUnread },
             ],
             student: [
-                { id: 'dashboard', labelKey: 'nav.dashboard', icon: LayoutDashboard, path: '/student/dashboard' },
+                { id: 'dashboard', labelKey: 'nav.dashboard', icon: LayoutDashboard, path: '/student/dashboard', badge: studentNavCounts.dashboard },
                 { id: 'profile', labelKey: 'nav.myProfile', icon: User, path: '/student/profile' },
-                { id: 'courses', labelKey: 'nav.myCourses', icon: BookOpen, path: '/student/courses' },
-                { id: 'fees', labelKey: 'nav.feePayment', icon: CreditCard, path: '/student/fees' },
+                { id: 'courses', labelKey: 'nav.myCourses', icon: BookOpen, path: '/student/courses', badge: studentNavCounts.courses },
+                { id: 'fees', labelKey: 'nav.feePayment', icon: CreditCard, path: '/student/fees', badge: studentNavCounts.fees },
                 { id: 'attendance', labelKey: 'nav.myAttendance', icon: Calendar, path: '/student/assignments', state: { tab: 'attendance' } },
-                { id: 'class-logs', labelKey: 'nav.classLogs', icon: ClipboardList, path: '/student/assignments', state: { tab: 'daily_tasks' } },
-                { id: 'assignments', labelKey: 'nav.assignments', icon: FileText, path: '/student/assignments', state: { tab: 'assignments' } },
-                { id: 'tests', labelKey: 'nav.myTests', icon: Zap, path: '/student/assignments', state: { tab: 'tests' } },
+                { id: 'class-logs', labelKey: 'nav.classLogs', icon: ClipboardList, path: '/student/assignments', state: { tab: 'daily_tasks' }, badge: studentNavCounts.classLogs },
+                { id: 'assignments', labelKey: 'nav.assignments', icon: FileText, path: '/student/assignments', state: { tab: 'assignments' }, badge: studentNavCounts.assignments },
+                { id: 'tests', labelKey: 'nav.myTests', icon: Zap, path: '/student/assignments', state: { tab: 'tests' }, badge: studentNavCounts.tests },
                 { id: 'marks', labelKey: 'nav.marksSheet', icon: BarChart3, path: '/student/marks' },
-                { id: 'certificates', labelKey: 'Certificates', icon: Award, path: '/student/courses', state: { tab: 'completed' } },
+                { id: 'certificates', labelKey: 'Certificates', icon: Award, path: '/student/courses', state: { tab: 'completed' }, badge: studentNavCounts.certificates },
+                { id: 'chat', labelKey: 'Chat', icon: MessageSquare, path: '/student/assignments', state: { tab: 'chat' }, badge: studentNavCounts.chat },
             ],
             intern: [
                 { id: 'dashboard', labelKey: 'nav.dashboard', icon: LayoutDashboard, path: '/intern/dashboard' },
@@ -437,7 +512,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                                 >
                                     <item.icon className="w-5 h-5 flex-shrink-0" />
                                     <span className="font-medium flex-1">{t(item.labelKey)}</span>
-                                    {item.id === 'assignments' && pendingCount > 0 && (
+                                    {item.id === 'assignments' && role !== 'student' && pendingCount > 0 && (
                                         <motion.span
                                             initial={{ scale: 0 }}
                                             animate={{ scale: 1 }}
@@ -446,15 +521,15 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                                             {pendingCount}
                                         </motion.span>
                                     )}
-                                    {/* Badge for Registered (New) users (orange) */}
+                                    {/* Navigation count badge */}
                                     {item.badge > 0 && (
                                         <motion.span
                                             initial={{ scale: 0 }}
                                             animate={{ scale: 1 }}
-                                            className="bg-primary text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow-lg shadow-primary/20"
-                                            title="Registered (New)"
+                                            className="bg-primary text-white text-[10px] font-black min-w-5 h-5 px-1 rounded-full flex items-center justify-center shadow-lg shadow-primary/20"
+                                            title="Notifications"
                                         >
-                                            {item.badge}
+                                            {item.badge > 99 ? '99+' : item.badge}
                                         </motion.span>
                                     )}
                                     {/* Badge for teacher pending (ungraded) submissions (red) */}

@@ -279,6 +279,13 @@ export const chatAPI = {
     clearJobChat: (taskId, userId) => api.delete(`/chat/job/${taskId}/messages/${userId}`)
 };
 
+export const financeAPI = {
+    getAll: (params = {}) => api.get('/finance', { params }),
+    create: (data) => api.post('/finance', data),
+    update: (id, data) => api.put(`/finance/${id}`, data),
+    delete: (id) => api.delete(`/finance/${id}`)
+};
+
 // Stats APIs
 export const statsAPI = {
     getAdminDashboard: (params) => api.get('/stats/admin-dashboard', { params })

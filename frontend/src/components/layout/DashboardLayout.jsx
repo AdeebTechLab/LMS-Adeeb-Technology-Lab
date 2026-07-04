@@ -13,7 +13,6 @@ const SOCKET_URL = getSocketURL();
 import {
     Menu,
     Bell,
-    Search,
     ChevronDown,
     Sun,
     Moon,
@@ -480,31 +479,8 @@ const DashboardLayout = () => {
                             </div>
                         </div>
 
-                        {/* Search Bar - Takes second row on mobile */}
-                        <div className="flex-1 min-w-0 flex items-stretch relative z-0 order-last lg:order-none">
-                            <div
-                                className={`flex w-full items-center rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 min-h-[2.25rem] sm:min-h-[2.75rem] transition-all duration-300 border ${
-                                    isDark 
-                                    ? 'bg-[var(--bg-sidebar-dark)] border-white/5 focus-within:border-primary/40 focus-within:ring-1 focus-within:ring-primary/40' 
-                                    : 'bg-gray-50 border-gray-200/80 focus-within:border-primary focus-within:bg-white focus-within:shadow-sm'
-                                }`}
-                            >
-                                <Search className={`w-4 h-4 mr-2 shrink-0 transition-colors duration-300 ${isDark ? 'text-white/30' : 'text-gray-400'}`} />
-                                <input
-                                    type="search"
-                                    placeholder={t('layout.searchPlaceholder')}
-                                    aria-label={t('layout.search')}
-                                    className={`!bg-transparent border-none outline-none text-xs sm:text-sm w-full min-w-0 flex-1 transition-colors duration-300 ${
-                                        isDark 
-                                        ? 'text-white/90 placeholder:text-white/20' 
-                                        : 'text-gray-800 placeholder:text-gray-400'
-                                    }`}
-                                />
-                            </div>
-                        </div>
-
                         {/* Right: actions (Desktop only) */}
-                        <div className="hidden lg:flex items-center gap-1.5 sm:gap-3 shrink-0 relative z-10">
+                        <div className="hidden lg:flex lg:ml-auto items-center gap-1.5 sm:gap-3 shrink-0 relative z-10">
                             {/* Refresh Button */}
                             <button
                                 type="button"
