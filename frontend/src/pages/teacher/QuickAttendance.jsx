@@ -649,7 +649,7 @@ const QuickAttendance = () => {
             <div className="bg-white/80 dark:bg-slate-900/90 backdrop-blur-xl p-2.5 sm:p-3 rounded-xl border border-gray-100 dark:border-slate-700 shadow-sm space-y-2.5">
                 <div className="flex flex-col lg:flex-row gap-2 items-center">
                     {/* Filters Row */}
-                    <div className="hidden">
+                    <div className="flex flex-wrap items-center gap-1.5 w-full">
                         {/* Course Filter */}
                         <div className="relative flex-1 lg:w-48">
                             <Filter className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3 h-3 text-primary" />
@@ -756,7 +756,7 @@ const QuickAttendance = () => {
                         />
                     </div>
 
-                    <div className="hidden">
+                    <div className="flex flex-wrap items-center gap-2">
                         {[
                             { id: 'all', label: 'All Students', icon: Users, baseColor: 'gray', activeClass: 'bg-gray-900 border-gray-900 text-white shadow-gray-200' },
                             { id: 'present', label: 'Present', icon: UserCheck, baseColor: 'emerald', activeClass: 'bg-present-fixed border-present-fixed text-white shadow-emerald-100' },
