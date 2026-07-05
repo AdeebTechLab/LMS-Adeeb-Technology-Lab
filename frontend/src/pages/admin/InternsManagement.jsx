@@ -10,7 +10,7 @@ import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
-import { userAPI, settingsAPI, enrollmentAPI, assignmentAPI, feeAPI, courseAPI } from '../../services/api';
+import { userAPI, settingsAPI, enrollmentAPI, assignmentAPI, feeAPI, courseAPI, reportAPI } from '../../services/api';
 import { generateComprehensiveReport } from '../../utils/reportGenerator';
 import ImageCropper from '../../components/ui/ImageCropper';
 
@@ -104,6 +104,10 @@ const InternsManagement = () => {
     };
 
     const handleReminder = (intern) => {
+        if (getInternStatus(intern) === 'Enrolled (Active)') {
+            handleAcademicReportWhatsApp(intern);
+            return;
+        }
         const phoneNumber = intern.phone;
         if (!phoneNumber) {
             alert("WhatsApp number not found for this user.");
@@ -130,9 +134,21 @@ const InternsManagement = () => {
             cleanPhone = '92' + cleanPhone.slice(1);
         }
         const userLocation = intern.location ? ` ${intern.location.charAt(0).toUpperCase() + intern.location.slice(1)}` : '';
-        const message = `Assalam-o-Alaikum,\n\nThis is a reminder from LMS Adeeb Technology Lab${userLocation} regarding ${intern.name}.\n\nThey have not selected any skill yet. Please log in and enroll via the "My Skills" section.\n\n*If they do not wish to continue, kindly let us know so we can cancel their application.*\n\nPortal: https://lms-adeeb-technology-lab.vercel.app/\n\nThank you!`;
+        const isActive = getInternStatus(intern) === 'Enrolled (Active)';
+        const message = isActive
+            ? `Assalam-o-Alaikum,\n\nThis is an academic update from LMS Adeeb Technology Lab${userLocation} regarding ${intern.name}.\n\nPlease contact us if you would like to receive or discuss their latest academic report.\n\nPortal: https://lms-adeeb-technology-lab.vercel.app/\n\nThank you!`
+            : `Assalam-o-Alaikum,\n\nThis is a reminder from LMS Adeeb Technology Lab${userLocation} regarding ${intern.name}.\n\nThey have not selected any skill yet. Please log in and enroll via the "My Skills" section.\n\n*If they do not wish to continue, kindly let us know so we can cancel their application.*\n\nPortal: https://lms-adeeb-technology-lab.vercel.app/\n\nThank you!`;
         const waUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
         window.open(waUrl, '_blank');
+    };
+
+    const getInternEmailHref = (intern) => {
+        const isActive = getInternStatus(intern) === 'Enrolled (Active)';
+        const subject = isActive ? 'Academic Report Update - LMS Adeeb Technology Lab' : 'Important Update - LMS Adeeb Technology Lab';
+        const body = isActive
+            ? `Assalam-o-Alaikum ${intern.name},\n\nYour latest academic report from LMS Adeeb Technology Lab is ready. Please contact the administration to receive or discuss the report.\n\nPortal: https://lms-adeeb-technology-lab.vercel.app/\n\nThank you!`
+            : `Assalam-o-Alaikum ${intern.name},\n\nThis is a reminder from LMS Adeeb Technology Lab${intern.location ? ` ${intern.location.charAt(0).toUpperCase() + intern.location.slice(1)}` : ''}.\n\nYou have not selected any skill yet. Please log in and enroll via the "My Skills" section.\n\n*If you do not wish to continue, kindly let us know so we can cancel your application.*\n\nPortal: https://lms-adeeb-technology-lab.vercel.app/\n\nThank you!`;
+        return `https://mail.google.com/mail/?view=cm&fs=1&to=${intern.email}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     };
 
     const handleVerify = async () => {
@@ -497,9 +513,56 @@ const InternsManagement = () => {
                 feeAPI.getUserFees(intern._id)
             ]);
             await generateComprehensiveReport(intern, enrollmentsRes.data.data, assignmentsRes.data.assignments, feesRes.data.data);
+            return true;
         } catch (error) {
             console.error('Error generating report:', error);
             alert('Failed to generate report. Please try again.');
+            return false;
+        }
+    };
+
+    const handleAcademicReportWhatsApp = async (intern) => {
+        const phoneNumber = intern.phone;
+        if (!phoneNumber) {
+            alert('WhatsApp number not found for this intern.');
+            return;
+        }
+
+        const whatsappWindow = window.open('', '_blank');
+        try {
+            const [enrollmentsRes, assignmentsRes, feesRes] = await Promise.all([
+                enrollmentAPI.getUserEnrollments(intern._id),
+                assignmentAPI.getUserAssignments(intern._id),
+                feeAPI.getUserFees(intern._id)
+            ]);
+            const generated = await generateComprehensiveReport(
+                intern,
+                enrollmentsRes.data.data,
+                assignmentsRes.data.assignments,
+                feesRes.data.data,
+                { output: 'blob' }
+            );
+            const formData = new FormData();
+            formData.append('report', generated.blob, generated.fileName);
+            const response = await reportAPI.uploadInternReport(intern._id, formData);
+            const reportUrl = `https://lms-adeeb-technology-lab.vercel.app${response.data.path}`;
+
+            let cleanPhone = phoneNumber.replace(/[^0-9+]/g, '');
+            if (cleanPhone.startsWith('0')) cleanPhone = `92${cleanPhone.slice(1)}`;
+            cleanPhone = cleanPhone.replace(/^\+/, '');
+            const campus = intern.location || intern.city || 'Campus';
+            const courseNames = (enrollmentsRes.data.data || [])
+                .map(enrollment => enrollment.course?.title)
+                .filter(Boolean)
+                .join(', ') || 'N/A';
+            const message = `*Internship Strike Off Notice*\n\n*Adeeb Technology Lab ${campus}*\n*Digital Tech Expert Software House*\n\n*Name:* ${intern.name || 'N/A'}\n*Roll No:* ${intern.rollNo || 'N/A'}\n*Skill:* ${courseNames}\n\n*Reason:* Academic report satisfactory nahi thi. Isi wajah se aap ko *Internship Strike Off* kar diya gaya hai.\n\nApni academic report dekhne aur download karne ke liye neeche diye gaye link par click karein:\n\n*Report Link:*\n${reportUrl}\n\n*Regards,*\n*HR Department*\n*Adeeb Technology Lab*`;
+            const waUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
+            if (whatsappWindow) whatsappWindow.location.href = waUrl;
+            else window.open(waUrl, '_blank');
+        } catch (error) {
+            whatsappWindow?.close();
+            console.error('Failed to create academic report link:', error);
+            alert('Academic report link create nahi ho saka. Please try again.');
         }
     };
 
@@ -923,7 +986,7 @@ const InternsManagement = () => {
                                     {/* Actions */}
                                     <div className="flex flex-wrap items-center justify-end gap-2 pt-4 border-t border-gray-100 w-full">
                                         <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2 lg:pb-0 w-full lg:w-auto justify-end">
-                                            {(intern.totalEnrollments || 0) === 0 && !intern.registeredOld && (
+                                            {(((intern.totalEnrollments || 0) === 0 && !intern.registeredOld) || getInternStatus(intern) === 'Enrolled (Active)') && (
                                                 <button
                                                     onClick={() => handleReminder(intern)}
                                                     className="px-3 py-1.5 bg-[#25D366] hover:bg-[#128C7E] text-white rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 transition-all shadow-sm shadow-green-200"
@@ -935,7 +998,7 @@ const InternsManagement = () => {
                                                     Reminder
                                                 </button>
                                             )}
-                                            {(intern.guardianPhone || intern.parentPhone) && (intern.totalEnrollments || 0) === 0 && !intern.registeredOld && (
+                                            {(intern.guardianPhone || intern.parentPhone) && (((intern.totalEnrollments || 0) === 0 && !intern.registeredOld) || getInternStatus(intern) === 'Enrolled (Active)') && (
                                                 <button
                                                     onClick={() => handleGuardianReminder(intern)}
                                                     className="px-3 py-1.5 bg-rose-500 hover:bg-rose-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 transition-all shadow-sm shadow-rose-200"
@@ -947,9 +1010,9 @@ const InternsManagement = () => {
                                                     Guardian Reminder
                                                 </button>
                                             )}
-                                            {intern.email && (intern.totalEnrollments || 0) === 0 && !intern.registeredOld && (
+                                            {intern.email && (((intern.totalEnrollments || 0) === 0 && !intern.registeredOld) || getInternStatus(intern) === 'Enrolled (Active)') && (
                                                 <a
-                                                    href={`https://mail.google.com/mail/?view=cm&fs=1&to=${intern.email}&su=${encodeURIComponent(`Important Update - LMS Adeeb Technology Lab`)}&body=${encodeURIComponent(`Assalam-o-Alaikum ${intern.name},\n\nThis is a reminder from LMS Adeeb Technology Lab${intern.location ? ` ${intern.location.charAt(0).toUpperCase() + intern.location.slice(1)}` : ''}.\n\nYou have not selected any skill yet. Please log in and enroll via the "My Skills" section.\n\n*If you do not wish to continue, kindly let us know so we can cancel your application.*\n\nPortal: https://lms-adeeb-technology-lab.vercel.app/\n\nThank you!`)}`}
+                                                    href={getInternEmailHref(intern)}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                     className="px-3 py-1.5 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 transition-all shadow-sm shadow-sky-100"

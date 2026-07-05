@@ -32,7 +32,7 @@ const loadImage = (url) => {
     });
 };
 
-export const generateComprehensiveReport = async (user, enrollments, assignments, fees = []) => {
+export const generateComprehensiveReport = async (user, enrollments, assignments, fees = [], options = {}) => {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.width;
     const pageHeight = doc.internal.pageSize.height;
@@ -538,7 +538,11 @@ export const generateComprehensiveReport = async (user, enrollments, assignments
     doc.setFont('helvetica', 'normal');
     doc.text('Lane F Ghora Sardar Rod, Mehrban Town Block C, The Computer Courses Islamabad, Pakistan 46000.', leftColX + 25, currentY, { maxWidth: pageWidth - 50 });
 
-    // Save
-    doc.save(`${user.name.replace(/\s+/g, '_')}_Report.pdf`);
+    const fileName = `${user.name.replace(/\s+/g, '_')}_Report.pdf`;
+    if (options.output === 'blob') {
+        return { blob: doc.output('blob'), fileName };
+    }
+    doc.save(fileName);
+    return { fileName };
 };
 

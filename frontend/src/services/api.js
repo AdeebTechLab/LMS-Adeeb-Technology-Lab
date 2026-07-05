@@ -286,6 +286,10 @@ export const financeAPI = {
     delete: (id) => api.delete(`/finance/${id}`)
 };
 
+export const reportAPI = {
+    uploadInternReport: (internId, formData) => api.post(`/reports/intern/${internId}/upload`, formData)
+};
+
 // Stats APIs
 export const statsAPI = {
     getAdminDashboard: (params) => api.get('/stats/admin-dashboard', { params })
