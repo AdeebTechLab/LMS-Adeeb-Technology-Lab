@@ -529,6 +529,7 @@ const InternsManagement = () => {
         }
 
         const whatsappWindow = window.open('', '_blank');
+        let waUrl = '';
         try {
             const [enrollmentsRes, assignmentsRes, feesRes] = await Promise.all([
                 enrollmentAPI.getUserEnrollments(intern._id),
@@ -556,13 +557,24 @@ const InternsManagement = () => {
                 .filter(Boolean)
                 .join(', ') || 'N/A';
             const message = `*Internship Strike Off Notice*\n\n*Adeeb Technology Lab ${campus}*\n*Digital Tech Expert Software House*\n\n*Name:* ${intern.name || 'N/A'}\n*Roll No:* ${intern.rollNo || 'N/A'}\n*Skill:* ${courseNames}\n\n*Reason:* Academic report satisfactory nahi thi. Isi wajah se aap ko *Internship Strike Off* kar diya gaya hai.\n\nApni academic report dekhne aur download karne ke liye neeche diye gaye link par click karein:\n\n*Report Link:*\n${reportUrl}\n\n*Regards,*\n*HR Department*\n*Adeeb Technology Lab*`;
-            const waUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
-            if (whatsappWindow) whatsappWindow.location.href = waUrl;
-            else window.open(waUrl, '_blank');
+            waUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
         } catch (error) {
             whatsappWindow?.close();
             console.error('Failed to create academic report link:', error);
-            alert('Academic report link create nahi ho saka. Please try again.');
+            const errorMessage = error.response?.data?.message || error.message || 'Unknown error';
+            alert(`Academic report link create nahi ho saka: ${errorMessage}`);
+            return;
+        }
+
+        try {
+            if (whatsappWindow && !whatsappWindow.closed) {
+                whatsappWindow.location.replace(waUrl);
+            } else {
+                window.open(waUrl, '_blank', 'noopener,noreferrer');
+            }
+        } catch (error) {
+            console.error('WhatsApp window open failed:', error);
+            window.location.href = waUrl;
         }
     };
 
