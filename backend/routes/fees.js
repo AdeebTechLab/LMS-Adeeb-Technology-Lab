@@ -8,6 +8,12 @@ const Enrollment = require('../models/Enrollment');
 const Counter = require('../models/Counter');
 const { sendPushNotification } = require('../utils/pushHelper');
 
+const markUserOldWhenNoEnrollmentsRemain = async (userId) => {
+    const hasEnrollment = await Enrollment.exists({ user: userId });
+    if (!hasEnrollment) {
+        await User.findByIdAndUpdate(userId, { registeredOld: true });
+    }
+};
 
 
 // @route   GET /api/fees/my
@@ -475,6 +481,7 @@ router.delete('/:id/installments/:installmentId', protect, authorize('admin'), a
             console.log(`[FEE] No installments remain and student never paid. Deleting Fee ${fee._id} and enrollment.`);
             await Enrollment.findOneAndDelete({ user: fee.user, course: fee.course });
             await fee.deleteOne();
+            await markUserOldWhenNoEnrollmentsRemain(fee.user);
             return res.json({
                 success: true,
                 message: 'Fee challan deleted. Student can re-register for the course.',
@@ -581,7 +588,8 @@ router.delete('/:id', protect, authorize('admin'), async (req, res) => {
         await Enrollment.findOneAndDelete({ user: fee.user, course: fee.course });
 
         await fee.deleteOne();
-        res.json({ success: true, message: 'Fee Record and Enrollment removed. Student can now re-register.' });
+        await markUserOldWhenNoEnrollmentsRemain(fee.user);
+        res.json({ success: true, message: 'Fee Record and Enrollment removed. User moved to Registered (Old) when no enrollments remain.' });
     } catch (error) {
         console.error('Delete fee error:', error);
         res.status(500).json({ success: false, message: error.message });

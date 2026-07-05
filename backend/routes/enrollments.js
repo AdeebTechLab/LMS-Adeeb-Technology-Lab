@@ -498,6 +498,15 @@ router.delete('/:id', protect, async (req, res) => {
         // Delete the enrollment
         await enrollment.deleteOne();
 
+        // Admin removal of the user's final course/skill should move them to Registered (Old),
+        // not back into the new-registration queue.
+        if (req.user.role === 'admin') {
+            const hasOtherEnrollment = await Enrollment.exists({ user: enrollment.user });
+            if (!hasOtherEnrollment) {
+                await User.findByIdAndUpdate(enrollment.user, { registeredOld: true });
+            }
+        }
+
         res.json({ success: true, message: 'Course withdrawal successful' });
     } catch (error) {
         console.error('Error withdrawing from course:', error);
