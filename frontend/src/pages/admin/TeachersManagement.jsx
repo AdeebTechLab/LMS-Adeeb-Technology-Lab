@@ -148,6 +148,7 @@ const TeachersManagement = () => {
             department: teacher.department || '',
             experience: teacher.experience || '',
             location: teacher.location || '',
+            attendType: teacher.attendType || '',
             address: teacher.address || '',
             password: teacher.password || '',
             fatherName: teacher.fatherName || '',
@@ -642,7 +643,7 @@ const TeachersManagement = () => {
                                         <p className="text-xs font-bold text-gray-700 truncate">{teacher.qualification || 'N/A'}</p>
                                     </div>
                                     <div className="space-y-1">
-                                        <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Location</p>
+                                        <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Campus</p>
                                         <p className="text-xs font-bold text-gray-700 capitalize">{teacher.location || 'N/A'}</p>
                                     </div>
                                 </div>
@@ -730,7 +731,16 @@ const TeachersManagement = () => {
                                     <MapPin className="w-4 h-4 text-blue-500" />
                                     <div>
                                         <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Address</p>
-                                        <p className="text-[11px] font-bold text-gray-700 truncate">{teacher.address || 'N/A'}</p>
+                                        <p className="text-[11px] font-bold text-gray-700 truncate">
+                                            {[teacher.address, teacher.city, teacher.country].filter(Boolean).join(', ') || 'N/A'}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-2.5 px-3 py-2 bg-gray-50/50 rounded-xl border border-gray-100">
+                                    <BookOpen className="w-4 h-4 text-blue-500" />
+                                    <div>
+                                        <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Attend Classes</p>
+                                        <p className="text-[11px] font-bold text-gray-700 truncate">{teacher.attendType || 'N/A'}</p>
                                     </div>
                                 </div>
                             </div>
@@ -1022,7 +1032,7 @@ const TeachersManagement = () => {
 
                     {/* Address Details */}
                     <h3 className="font-semibold text-gray-900 pb-2 border-b mt-6">Address Details</h3>
-                    <div className="grid grid-cols-1 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-700">Country</label>
                             <input
@@ -1032,10 +1042,19 @@ const TeachersManagement = () => {
                                 className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
                             />
                         </div>
+                        <div className="space-y-2 md:col-span-2">
+                            <label className="text-sm font-medium text-gray-700">Address</label>
+                            <textarea
+                                value={editForm.address}
+                                onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
+                                rows={2}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+                            />
+                        </div>
                     </div>
 
-                    {/* Additional Options (Admin Extra) */}
-                    <h3 className="font-semibold text-gray-900 pb-2 border-b mt-6">Admin Settings</h3>
+                    {/* Campus Details */}
+                    <h3 className="font-semibold text-gray-900 pb-2 border-b mt-6">Campus Details</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-700">Campus Location</label>
@@ -1045,18 +1064,21 @@ const TeachersManagement = () => {
                                 className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
                             >
                                 <option value="">Select Location</option>
-                                <option value="islamabad">Islamabad</option>
-                                <option value="bahawalpur">Bahawalpur</option>
+                                <option value="Islamabad">Islamabad</option>
+                                <option value="Bahawalpur">Bahawalpur</option>
                             </select>
                         </div>
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">Department</label>
-                            <input
-                                type="text"
-                                value={editForm.department}
-                                onChange={(e) => setEditForm({ ...editForm, department: e.target.value })}
+                            <label className="text-sm font-medium text-gray-700">Attend Classes</label>
+                            <select
+                                value={editForm.attendType || ''}
+                                onChange={(e) => setEditForm({ ...editForm, attendType: e.target.value })}
                                 className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
-                            />
+                            >
+                                <option value="">Select Type</option>
+                                <option value="Physical">Physical</option>
+                                <option value="Online">Online</option>
+                            </select>
                         </div>
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-700">Roll Number</label>
@@ -1068,11 +1090,11 @@ const TeachersManagement = () => {
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">Address / Notes</label>
-                            <textarea
-                                value={editForm.address}
-                                onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
-                                rows={2}
+                            <label className="text-sm font-medium text-gray-700">Department</label>
+                            <input
+                                type="text"
+                                value={editForm.department}
+                                onChange={(e) => setEditForm({ ...editForm, department: e.target.value })}
                                 className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
                             />
                         </div>

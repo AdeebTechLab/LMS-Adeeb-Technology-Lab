@@ -393,6 +393,9 @@ const InternshipRegister = () => {
             submitData.append('guardianRelation', formData.guardianRelation);
             submitData.append('guardianPhone', formData.guardianPhone);
             submitData.append('guardianOccupation', formData.guardianOccupation);
+            submitData.append('resumeUrl', formData.resumeUrl);
+            submitData.append('requirements', formData.requirements.join(', '));
+            submitData.append('reason', formData.reason);
             let finalSkills = formData.skills.filter(skill => skill !== 'Other');
             if (formData.skills.includes('Other') && formData.otherSkills.trim()) {
                 finalSkills = [

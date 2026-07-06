@@ -259,6 +259,7 @@ const InternsManagement = () => {
             guardianRelation: intern.guardianRelation || '',
             resumeUrl: intern.resumeUrl || '',
             reason: intern.reason || '',
+            requirements: intern.requirements || '',
             skills: intern.skills || '',
             guardianPhone: intern.guardianPhone || '',
             guardianOccupation: intern.guardianOccupation || '',
@@ -1033,6 +1034,19 @@ const InternsManagement = () => {
                                             ))}
                                         </div>
                                     )}
+                                    {intern.requirements && (
+                                        <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-emerald-100 bg-emerald-50/50 px-4 py-3">
+                                            <p className="text-[9px] font-black text-emerald-600 uppercase tracking-widest mr-1">Requirements</p>
+                                            {intern.requirements.split(',').map(req => req.trim()).filter(Boolean).map((req, reqIndex) => (
+                                                <span
+                                                    key={`${intern._id}-req-${reqIndex}`}
+                                                    className="px-2.5 py-1 rounded-full bg-white text-emerald-700 border border-emerald-100 text-[10px] font-bold"
+                                                >
+                                                    {req}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
 
                                     {/* Actions */}
                                     <div className="flex flex-wrap items-center justify-end gap-2 pt-4 border-t border-gray-100 w-full">
@@ -1662,6 +1676,16 @@ const InternsManagement = () => {
                                 value={editForm.reason || ''}
                                 onChange={(e) => setEditForm({ ...editForm, reason: e.target.value })}
                                 rows={2}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                            />
+                        </div>
+                        <div className="space-y-2 md:col-span-2">
+                            <label className="text-sm font-medium text-gray-700">Requirements</label>
+                            <input
+                                type="text"
+                                value={editForm.requirements || ''}
+                                onChange={(e) => setEditForm({ ...editForm, requirements: e.target.value })}
+                                placeholder="Home WiFi, Personal Laptop"
                                 className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
                             />
                         </div>

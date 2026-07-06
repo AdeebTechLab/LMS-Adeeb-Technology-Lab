@@ -55,6 +55,9 @@ const userSchema = new mongoose.Schema({
     completedTasks: { type: Number, default: 0 },
     rating: { type: Number, default: 0 },
     totalEarnings: { type: Number, default: 0 },
+    resumeUrl: String,
+    requirements: String,
+    reason: String,
     // Location preference
     location: {
         type: String,

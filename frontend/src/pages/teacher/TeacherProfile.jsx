@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { useSelector, useDispatch } from 'react-redux';
 import {
     User, Mail, Phone, MapPin, CreditCard,
-    Edit2, Save, X, Camera, BookOpen, GraduationCap, Briefcase
+    Edit2, Save, X, Camera, BookOpen, GraduationCap, Briefcase, Calendar, Users
 } from 'lucide-react';
 import { authAPI, courseAPI, settingsAPI } from '../../services/api';
 import { updateUser } from '../../features/auth/authSlice';
@@ -48,12 +48,19 @@ const TeacherProfile = () => {
         email: user?.email || '',
         phone: user?.phone || '',
         cnic: user?.cnic || '',
+        fatherName: user?.fatherName || '',
+        dob: user?.dob ? new Date(user.dob).toISOString().split('T')[0] : '',
+        age: user?.age || '',
+        gender: user?.gender || '',
         qualification: user?.qualification || '',
         specialization: user?.specialization || '',
         experience: user?.experience || '',
-        address: '',
-        city: user?.location || '',
-        country: 'Pakistan',
+        address: user?.address || '',
+        city: user?.city || '',
+        country: user?.country || 'Pakistan',
+        campusCity: user?.location || '',
+        attendType: user?.attendType || '',
+        heardAbout: user?.heardAbout || '',
         joinedAt: user?.createdAt || new Date().toISOString(),
         status: user?.isVerified ? 'Verified' : 'Pending'
     });
@@ -120,11 +127,19 @@ const TeacherProfile = () => {
                 name: editForm.fullName,
                 phone: editForm.phone,
                 cnic: editForm.cnic,
+                fatherName: editForm.fatherName,
+                dob: editForm.dob,
+                age: editForm.age,
+                gender: editForm.gender,
                 qualification: editForm.qualification,
                 specialization: editForm.specialization,
                 experience: editForm.experience,
                 address: editForm.address,
-                city: editForm.city
+                city: editForm.city,
+                country: editForm.country,
+                location: editForm.campusCity,
+                attendType: editForm.attendType,
+                heardAbout: editForm.heardAbout
             });
 
             setProfileData({ ...editForm });
@@ -281,10 +296,18 @@ const TeacherProfile = () => {
                             </p>
                         )}
                         <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={CreditCard} label="CNIC" value={profileData.cnic} name="cnic" editable={canEditBio} />
+                        <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={User} label="Father Name" value={profileData.fatherName} name="fatherName" editable={canEditBio} />
+                        <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={Calendar} label="Date of Birth" value={profileData.dob ? formatDate(profileData.dob) : ''} name="dob" type="date" editable={canEditBio} />
+                        <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={User} label="Gender" value={profileData.gender} name="gender" editable={canEditBio} />
                         <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={GraduationCap} label="Qualification" value={profileData.qualification} name="qualification" editable={canEditBio} />
                         <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={Briefcase} label="Specialization / Skills" value={profileData.specialization} name="specialization" editable={canEditBio} />
                         <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={Briefcase} label="Experience" value={profileData.experience} name="experience" editable={canEditBio} />
                         <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={MapPin} label="City" value={profileData.city} name="city" editable={canEditBio} />
+                        <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={MapPin} label="Country" value={profileData.country} name="country" editable={canEditBio} />
+                        <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={MapPin} label="Address" value={profileData.address} name="address" editable={canEditBio} />
+                        <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={BookOpen} label="Campus City" value={profileData.campusCity} name="campusCity" editable={canEditBio} />
+                        <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={BookOpen} label="Attend Classes" value={profileData.attendType} name="attendType" editable={canEditBio} />
+                        <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={Users} label="Heard About Us" value={profileData.heardAbout} name="heardAbout" editable={canEditBio} />
                     </div>
                 </motion.div>
 

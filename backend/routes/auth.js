@@ -25,6 +25,7 @@ router.post('/register', uploadRegistration.fields([
             dob, age, gender, education, guardianName, guardianPhone,
             guardianOccupation, address, city, country, attendType, heardAbout,
             fatherName, degree, university, semester, rollNumber, cgpa, majorSubjects,
+            resumeUrl, requirements, reason,
             // Job fields
             teachingExperience, experienceDetails, preferredCity, preferredMode
         } = req.body;
@@ -125,6 +126,11 @@ router.post('/register', uploadRegistration.fields([
             userData.dob = dob;
             userData.gender = gender;
             userData.address = address;
+            userData.city = city;
+            userData.country = country || 'Pakistan';
+            userData.attendType = attendType;
+            userData.fatherName = fatherName;
+            userData.heardAbout = heardAbout;
         }
         if (role === 'student' || role === 'intern') {
             userData.cnic = cnic;
@@ -149,6 +155,9 @@ router.post('/register', uploadRegistration.fields([
             userData.cgpa = cgpa;
             userData.majorSubjects = majorSubjects;
             if (skills) userData.skills = skills;
+            userData.resumeUrl = resumeUrl;
+            userData.requirements = requirements;
+            userData.reason = reason;
             // Also support URL if sent as string (fallback)
             if (req.body.feeScreenshotUrl && !userData.feeScreenshot) {
                 userData.feeScreenshot = req.body.feeScreenshotUrl;
