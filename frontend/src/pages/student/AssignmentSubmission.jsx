@@ -346,15 +346,15 @@ const AssignmentSubmission = () => {
                             {myCourses.find(c => c._id === selectedCourseId)?.bookLink && (
                                 <button
                                     onClick={() => window.open(myCourses.find(c => c._id === selectedCourseId)?.bookLink, '_blank')}
-                                    className="group relative flex items-center gap-2.5 px-6 py-2.5 rounded-2xl bg-primary hover:bg-primary/90 text-white font-black uppercase tracking-widest text-xs hover:-translate-y-0.5 active:translate-y-0 transition-all shadow-lg hover:shadow-xl shadow-primary/20 border border-primary/30"
+                                    className="group relative flex items-center justify-center gap-2 px-3 sm:px-6 py-2.5 rounded-2xl bg-primary hover:bg-primary/90 text-white font-black uppercase tracking-wider sm:tracking-widest text-[10px] sm:text-xs hover:-translate-y-0.5 active:translate-y-0 transition-all shadow-lg hover:shadow-xl shadow-primary/20 border border-primary/30 whitespace-nowrap"
                                     title="Open Course Book"
                                 >
                                     <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl"></div>
                                     <div className="bg-white/20 p-1.5 rounded-lg group-hover:-rotate-12 transition-transform duration-300 relative z-10">
                                         <BookOpen className="w-4 h-4" />
                                     </div>
-                                    <span className="hidden sm:inline relative z-10">Read Book</span>
-                                    <ExternalLink className="w-3.5 h-3.5 opacity-50 group-hover:opacity-100 transition-opacity relative z-10 ml-1" />
+                                    <span className="relative z-10">Read Book</span>
+                                    <ExternalLink className="w-3 h-3 sm:w-3.5 sm:h-3.5 opacity-50 group-hover:opacity-100 transition-opacity relative z-10" />
                                 </button>
                             )}
                         </div>
