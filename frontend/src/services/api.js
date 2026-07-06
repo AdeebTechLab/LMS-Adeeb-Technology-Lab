@@ -287,7 +287,8 @@ export const financeAPI = {
 };
 
 export const reportAPI = {
-    uploadInternReport: (internId, formData) => api.post(`/reports/intern/${internId}/upload`, formData)
+    uploadInternReport: (internId, formData) => api.post(`/reports/intern/${internId}/upload`, formData),
+    uploadStudentReport: (studentId, formData) => api.post(`/reports/student/${studentId}/upload`, formData)
 };
 
 // Stats APIs

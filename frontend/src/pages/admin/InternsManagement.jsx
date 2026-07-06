@@ -129,6 +129,10 @@ const InternsManagement = () => {
             alert("Guardian WhatsApp number not found for this user.");
             return;
         }
+        if (getInternStatus(intern) === 'Enrolled (Active)') {
+            handleAcademicReportWhatsApp(intern, phoneNumber);
+            return;
+        }
         let cleanPhone = phoneNumber.replace(/[^0-9+]/g, '');
         if (cleanPhone.startsWith('0')) {
             cleanPhone = '92' + cleanPhone.slice(1);
@@ -521,8 +525,37 @@ const InternsManagement = () => {
         }
     };
 
-    const handleAcademicReportWhatsApp = async (intern) => {
-        const phoneNumber = intern.phone;
+    const createInternReportLink = async (intern) => {
+        const [enrollmentsRes, assignmentsRes, feesRes] = await Promise.all([
+            enrollmentAPI.getUserEnrollments(intern._id),
+            assignmentAPI.getUserAssignments(intern._id),
+            feeAPI.getUserFees(intern._id)
+        ]);
+        const enrollments = enrollmentsRes.data.data || [];
+        const generated = await generateComprehensiveReport(
+            intern,
+            enrollments,
+            assignmentsRes.data.assignments,
+            feesRes.data.data,
+            { output: 'blob' }
+        );
+        const formData = new FormData();
+        formData.append('report', generated.blob, generated.fileName);
+        const response = await reportAPI.uploadInternReport(intern._id, formData);
+        return {
+            reportUrl: `https://lms-adeeb-technology-lab.vercel.app${response.data.path}`,
+            enrollments
+        };
+    };
+
+    const getInternStrikeOffMessage = (intern, reportUrl, enrollments) => {
+        const campus = intern.location || intern.city || 'Campus';
+        const skillNames = enrollments.map(enrollment => enrollment.course?.title).filter(Boolean).join(', ') || 'N/A';
+        return `*Internship Strike Off Notice*\n\n*Adeeb Technology Lab ${campus}*\n*Digital Tech Expert Software House*\n\n*Name:* ${intern.name || 'N/A'}\n*Roll No:* ${intern.rollNo || 'N/A'}\n*Skill:* ${skillNames}\n\n*Reason:* Academic report satisfactory nahi thi. Isi wajah se aap ko *Internship Strike Off* kar diya gaya hai.\n\nApni academic report dekhne aur download karne ke liye neeche diye gaye link par click karein:\n\n*Academic Report:*\n${reportUrl}\n\n*Regards,*\n*HR Department*\n*Adeeb Technology Lab*`;
+    };
+
+    const handleAcademicReportWhatsApp = async (intern, targetPhone = null) => {
+        const phoneNumber = targetPhone || intern.phone;
         if (!phoneNumber) {
             alert('WhatsApp number not found for this intern.');
             return;
@@ -531,33 +564,12 @@ const InternsManagement = () => {
         const whatsappWindow = window.open('', '_blank');
         let waUrl = '';
         try {
-            const [enrollmentsRes, assignmentsRes, feesRes] = await Promise.all([
-                enrollmentAPI.getUserEnrollments(intern._id),
-                assignmentAPI.getUserAssignments(intern._id),
-                feeAPI.getUserFees(intern._id)
-            ]);
-            const generated = await generateComprehensiveReport(
-                intern,
-                enrollmentsRes.data.data,
-                assignmentsRes.data.assignments,
-                feesRes.data.data,
-                { output: 'blob' }
-            );
-            const formData = new FormData();
-            formData.append('report', generated.blob, generated.fileName);
-            const response = await reportAPI.uploadInternReport(intern._id, formData);
-            const reportUrl = `https://lms-adeeb-technology-lab.vercel.app${response.data.path}`;
+            const { reportUrl, enrollments } = await createInternReportLink(intern);
 
             let cleanPhone = phoneNumber.replace(/[^0-9+]/g, '');
             if (cleanPhone.startsWith('0')) cleanPhone = `92${cleanPhone.slice(1)}`;
             cleanPhone = cleanPhone.replace(/^\+/, '');
-            const campus = intern.location || intern.city || 'Campus';
-            const courseNames = (enrollmentsRes.data.data || [])
-                .map(enrollment => enrollment.course?.title)
-                .filter(Boolean)
-                .join(', ') || 'N/A';
-            const message = `*Internship Strike Off Notice*\n\n*Adeeb Technology Lab ${campus}*\n*Digital Tech Expert Software House*\n\n*Name:* ${intern.name || 'N/A'}\n*Roll No:* ${intern.rollNo || 'N/A'}\n*Skill:* ${courseNames}\n\n*Reason:* Academic report satisfactory nahi thi. Isi wajah se aap ko *Internship Strike Off* kar diya gaya hai.\n\nApni academic report dekhne aur download karne ke liye neeche diye gaye link par click karein:\n\n*Report Link:*\n${reportUrl}\n\n*Regards,*\n*HR Department*\n*Adeeb Technology Lab*`;
-            waUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
+            waUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(getInternStrikeOffMessage(intern, reportUrl, enrollments))}`;
         } catch (error) {
             whatsappWindow?.close();
             console.error('Failed to create academic report link:', error);
@@ -575,6 +587,18 @@ const InternsManagement = () => {
         } catch (error) {
             console.error('WhatsApp window open failed:', error);
             window.location.href = waUrl;
+        }
+    };
+
+    const handleInternStrikeOffEmail = async (event, intern) => {
+        event.preventDefault();
+        try {
+            const { reportUrl, enrollments } = await createInternReportLink(intern);
+            const subject = 'Internship Strike Off Notice - Adeeb Technology Lab';
+            const body = getInternStrikeOffMessage(intern, reportUrl, enrollments).replaceAll('*', '');
+            window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${intern.email}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`, '_blank');
+        } catch (error) {
+            alert(`Academic report link create nahi ho saka: ${error.response?.data?.message || error.message}`);
         }
     };
 
@@ -1025,6 +1049,7 @@ const InternsManagement = () => {
                                             {intern.email && (((intern.totalEnrollments || 0) === 0 && !intern.registeredOld) || getInternStatus(intern) === 'Enrolled (Active)') && (
                                                 <a
                                                     href={getInternEmailHref(intern)}
+                                                    onClick={(event) => getInternStatus(intern) === 'Enrolled (Active)' && handleInternStrikeOffEmail(event, intern)}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                     className="px-3 py-1.5 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 transition-all shadow-sm shadow-sky-100"

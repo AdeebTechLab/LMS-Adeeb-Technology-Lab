@@ -9,7 +9,7 @@ import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
-import { userAPI, settingsAPI, enrollmentAPI, assignmentAPI, feeAPI, courseAPI } from '../../services/api';
+import { userAPI, settingsAPI, enrollmentAPI, assignmentAPI, feeAPI, courseAPI, reportAPI } from '../../services/api';
 import { generateComprehensiveReport } from '../../utils/reportGenerator';
 import Loader, { ButtonLoader } from '../../components/ui/Loader';
 import ImageCropper from '../../components/ui/ImageCropper';
@@ -106,6 +106,10 @@ const StudentsManagement = () => {
     };
 
     const handleReminder = (student) => {
+        if (getStudentStatus(student) === 'Enrolled (Active)') {
+            handleStudentStrikeOffWhatsApp(student, student.phone);
+            return;
+        }
         const phoneNumber = student.phone;
         if (!phoneNumber) {
             alert("WhatsApp number not found for this user.");
@@ -125,6 +129,10 @@ const StudentsManagement = () => {
         const phoneNumber = student.guardianPhone || student.parentPhone;
         if (!phoneNumber) {
             alert("Guardian WhatsApp number not found for this user.");
+            return;
+        }
+        if (getStudentStatus(student) === 'Enrolled (Active)') {
+            handleStudentStrikeOffWhatsApp(student, phoneNumber);
             return;
         }
         let cleanPhone = phoneNumber.replace(/[^0-9+]/g, '');
@@ -614,6 +622,68 @@ const StudentsManagement = () => {
         }
     };
 
+    const createStudentReportLink = async (student) => {
+        const [enrollmentsRes, assignmentsRes, feesRes] = await Promise.all([
+            enrollmentAPI.getUserEnrollments(student._id),
+            assignmentAPI.getUserAssignments(student._id),
+            feeAPI.getUserFees(student._id)
+        ]);
+        const enrollments = enrollmentsRes.data.data || [];
+        const generated = await generateComprehensiveReport(
+            student,
+            enrollments,
+            assignmentsRes.data.assignments,
+            feesRes.data.data,
+            { output: 'blob' }
+        );
+        const formData = new FormData();
+        formData.append('report', generated.blob, generated.fileName);
+        const response = await reportAPI.uploadStudentReport(student._id, formData);
+        return {
+            reportUrl: `https://lms-adeeb-technology-lab.vercel.app${response.data.path}`,
+            enrollments
+        };
+    };
+
+    const getStudentStrikeOffMessage = (student, reportUrl, enrollments) => {
+        const campus = student.location || student.city || 'Campus';
+        const courseNames = enrollments.map(enrollment => enrollment.course?.title).filter(Boolean).join(', ') || 'N/A';
+        return `*Student Strike Off Notice*\n\n*The Computer Courses ${campus}*\n*Learn and Earn*\n\n*Name:* ${student.name || 'N/A'}\n*Roll No:* ${student.rollNo || 'N/A'}\n*Course:* ${courseNames}\n\n*Reason:* Aap ki bohat sari absents hain aur aap abhi bhi academy nahi aa rahe. Isi wajah se aap ko *Strike Off* kar diya gaya hai.\n\nApni academic report dekhne aur download karne ke liye neeche diye gaye link par click karein:\n\n*Academic Report:*\n${reportUrl}\n\n*Regards,*\n*HR Department*\n*The Computer Courses*`;
+    };
+
+    const handleStudentStrikeOffWhatsApp = async (student, phoneNumber) => {
+        if (!phoneNumber) {
+            alert('WhatsApp number not found.');
+            return;
+        }
+        const whatsappWindow = window.open('', '_blank');
+        try {
+            const { reportUrl, enrollments } = await createStudentReportLink(student);
+            let cleanPhone = phoneNumber.replace(/[^0-9+]/g, '');
+            if (cleanPhone.startsWith('0')) cleanPhone = `92${cleanPhone.slice(1)}`;
+            cleanPhone = cleanPhone.replace(/^\+/, '');
+            const waUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(getStudentStrikeOffMessage(student, reportUrl, enrollments))}`;
+            if (whatsappWindow && !whatsappWindow.closed) whatsappWindow.location.replace(waUrl);
+            else window.open(waUrl, '_blank', 'noopener,noreferrer');
+        } catch (error) {
+            whatsappWindow?.close();
+            console.error('Student report link error:', error);
+            alert(`Academic report link create nahi ho saka: ${error.response?.data?.message || error.message}`);
+        }
+    };
+
+    const handleStudentStrikeOffEmail = async (event, student) => {
+        event.preventDefault();
+        try {
+            const { reportUrl, enrollments } = await createStudentReportLink(student);
+            const subject = 'Student Strike Off Notice - The Computer Courses';
+            const body = getStudentStrikeOffMessage(student, reportUrl, enrollments).replaceAll('*', '');
+            window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${student.email}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`, '_blank');
+        } catch (error) {
+            alert(`Academic report link create nahi ho saka: ${error.response?.data?.message || error.message}`);
+        }
+    };
+
     const showEnrollToast = (message, type = 'success') => {
         setEnrollToast({ message, type });
         setTimeout(() => setEnrollToast(null), 3000);
@@ -917,7 +987,7 @@ const StudentsManagement = () => {
                                     {/* Action Buttons */}
                                     <div className="flex flex-wrap items-center justify-end gap-2 pt-4 border-t border-gray-100 w-full">
                                         <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2 lg:pb-0 w-full lg:w-auto justify-end">
-                                            {(student.totalEnrollments || 0) === 0 && !student.registeredOld && (
+                                            {(((student.totalEnrollments || 0) === 0 && !student.registeredOld) || getStudentStatus(student) === 'Enrolled (Active)') && (
                                                 <button
                                                     onClick={() => handleReminder(student)}
                                                     className="px-3 py-1.5 bg-[#25D366] hover:bg-[#128C7E] text-white rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 transition-all shadow-sm shadow-green-200"
@@ -929,7 +999,7 @@ const StudentsManagement = () => {
                                                     Reminder
                                                 </button>
                                             )}
-                                            {(student.guardianPhone || student.parentPhone) && (student.totalEnrollments || 0) === 0 && !student.registeredOld && (
+                                            {(student.guardianPhone || student.parentPhone) && (((student.totalEnrollments || 0) === 0 && !student.registeredOld) || getStudentStatus(student) === 'Enrolled (Active)') && (
                                                 <button
                                                     onClick={() => handleGuardianReminder(student)}
                                                     className="px-3 py-1.5 bg-rose-500 hover:bg-rose-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 transition-all shadow-sm shadow-rose-200"
@@ -941,9 +1011,10 @@ const StudentsManagement = () => {
                                                     Guardian Reminder
                                                 </button>
                                             )}
-                                            {student.email && (student.totalEnrollments || 0) === 0 && !student.registeredOld && (
+                                            {student.email && (((student.totalEnrollments || 0) === 0 && !student.registeredOld) || getStudentStatus(student) === 'Enrolled (Active)') && (
                                                 <a
                                                     href={`https://mail.google.com/mail/?view=cm&fs=1&to=${student.email}&su=${encodeURIComponent(`Important Update - LMS Adeeb Technology Lab`)}&body=${encodeURIComponent(`Assalam-o-Alaikum ${student.name},\n\nThis is a reminder from LMS Adeeb Technology Lab${student.location ? ` ${student.location.charAt(0).toUpperCase() + student.location.slice(1)}` : ''}.\n\nAapne abhi tak koi course join nahi kiya. Baraye meharbani portal par login karein aur "My Courses" section se enroll karein.\n\n*Agar aap course join nahi karna chahte, toh baraye meharbani humein bata dein taake aapki application cancel kardi jaye.*\n\nPortal: https://lms-adeeb-technology-lab.vercel.app/\n\nThank you!`)}`}
+                                                    onClick={(event) => getStudentStatus(student) === 'Enrolled (Active)' && handleStudentStrikeOffEmail(event, student)}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                     className="px-3 py-1.5 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 transition-all shadow-sm shadow-sky-100"

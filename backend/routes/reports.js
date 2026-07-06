@@ -12,16 +12,17 @@ const upload = multer({
     fileFilter: (req, file, cb) => cb(null, file.mimetype === 'application/pdf')
 });
 
-router.post('/intern/:id/upload', protect, authorize('admin'), upload.single('report'), async (req, res) => {
+router.post('/:role/:id/upload', protect, authorize('admin'), upload.single('report'), async (req, res) => {
     try {
-        const intern = await User.findOne({ _id: req.params.id, role: 'intern' }).select('_id name');
-        if (!intern) return res.status(404).json({ success: false, message: 'Intern not found' });
+        if (!['intern', 'student'].includes(req.params.role)) return res.status(400).json({ success: false, message: 'Invalid report role' });
+        const reportUser = await User.findOne({ _id: req.params.id, role: req.params.role }).select('_id name');
+        if (!reportUser) return res.status(404).json({ success: false, message: 'Student/Intern not found' });
         if (!req.file) return res.status(400).json({ success: false, message: 'PDF report is required' });
 
         const token = crypto.randomBytes(32).toString('hex');
         await SharedReport.create({
             token,
-            user: intern._id,
+            user: reportUser._id,
             fileName: req.file.originalname,
             contentType: 'application/pdf',
             fileData: req.file.buffer,
