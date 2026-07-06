@@ -19,7 +19,7 @@ import { useTranslation } from 'react-i18next';
 
 
 
-const TeacherCourses = ({ isDashboard = false }) => {
+const TeacherCourses = ({ isDashboard = false, initialSearchMode = 'courses' }) => {
     const { t } = useTranslation();
     const navigate = useNavigate();
     const { user } = useSelector((state) => state.auth);
@@ -37,7 +37,7 @@ const TeacherCourses = ({ isDashboard = false }) => {
     });
 
     // Filter States
-    const [searchMode, setSearchMode] = useState('courses'); // courses | students
+    const [searchMode, setSearchMode] = useState(initialSearchMode); // courses | students
     const [searchQuery, setSearchQuery] = useState('');
     const [studentSearchQuery, setStudentSearchQuery] = useState('');
     const [allStudents, setAllStudents] = useState([]); 
@@ -174,6 +174,7 @@ const TeacherCourses = ({ isDashboard = false }) => {
         const students = [];
         myCourses.forEach(course => {
             (course.enrollments || []).forEach(e => {
+                if (!e.isActive || e.status === 'completed' || e.isPaused) return;
                 const uid = String(e.user?._id || e.user);
                 if (!seen.has(uid) && e.user?.name) {
                     seen.add(uid);
@@ -197,7 +198,7 @@ const TeacherCourses = ({ isDashboard = false }) => {
     // Filter students when query changes
     useEffect(() => {
         if (!studentSearchQuery.trim()) {
-            setFilteredStudents([]);
+            setFilteredStudents(allStudents);
             return;
         }
         const q = studentSearchQuery.toLowerCase();
@@ -310,6 +311,16 @@ const TeacherCourses = ({ isDashboard = false }) => {
         navigate(`/teacher/course/${course.id || course._id}`, { state: { tab: targetTab } });
     };
 
+    const handleSelectStudentWork = (student) => {
+        const course = student.course;
+        navigate(`/teacher/course/${course.id || course._id}`, {
+            state: {
+                tab: 'assignments',
+                studentId: student.id || student._id
+            }
+        });
+    };
+
     if (isLoading) {
         return (
             <Loader message="Loading Dashboard..." />
@@ -322,36 +333,22 @@ const TeacherCourses = ({ isDashboard = false }) => {
                 {isDashboard && <BirthdayWish />}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900">{isDashboard ? t('teacherDashboard.pendingTasksDashboard') : t('teacherDashboard.courses')}</h1>
+                        <h1 className="text-2xl font-bold text-gray-900">
+                            {isDashboard
+                                ? t('teacherDashboard.pendingTasksDashboard')
+                                : searchMode === 'students'
+                                    ? 'Students'
+                                    : t('teacherDashboard.courses')}
+                        </h1>
                         <p className="text-gray-500">
                             {isDashboard 
                                 ? t('teacherDashboard.showingCoursesGrading') 
-                                : 'Overview of all your assigned courses'}
+                                : searchMode === 'students'
+                                    ? 'Active students from your assigned courses'
+                                    : 'Overview of all your assigned courses'}
                         </p>
                     </div>
                     <div className="flex items-center gap-2">
-                        <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-xl border border-gray-200">
-                            <button
-                                onClick={() => { setSearchMode('courses'); setStudentSearchQuery(''); setFilteredStudents([]); }}
-                                className={`px-4 py-2 rounded-lg font-bold text-xs transition-all flex items-center gap-2 ${searchMode === 'courses'
-                                        ? 'bg-white text-primary shadow-sm border border-primary/10'
-                                        : 'text-gray-500 hover:text-gray-700'
-                                    }`}
-                            >
-                                <BookOpen className="w-4 h-4" />
-                                {t('teacherDashboard.courses')}
-                            </button>
-                            <button
-                                onClick={() => { setSearchMode('students'); setSearchQuery(''); }}
-                                className={`px-4 py-2 rounded-lg font-bold text-xs transition-all flex items-center gap-2 ${searchMode === 'students'
-                                        ? 'bg-white text-primary shadow-sm border border-primary/10'
-                                        : 'text-gray-500 hover:text-gray-700'
-                                    }`}
-                            >
-                                <Users className="w-4 h-4" />
-                                {t('teacherDashboard.searchStudent')}
-                            </button>
-                        </div>
                         <button
                             onClick={() => {
                                 setLiveClassForm({ title: '', link: '', description: '', visibility: 'all', autoEndMinutes: '' });
@@ -586,22 +583,20 @@ const TeacherCourses = ({ isDashboard = false }) => {
                 {/* Course List / Student Search Results */}
                 {searchMode === 'students' ? (
                     <div className="space-y-3">
-                        {studentSearchQuery.trim() && (
-                            <p className="text-xs text-gray-400 font-bold uppercase tracking-widest px-1">
-                                {filteredStudents.length} result{filteredStudents.length !== 1 ? 's' : ''} found
-                            </p>
-                        )}
+                        <p className="text-xs text-gray-400 font-bold uppercase tracking-widest px-1">
+                            {studentSearchQuery.trim()
+                                ? `${filteredStudents.length} result${filteredStudents.length !== 1 ? 's' : ''} found`
+                                : `${filteredStudents.length} active student${filteredStudents.length !== 1 ? 's' : ''}`}
+                        </p>
                         
-                        {!studentSearchQuery.trim() ? (
-                            <div className="bg-white rounded-3xl p-12 border border-gray-100 text-center shadow-sm">
-                                <Users className="w-12 h-12 text-gray-200 mx-auto mb-4" />
-                                <p className="text-gray-500 font-medium">Type a student name or roll number to search</p>
-                                <p className="text-sm text-gray-400 mt-1">Search across all your assigned courses</p>
-                            </div>
-                        ) : filteredStudents.length === 0 ? (
+                        {filteredStudents.length === 0 ? (
                             <div className="bg-white rounded-3xl p-12 border border-gray-100 text-center shadow-sm">
                                 <Search className="w-12 h-12 text-gray-200 mx-auto mb-4" />
-                                <p className="text-gray-500 font-medium">No students found matching "{studentSearchQuery}"</p>
+                                <p className="text-gray-500 font-medium">
+                                    {studentSearchQuery.trim()
+                                        ? `No students found matching "${studentSearchQuery}"`
+                                        : 'No active students found'}
+                                </p>
                             </div>
                         ) : (
                             <div className="grid grid-cols-1 gap-3">
@@ -611,7 +606,7 @@ const TeacherCourses = ({ isDashboard = false }) => {
                                         initial={{ opacity: 0, y: 10 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         transition={{ delay: idx * 0.05 }}
-                                        onClick={() => handleSelectCourse(student.course)}
+                                        onClick={() => handleSelectStudentWork(student)}
                                         className="bg-white rounded-3xl p-5 border border-gray-100 hover:shadow-lg hover:border-primary transition-all cursor-pointer group flex items-center gap-4 shadow-sm"
                                     >
                                         <div className="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 border-2 border-gray-100">
@@ -647,7 +642,7 @@ const TeacherCourses = ({ isDashboard = false }) => {
                                             </p>
                                         </div>
                                         <div className="flex items-center text-primary font-bold text-sm">
-                                            <span className="text-xs">OPEN COURSE</span>
+                                            <span className="text-xs">{student.role === 'intern' ? 'OPEN PROJECT' : 'OPEN ASSIGNMENT'}</span>
                                             <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
                                         </div>
                                     </motion.div>

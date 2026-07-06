@@ -148,6 +148,7 @@ router.post('/register', uploadRegistration.fields([
             userData.rollNumber = rollNumber;
             userData.cgpa = cgpa;
             userData.majorSubjects = majorSubjects;
+            if (skills) userData.skills = skills;
             // Also support URL if sent as string (fallback)
             if (req.body.feeScreenshotUrl && !userData.feeScreenshot) {
                 userData.feeScreenshot = req.body.feeScreenshotUrl;

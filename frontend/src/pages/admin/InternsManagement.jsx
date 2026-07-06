@@ -259,6 +259,7 @@ const InternsManagement = () => {
             guardianRelation: intern.guardianRelation || '',
             resumeUrl: intern.resumeUrl || '',
             reason: intern.reason || '',
+            skills: intern.skills || '',
             guardianPhone: intern.guardianPhone || '',
             guardianOccupation: intern.guardianOccupation || '',
             degree: degree,
@@ -551,7 +552,7 @@ const InternsManagement = () => {
     const getInternStrikeOffMessage = (intern, reportUrl, enrollments) => {
         const campus = intern.location || intern.city || 'Campus';
         const skillNames = enrollments.map(enrollment => enrollment.course?.title).filter(Boolean).join(', ') || 'N/A';
-        return `*Internship Strike Off Notice*\n\n*Adeeb Technology Lab ${campus}*\n*Digital Tech Expert Software House*\n\n*Name:* ${intern.name || 'N/A'}\n*Roll No:* ${intern.rollNo || 'N/A'}\n*Skill:* ${skillNames}\n\n*Reason:* Academic report satisfactory nahi thi. Isi wajah se aap ko *Internship Strike Off* kar diya gaya hai.\n\nApni academic report dekhne aur download karne ke liye neeche diye gaye link par click karein:\n\n*Academic Report:*\n${reportUrl}\n\n*Regards,*\n*HR Department*\n*Adeeb Technology Lab*`;
+        return `*Internship Strike Off Notice*\n\n*Adeeb Technology Lab ${campus}*\n*Digital Tech Expert Software House*\n\n*Name:* ${intern.name || 'N/A'}\n*Roll No:* ${intern.rollNo || 'N/A'}\n*Skill:* ${skillNames}\n\n*Reason:* Academic report satisfactory nahi thi. Isi Reason se aap ko *Internship Strike Off* kar diya gaya hai.\n\nApni academic report dekhne aur download karne ke liye neeche diye gaye link par click karein:\n\n*Academic Report:*\n${reportUrl}\n\n*Regards,*\n*HR Department*\n*Adeeb Technology Lab*`;
     };
 
     const handleAcademicReportWhatsApp = async (intern, targetPhone = null) => {
@@ -1018,6 +1019,20 @@ const InternsManagement = () => {
                                     </button>
 
                                     </div>
+
+                                    {intern.skills && (
+                                        <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-blue-100 bg-blue-50/50 px-4 py-3">
+                                            <p className="text-[9px] font-black text-blue-500 uppercase tracking-widest mr-1">My Skills</p>
+                                            {intern.skills.split(',').map(skill => skill.trim()).filter(Boolean).map((skill, skillIndex) => (
+                                                <span
+                                                    key={`${intern._id}-skill-${skillIndex}`}
+                                                    className="px-2.5 py-1 rounded-full bg-white text-blue-700 border border-blue-100 text-[10px] font-bold"
+                                                >
+                                                    {skill}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
 
                                     {/* Actions */}
                                     <div className="flex flex-wrap items-center justify-end gap-2 pt-4 border-t border-gray-100 w-full">
@@ -1649,6 +1664,17 @@ const InternsManagement = () => {
                                 rows={2}
                                 className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
                             />
+                        </div>
+                        <div className="space-y-2 md:col-span-2">
+                            <label className="text-sm font-medium text-gray-700">My Skills</label>
+                            <textarea
+                                value={editForm.skills || ''}
+                                onChange={(e) => setEditForm({ ...editForm, skills: e.target.value })}
+                                rows={2}
+                                placeholder="e.g., Web Development, Graphic Designer, SEO"
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                            />
+                            <p className="text-xs text-gray-400">Comma laga kar multiple skills alag alag likhein.</p>
                         </div>
                     </div>
 

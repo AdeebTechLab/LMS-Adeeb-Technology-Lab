@@ -12,12 +12,72 @@ import { ButtonLoader } from '../../components/ui/Loader';
 import { PAKISTAN_CITIES, COUNTRIES } from '../../utils/locations';
 
 const SKILLS = [
-    'Trading', 'Taxation', 'Freelancing', 'Video Editing', 'E-Commerce',
-    'Programming', 'Office Work [IT]', 'Cyber Security', 'Machine Learning',
-    'Truck Dispatching', 'UX/UI Designing', 'Youtuber Course', 'Graphic Designer',
-    'Home Architecture', 'Internet of Thing [IOT]', 'Digital Marketing, Ads',
-    'Web Development', 'App Development', 'Software Development',
-    'App Dev Without Coding', 'Web Dev Without Coding', 'Other'
+    'LMS Dev',
+    'Website Dev',
+    'App Dev',
+    'Software Dev',
+    'WordPress',
+    'Html',
+    'Css',
+    'Java',
+    'Python',
+    'PHP',
+    'Flutter',
+    'Android Studio',
+    'Firebase',
+    'MongoDB',
+    'MySQL',
+    'JavaScript',
+    'Bootstrap',
+    'Git & GitHub',
+    'Visual Studio Code',
+    'Vercel',
+    'Wix',
+    'Elementor',
+    'Webflow',
+    'Graphic Designer',
+    'UI/UX Designer',
+    'Video Editor',
+    'Motion Graphics',
+    'Photoshop',
+    'Illustrator',
+    'Premiere Pro',
+    'After Effects',
+    'Canva',
+    'Digital Marketing',
+    'SEO',
+    'Social Media Marketing',
+    'Google Ads',
+    'Meta Ads',
+    'Content Writer',
+    'AI',
+    'Machine Learning',
+    'IoT',
+    'Robotics',
+    'Cyber Security',
+    'Ethical Hacking',
+    'Network Security',
+    'Office Work (IT)',
+    'Basic Computer',
+    'Word',
+    'Excel',
+    'PowerPoint',
+    'Publisher',
+    'Data Entry',
+    'Team Manager',
+    'HR',
+    'Freelancing',
+    'E-Commerce',
+    'Trading',
+    'Taxation',
+    'Truck Dispatching',
+    'Home Architecture',
+    'AutoCAD',
+    'Chief Architect',
+    'YouTube',
+    'Social Media Management',
+    'Content Writing',
+    'Other'
 ];
 
 const CITIES = PAKISTAN_CITIES;
@@ -566,18 +626,37 @@ const JobRegister = () => {
                         </h2>
                         <div id="field-skills" className="mb-8">
                             <label className="block text-sm font-medium text-gray-700 mb-3">Skills or Fields you specialize in * (select multiple)</label>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
-                                {SKILLS.map(prog => (
-                                    <label key={prog} className={`flex items-start gap-3 p-3 rounded-xl border ${formData.skills.includes(prog) ? 'border-primary bg-primary/5' : 'border-gray-200 bg-gray-50 hover:bg-gray-100'} cursor-pointer transition-colors`}>
-                                        <input type="checkbox" checked={formData.skills.includes(prog)} onChange={(e) => {
-                                            const updated = e.target.checked
-                                                ? [...formData.skills, prog]
-                                                : formData.skills.filter(s => s !== prog);
-                                            setFormData({ ...formData, skills: updated });
-                                        }} className="mt-1 rounded text-primary focus:ring-primary" />
-                                        <span className="text-sm font-medium text-gray-700">{prog}</span>
-                                    </label>
-                                ))}
+                            <div className="flex flex-wrap gap-2.5 mb-4 min-w-0">
+                                {SKILLS.map(prog => {
+                                    const selected = formData.skills.includes(prog);
+                                    return (
+                                        <button
+                                            type="button"
+                                            key={prog}
+                                            onClick={() => {
+                                                const updated = selected
+                                                    ? formData.skills.filter(s => s !== prog)
+                                                    : [...formData.skills, prog];
+                                                setFormData({ ...formData, skills: updated });
+                                                if (errors.skills) setErrors(prev => ({ ...prev, skills: '' }));
+                                            }}
+                                            className={`group inline-flex max-w-full min-w-0 items-center justify-center gap-2 px-3.5 py-2.5 text-left rounded-full border cursor-pointer transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary/30 ${
+                                                selected
+                                                    ? 'bg-primary border-primary text-white shadow-lg shadow-primary/20'
+                                                    : 'bg-white border-gray-200 text-gray-700 hover:border-primary/40 hover:bg-primary/5'
+                                            }`}
+                                        >
+                                            <span className="min-w-0 break-words text-sm font-bold leading-snug">{prog}</span>
+                                            <span className={`w-4 h-4 shrink-0 rounded-full flex items-center justify-center text-[10px] font-black border transition-all ${
+                                                selected
+                                                    ? 'bg-white text-primary border-white'
+                                                    : 'bg-gray-50 text-transparent border-gray-300 group-hover:border-primary/40'
+                                            }`}>
+                                                ✓
+                                            </span>
+                                        </button>
+                                    );
+                                })}
                             </div>
                             {formData.skills.includes('Other') && (
                                 <div id="field-otherSkills" className="mt-4">

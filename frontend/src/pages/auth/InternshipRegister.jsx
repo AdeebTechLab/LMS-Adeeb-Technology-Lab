@@ -12,12 +12,72 @@ import { ButtonLoader } from '../../components/ui/Loader';
 import { PAKISTAN_CITIES, COUNTRIES } from '../../utils/locations';
 
 const PROGRAMS = [
-    'Trading', 'Taxation', 'Freelancing', 'Video Editing', 'E-Commerce',
-    'Programming', 'Office Work [IT]', 'Cyber Security', 'Machine Learning',
-    'Truck Dispatching', 'UX/UI Designing', 'Youtuber Course', 'Graphic Designer',
-    'Home Architecture', 'Internet of Thing [IOT]', 'Digital Marketing, Ads',
-    'Web Development', 'App Development', 'Software Development',
-    'App Dev Without Coding', 'Web Dev Without Coding', 'Other'
+    'LMS Dev',
+    'Website Dev',
+    'App Dev',
+    'Software Dev',
+    'WordPress',
+    'Html',
+    'Css',
+    'Java',
+    'Python',
+    'PHP',
+    'Flutter',
+    'Android Studio',
+    'Firebase',
+    'MongoDB',
+    'MySQL',
+    'JavaScript',
+    'Bootstrap',
+    'Git & GitHub',
+    'Visual Studio Code',
+    'Vercel',
+    'Wix',
+    'Elementor',
+    'Webflow',
+    'Graphic Designer',
+    'UI/UX Designer',
+    'Video Editor',
+    'Motion Graphics',
+    'Photoshop',
+    'Illustrator',
+    'Premiere Pro',
+    'After Effects',
+    'Canva',
+    'Digital Marketing',
+    'SEO',
+    'Social Media Marketing',
+    'Google Ads',
+    'Meta Ads',
+    'Content Writer',
+    'AI',
+    'Machine Learning',
+    'IoT',
+    'Robotics',
+    'Cyber Security',
+    'Ethical Hacking',
+    'Network Security',
+    'Office Work (IT)',
+    'Basic Computer',
+    'Word',
+    'Excel',
+    'PowerPoint',
+    'Publisher',
+    'Data Entry',
+    'Team Manager',
+    'HR',
+    'Freelancing',
+    'E-Commerce',
+    'Trading',
+    'Taxation',
+    'Truck Dispatching',
+    'Home Architecture',
+    'AutoCAD',
+    'Chief Architect',
+    'YouTube',
+    'Social Media Management',
+    'Content Writing',
+    'Other'
 ];
 
 const INTERN_CITIES = ['Bahawalpur', 'Islamabad'];
@@ -103,6 +163,8 @@ const InternshipRegister = () => {
         internCity: '',
         internType: '',
         requirements: [],
+        skills: [],
+        otherSkills: '',
         resumeUrl: '',
         guardianName: '',
         guardianRelation: '',
@@ -178,6 +240,15 @@ const InternshipRegister = () => {
             requirements: prev.requirements.includes(value)
                 ? prev.requirements.filter(r => r !== value)
                 : [...prev.requirements, value]
+        }));
+    };
+
+    const handleSkillChange = (value) => {
+        setFormData(prev => ({
+            ...prev,
+            skills: prev.skills.includes(value)
+                ? prev.skills.filter(skill => skill !== value)
+                : [...prev.skills, value]
         }));
     };
 
@@ -322,6 +393,14 @@ const InternshipRegister = () => {
             submitData.append('guardianRelation', formData.guardianRelation);
             submitData.append('guardianPhone', formData.guardianPhone);
             submitData.append('guardianOccupation', formData.guardianOccupation);
+            let finalSkills = formData.skills.filter(skill => skill !== 'Other');
+            if (formData.skills.includes('Other') && formData.otherSkills.trim()) {
+                finalSkills = [
+                    ...finalSkills,
+                    ...formData.otherSkills.split(',').map(skill => skill.trim()).filter(Boolean)
+                ];
+            }
+            submitData.append('skills', finalSkills.join(', '));
 
             if (photoFile) {
                 submitData.append('photo', photoFile);
@@ -345,7 +424,7 @@ const InternshipRegister = () => {
     const requirementOptions = ['Home WiFi', 'Personal Laptop', 'No Laptop', 'No WiFi'];
 
     return (
-        <div className="h-screen flex overflow-hidden">
+        <div className="h-screen flex overflow-hidden overflow-x-hidden">
             {cropperSrc && (
                 <ImageCropper
                     imageSrc={cropperSrc}
@@ -495,9 +574,9 @@ const InternshipRegister = () => {
                 initial={{ opacity: 0, x: 50 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.6 }}
-                className="w-full lg:w-1/2 h-screen overflow-y-auto p-6 bg-white"
+                className="w-full lg:w-1/2 h-screen overflow-y-auto overflow-x-hidden p-4 sm:p-6 bg-white"
             >
-                <div className="w-full max-w-2xl mx-auto py-8">
+                <div className="w-full max-w-2xl mx-auto py-8 overflow-x-hidden">
                     {/* Header */}
                     <div className="mb-8">
                         <div className="mb-6">
@@ -523,7 +602,7 @@ const InternshipRegister = () => {
                     {/* Form */}
                     <form
                         onSubmit={handleSubmit}
-                        className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8"
+                        className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 sm:p-8 overflow-hidden"
                     >
                         {apiError && (
                             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-600">
@@ -660,6 +739,49 @@ const InternshipRegister = () => {
                                         </label>
                                     ))}
                                 </div>
+                            </div>
+
+                            <div id="field-skills" className="pt-2">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">My Skills (select multiple)</label>
+                                <div className="flex flex-wrap gap-2.5 min-w-0">
+                                    {PROGRAMS.map(skill => {
+                                        const selected = formData.skills.includes(skill);
+                                        return (
+                                            <button
+                                                type="button"
+                                                key={skill}
+                                                onClick={() => handleSkillChange(skill)}
+                                                className={`group inline-flex max-w-full min-w-0 items-center justify-center gap-2 px-3.5 py-2.5 text-left rounded-full border cursor-pointer transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300/50 ${
+                                                    selected
+                                                        ? 'bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-200'
+                                                        : 'bg-white border-gray-200 text-gray-700 hover:border-blue-300 hover:bg-blue-50'
+                                                }`}
+                                            >
+                                                <span className="min-w-0 break-words text-sm font-bold leading-snug">{skill}</span>
+                                                <span className={`w-4 h-4 shrink-0 rounded-full flex items-center justify-center text-[10px] font-black border transition-all ${
+                                                    selected
+                                                        ? 'bg-white text-blue-600 border-white'
+                                                        : 'bg-gray-50 text-transparent border-gray-300 group-hover:border-blue-300'
+                                                }`}>
+                                                    ✓
+                                                </span>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                                {formData.skills.includes('Other') && (
+                                    <div className="mt-4">
+                                        <InputField
+                                            label="Other Skills (comma separated)"
+                                            name="otherSkills"
+                                            placeholder="e.g., Data Entry, SEO, Content Writing"
+                                            value={formData.otherSkills}
+                                            onChange={handleChange}
+                                            error={errors.otherSkills}
+                                        />
+                                        <p className="mt-1 text-xs text-gray-400">Comma laga kar multiple skills likhein.</p>
+                                    </div>
+                                )}
                             </div>
                         </div>
 

@@ -26,7 +26,8 @@ import {
     CheckCircle,
     Clock,
     MessageSquare,
-    Wallet
+    Wallet,
+    Search
 } from 'lucide-react';
 import { logout, loginSuccess } from '../../features/auth/authSlice';
 import { userAPI, authAPI } from '../../services/api';
@@ -317,6 +318,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 { id: 'dashboard', labelKey: 'nav.dashboard', icon: LayoutDashboard, path: '/teacher/dashboard', submissionBadge: teacherSubmissionCount },
                 { id: 'profile', labelKey: 'nav.myProfile', icon: User, path: '/teacher/profile' },
                 { id: 'courses', labelKey: 'nav.myCourses', icon: BookOpen, path: '/teacher/courses' },
+                { id: 'student-search', labelKey: 'Students', icon: Search, path: '/teacher/student-search' },
                 { id: 'attendance', labelKey: 'nav.attendance', icon: Calendar, path: '/teacher/quick-attendance' },
                 { id: 'certificates', labelKey: 'nav.certificates', icon: Award, path: '/teacher/certificates' },
                 { id: 'jobs', labelKey: 'Job Posting', icon: Briefcase, path: '/teacher/jobs', badge: jobChatSummary.totalApplicants + jobChatSummary.totalUnread },

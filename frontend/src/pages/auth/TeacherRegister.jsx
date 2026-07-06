@@ -25,6 +25,75 @@ const HEARD_OPTIONS = [
     'YouTube', 'Friends & Family', 'Twitter', 'LinkedIn', 'Other'
 ];
 
+const SKILLS = [
+    'LMS Dev',
+    'Website Dev',
+    'App Dev',
+    'Software Dev',
+    'WordPress',
+    'Html',
+    'Css',
+    'Java',
+    'Python',
+    'PHP',
+    'Flutter',
+    'Android Studio',
+    'Firebase',
+    'MongoDB',
+    'MySQL',
+    'JavaScript',
+    'Bootstrap',
+    'Git & GitHub',
+    'Visual Studio Code',
+    'Vercel',
+    'Wix',
+    'Elementor',
+    'Webflow',
+    'Graphic Designer',
+    'UI/UX Designer',
+    'Video Editor',
+    'Motion Graphics',
+    'Photoshop',
+    'Illustrator',
+    'Premiere Pro',
+    'After Effects',
+    'Canva',
+    'Digital Marketing',
+    'SEO',
+    'Social Media Marketing',
+    'Google Ads',
+    'Meta Ads',
+    'Content Writer',
+    'AI',
+    'Machine Learning',
+    'IoT',
+    'Robotics',
+    'Cyber Security',
+    'Ethical Hacking',
+    'Network Security',
+    'Office Work (IT)',
+    'Basic Computer',
+    'Word',
+    'Excel',
+    'PowerPoint',
+    'Publisher',
+    'Data Entry',
+    'Team Manager',
+    'HR',
+    'Freelancing',
+    'E-Commerce',
+    'Trading',
+    'Taxation',
+    'Truck Dispatching',
+    'Home Architecture',
+    'AutoCAD',
+    'Chief Architect',
+    'YouTube',
+    'Social Media Management',
+    'Content Writing',
+    'Other'
+];
+
 const TeacherRegister = () => {
     const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(false);
@@ -39,12 +108,17 @@ const TeacherRegister = () => {
         phone: '',
         cnic: '',
         qualification: '',
-        specialization: '',
+        specialization: [],
+        otherSkills: '',
         experience: '',
         location: '',
         otherCity: '',
+        attendType: '',
+        city: '',
+        otherAddressCity: '',
         country: '',
         otherCountry: '',
+        address: '',
         fatherName: '',
         dob: '',
         age: '',
@@ -137,8 +211,11 @@ const TeacherRegister = () => {
             newErrors.experience = 'Experience is required';
         }
 
-        if (!formData.specialization.trim()) {
+        if (formData.specialization.length === 0) {
             newErrors.specialization = 'Specialization is required';
+        }
+        if (formData.specialization.includes('Other') && !formData.otherSkills.trim()) {
+            newErrors.otherSkills = 'Please specify your other skills';
         }
 
         if (!formData.password) {
@@ -156,11 +233,23 @@ const TeacherRegister = () => {
         }
 
         if (!formData.location) {
-            newErrors.location = 'Please select a city';
+            newErrors.location = 'Please select a campus city';
+        }
+
+        if (!formData.attendType) {
+            newErrors.attendType = 'Please select class type';
         }
 
         if (!formData.country) {
             newErrors.country = 'Please select a country';
+        }
+
+        if (!formData.city) {
+            newErrors.city = 'Please select a city';
+        }
+
+        if (!formData.address.trim()) {
+            newErrors.address = 'Address is required';
         }
 
         if (!formData.termsAccepted) {
@@ -203,6 +292,16 @@ const TeacherRegister = () => {
         e.target.value = '';
     };
 
+    const handleSkillChange = (skill) => {
+        setFormData(prev => ({
+            ...prev,
+            specialization: prev.specialization.includes(skill)
+                ? prev.specialization.filter(item => item !== skill)
+                : [...prev.specialization, skill]
+        }));
+        if (errors.specialization) setErrors(prev => ({ ...prev, specialization: '' }));
+    };
+
     const handleCropDone = (croppedFile, croppedDataUrl) => {
         if (croppedFile.size > 1 * 1024 * 1024) {
             setErrors(prev => ({ ...prev, photo: 'Cropped image is still over 1MB. Try zooming out.' }));
@@ -231,9 +330,18 @@ const TeacherRegister = () => {
             submitData.append('phone', formData.phone);
             submitData.append('cnic', formData.cnic);
             submitData.append('qualification', formData.qualification);
-            submitData.append('specialization', formData.specialization);
+            let finalSkills = formData.specialization.filter(skill => skill !== 'Other');
+            if (formData.specialization.includes('Other') && formData.otherSkills.trim()) {
+                finalSkills = [
+                    ...finalSkills,
+                    ...formData.otherSkills.split(',').map(skill => skill.trim()).filter(Boolean)
+                ];
+            }
+            submitData.append('specialization', finalSkills.join(', '));
             submitData.append('experience', formData.experience);
+            submitData.append('attendType', formData.attendType);
             submitData.append('location', formData.location === 'Other' ? formData.otherCity : formData.location);
+            submitData.append('city', formData.city === 'Other' ? formData.otherAddressCity : formData.city);
             submitData.append('country', formData.country === 'Other' ? formData.otherCountry : formData.country);
             submitData.append('fatherName', formData.fatherName);
             submitData.append('dob', formData.dob);
@@ -374,7 +482,7 @@ const TeacherRegister = () => {
                 transition={{ duration: 0.6 }}
                 className="w-full lg:w-1/2 h-screen overflow-y-auto p-6 bg-white"
             >
-                <div className="w-full max-w-md mx-auto py-8">
+                <div className="w-full max-w-2xl mx-auto py-8">
                     {/* Back Button and Branding */}
                     <motion.div
                         initial={{ opacity: 0 }}
@@ -534,7 +642,6 @@ const TeacherRegister = () => {
                                     />
                                     <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                                 </div>
-                                <p className="mt-1 text-xs text-gray-500">dd-----yyyy</p>
                                 {errors.dob && <p className="mt-1 text-sm text-red-500">{errors.dob}</p>}
                             </div>
 
@@ -559,43 +666,28 @@ const TeacherRegister = () => {
                         </div>
 
                         {/* Qualification */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1.5">Qualification *</label>
-                            <div className="relative">
-                                <select
-                                    name="qualification"
-                                    value={formData.qualification}
-                                    onChange={handleChange}
-                                    className={`w-full px-4 py-3 pl-11 border ${errors.qualification ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50 appearance-none cursor-pointer`}
-                                >
-                                    <option value="">Select Qualification</option>
-                                    {QUALIFICATIONS.map(q => <option key={q} value={q}>{q}</option>)}
-                                </select>
-                                <GraduationCap className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+                        <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-2 border-b flex items-center gap-2">
+                            <GraduationCap className="w-5 h-5 text-blue-600" /> Qualification
+                        </h2>
+                        <div className="grid grid-cols-1 gap-5 mb-8">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1.5">Qualification *</label>
+                                <div className="relative">
+                                    <select
+                                        name="qualification"
+                                        value={formData.qualification}
+                                        onChange={handleChange}
+                                        className={`w-full px-4 py-3 pl-11 border ${errors.qualification ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50 appearance-none cursor-pointer`}
+                                    >
+                                        <option value="">Select Qualification</option>
+                                        {QUALIFICATIONS.map(q => <option key={q} value={q}>{q}</option>)}
+                                    </select>
+                                    <GraduationCap className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+                                </div>
+                                {errors.qualification && <p className="mt-1 text-sm text-red-500">{errors.qualification}</p>}
                             </div>
-                            {errors.qualification && <p className="mt-1 text-sm text-red-500">{errors.qualification}</p>}
-                        </div>
 
-                        {/* Specialization */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1.5">Specialization / Skills *</label>
-                            <div className="relative">
-                                <input
-                                    type="text"
-                                    name="specialization"
-                                    value={formData.specialization}
-                                    onChange={handleChange}
-                                    placeholder="e.g., Web Development, Python, Data Science"
-                                    className={`w-full px-4 py-3 pl-11 border ${errors.specialization ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50`}
-                                />
-                                <BookOpen className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                            </div>
-                            {errors.specialization && <p className="mt-1 text-sm text-red-500">{errors.specialization}</p>}
-                        </div>
-
-                        {/* Experience and Location Row */}
-                        <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1.5">Experience *</label>
                                 <div className="relative">
@@ -611,36 +703,50 @@ const TeacherRegister = () => {
                                 </div>
                                 {errors.experience && <p className="mt-1 text-sm text-red-500">{errors.experience}</p>}
                             </div>
+
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1.5">Location *</label>
-                                <div className="relative">
-                                    <select
-                                        name="location"
-                                        value={formData.location}
-                                        onChange={handleChange}
-                                        className={`w-full px-4 py-3 pl-11 border ${errors.location ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50 appearance-none cursor-pointer`}
-                                    >
-                                        <option value="">Select City</option>
-                                        {PAKISTAN_CITIES.map(city => <option key={city} value={city}>{city}</option>)}
-                                    </select>
-                                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
-                                </div>
-                                {errors.location && <p className="mt-1 text-sm text-red-500">{errors.location}</p>}
-                                
-                                {formData.location === 'Other' && (
-                                    <div className="mt-2">
+                                <label className="block text-sm font-medium text-gray-700 mb-3">Specialization / Skills * (select multiple)</label>
+                                <div className="flex flex-wrap gap-2.5 min-w-0">
+                                {SKILLS.map(skill => {
+                                    const selected = formData.specialization.includes(skill);
+                                    return (
+                                        <button
+                                            type="button"
+                                            key={skill}
+                                            onClick={() => handleSkillChange(skill)}
+                                            className={`group inline-flex max-w-full min-w-0 items-center justify-center gap-2 px-3.5 py-2.5 text-left rounded-full border cursor-pointer transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary/30 ${
+                                                selected
+                                                    ? 'bg-primary border-primary text-white shadow-lg shadow-primary/20'
+                                                    : 'bg-white border-gray-200 text-gray-700 hover:border-primary/40 hover:bg-primary/5'
+                                            }`}
+                                        >
+                                            <span className="min-w-0 break-words text-sm font-bold leading-snug">{skill}</span>
+                                            <span className={`w-4 h-4 shrink-0 rounded-full flex items-center justify-center text-[10px] font-black border transition-all ${
+                                                selected
+                                                    ? 'bg-white text-primary border-white'
+                                                    : 'bg-gray-50 text-transparent border-gray-300 group-hover:border-primary/40'
+                                            }`}>
+                                                ✓
+                                            </span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                                {formData.specialization.includes('Other') && (
+                                    <div id="field-otherSkills" className="mt-4">
+                                        <label className="block text-sm font-medium text-gray-700 mb-1.5">Other Skills (comma separated) *</label>
                                         <input
                                             type="text"
-                                            name="otherCity"
-                                            value={formData.otherCity}
+                                            name="otherSkills"
+                                            value={formData.otherSkills}
                                             onChange={handleChange}
-                                            placeholder="Specify your city"
-                                            className={`w-full px-4 py-3 pl-11 border ${errors.otherCity ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50`}
+                                            placeholder="e.g., Data Entry, SEO, Content Writing"
+                                            className={`w-full px-4 py-3 border ${errors.otherSkills ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50`}
                                         />
-                                        <MapPin className="absolute left-4 translate-y-[-2.5rem] w-5 h-5 text-gray-400" />
+                                        {errors.otherSkills && <p className="mt-1 text-sm text-red-500">{errors.otherSkills}</p>}
                                     </div>
                                 )}
+                                {errors.specialization && <p className="mt-1 text-sm text-red-500">{errors.specialization}</p>}
                             </div>
                         </div>
 
@@ -649,37 +755,128 @@ const TeacherRegister = () => {
                             <MapPin className="w-5 h-5 text-blue-600" /> Address Details
                         </h2>
 
-                        {/* Country */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1.5">Country *</label>
-                            <div className="relative">
-                                <select
-                                    name="country"
-                                    value={formData.country}
-                                    onChange={handleChange}
-                                    className={`w-full px-4 py-3 pl-11 border ${errors.country ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50 appearance-none cursor-pointer`}
-                                >
-                                    <option value="">Select Country</option>
-                                    {COUNTRIES.map(country => <option key={country} value={country}>{country}</option>)}
-                                </select>
-                                <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1.5">City *</label>
+                                <div className="relative">
+                                    <select
+                                        name="city"
+                                        value={formData.city || ''}
+                                        onChange={handleChange}
+                                        className={`w-full px-4 py-3 pl-11 border ${errors.city ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50 appearance-none cursor-pointer`}
+                                    >
+                                        <option value="">Select City</option>
+                                        {PAKISTAN_CITIES.map(city => <option key={city} value={city}>{city}</option>)}
+                                    </select>
+                                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+                                </div>
+                                {errors.city && <p className="mt-1 text-sm text-red-500">{errors.city}</p>}
+
+                                {formData.city === 'Other' && (
+                                    <div className="mt-2 relative">
+                                        <input
+                                            type="text"
+                                            name="otherAddressCity"
+                                            value={formData.otherAddressCity || ''}
+                                            onChange={handleChange}
+                                            placeholder="Specify your city"
+                                            className={`w-full px-4 py-3 pl-11 border ${errors.otherAddressCity ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50`}
+                                        />
+                                        <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                    </div>
+                                )}
                             </div>
-                            {errors.country && <p className="mt-1 text-sm text-red-500">{errors.country}</p>}
-                            
-                            {formData.country === 'Other' && (
-                                <div className="mt-2 relative">
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1.5">Country *</label>
+                                <div className="relative">
+                                    <select
+                                        name="country"
+                                        value={formData.country}
+                                        onChange={handleChange}
+                                        className={`w-full px-4 py-3 pl-11 border ${errors.country ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50 appearance-none cursor-pointer`}
+                                    >
+                                        <option value="">Select Country</option>
+                                        {COUNTRIES.map(country => <option key={country} value={country}>{country}</option>)}
+                                    </select>
+                                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+                                </div>
+                                {errors.country && <p className="mt-1 text-sm text-red-500">{errors.country}</p>}
+                                
+                                {formData.country === 'Other' && (
+                                    <div className="mt-2 relative">
+                                        <input
+                                            type="text"
+                                            name="otherCountry"
+                                            value={formData.otherCountry}
+                                            onChange={handleChange}
+                                            placeholder="Specify your country"
+                                            className={`w-full px-4 py-3 pl-11 border ${errors.otherCountry ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50`}
+                                        />
+                                        <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="md:col-span-2">
+                                <label className="block text-sm font-medium text-gray-700 mb-1.5">Address *</label>
+                                <div className="relative">
                                     <input
                                         type="text"
-                                        name="otherCountry"
-                                        value={formData.otherCountry}
+                                        name="address"
+                                        value={formData.address}
                                         onChange={handleChange}
-                                        placeholder="Specify your country"
-                                        className={`w-full px-4 py-3 pl-11 border ${errors.otherCountry ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50`}
+                                        placeholder="Complete address"
+                                        className={`w-full px-4 py-3 pl-11 border ${errors.address ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50`}
                                     />
                                     <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                                 </div>
-                            )}
+                                {errors.address && <p className="mt-1 text-sm text-red-500">{errors.address}</p>}
+                            </div>
+                        </div>
+
+                        {/* Campus Details */}
+                        <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-2 border-b flex items-center gap-2">
+                            <BookOpen className="w-5 h-5 text-blue-600" /> Campus Details
+                        </h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1.5">Campus City *</label>
+                                <div className="relative">
+                                    <select
+                                        name="location"
+                                        value={formData.location}
+                                        onChange={handleChange}
+                                        className={`w-full px-4 py-3 pl-11 border ${errors.location ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50 appearance-none cursor-pointer`}
+                                    >
+                                        <option value="">Select Campus City</option>
+                                        {['Bahawalpur', 'Islamabad'].map(city => <option key={city} value={city}>{city}</option>)}
+                                    </select>
+                                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+                                </div>
+                                {errors.location && <p className="mt-1 text-sm text-red-500">{errors.location}</p>}
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1.5">Attend Classes *</label>
+                                <div className="relative">
+                                    <select
+                                        name="attendType"
+                                        value={formData.attendType}
+                                        onChange={handleChange}
+                                        className={`w-full px-4 py-3 pl-11 border ${errors.attendType ? 'border-red-400' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50 appearance-none cursor-pointer`}
+                                    >
+                                        <option value="">Select Type</option>
+                                        <option value="Physical">Physical</option>
+                                        <option value="Online">Online</option>
+                                    </select>
+                                    <BookOpen className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+                                </div>
+                                {errors.attendType && <p className="mt-1 text-sm text-red-500">{errors.attendType}</p>}
+                            </div>
                         </div>
 
                         {/* Account Setup */}
