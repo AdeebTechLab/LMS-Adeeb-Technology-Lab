@@ -255,6 +255,22 @@ router.get('/unread', protect, async (req, res) => {
 // DISCUSSION ROOM ROUTES (common group chat for everyone)
 // =====================================================
 
+// @route   GET /api/chat/discussion/online-count
+// @desc    Get currently online users count for discussion room
+// @access  Private
+router.get('/discussion/online-count', protect, async (req, res) => {
+    try {
+        const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
+        const count = await User.countDocuments({
+            lastSeen: { $gte: twoMinutesAgo }
+        });
+
+        res.json({ success: true, count });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
 // @route   GET /api/chat/discussion/unread
 // @desc    Get unread discussion room message count for current linked account group
 // @access  Private

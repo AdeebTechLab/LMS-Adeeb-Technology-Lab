@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { io } from 'socket.io-client';
-import { MessageSquare, Send, Trash2, Users, Loader2 } from 'lucide-react';
+import { MessageSquare, Send, Trash2, Users, Loader2, Circle } from 'lucide-react';
 import { chatAPI } from '../../services/api';
 
 const getSocketURL = () => {
@@ -68,6 +68,7 @@ const DiscussionRoom = () => {
     const [newMessage, setNewMessage] = useState('');
     const [loading, setLoading] = useState(true);
     const [sending, setSending] = useState(false);
+    const [onlineCount, setOnlineCount] = useState(0);
     const socketRef = useRef(null);
     const messagesContainerRef = useRef(null);
     const bottomRef = useRef(null);
@@ -92,8 +93,18 @@ const DiscussionRoom = () => {
         }
     };
 
+    const loadOnlineCount = async () => {
+        try {
+            const res = await chatAPI.getDiscussionOnlineCount();
+            setOnlineCount(Number(res.data.count || 0));
+        } catch (error) {
+            console.error('Online users count load failed:', error);
+        }
+    };
+
     useEffect(() => {
         loadMessages();
+        loadOnlineCount();
 
         socketRef.current = io(getSocketURL(), { withCredentials: true });
         if (myId) socketRef.current.emit('join_chat', String(myId));
@@ -119,14 +130,17 @@ const DiscussionRoom = () => {
                     ? { ...msg, sender: { ...msg.sender, lastSeen: data.lastSeen } }
                     : msg
             )));
+            loadOnlineCount();
         });
 
         const heartbeatInterval = setInterval(() => {
             if (socketRef.current && myId) socketRef.current.emit('heartbeat', String(myId));
         }, 30000);
+        const onlineInterval = setInterval(loadOnlineCount, 30000);
 
         return () => {
             clearInterval(heartbeatInterval);
+            clearInterval(onlineInterval);
             socketRef.current?.disconnect();
         };
     }, [myId]);
@@ -195,7 +209,10 @@ const DiscussionRoom = () => {
     };
 
     return (
-        <div className="p-4 md:p-6 h-[calc(100vh-120px)] flex flex-col gap-4 bg-gray-50 dark:bg-gray-950">
+        <div
+            onContextMenu={(e) => e.preventDefault()}
+            className="p-4 md:p-6 h-[calc(100vh-120px)] flex flex-col gap-4 bg-gray-50 dark:bg-gray-950"
+        >
             <div className="relative overflow-hidden bg-gradient-to-r from-[var(--bg-sidebar)] to-[var(--bg-sidebar-light)] rounded-2xl p-5 text-white shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="absolute -right-12 -top-12 w-40 h-40 rounded-full bg-white/10 blur-2xl" />
                 <div className="absolute -bottom-16 left-1/3 w-44 h-44 rounded-full bg-white/10 blur-3xl" />
@@ -212,6 +229,10 @@ const DiscussionRoom = () => {
                     <div className="px-4 py-2 rounded-xl bg-white/15 border border-white/20 text-xs font-black flex items-center gap-2 text-white">
                         <Users className="w-4 h-4 text-white" />
                         {messages.length} Messages
+                    </div>
+                    <div className="px-4 py-2 rounded-xl bg-white/15 border border-white/20 text-xs font-black flex items-center gap-2 text-white">
+                        <Circle className="w-3 h-3 fill-green-400 text-green-400" />
+                        {onlineCount} Online
                     </div>
                     {isAdmin && (
                         <button
@@ -251,7 +272,9 @@ const DiscussionRoom = () => {
                                         <img
                                             src={getSenderPhoto(sender, user)}
                                             alt={sender.name || 'User'}
-                                            className="w-11 h-11 rounded-full object-cover border border-primary/50 shadow-sm"
+                                            onContextMenu={(e) => e.preventDefault()}
+                                            draggable={false}
+                                            className="w-11 h-11 rounded-full object-cover border border-primary/50 shadow-sm select-none"
                                         />
                                         {online && (
                                             <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-green-500 border-2 border-white dark:border-gray-950 shadow-[0_0_10px_rgba(34,197,94,0.9)]" />

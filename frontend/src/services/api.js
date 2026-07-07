@@ -278,6 +278,7 @@ export const chatAPI = {
     markJobChatRead: (taskId, senderId) => api.put(`/chat/job/${taskId}/read/${senderId}`),
     clearJobChat: (taskId, userId) => api.delete(`/chat/job/${taskId}/messages/${userId}`),
     getDiscussionMessages: () => api.get('/chat/discussion'),
+    getDiscussionOnlineCount: () => api.get('/chat/discussion/online-count'),
     getDiscussionUnread: () => api.get('/chat/discussion/unread'),
     markDiscussionRead: () => api.put('/chat/discussion/read'),
     sendDiscussionMessage: (text) => api.post('/chat/discussion', { text }),
