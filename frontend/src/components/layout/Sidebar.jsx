@@ -353,7 +353,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 { id: 'certificates', labelKey: 'Certificates', icon: Award, path: '/intern/courses', state: { tab: 'completed' } },
                 { id: 'discussion-room', labelKey: 'Discussion Room', icon: MessageSquare, path: '/intern/discussion-room' },
             ],
-                        job: [
+            job: [
+                { id: 'dashboard', labelKey: 'nav.dashboard', icon: LayoutDashboard, path: '/job/dashboard' },
                 { id: 'available', labelKey: 'Available', icon: Briefcase, path: '/job/tasks', state: { tab: 'available' } },
                 { id: 'applied', labelKey: 'Applications', icon: FileText, path: '/job/tasks', state: { tab: 'applied' } },
                 { id: 'assigned', labelKey: 'Assigned', icon: CheckCircle, path: '/job/tasks', state: { tab: 'assigned' }, badge: jobChatSummary.totalUnread },
@@ -401,7 +402,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                             teacher: '/teacher/dashboard',
                             student: '/student/dashboard',
                             intern: '/intern/dashboard',
-                            job: '/job/tasks'
+                            job: '/job/dashboard'
                         };
                         navigate(defaultPages[role] || '/');
                         setIsOpen(false);

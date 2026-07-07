@@ -117,20 +117,22 @@ const DiscussionRoom = () => {
     };
 
     return (
-        <div className="p-4 md:p-6 h-[calc(100vh-120px)] flex flex-col gap-4 bg-[#121314]">
-            <div className="bg-[#1a1b1d]/90 border border-white/10 rounded-2xl p-5 text-white shadow-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center">
-                        <MessageSquare className="w-6 h-6 text-primary" />
+        <div className="p-4 md:p-6 h-[calc(100vh-120px)] flex flex-col gap-4 bg-gray-50 dark:bg-gray-950">
+            <div className="relative overflow-hidden bg-gradient-to-r from-[var(--bg-sidebar)] to-[var(--bg-sidebar-light)] rounded-2xl p-5 text-white shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="absolute -right-12 -top-12 w-40 h-40 rounded-full bg-white/10 blur-2xl" />
+                <div className="absolute -bottom-16 left-1/3 w-44 h-44 rounded-full bg-white/10 blur-3xl" />
+                <div className="relative z-10 flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-white/15 border border-white/20 flex items-center justify-center">
+                        <MessageSquare className="w-6 h-6 text-white" />
                     </div>
                     <div>
                         <h1 className="text-2xl font-black tracking-tight">Discussion Room</h1>
-                        <p className="text-[#8E9297] text-sm">Premium group discussion for all panels.</p>
+                        <p className="text-white/70 text-sm">Premium group discussion for all panels.</p>
                     </div>
                 </div>
-                <div className="flex items-center gap-3">
-                    <div className="px-4 py-2 rounded-xl bg-white/[0.04] border border-white/10 text-xs font-black flex items-center gap-2 text-[#8E9297]">
-                        <Users className="w-4 h-4 text-primary" />
+                <div className="relative z-10 flex items-center gap-3">
+                    <div className="px-4 py-2 rounded-xl bg-white/15 border border-white/20 text-xs font-black flex items-center gap-2 text-white">
+                        <Users className="w-4 h-4 text-white" />
                         {messages.length} Messages
                     </div>
                     {isAdmin && (
@@ -145,16 +147,16 @@ const DiscussionRoom = () => {
                 </div>
             </div>
 
-            <div className="flex-1 bg-[#121314] border border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+            <div className="flex-1 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl shadow-sm overflow-hidden flex flex-col">
                 {loading ? (
-                    <div className="flex-1 flex items-center justify-center text-[#8E9297] gap-3">
+                    <div className="flex-1 flex items-center justify-center text-gray-500 dark:text-gray-400 gap-3">
                         <Loader2 className="w-5 h-5 animate-spin" />
                         Loading discussion...
                     </div>
                 ) : (
-                    <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-5 bg-[#121314]">
+                    <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-5 bg-white dark:bg-gray-950">
                         {messages.length === 0 ? (
-                            <div className="h-full flex flex-col items-center justify-center text-center text-[#8E9297]">
+                            <div className="h-full flex flex-col items-center justify-center text-center text-gray-500 dark:text-gray-400">
                                 <MessageSquare className="w-16 h-16 mb-3 opacity-30" />
                                 <p className="font-black uppercase tracking-widest">No discussion yet</p>
                                 <p className="text-sm">Pehla message send karein.</p>
@@ -171,31 +173,35 @@ const DiscussionRoom = () => {
                                         <img
                                             src={sender.photo || user?.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(sender.name || 'User')}&background=1e1f21&color=fff`}
                                             alt={sender.name || 'User'}
-                                            className="w-11 h-11 rounded-full object-cover border border-[#c9a66b]/80 shadow-lg shadow-black/30"
+                                            className="w-11 h-11 rounded-full object-cover border border-primary/50 shadow-sm"
                                         />
                                         {online && (
-                                            <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-green-500 border-2 border-[#121314] shadow-[0_0_10px_rgba(34,197,94,0.9)]" />
+                                            <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-green-500 border-2 border-white dark:border-gray-950 shadow-[0_0_10px_rgba(34,197,94,0.9)]" />
                                         )}
                                     </div>
                                     <div className={`min-w-0 max-w-[calc(100%-64px)] sm:max-w-[72%] ${mine ? 'ml-auto' : 'mr-auto'}`}>
-                                        <div className={`group relative rounded-xl bg-[#1e1f21]/95 border border-white/[0.06] px-5 py-4 shadow-xl shadow-black/25 overflow-hidden ${
+                                        <div className={`group relative rounded-xl ${
+                                            mine
+                                                ? 'bg-primary/5 border-primary/15'
+                                                : 'bg-gray-50 dark:bg-[#1e1f21] border-gray-100 dark:border-white/[0.06]'
+                                        } border px-5 py-4 shadow-sm overflow-hidden ${
                                             mine ? 'rounded-tr-sm' : 'rounded-tl-sm'
                                         }`}>
-                                            <span className={`absolute top-3 bottom-3 w-[2px] rounded-full bg-[#c9a66b]/45 ${mine ? 'right-0' : 'left-0'}`} />
+                                            <span className={`absolute top-3 bottom-3 w-[3px] rounded-full bg-primary/60 ${mine ? 'right-0' : 'left-0'}`} />
                                             <div className="flex items-center justify-between gap-3 mb-2">
                                                 <div className="flex items-center gap-2 min-w-0">
-                                                    <span className="text-sm font-black text-white truncate">
+                                                    <span className="text-sm font-black text-gray-900 dark:text-white truncate">
                                                         {sender.name || 'User'}
                                                     </span>
                                                     {sender.rollNo && (
-                                                        <span className="shrink-0 text-[11px] font-bold text-[#8E9297]">
+                                                        <span className="shrink-0 text-[11px] font-bold text-gray-500 dark:text-[#8E9297]">
                                                             #{sender.rollNo}
                                                         </span>
                                                     )}
                                                 </div>
                                             </div>
-                                            <p className="text-sm whitespace-pre-wrap break-words leading-relaxed font-normal text-white">{msg.text}</p>
-                                            <p className="text-[10px] mt-3 text-right font-semibold text-[#8E9297]">
+                                            <p className="text-sm whitespace-pre-wrap break-words leading-relaxed font-normal text-gray-800 dark:text-white">{msg.text}</p>
+                                            <p className="text-[10px] mt-3 text-right font-semibold text-gray-500 dark:text-[#8E9297]">
                                                 {new Date(msg.createdAt).toLocaleString('en-US', {
                                                     day: '2-digit',
                                                     month: 'short',
@@ -222,12 +228,12 @@ const DiscussionRoom = () => {
                     </div>
                 )}
 
-                <form onSubmit={sendMessage} className="p-3 md:p-4 border-t border-white/10 bg-[#171819] flex gap-3">
+                <form onSubmit={sendMessage} className="p-3 md:p-4 border-t border-gray-100 dark:border-white/10 bg-white dark:bg-[#171819] flex gap-3">
                     <input
                         value={newMessage}
                         onChange={(e) => setNewMessage(e.target.value)}
                         placeholder="Discussion room mein message type karein..."
-                        className="flex-1 px-4 py-3 rounded-xl bg-[#1e1f21] border border-white/10 text-white placeholder:text-[#8E9297] outline-none focus:border-primary/70"
+                        className="flex-1 px-4 py-3 rounded-xl bg-gray-50 dark:bg-[#1e1f21] border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-[#8E9297] outline-none focus:border-primary/70"
                     />
                     <button
                         disabled={!newMessage.trim() || sending}

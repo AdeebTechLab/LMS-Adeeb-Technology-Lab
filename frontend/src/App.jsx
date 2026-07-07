@@ -48,6 +48,7 @@ import TeacherCourses from './pages/teacher/TeacherCourses';
 import QuickAttendance from './pages/teacher/QuickAttendance';
 
 // Job Pages (Paid Tasks System)
+import JobDashboard from './pages/job/JobDashboard';
 import BrowseTasks from './pages/job/BrowseTasks';
 import JobProfile from './pages/job/JobProfile';
 
@@ -79,7 +80,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
   if (allowedRoles && !allowedRoles.includes(role)) {
     if (role === 'admin') return <Navigate to="/admin/dashboard" replace />;
     if (role === 'teacher') return <Navigate to="/teacher/dashboard" replace />;
-    if (role === 'job') return <Navigate to="/job/tasks" replace />;
+    if (role === 'job') return <Navigate to="/job/dashboard" replace />;
     if (role === 'intern') return <Navigate to="/intern/dashboard" replace />;
     return <Navigate to="/student/dashboard" replace />;
   }
@@ -102,7 +103,7 @@ const AppRoutes = () => {
     switch (role) {
       case 'admin': return '/admin/dashboard';
       case 'teacher': return '/teacher/dashboard';
-      case 'job': return '/job/tasks';
+      case 'job': return '/job/dashboard';
       case 'intern': return '/intern/dashboard';
       default: return '/student/dashboard';
     }
@@ -219,7 +220,8 @@ const AppRoutes = () => {
         path="/job"
         element={<ProtectedRoute allowedRoles={['job']}><DashboardLayout /></ProtectedRoute>}
       >
-        <Route index element={<Navigate to="tasks" replace />} />
+        <Route index element={<Navigate to="dashboard" replace />} />
+        <Route path="dashboard" element={<JobDashboard />} />
         <Route path="tasks" element={<BrowseTasks />} />
         <Route path="job-chat" element={<JobChat />} />
         <Route path="profile" element={<JobProfile />} />

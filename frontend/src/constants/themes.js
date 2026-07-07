@@ -105,6 +105,23 @@ export const APP_THEMES = [
     textSecondary: '#c42d65',
     onPrimary: '#FFFFFF',
   },
+  {
+    id: 'pakistan-green',
+    number: 7,
+    name: 'Pakistan Green',
+    tagline: 'Green & White Pride',
+    primary: '#01411C',
+    primaryDark: '#01411C',
+    secondary: '#FFFFFF',
+    sidebar: '#01411C',
+    sidebarLight: '#0A6B33',
+    sidebarDark: '#002B13',
+    bgMain: '#F8FAFC',
+    bgCard: '#FFFFFF',
+    textPrimary: '#01411C',
+    textSecondary: '#4B6355',
+    onPrimary: '#FFFFFF',
+  },
 ];
 
 export const getThemeById = (id) => APP_THEMES.find((t) => t.id === id) || APP_THEMES[0];

@@ -400,6 +400,44 @@ const StudentDashboard = () => {
                 </motion.div>
 
                 <BirthdayWish />
+
+                {/* Discussion Room Widget */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.15 }}
+                    onClick={() => navigate(`/${role}/discussion-room`)}
+                    className="group relative overflow-hidden rounded-2xl border border-primary/20 bg-white dark:bg-gray-900 p-5 sm:p-6 shadow-sm hover:shadow-xl transition-all cursor-pointer"
+                >
+                    <div className="absolute inset-y-0 right-0 w-1/2 bg-gradient-to-l from-primary/10 to-transparent pointer-events-none" />
+                    <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        <div className="flex items-start gap-4">
+                            <div className="w-14 h-14 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 group-hover:bg-primary transition-colors">
+                                <MessageSquare className="w-7 h-7 text-primary group-hover:text-white transition-colors" />
+                            </div>
+                            <div>
+                                <p className="text-[10px] font-black uppercase tracking-[0.25em] text-primary mb-1">
+                                    Community Chat
+                                </p>
+                                <h3 className="text-xl font-black text-gray-900 dark:text-white uppercase italic tracking-tight">
+                                    Discussion Room
+                                </h3>
+                                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 max-w-2xl">
+                                    Students aur interns yahan group discussion, help aur updates share kar sakte hain.
+                                </p>
+                            </div>
+                        </div>
+
+                        <button
+                            type="button"
+                            className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-primary text-white text-xs font-black uppercase tracking-widest shadow-lg shadow-primary/20 group-hover:-translate-y-0.5 transition-all"
+                        >
+                            Open Room
+                            <ArrowRight className="w-4 h-4" />
+                        </button>
+                    </div>
+                </motion.div>
+
                 {/* Live Class Banner - Big and Prominent */}
                 <AnimatePresence>
                     {activeLiveClasses.length > 0 && (

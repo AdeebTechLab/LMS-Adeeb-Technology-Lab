@@ -1297,3 +1297,53 @@ body {
 .dark .rich-text-content h6 {
   color: #f3f4f6;
 }
+
+/* Theme 7 — Pakistan Green */
+.theme-pakistan-green {
+  --primary: #01411C;
+  --primary-dark: #01411C;
+  --primary-darkest: #002B13;
+  --primary-light: #0A6B33;
+  --primary-lighter: #E8F5EE;
+
+  --secondary: #FFFFFF;
+  --secondary-light: #F8FAFC;
+  --secondary-dark: #DDE7E1;
+
+  --brand-blue-50: #F0FDF4;
+  --brand-blue-100: #DCFCE7;
+  --brand-blue-200: #BBF7D0;
+  --brand-blue-300: #86EFAC;
+  --brand-blue-400: #4ADE80;
+  --brand-blue-500: #01411C;
+  --brand-blue-600: #0A6B33;
+  --brand-blue-700: #005A26;
+  --brand-blue-800: #00451D;
+  --brand-blue-900: #002B13;
+
+  --brand-secondary-50: #FFFFFF;
+  --brand-secondary-100: #F8FAFC;
+  --brand-secondary-200: #E2E8F0;
+  --brand-secondary-300: #CBD5E1;
+  --brand-secondary-400: #94A3B8;
+  --brand-secondary-500: #64748B;
+  --brand-secondary-600: #475569;
+  --brand-secondary-700: #334155;
+  --brand-secondary-800: #1E293B;
+  --brand-secondary-900: #0F172A;
+
+  --bg-sidebar: #01411C;
+  --bg-sidebar-light: #0A6B33;
+  --bg-sidebar-dark: #002B13;
+  --border-sidebar: rgba(255, 255, 255, 0.14);
+  --text-sidebar: #FFFFFF;
+  --text-sidebar-muted: rgba(255, 255, 255, 0.68);
+
+  --bg-main: #F8FAFC;
+  --bg-card: #FFFFFF;
+  --primary-foreground: #FFFFFF;
+
+  --text-primary: #01411C;
+  --text-secondary: #4B6355;
+  --text-light: #FFFFFF;
+}
