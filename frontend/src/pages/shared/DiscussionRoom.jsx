@@ -9,6 +9,11 @@ const getSocketURL = () => {
     return apiUrl.replace('/api', '');
 };
 
+const isUserOnline = (lastSeen) => {
+    if (!lastSeen) return false;
+    return (Date.now() - new Date(lastSeen).getTime()) / 1000 / 60 < 2;
+};
+
 const DiscussionRoom = () => {
     const { user, role } = useSelector((state) => state.auth);
     const [messages, setMessages] = useState([]);
@@ -51,7 +56,22 @@ const DiscussionRoom = () => {
             setMessages([]);
         });
 
-        return () => socketRef.current?.disconnect();
+        socketRef.current.on('user_status_update', (data) => {
+            setMessages(prev => prev.map(msg => (
+                String(msg.sender?._id) === String(data.userId)
+                    ? { ...msg, sender: { ...msg.sender, lastSeen: data.lastSeen } }
+                    : msg
+            )));
+        });
+
+        const heartbeatInterval = setInterval(() => {
+            if (socketRef.current && myId) socketRef.current.emit('heartbeat', String(myId));
+        }, 30000);
+
+        return () => {
+            clearInterval(heartbeatInterval);
+            socketRef.current?.disconnect();
+        };
     }, [myId]);
 
     useEffect(() => {
@@ -144,6 +164,7 @@ const DiscussionRoom = () => {
                             const mine = String(sender._id) === String(myId)
                                 || (!!myEmail && (sender.email || '').toLowerCase() === myEmail)
                                 || (!!myRollNo && (sender.rollNo || '').toLowerCase() === myRollNo);
+                            const online = isUserOnline(sender.lastSeen);
                             return (
                                 <div key={msg._id} className={`flex items-start gap-4 ${mine ? 'justify-end flex-row-reverse' : 'justify-start'}`}>
                                     <div className="relative shrink-0">
@@ -152,7 +173,9 @@ const DiscussionRoom = () => {
                                             alt={sender.name || 'User'}
                                             className="w-11 h-11 rounded-full object-cover border border-[#c9a66b]/80 shadow-lg shadow-black/30"
                                         />
-                                        <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-primary border-2 border-[#121314] shadow-[0_0_10px_var(--primary)]" />
+                                        {online && (
+                                            <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-green-500 border-2 border-[#121314] shadow-[0_0_10px_rgba(34,197,94,0.9)]" />
+                                        )}
                                     </div>
                                     <div className={`min-w-0 max-w-[calc(100%-64px)] sm:max-w-[72%] ${mine ? 'ml-auto' : 'mr-auto'}`}>
                                         <div className={`group relative rounded-xl bg-[#1e1f21]/95 border border-white/[0.06] px-5 py-4 shadow-xl shadow-black/25 overflow-hidden ${

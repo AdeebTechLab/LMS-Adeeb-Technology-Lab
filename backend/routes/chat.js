@@ -265,7 +265,7 @@ router.get('/discussion', protect, async (req, res) => {
             course: null,
             task: null
         })
-            .populate('sender', 'name role email photo rollNo')
+            .populate('sender', 'name role email photo rollNo lastSeen')
             .sort('createdAt')
             .limit(500);
 
@@ -291,7 +291,7 @@ router.post('/discussion', protect, async (req, res) => {
         });
 
         const populatedMessage = await GlobalMessage.findById(message._id)
-            .populate('sender', 'name role email photo rollNo');
+            .populate('sender', 'name role email photo rollNo lastSeen');
 
         const io = req.app.get('io');
         if (io) {

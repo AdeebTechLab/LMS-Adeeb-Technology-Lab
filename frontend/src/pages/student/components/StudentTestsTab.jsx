@@ -34,6 +34,7 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
     const [testResult, setTestResult] = useState(null);
     const [showReview, setShowReview] = useState(false);
     const [direction, setDirection] = useState(0); // 1 for next, -1 for previous
+    const [termsTest, setTermsTest] = useState(null);
 
     const submitTestRef = useRef();
     const isPromptActiveRef = useRef(false);
@@ -236,6 +237,21 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
             setCurrentQuestionIndex(0);
             setIsLoading(false);
         }, 800); // Small delay to show "Preparing Test"
+    };
+
+    const handleRequestStartTest = (test) => {
+        if (isRestricted) {
+            alert("You cannot take tests while your account is restricted.");
+            return;
+        }
+        setTermsTest(test);
+    };
+
+    const handleAgreeTerms = () => {
+        if (!termsTest) return;
+        const testToStart = termsTest;
+        setTermsTest(null);
+        handleStartTest(testToStart);
     };
 
     const handleSubmitTest = async (forceSubmit = false) => {
@@ -707,7 +723,7 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
                                             </div>
                                         ) : (
                                             <button 
-                                                onClick={() => handleStartTest(test)}
+                                                onClick={() => handleRequestStartTest(test)}
                                                 className="w-full py-4 bg-primary text-white rounded-2xl font-black text-sm uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-[#e67e01] transition-all shadow-lg shadow-primary/10"
                                             >
                                                 <ButtonLoader isLoading={false}>
@@ -722,6 +738,87 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
                     })}
                 </div>
             )}
+
+            <AnimatePresence>
+                {termsTest && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[200] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
+                    >
+                        <motion.div
+                            initial={{ scale: 0.96, y: 16 }}
+                            animate={{ scale: 1, y: 0 }}
+                            exit={{ scale: 0.96, y: 16 }}
+                            className="w-full max-w-3xl bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-gray-100 dark:border-slate-700 overflow-hidden"
+                        >
+                            <div className="p-5 bg-primary text-white flex items-start justify-between gap-4">
+                                <div>
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <AlertCircle className="w-5 h-5" />
+                                        <h3 className="text-lg font-black uppercase tracking-tight">Test Terms & Conditions</h3>
+                                    </div>
+                                    <p className="text-white/80 text-sm font-medium">{termsTest.title}</p>
+                                </div>
+                                <button
+                                    onClick={() => setTermsTest(null)}
+                                    className="w-9 h-9 rounded-xl bg-white/15 hover:bg-white/25 flex items-center justify-center"
+                                >
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+
+                            <div className="p-5 max-h-[60vh] overflow-y-auto space-y-5">
+                                <div className="grid md:grid-cols-2 gap-4">
+                                    <div className="rounded-2xl border border-gray-100 dark:border-slate-700 bg-gray-50 dark:bg-slate-800/50 p-4">
+                                        <h4 className="font-black text-gray-900 dark:text-white mb-3">English Rules</h4>
+                                        <ul className="space-y-2 text-sm text-gray-700 dark:text-slate-300 font-medium">
+                                            <li>• You are not allowed to use ChatGPT, AI tools, Google, or any external help during the test.</li>
+                                            <li>• Do not open any other software, browser tab, mobile app, or file while taking the test.</li>
+                                            <li>• Do not minimize, switch windows, refresh, go back, or exit fullscreen mode.</li>
+                                            <li>• Do not share questions, screenshots, or answers with anyone.</li>
+                                            <li>• The test must be completed by yourself only. Any cheating attempt may result in zero marks.</li>
+                                            <li>• If you exit or violate test rules, the test may be submitted automatically with unanswered questions marked as 0.</li>
+                                        </ul>
+                                    </div>
+
+                                    <div className="rounded-2xl border border-gray-100 dark:border-slate-700 bg-gray-50 dark:bg-slate-800/50 p-4" dir="rtl">
+                                        <h4 className="font-black text-gray-900 dark:text-white mb-3">اردو ہدایات</h4>
+                                        <ul className="space-y-2 text-sm text-gray-700 dark:text-slate-300 font-medium">
+                                            <li>• ٹیسٹ کے دوران ChatGPT، AI tools، Google یا کسی بھی بیرونی مدد کا استعمال منع ہے۔</li>
+                                            <li>• ٹیسٹ کے دوران کوئی دوسرا software، browser tab، mobile app یا file open نہ کریں۔</li>
+                                            <li>• ٹیسٹ کو minimize، window switch، refresh، back یا fullscreen سے exit نہ کریں۔</li>
+                                            <li>• سوالات، screenshots یا answers کسی کے ساتھ share نہ کریں۔</li>
+                                            <li>• ٹیسٹ صرف آپ نے خود حل کرنا ہے۔ cheating کی صورت میں marks zero ہو سکتے ہیں۔</li>
+                                            <li>• rules violate کرنے یا test exit کرنے پر test خود submit ہو سکتا ہے اور unanswered questions پر 0 marks ملیں گے۔</li>
+                                        </ul>
+                                    </div>
+                                </div>
+
+                                <div className="rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 p-4 text-sm text-amber-800 dark:text-amber-200 font-bold">
+                                    By clicking “I Agree”, you confirm that you understand these rules and will attempt the test honestly.
+                                </div>
+                            </div>
+
+                            <div className="p-5 border-t border-gray-100 dark:border-slate-700 flex flex-col sm:flex-row gap-3 sm:justify-end">
+                                <button
+                                    onClick={() => setTermsTest(null)}
+                                    className="px-5 py-3 rounded-2xl bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-200 font-black uppercase tracking-widest text-xs"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleAgreeTerms}
+                                    className="px-6 py-3 rounded-2xl bg-primary text-white font-black uppercase tracking-widest text-xs shadow-lg shadow-primary/20"
+                                >
+                                    I Agree - Start Test
+                                </button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };

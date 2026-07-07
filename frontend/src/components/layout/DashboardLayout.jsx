@@ -436,7 +436,7 @@ const DashboardLayout = () => {
                                         >
                                             <div className="p-4 border-b border-gray-100">
                                                 <p className={`text-sm font-bold truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>{user?.name}</p>
-                                                <p className="text-xs text-gray-500 capitalize">{role}</p>
+                                                {user?.rollNo && <p className="text-[10px] font-black text-primary uppercase tracking-widest mt-0.5">Roll No# {user.rollNo}</p>}
                                             </div>
                                             <div className="p-2">
                                                 <button
@@ -668,7 +668,9 @@ const DashboardLayout = () => {
                                         <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
                                             {user?.name || 'User'}
                                         </p>
-                                        <p className={`text-xs capitalize ${isDark ? 'text-white/40' : 'text-gray-500'}`}>{role}</p>
+                                        <p className={`text-[10px] font-black uppercase tracking-widest ${isDark ? 'text-white/40' : 'text-gray-500'}`}>
+                                            {user?.rollNo ? `Roll No# ${user.rollNo}` : ''}
+                                        </p>
                                     </div>
                                     <ChevronDown className={`w-4 h-4 hidden md:block ${isDark ? 'text-white/30' : 'text-gray-400'}`} />
                                 </button>

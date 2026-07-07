@@ -448,7 +448,9 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                         }}
                     >
                         <div className="flex items-center gap-3">
-                            <ProfileAvatar src={role === 'admin' ? "https://res.cloudinary.com/adeeb-tech-lab/image/upload/v1780787310/Company%20Logo/LMS_admin.jpg" : user?.photo} name={user?.name} size="md" border="border border-[var(--border-sidebar)]" fallbackColor="bg-gradient-to-br from-[var(--bg-sidebar-light)] to-[var(--bg-sidebar)]" />
+                            <div className="relative shrink-0">
+                                <ProfileAvatar src={role === 'admin' ? "https://res.cloudinary.com/adeeb-tech-lab/image/upload/v1780787310/Company%20Logo/LMS_admin.jpg" : user?.photo} name={user?.name} size="md" border="border border-[var(--border-sidebar)]" fallbackColor="bg-gradient-to-br from-[var(--bg-sidebar-light)] to-[var(--bg-sidebar)]" />
+                            </div>
                             <div className="flex-1 min-w-0">
                                 <p className="text-[var(--text-sidebar)] font-medium text-sm truncate">
                                     {user?.name || t('roles.user')}
