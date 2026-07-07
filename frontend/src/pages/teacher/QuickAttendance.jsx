@@ -233,7 +233,7 @@ const QuickAttendance = () => {
             const campus = student.location && student.location !== 'N/A' ? ` ${student.location}` : "";
             const dt = new Date().toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
             const statusIndicator = status === 'present' ? '✅' : (status === 'absent' ? '❌' : '');
-            const message = `📋 *DAILY ATTENDANCE REPORT*\n${academyName}${campus}\n${tagline}\n\n*Student:* ${student.name}\n*Course:* ${student.courseName}\n*Date:* ${dt}\n*Status:* ${status.toUpperCase()} ${statusIndicator}`;
+            const message = `📋 *DAILY ATTENDANCE REPORT*\n${academyName}${campus}\n${tagline}\n\n*Student:* ${student.name}\n*Roll No:* ${student.rollNo || 'N/A'}\n*Course:* ${student.courseName}\n*Date:* ${dt}\n*Status:* ${status.toUpperCase()} ${statusIndicator}`;
             
             const formattedPhone = student.guardianPhone.replace(/\D/g, '');
             let finalPhone = formattedPhone;

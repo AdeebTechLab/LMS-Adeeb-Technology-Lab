@@ -6,6 +6,19 @@ const GlobalMessage = require('../models/GlobalMessage');
 const User = require('../models/User');
 const { sendPushNotification } = require('../utils/pushHelper');
 
+const getLinkedAccountIds = async (userId) => {
+    const user = await User.findById(userId).select('email');
+    if (!user?.email) return [new mongoose.Types.ObjectId(userId)];
+    const linkedUsers = await User.find({ email: user.email }).select('_id');
+    return linkedUsers.map(u => u._id);
+};
+
+const getLinkedAccountIdsFromEmail = async (email, fallbackId) => {
+    if (!email) return [new mongoose.Types.ObjectId(fallbackId)];
+    const linkedUsers = await User.find({ email }).select('_id');
+    return linkedUsers.map(u => u._id);
+};
+
 // @route   GET /api/chat/messages/:otherUserId
 // @desc    Get messages with a specific user
 // @access  Private (Admin or the user themselves)
@@ -13,6 +26,8 @@ router.get('/messages/:otherUserId', protect, async (req, res) => {
     try {
         const myId = req.user.id;
         const otherId = req.params.otherUserId;
+        const myAccountIds = await getLinkedAccountIds(myId);
+        const otherAccountIds = await getLinkedAccountIds(otherId);
 
         // Ensure authorization: Admin can see any chat, Users can only see their own chats
         if (req.user.role !== 'admin' && myId !== otherId) {
@@ -23,9 +38,10 @@ router.get('/messages/:otherUserId', protect, async (req, res) => {
         const messages = await GlobalMessage.find({
             course: null,
             task: null,
+            discussionRoom: { $ne: true },
             $or: [
-                { sender: myId, recipient: otherId },
-                { sender: otherId, recipient: myId }
+                { sender: { $in: myAccountIds }, recipient: { $in: otherAccountIds } },
+                { sender: { $in: otherAccountIds }, recipient: { $in: myAccountIds } }
             ]
         })
         .populate('sender', 'name role photo')
@@ -45,6 +61,8 @@ router.post('/messages', protect, async (req, res) => {
     try {
         const { recipientId, text } = req.body;
         const senderId = req.user.id;
+        const senderAccountIds = await getLinkedAccountIds(senderId);
+        const recipientAccountIds = await getLinkedAccountIds(recipientId);
 
         const message = await GlobalMessage.create({
             sender: senderId,
@@ -65,8 +83,8 @@ router.post('/messages', protect, async (req, res) => {
                 recipientId: recipientId,
                 senderName: populatedMessage.sender.name
             };
-            io.to(recipientId.toString()).emit('new_global_message', socketData);
-            io.to(senderId.toString()).emit('new_global_message', socketData);
+            recipientAccountIds.forEach(id => io.to(id.toString()).emit('new_global_message', socketData));
+            senderAccountIds.forEach(id => io.to(id.toString()).emit('new_global_message', socketData));
         }
 
         // Trigger a Web Push Notification in the background
@@ -140,68 +158,46 @@ router.post('/bot-reply', protect, async (req, res) => {
 // @access  Private (Admin)
 router.get('/conversations', protect, authorize('admin'), async (req, res) => {
     try {
-        // Aggregate to find unique users who have messaged admin or admin messaged them
-        const adminId = new mongoose.Types.ObjectId(req.user.id);
+        const adminAccountIds = await getLinkedAccountIds(req.user.id);
+        const adminIdStrings = adminAccountIds.map(String);
 
-        const conversations = await GlobalMessage.aggregate([
-            {
-                $match: {
-                    course: null,
-                    task: null,
-                    $or: [{ sender: adminId }, { recipient: adminId }]
-                }
-            },
-            {
-                $sort: { createdAt: -1 }
-            },
-            {
-                $group: {
-                    _id: {
-                        $cond: [
-                            { $eq: ["$sender", adminId] },
-                            "$recipient",
-                            "$sender"
-                        ]
-                    },
-                    lastMessage: { $first: "$text" },
-                    lastMessageAt: { $first: "$createdAt" },
-                    unreadCount: {
-                        $sum: {
-                            $cond: [
-                                { $and: [{ $eq: ["$recipient", adminId] }, { $eq: ["$isRead", false] }] },
-                                1,
-                                0
-                            ]
-                        }
-                    }
-                }
-            },
-            {
-                $lookup: {
-                    from: "users",
-                    localField: "_id",
-                    foreignField: "_id",
-                    as: "user"
-                }
-            },
-            { $unwind: "$user" },
-            {
-                $project: {
-                    _id: 1,
-                    lastMessage: 1,
-                    lastMessageAt: 1,
-                    unreadCount: 1,
-                    "user._id": 1,
-                    "user.name": 1,
-                    "user.role": 1,
-                    "user.email": 1,
-                    "user.photo": 1,
-                    "user.phone": 1,
-                    "user.rollNo": 1
-                }
-            },
-            { $sort: { lastMessageAt: -1 } }
-        ]);
+        const messages = await GlobalMessage.find({
+            course: null,
+            task: null,
+            discussionRoom: { $ne: true },
+            $or: [
+                { sender: { $in: adminAccountIds } },
+                { recipient: { $in: adminAccountIds } }
+            ]
+        })
+            .populate('sender', 'name role email photo phone rollNo')
+            .populate('recipient', 'name role email photo phone rollNo')
+            .sort('-createdAt')
+            .limit(1000);
+
+        const grouped = new Map();
+        messages.forEach(message => {
+            const senderIsAdmin = adminIdStrings.includes(String(message.sender?._id));
+            const otherUser = senderIsAdmin ? message.recipient : message.sender;
+            if (!otherUser?._id || adminIdStrings.includes(String(otherUser._id))) return;
+
+            const key = (otherUser.email || String(otherUser._id)).toLowerCase();
+            if (!grouped.has(key)) {
+                grouped.set(key, {
+                    _id: otherUser._id,
+                    user: otherUser,
+                    lastMessage: message.text,
+                    lastMessageAt: message.createdAt,
+                    unreadCount: 0
+                });
+            }
+
+            if (!senderIsAdmin && adminIdStrings.includes(String(message.recipient?._id)) && !message.isRead) {
+                grouped.get(key).unreadCount += 1;
+            }
+        });
+
+        const conversations = Array.from(grouped.values()).sort((a, b) => new Date(b.lastMessageAt) - new Date(a.lastMessageAt));
 
         res.json({ success: true, data: conversations });
     } catch (error) {
@@ -214,11 +210,18 @@ router.get('/conversations', protect, authorize('admin'), async (req, res) => {
 // @access  Private
 router.put('/read/:senderId', protect, async (req, res) => {
     try {
-        const recipientId = req.user.id;
-        const senderId = req.params.senderId;
+        const recipientIds = await getLinkedAccountIds(req.user.id);
+        const senderIds = await getLinkedAccountIds(req.params.senderId);
 
         await GlobalMessage.updateMany(
-            { sender: senderId, recipient: recipientId, isRead: false },
+            {
+                sender: { $in: senderIds },
+                recipient: { $in: recipientIds },
+                course: null,
+                task: null,
+                discussionRoom: { $ne: true },
+                isRead: false
+            },
             { $set: { isRead: true } }
         );
 
@@ -233,14 +236,102 @@ router.put('/read/:senderId', protect, async (req, res) => {
 // @access  Private
 router.get('/unread', protect, async (req, res) => {
     try {
+        const accountIds = await getLinkedAccountIds(req.user.id);
         // Only count messages where course is null (admin chat, not course-based chat)
         const count = await GlobalMessage.countDocuments({
-            recipient: req.user.id,
+            recipient: { $in: accountIds },
             isRead: false,
             course: null,
-            task: null
+            task: null,
+            discussionRoom: { $ne: true }
         });
         res.json({ success: true, count });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// =====================================================
+// DISCUSSION ROOM ROUTES (common group chat for everyone)
+// =====================================================
+
+// @route   GET /api/chat/discussion
+// @desc    Get common discussion room messages
+// @access  Private
+router.get('/discussion', protect, async (req, res) => {
+    try {
+        const messages = await GlobalMessage.find({
+            discussionRoom: true,
+            course: null,
+            task: null
+        })
+            .populate('sender', 'name role email photo rollNo')
+            .sort('createdAt')
+            .limit(500);
+
+        res.json({ success: true, data: messages });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// @route   POST /api/chat/discussion
+// @desc    Send message to common discussion room
+// @access  Private
+router.post('/discussion', protect, async (req, res) => {
+    try {
+        const text = (req.body.text || '').trim();
+        if (!text) return res.status(400).json({ success: false, message: 'Message is required' });
+
+        const message = await GlobalMessage.create({
+            sender: req.user.id,
+            recipient: null,
+            text,
+            discussionRoom: true
+        });
+
+        const populatedMessage = await GlobalMessage.findById(message._id)
+            .populate('sender', 'name role email photo rollNo');
+
+        const io = req.app.get('io');
+        if (io) {
+            io.emit('discussion_message', populatedMessage);
+        }
+
+        res.status(201).json({ success: true, data: populatedMessage });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// @route   DELETE /api/chat/discussion
+// @desc    Clear complete discussion room chat
+// @access  Private (Admin)
+router.delete('/discussion', protect, authorize('admin'), async (req, res) => {
+    try {
+        const result = await GlobalMessage.deleteMany({ discussionRoom: true });
+        const io = req.app.get('io');
+        if (io) io.emit('discussion_cleared', { deletedCount: result.deletedCount });
+        res.json({ success: true, deletedCount: result.deletedCount });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// @route   DELETE /api/chat/discussion/:messageId
+// @desc    Delete one discussion room message
+// @access  Private (Admin)
+router.delete('/discussion/:messageId', protect, authorize('admin'), async (req, res) => {
+    try {
+        const message = await GlobalMessage.findOneAndDelete({
+            _id: req.params.messageId,
+            discussionRoom: true
+        });
+        if (!message) return res.status(404).json({ success: false, message: 'Message not found' });
+
+        const io = req.app.get('io');
+        if (io) io.emit('discussion_message_deleted', { messageId: req.params.messageId });
+        res.json({ success: true, deletedId: req.params.messageId });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
@@ -261,12 +352,17 @@ router.post('/action/clear-messages/:userId', protect, authorize('admin'), async
             console.log(`[CHAT CLEAR] Failed: Target user ${otherUserId} not found.`);
             return res.status(404).json({ success: false, message: 'User not found' });
         }
+        const adminAccountIds = await getLinkedAccountIds(adminId);
+        const targetAccountIds = await getLinkedAccountIdsFromEmail(targetUser.email, otherUserId);
 
         // 2. STRICTLY only delete messages from GlobalMessage collection
         const result = await GlobalMessage.deleteMany({
+            course: null,
+            task: null,
+            discussionRoom: { $ne: true },
             $or: [
-                { sender: adminId, recipient: otherUserId },
-                { sender: otherUserId, recipient: adminId }
+                { sender: { $in: adminAccountIds }, recipient: { $in: targetAccountIds } },
+                { sender: { $in: targetAccountIds }, recipient: { $in: adminAccountIds } }
             ]
         });
 

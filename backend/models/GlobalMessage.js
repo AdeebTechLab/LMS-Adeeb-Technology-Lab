@@ -9,7 +9,7 @@ const globalMessageSchema = new mongoose.Schema({
     recipient: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
-        required: true
+        default: null
     },
     text: {
         type: String,
@@ -38,7 +38,11 @@ const globalMessageSchema = new mongoose.Schema({
             label: { type: String },
             value: { type: String }
         }
-    ]
+    ],
+    discussionRoom: {
+        type: Boolean,
+        default: false
+    }
 }, {
     timestamps: true
 });
@@ -46,5 +50,6 @@ const globalMessageSchema = new mongoose.Schema({
 // Index for efficient querying
 globalMessageSchema.index({ sender: 1, recipient: 1, course: 1 });
 globalMessageSchema.index({ task: 1, sender: 1, recipient: 1, isRead: 1 });
+globalMessageSchema.index({ discussionRoom: 1, createdAt: -1 });
 
 module.exports = mongoose.model('GlobalMessage', globalMessageSchema);

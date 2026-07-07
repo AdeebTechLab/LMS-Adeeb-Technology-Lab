@@ -22,7 +22,7 @@ router.post('/register', uploadRegistration.fields([
             // Teacher fields
             specialization, department, cnic, qualification,
             // Student/Intern fields
-            dob, age, gender, education, guardianName, guardianPhone,
+            dob, age, gender, education, guardianName, guardianRelation, guardianPhone,
             guardianOccupation, address, city, country, attendType, heardAbout,
             fatherName, degree, university, semester, rollNumber, cgpa, majorSubjects,
             resumeUrl, requirements, reason,
@@ -139,6 +139,7 @@ router.post('/register', uploadRegistration.fields([
             userData.gender = gender;
             userData.education = education;
             userData.guardianName = guardianName;
+            userData.guardianRelation = guardianRelation;
             userData.guardianPhone = guardianPhone;
             userData.guardianOccupation = guardianOccupation;
             userData.address = address;
@@ -287,7 +288,7 @@ router.post('/login', async (req, res) => {
             return res.status(401).json({ success: false, message: 'Invalid credentials' });
         }
 
-        // Prioritize 'job' (Freelancer) role if available, otherwise pick the first matching account
+        // Prioritize 'job' role if available, otherwise pick the first matching account
         let user = matchedUsers.find(u => u.role === 'job') || matchedUsers[0];
 
         if (!user) {
@@ -342,6 +343,7 @@ router.post('/login', async (req, res) => {
                 gender: user.gender,
                 education: user.education,
                 guardianName: user.guardianName,
+                guardianRelation: user.guardianRelation,
                 guardianPhone: user.guardianPhone,
                 guardianOccupation: user.guardianOccupation,
                 address: user.address,

@@ -312,6 +312,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 { id: 'notifications', labelKey: 'nav.notifications', icon: Bell, path: '/admin/notifications' },
                 { id: 'fees', labelKey: 'nav.feeVerification', icon: CreditCard, path: '/admin/fees', badge: adminPendingCounts.fees },
                 { id: 'expense', labelKey: 'Expense', icon: Wallet, path: '/admin/expense' },
+                { id: 'discussion-room', labelKey: 'Discussion Room', icon: MessageSquare, path: '/admin/discussion-room' },
                 { id: 'attendance-settings', labelKey: 'nav.attendanceSettings', icon: ClipboardList, path: '/admin/attendance-settings' },
             ],
             teacher: [
@@ -323,6 +324,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 { id: 'certificates', labelKey: 'nav.certificates', icon: Award, path: '/teacher/certificates' },
                 { id: 'jobs', labelKey: 'Job Posting', icon: Briefcase, path: '/teacher/jobs', badge: jobChatSummary.totalApplicants + jobChatSummary.totalUnread },
                 { id: 'job-chat', labelKey: 'Applicant Chats', icon: MessageSquare, path: '/teacher/job-chat', badge: jobChatSummary.totalUnread },
+                { id: 'discussion-room', labelKey: 'Discussion Room', icon: MessageSquare, path: '/teacher/discussion-room' },
             ],
             student: [
                 { id: 'dashboard', labelKey: 'nav.dashboard', icon: LayoutDashboard, path: '/student/dashboard', badge: studentNavCounts.dashboard },
@@ -336,6 +338,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 { id: 'marks', labelKey: 'nav.marksSheet', icon: BarChart3, path: '/student/marks' },
                 { id: 'certificates', labelKey: 'Certificates', icon: Award, path: '/student/courses', state: { tab: 'completed' }, badge: studentNavCounts.certificates },
                 { id: 'chat', labelKey: 'Chat', icon: MessageSquare, path: '/student/assignments', state: { tab: 'chat' }, badge: studentNavCounts.chat },
+                { id: 'discussion-room', labelKey: 'Discussion Room', icon: MessageSquare, path: '/student/discussion-room' },
             ],
             intern: [
                 { id: 'dashboard', labelKey: 'nav.dashboard', icon: LayoutDashboard, path: '/intern/dashboard' },
@@ -348,6 +351,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 { id: 'tests', labelKey: 'nav.myTests', icon: Zap, path: '/intern/assignments', state: { tab: 'tests' } },
                 { id: 'marks', labelKey: 'nav.marksSheet', icon: BarChart3, path: '/intern/marks' },
                 { id: 'certificates', labelKey: 'Certificates', icon: Award, path: '/intern/courses', state: { tab: 'completed' } },
+                { id: 'discussion-room', labelKey: 'Discussion Room', icon: MessageSquare, path: '/intern/discussion-room' },
             ],
                         job: [
                 { id: 'available', labelKey: 'Available', icon: Briefcase, path: '/job/tasks', state: { tab: 'available' } },
@@ -358,6 +362,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 { id: 'expired', labelKey: 'Expired', icon: Clock, path: '/job/tasks', state: { tab: 'expired' } },
                 { id: 'showcase', labelKey: 'Feedback', icon: MessageSquare, path: '/job/tasks', state: { tab: 'showcase' } },
                 { id: 'profile', labelKey: 'nav.myProfile', icon: User, path: '/job/profile' },
+                { id: 'discussion-room', labelKey: 'Discussion Room', icon: MessageSquare, path: '/job/discussion-room' },
             ],
         };
 

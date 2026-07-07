@@ -328,8 +328,8 @@ const JobsManagement = () => {
     const downloadBulkPDF = (type = 'full') => {
         const doc = new jsPDF();
         doc.setFontSize(20);
-        doc.setTextColor(147, 51, 234); // Purple for Job/Freelance branding
-        doc.text('Freelancers Report', 14, 20);
+        doc.setTextColor(147, 51, 234); // Purple for Job branding
+        doc.text('Job Report', 14, 20);
         doc.setFontSize(10);
         doc.setTextColor(100);
         doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 28);
@@ -396,8 +396,8 @@ const JobsManagement = () => {
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Freelancers</h1>
-                    <p className="text-gray-500 text-sm">Manage freelance applications and hiring</p>
+                    <h1 className="text-2xl font-bold text-gray-900">Job</h1>
+                    <p className="text-gray-500 text-sm">Manage job applications and hiring</p>
                 </div>
                 <div className="flex items-center gap-2 w-full md:w-auto">
                     <button

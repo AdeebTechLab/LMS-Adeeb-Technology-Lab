@@ -408,7 +408,7 @@ router.get('/pending', protect, authorize('admin'), async (req, res) => {
     try {
         // Fetch all fees first
         const allFees = await Fee.find()
-            .populate('user', 'name email rollNo photo phone guardianPhone')
+            .populate('user', 'name email rollNo photo phone guardianName guardianRelation guardianPhone guardianOccupation')
             .populate('course', 'title fee city location targetAudience')
             .sort('-updatedAt');
 
@@ -431,7 +431,7 @@ router.get('/pending', protect, authorize('admin'), async (req, res) => {
 router.get('/all', protect, authorize('admin'), async (req, res) => {
     try {
         const fees = await Fee.find()
-            .populate('user', 'name email rollNo photo phone guardianPhone')
+            .populate('user', 'name email rollNo photo phone guardianName guardianRelation guardianPhone guardianOccupation')
             .populate('course', 'title fee city location targetAudience')
             .sort('-createdAt');
 
@@ -447,7 +447,7 @@ router.get('/all', protect, authorize('admin'), async (req, res) => {
 router.get('/user/:userId', protect, authorize('admin'), async (req, res) => {
     try {
         const fees = await Fee.find({ user: req.params.userId })
-            .populate('user', 'name email rollNo photo phone guardianPhone')
+            .populate('user', 'name email rollNo photo phone guardianName guardianRelation guardianPhone guardianOccupation')
             .populate('course', 'title fee city location targetAudience')
             .sort('-createdAt');
 

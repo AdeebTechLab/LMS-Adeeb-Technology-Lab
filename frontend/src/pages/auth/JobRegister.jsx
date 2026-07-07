@@ -442,7 +442,7 @@ const JobRegister = () => {
                                 {/* Status Banner */}
                                 <div className="bg-primary/20 backdrop-blur-sm rounded-xl p-4 border border-primary/30">
                                     <div className="flex justify-between items-center mb-2">
-                                        <h3 className="text-lg font-bold">Freelancers Application Form</h3>
+                                        <h3 className="text-lg font-bold">Job Application Form</h3>
                                         <span className="px-2 py-1 bg-primary text-white text-xs font-bold rounded">Open</span>
                                     </div>
                                     <p className="text-sm font-semibold text-primary">Applications are currently open!</p>

@@ -29,6 +29,7 @@ import CourseManagement from './pages/admin/CourseManagement';
 import FeeVerification from './pages/admin/FeeVerification';
 import PaidTasksManagement from './pages/admin/PaidTasksManagement';
 import JobChat from './pages/shared/JobChat';
+import DiscussionRoom from './pages/shared/DiscussionRoom';
 import CertificateManagement from './pages/admin/CertificateManagement';
 import TeachersManagement from './pages/admin/TeachersManagement';
 import StudentsManagement from './pages/admin/StudentsManagement';
@@ -152,6 +153,7 @@ const AppRoutes = () => {
         <Route path="settings" element={<Settings />} />
         <Route path="attendance-settings" element={<AttendanceSettings />} />
         <Route path="expense" element={<ExpenseManagement />} />
+        <Route path="discussion-room" element={<DiscussionRoom />} />
         <Route path="help-support" element={<HelpSupport />} />
       </Route>
 
@@ -173,6 +175,7 @@ const AppRoutes = () => {
         <Route path="certificates" element={<TeacherCertificates />} />
         <Route path="jobs" element={<PaidTasksManagement />} />
         <Route path="job-chat" element={<JobChat />} />
+        <Route path="discussion-room" element={<DiscussionRoom />} />
         <Route path="settings" element={<Settings />} />
         <Route path="help-support" element={<HelpSupport />} />
       </Route>
@@ -189,6 +192,7 @@ const AppRoutes = () => {
         <Route path="fees" element={<FeeManagement />} />
         <Route path="assignments" element={<AssignmentSubmission />} />
         <Route path="marks" element={<MarksSheet />} />
+        <Route path="discussion-room" element={<DiscussionRoom />} />
         <Route path="settings" element={<Settings />} />
         <Route path="help-support" element={<HelpSupport />} />
       </Route>
@@ -205,6 +209,7 @@ const AppRoutes = () => {
         <Route path="fees" element={<FeeManagement />} />
         <Route path="assignments" element={<AssignmentSubmission />} />
         <Route path="marks" element={<MarksSheet />} />
+        <Route path="discussion-room" element={<DiscussionRoom />} />
         <Route path="settings" element={<Settings />} />
         <Route path="help-support" element={<HelpSupport />} />
       </Route>
@@ -218,6 +223,7 @@ const AppRoutes = () => {
         <Route path="tasks" element={<BrowseTasks />} />
         <Route path="job-chat" element={<JobChat />} />
         <Route path="profile" element={<JobProfile />} />
+        <Route path="discussion-room" element={<DiscussionRoom />} />
         <Route path="settings" element={<Settings />} />
         <Route path="help-support" element={<HelpSupport />} />
       </Route>

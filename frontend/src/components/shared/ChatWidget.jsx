@@ -2330,7 +2330,7 @@ const ChatWidget = () => {
 
 
 
-                `You can find them again in the "Students", "Teachers", or "Freelancers" tabs to start a new chat.`
+                `You can find them again in the "Students", "Teachers", or "Job" tabs to start a new chat.`
 
 
 
@@ -2876,7 +2876,7 @@ const ChatWidget = () => {
 
 
 
-                                                    { id: 'job', label: 'Freelancers' }
+                                                    { id: 'job', label: 'Job' }
 
 
 

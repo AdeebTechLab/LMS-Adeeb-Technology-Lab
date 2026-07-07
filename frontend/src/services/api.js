@@ -276,7 +276,11 @@ export const chatAPI = {
     getJobMessages: (taskId, userId) => api.get(`/chat/job/${taskId}/messages/${userId}`),
     sendJobMessage: (taskId, recipientId, text) => api.post(`/chat/job/${taskId}/send`, { recipientId, text }),
     markJobChatRead: (taskId, senderId) => api.put(`/chat/job/${taskId}/read/${senderId}`),
-    clearJobChat: (taskId, userId) => api.delete(`/chat/job/${taskId}/messages/${userId}`)
+    clearJobChat: (taskId, userId) => api.delete(`/chat/job/${taskId}/messages/${userId}`),
+    getDiscussionMessages: () => api.get('/chat/discussion'),
+    sendDiscussionMessage: (text) => api.post('/chat/discussion', { text }),
+    deleteDiscussionMessage: (messageId) => api.delete(`/chat/discussion/${messageId}`),
+    clearDiscussion: () => api.delete('/chat/discussion')
 };
 
 export const financeAPI = {

@@ -461,6 +461,7 @@ const InternsManagement = () => {
                 ['Country', i.country],
                 ['Address', i.address],
                 ['Guardian Name', i.guardianName],
+                ['Relationship with Guardian', i.guardianRelation],
                 ['Guardian Phone', i.guardianPhone],
                 ['Guardian Job', i.guardianOccupation],
                 ['Attendance Type', i.attendType],
@@ -990,6 +991,10 @@ const InternsManagement = () => {
                                         <div className="space-y-1">
                                             <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Father Name</p>
                                             <p className="text-xs font-bold text-gray-700 truncate" title={intern.fatherName || intern.guardianName || 'N/A'}>{intern.fatherName || intern.guardianName || 'N/A'}</p>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Relation</p>
+                                            <p className="text-xs font-bold text-gray-700 truncate" title={intern.guardianRelation || 'N/A'}>{intern.guardianRelation || 'N/A'}</p>
                                         </div>
                                         <div className="space-y-1">
                                             <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Father Phone</p>

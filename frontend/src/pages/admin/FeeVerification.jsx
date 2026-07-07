@@ -288,7 +288,7 @@ const FeeVerification = () => {
             doc.text(`Generated on: ${formatDate(new Date())}`, 14, 37);
             doc.text(`Total Records: ${courseStudents.length}`, 14, 44);
 
-            const headers = [['Roll No', 'Name', 'Email', 'Phone', 'CNIC', 'Gender', 'Location', 'Mode', 'Guardian', 'Guardian Ph', 'Address']];
+            const headers = [['Roll No', 'Name', 'Email', 'Phone', 'CNIC', 'Gender', 'Location', 'Mode', 'Guardian', 'Relation', 'Guardian Ph', 'Address']];
             const body = courseStudents.map(s => [
                 s.rollNo || 'N/A',
                 s.name || 'N/A',
@@ -299,6 +299,7 @@ const FeeVerification = () => {
                 s.location ? (s.location.charAt(0).toUpperCase() + s.location.slice(1)) : 'N/A',
                 (s.attendType === 'Physical' || s.attendType === 'On-Site') ? 'Onsite' : (s.attendType === 'Online' ? 'Remote' : (s.attendType || 'N/A')),
                 s.guardianName || 'N/A',
+                s.guardianRelation || 'N/A',
                 s.guardianPhone || 'N/A',
                 s.address || 'N/A'
             ]);

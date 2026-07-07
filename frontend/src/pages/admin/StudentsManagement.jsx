@@ -451,11 +451,12 @@ const StudentsManagement = () => {
             headers = [['LMS Roll No', 'Name', 'Email', 'Identity']];
             body = finalExportStudents.map(s => [s.rollNo || 'N/A', s.name || 'N/A', s.email || 'N/A', 'Student']);
         } else if (type === 'guardian') {
-            headers = [['LMS Roll No', 'Name', 'Guardian Name', 'Guardian Phone', 'Guardian Job']];
+            headers = [['LMS Roll No', 'Name', 'Guardian Name', 'Relationship', 'Guardian Phone', 'Guardian Job']];
             body = finalExportStudents.map(s => [
                 s.rollNo || 'N/A',
                 s.name || 'N/A',
                 s.guardianName || 'N/A',
+                s.guardianRelation || 'N/A',
                 s.guardianPhone || 'N/A',
                 s.guardianOccupation || 'N/A'
             ]);
@@ -558,6 +559,7 @@ const StudentsManagement = () => {
                 ['Country', s.country],
                 ['Address', s.address],
                 ['Guardian Name', s.guardianName],
+                ['Relationship with Guardian', s.guardianRelation],
                 ['Guardian Phone', s.guardianPhone],
                 ['Guardian Job', s.guardianOccupation],
                 ['Attendance Type', s.attendType],
@@ -954,6 +956,10 @@ const StudentsManagement = () => {
                                         <div className="space-y-1">
                                             <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Father Name</p>
                                             <p className="text-xs font-bold text-gray-700 truncate" title={student.fatherName || student.guardianName || 'N/A'}>{student.fatherName || student.guardianName || 'N/A'}</p>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Relation</p>
+                                            <p className="text-xs font-bold text-gray-700 truncate" title={student.guardianRelation || 'N/A'}>{student.guardianRelation || 'N/A'}</p>
                                         </div>
                                         <div className="space-y-1">
                                             <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Father Phone</p>
