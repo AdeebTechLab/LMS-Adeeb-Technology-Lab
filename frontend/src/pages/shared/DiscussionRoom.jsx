@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { io } from 'socket.io-client';
 import { MessageSquare, Send, Trash2, Users, Loader2 } from 'lucide-react';
@@ -14,6 +14,54 @@ const isUserOnline = (lastSeen) => {
     return (Date.now() - new Date(lastSeen).getTime()) / 1000 / 60 < 2;
 };
 
+const linkRegex = /(https?:\/\/[^\s]+|www\.[^\s]+)/gi;
+
+const getSafeLink = (value) => {
+    if (!value) return '#';
+    return value.toLowerCase().startsWith('http') ? value : `https://${value}`;
+};
+
+const ADMIN_PHOTO = 'https://res.cloudinary.com/adeeb-tech-lab/image/upload/v1780787310/Company%20Logo/LMS_admin.jpg';
+
+const getSenderPhoto = (sender = {}, currentUser = {}) => {
+    if (sender.photo) return sender.photo;
+    if (sender.role === 'admin') return ADMIN_PHOTO;
+    if (String(sender._id || '') === String(currentUser?._id || currentUser?.id || '') && currentUser?.photo) {
+        return currentUser.photo;
+    }
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(sender.name || 'User')}&background=1e1f21&color=fff`;
+};
+
+const renderMessageText = (text = '') => {
+    const parts = String(text).split(linkRegex);
+    return parts.map((part, index) => {
+        if (!part.match(linkRegex)) return part;
+
+        const trailingMatch = part.match(/[.,!?)]$/);
+        const trailing = trailingMatch ? trailingMatch[0] : '';
+        const cleanLink = trailing ? part.slice(0, -1) : part;
+
+        return (
+            <span key={`${cleanLink}-${index}`}>
+                <a
+                    href={getSafeLink(cleanLink)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-bold text-primary underline decoration-primary/30 underline-offset-2 break-all hover:decoration-primary"
+                    onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        window.open(getSafeLink(cleanLink), '_blank', 'noopener,noreferrer');
+                    }}
+                >
+                    {cleanLink}
+                </a>
+                {trailing}
+            </span>
+        );
+    });
+};
+
 const DiscussionRoom = () => {
     const { user, role } = useSelector((state) => state.auth);
     const [messages, setMessages] = useState([]);
@@ -21,6 +69,7 @@ const DiscussionRoom = () => {
     const [loading, setLoading] = useState(true);
     const [sending, setSending] = useState(false);
     const socketRef = useRef(null);
+    const messagesContainerRef = useRef(null);
     const bottomRef = useRef(null);
     const myId = user?._id || user?.id;
     const myEmail = (user?.email || '').toLowerCase();
@@ -82,9 +131,30 @@ const DiscussionRoom = () => {
         };
     }, [myId]);
 
+    const scrollToBottom = (smooth = true) => {
+        requestAnimationFrame(() => {
+            const container = messagesContainerRef.current;
+            if (container) {
+                container.scrollTo({
+                    top: container.scrollHeight,
+                    behavior: smooth ? 'smooth' : 'auto'
+                });
+            }
+            bottomRef.current?.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'end' });
+        });
+    };
+
+    useLayoutEffect(() => {
+        if (!loading) {
+            scrollToBottom(false);
+            const timeout = setTimeout(() => scrollToBottom(false), 120);
+            return () => clearTimeout(timeout);
+        }
+    }, [loading]);
+
     useEffect(() => {
-        bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [messages.length]);
+        if (!loading) scrollToBottom(true);
+    }, [messages.length, loading]);
 
     const sendMessage = async (e) => {
         e.preventDefault();
@@ -162,7 +232,7 @@ const DiscussionRoom = () => {
                         Loading discussion...
                     </div>
                 ) : (
-                    <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-5 bg-white dark:bg-gray-950">
+                    <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-4 md:p-6 space-y-5 bg-white dark:bg-gray-950">
                         {messages.length === 0 ? (
                             <div className="h-full flex flex-col items-center justify-center text-center text-gray-500 dark:text-gray-400">
                                 <MessageSquare className="w-16 h-16 mb-3 opacity-30" />
@@ -179,7 +249,7 @@ const DiscussionRoom = () => {
                                 <div key={msg._id} className={`flex items-start gap-4 ${mine ? 'justify-end flex-row-reverse' : 'justify-start'}`}>
                                     <div className="relative shrink-0">
                                         <img
-                                            src={sender.photo || user?.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(sender.name || 'User')}&background=1e1f21&color=fff`}
+                                            src={getSenderPhoto(sender, user)}
                                             alt={sender.name || 'User'}
                                             className="w-11 h-11 rounded-full object-cover border border-primary/50 shadow-sm"
                                         />
@@ -208,7 +278,9 @@ const DiscussionRoom = () => {
                                                     )}
                                                 </div>
                                             </div>
-                                            <p className="text-sm whitespace-pre-wrap break-words leading-relaxed font-normal text-gray-800 dark:text-white">{msg.text}</p>
+                                            <p className="text-sm whitespace-pre-wrap break-words leading-relaxed font-normal text-gray-800 dark:text-white">
+                                                {renderMessageText(msg.text)}
+                                            </p>
                                             <p className="text-[10px] mt-3 text-right font-semibold text-gray-500 dark:text-[#8E9297]">
                                                 {new Date(msg.createdAt).toLocaleString('en-US', {
                                                     day: '2-digit',
