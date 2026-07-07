@@ -378,6 +378,137 @@ router.post('/discussion', protect, async (req, res) => {
     }
 });
 
+// @route   POST /api/chat/discussion/poll
+// @desc    Teacher creates a poll in discussion room
+// @access  Private (Teacher only)
+router.post('/discussion/poll', protect, authorize('teacher'), async (req, res) => {
+    try {
+        const question = String(req.body.question || '').trim();
+        const options = Array.isArray(req.body.options)
+            ? req.body.options.map(option => String(option || '').trim()).filter(Boolean)
+            : [];
+
+        if (!question) return res.status(400).json({ success: false, message: 'Poll question is required' });
+        if (options.length < 2) return res.status(400).json({ success: false, message: 'At least 2 poll options are required' });
+        if (options.length > 6) return res.status(400).json({ success: false, message: 'Maximum 6 poll options allowed' });
+
+        const message = await GlobalMessage.create({
+            sender: req.user.id,
+            recipient: null,
+            text: `Poll: ${question}`,
+            discussionRoom: true,
+            poll: {
+                question,
+                options: options.map(text => ({ text, votes: [] })),
+                createdBy: req.user.id
+            }
+        });
+
+        const populatedMessage = await GlobalMessage.findById(message._id)
+            .populate('sender', 'name role email photo rollNo lastSeen');
+
+        const io = req.app.get('io');
+        if (io) {
+            io.emit('discussion_message', populatedMessage);
+            io.emit('discussion_unread_changed', {
+                senderId: String(req.user.id),
+                senderEmail: (req.user.email || '').toLowerCase()
+            });
+        }
+
+        res.status(201).json({ success: true, data: populatedMessage });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// @route   PUT /api/chat/discussion/:messageId/poll-vote
+// @desc    Vote on discussion room poll
+// @access  Private
+router.put('/discussion/:messageId/poll-vote', protect, async (req, res) => {
+    try {
+        const optionIndex = Number(req.body.optionIndex);
+        const message = await GlobalMessage.findOne({
+            _id: req.params.messageId,
+            discussionRoom: true
+        });
+
+        if (!message?.poll?.options?.length) {
+            return res.status(404).json({ success: false, message: 'Poll not found' });
+        }
+
+        if (!Number.isInteger(optionIndex) || optionIndex < 0 || optionIndex >= message.poll.options.length) {
+            return res.status(400).json({ success: false, message: 'Invalid poll option' });
+        }
+
+        const userId = String(req.user.id);
+        message.poll.options.forEach(option => {
+            option.votes = (option.votes || []).filter(vote => String(vote) !== userId);
+        });
+        message.poll.options[optionIndex].votes.push(req.user.id);
+
+        await message.save();
+
+        const populatedMessage = await GlobalMessage.findById(message._id)
+            .populate('sender', 'name role email photo rollNo lastSeen');
+
+        const io = req.app.get('io');
+        if (io) io.emit('discussion_poll_updated', populatedMessage);
+
+        res.json({ success: true, data: populatedMessage });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// @route   PUT /api/chat/discussion/:messageId/reaction
+// @desc    Toggle emoji reaction on a discussion message
+// @access  Private
+router.put('/discussion/:messageId/reaction', protect, async (req, res) => {
+    try {
+        const emoji = String(req.body.emoji || '').trim();
+        const allowedEmojis = ['👍', '❤️', '😂', '😮', '😢', '👏', '🔥'];
+        if (!allowedEmojis.includes(emoji)) {
+            return res.status(400).json({ success: false, message: 'Invalid reaction emoji' });
+        }
+
+        const message = await GlobalMessage.findOne({
+            _id: req.params.messageId,
+            discussionRoom: true
+        });
+
+        if (!message) {
+            return res.status(404).json({ success: false, message: 'Message not found' });
+        }
+
+        const userId = String(req.user.id);
+        const existingIndex = (message.reactions || []).findIndex(reaction =>
+            String(reaction.user) === userId && reaction.emoji === emoji
+        );
+
+        if (existingIndex >= 0) {
+            message.reactions.splice(existingIndex, 1);
+        } else {
+            message.reactions = (message.reactions || []).filter(reaction => String(reaction.user) !== userId);
+            message.reactions.push({ emoji, user: req.user.id });
+        }
+
+        await message.save();
+
+        const populatedMessage = await GlobalMessage.findById(message._id)
+            .populate('sender', 'name role email photo rollNo lastSeen');
+
+        const io = req.app.get('io');
+        if (io) {
+            io.emit('discussion_reaction_updated', populatedMessage);
+        }
+
+        res.json({ success: true, data: populatedMessage });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
 // @route   DELETE /api/chat/discussion
 // @desc    Clear complete discussion room chat
 // @access  Private (Admin)

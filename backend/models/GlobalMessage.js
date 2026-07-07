@@ -42,6 +42,23 @@ const globalMessageSchema = new mongoose.Schema({
     discussionRoom: {
         type: Boolean,
         default: false
+    },
+    reactions: [
+        {
+            emoji: { type: String, required: true },
+            user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+            createdAt: { type: Date, default: Date.now }
+        }
+    ],
+    poll: {
+        question: { type: String, default: '' },
+        options: [
+            {
+                text: { type: String, required: true },
+                votes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
+            }
+        ],
+        createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null }
     }
 }, {
     timestamps: true

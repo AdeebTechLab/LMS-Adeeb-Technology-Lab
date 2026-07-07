@@ -282,6 +282,9 @@ export const chatAPI = {
     getDiscussionUnread: () => api.get('/chat/discussion/unread'),
     markDiscussionRead: () => api.put('/chat/discussion/read'),
     sendDiscussionMessage: (text) => api.post('/chat/discussion', { text }),
+    createDiscussionPoll: (question, options) => api.post('/chat/discussion/poll', { question, options }),
+    voteDiscussionPoll: (messageId, optionIndex) => api.put(`/chat/discussion/${messageId}/poll-vote`, { optionIndex }),
+    toggleDiscussionReaction: (messageId, emoji) => api.put(`/chat/discussion/${messageId}/reaction`, { emoji }),
     deleteDiscussionMessage: (messageId) => api.delete(`/chat/discussion/${messageId}`),
     clearDiscussion: () => api.delete('/chat/discussion')
 };
