@@ -65,6 +65,7 @@ const DashboardLayout = () => {
     const [unreadCount, setUnreadCount] = useState(0);
     const { user, role } = useSelector((state) => state.auth);
     const location = useLocation();
+    const hideGlobalChatWidget = location.pathname.includes('/discussion-room');
     const navigate = useNavigate();
     const { isDark, toggleTheme } = useTheme();
     const [pendingTasks, setPendingTasks] = useState([]);
@@ -878,7 +879,7 @@ const DashboardLayout = () => {
             </AnimatePresence>
 
             {/* Global Chat Widget */}
-            <ChatWidget />
+            {!hideGlobalChatWidget && <ChatWidget />}
         </div>
     );
 };

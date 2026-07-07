@@ -1,6 +1,7 @@
 import { useSelector, useDispatch } from 'react-redux';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
+import { io } from 'socket.io-client';
 import { assignmentAPI, courseAPI, dailyTaskAPI, chatAPI, enrollmentAPI, feeAPI, certificateAPI, testAPI } from '../../services/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -36,6 +37,11 @@ import ProfileAvatar from '../ui/ProfileAvatar';
 import Loader, { ButtonLoader } from '../ui/Loader';
 import SocialLinks from '../shared/SocialLinks';
 
+const getSocketURL = () => {
+    const rawUrl = import.meta.env.VITE_API_URL || (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1' ? 'https://lms-adeeb-technology-lab.onrender.com/api' : 'http://localhost:5000/api');
+    return rawUrl === '/api' ? 'https://lms-adeeb-technology-lab.onrender.com' : rawUrl.replace(/\/api\/?$/, '');
+};
+
 const Sidebar = ({ isOpen, setIsOpen }) => {
     const { t } = useTranslation();
     const navigate = useNavigate();
@@ -47,6 +53,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     const [teacherSubmissionCount, setTeacherSubmissionCount] = useState(0);
     const [jobChatSummary, setJobChatSummary] = useState({ totalUnread: 0, totalApplicants: 0 });
     const [studentNavCounts, setStudentNavCounts] = useState({});
+    const [discussionUnread, setDiscussionUnread] = useState(0);
     const [availableRoles, setAvailableRoles] = useState([]);
     const [isSwitchingRole, setIsSwitchingRole] = useState(false);
     const [showRoleMenu, setShowRoleMenu] = useState(false);
@@ -64,6 +71,58 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         const timer = setInterval(loadJobSummary, 30000);
         return () => clearInterval(timer);
     }, [role]);
+
+    useEffect(() => {
+        if (!user || !role) return;
+
+        const isDiscussionOpen = location.pathname.includes('/discussion-room');
+
+        const refreshDiscussionUnread = async () => {
+            try {
+                if (isDiscussionOpen) {
+                    setDiscussionUnread(0);
+                    await chatAPI.markDiscussionRead();
+                    return;
+                }
+                const res = await chatAPI.getDiscussionUnread();
+                setDiscussionUnread(Number(res.data.count || 0));
+            } catch (error) {
+                console.error('Error fetching discussion unread count:', error);
+            }
+        };
+
+        refreshDiscussionUnread();
+        const timer = setInterval(refreshDiscussionUnread, 30000);
+        const socket = io(getSocketURL(), { withCredentials: true });
+        const myId = user?._id || user?.id;
+        const myEmail = (user?.email || '').toLowerCase();
+        if (myId) socket.emit('join_chat', String(myId));
+
+        socket.on('discussion_message', (message) => {
+            const sender = message?.sender || {};
+            const isMine = String(sender._id || sender) === String(myId)
+                || (!!myEmail && (sender.email || '').toLowerCase() === myEmail);
+            if (isDiscussionOpen || isMine) {
+                setDiscussionUnread(0);
+                if (isDiscussionOpen) chatAPI.markDiscussionRead().catch(() => {});
+                return;
+            }
+            refreshDiscussionUnread();
+        });
+
+        socket.on('discussion_read', () => {
+            setDiscussionUnread(0);
+        });
+
+        socket.on('discussion_cleared', () => {
+            setDiscussionUnread(0);
+        });
+
+        return () => {
+            clearInterval(timer);
+            socket.disconnect();
+        };
+    }, [user, role, location.pathname]);
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -312,7 +371,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 { id: 'notifications', labelKey: 'nav.notifications', icon: Bell, path: '/admin/notifications' },
                 { id: 'fees', labelKey: 'nav.feeVerification', icon: CreditCard, path: '/admin/fees', badge: adminPendingCounts.fees },
                 { id: 'expense', labelKey: 'Expense', icon: Wallet, path: '/admin/expense' },
-                { id: 'discussion-room', labelKey: 'Discussion Room', icon: MessageSquare, path: '/admin/discussion-room' },
+                { id: 'discussion-room', labelKey: 'Discussion Room', icon: MessageSquare, path: '/admin/discussion-room', badge: discussionUnread },
                 { id: 'attendance-settings', labelKey: 'nav.attendanceSettings', icon: ClipboardList, path: '/admin/attendance-settings' },
             ],
             teacher: [
@@ -324,12 +383,13 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 { id: 'certificates', labelKey: 'nav.certificates', icon: Award, path: '/teacher/certificates' },
                 { id: 'jobs', labelKey: 'Job Posting', icon: Briefcase, path: '/teacher/jobs', badge: jobChatSummary.totalApplicants + jobChatSummary.totalUnread },
                 { id: 'job-chat', labelKey: 'Applicant Chats', icon: MessageSquare, path: '/teacher/job-chat', badge: jobChatSummary.totalUnread },
-                { id: 'discussion-room', labelKey: 'Discussion Room', icon: MessageSquare, path: '/teacher/discussion-room' },
+                { id: 'discussion-room', labelKey: 'Discussion Room', icon: MessageSquare, path: '/teacher/discussion-room', badge: discussionUnread },
             ],
             student: [
                 { id: 'dashboard', labelKey: 'nav.dashboard', icon: LayoutDashboard, path: '/student/dashboard', badge: studentNavCounts.dashboard },
                 { id: 'profile', labelKey: 'nav.myProfile', icon: User, path: '/student/profile' },
                 { id: 'courses', labelKey: 'nav.myCourses', icon: BookOpen, path: '/student/courses', badge: studentNavCounts.courses },
+                { id: 'discussion-room', labelKey: 'Discussion Room', icon: MessageSquare, path: '/student/discussion-room', badge: discussionUnread },
                 { id: 'fees', labelKey: 'nav.feePayment', icon: CreditCard, path: '/student/fees', badge: studentNavCounts.fees },
                 { id: 'attendance', labelKey: 'nav.myAttendance', icon: Calendar, path: '/student/assignments', state: { tab: 'attendance' } },
                 { id: 'class-logs', labelKey: 'nav.classLogs', icon: ClipboardList, path: '/student/assignments', state: { tab: 'daily_tasks' }, badge: studentNavCounts.classLogs },
@@ -337,13 +397,13 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 { id: 'tests', labelKey: 'nav.myTests', icon: Zap, path: '/student/assignments', state: { tab: 'tests' }, badge: studentNavCounts.tests },
                 { id: 'marks', labelKey: 'nav.marksSheet', icon: BarChart3, path: '/student/marks' },
                 { id: 'certificates', labelKey: 'Certificates', icon: Award, path: '/student/courses', state: { tab: 'completed' }, badge: studentNavCounts.certificates },
-                { id: 'chat', labelKey: 'Chat', icon: MessageSquare, path: '/student/assignments', state: { tab: 'chat' }, badge: studentNavCounts.chat },
-                { id: 'discussion-room', labelKey: 'Discussion Room', icon: MessageSquare, path: '/student/discussion-room' },
+                { id: 'chat', labelKey: 'Teacher Chat', icon: MessageSquare, path: '/student/assignments', state: { tab: 'chat' }, badge: studentNavCounts.chat },
             ],
             intern: [
                 { id: 'dashboard', labelKey: 'nav.dashboard', icon: LayoutDashboard, path: '/intern/dashboard' },
                 { id: 'profile', labelKey: 'nav.myProfile', icon: User, path: '/intern/profile' },
                 { id: 'courses', labelKey: 'nav.mySkills', icon: BookOpen, path: '/intern/courses' },
+                { id: 'discussion-room', labelKey: 'Discussion Room', icon: MessageSquare, path: '/intern/discussion-room', badge: discussionUnread },
                 { id: 'fees', labelKey: 'nav.feePayment', icon: CreditCard, path: '/intern/fees' },
                 { id: 'attendance', labelKey: 'nav.myAttendance', icon: Calendar, path: '/intern/assignments', state: { tab: 'attendance' } },
                 { id: 'class-logs', labelKey: 'nav.meetingLogs', icon: ClipboardList, path: '/intern/assignments', state: { tab: 'daily_tasks' } },
@@ -351,7 +411,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 { id: 'tests', labelKey: 'nav.myTests', icon: Zap, path: '/intern/assignments', state: { tab: 'tests' } },
                 { id: 'marks', labelKey: 'nav.marksSheet', icon: BarChart3, path: '/intern/marks' },
                 { id: 'certificates', labelKey: 'Certificates', icon: Award, path: '/intern/courses', state: { tab: 'completed' } },
-                { id: 'discussion-room', labelKey: 'Discussion Room', icon: MessageSquare, path: '/intern/discussion-room' },
+                { id: 'chat', labelKey: 'Teacher Chat', icon: MessageSquare, path: '/intern/assignments', state: { tab: 'chat' } },
             ],
             job: [
                 { id: 'dashboard', labelKey: 'nav.dashboard', icon: LayoutDashboard, path: '/job/dashboard' },
@@ -363,7 +423,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 { id: 'expired', labelKey: 'Expired', icon: Clock, path: '/job/tasks', state: { tab: 'expired' } },
                 { id: 'showcase', labelKey: 'Feedback', icon: MessageSquare, path: '/job/tasks', state: { tab: 'showcase' } },
                 { id: 'profile', labelKey: 'nav.myProfile', icon: User, path: '/job/profile' },
-                { id: 'discussion-room', labelKey: 'Discussion Room', icon: MessageSquare, path: '/job/discussion-room' },
+                { id: 'discussion-room', labelKey: 'Discussion Room', icon: MessageSquare, path: '/job/discussion-room', badge: discussionUnread },
             ],
         };
 
@@ -536,7 +596,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                                         <motion.span
                                             initial={{ scale: 0 }}
                                             animate={{ scale: 1 }}
-                                            className="bg-primary text-white text-[10px] font-black min-w-5 h-5 px-1 rounded-full flex items-center justify-center shadow-lg shadow-primary/20"
+                                            className={`${item.id === 'discussion-room' ? 'bg-red-500 shadow-red-500/20' : 'bg-primary shadow-primary/20'} text-white text-[10px] font-black min-w-5 h-5 px-1 rounded-full flex items-center justify-center shadow-lg`}
                                             title="Notifications"
                                         >
                                             {item.badge > 99 ? '99+' : item.badge}

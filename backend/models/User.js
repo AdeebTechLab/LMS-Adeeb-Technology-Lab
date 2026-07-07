@@ -129,6 +129,10 @@ const userSchema = new mongoose.Schema({
     lastSeen: {
         type: Date,
         default: null
+    },
+    discussionLastReadAt: {
+        type: Date,
+        default: null
     }
 }, {
     timestamps: true

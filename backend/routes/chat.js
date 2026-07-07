@@ -255,6 +255,60 @@ router.get('/unread', protect, async (req, res) => {
 // DISCUSSION ROOM ROUTES (common group chat for everyone)
 // =====================================================
 
+// @route   GET /api/chat/discussion/unread
+// @desc    Get unread discussion room message count for current linked account group
+// @access  Private
+router.get('/discussion/unread', protect, async (req, res) => {
+    try {
+        const accountIds = await getLinkedAccountIds(req.user.id);
+        const accounts = await User.find({ _id: { $in: accountIds } }).select('discussionLastReadAt');
+        const lastReadAt = accounts.reduce((latest, account) => {
+            if (!account.discussionLastReadAt) return latest;
+            const readAt = new Date(account.discussionLastReadAt);
+            return !latest || readAt > latest ? readAt : latest;
+        }, null);
+
+        const query = {
+            discussionRoom: true,
+            course: null,
+            task: null,
+            sender: { $nin: accountIds }
+        };
+
+        if (lastReadAt) {
+            query.createdAt = { $gt: lastReadAt };
+        }
+
+        const count = await GlobalMessage.countDocuments(query);
+        res.json({ success: true, count });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// @route   PUT /api/chat/discussion/read
+// @desc    Mark discussion room as read for current linked account group
+// @access  Private
+router.put('/discussion/read', protect, async (req, res) => {
+    try {
+        const accountIds = await getLinkedAccountIds(req.user.id);
+        const readAt = new Date();
+        await User.updateMany(
+            { _id: { $in: accountIds } },
+            { $set: { discussionLastReadAt: readAt } }
+        );
+
+        const io = req.app.get('io');
+        if (io) {
+            accountIds.forEach(id => io.to(String(id)).emit('discussion_read', { count: 0, readAt }));
+        }
+
+        res.json({ success: true, count: 0, readAt });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
 // @route   GET /api/chat/discussion
 // @desc    Get common discussion room messages
 // @access  Private
@@ -296,6 +350,10 @@ router.post('/discussion', protect, async (req, res) => {
         const io = req.app.get('io');
         if (io) {
             io.emit('discussion_message', populatedMessage);
+            io.emit('discussion_unread_changed', {
+                senderId: String(req.user.id),
+                senderEmail: (req.user.email || '').toLowerCase()
+            });
         }
 
         res.status(201).json({ success: true, data: populatedMessage });

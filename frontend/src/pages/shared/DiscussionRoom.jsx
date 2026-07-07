@@ -31,6 +31,11 @@ const DiscussionRoom = () => {
         try {
             const res = await chatAPI.getDiscussionMessages();
             setMessages(res.data.data || []);
+            try {
+                await chatAPI.markDiscussionRead();
+            } catch (readError) {
+                console.error('Discussion read mark failed:', readError);
+            }
         } catch (error) {
             alert(error.response?.data?.message || 'Discussion messages load nahi ho sakay.');
         } finally {
@@ -46,6 +51,9 @@ const DiscussionRoom = () => {
 
         socketRef.current.on('discussion_message', (message) => {
             setMessages(prev => prev.some(m => String(m._id) === String(message._id)) ? prev : [...prev, message]);
+            setTimeout(() => {
+                chatAPI.markDiscussionRead().catch(() => {});
+            }, 300);
         });
 
         socketRef.current.on('discussion_message_deleted', ({ messageId }) => {
