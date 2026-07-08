@@ -30,6 +30,11 @@ const getCategoryIcon = category => {
 };
 const emptyForm = { type: 'expense', title: '', amount: '', category: 'Office Rent', customCategory: '', description: '', transactionDate: new Date().toISOString().slice(0, 10) };
 const money = value => `Rs ${Number(value || 0).toLocaleString()}`;
+const parseAmount = value => Number(String(value || '').replace(/,/g, ''));
+const formatAmountInput = value => {
+    const digits = String(value || '').replace(/[^\d]/g, '');
+    return digits ? Number(digits).toLocaleString() : '';
+};
 const fieldClass = 'w-full px-3 py-3 rounded-xl bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-600 text-gray-900 dark:text-white outline-none focus:border-primary';
 const today = new Date().toISOString().slice(0, 10);
 const currentMonth = today.slice(0, 7);
@@ -80,14 +85,14 @@ const ExpenseManagement = () => {
     const openEdit = entry => {
         setEditingId(entry._id);
         const isStandardCategory = categories.includes(entry.category);
-        setForm({ type: entry.type, title: entry.title, amount: entry.amount, category: isStandardCategory ? entry.category : 'Other', customCategory: isStandardCategory ? '' : entry.category, description: entry.description || '', transactionDate: new Date(entry.transactionDate).toISOString().slice(0, 10) });
+        setForm({ type: entry.type, title: entry.title, amount: formatAmountInput(entry.amount), category: isStandardCategory ? entry.category : 'Other', customCategory: isStandardCategory ? '' : entry.category, description: entry.description || '', transactionDate: new Date(entry.transactionDate).toISOString().slice(0, 10) });
         setShowForm(true);
     };
     const saveEntry = async e => {
         e.preventDefault();
         setSaving(true);
         try {
-            const payload = { ...form, category: form.category === 'Other' ? form.customCategory.trim() : form.category, amount: Number(form.amount) };
+            const payload = { ...form, category: form.category === 'Other' ? form.customCategory.trim() : form.category, amount: parseAmount(form.amount) };
             delete payload.customCategory;
             if (!payload.category) {
                 alert('Custom category name enter karein.');
@@ -177,7 +182,7 @@ const ExpenseManagement = () => {
                 </div>
             </div>
 
-            {showForm && <div className="fixed inset-0 z-[100] bg-black/60 flex items-center justify-center p-4"><form onSubmit={saveEntry} className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-2xl p-5 space-y-4 shadow-2xl"><div className="flex justify-between"><h2 className="text-lg font-black dark:text-white">{editingId ? 'Edit Record' : 'Add Finance Record'}</h2><button type="button" onClick={() => setShowForm(false)}><X className="w-5 h-5 dark:text-white" /></button></div><div className="grid grid-cols-2 gap-3"><select value={form.type} onChange={e => setForm({ ...form, type: e.target.value, customCategory: form.category === 'Other' ? form.customCategory : '' })} className={fieldClass}><option value="expense">📤 Expense</option><option value="income">📥 Income</option></select><input type="number" min="0" required placeholder="Amount" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} className={fieldClass} /></div><input required placeholder="Record title" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} className={fieldClass} /><div className="grid grid-cols-2 gap-3"><select value={form.category} onChange={e => setForm({ ...form, category: e.target.value, customCategory: e.target.value === 'Other' ? form.customCategory : '' })} className={fieldClass}>{categories.map(c => <option key={c} value={c}>{getCategoryIcon(c)} {c}</option>)}</select><input type="date" required value={form.transactionDate} onChange={e => setForm({ ...form, transactionDate: e.target.value })} className={fieldClass} /></div>{form.category === 'Other' && <input autoFocus required placeholder="Custom category name type karein..." value={form.customCategory} onChange={e => setForm({ ...form, customCategory: e.target.value })} className={fieldClass} />}<textarea rows="3" placeholder="Description / money kahan use hua" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} className={fieldClass} /><button disabled={saving} className="w-full py-3 bg-primary text-white rounded-xl font-black disabled:opacity-50">{saving ? 'Saving...' : 'Save Record'}</button></form></div>}
+            {showForm && <div className="fixed inset-0 z-[100] bg-black/60 flex items-center justify-center p-4"><form onSubmit={saveEntry} className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-2xl p-5 space-y-4 shadow-2xl"><div className="flex justify-between"><h2 className="text-lg font-black dark:text-white">{editingId ? 'Edit Record' : 'Add Finance Record'}</h2><button type="button" onClick={() => setShowForm(false)}><X className="w-5 h-5 dark:text-white" /></button></div><div className="grid grid-cols-2 gap-3"><select value={form.type} onChange={e => setForm({ ...form, type: e.target.value, customCategory: form.category === 'Other' ? form.customCategory : '' })} className={fieldClass}><option value="expense">📤 Expense</option><option value="income">📥 Income</option></select><input type="text" inputMode="numeric" required placeholder="Amount" value={form.amount} onChange={e => setForm({ ...form, amount: formatAmountInput(e.target.value) })} className={fieldClass} /></div><input required placeholder="Record title" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} className={fieldClass} /><div className="grid grid-cols-2 gap-3"><select value={form.category} onChange={e => setForm({ ...form, category: e.target.value, customCategory: e.target.value === 'Other' ? form.customCategory : '' })} className={fieldClass}>{categories.map(c => <option key={c} value={c}>{getCategoryIcon(c)} {c}</option>)}</select><input type="date" required value={form.transactionDate} onChange={e => setForm({ ...form, transactionDate: e.target.value })} className={fieldClass} /></div>{form.category === 'Other' && <input autoFocus required placeholder="Custom category name type karein..." value={form.customCategory} onChange={e => setForm({ ...form, customCategory: e.target.value })} className={fieldClass} />}<textarea rows="3" placeholder="Description / money kahan use hua" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} className={fieldClass} /><button disabled={saving} className="w-full py-3 bg-primary text-white rounded-xl font-black disabled:opacity-50">{saving ? 'Saving...' : 'Save Record'}</button></form></div>}
         </div>
     );
 };
