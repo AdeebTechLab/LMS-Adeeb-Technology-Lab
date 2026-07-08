@@ -24,6 +24,36 @@ const getAutomaticFeedback = (percentage) => {
     return "Poor performance. Let's work on the basics and improve.";
 };
 
+const normalizeMcqText = (value) => String(value || '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .replace(/^[a-d][).:\-\s]+/i, '')
+    .replace(/^option\s+[a-d][).:\-\s]*/i, '')
+    .trim();
+
+const getCorrectOptionFromBlock = (block, options = []) => {
+    const answerLineMatch = block.match(/(?:correct\s*answer|correct\s*option|answer|ans|key)\s*(?:is|=|:|\.|\-)?\s*(.+?)(?:\n|$)/i);
+    const answerValue = answerLineMatch?.[1]?.trim() || '';
+
+    const letterMatch = answerValue.match(/^(?:option\s*)?([a-d])(?:[).:\-\s]|$)/i)
+        || block.match(/(?:correct\s*answer|correct\s*option|answer|ans|key)\s*(?:is|=|:|\.|\-)?\s*(?:option\s*)?([a-d])(?:[).:\-\s]|$)/i);
+
+    if (letterMatch) {
+        return letterMatch[1].toUpperCase().charCodeAt(0) - 65;
+    }
+
+    const normalizedAnswer = normalizeMcqText(answerValue);
+    if (!normalizedAnswer) return 0;
+
+    const exactIndex = options.findIndex(option => normalizeMcqText(option) === normalizedAnswer);
+    if (exactIndex !== -1) return exactIndex;
+
+    return options.findIndex(option => {
+        const normalizedOption = normalizeMcqText(option);
+        return normalizedOption && (normalizedOption.includes(normalizedAnswer) || normalizedAnswer.includes(normalizedOption));
+    });
+};
+
 const TestsTab = ({ course, students }) => {
     const [tests, setTests] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -238,12 +268,8 @@ const TestsTab = ({ course, students }) => {
                     if (cMatch) options.push(cMatch[1].trim().split('\n')[0]);
                     if (dMatch) options.push(dMatch[1].trim().split('\n')[0]);
 
-                    const ansMatch = cleanBlock.match(/(?:Ans|Correct|Answer|Key)[:.\s(]+([A-D])/i);
-                    let correctOption = 0;
-                    if (ansMatch) {
-                        const char = ansMatch[1].toUpperCase();
-                        correctOption = char.charCodeAt(0) - 65;
-                    }
+                    const detectedCorrectOption = getCorrectOptionFromBlock(cleanBlock, options);
+                    const correctOption = detectedCorrectOption >= 0 ? detectedCorrectOption : 0;
 
                     if (options.length >= 2) {
                         questions.push({

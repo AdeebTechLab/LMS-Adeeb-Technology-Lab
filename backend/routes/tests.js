@@ -8,6 +8,66 @@ const mongoose = require('mongoose');
 const UserNotification = require('../models/UserNotification');
 const { sendPushNotification } = require('../utils/pushHelper');
 
+const normalizeAnswerText = (value) => String(value || '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .replace(/^[a-d][).:\-\s]+/i, '')
+    .replace(/^option\s+[a-d][).:\-\s]*/i, '')
+    .trim();
+
+const resolveOptionIndex = (value, options = []) => {
+    if (typeof value === 'number' && Number.isFinite(value)) return value;
+
+    const raw = String(value ?? '').trim();
+    if (!raw) return -1;
+
+    if (/^-?\d+$/.test(raw)) return Number(raw);
+
+    const letterMatch = raw.match(/^(?:option\s*)?([a-d])(?:[).:\-\s]|$)/i);
+    if (letterMatch) return letterMatch[1].toUpperCase().charCodeAt(0) - 65;
+
+    const normalizedRaw = normalizeAnswerText(raw);
+    const textIndex = options.findIndex(option => normalizeAnswerText(option) === normalizedRaw);
+    if (textIndex !== -1) return textIndex;
+
+    return options.findIndex(option => {
+        const normalizedOption = normalizeAnswerText(option);
+        return normalizedOption && (normalizedOption.includes(normalizedRaw) || normalizedRaw.includes(normalizedOption));
+    });
+};
+
+const sanitizeQuestions = (questions = []) => questions.map(q => {
+    const rawOptions = (q.options || []).map(o => (typeof o === 'string' ? o.trim() : ''));
+    const options = [];
+    const originalToCleanIndex = new Map();
+
+    rawOptions.forEach((option, index) => {
+        if (option.length > 0) {
+            originalToCleanIndex.set(index, options.length);
+            options.push(option);
+        }
+    });
+
+    const rawCorrectIndex = resolveOptionIndex(q.correctOption ?? q.correctAnswer ?? q.answer, rawOptions);
+    let correctOption = originalToCleanIndex.has(rawCorrectIndex)
+        ? originalToCleanIndex.get(rawCorrectIndex)
+        : resolveOptionIndex(q.correctOption ?? q.correctAnswer ?? q.answer, options);
+
+    if (!Number.isInteger(correctOption) || correctOption < 0 || correctOption >= options.length) {
+        correctOption = 0;
+    }
+
+    return {
+        ...q,
+        question: (q.question || '').trim(),
+        options,
+        correctOption,
+        marks: Number(q.marks) > 0 ? Number(q.marks) : 1
+    };
+}).filter(q => q.question.length > 0 && q.options.length >= 2);
+
+const calculateTotalMarks = (questions = []) => questions.reduce((total, q) => total + (Number(q.marks) > 0 ? Number(q.marks) : 1), 0);
+
 // @route   GET /api/tests/course/:courseId
 // @desc    Get all tests for a course
 // @access  Private
@@ -23,6 +83,10 @@ router.get('/course/:courseId', protect, async (req, res) => {
         }
 
         const tests = await query;
+        tests.forEach(test => {
+            const computedTotal = calculateTotalMarks(test.questions);
+            if (computedTotal > 0) test.totalMarks = computedTotal;
+        });
 
         // If student, filter out answers from questions to prevent cheating
         if (req.user.role === 'student' || req.user.role === 'intern') {
@@ -67,16 +131,8 @@ router.post('/', protect, authorize('teacher', 'admin'), async (req, res) => {
     try {
         const { courseId, title, description, questions, duration, dueDate, scheduledAt, assignTo, assignedUsers } = req.body;
 
-        // Sanitize questions: filter empty options and blank questions
-        const sanitizedQuestions = (questions || []).map(q => ({
-            ...q,
-            question: (q.question || '').trim(),
-            options: (q.options || []).map(o => (typeof o === 'string' ? o.trim() : '')).filter(o => o.length > 0),
-            correctOption: typeof q.correctOption === 'number' ? q.correctOption : 0,
-            marks: q.marks || 1
-        })).filter(q => q.question.length > 0 && q.options.length >= 2);
-
-        const totalMarks = sanitizedQuestions.length;
+        const sanitizedQuestions = sanitizeQuestions(questions);
+        const totalMarks = calculateTotalMarks(sanitizedQuestions);
 
         const test = await Test.create({
             course: courseId,
@@ -154,19 +210,25 @@ router.post('/:id/submit', protect, async (req, res) => {
 
         // Auto-grading logic
         let score = 0;
-        const processedAnswers = answers.map(ans => {
+        const totalPossibleScore = calculateTotalMarks(test.questions);
+        const processedAnswers = (answers || []).map(ans => {
             const question = test.questions.id(ans.questionId);
-            if (question && question.correctOption === ans.selectedOption) {
-                score += 1;
+            const selectedOption = question ? resolveOptionIndex(ans.selectedOption, question.options) : -1;
+
+            if (question && question.correctOption === selectedOption) {
+                score += Number(question.marks) > 0 ? Number(question.marks) : 1;
             }
-            return ans;
+            return {
+                ...ans,
+                selectedOption
+            };
         });
 
         const submission = {
             user: req.user.id,
             answers: processedAnswers,
             score,
-            totalPossibleScore: test.totalMarks,
+            totalPossibleScore,
             submittedAt: new Date()
         };
 
@@ -194,7 +256,7 @@ router.post('/:id/submit', protect, async (req, res) => {
                     // Push Notification
                     sendPushNotification(teacherId, {
                         title: 'Test Completed ✅',
-                        body: `${req.user.name} completed the test "${test.title}". Score: ${score}/${test.totalMarks}`,
+                        body: `${req.user.name} completed the test "${test.title}". Score: ${score}/${totalPossibleScore}`,
                         icon: '/logo.png',
                         image: '/logo.png',
                         badge: '/logo.png',
@@ -208,7 +270,7 @@ router.post('/:id/submit', protect, async (req, res) => {
             success: true,
             message: 'Test submitted and graded successfully',
             score,
-            totalMarks: test.totalMarks,
+            totalMarks: totalPossibleScore,
             questions: test.questions // Now including correctOption
         });
     } catch (error) {
@@ -223,16 +285,8 @@ router.put('/:id', protect, authorize('teacher', 'admin'), async (req, res) => {
     try {
         const { title, description, questions, duration, dueDate, scheduledAt, assignTo, assignedUsers } = req.body;
 
-        // Sanitize questions: filter empty options and blank questions
-        const sanitizedQuestions = (questions || []).map(q => ({
-            ...q,
-            question: (q.question || '').trim(),
-            options: (q.options || []).map(o => (typeof o === 'string' ? o.trim() : '')).filter(o => o.length > 0),
-            correctOption: typeof q.correctOption === 'number' ? q.correctOption : 0,
-            marks: q.marks || 1
-        })).filter(q => q.question.length > 0 && q.options.length >= 2);
-
-        const totalMarks = sanitizedQuestions.length;
+        const sanitizedQuestions = sanitizeQuestions(questions);
+        const totalMarks = calculateTotalMarks(sanitizedQuestions);
 
         const updatedData = {
             title,
