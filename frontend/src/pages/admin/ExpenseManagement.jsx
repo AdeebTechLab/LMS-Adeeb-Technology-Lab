@@ -3,7 +3,7 @@ import { Wallet, TrendingUp, TrendingDown, Landmark, Plus, Pencil, Trash2, X } f
 import { financeAPI } from '../../services/api';
 import Loader from '../../components/ui/Loader';
 
-const categories = ['Office Rent', 'Salaries', 'Utilities', 'Marketing', 'Equipment', 'Internet', 'Maintenance', 'Transport', 'Food', 'Refreshment', 'Pocket Money', 'Guest', 'Clean', 'Course Income', 'IOT Project', 'Website Project', 'App Project', 'Other'];
+const categories = ['Office Rent', 'Salaries', 'Utilities', 'Marketing', 'Equipment', 'Internet', 'Maintenance', 'Transport', 'Food', 'Refreshment', 'Pocket Money', 'Guest', 'Clean', 'Sim Balance', 'Course Income', 'IOT Project', 'Website Project', 'App Project', 'Other'];
 const categoryIcons = {
     'Office Rent': '🏢',
     Salaries: '👥',
@@ -23,6 +23,7 @@ const categoryIcons = {
 const getCategoryIcon = category => {
     if (category === 'Pocket Money') return '👛';
     if (category === 'Clean') return '🧹';
+    if (category === 'Sim Balance') return '📶';
     if (category === 'IOT Project') return '📡';
     if (category === 'Website Project') return '🌐';
     if (category === 'App Project') return '📱';
