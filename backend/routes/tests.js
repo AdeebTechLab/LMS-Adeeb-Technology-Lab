@@ -210,13 +210,17 @@ router.post('/:id/submit', protect, async (req, res) => {
 
         // Auto-grading logic
         let score = 0;
-        const totalPossibleScore = calculateTotalMarks(test.questions);
+        let totalPossibleScore = 0;
         const processedAnswers = (answers || []).map(ans => {
             const question = test.questions.id(ans.questionId);
             const selectedOption = question ? resolveOptionIndex(ans.selectedOption, question.options) : -1;
 
-            if (question && question.correctOption === selectedOption) {
-                score += Number(question.marks) > 0 ? Number(question.marks) : 1;
+            if (question) {
+                const questionMarks = Number(question.marks) > 0 ? Number(question.marks) : 1;
+                totalPossibleScore += questionMarks;
+                if (question.correctOption === selectedOption) {
+                    score += questionMarks;
+                }
             }
             return {
                 ...ans,

@@ -263,6 +263,13 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                     submissions: selectedAssignment.submissions.filter(s => s._id !== submissionId)
                 });
             }
+
+            if (reviewAssignment && reviewAssignment._id === assignmentId) {
+                setReviewAssignment({
+                    ...reviewAssignment,
+                    submissions: reviewAssignment.submissions.filter(s => s._id !== submissionId)
+                });
+            }
         } catch (error) {
             console.error('Error deleting submission:', error);
             alert('Failed to delete submission');
@@ -1438,7 +1445,14 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                 const feedback = submission.feedback || getAutomaticFeedback(percentage);
                                 const isPass = percentage >= 50;
                                 return (
-                                    <div key={submission._id} className="bg-gray-50 rounded-2xl border border-gray-100 overflow-hidden">
+                                    <div key={submission._id} className="bg-gray-50 rounded-2xl border border-gray-100 overflow-hidden relative group">
+                                        <button
+                                            onClick={() => handleDeleteSubmission(reviewAssignment._id, submission._id)}
+                                            className="absolute top-3 right-3 z-10 p-2 text-red-400 bg-white/90 hover:bg-red-50 hover:text-red-600 rounded-xl transition-all border border-red-100/60 shadow-sm opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+                                            title="Delete Graded Submission"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
                                         <div className="flex items-center justify-between p-4">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-black text-sm border-2 border-white shadow-sm shrink-0">
@@ -1466,7 +1480,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                                     <p className="text-[11px] text-gray-400 font-medium mt-0.5">{formatDateTime(submission.submittedAt)}</p>
                                                 </div>
                                             </div>
-                                            <div className="text-right shrink-0">
+                                            <div className="text-right shrink-0 pr-10">
                                                 <span className={`text-[10px] font-black px-3 py-1 rounded-full border ${isPass ? 'bg-green-50 text-green-600 border-green-100' : 'bg-red-50 text-red-500 border-red-100'}`}>
                                                     {isPass ? 'PASSED' : 'FAILED'}
                                                 </span>

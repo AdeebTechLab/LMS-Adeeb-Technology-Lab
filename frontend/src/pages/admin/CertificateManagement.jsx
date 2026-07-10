@@ -16,6 +16,8 @@ const CertificateManagement = () => {
     const [selectedCities, setSelectedCities] = useState([]); // Array of strings
     const [selectedTypes, setSelectedTypes] = useState([]);  // Array of strings
     const [enrollmentStatusFilter, setEnrollmentStatusFilter] = useState('all'); // 'all', 'active', 'completed'
+    const [certificateStartDate, setCertificateStartDate] = useState('');
+    const [certificateEndDate, setCertificateEndDate] = useState('');
     const [expandedCourse, setExpandedCourse] = useState(null);
 
     // Helper to get local date string YYYY-MM-DD
@@ -317,6 +319,29 @@ const CertificateManagement = () => {
         setSelectedTypes([]);
         setSelectedCities([]);
         setSearchQuery('');
+        setCertificateStartDate('');
+        setCertificateEndDate('');
+    };
+
+    const isDateRangeActive = !!certificateStartDate || !!certificateEndDate;
+    const isCertificateInDateRange = (certificate) => {
+        if (!isDateRangeActive) return true;
+        if (!certificate?.issuedAt) return false;
+
+        const issuedTime = new Date(certificate.issuedAt).getTime();
+        if (Number.isNaN(issuedTime)) return false;
+
+        if (certificateStartDate) {
+            const startTime = new Date(`${certificateStartDate}T00:00:00`).getTime();
+            if (issuedTime < startTime) return false;
+        }
+
+        if (certificateEndDate) {
+            const endTime = new Date(`${certificateEndDate}T23:59:59`).getTime();
+            if (issuedTime > endTime) return false;
+        }
+
+        return true;
     };
 
     const filteredCourses = courses.filter(c => {
@@ -332,6 +357,8 @@ const CertificateManagement = () => {
 
         // Filter students by enrollment status
         const filteredStudents = c.students.filter(s => {
+            if (!isCertificateInDateRange(s.certificate)) return false;
+            if (isDateRangeActive) return s.certificateIssued;
             if (enrollmentStatusFilter === 'all') return true;
             if (enrollmentStatusFilter === 'completed') return s.enrollmentStatus === 'completed' || s.certificateIssued;
             if (enrollmentStatusFilter === 'active') return s.enrollmentStatus !== 'completed' && !s.certificateIssued;
@@ -342,7 +369,10 @@ const CertificateManagement = () => {
         return matchesSearch && matchesCity && matchesType && hasStudents;
     }).map(c => ({
         ...c,
-        students: enrollmentStatusFilter === 'all' ? c.students : c.students.filter(s => {
+        students: c.students.filter(s => {
+            if (!isCertificateInDateRange(s.certificate)) return false;
+            if (isDateRangeActive) return s.certificateIssued;
+            if (enrollmentStatusFilter === 'all') return true;
             if (enrollmentStatusFilter === 'completed') return s.enrollmentStatus === 'completed' || s.certificateIssued;
             if (enrollmentStatusFilter === 'active') return s.enrollmentStatus !== 'completed' && !s.certificateIssued;
             return true;
@@ -350,6 +380,7 @@ const CertificateManagement = () => {
     }));
 
     const filteredRequests = requests.filter(r => {
+        if (isDateRangeActive) return false;
         const matchesSearch = (r.user?.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
             (r.course?.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
             (r.user?.cnic || '').includes(searchQuery);
@@ -358,6 +389,16 @@ const CertificateManagement = () => {
         const matchesType = selectedTypes.length === 0 || selectedTypes.includes(r.course?.targetAudience || (r.user?.role === 'intern' ? 'interns' : 'students'));
 
         return matchesSearch && matchesCity && matchesType;
+    });
+
+    const filteredTeachers = teachers.filter(t => {
+        const matchesSearch = !searchQuery ||
+            t.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            t.rollNo?.includes(searchQuery);
+
+        if (!matchesSearch) return false;
+        if (isDateRangeActive) return t.certificateIssued && isCertificateInDateRange(t.certificate);
+        return true;
     });
 
     // Calculate unique students and certified students
@@ -386,67 +427,54 @@ const CertificateManagement = () => {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Certificate Management</h1>
-                    <p className="text-gray-500 text-sm">Issue and manage student & teacher certificates</p>
-                </div>
-                
-                {/* Metrics Grid */}
-                <div className="grid grid-cols-2 gap-3">
-                    {/* Students/Interns Metrics */}
-                    <div className="flex flex-col bg-primary/5 rounded-2xl p-3 border border-primary/10 min-w-[150px] shadow-sm">
-                        <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-2 border-b border-primary pb-1">Students / Interns</p>
-                        <div className="flex justify-between items-end">
-                            <div>
-                                <p className="text-2xl font-black text-primary leading-none">{studentsCertifiedCount}</p>
-                                <p className="text-[9px] text-primary/80 font-black uppercase tracking-wider mt-1">Assigned</p>
-                            </div>
-                            <div className="text-right">
-                                <p className="text-xl font-bold text-amber-500 leading-none">{studentsPendingCount}</p>
-                                <p className="text-[9px] text-amber-600/80 font-black uppercase tracking-wider mt-1">Pending</p>
-                            </div>
+            <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 p-6 sm:p-8 text-white shadow-2xl shadow-slate-900/10">
+                <div className="absolute -right-16 -top-20 h-56 w-56 rounded-full bg-primary/20 blur-3xl" />
+                <div className="absolute -bottom-24 left-1/3 h-56 w-56 rounded-full bg-blue-500/10 blur-3xl" />
+                <div className="relative z-10 flex flex-col xl:flex-row xl:items-end xl:justify-between gap-8">
+                    <div className="max-w-2xl">
+                        <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.25em] text-white/70 mb-4">
+                            <Award className="w-3.5 h-3.5 text-primary" />
+                            Certificate Center
                         </div>
+                        <h1 className="text-3xl sm:text-4xl font-black tracking-tight">Certificate Management</h1>
+                        <p className="mt-2 text-sm sm:text-base text-white/60 font-medium">Issue, edit, verify and filter student, intern and teacher certificates from one clean dashboard.</p>
                     </div>
 
-                    {/* Teachers Metrics */}
-                    <div className="flex flex-col bg-blue-50 rounded-2xl p-3 border border-blue-100 min-w-[150px] shadow-sm">
-                        <p className="text-[10px] font-black text-blue-800 uppercase tracking-widest mb-2 border-b border-blue-200 pb-1">Teachers</p>
-                        <div className="flex justify-between items-end">
-                            <div>
-                                <p className="text-2xl font-black text-blue-600 leading-none">{teachersCertifiedCount}</p>
-                                <p className="text-[9px] text-blue-600/80 font-black uppercase tracking-wider mt-1">Assigned</p>
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 w-full xl:w-auto">
+                        {[
+                            { label: 'Student Assigned', value: studentsCertifiedCount, sub: `${studentsPendingCount} pending`, icon: CheckCircle, tone: 'text-primary' },
+                            { label: 'Teacher Assigned', value: teachersCertifiedCount, sub: `${teachersPendingCount} pending`, icon: Users, tone: 'text-blue-300' },
+                            { label: 'Requests', value: requests.length, sub: 'pending approval', icon: ClipboardList, tone: 'text-amber-300' },
+                            { label: 'Total People', value: uniqueStudents.size + teachers.length, sub: 'in certificate pool', icon: User, tone: 'text-emerald-300' },
+                        ].map((stat) => (
+                            <div key={stat.label} className="rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur-md shadow-lg">
+                                <div className="flex items-center justify-between gap-3">
+                                    <div>
+                                        <p className="text-[9px] font-black uppercase tracking-widest text-white/45">{stat.label}</p>
+                                        <p className="mt-2 text-2xl font-black leading-none">{stat.value}</p>
+                                    </div>
+                                    <div className={`h-10 w-10 rounded-2xl bg-white/10 flex items-center justify-center ${stat.tone}`}>
+                                        <stat.icon className="w-5 h-5" />
+                                    </div>
+                                </div>
+                                <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-white/45">{stat.sub}</p>
                             </div>
-                            <div className="text-right">
-                                <p className="text-xl font-bold text-amber-500 leading-none">{teachersPendingCount}</p>
-                                <p className="text-[9px] text-amber-600/80 font-black uppercase tracking-wider mt-1">Pending</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Enrollment Status Filter */}
-                    <div className="space-y-2">
-                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Status</span>
-                        <div className="flex items-center gap-2 bg-gray-50 p-1.5 rounded-2xl">
-                            <button onClick={() => setEnrollmentStatusFilter('all')} className={`flex-1 px-3 py-2 rounded-xl font-bold text-xs transition-all ${enrollmentStatusFilter === 'all' ? 'bg-white text-primary shadow-md border border-primary/10' : 'text-gray-500 hover:text-gray-700 hover:bg-white/50'}`}>All</button>
-                            <button onClick={() => setEnrollmentStatusFilter('active')} className={`flex-1 px-3 py-2 rounded-xl font-bold text-xs transition-all ${enrollmentStatusFilter === 'active' ? 'bg-white text-primary shadow-md border border-primary/10' : 'text-gray-500 hover:text-gray-700 hover:bg-white/50'}`}>Active</button>
-                            <button onClick={() => setEnrollmentStatusFilter('completed')} className={`flex-1 px-3 py-2 rounded-xl font-bold text-xs transition-all ${enrollmentStatusFilter === 'completed' ? 'bg-white text-primary shadow-md border border-primary/10' : 'text-gray-500 hover:text-gray-700 hover:bg-white/50'}`}>Completed</button>
-                        </div>
+                        ))}
                     </div>
                 </div>
             </div>
 
             {/* Section Toggle */}
-            <div className="flex gap-2 bg-gray-100 p-1.5 rounded-2xl w-full sm:w-fit">
+            <div className="flex gap-2 bg-white p-1.5 rounded-2xl w-full sm:w-fit border border-gray-100 shadow-sm">
                 <button
                     onClick={() => setActiveSection('courses')}
-                    className={`flex-1 sm:flex-none px-5 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${activeSection === 'courses' ? 'bg-white text-primary shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                    className={`flex-1 sm:flex-none px-5 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${activeSection === 'courses' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'}`}
                 >
                     Students & Interns
                 </button>
                 <button
                     onClick={() => setActiveSection('teachers')}
-                    className={`flex-1 sm:flex-none px-5 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${activeSection === 'teachers' ? 'bg-white text-blue-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                    className={`flex-1 sm:flex-none px-5 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${activeSection === 'teachers' ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'}`}
                 >
                     Teachers
                     {teachers.length > 0 && <span className="text-[10px] bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full font-black">{teachers.length}</span>}
@@ -455,7 +483,16 @@ const CertificateManagement = () => {
 
             {/* ── STUDENTS & INTERNS SECTION ── */}
             {activeSection === 'courses' && (<>
-                <div className="bg-white rounded-3xl p-4 sm:p-6 border border-gray-100 shadow-sm space-y-4">
+                <div className="bg-white rounded-[2rem] p-4 sm:p-6 border border-gray-100 shadow-sm space-y-5">
+                    <div className="flex items-center justify-between gap-3">
+                        <div>
+                            <p className="text-[10px] font-black text-primary uppercase tracking-[0.25em]">Smart Filters</p>
+                            <h2 className="text-lg font-black text-gray-900">Find certificates faster</h2>
+                        </div>
+                        <div className="hidden sm:flex h-11 w-11 rounded-2xl bg-primary/5 text-primary items-center justify-center">
+                            <Filter className="w-5 h-5" />
+                        </div>
+                    </div>
                     <div className="flex flex-col sm:flex-row gap-4">
                         {/* Search */}
                         <div className="flex-1 relative">
@@ -470,7 +507,7 @@ const CertificateManagement = () => {
                         </div>
 
                         {/* Clear Button */}
-                        {(selectedTypes.length > 0 || selectedCities.length > 0 || searchQuery) && (
+                        {(selectedTypes.length > 0 || selectedCities.length > 0 || searchQuery || isDateRangeActive) && (
                             <button
                                 onClick={clearFilters}
                                 className="flex items-center justify-center gap-2 px-4 py-3 text-rose-500 hover:bg-rose-50 rounded-xl transition-all text-sm font-bold uppercase tracking-widest"
@@ -481,7 +518,7 @@ const CertificateManagement = () => {
                         )}
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                         {/* Audience Filters */}
                         <div className="space-y-2">
                             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Audience</p>
@@ -522,7 +559,57 @@ const CertificateManagement = () => {
                                 ))}
                             </div>
                         </div>
+
+                        <div className="space-y-2">
+                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Status</p>
+                            <div className="flex items-center gap-2 bg-gray-50 p-1.5 rounded-2xl">
+                                {[
+                                    { id: 'all', label: 'All' },
+                                    { id: 'active', label: 'Active' },
+                                    { id: 'completed', label: 'Completed' }
+                                ].map((status) => (
+                                    <button
+                                        key={status.id}
+                                        onClick={() => setEnrollmentStatusFilter(status.id)}
+                                        className={`flex-1 px-3 py-2 rounded-xl font-bold text-xs transition-all ${enrollmentStatusFilter === status.id
+                                            ? 'bg-white text-primary shadow-md border border-primary/10'
+                                            : 'text-gray-500 hover:text-gray-700 hover:bg-white/50'
+                                            }`}
+                                    >
+                                        {status.label}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
                     </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="space-y-2">
+                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Start Date</p>
+                            <input
+                                type="date"
+                                value={certificateStartDate}
+                                onChange={(e) => setCertificateStartDate(e.target.value)}
+                                className="w-full px-4 py-3 bg-gray-50 border border-transparent focus:border-primary focus:bg-white rounded-2xl transition-all outline-none text-sm font-bold text-gray-700"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">End Date</p>
+                            <input
+                                type="date"
+                                value={certificateEndDate}
+                                min={certificateStartDate || undefined}
+                                onChange={(e) => setCertificateEndDate(e.target.value)}
+                                className="w-full px-4 py-3 bg-gray-50 border border-transparent focus:border-primary focus:bg-white rounded-2xl transition-all outline-none text-sm font-bold text-gray-700"
+                            />
+                        </div>
+                    </div>
+
+                    {isDateRangeActive && (
+                        <div className="rounded-2xl bg-primary/5 border border-primary/10 px-4 py-3 text-xs font-bold text-primary">
+                            Showing only certificates assigned in selected date range.
+                        </div>
+                    )}
                 </div>
 
                 {/* Pending Requests Section */}
@@ -654,6 +741,7 @@ const CertificateManagement = () => {
                                                         <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Roll No</th>
                                                         <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Status</th>
                                                         <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Passout Date</th>
+                                                        <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Issued Date</th>
                                                         <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Action</th>
                                                     </tr>
                                                 </thead>
@@ -692,6 +780,9 @@ const CertificateManagement = () => {
                                                             </td>
                                                             <td className="px-6 py-4 text-xs text-gray-600">
                                                                 {student.certificate?.passoutDate ? formatDate(student.certificate.passoutDate) : '-'}
+                                                            </td>
+                                                            <td className="px-6 py-4 text-xs text-gray-600">
+                                                                {student.certificate?.issuedAt ? formatDate(student.certificate.issuedAt) : '-'}
                                                             </td>
                                                             <td className="px-6 py-4">
                                                                 <div className="flex items-center gap-2">
@@ -745,9 +836,9 @@ const CertificateManagement = () => {
                                 <div className="bg-white rounded-2xl p-12 border border-gray-100 text-center">
                                     <BookOpen className="w-12 h-12 text-gray-300 mx-auto mb-4" />
                                     <p className="text-gray-500">No courses match your filters</p>
-                                    {(searchQuery || selectedCities.length > 0 || selectedTypes.length > 0) && (
+                                    {(searchQuery || selectedCities.length > 0 || selectedTypes.length > 0 || isDateRangeActive) && (
                                         <button
-                                            onClick={() => { setSearchQuery(''); setSelectedCities([]); setSelectedTypes([]); }}
+                                            onClick={clearFilters}
                                             className="mt-2 text-primary hover:text-primary font-medium text-sm"
                                         >
                                             Clear all filters
@@ -771,7 +862,7 @@ const CertificateManagement = () => {
                     </div>
 
                     {/* Teacher Search */}
-                    <div className="bg-white rounded-2xl p-4 border border-gray-100">
+                    <div className="bg-white rounded-2xl p-4 border border-gray-100 space-y-4">
                         <div className="flex items-center bg-gray-50 rounded-xl px-4 py-3 border border-transparent focus-within:border-blue-500/20 focus-within:bg-white transition-all">
                             <Search className="w-5 h-5 text-gray-400 mr-3" />
                             <input
@@ -781,6 +872,36 @@ const CertificateManagement = () => {
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 className="bg-transparent border-none outline-none w-full text-gray-700 placeholder:text-gray-400"
                             />
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_auto] gap-3">
+                            <div>
+                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Start Date</label>
+                                <input
+                                    type="date"
+                                    value={certificateStartDate}
+                                    onChange={(e) => setCertificateStartDate(e.target.value)}
+                                    className="w-full px-4 py-3 bg-gray-50 border border-transparent focus:border-blue-500/20 focus:bg-white rounded-2xl transition-all outline-none text-sm font-bold text-gray-700"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">End Date</label>
+                                <input
+                                    type="date"
+                                    value={certificateEndDate}
+                                    min={certificateStartDate || undefined}
+                                    onChange={(e) => setCertificateEndDate(e.target.value)}
+                                    className="w-full px-4 py-3 bg-gray-50 border border-transparent focus:border-blue-500/20 focus:bg-white rounded-2xl transition-all outline-none text-sm font-bold text-gray-700"
+                                />
+                            </div>
+                            {(searchQuery || isDateRangeActive) && (
+                                <button
+                                    onClick={clearFilters}
+                                    className="self-end flex items-center justify-center gap-2 px-4 py-3 text-rose-500 hover:bg-rose-50 rounded-xl transition-all text-sm font-bold uppercase tracking-widest"
+                                >
+                                    <X className="w-4 h-4" />
+                                    Clear
+                                </button>
+                            )}
                         </div>
                     </div>
 
@@ -800,17 +921,12 @@ const CertificateManagement = () => {
                                             <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Specialization</th>
                                             <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Status</th>
                                             <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Passout Date</th>
+                                            <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Issued Date</th>
                                             <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Action</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-50">
-                                        {teachers
-                                            .filter(t =>
-                                                !searchQuery ||
-                                                t.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                                                t.rollNo?.includes(searchQuery)
-                                            )
-                                            .map((teacher) => (
+                                        {filteredTeachers.map((teacher) => (
                                                 <tr key={teacher._id} className="hover:bg-gray-50/50 transition-colors">
                                                     <td className="px-6 py-4">
                                                         <div className="flex items-center gap-3">
@@ -843,6 +959,9 @@ const CertificateManagement = () => {
                                                     </td>
                                                     <td className="px-6 py-4 text-xs text-gray-600">
                                                         {teacher.certificate?.passoutDate ? formatDate(teacher.certificate.passoutDate) : '—'}
+                                                    </td>
+                                                    <td className="px-6 py-4 text-xs text-gray-600">
+                                                        {teacher.certificate?.issuedAt ? formatDate(teacher.certificate.issuedAt) : '-'}
                                                     </td>
                                                     <td className="px-6 py-4">
                                                         <div className="flex items-center gap-2">

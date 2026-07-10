@@ -271,10 +271,18 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
             }));
 
             const res = await testAPI.submit(selectedTest._id, formattedAnswers);
+            const submittedQuestionIds = new Set(formattedAnswers.map(answer => String(answer.questionId)));
+            const serverQuestionsById = new Map((res.data.questions || []).map(question => [String(question._id), question]));
+            const currentAttemptQuestions = shuffledQuestions
+                .filter(question => submittedQuestionIds.has(String(question._id)))
+                .map(question => ({
+                    ...(serverQuestionsById.get(String(question._id)) || question),
+                    shuffledOptions: question.shuffledOptions
+                }));
             setTestResult({
                 score: res.data.score,
                 totalMarks: res.data.totalMarks,
-                questions: res.data.questions,
+                questions: currentAttemptQuestions,
                 userAnswers: answers
             });
             setShowReview(true); // Automatically show review after result
@@ -347,7 +355,7 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
                             className={`px-5 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center gap-2 ${
                                 Object.keys(answers).length < shuffledQuestions.length
                                 ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                                : 'bg-slate-900 text-white hover:bg-black shadow-lg'
+                                : 'bg-primary text-white hover:bg-primary/90 shadow-lg shadow-primary/20'
                             }`}
                         >
                             <ButtonLoader isLoading={isSubmitting} icon={<CheckCircle className="w-3.5 h-3.5" />}>

@@ -445,13 +445,13 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={() => setIsOpen(false)}
-                        className="fixed inset-0 bg-black/50 z-[990] lg:hidden"
+                        className="fixed inset-0 bg-black/50 z-[70] lg:hidden"
                     />
                 )}
             </AnimatePresence>
 
             <aside
-                className={`fixed lg:relative top-0 left-0 z-[999] h-screen w-[280px] bg-[var(--bg-sidebar)] flex flex-col transition-transform duration-300 ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+                className={`fixed lg:relative top-0 left-0 z-[80] h-screen w-[280px] bg-[var(--bg-sidebar)] flex flex-col transition-transform duration-300 ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
                     }`}
             >
                 <div
