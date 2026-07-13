@@ -100,7 +100,8 @@ const CertificateManagement = () => {
                     type: s.role === 'intern' ? 'intern' : 'student',
                     enrollmentStatus: s.enrollmentStatus,
                     certificateIssued: s.certificateIssued || false,
-                    certificate: s.certificate || null
+                    certificate: s.certificate || null,
+                    verifiedChallans: s.verifiedChallans || 0
                 }));
 
                 return {
@@ -115,6 +116,11 @@ const CertificateManagement = () => {
             });
 
             console.log('✅ [CERT] Formatted Courses:', formattedCourses);
+            formattedCourses.forEach(c => {
+                c.students.forEach(s => {
+                    console.log(`  👤 ${s.name}: verifiedChallans=${s.verifiedChallans}`);
+                });
+            });
             setCourses(formattedCourses);
             setTeachers(teachersRes.data.teachers || []);
             setPlatformCounts({
@@ -691,34 +697,34 @@ const CertificateManagement = () => {
 
                 {/* Courses with Students */}
                 <div className="space-y-4">
-                    <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                    <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
                         <BookOpen className="w-5 h-5 text-primary" />
                         Courses & Certificates
                     </h2>
 
                     {courses.length === 0 ? (
-                        <div className="bg-white rounded-2xl p-12 border border-gray-100 text-center">
-                            <BookOpen className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                            <p className="text-gray-500 font-medium">No courses found</p>
-                            <p className="text-xs text-gray-400 mt-1">Create some courses first to manage certificates</p>
+                        <div className="bg-white dark:bg-gray-800 rounded-2xl p-12 border border-gray-100 dark:border-gray-700 text-center">
+                            <BookOpen className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+                            <p className="text-gray-500 dark:text-gray-400 font-medium">No courses found</p>
+                            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Create some courses first to manage certificates</p>
                         </div>
                     ) : (
                         <>
                             {filteredCourses.map((course) => (
                                 <motion.div
                                     key={course.id}
-                                    className="bg-white rounded-2xl border border-gray-100 overflow-hidden"
+                                    className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden"
                                 >
                                     <div
                                         onClick={() => setExpandedCourse(expandedCourse === course.id ? null : course.id)}
-                                        className="flex items-center justify-between p-4 sm:p-5 cursor-pointer hover:bg-gray-50 transition-colors"
+                                        className="flex items-center justify-between p-4 sm:p-5 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
                                     >
                                         <div className="flex items-center gap-4">
-                                            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary/5 flex items-center justify-center shrink-0 shadow-sm border border-primary/10">
+                                            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary/5 dark:bg-primary/10 flex items-center justify-center shrink-0 shadow-sm border border-primary/10 dark:border-primary/20">
                                                 <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
                                             </div>
                                             <div className="min-w-0">
-                                                <h3 className="font-black text-gray-900 line-clamp-1 uppercase tracking-tighter text-sm sm:text-base">{course.title || course.name}</h3>
+                                                <h3 className="font-black text-gray-900 dark:text-white line-clamp-1 uppercase tracking-tighter text-sm sm:text-base">{course.title || course.name}</h3>
                                                 <div className="flex items-center gap-2 mt-0.5">
                                                     <Badge variant="info" size="xs">
                                                         {course.city}
@@ -729,45 +735,53 @@ const CertificateManagement = () => {
                                                 </div>
                                             </div>
                                         </div>
-                                        <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform flex-shrink-0 ${expandedCourse === course.id ? 'rotate-180' : ''}`} />
+                                        <ChevronDown className={`w-5 h-5 text-gray-400 dark:text-gray-500 transition-transform flex-shrink-0 ${expandedCourse === course.id ? 'rotate-180' : ''}`} />
                                     </div>
 
                                     {expandedCourse === course.id && (
-                                        <div className="border-t border-gray-100 overflow-x-auto">
+                                        <div className="border-t border-gray-100 dark:border-gray-700 overflow-x-auto">
                                             <table className="w-full">
-                                                <thead className="bg-gray-50/50">
+                                                <thead className="bg-gray-50/50 dark:bg-gray-700/50">
                                                     <tr>
-                                                        <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Student</th>
-                                                        <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Roll No</th>
-                                                        <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Status</th>
-                                                        <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Passout Date</th>
-                                                        <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Issued Date</th>
-                                                        <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Action</th>
+                                                        <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">Student</th>
+                                                        <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">Roll No</th>
+                                                        <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">Challans</th>
+                                                        <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">Status</th>
+                                                        <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">Passout Date</th>
+                                                        <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">Issued Date</th>
+                                                        <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">Action</th>
                                                     </tr>
                                                 </thead>
-                                                <tbody className="divide-y divide-gray-50">
+                                                <tbody className="divide-y divide-gray-50 dark:divide-gray-700">
                                                     {course.students.map((student) => (
-                                                        <tr key={student.id} className="hover:bg-gray-50/50 transition-colors">
+                                                        <tr key={student.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-700/30 transition-colors">
                                                             <td className="px-6 py-4">
                                                                 <div className="flex items-center gap-3">
-                                                                    <div className="w-10 h-10 rounded-full bg-gray-100 border border-gray-100 overflow-hidden shrink-0">
+                                                                    <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-700 border border-gray-100 dark:border-gray-600 overflow-hidden shrink-0">
                                                                         {student.photo ? (
                                                                             <img src={student.photo} alt="" className="w-full h-full object-cover" />
                                                                         ) : (
                                                                             <div className="w-full h-full flex items-center justify-center">
-                                                                                <User className="w-5 h-5 text-gray-300" />
+                                                                                <User className="w-5 h-5 text-gray-300 dark:text-gray-600" />
                                                                             </div>
                                                                         )}
                                                                     </div>
                                                                     <div>
-                                                                        <p className="font-bold text-gray-900 text-sm">{student.name}</p>
+                                                                        <p className="font-bold text-gray-900 dark:text-white text-sm">{student.name}</p>
                                                                         <Badge variant={student.type === 'intern' ? 'purple' : 'success'} className="text-[10px] py-0">
                                                                             {student.type === 'intern' ? 'Intern' : 'Student'}
                                                                         </Badge>
                                                                     </div>
                                                                 </div>
                                                             </td>
-                                                            <td className="px-6 py-4 font-mono text-xs font-bold text-gray-500">{student.rollNo}</td>
+                                                            <td className="px-6 py-4 font-mono text-xs font-bold text-gray-500 dark:text-gray-400">{student.rollNo}</td>
+                                                            <td className="px-6 py-4 text-xs font-medium">
+                                                                <div className="flex items-center gap-1.5">
+                                                                    <span className={`inline-flex items-center justify-center min-w-[24px] h-6 px-2 rounded-full text-[11px] font-bold ${student.verifiedChallans > 0 ? 'bg-primary/10 text-primary' : 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500'}`}>
+                                                                        {student.verifiedChallans || 0}
+                                                                    </span>
+                                                                </div>
+                                                            </td>
                                                             <td className="px-6 py-4 text-xs font-medium">
                                                                 {student.certificateIssued ? (
                                                                     <div className="flex items-center gap-1 text-primary">
@@ -775,13 +789,13 @@ const CertificateManagement = () => {
                                                                         Certified
                                                                     </div>
                                                                 ) : (
-                                                                    <div className="text-gray-400">Not Issued</div>
+                                                                    <div className="text-gray-400 dark:text-gray-500">Not Issued</div>
                                                                 )}
                                                             </td>
-                                                            <td className="px-6 py-4 text-xs text-gray-600">
+                                                            <td className="px-6 py-4 text-xs text-gray-600 dark:text-gray-400">
                                                                 {student.certificate?.passoutDate ? formatDate(student.certificate.passoutDate) : '-'}
                                                             </td>
-                                                            <td className="px-6 py-4 text-xs text-gray-600">
+                                                            <td className="px-6 py-4 text-xs text-gray-600 dark:text-gray-400">
                                                                 {student.certificate?.issuedAt ? formatDate(student.certificate.issuedAt) : '-'}
                                                             </td>
                                                             <td className="px-6 py-4">
@@ -790,14 +804,14 @@ const CertificateManagement = () => {
                                                                         <>
                                                                             <button
                                                                                 onClick={() => handleOpenEditCertModal(student, course)}
-                                                                                className="p-2 hover:bg-blue-50 text-blue-600 rounded-lg transition-all"
+                                                                                className="p-2 hover:bg-blue-50 dark:hover:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg transition-all"
                                                                                 title="Edit Certificate"
                                                                             >
                                                                                 <Edit2 className="w-5 h-5" />
                                                                             </button>
                                                                             <button
                                                                                 onClick={() => handleDeleteCertificate(student.certificate._id)}
-                                                                                className="p-2 hover:bg-red-50 text-red-600 rounded-lg transition-all"
+                                                                                className="p-2 hover:bg-red-50 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg transition-all"
                                                                                 title="Delete Certificate"
                                                                             >
                                                                                 <Trash2 className="w-5 h-5" />
@@ -815,7 +829,7 @@ const CertificateManagement = () => {
                                                                                     certificateLink: ''
                                                                                 });
                                                                             }}
-                                                                            className="p-2 hover:bg-primary/5 text-primary rounded-lg transition-all"
+                                                                            className="p-2 hover:bg-primary/5 dark:hover:bg-primary/10 text-primary rounded-lg transition-all"
                                                                             title="Issue Certificate"
                                                                         >
                                                                             <Award className="w-5 h-5" />
@@ -833,9 +847,9 @@ const CertificateManagement = () => {
                             ))}
 
                             {filteredCourses.length === 0 && (
-                                <div className="bg-white rounded-2xl p-12 border border-gray-100 text-center">
-                                    <BookOpen className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                                    <p className="text-gray-500">No courses match your filters</p>
+                                <div className="bg-white dark:bg-gray-800 rounded-2xl p-12 border border-gray-100 dark:border-gray-700 text-center">
+                                    <BookOpen className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+                                    <p className="text-gray-500 dark:text-gray-400">No courses match your filters</p>
                                     {(searchQuery || selectedCities.length > 0 || selectedTypes.length > 0 || isDateRangeActive) && (
                                         <button
                                             onClick={clearFilters}

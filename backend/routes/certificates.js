@@ -196,16 +196,37 @@ router.get('/courses', protect, authorize('admin'), async (req, res) => {
             // Filter out enrollments with null users (deleted users)
             const students = enrollments
                 .filter(e => e.user) // Only include enrollments with valid users
-                .map(e => ({
-                    ...e.user.toObject(),
-                    enrollmentStatus: e.status,
-                    certificateIssued: !!certMap[e.user._id.toString()],
-                    certificate: certMap[e.user._id.toString()] || null
-                }));
+                .map(async (e) => {
+                    // Count verified challans from Fee model
+                    const fee = await Fee.findOne({ user: e.user._id, course: course._id });
+                    let feeVerifiedChallans = fee
+                        ? fee.installments.filter(i => i.status === 'verified').length
+                        : 0;
+
+                    // Also check Enrollment model as fallback (in case Fee is out of sync)
+                    const enrollmentVerifiedChallans = e.installments
+                        ? e.installments.filter(i => i.status === 'verified').length
+                        : 0;
+
+                    // Use the higher count from either model
+                    const verifiedChallans = Math.max(feeVerifiedChallans, enrollmentVerifiedChallans);
+
+                    console.log(`    👤 ${e.user.name}: Fee=${feeVerifiedChallans}, Enrollment=${enrollmentVerifiedChallans}, Final=${verifiedChallans}`);
+
+                    return {
+                        ...e.user.toObject(),
+                        enrollmentStatus: e.status,
+                        certificateIssued: !!certMap[e.user._id.toString()],
+                        certificate: certMap[e.user._id.toString()] || null,
+                        verifiedChallans
+                    };
+                });
+
+            const resolvedStudents = await Promise.all(students);
 
             return {
                 ...course.toObject(),
-                students
+                students: resolvedStudents
             };
         }));
 
