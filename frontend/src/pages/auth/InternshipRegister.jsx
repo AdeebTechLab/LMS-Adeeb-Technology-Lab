@@ -1,4 +1,5 @@
 import GuestChatWidget from '../../components/shared/GuestChatWidget';
+import RegistrationLeftPanel from '../../components/auth/RegistrationLeftPanel';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -436,141 +437,8 @@ const InternshipRegister = () => {
                     accentColor="blue"
                 />
             )}
-            {/* Left Side - Decorative - Fixed */}
-            <motion.div
-                initial={{ opacity: 0, x: -50 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6 }}
-                className="hidden lg:flex lg:w-1/2 h-screen sticky top-0 relative overflow-hidden"
-            >
-                {/* Gradient Background */}
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-indigo-500 to-blue-800">
-                    {/* Animated Background Elements */}
-                    <div className="absolute top-20 left-20 w-72 h-72 bg-blue-400/20 rounded-full blur-3xl animate-pulse-slow"></div>
-                    <div className="absolute bottom-20 right-20 w-96 h-96 bg-indigo-300/20 rounded-full blur-3xl animate-pulse-slow delay-300"></div>
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-cyan-400/10 rounded-full blur-3xl animate-float"></div>
-                </div>
-
-                {/* Content */}
-                <div className="relative z-10 flex flex-col items-center justify-center w-full h-full p-8 lg:p-12">
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 0.2, duration: 0.8 }}
-                        className="w-full max-w-lg bg-white/10 backdrop-blur-xl rounded-[2.5rem] border border-white/20 p-8 lg:p-10 shadow-2xl flex flex-col items-center relative overflow-hidden"
-                    >
-                        {/* Subtle inner glow */}
-                        <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none"></div>
-
-                        <motion.div
-                            initial={{ opacity: 0, y: -20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.3, duration: 0.5 }}
-                            className="flex flex-col items-center gap-3 mb-4"
-                        >
-                            <div className="w-28 h-28 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 overflow-hidden shadow-xl">
-                                <img
-                                    src="/logo.png"
-                                    alt="Adeeb Technology Lab Logo"
-                                    className="w-full h-full object-cover"
-                                    onError={(e) => {
-                                        e.target.style.display = 'none';
-                                        e.target.nextSibling.style.display = 'block';
-                                    }}
-                                />
-                                <GraduationCap className="w-16 h-16 text-white hidden" />
-                            </div>
-                            <h2 className="text-white text-2xl font-bold tracking-tight">LMS Adeeb Technology Lab</h2>
-                        </motion.div>
-
-                        {/* Detailed Information - Scrollable Area */}
-                        <div
-                            className="w-full overflow-y-auto pr-2 custom-scrollbar text-left"
-                            style={{ maxHeight: '55vh' }}
-                        >
-                            <div className="space-y-6 text-white/90 pb-4">
-                                {/* Announcements */}
-                                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/10">
-                                    <h3 className="text-lg font-bold mb-2 flex items-center gap-2">
-                                        <span className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></span>
-                                        Announcement
-                                    </h3>
-                                    <p className="text-sm leading-relaxed text-yellow-400 font-medium">
-                                        🚀 Launch your tech career with hands-on experience!
-                                    </p>
-                                </div>
-
-                                {/* Key Details */}
-                                {(() => {
-                                    const lastDate = new Date('2026-06-06');
-                                    const today = new Date();
-                                    const diffTime = lastDate - today;
-                                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                                    
-                                    // Open if within 20 days before or 20 days after the last date
-                                    const isOpen = diffDays <= 20 && diffDays >= -20;
-                                    
-                                    return (
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="bg-white/5 p-3 rounded-lg border border-white/5">
-                                                <p className="text-xs text-white/60">Status</p>
-                                                <p className={`font-bold ${isOpen ? 'text-green-400' : 'text-red-400'}`}>
-                                                    {isOpen ? 'Open' : 'Closed'}
-                                                </p>
-                                            </div>
-                                            <div className="bg-white/5 p-3 rounded-lg border border-white/5">
-                                                <p className="text-xs text-white/60">Last Date</p>
-                                                <p className="font-bold">06/06/2026</p>
-                                            </div>
-                                            <div className="bg-white/5 p-3 rounded-lg border border-white/5 col-span-2 text-center">
-                                                <p className="text-xs text-white/60">Duration</p>
-                                                <p className="font-bold">3 - 6 Months</p>
-                                            </div>
-                                        </div>
-                                    );
-                                })()}
-
-                                <div className="bg-blue-400/20 p-3 rounded-lg border border-blue-400/30">
-                                    <p className="text-sm font-semibold">Type: On-Site / Remote</p>
-                                </div>
-
-                                {/* Requirements */}
-                                <div>
-                                    <h4 className="font-bold mb-3 border-l-4 border-yellow-400 pl-3 uppercase text-xs tracking-widest">Internship Requirements</h4>
-                                    <ul className="space-y-2 text-sm">
-                                        <li className="flex items-center gap-2">💻 Personal Laptop</li>
-                                        <li className="flex items-center gap-2">🌐 Home Wi-Fi</li>
-                                    </ul>
-                                </div>
-
-                                {/* Fields Include */}
-                                <div>
-                                    <h4 className="font-bold mb-3 border-l-4 border-yellow-400 pl-3 uppercase text-xs tracking-widest">Internship Fields Include</h4>
-                                    <div className="grid grid-cols-1 gap-2 text-sm">
-                                        <div className="p-2 bg-white/5 rounded">📌 Office Work (IT)</div>
-                                        <div className="p-2 bg-white/5 rounded">📌 Social Media Marketing</div>
-                                        <div className="p-2 bg-white/5 rounded">📌 Graphic Designing</div>
-                                        <div className="p-2 bg-white/5 rounded">📌 Video Editing</div>
-                                        <div className="p-2 bg-white/5 rounded">📌 Web, App & Software Development</div>
-                                        <div className="p-2 bg-white/5 rounded">📌 Team Management</div>
-                                    </div>
-                                </div>
-
-                                {/* Internship Benefits */}
-                                <div>
-                                    <h4 className="font-bold mb-3 border-l-4 border-yellow-400 pl-3 uppercase text-xs tracking-widest">Internship Benefits</h4>
-                                    <ul className="space-y-2 text-sm">
-                                        <li className="flex items-center gap-2">✅ Work on real projects</li>
-                                        <li className="flex items-center gap-2">✅ Learn industry skills</li>
-                                        <li className="flex items-center gap-2">✅ Internship Certificate</li>
-                                        <li className="flex items-center gap-2">✅ Online & On-Site Available</li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                    </motion.div>
-                </div>
-            </motion.div>
+            {/* Left Side - Dynamic Content */}
+            <RegistrationLeftPanel formType="intern" />
 
             {/* Right Side - Registration Form - Scrollable */}
             <motion.div

@@ -373,6 +373,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 { id: 'expense', labelKey: 'Expense', icon: Wallet, path: '/admin/expense' },
                 { id: 'discussion-room', labelKey: 'Discussion Room', icon: MessageSquare, path: '/admin/discussion-room', badge: discussionUnread },
                 { id: 'attendance-settings', labelKey: 'nav.attendanceSettings', icon: ClipboardList, path: '/admin/attendance-settings' },
+                { id: 'registration-pages', labelKey: 'Registration Forms', icon: FileText, path: '/admin/registration-pages' },
             ],
             teacher: [
                 { id: 'dashboard', labelKey: 'nav.dashboard', icon: LayoutDashboard, path: '/teacher/dashboard', submissionBadge: teacherSubmissionCount },

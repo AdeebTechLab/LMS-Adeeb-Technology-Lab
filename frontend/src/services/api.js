@@ -312,6 +312,14 @@ export const settingsAPI = {
     update: (key, value) => api.put(`/settings/${key}`, { value })
 };
 
+// Registration Pages API
+export const registrationPageAPI = {
+    getAll: () => api.get('/registration-pages'),
+    getByType: (formType) => api.get(`/registration-pages/${formType}`),
+    update: (formType, data) => api.put(`/registration-pages/${formType}`, data),
+    updateAll: (pages) => api.put('/registration-pages', { pages })
+};
+
 // Live Class API
 export const liveClassAPI = {
     create: (data) => api.post('/live-class', data),

@@ -1,4 +1,5 @@
 import GuestChatWidget from '../../components/shared/GuestChatWidget';
+import RegistrationLeftPanel from '../../components/auth/RegistrationLeftPanel';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -386,101 +387,8 @@ const JobRegister = () => {
                     accentColor="purple"
                 />
             )}
-            {/* Left Side - Decorative - Fixed */}
-            <motion.div
-                initial={{ opacity: 0, x: -50 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6 }}
-                className="hidden lg:flex lg:w-1/2 h-screen sticky top-0 relative overflow-hidden"
-            >
-                {/* Gradient Background */}
-                <div className="absolute inset-0 bg-gradient-to-br from-primary via-fuchsia-500 to-purple-800">
-                    {/* Animated Background Elements */}
-                    <div className="absolute top-20 left-20 w-72 h-72 bg-purple-400/20 rounded-full blur-3xl animate-pulse-slow"></div>
-                    <div className="absolute bottom-20 right-20 w-96 h-96 bg-fuchsia-300/20 rounded-full blur-3xl animate-pulse-slow delay-300"></div>
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-pink-400/10 rounded-full blur-3xl animate-float"></div>
-                </div>
-
-                {/* Content */}
-                <div className="relative z-10 flex flex-col items-center justify-center w-full h-full p-8 lg:p-12">
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 0.2, duration: 0.8 }}
-                        className="w-full max-w-lg bg-white/10 backdrop-blur-xl rounded-[2.5rem] border border-white/20 p-8 lg:p-10 shadow-2xl flex flex-col items-center relative overflow-hidden"
-                    >
-                        {/* Subtle inner glow */}
-                        <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none"></div>
-
-                        <motion.div
-                            initial={{ opacity: 0, y: -20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.3, duration: 0.5 }}
-                            className="flex flex-col items-center gap-3 mb-4"
-                        >
-                            <div className="w-28 h-28 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 overflow-hidden shadow-xl">
-                                <img
-                                    src="/logo.png"
-                                    alt="Adeeb Technology Lab Logo"
-                                    className="w-full h-full object-cover"
-                                    onError={(e) => {
-                                        e.target.style.display = 'none';
-                                        e.target.nextSibling.style.display = 'block';
-                                    }}
-                                />
-                                <Briefcase className="w-16 h-16 text-white hidden" />
-                            </div>
-                            <h2 className="text-white text-2xl font-bold tracking-tight">LMS Adeeb Technology Lab</h2>
-                        </motion.div>
-
-                        {/* Detailed Information - Scrollable Area */}
-                        <div
-                            className="w-full overflow-y-auto pr-2 custom-scrollbar text-left"
-                            style={{ maxHeight: '55vh' }}
-                        >
-                            <div className="space-y-6 text-white/90 pb-4">
-                                {/* Status Banner */}
-                                <div className="bg-primary/20 backdrop-blur-sm rounded-xl p-4 border border-primary/30">
-                                    <div className="flex justify-between items-center mb-2">
-                                        <h3 className="text-lg font-bold">Job Application Form</h3>
-                                        <span className="px-2 py-1 bg-primary text-white text-xs font-bold rounded">Open</span>
-                                    </div>
-                                    <p className="text-sm font-semibold text-primary">Applications are currently open!</p>
-                                    <p className="text-xs mt-1 text-white/60">Last Date To Apply: Always Open</p>
-                                </div>
-
-                                <div className="bg-fuchsia-500/20 p-3 rounded-lg border border-fuchsia-500/30">
-                                    <p className="text-sm font-semibold">Type: On-Site / Remote</p>
-                                </div>
-
-                                {/* Why Join? */}
-                                <div>
-                                    <h4 className="font-bold mb-3 border-l-4 border-yellow-400 pl-3 uppercase text-xs tracking-widest text-fuchsia-400">Why Join Our Team?</h4>
-                                    <ul className="space-y-2 text-sm">
-                                        <li className="flex items-center gap-2">✅ Teach in Professional Environment</li>
-                                        <li className="flex items-center gap-2">✅ Get Paid for Each Course</li>
-                                        <li className="flex items-center gap-2">✅ Build Career with Adeeb Tech Lab</li>
-                                        <li className="flex items-center gap-2">✅ Teach Online or On-Site</li>
-                                    </ul>
-                                </div>
-
-                                {/* Teaching Fields */}
-                                <div>
-                                    <h4 className="font-bold mb-3 border-l-4 border-yellow-400 pl-3 uppercase text-xs tracking-widest text-fuchsia-400">Teaching Fields Available</h4>
-                                    <div className="grid grid-cols-1 gap-2 text-sm">
-                                        <div className="p-2 bg-white/5 rounded">💻 Web Development</div>
-                                        <div className="p-2 bg-white/5 rounded">🧠 Artificial Intelligence</div>
-                                        <div className="p-2 bg-white/5 rounded">📊 Digital Marketing</div>
-                                        <div className="p-2 bg-white/5 rounded">🎨 Graphic Design</div>
-                                        <div className="p-2 bg-white/5 rounded">💬 IELTS & Communication</div>
-                                        <div className="p-2 bg-white/5 rounded">🧾 Taxation & E-Commerce</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </motion.div>
-                </div>
-            </motion.div>
+            {/* Left Side - Dynamic Content */}
+            <RegistrationLeftPanel formType="job" />
 
             {/* Right Side - Registration Form - Scrollable */}
             <motion.div

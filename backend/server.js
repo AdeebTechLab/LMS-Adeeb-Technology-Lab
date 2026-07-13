@@ -52,6 +52,7 @@ const liveClassRoutes = require('./routes/liveClass');
 const directoryRoutes = require('./routes/directory');
 const financeRoutes = require('./routes/finance');
 const reportRoutes = require('./routes/reports');
+const registrationPageRoutes = require('./routes/registrationPages');
 
 // Import attendance lock function
 const { lockTodayAttendance } = require('./controllers/attendanceController');
@@ -456,6 +457,7 @@ app.use('/api/live-class', liveClassRoutes);
 app.use('/api/directory', directoryRoutes);
 app.use('/api/finance', financeRoutes);
 app.use('/api/reports', reportRoutes);
+app.use('/api/registration-pages', registrationPageRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
