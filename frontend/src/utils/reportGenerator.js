@@ -32,7 +32,7 @@ const loadImage = (url) => {
     });
 };
 
-export const generateComprehensiveReport = async (user, enrollments, assignments, fees = [], options = {}) => {
+export const generateComprehensiveReport = async (user, enrollments, assignments, fees = [], dailyTasks = [], options = {}) => {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.width;
     const pageHeight = doc.internal.pageSize.height;
@@ -280,6 +280,9 @@ export const generateComprehensiveReport = async (user, enrollments, assignments
 
             y += 5; // Spacing
 
+            const isInternCourse = enrollment.course?.targetAudience === 'interns';
+            const assignmentLabel = isInternCourse ? 'Projects' : 'Assignments';
+
             // B. Assignments (Cards)
             checkPageBreak(30);
 
@@ -290,7 +293,7 @@ export const generateComprehensiveReport = async (user, enrollments, assignments
             doc.setFontSize(11);
             doc.setTextColor(0, 0, 0);
             doc.setFont('helvetica', 'bold');
-            doc.text('Assignments', 19, y + 3);
+            doc.text(assignmentLabel, 19, y + 3);
             y += 12;
 
             // Filter assignments for this course
@@ -386,7 +389,90 @@ export const generateComprehensiveReport = async (user, enrollments, assignments
                 doc.setFontSize(10);
                 doc.setFont('helvetica', 'normal');
                 doc.setTextColor(150, 150, 150);
-                doc.text('No assignments found for this course.', 14, y);
+                doc.text(`No ${assignmentLabel.toLowerCase()} found for this course.`, 14, y);
+                y += 10;
+            }
+
+            y += 5; // Spacing
+
+            // C. Daily Tasks / Class Logs / Meeting Logs
+            const courseDailyTasks = (dailyTasks || []).filter(dt =>
+                dt.course && enrollment.course && (dt.course._id === enrollment.course._id || dt.course === enrollment.course._id || dt.course.id === enrollment.course._id)
+            );
+            const dailyTaskLabel = isInternCourse ? 'Meeting Logs' : 'Class Logs';
+
+            if (courseDailyTasks.length > 0) {
+                checkPageBreak(30);
+
+                // Daily Tasks Header Background
+                doc.setFillColor(232, 240, 254);
+                doc.rect(14, y - 5, pageWidth - 28, 12, 'F');
+
+                doc.setFontSize(11);
+                doc.setTextColor(0, 0, 0);
+                doc.setFont('helvetica', 'bold');
+                doc.text(dailyTaskLabel, 19, y + 3);
+                y += 12;
+
+                courseDailyTasks.forEach(task => {
+                    const cardHeight = 18;
+
+                    checkPageBreak(cardHeight + 5);
+
+                    // Status Stripe
+                    const taskStatus = task.status || 'pending';
+                    if (taskStatus === 'verified' || taskStatus === 'graded') {
+                        doc.setFillColor(34, 197, 94);
+                    } else if (taskStatus === 'submitted') {
+                        doc.setFillColor(234, 179, 8);
+                    } else {
+                        doc.setFillColor(239, 68, 68);
+                    }
+                    doc.roundedRect(14, y, 2, 16, 1, 1, 'F');
+
+                    // Main Info
+                    doc.setFontSize(10);
+                    doc.setFont('helvetica', 'bold');
+                    doc.setTextColor(50, 50, 50);
+                    const taskTitle = task.title || task.description || 'Untitled Task';
+                    const truncatedTitle = taskTitle.length > 60 ? taskTitle.substring(0, 60) + '...' : taskTitle;
+                    doc.text(truncatedTitle, 19, y + 6);
+
+                    doc.setFontSize(9);
+                    doc.setFont('helvetica', 'normal');
+                    doc.setTextColor(100, 100, 100);
+                    const taskDate = task.date || task.submittedAt || task.createdAt;
+                    doc.text(`Date: ${safeDateFormat(taskDate)}`, 19, y + 12);
+
+                    // Status Badge
+                    doc.setFontSize(8);
+                    doc.setFont('helvetica', 'bold');
+                    const statusText = taskStatus.toUpperCase();
+                    if (taskStatus === 'verified' || taskStatus === 'graded') {
+                        doc.setTextColor(21, 128, 61);
+                    } else if (taskStatus === 'submitted') {
+                        doc.setTextColor(180, 130, 0);
+                    } else {
+                        doc.setTextColor(200, 50, 50);
+                    }
+                    doc.text(statusText, pageWidth - 20, y + 6, { align: 'right' });
+
+                    // Grade if graded
+                    if (task.marks != null) {
+                        doc.setFontSize(9);
+                        doc.setTextColor(21, 128, 61);
+                        doc.setFont('helvetica', 'bold');
+                        doc.text(`${task.marks}/${task.totalMarks || 100}`, pageWidth - 20, y + 12, { align: 'right' });
+                    }
+
+                    y += cardHeight;
+                });
+            } else {
+                checkPageBreak(16);
+                doc.setFontSize(10);
+                doc.setTextColor(150, 150, 150);
+                doc.setFont('helvetica', 'normal');
+                doc.text(`No ${dailyTaskLabel.toLowerCase()} found for this course.`, 14, y);
                 y += 10;
             }
 

@@ -52,6 +52,9 @@ const AttendanceTab = ({ course, students }) => {
     const [holidayDays, setHolidayDays] = useState([]);
     const [isHoliday, setIsHoliday] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [whatsappEnabled, setWhatsappEnabled] = useState(() => {
+        return localStorage.getItem('attendance_whatsapp_enabled') !== 'false';
+    });
 
     useEffect(() => {
         fetchGlobalHolidays();
@@ -145,7 +148,7 @@ const AttendanceTab = ({ course, students }) => {
         const student = students.find(s => s.id === studentId);
 
         // WHATSAPP POPUP LOGIC (Triggered before await to bypass browser popup blocker)
-        if (student && student.guardianPhone) {
+        if (whatsappEnabled && student && student.guardianPhone) {
             const isIntern = course?.targetAudience === 'interns';
             const academyName = isIntern ? "Adeeb Technology Lab" : "The Computer Courses";
             const tagline = isIntern ? "Digital Tech Expert Software House" : "Learn and Earn";

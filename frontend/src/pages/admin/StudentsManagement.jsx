@@ -9,7 +9,7 @@ import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
-import { userAPI, settingsAPI, enrollmentAPI, assignmentAPI, feeAPI, courseAPI, reportAPI } from '../../services/api';
+import { userAPI, settingsAPI, enrollmentAPI, assignmentAPI, feeAPI, courseAPI, reportAPI, dailyTaskAPI } from '../../services/api';
 import { generateComprehensiveReport } from '../../utils/reportGenerator';
 import Loader, { ButtonLoader } from '../../components/ui/Loader';
 import ImageCropper from '../../components/ui/ImageCropper';
@@ -612,12 +612,13 @@ const StudentsManagement = () => {
 
     const handleDownloadCompleteReport = async (student) => {
         try {
-            const [enrollmentsRes, assignmentsRes, feesRes] = await Promise.all([
+            const [enrollmentsRes, assignmentsRes, feesRes, dailyTasksRes] = await Promise.all([
                 enrollmentAPI.getUserEnrollments(student._id),
                 assignmentAPI.getUserAssignments(student._id),
-                feeAPI.getUserFees(student._id)
+                feeAPI.getUserFees(student._id),
+                dailyTaskAPI.getUserDailyTasks(student._id)
             ]);
-            await generateComprehensiveReport(student, enrollmentsRes.data.data, assignmentsRes.data.assignments, feesRes.data.data);
+            await generateComprehensiveReport(student, enrollmentsRes.data.data, assignmentsRes.data.assignments, feesRes.data.data, dailyTasksRes.data.data || []);
         } catch (error) {
             console.error('Error generating report:', error);
             alert('Failed to generate report. Please try again.');
@@ -625,10 +626,11 @@ const StudentsManagement = () => {
     };
 
     const createStudentReportLink = async (student) => {
-        const [enrollmentsRes, assignmentsRes, feesRes] = await Promise.all([
+        const [enrollmentsRes, assignmentsRes, feesRes, dailyTasksRes] = await Promise.all([
             enrollmentAPI.getUserEnrollments(student._id),
             assignmentAPI.getUserAssignments(student._id),
-            feeAPI.getUserFees(student._id)
+            feeAPI.getUserFees(student._id),
+            dailyTaskAPI.getUserDailyTasks(student._id)
         ]);
         const enrollments = enrollmentsRes.data.data || [];
         const generated = await generateComprehensiveReport(
@@ -636,6 +638,7 @@ const StudentsManagement = () => {
             enrollments,
             assignmentsRes.data.assignments,
             feesRes.data.data,
+            dailyTasksRes.data.data || [],
             { output: 'blob' }
         );
         const formData = new FormData();

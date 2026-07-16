@@ -42,6 +42,7 @@ const MarksSheet = () => {
             const coursesWithMarks = enrollmentsData.map(enrollment => {
                 const courseId = enrollment.course?._id;
                 const courseTitle = enrollment.course?.title || 'Course';
+                const targetAudience = enrollment.course?.targetAudience || 'students';
 
                 // Get assignment marks for this course (Sort by date for consistent numbering)
                 const courseAssignments = assignments
@@ -116,7 +117,7 @@ const MarksSheet = () => {
                                     number: index + 1,
                                     type: 'Test',
                                     marks: mySub.score || 0,
-                                    total: t.totalMarks || 100
+                                    total: mySub.totalPossibleScore || t.totalMarks || 100
                                 };
                             }
                             return null;
@@ -423,7 +424,7 @@ const MarksSheet = () => {
                                         <div className="flex items-center justify-between mb-6 px-2">
                                             <div className="flex items-center gap-3">
                                                 <div className="p-2 bg-primary/5 rounded-lg"><RefreshCw className="w-5 h-5 text-primary" /></div>
-                                                <h4 className="font-black text-gray-900 uppercase tracking-widest">{user?.role === 'intern' ? 'Projects' : 'Daily classes'}</h4>
+                                                <h4 className="font-black text-gray-900 uppercase tracking-widest">{selectedCourse?.targetAudience === 'interns' ? 'Projects' : 'Daily classes'}</h4>
                                             </div>
                                             {dailyAvgMarks && <span className="text-[10px] font-black text-primary bg-primary/5 px-3 py-1.5 rounded-xl border border-primary/10 uppercase">Class Avg Score: {dailyAvgMarks}/10</span>}
                                         </div>
@@ -503,7 +504,7 @@ const MarksSheet = () => {
                                                                                 <td className="py-4 px-6 font-medium text-gray-500 text-xs">{grade.date}</td>
                                                                                 <td className="py-4 px-6 font-bold text-gray-900">{grade.assessment}</td>
                                                                                 <td className="py-4 px-6 font-medium text-gray-600">
-                                                                                    <span className="text-gray-900 font-bold">{grade.marks}</span><span className="text-xs opacity-50">/{grade.total}</span>
+                                                                                    <span className="text-gray-900 font-bold">{grade.marks}</span>
                                                                                 </td>
                                                                                 <td className="py-4 px-6">
                                                                                     <p className="text-xs font-medium text-gray-500 max-w-[200px] truncate" title={grade.feedback || getAutomaticFeedback(parseFloat(perc))}>{grade.feedback || getAutomaticFeedback(parseFloat(perc))}</p>

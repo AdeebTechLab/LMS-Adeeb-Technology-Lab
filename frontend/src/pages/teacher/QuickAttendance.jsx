@@ -71,6 +71,9 @@ const QuickAttendance = () => {
     const [courses, setCourses] = useState([]);
     const [holidayDays, setHolidayDays] = useState([]);
     const [classTimeOptions, setClassTimeOptions] = useState(DEFAULT_CLASS_TIME_OPTIONS);
+    const [whatsappEnabled, setWhatsappEnabled] = useState(() => {
+        return localStorage.getItem('attendance_whatsapp_enabled') !== 'false';
+    });
     const socketRef = useRef(null);
 
     const getSocketURL = () => {
@@ -226,7 +229,7 @@ const QuickAttendance = () => {
         }));
 
         // WHATSAPP POPUP LOGIC (Triggered before await to bypass browser popup blocker)
-        if (student.guardianPhone) {
+        if (whatsappEnabled && student.guardianPhone) {
             const isIntern = student.audience === 'interns';
             const academyName = isIntern ? "Adeeb Technology Lab" : "The Computer Courses";
             const tagline = isIntern ? "Digital Tech Expert Software House" : "Learn and Earn";

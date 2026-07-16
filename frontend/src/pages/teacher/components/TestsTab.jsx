@@ -587,7 +587,7 @@ const TestsTab = ({ course, students }) => {
                                                 {[...test.submissions]
                                                     .sort((a, b) => new Date(b.submittedAt || b.createdAt) - new Date(a.submittedAt || a.createdAt))
                                                     .map((submission, idx) => {
-                                                        const totalMarks = test.totalMarks || test.questions?.reduce((acc, q) => acc + (q.marks || 1), 0) || test.questions?.length;
+                                                        const totalMarks = submission.totalPossibleScore || test.totalMarks || test.questions?.reduce((acc, q) => acc + (q.marks || 1), 0) || test.questions?.length;
 
                                                         return (
                                                             <div key={submission._id || idx} className="flex items-center justify-between w-full">
@@ -1300,8 +1300,8 @@ const TestsTab = ({ course, students }) => {
             >
                 <div className="space-y-4 max-h-[60vh] overflow-y-auto py-2 pr-2">
                     {selectedTest?.submissions && selectedTest.submissions.length > 0 ? (
-                        selectedTest.submissions.map((submission) => {
-                            const totalMarks = selectedTest.totalMarks || selectedTest.questions?.length;
+                        [...selectedTest.submissions].sort((a, b) => new Date(b.submittedAt || b.createdAt) - new Date(a.submittedAt || a.createdAt)).map((submission) => {
+                            const totalMarks = submission.totalPossibleScore || selectedTest.totalMarks || selectedTest.questions?.length;
                             return (
                                 <div key={submission._id} className="bg-gray-50 p-4 rounded-xl border border-gray-100 relative group">
                                     <button
@@ -1340,8 +1340,7 @@ const TestsTab = ({ course, students }) => {
                                                 {submission.score >= (totalMarks / 2) ? 'PASSED' : 'FAILED'}
                                             </Badge>
                                             <p className="text-xl font-black text-primary mt-1 leading-none">
-                                                {submission.score}
-                                                <span className="text-xs font-bold text-gray-400">/{totalMarks}</span>
+                                                {submission.score}/{totalMarks}
                                             </p>
                                         </div>
                                     </div>

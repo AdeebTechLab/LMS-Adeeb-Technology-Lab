@@ -121,7 +121,7 @@ const StudentAttendanceTab = ({ course }) => {
                         <Calendar className="hidden sm:block w-4 h-4 text-primary shrink-0" />
                         <p className="text-lg sm:text-2xl font-black leading-none text-primary">{attendanceData.length}</p>
                     </div>
-                    <p className="mt-1 text-[8px] sm:text-[10px] font-black leading-tight text-gray-400 uppercase tracking-tight sm:tracking-wider">{role === 'intern' ? 'Total Meetings' : 'Total Classes'}</p>
+                    <p className="mt-1 text-[8px] sm:text-[10px] font-black leading-tight text-gray-400 uppercase tracking-tight sm:tracking-wider">{course?.targetAudience === 'interns' ? 'Total Meetings' : 'Total Classes'}</p>
                 </div>
             </div>
 

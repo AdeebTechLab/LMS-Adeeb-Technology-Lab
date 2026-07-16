@@ -97,6 +97,8 @@ const StudentWorkView = ({ student, onBack }) => {
     const assignmentsWithSubmission = assignments.filter(a => a.submissions && a.submissions.length > 0);
     const assignmentsWithoutSubmission = assignments.filter(a => !a.submissions || a.submissions.length === 0);
 
+    const isInternCourse = enrollments.some(e => e.course?.targetAudience === 'interns');
+
     return (
         <div className="space-y-6">
             {/* Header */}
@@ -132,7 +134,7 @@ const StudentWorkView = ({ student, onBack }) => {
                         {student.email && (
                             <span className="text-xs text-gray-400 font-medium">{student.email}</span>
                         )}
-                        <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider ${student.role === 'intern' ? 'bg-primary/10 text-purple-700' : 'bg-blue-100 text-blue-700'}`}>
+                        <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider ${isInternCourse ? 'bg-primary/10 text-purple-700' : 'bg-blue-100 text-blue-700'}`}>
                             {student.role || 'Student'}
                         </span>
                     </div>
@@ -165,7 +167,7 @@ const StudentWorkView = ({ student, onBack }) => {
                         }`}
                 >
                     <FileText className="w-4 h-4" />
-                    {student?.role === 'intern' ? 'Projects' : 'Assignments'}
+                    {isInternCourse ? 'Projects' : 'Assignments'}
                     <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-black ${activeTab === TAB_ASSIGNMENTS ? 'bg-primary/10 text-primary' : 'bg-gray-200 text-gray-500'}`}>
                         {assignments.length}
                     </span>
@@ -178,7 +180,7 @@ const StudentWorkView = ({ student, onBack }) => {
                         }`}
                 >
                     <ClipboardList className="w-4 h-4" />
-                    {student?.role === 'intern' ? 'Meeting Logs' : 'Class Logs'}
+                    {isInternCourse ? 'Meeting Logs' : 'Class Logs'}
                     <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-black ${activeTab === TAB_DAILY_TASKS ? 'bg-primary/10 text-primary' : 'bg-gray-200 text-gray-500'}`}>
                         {dailyTasks.length}
                     </span>
@@ -227,7 +229,7 @@ const StudentWorkView = ({ student, onBack }) => {
                                 {assignments.length === 0 ? (
                                     <div className="text-center py-16">
                                         <FileText className="w-12 h-12 text-gray-200 mx-auto mb-3" />
-                                        <p className="text-gray-400 font-medium">No {student?.role === 'intern' ? 'projects' : 'assignments'} found for this student.</p>
+                                        <p className="text-gray-400 font-medium">No {isInternCourse ? 'projects' : 'assignments'} found for this student.</p>
                                     </div>
                                 ) : (
                                     <div className="space-y-4">
@@ -349,7 +351,7 @@ const StudentWorkView = ({ student, onBack }) => {
                                 className="space-y-6"
                             >
                                 <div className="flex items-center justify-between">
-                                    <h3 className="font-bold text-gray-900 text-lg">{student?.role === 'intern' ? 'Meeting Logs' : 'Class Logs'}</h3>
+                                    <h3 className="font-bold text-gray-900 text-lg">{isInternCourse ? 'Meeting Logs' : 'Class Logs'}</h3>
                                     <div className="flex gap-3">
                                         <span className="text-xs font-bold text-primary bg-primary/5 px-3 py-1 rounded-full border border-primary/10">
                                             {dailyTasks.filter(t => t.status === 'verified' || t.status === 'graded').length} verified
@@ -363,7 +365,7 @@ const StudentWorkView = ({ student, onBack }) => {
                                 {dailyTasks.length === 0 ? (
                                     <div className="text-center py-16">
                                         <ClipboardList className="w-12 h-12 text-gray-200 mx-auto mb-3" />
-                                        <p className="text-gray-400 font-medium">No {student?.role === 'intern' ? 'meeting' : 'class'} logs found for this student.</p>
+                                        <p className="text-gray-400 font-medium">No {isInternCourse ? 'meeting' : 'class'} logs found for this student.</p>
                                     </div>
                                 ) : (
                                     <div className="space-y-4">

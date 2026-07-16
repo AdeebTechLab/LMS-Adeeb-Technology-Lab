@@ -609,7 +609,7 @@ const StudentDashboard = () => {
                                                 </div>
                                                 <div className="min-w-0 flex-1">
                                                     <h4 className="font-black text-gray-900 text-sm group-hover:text-primary transition-colors uppercase italic leading-tight mb-0.5">{assignment.title}</h4>
-                                                    <p className="text-[9px] text-primary font-black uppercase tracking-widest">{assignment.course?.title || (role === 'intern' ? 'Project' : 'Assignment')}</p>
+                                                    <p className="text-[9px] text-primary font-black uppercase tracking-widest">{assignment.course?.title || 'Assignment'}</p>
                                                     <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mt-0.5 dark:text-gray-500">
                                                         {t('dashboard.due', { date: formatDate(assignment.dueDate) })}
                                                     </p>

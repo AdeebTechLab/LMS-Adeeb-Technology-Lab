@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Search, User, XCircle, Award, CheckCircle, ShieldCheck, Download, FileText, BookOpen, Calendar, MapPin, Briefcase, GraduationCap, ExternalLink } from 'lucide-react';
+import { Search, User, XCircle, Award, CheckCircle, ShieldCheck, Download, FileText, BookOpen, Calendar, MapPin, Briefcase, GraduationCap, ExternalLink, Phone, Mail, Globe, Clock, MessageCircle } from 'lucide-react';
 import { ButtonLoader } from '../../components/ui/Loader';
 import { certificateAPI } from '../../services/api';
 
@@ -361,23 +361,84 @@ const VerifyCertificate = () => {
                 </div>
 
                 {/* Footer Section */}
-                <div className="mt-24 pt-12 border-t border-slate-200 text-center space-y-8">
-                    <div className="flex flex-col md:flex-row items-center justify-center gap-12 text-slate-400">
-                        <div className="flex flex-col items-center gap-2">
-                            <img src="/logo.png" alt="Adeeb Tech" className="h-10 opacity-20 filter grayscale" />
-                            <p className="text-[10px] font-black uppercase tracking-widest leading-none">Security Verified</p>
+                <footer className="mt-24 bg-[#1a1c23] text-white rounded-t-[3rem] px-4 pt-10 pb-8">
+                    <div className="max-w-6xl mx-auto">
+                        {/* Header */}
+                        <div className="flex items-center gap-4 mb-8 pb-6 border-b border-white/10">
+                            <img src="/logo.png" alt="Adeeb Tech" className="h-10" />
+                            <div>
+                                <h3 className="text-lg font-black tracking-tight">Adeeb Technology Lab</h3>
+                                <p className="text-[11px] font-medium"><span className="text-primary">Digital Tech Expert</span> <span className="text-gray-500">· Bahawalpur & Islamabad</span></p>
+                            </div>
                         </div>
-                        <div className="flex flex-col items-center gap-2">
-                            <p className="text-[10px] font-black uppercase tracking-widest leading-none">Powered By</p>
-                            <p className="text-sm font-black text-slate-800 tracking-tighter">Adeeb Technology Lab</p>
+
+                        {/* Contact + Common - 3 columns */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 pb-6 border-b border-white/10">
+                            <div>
+                                <h4 className="text-[11px] font-black text-primary uppercase tracking-widest mb-3">Bahawalpur</h4>
+                                <div className="gap-1.5 text-sm text-gray-400">
+                                    <p>📞 062 30 97 240</p>
+                                    <p>💬 <a href="https://wa.me/923393900444" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">03 3939 00 444</a></p>
+                                </div>
+                            </div>
+                            <div>
+                                <h4 className="text-[11px] font-black text-primary uppercase tracking-widest mb-3">Islamabad</h4>
+                                <div className="gap-1.5 text-sm text-gray-400">
+                                    <p>📞 051 613 2233</p>
+                                    <p>💬 <a href="https://wa.me/923092333121" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">030 92 333 121</a></p>
+                                </div>
+                            </div>
+                            <div>
+                                <h4 className="text-[11px] font-black text-primary uppercase tracking-widest mb-3">Reach Us</h4>
+                                <div className="gap-1.5 text-sm text-gray-400">
+                                    <p>📧 <a href="mailto:info.AdeebTechLab@gmail.com" className="hover:text-primary transition-colors">info.AdeebTechLab@gmail.com</a></p>
+                                    <p>🌐 <a href="https://www.AdeebTechLab.com" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">www.AdeebTechLab.com</a></p>
+                                </div>
+                            </div>
                         </div>
-                    </div>
 
+                        {/* Social Media - 2 columns */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8 pb-6 border-b border-white/10">
+                            <div>
+                                <h4 className="text-[11px] font-black text-gray-500 uppercase tracking-widest mb-4">Adeeb Technology Lab (Company)</h4>
+                                <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                                    <a href="https://adeeb-technology-lab-website.vercel.app/" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center p-2.5 bg-white/5 rounded-xl text-[10px] text-gray-500 hover:text-primary hover:bg-primary/10 transition-all border border-white/5 font-medium">Website</a>
+                                    <a href="mailto:info.AdeebTechLab@gmail.com" className="flex items-center justify-center p-2.5 bg-white/5 rounded-xl text-[10px] text-gray-500 hover:text-primary hover:bg-primary/10 transition-all border border-white/5 font-medium">Email</a>
+                                    <a href="https://www.whatsapp.com/channel/0029VaCeeBg4inos1Eqtbc43" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center p-2.5 bg-white/5 rounded-xl text-[10px] text-gray-500 hover:text-primary hover:bg-primary/10 transition-all border border-white/5 font-medium">WhatsApp</a>
+                                    <a href="https://web.facebook.com/AdeebTechnologyLab" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center p-2.5 bg-white/5 rounded-xl text-[10px] text-gray-500 hover:text-primary hover:bg-primary/10 transition-all border border-white/5 font-medium">Facebook</a>
+                                    <a href="https://www.instagram.com/adeebtechlab/" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center p-2.5 bg-white/5 rounded-xl text-[10px] text-gray-500 hover:text-primary hover:bg-primary/10 transition-all border border-white/5 font-medium">Instagram</a>
+                                    <a href="https://www.linkedin.com/company/AdeebTechnologyLab/" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center p-2.5 bg-white/5 rounded-xl text-[10px] text-gray-500 hover:text-primary hover:bg-primary/10 transition-all border border-white/5 font-medium">LinkedIn</a>
+                                    <a href="https://x.com/AdeebTechLab" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center p-2.5 bg-white/5 rounded-xl text-[10px] text-gray-500 hover:text-primary hover:bg-primary/10 transition-all border border-white/5 font-medium">X</a>
+                                    <a href="https://www.youtube.com/AdeebTechnologyLab" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center p-2.5 bg-white/5 rounded-xl text-[10px] text-gray-500 hover:text-primary hover:bg-primary/10 transition-all border border-white/5 font-medium">YouTube</a>
+                                    <a href="https://www.tiktok.com/@adeebtechnologylab" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center p-2.5 bg-white/5 rounded-xl text-[10px] text-gray-500 hover:text-primary hover:bg-primary/10 transition-all border border-white/5 font-medium">TikTok</a>
+                                    <a href="https://www.threads.com/@adeebtechlab" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center p-2.5 bg-white/5 rounded-xl text-[10px] text-gray-500 hover:text-primary hover:bg-primary/10 transition-all border border-white/5 font-medium">Threads</a>
+                                    <a href="https://github.com/AdeebTechLab" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center p-2.5 bg-white/5 rounded-xl text-[10px] text-gray-500 hover:text-primary hover:bg-primary/10 transition-all border border-white/5 font-medium">GitHub</a>
+                                    <a href="https://www.snapchat.com/@salmanadeeb02" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center p-2.5 bg-white/5 rounded-xl text-[10px] text-gray-500 hover:text-primary hover:bg-primary/10 transition-all border border-white/5 font-medium">Snapchat</a>
+                                    <a href="https://www.pinterest.com/adeebtechnologylab/" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center p-2.5 bg-white/5 rounded-xl text-[10px] text-gray-500 hover:text-primary hover:bg-primary/10 transition-all border border-white/5 font-medium">Pinterest</a>
+                                    <a href="https://play.google.com/store/apps/details?id=com.adeebtechlab.apps" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center p-2.5 bg-white/5 rounded-xl text-[10px] text-gray-500 hover:text-primary hover:bg-primary/10 transition-all border border-white/5 font-medium">Mobile App</a>
+                                    <a href="https://apps.microsoft.com/search/publisher?name=Adeeb+Technology+Lab&hl=en-GB&gl=US" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center p-2.5 bg-white/5 rounded-xl text-[10px] text-gray-500 hover:text-primary hover:bg-primary/10 transition-all border border-white/5 font-medium">Software</a>
+                                </div>
+                            </div>
+                            <div>
+                                <h4 className="text-[11px] font-black text-gray-500 uppercase tracking-widest mb-4">The Computer Courses (Academy)</h4>
+                                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                                    <a href="https://the-computer-courses-web.vercel.app" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center p-2.5 bg-white/5 rounded-xl text-[10px] text-gray-500 hover:text-primary hover:bg-primary/10 transition-all border border-white/5 font-medium">Website</a>
+                                    <a href="mailto:info.TheComputerCourse@gmail.com" className="flex items-center justify-center p-2.5 bg-white/5 rounded-xl text-[10px] text-gray-500 hover:text-primary hover:bg-primary/10 transition-all border border-white/5 font-medium">Email</a>
+                                    <a href="https://www.whatsapp.com/channel/0029VaC5PtjEgGfEQtQZUh1p" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center p-2.5 bg-white/5 rounded-xl text-[10px] text-gray-500 hover:text-primary hover:bg-primary/10 transition-all border border-white/5 font-medium">WhatsApp</a>
+                                    <a href="https://www.facebook.com/TheComputerCourses" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center p-2.5 bg-white/5 rounded-xl text-[10px] text-gray-500 hover:text-primary hover:bg-primary/10 transition-all border border-white/5 font-medium">Facebook</a>
+                                    <a href="https://www.instagram.com/thecomputercourses" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center p-2.5 bg-white/5 rounded-xl text-[10px] text-gray-500 hover:text-primary hover:bg-primary/10 transition-all border border-white/5 font-medium">Instagram</a>
+                                    <a href="https://www.linkedin.com/company/thecomputercourses" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center p-2.5 bg-white/5 rounded-xl text-[10px] text-gray-500 hover:text-primary hover:bg-primary/10 transition-all border border-white/5 font-medium">LinkedIn</a>
+                                    <a href="https://wa.me/923393900444" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center p-2.5 bg-white/5 rounded-xl text-[10px] text-gray-500 hover:text-primary hover:bg-primary/10 transition-all border border-white/5 font-medium">WhatsApp Direct</a>
+                                </div>
+                            </div>
+                        </div>
 
-                    <div className="text-[10px] text-slate-300 font-bold uppercase tracking-[0.3em] pt-8">
-                        © 2026 The Computer Courses · All Rights Reserved
+                        {/* Copyright */}
+                        <p className="text-[11px] text-gray-600 text-center font-medium">
+                            © {new Date().getFullYear()} The Computer Courses · All Rights Reserved
+                        </p>
                     </div>
-                </div>
+                </footer>
             </main>
         </div>
     );

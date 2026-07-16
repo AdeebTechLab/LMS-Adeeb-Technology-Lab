@@ -40,7 +40,10 @@ router.get('/my', protect, async (req, res) => {
             const courseId = e.course?._id;
 
             if (courseId) {
-                const totalClasses = await Attendance.countDocuments({ course: courseId });
+                const totalClasses = await Attendance.countDocuments({
+                    course: courseId,
+                    'records.user': req.user.id
+                });
                 const attendedClasses = await Attendance.countDocuments({
                     course: courseId,
                     records: { $elemMatch: { user: req.user.id, status: 'present' } }
@@ -146,7 +149,8 @@ router.get('/user/:userId', protect, authorize('admin', 'teacher'), async (req, 
 
                 const attendanceRecords = await Attendance.find({
                     course: courseId,
-                    date: { $gte: enrollmentDate }
+                    date: { $gte: enrollmentDate },
+                    'records.user': resolvedUserId
                 }).sort('date');
 
                 const detailedAttendance = attendanceRecords.map(record => {

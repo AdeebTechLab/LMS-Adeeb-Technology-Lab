@@ -6,6 +6,11 @@ const Enrollment = require('../models/Enrollment');
 const Assignment = require('../models/Assignment');
 const Attendance = require('../models/Attendance');
 const GlobalMessage = require('../models/GlobalMessage');
+const Fee = require('../models/Fee');
+const DailyTask = require('../models/DailyTask');
+const Test = require('../models/Test');
+const Certificate = require('../models/Certificate');
+const LiveClass = require('../models/LiveClass');
 const { uploadCourse } = require('../config/cloudinary');
 
 // @route   GET /api/courses/teacher/dashboard
@@ -314,8 +319,23 @@ router.delete('/:id', protect, authorize('admin'), async (req, res) => {
             return res.status(404).json({ success: false, message: 'Course not found' });
         }
 
+        const courseId = req.params.id;
+
+        // Cascade delete all related data
+        await Promise.all([
+            Enrollment.deleteMany({ course: courseId }),
+            Assignment.deleteMany({ course: courseId }),
+            Attendance.deleteMany({ course: courseId }),
+            Fee.deleteMany({ course: courseId }),
+            DailyTask.deleteMany({ course: courseId }),
+            Test.deleteMany({ course: courseId }),
+            Certificate.deleteMany({ course: courseId }),
+            LiveClass.deleteMany({ course: courseId }),
+            GlobalMessage.deleteMany({ course: courseId }),
+        ]);
+
         await course.deleteOne();
-        res.json({ success: true, message: 'Course deleted' });
+        res.json({ success: true, message: 'Course and all related data deleted' });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }

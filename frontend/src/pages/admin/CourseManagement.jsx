@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import {
     Search,
@@ -31,6 +31,14 @@ const CourseManagement = () => {
     const [selectedStatus, setSelectedStatus] = useState('all'); // 'all', 'active', 'completed'
     const [error, setError] = useState('');
     const [imagePreview, setImagePreview] = useState(null);
+    const descRef = useRef(null);
+
+    useEffect(() => {
+        if (isModalOpen && descRef.current) {
+            descRef.current.style.height = 'auto';
+            descRef.current.style.height = descRef.current.scrollHeight + 'px';
+        }
+    }, [isModalOpen]);
     const [formData, setFormData] = useState({
         title: '',
         description: '',
@@ -534,11 +542,20 @@ const CourseManagement = () => {
                             Description <span className="text-red-500">*</span>
                         </label>
                         <textarea
+                            ref={descRef}
                             value={formData.description}
-                            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                            onChange={(e) => {
+                                setFormData({ ...formData, description: e.target.value });
+                                e.target.style.height = 'auto';
+                                e.target.style.height = e.target.scrollHeight + 'px';
+                            }}
+                            onInput={(e) => {
+                                e.target.style.height = 'auto';
+                                e.target.style.height = e.target.scrollHeight + 'px';
+                            }}
                             placeholder="Detailed course description..."
-                            rows={3}
-                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none"
+                            rows={4}
+                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none overflow-hidden"
                             required
                         />
                     </div>
@@ -548,13 +565,13 @@ const CourseManagement = () => {
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                             Assign Teachers <span className="text-red-500">*</span>
                         </label>
-                        <div className="border border-gray-200 rounded-xl p-4 max-h-48 overflow-y-auto bg-gray-50">
+                        <div className="border border-gray-200 dark:border-slate-700 rounded-xl p-4 max-h-48 overflow-y-auto bg-gray-50 dark:bg-slate-800">
                             {teachers.length === 0 ? (
                                 <p className="text-sm text-gray-400">No teachers available</p>
                             ) : (
                                 <div className="space-y-2">
                                     {teachers.map((teacher) => (
-                                        <label key={teacher._id} className="flex items-center gap-3 p-2 hover:bg-white rounded-lg cursor-pointer transition-colors">
+                                        <label key={teacher._id} className="flex items-center gap-3 p-2 hover:bg-white dark:hover:bg-slate-700 rounded-lg cursor-pointer transition-colors">
                                             <input
                                                 type="checkbox"
                                                 checked={formData.teachers.some(id => id.toString() === teacher._id.toString())}
@@ -575,8 +592,8 @@ const CourseManagement = () => {
                                                 </div>
                                             )}
                                             <div className="flex-1">
-                                                <span className="text-sm font-medium text-gray-700">{teacher.name}</span>
-                                                <span className="text-xs text-gray-500 ml-2">({teacher.specialization || teacher.email})</span>
+                                                <span className="text-sm font-medium text-gray-700 dark:text-gray-200">{teacher.name}</span>
+                                                <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">({teacher.specialization || teacher.email})</span>
                                             </div>
                                         </label>
                                     ))}
@@ -642,10 +659,10 @@ const CourseManagement = () => {
                         </div>
                     </div>
 
-                    {/* Target Audience */}
+                    {/* User */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Target Audience <span className="text-red-500">*</span>
+                            User <span className="text-red-500">*</span>
                         </label>
                         <select
                             value={formData.targetAudience}
@@ -659,10 +676,10 @@ const CourseManagement = () => {
                         </select>
                     </div>
 
-                    {/* City */}
+                    {/* Campus */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                            City <span className="text-red-500">*</span>
+                            Campus <span className="text-red-500">*</span>
                         </label>
                         <select
                             value={formData.city}
@@ -670,7 +687,7 @@ const CourseManagement = () => {
                             className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-white"
                             required
                         >
-                            <option value="">Select city</option>
+                            <option value="">Select campus</option>
                             <option value="Bahawalpur">Bahawalpur</option>
                             <option value="Islamabad">Islamabad</option>
                         </select>

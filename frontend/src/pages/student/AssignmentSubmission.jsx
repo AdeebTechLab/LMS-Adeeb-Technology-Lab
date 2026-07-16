@@ -199,7 +199,7 @@ const AssignmentSubmission = () => {
     };
 
     const handleDeleteTask = async (taskId) => {
-        if (!window.confirm(role === 'intern' ? 'Kya aap ye meeting log delete karna chahte hain?' : 'Kya aap ye class log delete karna chahte hain?')) return;
+        if (!window.confirm(isInternCourse ? 'Kya aap ye meeting log delete karna chahte hain?' : 'Kya aap ye class log delete karna chahte hain?')) return;
         setDeletingTaskId(taskId);
         try {
             await dailyTaskAPI.delete(taskId);
@@ -233,6 +233,8 @@ const AssignmentSubmission = () => {
 
     const isRestricted = currentEnrollment?.isPaused || !currentEnrollment?.isActive;
     const isCompleted = currentEnrollment?.status === 'completed';
+    const selectedCourseData = myCourses.find(c => c._id === selectedCourseId);
+    const isInternCourse = (currentEnrollment?.course?.targetAudience || selectedCourseData?.targetAudience) === 'interns';
 
     const filteredAssignments = assignments.filter((a) => {
         const s = a.submissions?.[0]?.status || 'pending';
@@ -300,9 +302,23 @@ const AssignmentSubmission = () => {
                                         <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary border border-orange-100">
                                             <GraduationCap className="w-8 h-8" />
                                         </div>
-                                        <div>
-                                            <Badge variant={course.enrollmentStatus === 'completed' ? 'success' : 'info'}>{course.enrollmentStatus.toUpperCase()}</Badge>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center gap-2 flex-wrap">
+                                                <Badge variant={course.enrollmentStatus === 'completed' ? 'success' : 'info'}>{course.enrollmentStatus.toUpperCase()}</Badge>
+                                                <span className={`text-[9px] px-2 py-0.5 rounded font-bold uppercase tracking-wider ${course.targetAudience === 'interns'
+                                                    ? 'bg-purple-100 text-purple-700'
+                                                    : 'bg-blue-100 text-blue-700'
+                                                    }`}>
+                                                    {course.targetAudience === 'interns' ? 'Internship' : 'Student'}
+                                                </span>
+                                            </div>
                                             <h3 className="font-black text-gray-900 dark:text-white text-xl mt-1 group-hover:text-primary transition-colors">{course.title}</h3>
+                                            {(course.city || course.location) && (
+                                                <span className="flex items-center gap-1.5 text-[10px] font-black text-gray-400 uppercase tracking-widest mt-2">
+                                                    <MapPin className="w-3 h-3 text-primary" />
+                                                    {course.city || course.location}
+                                                </span>
+                                            )}
                                         </div>
                                     </div>
                                     <div className="flex items-center justify-between pt-6 border-t border-gray-50 dark:border-slate-800/50">
@@ -328,13 +344,25 @@ const AssignmentSubmission = () => {
                                     className="flex items-center gap-2 text-primary hover:text-primary mb-2 font-bold text-sm tracking-wide uppercase"
                                 >
                                     <ChevronLeft className="w-4 h-4" />
-                                    BACK TO {role === 'intern' ? 'MY SKILLS' : 'MY COURSES'}
+                                    BACK TO {isInternCourse ? 'MY SKILLS' : 'MY COURSES'}
                                 </button>
                             )}
                             <h1 className="text-3xl font-black text-gray-900 dark:text-white uppercase tracking-tight leading-none mb-3">
                                 {myCourses.find(c => c._id === selectedCourseId)?.title}
                             </h1>
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-2 flex-wrap">
+                                <span className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border shadow-sm ${isInternCourse
+                                    ? 'bg-purple-100 text-purple-700 border-purple-200'
+                                    : 'bg-blue-100 text-blue-700 border-blue-200'
+                                    }`}>
+                                    {isInternCourse ? 'Internship' : 'Student'}
+                                </span>
+                                {(myCourses.find(c => c._id === selectedCourseId)?.city || myCourses.find(c => c._id === selectedCourseId)?.location) && (
+                                    <span className="flex items-center gap-1 px-2.5 py-1 bg-gray-100 text-gray-600 rounded-lg text-[10px] font-black uppercase tracking-widest border border-gray-200 shadow-sm">
+                                        <MapPin className="w-2.5 h-2.5 text-primary" />
+                                        {myCourses.find(c => c._id === selectedCourseId)?.city || myCourses.find(c => c._id === selectedCourseId)?.location}
+                                    </span>
+                                )}
                                 <Badge variant="primary" size="sm">Workspace ACTIVE</Badge>
                                 {isRestricted && <Badge variant="error" size="sm">PORTAL LOCKED</Badge>}
                             </div>
@@ -363,8 +391,8 @@ const AssignmentSubmission = () => {
                     {/* Navigation Tabs - Separate Row like Teacher Portal */}
                     <div className="flex items-center gap-2 bg-white dark:bg-slate-900/40 rounded-2xl p-1.5 border border-gray-100 dark:border-slate-800 shadow-sm overflow-x-auto no-scrollbar">
                         {[
-                            { id: 'daily_tasks', label: role === 'intern' ? 'Meeting logs' : 'Class Log', icon: ClipboardList },
-                            { id: 'assignments', label: role === 'intern' ? 'Projects' : 'Assignments', icon: FileText },
+                            { id: 'daily_tasks', label: isInternCourse ? 'Meeting logs' : 'Class Log', icon: ClipboardList },
+                            { id: 'assignments', label: isInternCourse ? 'Projects' : 'Assignments', icon: FileText },
                             { id: 'tests', label: 'Tests', icon: Zap },
                             { id: 'attendance', label: 'Attendance', icon: Calendar },
                             { id: 'chat', label: 'Chat', icon: MessageCircle },
@@ -434,8 +462,8 @@ const AssignmentSubmission = () => {
                                 {filteredAssignments.length === 0 ? (
                                     <div className="bg-white dark:bg-slate-900/40 rounded-2xl p-20 border border-gray-100 dark:border-slate-800 text-center">
                                         <FileText className="w-20 h-20 text-gray-200 mx-auto mb-6" />
-                                        <h3 className="text-2xl font-black text-gray-400 uppercase tracking-widest">{role === 'intern' ? 'No Projects Found' : 'No Assignments Found'}</h3>
-                                        <p className="text-gray-400 font-medium mt-2">{role === 'intern' ? 'Check back later for new projects' : 'Check back later for new tasks'}</p>
+                                        <h3 className="text-2xl font-black text-gray-400 uppercase tracking-widest">{isInternCourse ? 'No Projects Found' : 'No Assignments Found'}</h3>
+                                        <p className="text-gray-400 font-medium mt-2">{isInternCourse ? 'Check back later for new projects' : 'Check back later for new tasks'}</p>
                                     </div>
                                 ) : (
                                     <div className="space-y-6">
@@ -615,10 +643,10 @@ const AssignmentSubmission = () => {
                                     {/* Daily Tasks Filter Stats */}
                                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                                         {[
-                                            { id: 'all', label: role === 'intern' ? 'Total' : 'Total Classes', icon: BookOpen, count: dailyTasks.length, color: 'text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-800/30', activeColor: 'ring-4 ring-blue-500/20 bg-blue-100 dark:bg-blue-900/40 border-blue-400 scale-105' },
-                                            { id: 'verified', label: role === 'intern' ? 'Verified' : 'Verified Classes', icon: CheckCircle, count: dailyTasks.filter(t => t.status === 'verified' || t.status === 'graded').length, color: 'text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-800/30', activeColor: 'ring-4 ring-emerald-500/20 bg-emerald-100 dark:bg-emerald-900/40 border-emerald-400 scale-105' },
-                                            { id: 'pending', label: role === 'intern' ? 'Pending' : 'Pending Verification', icon: Clock, count: dailyTasks.filter(t => t.status === 'submitted' || t.status === 'pending').length, color: 'text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-800/30', activeColor: 'ring-4 ring-amber-500/20 bg-amber-100 dark:bg-amber-900/40 border-amber-400 scale-105' },
-                                            { id: 'rejected', label: role === 'intern' ? 'Rejected' : 'Rejected Classes', icon: XCircle, count: dailyTasks.filter(t => t.status === 'rejected').length, color: 'text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border-red-100 dark:border-red-800/30', activeColor: 'ring-4 ring-red-500/20 bg-red-100 dark:bg-red-900/40 border-red-400 scale-105' },
+                                            { id: 'all', label: isInternCourse ? 'Total' : 'Total Classes', icon: BookOpen, count: dailyTasks.length, color: 'text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-800/30', activeColor: 'ring-4 ring-blue-500/20 bg-blue-100 dark:bg-blue-900/40 border-blue-400 scale-105' },
+                                            { id: 'verified', label: isInternCourse ? 'Verified' : 'Verified Classes', icon: CheckCircle, count: dailyTasks.filter(t => t.status === 'verified' || t.status === 'graded').length, color: 'text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-800/30', activeColor: 'ring-4 ring-emerald-500/20 bg-emerald-100 dark:bg-emerald-900/40 border-emerald-400 scale-105' },
+                                            { id: 'pending', label: isInternCourse ? 'Pending' : 'Pending Verification', icon: Clock, count: dailyTasks.filter(t => t.status === 'submitted' || t.status === 'pending').length, color: 'text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-800/30', activeColor: 'ring-4 ring-amber-500/20 bg-amber-100 dark:bg-amber-900/40 border-amber-400 scale-105' },
+                                            { id: 'rejected', label: isInternCourse ? 'Rejected' : 'Rejected Classes', icon: XCircle, count: dailyTasks.filter(t => t.status === 'rejected').length, color: 'text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border-red-100 dark:border-red-800/30', activeColor: 'ring-4 ring-red-500/20 bg-red-100 dark:bg-red-900/40 border-red-400 scale-105' },
                                         ].map((stat) => (
                                             <button
                                                 key={stat.id}
@@ -638,7 +666,7 @@ const AssignmentSubmission = () => {
 
                                 <div className="bg-white dark:bg-slate-900/40 rounded-2xl p-10 border border-gray-100 dark:border-slate-800 shadow-sm">
                                     <div className="flex items-center justify-between mb-8">
-                                        <h3 className="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tight">{role === 'intern' ? 'Post Daily Meeting Log' : 'Post Daily Class'}</h3>
+                                        <h3 className="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tight">{isInternCourse ? 'Post Daily Meeting Log' : 'Post Daily Class'}</h3>
                                     </div>
                                     <form onSubmit={handleSubmitDailyTask} className="space-y-6">
 
@@ -706,7 +734,7 @@ const AssignmentSubmission = () => {
                                                                 <div>
                                                                     <div className="flex items-center gap-2 mb-0.5">
                                                                         <span className="text-[10px] font-black text-primary bg-primary/5 px-2 py-0.5 rounded-lg border border-primary/10 uppercase tracking-tight">
-                                                                            {role === 'intern' ? 'LOG' : 'CLASS'} #{logNumber}
+                                                                            {isInternCourse ? 'LOG' : 'CLASS'} #{logNumber}
                                                                         </span>
                                                                         <h4 className="font-bold text-gray-900 dark:text-white uppercase tracking-tight">{user?.name}</h4>
                                                                         {user?.rollNo && (
@@ -750,11 +778,11 @@ const AssignmentSubmission = () => {
                                                         {/* Inline edit form */}
                                                         {editingTask?.id === task._id ? (
                                                             <form onSubmit={handleEditTask} className="space-y-3 mb-4 bg-blue-50 dark:bg-blue-900/20 p-4 rounded-2xl border border-blue-100 dark:border-blue-800/30">
-                                                                <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest">{role === 'intern' ? 'Edit Meeting Log' : 'Edit Class Log'}</p>
+                                                                <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest">{isInternCourse ? 'Edit Meeting Log' : 'Edit Class Log'}</p>
                                                                 <RichTextEditor
                                                                     value={editingTask.content}
                                                                     onChange={(v) => setEditingTask(prev => ({ ...prev, content: v }))}
-                                                                    placeholder={role === 'intern' ? 'Update your meeting log...' : 'Update your class log...'}
+                                                                    placeholder={isInternCourse ? 'Update your meeting log...' : 'Update your class log...'}
                                                                     minHeight="150px"
                                                                 />
                                                                 <input

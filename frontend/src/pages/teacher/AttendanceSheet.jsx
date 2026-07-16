@@ -783,6 +783,12 @@ const AttendanceSheet = () => {
                         </button>
                         <h1 className="text-xl md:text-3xl font-black text-gray-900 uppercase tracking-tight leading-tight mb-1.5">{selectedCourse.title || selectedCourse.name || 'Course Dashboard'}</h1>
                         <div className="flex items-center gap-2 md:gap-3 flex-wrap">
+                            <span className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[9px] md:text-[10px] font-black uppercase tracking-widest border shadow-sm ${selectedCourse.targetAudience === 'interns'
+                                ? 'bg-purple-100 text-purple-700 border-purple-200'
+                                : 'bg-blue-100 text-blue-700 border-blue-200'
+                                }`}>
+                                {selectedCourse.targetAudience === 'interns' ? 'Internship' : 'Student'}
+                            </span>
                             {(selectedCourse.city || selectedCourse.location) && (
                                 <span className="flex items-center gap-1 px-2.5 py-1 bg-gray-100 text-gray-600 rounded-lg text-[9px] md:text-[10px] font-black uppercase tracking-widest border border-gray-200 shadow-sm">
                                     <MapPin className="w-2.5 h-2.5 text-primary" />

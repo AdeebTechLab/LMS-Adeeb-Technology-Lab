@@ -656,7 +656,9 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                                         if (status === 'rejected') return 1; // REJECTED is second
                                                         return 2; // GRADED is last
                                                     };
-                                                    return getPriority(a.status) - getPriority(b.status);
+                                                    const p = getPriority(a.status) - getPriority(b.status);
+                                                    if (p !== 0) return p;
+                                                    return new Date(b.submittedAt) - new Date(a.submittedAt);
                                                 }).map((sub) => (
                                                     <div key={sub._id} className="p-2.5 bg-gray-50/50 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 hover:shadow-sm rounded-xl border border-gray-100 dark:border-white/10 transition-all flex items-center justify-between gap-3 group">
                                                         <div className="flex items-center gap-2 overflow-hidden">
@@ -1181,7 +1183,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
             >
                 <div className="space-y-4 max-h-[60vh] overflow-y-auto">
                     {selectedAssignment?.submissions && selectedAssignment.submissions.length > 0 ? (
-                        selectedAssignment.submissions.map((submission) => (
+                        [...selectedAssignment.submissions].sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt)).map((submission) => (
                             <div key={submission._id} className="bg-gray-50 p-4 rounded-xl border border-gray-100 relative">
                                 <button
                                     onClick={() => handleDeleteSubmission(selectedAssignment._id, submission._id)}
@@ -1445,35 +1447,35 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                 const feedback = submission.feedback || getAutomaticFeedback(percentage);
                                 const isPass = percentage >= 50;
                                 return (
-                                    <div key={submission._id} className="bg-gray-50 rounded-2xl border border-gray-100 overflow-hidden relative group">
+                                    <div key={submission._id} className="bg-gray-50 dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 overflow-hidden relative group">
                                         <button
                                             onClick={() => handleDeleteSubmission(reviewAssignment._id, submission._id)}
-                                            className="absolute top-3 right-3 z-10 p-2 text-red-400 bg-white/90 hover:bg-red-50 hover:text-red-600 rounded-xl transition-all border border-red-100/60 shadow-sm opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+                                            className="absolute top-3 right-3 z-10 p-2 text-red-400 bg-white/90 dark:bg-slate-700 hover:bg-red-50 hover:text-red-600 rounded-xl transition-all border border-red-100/60 dark:border-red-900/30 shadow-sm opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
                                             title="Delete Graded Submission"
                                         >
                                             <Trash2 className="w-4 h-4" />
                                         </button>
                                         <div className="flex items-center justify-between p-4">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-black text-sm border-2 border-white shadow-sm shrink-0">
+                                                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-black text-sm border-2 border-white dark:border-slate-800 shadow-sm shrink-0">
                                                     {idx + 1}
                                                 </div>
                                                 {submission.user?.photo ? (
-                                                    <img src={submission.user.photo} alt="" className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm" />
+                                                    <img src={submission.user.photo} alt="" className="w-10 h-10 rounded-full object-cover border-2 border-white dark:border-slate-800 shadow-sm" />
                                                 ) : (
-                                                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-black text-sm border-2 border-white shadow-sm">
+                                                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-black text-sm border-2 border-white dark:border-slate-800 shadow-sm">
                                                         {submission.user?.name?.charAt(0)}
                                                     </div>
                                                 )}
                                                 <div>
                                                     <div className="flex items-center gap-2 flex-wrap">
-                                                        <span className="font-black text-gray-900 text-sm">{submission.user?.name}</span>
+                                                        <span className="font-black text-gray-900 dark:text-white text-sm">{submission.user?.name}</span>
                                                         {submission.user?.rollNo && (
-                                                            <span className="text-[10px] font-black text-red-500 bg-red-50 px-2 py-0.5 rounded-lg border border-red-100 uppercase">
+                                                            <span className="text-[10px] font-black text-red-500 bg-red-50 dark:bg-red-900/20 px-2 py-0.5 rounded-lg border border-red-100 dark:border-red-800/30 uppercase">
                                                                 {submission.user.rollNo}
                                                             </span>
                                                         )}
-                                                        <span className={`text-[9px] font-black px-2 py-0.5 rounded-full border uppercase ${submission.user?.role === 'intern' ? 'bg-purple-50 text-primary border-primary/10' : 'bg-blue-50 text-blue-600 border-blue-100'}`}>
+                                                        <span className={`text-[9px] font-black px-2 py-0.5 rounded-full border uppercase ${submission.user?.role === 'intern' ? 'bg-purple-50 dark:bg-purple-900/20 text-primary border-primary/10 dark:border-primary/30' : 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-blue-100 dark:border-blue-800/30'}`}>
                                                             {submission.user?.role || 'student'}
                                                         </span>
                                                     </div>
@@ -1481,7 +1483,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                                 </div>
                                             </div>
                                             <div className="text-right shrink-0 pr-10">
-                                                <span className={`text-[10px] font-black px-3 py-1 rounded-full border ${isPass ? 'bg-green-50 text-green-600 border-green-100' : 'bg-red-50 text-red-500 border-red-100'}`}>
+                                                <span className={`text-[10px] font-black px-3 py-1 rounded-full border ${isPass ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 border-green-100 dark:border-green-800/30' : 'bg-red-50 dark:bg-red-900/20 text-red-500 border-red-100 dark:border-red-800/30'}`}>
                                                     {isPass ? 'PASSED' : 'FAILED'}
                                                 </span>
                                                 <p className="text-2xl font-black text-primary mt-1 leading-none">
@@ -1490,20 +1492,20 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                                 <p className="text-[10px] font-black text-gray-400 mt-0.5">{percentage}%</p>
                                             </div>
                                         </div>
-                                        <div className="px-4 pb-4 pt-2 border-t border-gray-100 bg-white/60">
+                                        <div className="px-4 pb-4 pt-2 border-t border-gray-100 dark:border-slate-700 bg-white/60 dark:bg-slate-900/40">
                                             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Teacher Feedback</p>
-                                            <p className="text-xs font-medium text-gray-600 italic">"{feedback}"</p>
+                                            <p className="text-xs font-medium text-gray-600 dark:text-gray-300 italic">"{feedback}"</p>
                                         </div>
                                     </div>
                                 );
                             })
                     ) : (
                         <div className="text-center py-12">
-                            <div className="w-16 h-16 rounded-full bg-gray-50 flex items-center justify-center mx-auto mb-4 border border-dashed border-gray-200">
-                                <Users className="w-8 h-8 text-gray-300" />
+                            <div className="w-16 h-16 rounded-full bg-gray-50 dark:bg-slate-800 flex items-center justify-center mx-auto mb-4 border border-dashed border-gray-200 dark:border-slate-600">
+                                <Users className="w-8 h-8 text-gray-300 dark:text-gray-600" />
                             </div>
-                            <h4 className="text-lg font-bold text-gray-900 uppercase">No Graded Submissions</h4>
-                            <p className="text-xs text-gray-500 mt-1">Grade some submissions first to review them here.</p>
+                            <h4 className="text-lg font-bold text-gray-900 dark:text-white uppercase">No Graded Submissions</h4>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Grade some submissions first to review them here.</p>
                         </div>
                     )}
                 </div>

@@ -363,7 +363,12 @@ router.put('/:id', protect, authorize('admin'), async (req, res) => {
 // @access  Public
 router.get('/verify/:rollNo', async (req, res) => {
     try {
-        const users = await User.find({ rollNo: req.params.rollNo });
+        let searchRollNo = req.params.rollNo.trim();
+        if (searchRollNo.toUpperCase().startsWith('ATL-')) {
+            searchRollNo = searchRollNo.substring(4);
+        }
+
+        const users = await User.find({ rollNo: searchRollNo });
 
         if (!users || users.length === 0) {
             return res.status(404).json({
@@ -374,70 +379,104 @@ router.get('/verify/:rollNo', async (req, res) => {
 
         const userIds = users.map(u => u._id);
 
-        // Get certificates for all matching users
         const certificates = await Certificate.find({ user: { $in: userIds } })
             .populate('user', 'name photo role rollNo')
             .populate('course', 'title location');
 
-        if (certificates.length === 0) {
-            return res.status(404).json({
-                success: false,
-                message: 'No certificates found for this roll number'
-            });
-        }
+        const enrollments = await Enrollment.find({ user: { $in: userIds } })
+            .populate('course', 'title location');
 
-        // Format response - filter out certificates with null user references
         const result = [];
-        for (const cert of certificates) {
-            if (!cert.user) continue;
 
-            const isTeacher = cert.user.role === 'teacher';
-            const position = isTeacher ? 'Teacher' : cert.user.role === 'intern' ? 'Intern' : 'Student';
+        for (const user of users) {
+            const userCerts = certificates.filter(c => c.user && c.user._id.toString() === user._id.toString());
+            const userEnrollments = enrollments.filter(e => e.user && e.user._id.toString() === user._id.toString());
 
-            // Calculate months between first fee and issued date if duration is invalid or for students
-            let displayDuration = cert.duration;
-            if ((!cert.duration || cert.duration.includes('Invalid')) && !isTeacher) {
-                try {
-                    const feeRecord = await Fee.findOne({ user: cert.user._id, course: cert.course?._id });
-                    if (feeRecord && feeRecord.installments.length > 0) {
-                        const start = new Date(feeRecord.installments[0].dueDate);
-                        const end = new Date(cert.issuedAt);
-                        
-                        if (!isNaN(start) && !isNaN(end)) {
-                            let months = (end.getFullYear() - start.getFullYear()) * 12;
-                            months += end.getMonth() - start.getMonth();
-                            // Round up or minimum 1 month
-                            months = Math.max(1, months);
-                            displayDuration = `${months} Month${months > 1 ? 's' : ''}`;
+            const position = user.role === 'teacher' ? 'Teacher' : user.role === 'intern' ? 'Intern' : 'Student';
+
+            if (userCerts.length > 0) {
+                for (const cert of userCerts) {
+                    if (!cert.user) continue;
+
+                    let displayDuration = cert.duration;
+                    if ((!cert.duration || cert.duration.includes('Invalid')) && user.role !== 'teacher') {
+                        try {
+                            const feeRecord = await Fee.findOne({ user: user._id, course: cert.course?._id });
+                            if (feeRecord && feeRecord.installments.length > 0) {
+                                const start = new Date(feeRecord.installments[0].dueDate);
+                                const end = new Date(cert.issuedAt);
+                                if (!isNaN(start) && !isNaN(end)) {
+                                    let months = (end.getFullYear() - start.getFullYear()) * 12;
+                                    months += end.getMonth() - start.getMonth();
+                                    months = Math.max(1, months);
+                                    displayDuration = `${months} Month${months > 1 ? 's' : ''}`;
+                                }
+                            }
+                        } catch (err) {
+                            console.error('Error calculating duration:', err);
                         }
                     }
-                } catch (err) {
-                    console.error('Error calculating duration:', err);
-                }
-            }
 
-            result.push({
-                rollNo: cert.user.rollNo,
-                name: cert.user.name,
-                photo: cert.user.photo,
-                position,
-                course: cert.course?.title || (cert.selectedCourses?.length > 0 ? cert.selectedCourses.join(', ') : (cert.skills || 'Teaching Certificate')),
-                selectedCourses: cert.selectedCourses || [],  // full list for multi-course display
-                skills: cert.skills,
-                duration: displayDuration,
-                passoutDate: cert.passoutDate,
-                certificateLink: cert.certificateLink,
-                location: cert.course?.location || null,
-                issuedAt: cert.issuedAt
-            });
+                    result.push({
+                        rollNo: user.rollNo,
+                        name: user.name,
+                        photo: user.photo,
+                        position,
+                        course: cert.course?.title || (cert.selectedCourses?.length > 0 ? cert.selectedCourses.join(', ') : (cert.skills || 'Teaching Certificate')),
+                        selectedCourses: cert.selectedCourses || [],
+                        skills: cert.skills,
+                        duration: displayDuration,
+                        passoutDate: cert.passoutDate,
+                        certificateLink: cert.certificateLink,
+                        location: cert.course?.location || null,
+                        issuedAt: cert.issuedAt,
+                        statusLevel: 3
+                    });
+                }
+            } else if (userEnrollments.length > 0) {
+                for (const enrollment of userEnrollments) {
+                    result.push({
+                        rollNo: user.rollNo,
+                        name: user.name,
+                        photo: user.photo,
+                        position,
+                        course: enrollment.course?.title || 'Course',
+                        selectedCourses: [],
+                        skills: '',
+                        duration: '',
+                        passoutDate: null,
+                        certificateLink: null,
+                        location: enrollment.course?.location || null,
+                        issuedAt: null,
+                        statusLevel: 2
+                    });
+                }
+            } else {
+                result.push({
+                    rollNo: user.rollNo,
+                    name: user.name,
+                    photo: user.photo,
+                    position,
+                    course: 'Not Enrolled',
+                    selectedCourses: [],
+                    skills: '',
+                    duration: '',
+                    passoutDate: null,
+                    certificateLink: null,
+                    location: null,
+                    issuedAt: null,
+                    statusLevel: 1
+                });
+            }
         }
 
         if (result.length === 0) {
-            return res.status(404).json({ success: false, message: 'No valid certificates found' });
+            return res.status(404).json({ success: false, message: 'No valid records found' });
         }
 
         res.json({ success: true, certificates: result });
     } catch (error) {
+        console.error('Verify error:', error);
         res.status(500).json({ success: false, message: error.message });
     }
 });

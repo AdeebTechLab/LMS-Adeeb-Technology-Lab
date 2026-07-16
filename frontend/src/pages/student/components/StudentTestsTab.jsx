@@ -492,8 +492,7 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
                                         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent" />
                                         <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] block mb-3">Final Performance Score</span>
                                         <div className="flex items-baseline justify-center gap-2 mb-6">
-                                            <span className="text-6xl font-black text-white leading-none">{testResult.score}</span>
-                                            <span className="text-xl font-black text-slate-500 leading-none">/ {testResult.totalMarks}</span>
+                                            <span className="text-6xl font-black text-white leading-none">{testResult.score}/{testResult.totalMarks}</span>
                                         </div>
                                         
                                         <div className="flex items-center justify-center gap-8 py-5 border-y border-slate-700/50 mb-6">
@@ -633,7 +632,7 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
                         { label: 'Total Tests', icon: FileText, count: tests.length, color: 'text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-800/30' },
                         { label: 'Completed', icon: CheckCircle, count: tests.filter(t => t.submissions?.[0]).length, color: 'text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-800/30' },
                         { label: 'Pending', icon: Clock, count: tests.filter(t => !t.submissions?.[0]).length, color: 'text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-800/30' },
-                        { label: 'Passed', icon: Award, count: tests.filter(t => { const s = t.submissions?.[0]; if (!s) return false; const total = t.totalMarks || t.questions?.length || 1; return (s.score / total) >= 0.5; }).length, color: 'text-purple-700 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20 border-purple-100 dark:border-purple-800/30' },
+                        { label: 'Passed', icon: Award, count: tests.filter(t => { const s = t.submissions?.[0]; if (!s) return false; const total = s.totalPossibleScore || t.totalMarks || t.questions?.length || 1; return (s.score / total) >= 0.5; }).length, color: 'text-purple-700 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20 border-purple-100 dark:border-purple-800/30' },
                     ].map((stat, i) => (
                         <div key={i} className={`${stat.color} border rounded-2xl p-4 flex items-center justify-between shadow-sm`}>
                             <div>
@@ -694,20 +693,20 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
                                             </div>
                                             <div>
                                                 <p className="text-[10px] font-black text-primary uppercase tracking-widest">Your Score</p>
-                                                <p className="text-xl font-black text-primary leading-none">{submission.score} / {test.totalMarks}</p>
+                                                <p className="text-xl font-black text-primary leading-none">{submission.score}/{submission.totalPossibleScore || test.totalMarks}</p>
                                             </div>
                                         </div>
                                         <div className="text-right">
                                             <p className="text-[10px] font-black text-primary uppercase tracking-widest">Percentage</p>
                                             <p className="text-xl font-black text-primary leading-none">
-                                                {Math.round((submission.score / test.totalMarks) * 100)}%
+                                                {Math.round((submission.score / (submission.totalPossibleScore || test.totalMarks)) * 100)}%
                                             </p>
                                         </div>
                                     </div>
                                     <div className="bg-gray-50 dark:bg-slate-800/50 rounded-2xl p-4 border border-gray-100 dark:border-slate-700">
                                         <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Teacher Feedback</p>
                                         <p className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                                            {getAutomaticFeedback((submission.score / test.totalMarks) * 100)}
+                                            {getAutomaticFeedback((submission.score / (submission.totalPossibleScore || test.totalMarks)) * 100)}
                                         </p>
                                     </div>
                                 </div>

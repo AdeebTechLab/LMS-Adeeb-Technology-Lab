@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Clock, Plus, Trash2, Edit2, X, Check, Calendar, Moon, Sun, Shield, Zap, Settings2, CheckCircle2 } from "lucide-react";
+import { Clock, Plus, Trash2, Edit2, X, Check, Calendar, Moon, Sun, Shield, Zap, Settings2, CheckCircle2, MessageSquare } from "lucide-react";
 import { settingsAPI, attendanceAPI } from "../../services/api";
 import { showToast } from "../../utils/customToast";
 import Loader from "../../components/ui/Loader";
@@ -43,9 +43,15 @@ const AttendanceSettings = () => {
     const [isSavingHoliday, setIsSavingHoliday] = useState(false);
     const [syncedDay, setSyncedDay] = useState(null);
 
+    const [whatsappEnabled, setWhatsappEnabled] = useState(() => {
+        return localStorage.getItem('attendance_whatsapp_enabled') !== 'false';
+    });
+    const [isSavingWA, setIsSavingWA] = useState(false);
+
     useEffect(() => {
         fetchSlots();
         fetchHolidays();
+        fetchWhatsAppSetting();
     }, []);
 
     const fetchSlots = async () => {
@@ -93,6 +99,33 @@ const AttendanceSettings = () => {
         } catch { } finally { setIsLoadingHolidays(false); }
     };
 
+    const fetchWhatsAppSetting = async () => {
+        try {
+            const res = await settingsAPI.getAll();
+            const saved = res.data.data?.['whatsapp_attendance_enabled'];
+            if (saved !== undefined) {
+                const enabled = saved === true || saved === 'true';
+                setWhatsappEnabled(enabled);
+                localStorage.setItem('attendance_whatsapp_enabled', String(enabled));
+            }
+        } catch { }
+    };
+
+    const toggleWhatsApp = async () => {
+        const next = !whatsappEnabled;
+        setIsSavingWA(true);
+        try {
+            await settingsAPI.update('whatsapp_attendance_enabled', next);
+            setWhatsappEnabled(next);
+            localStorage.setItem('attendance_whatsapp_enabled', String(next));
+            showToast.success("Saved!", `WhatsApp notifications ${next ? 'enabled' : 'disabled'}.`);
+        } catch {
+            showToast.error("Error", "Could not save setting.");
+        } finally {
+            setIsSavingWA(false);
+        }
+    };
+
     const toggleDay = async (dayIndex) => {
         setIsSavingHoliday(true);
         const updated = holidayDays.includes(dayIndex)
@@ -117,6 +150,30 @@ const AttendanceSettings = () => {
                 </div>
 
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-5 items-start">
+
+                    {/* ── WhatsApp Notifications ── */}
+                    <SectionCard icon={MessageSquare} accent="bg-green-50 text-green-600" label="Notifications" sublabel="WhatsApp Alerts">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-sm font-bold text-gray-700 dark:text-gray-200">Attendance WhatsApp Message</p>
+                                <p className="text-[11px] text-gray-400 mt-1">Jab teacher attendance lagaye toh guardian ko WhatsApp par report bhejega.</p>
+                            </div>
+                            <button
+                                onClick={toggleWhatsApp}
+                                disabled={isSavingWA}
+                                className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors duration-300 focus:outline-none disabled:opacity-50 ${whatsappEnabled ? 'bg-green-500' : 'bg-gray-300 dark:bg-gray-600'}`}
+                            >
+                                <span className={`inline-block h-6 w-6 transform rounded-full bg-white shadow-lg transition-transform duration-300 ${whatsappEnabled ? 'translate-x-7' : 'translate-x-1'}`} />
+                            </button>
+                        </div>
+                        <div className={`mt-4 px-4 py-3 rounded-xl border text-[11px] font-bold flex items-center gap-2 ${whatsappEnabled
+                            ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-700 dark:text-green-400'
+                            : 'bg-gray-50 dark:bg-gray-700/40 border-gray-200 dark:border-gray-600 text-gray-400'
+                            }`}>
+                            <div className={`w-2 h-2 rounded-full ${whatsappEnabled ? 'bg-green-500 animate-pulse' : 'bg-gray-300'}`} />
+                            {whatsappEnabled ? 'Active — Guardian ko WhatsApp jayega' : 'Inactive — WhatsApp disabled hai'}
+                        </div>
+                    </SectionCard>
 
                     {/* ── Class Times ── */}
                     <SectionCard icon={Clock} accent="bg-primary/10 text-primary" label="Schedule" sublabel="Class Time Slots">

@@ -10,7 +10,7 @@ import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
-import { userAPI, settingsAPI, enrollmentAPI, assignmentAPI, feeAPI, courseAPI, reportAPI } from '../../services/api';
+import { userAPI, settingsAPI, enrollmentAPI, assignmentAPI, feeAPI, courseAPI, reportAPI, dailyTaskAPI } from '../../services/api';
 import { generateComprehensiveReport } from '../../utils/reportGenerator';
 import ImageCropper from '../../components/ui/ImageCropper';
 
@@ -514,12 +514,13 @@ const InternsManagement = () => {
 
     const handleDownloadCompleteReport = async (intern) => {
         try {
-            const [enrollmentsRes, assignmentsRes, feesRes] = await Promise.all([
+            const [enrollmentsRes, assignmentsRes, feesRes, dailyTasksRes] = await Promise.all([
                 enrollmentAPI.getUserEnrollments(intern._id),
                 assignmentAPI.getUserAssignments(intern._id),
-                feeAPI.getUserFees(intern._id)
+                feeAPI.getUserFees(intern._id),
+                dailyTaskAPI.getUserDailyTasks(intern._id)
             ]);
-            await generateComprehensiveReport(intern, enrollmentsRes.data.data, assignmentsRes.data.assignments, feesRes.data.data);
+            await generateComprehensiveReport(intern, enrollmentsRes.data.data, assignmentsRes.data.assignments, feesRes.data.data, dailyTasksRes.data.data || []);
             return true;
         } catch (error) {
             console.error('Error generating report:', error);
@@ -529,10 +530,11 @@ const InternsManagement = () => {
     };
 
     const createInternReportLink = async (intern) => {
-        const [enrollmentsRes, assignmentsRes, feesRes] = await Promise.all([
+        const [enrollmentsRes, assignmentsRes, feesRes, dailyTasksRes] = await Promise.all([
             enrollmentAPI.getUserEnrollments(intern._id),
             assignmentAPI.getUserAssignments(intern._id),
-            feeAPI.getUserFees(intern._id)
+            feeAPI.getUserFees(intern._id),
+            dailyTaskAPI.getUserDailyTasks(intern._id)
         ]);
         const enrollments = enrollmentsRes.data.data || [];
         const generated = await generateComprehensiveReport(
@@ -540,6 +542,7 @@ const InternsManagement = () => {
             enrollments,
             assignmentsRes.data.assignments,
             feesRes.data.data,
+            dailyTasksRes.data.data || [],
             { output: 'blob' }
         );
         const formData = new FormData();
@@ -991,10 +994,6 @@ const InternsManagement = () => {
                                         <div className="space-y-1">
                                             <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Father Name</p>
                                             <p className="text-xs font-bold text-gray-700 truncate" title={intern.fatherName || intern.guardianName || 'N/A'}>{intern.fatherName || intern.guardianName || 'N/A'}</p>
-                                        </div>
-                                        <div className="space-y-1">
-                                            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Relation</p>
-                                            <p className="text-xs font-bold text-gray-700 truncate" title={intern.guardianRelation || 'N/A'}>{intern.guardianRelation || 'N/A'}</p>
                                         </div>
                                         <div className="space-y-1">
                                             <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Father Phone</p>
