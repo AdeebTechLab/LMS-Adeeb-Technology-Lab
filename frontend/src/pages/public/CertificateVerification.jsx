@@ -183,11 +183,7 @@ const CertificateVerification = () => {
                                                                 ))}
                                                             </div>
                                                         </div>
-                                                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700">
-                                                            <div>
-                                                                <p className="text-sm text-gray-400 dark:text-gray-500 mb-1 uppercase tracking-wider font-semibold">Skills Verified</p>
-                                                                <p className="font-medium text-gray-700 dark:text-gray-300">{cert.skills}</p>
-                                                            </div>
+                                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700">
                                                             {cert.location && (
                                                                 <div>
                                                                     <p className="text-sm text-gray-400 dark:text-gray-500 mb-1 uppercase tracking-wider font-semibold">Campus</p>
@@ -231,12 +227,7 @@ const CertificateVerification = () => {
                                                                 </div>
                                                             </div>
                                                         )}
-                                                        {cert.skills && (
-                                                            <div className="space-y-1">
-                                                                <p className="text-[10px] text-gray-400 dark:text-gray-500 uppercase tracking-widest font-bold">Skills Verified</p>
-                                                                <p className="font-medium text-gray-700 dark:text-gray-300">{cert.skills}</p>
-                                                            </div>
-                                                        )}
+
                                                         <div className="space-y-1">
                                                             <p className="text-[10px] text-gray-400 dark:text-gray-500 uppercase tracking-widest font-bold">Duration</p>
                                                             <div className="flex items-center gap-2">
@@ -254,13 +245,7 @@ const CertificateVerification = () => {
                                                                 </p>
                                                             </div>
                                                         )}
-                                                        {cert.certificateLink && (
-                                                            <div className="space-y-1 md:col-span-2">
-                                                                <a href={cert.certificateLink} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl text-xs font-bold hover:bg-[#e67e01] transition-colors">
-                                                                    View Certificate
-                                                                </a>
-                                                            </div>
-                                                        )}
+
 
                                                     </div>
                                                 )}

@@ -190,11 +190,11 @@ const StudentChatTab = ({ course, isRestricted }) => {
     if (teachers.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center py-16 text-center">
-                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                    <MessageCircle className="w-8 h-8 text-gray-400" />
+                <div className="w-16 h-16 bg-gray-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4">
+                    <MessageCircle className="w-8 h-8 text-gray-400 dark:text-gray-500" />
                 </div>
-                <h3 className="text-lg font-bold text-gray-700 mb-2">No Teachers Available</h3>
-                <p className="text-gray-500 text-sm">No teachers are assigned to this course yet.</p>
+                <h3 className="text-lg font-bold text-gray-700 dark:text-gray-300 mb-2">No Teachers Available</h3>
+                <p className="text-gray-500 dark:text-gray-400 text-sm">No teachers are assigned to this course yet.</p>
             </div>
         );
     }
@@ -202,8 +202,8 @@ const StudentChatTab = ({ course, isRestricted }) => {
     return (
         <div className="flex h-[500px] gap-2 sm:gap-4">
             {/* Teachers List - Only DP on mobile */}
-            <div className="w-16 sm:w-64 bg-gray-50 rounded-xl p-2 sm:p-3 flex flex-col shrink-0">
-                <h3 className="text-[10px] sm:text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 px-1 sm:px-2 text-center sm:text-left">
+            <div className="w-16 sm:w-64 bg-gray-50 dark:bg-slate-900 rounded-xl p-2 sm:p-3 flex flex-col shrink-0">
+                <h3 className="text-[10px] sm:text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3 px-1 sm:px-2 text-center sm:text-left">
                     <span className="hidden sm:inline">Teachers</span>
                     <span className="sm:hidden">TC</span>
                 </h3>
@@ -215,7 +215,7 @@ const StudentChatTab = ({ course, isRestricted }) => {
                             className={`w-full flex items-center justify-center sm:justify-start gap-3 p-2 sm:p-3 rounded-lg transition-all ${
                                 activeTeacher?._id === teacher._id
                                     ? 'bg-primary/10 text-primary'
-                                    : 'hover:bg-gray-100'
+                                    : 'hover:bg-gray-100 dark:hover:bg-slate-700'
                             }`}
                         >
                             <div className="relative shrink-0">
@@ -228,7 +228,7 @@ const StudentChatTab = ({ course, isRestricted }) => {
                             </div>
                             <div className="hidden sm:block flex-1 text-left">
                                 <p className="font-semibold text-sm truncate">{teacher.name}</p>
-                                <p className="text-xs text-gray-500 truncate">{teacher.email}</p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{teacher.email}</p>
                             </div>
                         </button>
                     ))}
@@ -236,16 +236,16 @@ const StudentChatTab = ({ course, isRestricted }) => {
             </div>
 
             {/* Chat Area */}
-            <div className="flex-1 bg-gray-50 rounded-xl flex flex-col">
+            <div className="flex-1 bg-gray-50 dark:bg-slate-900 rounded-xl flex flex-col">
                 {activeTeacher ? (
                     <>
                         {/* Chat Header */}
-                        <div className="p-4 border-b border-gray-200 bg-white rounded-t-xl">
+                        <div className="p-4 border-b border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-t-xl">
                             <div className="flex items-center gap-3">
                                 <ProfileAvatar src={activeTeacher.photo} name={activeTeacher.name} size="md" fallbackColor="bg-primary/10" />
                                 <div>
-                                    <h4 className="font-bold text-gray-900">{activeTeacher.name}</h4>
-                                    <p className="text-xs text-gray-500">Teacher</p>
+                                    <h4 className="font-bold text-gray-900 dark:text-white">{activeTeacher.name}</h4>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">Teacher</p>
                                 </div>
                             </div>
                         </div>
@@ -255,9 +255,9 @@ const StudentChatTab = ({ course, isRestricted }) => {
                             {Object.entries(groupedMessages).map(([date, msgs]) => (
                                 <div key={date}>
                                     <div className="flex items-center gap-3 my-4">
-                                        <div className="flex-1 h-px bg-gray-200"></div>
-                                        <span className="text-xs text-gray-400 font-medium">{date}</span>
-                                        <div className="flex-1 h-px bg-gray-200"></div>
+                                        <div className="flex-1 h-px bg-gray-200 dark:bg-slate-700"></div>
+                                        <span className="text-xs text-gray-400 dark:text-gray-500 font-medium">{date}</span>
+                                        <div className="flex-1 h-px bg-gray-200 dark:bg-slate-700"></div>
                                     </div>
                                     {msgs.map((msg) => {
                                         const isMe = String(msg.sender?._id || msg.sender) === String(user.id || user._id);
@@ -276,10 +276,10 @@ const StudentChatTab = ({ course, isRestricted }) => {
                                                 <div className={`max-w-[75%] px-4 py-2 rounded-2xl ${
                                                     isMe
                                                         ? 'bg-primary text-white rounded-br-md'
-                                                        : 'bg-white border border-gray-200 text-gray-800 rounded-bl-md'
+                                                        : 'bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-800 dark:text-gray-200 rounded-bl-md'
                                                 }`}>
                                                     <p className="text-sm whitespace-pre-wrap">{msg.text}</p>
-                                                    <p className={`text-[10px] mt-1 ${isMe ? 'text-primary' : 'text-gray-400'}`}>
+                                                    <p className={`text-[10px] mt-1 ${isMe ? 'text-primary' : 'text-gray-400 dark:text-gray-500'}`}>
                                                         {formatTime(msg.createdAt)}
                                                     </p>
                                                 </div>
@@ -289,7 +289,7 @@ const StudentChatTab = ({ course, isRestricted }) => {
                                 </div>
                             ))}
                             {messages.length === 0 && (
-                                <div className="flex flex-col items-center justify-center h-full text-gray-400">
+                                <div className="flex flex-col items-center justify-center h-full text-gray-400 dark:text-gray-500">
                                     <MessageCircle className="w-12 h-12 mb-2 opacity-50" />
                                     <p className="text-sm">No messages yet. Start the conversation!</p>
                                 </div>
@@ -297,7 +297,7 @@ const StudentChatTab = ({ course, isRestricted }) => {
                         </div>
 
                         {/* Message Input */}
-                        <form onSubmit={handleSendMessage} className="p-4 bg-white rounded-b-xl border-t border-gray-100">
+                        <form onSubmit={handleSendMessage} className="p-4 bg-white dark:bg-slate-800 rounded-b-xl border-t border-gray-100 dark:border-slate-700">
                             {isRestricted && (
                                 <p className="text-xs text-red-500 mb-2">Messaging disabled due to payment restrictions.</p>
                             )}
@@ -308,7 +308,7 @@ const StudentChatTab = ({ course, isRestricted }) => {
                                     onChange={(e) => setNewMessage(e.target.value)}
                                     placeholder="Type your message..."
                                     disabled={isRestricted}
-                                    className="flex-1 px-4 py-3 bg-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
+                                    className="flex-1 px-4 py-3 bg-gray-100 dark:bg-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
                                     onKeyDown={(e) => {
                                         if (e.key === 'Enter' && !e.shiftKey) {
                                             e.preventDefault();
@@ -330,7 +330,7 @@ const StudentChatTab = ({ course, isRestricted }) => {
                         </form>
                     </>
                 ) : (
-                    <div className="flex flex-col items-center justify-center h-full text-gray-400">
+                    <div className="flex flex-col items-center justify-center h-full text-gray-400 dark:text-gray-500">
                         <User className="w-12 h-12 mb-2 opacity-50" />
                         <p className="text-sm">Select a teacher to start chatting</p>
                     </div>

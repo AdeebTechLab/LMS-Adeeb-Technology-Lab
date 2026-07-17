@@ -438,7 +438,7 @@ const AttendanceTab = ({ course, students }) => {
 
                 <div className="overflow-x-auto">
                     <table className="w-full">
-                        <thead className="bg-gray-50">
+                        <thead className="bg-gray-50 dark:bg-slate-900">
                             <tr>
                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Student</th>
                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Roll No</th>
@@ -446,9 +446,9 @@ const AttendanceTab = ({ course, students }) => {
                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Marked At</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100">
+                        <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
                             {filteredStudents.map((student) => (
-                                <tr key={student.id} className={`hover:bg-gray-50 transition-colors ${getRowBgColor(student.id)}`}>
+                                <tr key={student.id} className={`hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors ${getRowBgColor(student.id)}`}>
                                     <td className="px-4 py-3">
                                         <div className="flex items-center gap-3">
                                             <div className="relative">

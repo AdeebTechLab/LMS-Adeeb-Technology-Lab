@@ -230,11 +230,11 @@ const TeacherChatTab = ({ course, students, onUnreadCountChange }) => {
     if (studentsWithUnread.length === 0 && students.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center py-16 text-center">
-                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                    <MessageCircle className="w-8 h-8 text-gray-400" />
+                <div className="w-16 h-16 bg-gray-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4">
+                    <MessageCircle className="w-8 h-8 text-gray-400 dark:text-gray-500" />
                 </div>
-                <h3 className="text-lg font-bold text-gray-700 mb-2">No Students Available</h3>
-                <p className="text-gray-500 text-sm">No students are enrolled in this course yet.</p>
+                <h3 className="text-lg font-bold text-gray-700 dark:text-gray-300 mb-2">No Students Available</h3>
+                <p className="text-gray-500 dark:text-gray-400 text-sm">No students are enrolled in this course yet.</p>
             </div>
         );
     }
@@ -242,7 +242,7 @@ const TeacherChatTab = ({ course, students, onUnreadCountChange }) => {
     return (
         <div className="flex h-[550px] gap-2 sm:gap-4">
             {/* Students List */}
-            <div className="w-20 sm:w-72 bg-gray-50 rounded-2xl p-2 sm:p-3 flex flex-col transition-all duration-300">
+            <div className="w-20 sm:w-72 bg-gray-50 dark:bg-slate-900 rounded-2xl p-2 sm:p-3 flex flex-col transition-all duration-300">
                 {/* Search - Hidden on mobile for space */}
                 <div className="mb-3 hidden sm:block">
                     <div className="relative">
@@ -252,7 +252,7 @@ const TeacherChatTab = ({ course, students, onUnreadCountChange }) => {
                             value={searchQuery}
                             onChange={(e) => handleSearch(e.target.value)}
                             placeholder="Search email..."
-                            className="w-full pl-10 pr-4 py-2 bg-white rounded-xl text-sm border border-gray-100 focus:outline-none focus:ring-2 focus:ring-primary transition-all"
+                            className="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-800 rounded-xl text-sm border border-gray-100 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-primary transition-all"
                         />
                         {isSearching && (
                             <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -262,7 +262,7 @@ const TeacherChatTab = ({ course, students, onUnreadCountChange }) => {
                     </div>
                 </div>
 
-                <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 px-2 hidden sm:block">
+                <h3 className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-3 px-2 hidden sm:block">
                     Enrolled ({displayStudents.length})
                 </h3>
                 <div className="space-y-2 flex-1 overflow-y-auto custom-scrollbar">
@@ -272,7 +272,7 @@ const TeacherChatTab = ({ course, students, onUnreadCountChange }) => {
                             onClick={() => openChat(student)}
                             className={`w-full flex items-center justify-center sm:justify-start gap-3 p-2 sm:p-3 rounded-xl transition-all ${activeStudent?._id === student._id
                                     ? 'bg-primary/10 text-primary shadow-sm'
-                                    : 'hover:bg-gray-100'
+                                    : 'hover:bg-gray-100 dark:hover:bg-slate-700'
                                 }`}
                         >
                             <div className="relative shrink-0">
@@ -285,7 +285,7 @@ const TeacherChatTab = ({ course, students, onUnreadCountChange }) => {
                             </div>
                             <div className="flex-1 text-left overflow-hidden hidden sm:block">
                                 <p className="font-bold text-sm truncate">{student.name}</p>
-                                <p className="text-[10px] text-gray-400 truncate flex items-center gap-1 font-medium">
+                                <p className="text-[10px] text-gray-400 dark:text-gray-500 truncate flex items-center gap-1 font-medium">
                                     <Mail className="w-3 h-3" />
                                     {student.email}
                                 </p>
@@ -296,20 +296,20 @@ const TeacherChatTab = ({ course, students, onUnreadCountChange }) => {
             </div>
 
             {/* Chat Area */}
-            <div className="flex-1 bg-gray-50 rounded-xl flex flex-col">
+            <div className="flex-1 bg-gray-50 dark:bg-slate-900 rounded-xl flex flex-col">
                 {activeStudent ? (
                     <>
-                        <div className="p-4 border-b border-gray-200 bg-white rounded-t-xl flex items-center justify-between">
+                        <div className="p-4 border-b border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-t-xl flex items-center justify-between">
                             <div className="flex items-center gap-3">
                                 <ProfileAvatar src={activeStudent.photo} name={activeStudent.name} size="md" fallbackColor="bg-blue-100" />
                                 <div>
-                                    <h4 className="font-bold text-gray-900">{activeStudent.name}</h4>
-                                    <p className="text-xs text-gray-500">{activeStudent.email}</p>
+                                    <h4 className="font-bold text-gray-900 dark:text-white">{activeStudent.name}</h4>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">{activeStudent.email}</p>
                                 </div>
                             </div>
                             <button
                                 onClick={handleClearChat}
-                                className="p-2.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all active:scale-95 group"
+                                className="p-2.5 text-gray-400 dark:text-gray-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-xl transition-all active:scale-95 group"
                                 title="Clear Conversation"
                             >
                                 <Trash2 className="w-5 h-5 group-hover:scale-110 transition-transform" />
@@ -321,9 +321,9 @@ const TeacherChatTab = ({ course, students, onUnreadCountChange }) => {
                             {Object.entries(groupedMessages).map(([date, msgs]) => (
                                 <div key={date}>
                                     <div className="flex items-center gap-3 my-4">
-                                        <div className="flex-1 h-px bg-gray-200"></div>
-                                        <span className="text-xs text-gray-400 font-medium">{date}</span>
-                                        <div className="flex-1 h-px bg-gray-200"></div>
+                                        <div className="flex-1 h-px bg-gray-200 dark:bg-slate-700"></div>
+                                        <span className="text-xs text-gray-400 dark:text-gray-500 font-medium">{date}</span>
+                                        <div className="flex-1 h-px bg-gray-200 dark:bg-slate-700"></div>
                                     </div>
                                     {msgs.map((msg) => {
                                         const isMe = String(msg.sender?._id || msg.sender) === String(user.id || user._id);
@@ -336,10 +336,10 @@ const TeacherChatTab = ({ course, students, onUnreadCountChange }) => {
                                             >
                                                 <div className={`max-w-[70%] px-4 py-2 rounded-2xl ${isMe
                                                         ? 'bg-primary text-white rounded-br-md'
-                                                        : 'bg-white border border-gray-200 text-gray-800 rounded-bl-md'
+                                                        : 'bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-800 dark:text-gray-200 rounded-bl-md'
                                                     }`}>
                                                     <p className="text-sm whitespace-pre-wrap">{msg.text}</p>
-                                                    <p className={`text-[10px] mt-1 ${isMe ? 'text-primary' : 'text-gray-400'}`}>
+                                                    <p className={`text-[10px] mt-1 ${isMe ? 'text-primary' : 'text-gray-400 dark:text-gray-500'}`}>
                                                         {formatTime(msg.createdAt)}
                                                     </p>
                                                 </div>
@@ -349,7 +349,7 @@ const TeacherChatTab = ({ course, students, onUnreadCountChange }) => {
                                 </div>
                             ))}
                             {messages.length === 0 && (
-                                <div className="flex flex-col items-center justify-center h-full text-gray-400">
+                                <div className="flex flex-col items-center justify-center h-full text-gray-400 dark:text-gray-500">
                                     <MessageCircle className="w-12 h-12 mb-2 opacity-50" />
                                     <p className="text-sm">No messages yet. Start the conversation!</p>
                                 </div>
@@ -357,14 +357,14 @@ const TeacherChatTab = ({ course, students, onUnreadCountChange }) => {
                         </div>
 
                         {/* Message Input */}
-                        <form onSubmit={handleSendMessage} className="p-4 bg-white rounded-b-xl border-t border-gray-100">
+                        <form onSubmit={handleSendMessage} className="p-4 bg-white dark:bg-slate-800 rounded-b-xl border-t border-gray-100 dark:border-slate-700">
                             <div className="flex gap-2">
                                 <input
                                     type="text"
                                     value={newMessage}
                                     onChange={(e) => setNewMessage(e.target.value)}
                                     placeholder="Type your message..."
-                                    className="flex-1 px-4 py-3 bg-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                                    className="flex-1 px-4 py-3 bg-gray-100 dark:bg-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                                     onKeyDown={(e) => {
                                         if (e.key === 'Enter' && !e.shiftKey) {
                                             e.preventDefault();
@@ -388,7 +388,7 @@ const TeacherChatTab = ({ course, students, onUnreadCountChange }) => {
                         </form>
                     </>
                 ) : (
-                    <div className="flex flex-col items-center justify-center h-full text-gray-400">
+                    <div className="flex flex-col items-center justify-center h-full text-gray-400 dark:text-gray-500">
                         <Users className="w-12 h-12 mb-2 opacity-50" />
                         <p className="text-sm">Select a student to start chatting</p>
                     </div>

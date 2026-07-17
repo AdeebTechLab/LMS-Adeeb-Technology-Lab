@@ -827,7 +827,7 @@ const QuickAttendance = () => {
                                 <th className="px-2 py-2 text-[9px] font-black text-white/90 uppercase tracking-tighter text-center whitespace-nowrap">Mark</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-50">
+                        <tbody className="divide-y divide-gray-50 dark:divide-slate-700">
                             <AnimatePresence mode='popLayout'>
                                 {filteredStudents.map((student, index) => {
                                     const markKey = `${student.courseId}-${student.id}`;
@@ -843,7 +843,7 @@ const QuickAttendance = () => {
                                             transition={{ delay: index * 0.01 }}
                                             className={`group transition-colors ${currentMark?.status === 'present' ? 'bg-present-fixed-light' :
                                                 currentMark?.status === 'absent' ? 'bg-absent-fixed-light' :
-                                                    'hover:bg-gray-50/50'
+                                                    'hover:bg-gray-50/50 dark:hover:bg-slate-800'
                                                 }`}
                                         >
                                             <td className="px-2 py-1.5 text-center">
