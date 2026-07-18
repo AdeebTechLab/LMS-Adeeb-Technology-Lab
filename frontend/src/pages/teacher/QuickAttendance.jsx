@@ -71,9 +71,8 @@ const QuickAttendance = () => {
     const [courses, setCourses] = useState([]);
     const [holidayDays, setHolidayDays] = useState([]);
     const [classTimeOptions, setClassTimeOptions] = useState(DEFAULT_CLASS_TIME_OPTIONS);
-    const [whatsappEnabled, setWhatsappEnabled] = useState(() => {
-        return localStorage.getItem('attendance_whatsapp_enabled') !== 'false';
-    });
+    // Fail closed until the admin-controlled server setting is loaded.
+    const [whatsappEnabled, setWhatsappEnabled] = useState(false);
     const socketRef = useRef(null);
 
     const getSocketURL = () => {
@@ -90,6 +89,7 @@ const QuickAttendance = () => {
 
     useEffect(() => {
         fetchInitialData();
+        fetchWhatsAppSetting();
 
         // Setup Socket connection
         socketRef.current = io(SOCKET_URL, { withCredentials: true });
@@ -121,6 +121,28 @@ const QuickAttendance = () => {
     }, []);
 
     useEffect(() => {
+        const syncOnFocus = () => fetchWhatsAppSetting();
+        const syncOnVisibility = () => {
+            if (document.visibilityState === 'visible') fetchWhatsAppSetting();
+        };
+        const syncFromStorage = (event) => {
+            if (event.key === 'attendance_whatsapp_enabled') {
+                setWhatsappEnabled(event.newValue === 'true');
+            }
+        };
+
+        window.addEventListener('focus', syncOnFocus);
+        document.addEventListener('visibilitychange', syncOnVisibility);
+        window.addEventListener('storage', syncFromStorage);
+
+        return () => {
+            window.removeEventListener('focus', syncOnFocus);
+            document.removeEventListener('visibilitychange', syncOnVisibility);
+            window.removeEventListener('storage', syncFromStorage);
+        };
+    }, []);
+
+    useEffect(() => {
         if (courses.length > 0) {
             fetchAllAttendance();
         }
@@ -141,6 +163,10 @@ const QuickAttendance = () => {
                 if (Array.isArray(savedSlots) && savedSlots.length > 0) {
                     setClassTimeOptions(savedSlots.map(s => ({ label: s, value: s })));
                 }
+                const savedWhatsApp = settingsRes.data.data?.whatsapp_attendance_enabled;
+                const enabled = savedWhatsApp === true || savedWhatsApp === 'true';
+                setWhatsappEnabled(enabled);
+                localStorage.setItem('attendance_whatsapp_enabled', String(enabled));
             } catch { /* use defaults */ }
 
             // 2. Flatten Students
@@ -182,6 +208,19 @@ const QuickAttendance = () => {
             showToast.error('Load Failed', 'Could not load student data');
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const fetchWhatsAppSetting = async () => {
+        try {
+            const response = await settingsAPI.getAll();
+            const saved = response.data.data?.whatsapp_attendance_enabled;
+            const enabled = saved === true || saved === 'true';
+            setWhatsappEnabled(enabled);
+            localStorage.setItem('attendance_whatsapp_enabled', String(enabled));
+        } catch {
+            // Never send guardian messages when the central permission cannot be verified.
+            setWhatsappEnabled(false);
         }
     };
 

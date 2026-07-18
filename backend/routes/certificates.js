@@ -368,7 +368,12 @@ router.get('/verify/:rollNo', async (req, res) => {
             searchRollNo = searchRollNo.substring(4);
         }
 
-        const users = await User.find({ rollNo: searchRollNo });
+        // Certificate verification is only for learning/teaching portal users.
+        // Job portal accounts may share a roll number, but must never be exposed here.
+        const users = await User.find({
+            rollNo: searchRollNo,
+            role: { $in: ['student', 'intern', 'teacher'] }
+        });
 
         if (!users || users.length === 0) {
             return res.status(404).json({
@@ -386,13 +391,106 @@ router.get('/verify/:rollNo', async (req, res) => {
         const enrollments = await Enrollment.find({ user: { $in: userIds } })
             .populate('course', 'title location');
 
+        const teacherIds = users
+            .filter(user => user.role === 'teacher')
+            .map(user => user._id);
+        const assignedTeacherCourses = teacherIds.length > 0
+            ? await Course.find({ teachers: { $in: teacherIds } })
+                .select('title location teachers createdAt')
+                .sort({ createdAt: 1 })
+            : [];
+
         const result = [];
 
         for (const user of users) {
             const userCerts = certificates.filter(c => c.user && c.user._id.toString() === user._id.toString());
             const userEnrollments = enrollments.filter(e => e.user && e.user._id.toString() === user._id.toString());
+            const userAssignedCourses = user.role === 'teacher'
+                ? assignedTeacherCourses.filter(course =>
+                    (course.teachers || []).some(teacherId => teacherId.toString() === user._id.toString())
+                )
+                : [];
 
             const position = user.role === 'teacher' ? 'Teacher' : user.role === 'intern' ? 'Intern' : 'Student';
+
+            // Teachers always appear as one consolidated card containing every course.
+            if (user.role === 'teacher') {
+                const assignedCourseNames = userAssignedCourses
+                    .map(course => course.title)
+                    .filter(Boolean);
+
+                if (userCerts.length > 0) {
+                    const certifiedCourseNames = userCerts.flatMap(cert => {
+                        if (cert.selectedCourses?.length > 0) return cert.selectedCourses;
+                        if (cert.course?.title) return [cert.course.title];
+                        if (cert.skills) return [cert.skills];
+                        return [];
+                    });
+                    const allTeacherCourses = [...new Set([
+                        ...assignedCourseNames,
+                        ...certifiedCourseNames
+                    ])];
+                    const latestCertificate = [...userCerts].sort(
+                        (a, b) => new Date(b.issuedAt || 0) - new Date(a.issuedAt || 0)
+                    )[0];
+                    const firstTeacherCourse = assignedCourseNames[0] || allTeacherCourses[0];
+
+                    result.push({
+                        rollNo: user.rollNo,
+                        name: user.name,
+                        photo: user.photo,
+                        position,
+                        course: firstTeacherCourse || 'Teaching Certificate',
+                        selectedCourses: firstTeacherCourse ? [firstTeacherCourse] : [],
+                        hasMoreCourses: allTeacherCourses.length > 1,
+                        hiddenCourses: allTeacherCourses.slice(1),
+                        skills: latestCertificate.skills,
+                        duration: latestCertificate.duration,
+                        passoutDate: latestCertificate.passoutDate,
+                        certificateLink: latestCertificate.certificateLink,
+                        location: userAssignedCourses.find(course => course.location)?.location || null,
+                        issuedAt: latestCertificate.issuedAt,
+                        statusLevel: 3
+                    });
+                } else if (userAssignedCourses.length > 0) {
+                    const firstAssignedCourse = assignedCourseNames[0];
+                    result.push({
+                        rollNo: user.rollNo,
+                        name: user.name,
+                        photo: user.photo,
+                        position,
+                        course: firstAssignedCourse,
+                        selectedCourses: firstAssignedCourse ? [firstAssignedCourse] : [],
+                        hasMoreCourses: assignedCourseNames.length > 1,
+                        hiddenCourses: assignedCourseNames.slice(1),
+                        skills: '',
+                        duration: '',
+                        passoutDate: null,
+                        certificateLink: null,
+                        location: userAssignedCourses.find(course => course.location)?.location || null,
+                        issuedAt: null,
+                        statusLevel: 2
+                    });
+                } else {
+                    result.push({
+                        rollNo: user.rollNo,
+                        name: user.name,
+                        photo: user.photo,
+                        position,
+                        course: 'Not Assigned',
+                        selectedCourses: [],
+                        skills: '',
+                        duration: '',
+                        passoutDate: null,
+                        certificateLink: null,
+                        location: null,
+                        issuedAt: null,
+                        statusLevel: 1
+                    });
+                }
+
+                continue;
+            }
 
             if (userCerts.length > 0) {
                 for (const cert of userCerts) {

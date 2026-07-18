@@ -8,6 +8,7 @@ const dotenv = require('dotenv');
 const cron = require('node-cron');
 const cloudinary = require('cloudinary').v2;
 const http = require('http');
+const { sendClassTimeReminders } = require('./utils/classTimeReminders');
 
 // Load environment variables
 dotenv.config();
@@ -509,6 +510,18 @@ cron.schedule('* * * * *', async () => {
             }
         }
     });
+});
+
+// Assigned class-time reminders - checked every minute in Pakistan time.
+cron.schedule('* * * * *', async () => {
+    await runDatabaseTask('Class time reminders', async () => {
+        const result = await sendClassTimeReminders(io);
+        if (result.sent > 0) {
+            console.log(`🔔 Sent ${result.sent} class time reminder(s)`);
+        }
+    });
+}, {
+    timezone: 'Asia/Karachi'
 });
 
 // 404 handler for unmatched routes

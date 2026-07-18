@@ -5,6 +5,8 @@ self.addEventListener('push', function (e) {
         body: data.body || 'New message received',
         icon: data.icon || '/logo.png',
         badge: '/logo.png',
+        tag: data.tag || 'adeebtech-notification',
+        silent: false,
         data: {
             url: data.url || '/'
         }

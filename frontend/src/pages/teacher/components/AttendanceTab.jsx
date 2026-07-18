@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Clock, Search, Lock, AlertCircle, Save, Download, Calendar, Sun, RefreshCw } from 'lucide-react';
 import Badge from '../../../components/ui/Badge';
 import ProfileAvatar from '../../../components/ui/ProfileAvatar';
-import { attendanceAPI } from '../../../services/api';
+import { attendanceAPI, settingsAPI } from '../../../services/api';
 import Loader, { ButtonLoader } from '../../../components/ui/Loader';
 
 import {
@@ -52,12 +52,34 @@ const AttendanceTab = ({ course, students }) => {
     const [holidayDays, setHolidayDays] = useState([]);
     const [isHoliday, setIsHoliday] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const [whatsappEnabled, setWhatsappEnabled] = useState(() => {
-        return localStorage.getItem('attendance_whatsapp_enabled') !== 'false';
-    });
+    // Fail closed until the admin-controlled server setting is loaded.
+    const [whatsappEnabled, setWhatsappEnabled] = useState(false);
 
     useEffect(() => {
         fetchGlobalHolidays();
+        fetchWhatsAppSetting();
+    }, []);
+
+    useEffect(() => {
+        const syncOnFocus = () => fetchWhatsAppSetting();
+        const syncOnVisibility = () => {
+            if (document.visibilityState === 'visible') fetchWhatsAppSetting();
+        };
+        const syncFromStorage = (event) => {
+            if (event.key === 'attendance_whatsapp_enabled') {
+                setWhatsappEnabled(event.newValue === 'true');
+            }
+        };
+
+        window.addEventListener('focus', syncOnFocus);
+        document.addEventListener('visibilitychange', syncOnVisibility);
+        window.addEventListener('storage', syncFromStorage);
+
+        return () => {
+            window.removeEventListener('focus', syncOnFocus);
+            document.removeEventListener('visibilitychange', syncOnVisibility);
+            window.removeEventListener('storage', syncFromStorage);
+        };
     }, []);
 
     useEffect(() => {
@@ -72,6 +94,19 @@ const AttendanceTab = ({ course, students }) => {
             setHolidayDays(response.data.holidayDays || []);
         } catch (err) {
             console.error('Error fetching holiday settings:', err);
+        }
+    };
+
+    const fetchWhatsAppSetting = async () => {
+        try {
+            const response = await settingsAPI.getAll();
+            const saved = response.data.data?.whatsapp_attendance_enabled;
+            const enabled = saved === true || saved === 'true';
+            setWhatsappEnabled(enabled);
+            localStorage.setItem('attendance_whatsapp_enabled', String(enabled));
+        } catch {
+            // Never send guardian messages when the central permission cannot be verified.
+            setWhatsappEnabled(false);
         }
     };
 

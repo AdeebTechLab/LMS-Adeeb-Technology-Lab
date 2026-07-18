@@ -10,6 +10,36 @@ const getSocketURL = () => {
 };
 
 const SOCKET_URL = getSocketURL();
+
+const playClassReminderRing = () => {
+    try {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextClass) return;
+
+        const audioContext = new AudioContextClass();
+        const oscillator = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        const startedAt = audioContext.currentTime;
+        const endsAt = startedAt + 3;
+
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(880, startedAt);
+        gain.gain.setValueAtTime(0.0001, startedAt);
+
+        for (let offset = 0; offset < 3; offset += 0.5) {
+            gain.gain.setValueAtTime(0.22, startedAt + offset);
+            gain.gain.setValueAtTime(0.0001, Math.min(startedAt + offset + 0.3, endsAt));
+        }
+
+        oscillator.connect(gain);
+        gain.connect(audioContext.destination);
+        oscillator.start(startedAt);
+        oscillator.stop(endsAt);
+        oscillator.onended = () => audioContext.close().catch(() => {});
+    } catch (error) {
+        console.warn('Class reminder sound could not be played:', error);
+    }
+};
 import {
     Menu,
     Bell,
@@ -40,7 +70,7 @@ import { logout, updateUser } from '../../features/auth/authSlice';
 import Sidebar from './Sidebar';
 import NotificationPopup from '../shared/NotificationPopup';
 import ChatWidget from '../shared/ChatWidget';
-import { userNotificationAPI, assignmentAPI, courseAPI, authAPI } from '../../services/api';
+import { userNotificationAPI, assignmentAPI, courseAPI, authAPI, attendanceAPI } from '../../services/api';
 import useAutoLogout from '../../hooks/useAutoLogout';
 import { useTheme } from '../../context/ThemeContext';
 import Loader, { FullScreenLoader } from '../ui/Loader';
@@ -70,7 +100,42 @@ const DashboardLayout = () => {
     const { isDark, toggleTheme } = useTheme();
     const [pendingTasks, setPendingTasks] = useState([]);
     const [isPageLoading, setIsPageLoading] = useState(false);
+    const [isWeeklyOff, setIsWeeklyOff] = useState(false);
+    const [weeklyOffDayName, setWeeklyOffDayName] = useState('');
     const dispatch = useDispatch();
+
+    useEffect(() => {
+        const checkWeeklyOffDay = async () => {
+            try {
+                const response = await attendanceAPI.getGlobalHolidays();
+                const offDays = response.data.holidayDays || [];
+                const pakistanDayName = new Intl.DateTimeFormat('en-US', {
+                    timeZone: 'Asia/Karachi',
+                    weekday: 'long'
+                }).format(new Date());
+                const dayIndex = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+                    .indexOf(pakistanDayName);
+
+                setWeeklyOffDayName(pakistanDayName);
+                setIsWeeklyOff(offDays.includes(dayIndex));
+            } catch (error) {
+                console.error('Could not check weekly off day:', error);
+                setIsWeeklyOff(false);
+            }
+        };
+
+        checkWeeklyOffDay();
+        const interval = setInterval(checkWeeklyOffDay, 5 * 60 * 1000);
+        const checkWhenVisible = () => {
+            if (document.visibilityState === 'visible') checkWeeklyOffDay();
+        };
+        document.addEventListener('visibilitychange', checkWhenVisible);
+
+        return () => {
+            clearInterval(interval);
+            document.removeEventListener('visibilitychange', checkWhenVisible);
+        };
+    }, []);
 
     // Fetch notifications and tasks
     useEffect(() => {
@@ -88,6 +153,7 @@ const DashboardLayout = () => {
         const socket = io(SOCKET_URL, {
             query: { userId: user.id || user._id }
         });
+        socket.emit('join_chat', String(user.id || user._id));
 
         // Whenever a relevant socket event is received, refresh data
         const handleRefresh = () => {
@@ -99,6 +165,7 @@ const DashboardLayout = () => {
         socket.on('new_assignment', handleRefresh);
         socket.on('new_submission', handleRefresh);
         socket.on('attendance_updated', handleRefresh);
+        socket.on('class_time_reminder', playClassReminderRing);
         socket.on('new_daily_task', handleRefresh);
         socket.on('user_updated', (data) => {
             try {
@@ -748,6 +815,83 @@ const DashboardLayout = () => {
 
                 {/* Page Content */}
                 <main className={`flex-1 p-3 sm:p-5 md:p-6 overflow-y-auto overflow-x-hidden transition-colors duration-300 ${isDark ? 'bg-[#0f1117]' : 'bg-[var(--bg-main)]'}`}>
+                    <AnimatePresence>
+                        {isWeeklyOff && (
+                            <motion.div
+                                initial={{ opacity: 0, y: -18, scale: 0.98 }}
+                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                exit={{ opacity: 0, y: -18, scale: 0.98 }}
+                                className={`relative overflow-visible mb-5 rounded-3xl border p-4 sm:p-5 shadow-sm ${isDark ? 'bg-indigo-950/40 border-indigo-400/20' : 'bg-gradient-to-r from-indigo-50 via-violet-50 to-blue-50 border-indigo-100'}`}
+                            >
+                                <div className="absolute inset-0 overflow-hidden rounded-3xl opacity-30 pointer-events-none">
+                                    <motion.div
+                                        animate={{ x: ['-10%', '110%'] }}
+                                        transition={{ duration: 14, repeat: Infinity, ease: 'linear' }}
+                                        className="absolute top-3 w-24 h-24 rounded-full bg-indigo-300/30 blur-2xl"
+                                    />
+                                    {[12, 38, 67, 88].map((left, starIndex) => (
+                                        <motion.span
+                                            key={left}
+                                            animate={{ opacity: [0.15, 0.9, 0.15], scale: [0.7, 1.25, 0.7] }}
+                                            transition={{ duration: 2.2 + starIndex * 0.35, repeat: Infinity, delay: starIndex * 0.4 }}
+                                            className="absolute text-indigo-400 text-xs"
+                                            style={{ left: `${left}%`, top: starIndex % 2 === 0 ? '18%' : '68%' }}
+                                        >✦</motion.span>
+                                    ))}
+                                </div>
+                                <div className="relative flex items-center gap-4">
+                                    <div className="relative w-24 h-20 shrink-0" aria-hidden="true">
+                                        <motion.div
+                                            animate={{ scale: [1, 1.06, 1], y: [0, 2, 0] }}
+                                            transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut' }}
+                                            className="absolute left-0 bottom-0 w-16 h-16 rounded-2xl bg-indigo-500/10 ring-1 ring-indigo-400/10 flex items-center justify-center text-4xl shadow-inner"
+                                        >
+                                            😴
+                                            <motion.div
+                                                animate={{ opacity: [0.25, 0.6, 0.25], scale: [0.85, 1.12, 0.85] }}
+                                                transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut' }}
+                                                className="absolute inset-1 rounded-2xl bg-indigo-400/10 blur-md -z-10"
+                                            />
+                                        </motion.div>
+
+                                        {[
+                                            { size: 'text-xs', delay: 0, x: [0, 7, 14], y: [0, -15, -31] },
+                                            { size: 'text-base', delay: 0.65, x: [0, 9, 18], y: [0, -19, -39] },
+                                            { size: 'text-xl', delay: 1.3, x: [0, 12, 24], y: [0, -23, -47] }
+                                        ].map((sleep, sleepIndex) => (
+                                            <motion.span
+                                                key={sleepIndex}
+                                                initial={{ opacity: 0 }}
+                                                animate={{
+                                                    opacity: [0, 0.95, 0.75, 0],
+                                                    x: sleep.x,
+                                                    y: sleep.y,
+                                                    rotate: [-8, 4, 10],
+                                                    scale: [0.65, 1, 1.12]
+                                                }}
+                                                transition={{
+                                                    duration: 2.4,
+                                                    repeat: Infinity,
+                                                    delay: sleep.delay,
+                                                    ease: 'easeOut',
+                                                    times: [0, 0.25, 0.72, 1]
+                                                }}
+                                                className={`absolute left-14 top-8 ${sleep.size} font-black italic text-indigo-500 drop-shadow-sm`}
+                                            >Z</motion.span>
+                                        ))}
+                                    </div>
+                                    <div>
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <Moon className="w-4 h-4 text-indigo-500" />
+                                            <span className="text-[10px] font-black uppercase tracking-[0.25em] text-indigo-500">Weekly Off Day</span>
+                                        </div>
+                                        <h2 className={`text-lg sm:text-xl font-black ${isDark ? 'text-white' : 'text-gray-900'}`}>{weeklyOffDayName} Rest Mode</h2>
+                                        <p className={`text-xs sm:text-sm mt-1 ${isDark ? 'text-indigo-200/70' : 'text-gray-500'}`}>Today is an official weekly off day. Relax, recharge, and come back refreshed.</p>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                     <motion.div
                         key={location.pathname}
                         initial={{ opacity: 0, y: 20 }}

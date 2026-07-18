@@ -37,7 +37,8 @@ const sendPushNotification = async (userId, payload) => {
             title: payload.title || 'LMS Notification',
             body: payload.body || 'You have a new update',
             icon: payload.icon || '/logo.png',
-            url: payload.url || '/'
+            url: payload.url || '/',
+            tag: payload.tag || undefined
         });
 
         // Send to all subscriptions for this user

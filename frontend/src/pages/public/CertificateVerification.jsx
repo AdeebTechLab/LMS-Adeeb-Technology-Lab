@@ -98,7 +98,8 @@ const CertificateVerification = () => {
                 </div>
             </div>
 
-            {/* Results Section */}
+            {/* Results Section — hidden until a roll number search completes */}
+            {(error || certificates) && (
             <div className="flex-1 px-4 py-16 -mt-12 relative z-20">
                 <div className="max-w-4xl mx-auto">
                     <AnimatePresence mode="wait">
@@ -168,7 +169,7 @@ const CertificateVerification = () => {
                                                     </div>
 
                                                 {/* For teacher certs with multiple courses: show as a list */}
-                                                {cert.selectedCourses && cert.selectedCourses.length > 0 ? (
+                                                {cert.selectedCourses && cert.selectedCourses.length > 0 && cert.position !== 'Teacher' ? (
                                                     <div className="space-y-4">
                                                         <div className="bg-primary/5/50 p-5 rounded-3xl border border-primary/10">
                                                             <p className="text-[11px] text-primary mb-3 text-sm font-black uppercase tracking-widest flex items-center gap-2">
@@ -181,6 +182,11 @@ const CertificateVerification = () => {
                                                                         {course}
                                                                     </span>
                                                                 ))}
+                                                                {cert.hasMoreCourses && (
+                                                                    <span className="px-5 py-2.5 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-xl text-sm font-black tracking-widest">
+                                                                        ……
+                                                                    </span>
+                                                                )}
                                                             </div>
                                                         </div>
                                                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700">
@@ -214,7 +220,20 @@ const CertificateVerification = () => {
                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5 p-6 bg-gradient-to-br from-gray-50 to-gray-100/50 dark:from-gray-800 dark:to-gray-800/50 rounded-2xl border border-gray-200/60 dark:border-gray-700/60">
                                                         <div className="space-y-1">
                                                             <p className="text-[10px] text-gray-400 dark:text-gray-500 uppercase tracking-widest font-bold">Course / Program</p>
-                                                            <p className="font-black text-gray-900 dark:text-white text-lg">{cert.course || '—'}</p>
+                                                            <div className="flex items-center gap-2 flex-wrap">
+                                                                {cert.position === 'Teacher' && cert.hasMoreCourses ? (
+                                                                    <div className="relative inline-flex">
+                                                                        <p
+                                                                            className="font-black text-gray-900 dark:text-white text-lg cursor-help hover:text-primary transition-colors"
+                                                                            title={(cert.hiddenCourses || []).join(', ')}
+                                                                        >
+                                                                            {cert.course || '—'}
+                                                                        </p>
+                                                                    </div>
+                                                                ) : (
+                                                                    <p className="font-black text-gray-900 dark:text-white text-lg">{cert.course || '—'}</p>
+                                                                )}
+                                                            </div>
                                                         </div>
                                                         {cert.location && (
                                                             <div className="space-y-1">
@@ -291,6 +310,7 @@ const CertificateVerification = () => {
                     </AnimatePresence>
                 </div>
             </div>
+            )}
 
             {/* Complete Footer */}
             <footer className="bg-[#1a1c23] text-white mt-auto">
