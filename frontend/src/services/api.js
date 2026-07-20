@@ -293,7 +293,11 @@ export const financeAPI = {
     getAll: (params = {}) => api.get('/finance', { params }),
     create: (data) => api.post('/finance', data),
     update: (id, data) => api.put(`/finance/${id}`, data),
-    delete: (id) => api.delete(`/finance/${id}`)
+    delete: (id) => api.delete(`/finance/${id}`),
+    getProjects: () => api.get('/finance/projects'),
+    createProject: (data) => api.post('/finance/projects', data),
+    updateProject: (id, data) => api.put(`/finance/projects/${id}`, data),
+    deleteProject: (id) => api.delete(`/finance/projects/${id}`)
 };
 
 export const reportAPI = {

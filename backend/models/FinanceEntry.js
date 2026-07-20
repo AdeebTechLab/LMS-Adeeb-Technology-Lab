@@ -5,6 +5,7 @@ const financeEntrySchema = new mongoose.Schema({
     title: { type: String, required: true, trim: true },
     amount: { type: Number, required: true, min: 0 },
     category: { type: String, required: true, trim: true },
+    project: { type: mongoose.Schema.Types.ObjectId, ref: 'FinanceProject', default: null },
     description: { type: String, trim: true, default: '' },
     transactionDate: { type: Date, default: Date.now },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }
