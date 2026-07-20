@@ -9,7 +9,7 @@ const Modal = ({
     size = 'md',
     showClose = true,
     noScroll = false,
-    zIndex = 100,
+    zIndex = 1000,
 }) => {
     const sizes = {
         sm: 'max-w-md',
