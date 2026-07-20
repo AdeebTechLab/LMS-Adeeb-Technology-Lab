@@ -34,6 +34,7 @@ const projectData = (project, linkedTotals = {}) => {
         developers,
         companies,
         clientReceived,
+        status: developerTotal > 0 && developerDue === 0 ? 'completed' : 'processing',
         metrics: {
             developerTotal,
             developerPaid,
@@ -52,6 +53,7 @@ const projectData = (project, linkedTotals = {}) => {
 const normalizeProjectPayload = body => ({
     name: body.name,
     clientName: body.clientName,
+    clientPhone: body.clientPhone || '',
     clientTotal: Number(body.clientTotal || 0),
     clientReceived: Number(body.clientReceived || 0),
     developers: (body.developers || []).map(developer => ({

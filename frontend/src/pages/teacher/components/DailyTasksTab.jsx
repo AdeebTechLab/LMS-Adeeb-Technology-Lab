@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { FileText, CheckCircle, Clock, Search, RefreshCw, ExternalLink, Trash2, Users, ChevronDown, Check, X, BookOpen, XCircle } from 'lucide-react';
+import { FileText, CheckCircle, Clock, Search, RefreshCw, ExternalLink, Trash2, Users, X, BookOpen, XCircle } from 'lucide-react';
 import Badge from '../../../components/ui/Badge';
 import Loader from '../../../components/ui/Loader';
 import { formatDateTime } from '../../../utils/dateFormatter';
@@ -13,9 +13,7 @@ const DailyTasksTab = ({ course, students = [] }) => {
     const [isLoading, setIsLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [selectedStudentFilter, setSelectedStudentFilter] = useState('all');
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    const [studentSearchTerm, setStudentSearchTerm] = useState('');
+    const [selectedStudentFilters, setSelectedStudentFilters] = useState(null);
     const [selectedTaskForGrading, setSelectedTaskForGrading] = useState(null);
     const [gradingMarks, setGradingMarks] = useState(10);
     const [gradingFeedback, setGradingFeedback] = useState('');
@@ -128,10 +126,10 @@ const DailyTasksTab = ({ course, students = [] }) => {
             if (task.status !== 'rejected') return false;
         }
 
-        // If a specific student is selected, filter to that user only
-        if (selectedStudentFilter !== 'all') {
+        // Null means all students; an array allows multi-student filtering.
+        if (selectedStudentFilters !== null) {
             const userId = String(task.user?._id || task.user);
-            if (userId !== String(selectedStudentFilter)) return false;
+            if (!selectedStudentFilters.map(String).includes(userId)) return false;
         }
 
         const contentText = stripHtmlToText(task.content).toLowerCase();
@@ -199,84 +197,22 @@ const DailyTasksTab = ({ course, students = [] }) => {
 
             {/* Student Filter */}
             <div className="relative">
-                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2 mb-2">
-                    <Users className="w-3 h-3" />
-                    Filter by Student
-                </p>
+                <div className="flex items-center justify-between gap-3 mb-2"><p className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2"><Users className="w-3 h-3" />Filter by Student</p><div className="flex items-center gap-2"><button type="button" onClick={() => setSelectedStudentFilters(null)} className="px-3 py-2 text-xs font-bold text-primary bg-primary/5 hover:bg-primary/10 rounded-lg">Select All</button><button type="button" onClick={() => setSelectedStudentFilters([])} className="px-3 py-2 text-xs font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg">Clear</button></div></div>
 
-                <div className="flex items-center gap-3">
-                    <div className="relative min-w-[260px]">
-                        <button
-                            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                            className={`w-full flex items-center justify-between px-4 py-3 bg-white border-2 rounded-xl transition-all ${isDropdownOpen ? 'border-primary ring-4 ring-primary/10' : 'border-gray-100 hover:border-gray-200'}`}>
-                            <div className="flex items-center gap-2">
-                                <Users className="w-4 h-4 text-primary" />
-                                <span className="text-sm font-bold text-gray-700">
-                                    {selectedStudentFilter === 'all' ? 'All Students' : (students.find(s => String(s.id || s._id) === String(selectedStudentFilter))?.name || 'Select Student')}
-                                </span>
-                            </div>
-                            <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
-                        </button>
-
-                        {isDropdownOpen && (
-                            <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-100 rounded-2xl shadow-2xl z-[60] overflow-hidden">
-                                <div className="p-3 border-b border-gray-50 bg-gray-50/50">
-                                    <div className="relative">
-                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                                        <input
-                                            type="text"
-                                            placeholder="Search student name..."
-                                            value={studentSearchTerm}
-                                            onChange={(e) => setStudentSearchTerm(e.target.value)}
-                                            className="w-full pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm outline-none focus:border-primary transition-all font-medium"
-                                            onClick={(e) => e.stopPropagation()}
-                                            autoFocus
-                                        />
-                                    </div>
-                                </div>
-                                <div className="max-h-60 overflow-y-auto p-2 space-y-1 custom-scrollbar">
-                                    <button
-                                        onClick={() => { setSelectedStudentFilter('all'); setIsDropdownOpen(false); setStudentSearchTerm(''); }}
-                                        className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${selectedStudentFilter === 'all' ? 'bg-primary/5 text-primary' : 'text-gray-600 hover:bg-gray-50'}`}>
-                                        View All Students
-                                    </button>
-
-                                    <div className="h-px bg-gray-50 my-1" />
-
-                                    {(students || []).filter(s => s.name.toLowerCase().includes(studentSearchTerm.toLowerCase())).map(student => (
-                                        <button
-                                            key={student.id || student._id}
-                                            onClick={() => { setSelectedStudentFilter(student.id || student._id); setIsDropdownOpen(false); setStudentSearchTerm(''); }}
-                                            className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${String(selectedStudentFilter) === String(student.id || student._id) ? 'bg-primary/5 text-primary' : 'text-gray-600 hover:bg-gray-50'}`}>
-                                            <div className="flex items-center gap-3">
-                                                {student.photo ? (
-                                                    <img src={student.photo} alt={student.name} className="w-6 h-6 rounded-full object-cover" />
-                                                ) : (
-                                                    <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] text-primary">{student.name.charAt(0)}</div>
-                                                )}
-                                                {student.name}
-                                            </div>
-                                            {String(selectedStudentFilter) === String(student.id || student._id) && <Check className="w-4 h-4" />}
-                                        </button>
-                                    ))}
-
-                                    {(students || []).filter(s => s.name.toLowerCase().includes(studentSearchTerm.toLowerCase())).length === 0 && (
-                                        <div className="py-8 text-center text-xs text-gray-400 font-medium">No students found</div>
-                                    )}
-                                </div>
-                            </div>
-                        )}
-                    </div>
-
-                    {selectedStudentFilter !== 'all' && (
-                        <button onClick={() => setSelectedStudentFilter('all')} className="text-xs font-bold text-red-500 hover:text-red-600 uppercase tracking-wider flex items-center gap-1.5 px-3 py-2 bg-red-50 rounded-lg transition-colors">
-                            <X className="w-3 h-3" />
-                            Clear Filter
-                        </button>
-                    )}
+                <div className="flex flex-wrap items-start gap-3">
+                    {(students || []).map(student => {
+                        const studentId = student.id || student._id;
+                        const selected = selectedStudentFilters === null || selectedStudentFilters.map(String).includes(String(studentId));
+                        return <label
+                            key={studentId}
+                            className={`inline-flex w-fit flex-none items-center gap-3 px-3 py-2.5 rounded-xl border text-left transition-all ${selected ? 'border-primary bg-primary/5 shadow-sm' : 'border-gray-200 bg-white hover:border-primary/40 hover:shadow-sm'}`}
+                        >
+                            <input type="checkbox" checked={selected} onChange={(event) => { const allIds = students.map(item => item.id || item._id); const current = selectedStudentFilters === null ? allIds : selectedStudentFilters; setSelectedStudentFilters(event.target.checked ? [...new Set([...current, studentId])] : current.filter(id => String(id) !== String(studentId))); }} className="w-4 h-4 rounded accent-orange-500 text-orange-500 focus:ring-orange-500" />
+                            {student.photo ? <img src={student.photo} alt={student.name} className="w-8 h-8 rounded-full object-cover" /> : <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold">{student.name?.charAt(0)}</div>}
+                            <div><p className="text-sm font-medium text-gray-900">{student.name}</p>{student.rollNo && <p className="text-xs text-gray-400">{student.rollNo}</p>}</div>
+                        </label>;
+                    })}
                 </div>
-
-                {isDropdownOpen && <div className="fixed inset-0 z-[55]" onClick={() => setIsDropdownOpen(false)} />}
             </div>
 
             {/* Search */}

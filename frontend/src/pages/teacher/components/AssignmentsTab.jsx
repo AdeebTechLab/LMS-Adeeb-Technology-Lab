@@ -745,6 +745,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                 isOpen={isCreateModalOpen}
                 onClose={() => setIsCreateModalOpen(false)}
                 title={`Create New ${itemLabel}`}
+                size="xl"
             >
                 <form onSubmit={handleCreateAssignment} className="space-y-4">
                     <div>
@@ -881,12 +882,12 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                 </div>
 
                                 {/* List */}
-                                <div className="border border-gray-200 dark:border-white/10 rounded-xl max-h-48 overflow-y-auto divide-y divide-gray-100 dark:divide-white/5 bg-white dark:bg-slate-800 shadow-inner">
+                                <div className="flex flex-wrap items-start gap-3">
                                     {students?.filter(s =>
                                         s.name?.toLowerCase().includes(assignSearchTerm.toLowerCase()) ||
                                         s.rollNo?.toLowerCase().includes(assignSearchTerm.toLowerCase())
                                     ).map(student => (
-                                        <label key={student.id || student._id} className="flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-white/5 cursor-pointer transition-colors">
+                                        <label key={student.id || student._id} className={`inline-flex w-fit flex-none items-center gap-3 px-3 py-2.5 rounded-xl border cursor-pointer transition-all ${newAssignment.assignedUsers?.includes(student.id || student._id) ? 'border-primary bg-primary/5 shadow-sm' : 'border-gray-200 dark:border-white/10 bg-white dark:bg-slate-800 hover:border-primary/40 hover:shadow-sm'}`}>
                                             <input
                                                 type="checkbox"
                                                 checked={newAssignment.assignedUsers?.includes(student.id || student._id)}
@@ -899,7 +900,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                                         setNewAssignment({ ...newAssignment, assignedUsers: current.filter(id => id !== sId) });
                                                     }
                                                 }}
-                                                className="w-4 h-4 rounded text-primary focus:ring-primary border-gray-300 dark:border-white/20"
+                                                className="w-4 h-4 rounded accent-orange-500 text-orange-500 focus:ring-orange-500 border-gray-300 dark:border-white/20"
                                             />
                                             <div className="flex-1 flex items-center justify-between">
                                                 <div className="flex items-center gap-3">
@@ -915,9 +916,6 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                                         <p className="text-xs text-gray-400 dark:text-gray-400">{student.rollNo}</p>
                                                     </div>
                                                 </div>
-                                                {newAssignment.assignedUsers?.includes(student.id || student._id) && (
-                                                    <CheckCircle className="w-4 h-4 text-primary" />
-                                                )}
                                             </div>
                                         </label>
                                     ))}
@@ -962,6 +960,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                 isOpen={isEditModalOpen}
                 onClose={() => setIsEditModalOpen(false)}
                 title={`Edit ${itemLabel}`}
+                size="xl"
             >
                 {editingAssignment && (
                     <form onSubmit={handleUpdateAssignment} className="space-y-4">
@@ -1100,12 +1099,12 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                     </div>
 
                                     {/* List */}
-                                    <div className="border border-gray-200 dark:border-white/10 rounded-xl max-h-48 overflow-y-auto divide-y divide-gray-100 dark:divide-white/5 bg-white dark:bg-slate-800 shadow-inner">
+                                    <div className="flex flex-wrap items-start gap-3">
                                         {students?.filter(s =>
                                             s.name?.toLowerCase().includes(assignSearchTerm.toLowerCase()) ||
                                             s.rollNo?.toLowerCase().includes(assignSearchTerm.toLowerCase())
                                         ).map(student => (
-                                            <label key={student.id || student._id} className="flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-white/5 cursor-pointer transition-colors">
+                                            <label key={student.id || student._id} className={`inline-flex w-fit flex-none items-center gap-3 px-3 py-2.5 rounded-xl border cursor-pointer transition-all ${editingAssignment.assignedUsers?.includes(student.id || student._id) ? 'border-primary bg-primary/5 shadow-sm' : 'border-gray-200 dark:border-white/10 bg-white dark:bg-slate-800 hover:border-primary/40 hover:shadow-sm'}`}>
                                                 <input
                                                     type="checkbox"
                                                     checked={editingAssignment.assignedUsers?.includes(student.id || student._id)}
@@ -1118,7 +1117,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                                             setEditingAssignment({ ...editingAssignment, assignedUsers: current.filter(id => id !== sId) });
                                                         }
                                                     }}
-                                                    className="w-4 h-4 rounded text-primary focus:ring-primary border-gray-300 dark:border-white/20"
+                                                    className="w-4 h-4 rounded accent-orange-500 text-orange-500 focus:ring-orange-500 border-gray-300 dark:border-white/20"
                                                 />
                                                 <div className="flex-1 flex items-center justify-between">
                                                     <div className="flex items-center gap-3">
@@ -1134,9 +1133,6 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                                             <p className="text-xs text-gray-400 dark:text-gray-400">{student.rollNo}</p>
                                                         </div>
                                                     </div>
-                                                    {editingAssignment.assignedUsers?.includes(student.id || student._id) && (
-                                                        <CheckCircle className="w-4 h-4 text-primary" />
-                                                    )}
                                                 </div>
                                             </label>
                                         ))}

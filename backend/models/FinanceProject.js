@@ -19,6 +19,7 @@ const companySchema = new mongoose.Schema({
 const financeProjectSchema = new mongoose.Schema({
     name: { type: String, required: true, trim: true },
     clientName: { type: String, required: true, trim: true },
+    clientPhone: { type: String, trim: true, default: '' },
     clientTotal: { type: Number, required: true, min: 0 },
     clientReceived: { type: Number, min: 0, default: 0 },
     developers: { type: [developerSchema], default: [] },
