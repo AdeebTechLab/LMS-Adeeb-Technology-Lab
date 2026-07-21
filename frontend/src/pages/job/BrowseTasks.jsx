@@ -301,7 +301,7 @@ const BrowseTasks = () => {
             </div>
 
             {/* Tasks Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 {filteredTasks.map((task, index) => {
                     const assigned = isAssignedToMe(task);
                     const submitted = hasSubmitted(task);
@@ -406,7 +406,7 @@ const BrowseTasks = () => {
                                             className="flex-1 py-2.5 bg-primary hover:bg-primary text-white rounded-xl font-medium flex items-center justify-center gap-2"
                                         >
                                             <Upload className="w-4 h-4" />
-                                            Submit
+                                            Submit Project
                                         </button>
                                         <button
                                             onClick={() => navigate('/job/job-chat', { state: { taskId: task._id } })}
