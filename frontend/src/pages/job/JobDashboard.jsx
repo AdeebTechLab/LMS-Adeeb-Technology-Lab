@@ -196,18 +196,34 @@ const JobDashboard = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
-                className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-2xl p-6 border border-gray-200"
+                className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-slate-800 dark:to-slate-900 rounded-2xl p-6 border border-gray-200 dark:border-slate-700 shadow-sm dark:shadow-black/20"
             >
                 <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <div className="w-12 h-12 bg-primary/10 dark:bg-primary/20 rounded-xl flex items-center justify-center flex-shrink-0">
                         <AlertCircle className="w-6 h-6 text-primary" />
                     </div>
                     <div>
-                        <h3 className="font-semibold text-gray-900 mb-1">Need Help?</h3>
-                        <p className="text-gray-600 text-sm">
+                        <h3 className="font-semibold text-gray-900 dark:text-white mb-1">Need Help?</h3>
+                        <p className="text-gray-600 dark:text-slate-300 text-sm leading-relaxed">
                             If you have any questions about available tasks or payments,
-                            please contact our support team at <span className="font-medium">support@edulms.com</span> or
-                            call <span className="font-medium">+92 300 1234567</span>.
+                            please contact our support team at{' '}
+                            <a
+                                href="https://mail.google.com/mail/?view=cm&fs=1&to=info.AdeebtechLab%40gmail.com"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="font-semibold text-gray-900 dark:text-primary hover:text-primary underline underline-offset-2 transition-colors"
+                            >
+                                info.AdeebtechLab@gmail.com
+                            </a>{' '}
+                            or WhatsApp{' '}
+                            <a
+                                href="https://wa.me/923092333121?text=Ye%20message%20Adeeb%20Tech%20Lab%20Job%20Portal%20se%20aaya%20hai."
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="font-semibold text-gray-900 dark:text-primary hover:text-primary underline underline-offset-2 transition-colors"
+                            >
+                                +923092333121
+                            </a>.
                         </p>
                     </div>
                 </div>

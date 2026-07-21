@@ -38,7 +38,8 @@ api.interceptors.response.use(
         console.error(`❌ [API] Message: ${error.response?.data?.message || error.message}`);
         console.error(`❌ [API] Full Error:`, error.response?.data || error);
 
-        if (error.response?.status === 401) {
+        const isLoginRequest = error.config?.url === '/auth/login' || error.config?.url?.endsWith('/auth/login');
+        if (error.response?.status === 401 && !isLoginRequest) {
             console.warn('🚪 [API] 401 Unauthorized - Clearing session and redirecting to login');
             localStorage.removeItem('token');
             localStorage.removeItem('user');
