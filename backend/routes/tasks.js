@@ -225,6 +225,54 @@ router.post('/:id/apply', protect, authorize('job'), async (req, res) => {
     }
 });
 
+// @route   DELETE /api/tasks/:id/applicants/:userId
+// @desc    Remove a pending application so the user can apply again
+// @access  Private (Admin or assigned job manager teacher)
+router.delete('/:id/applicants/:userId', protect, authorize('admin', 'teacher'), async (req, res) => {
+    try {
+        const task = await PaidTask.findById(req.params.id);
+        if (!task) {
+            return res.status(404).json({ success: false, message: 'Task not found' });
+        }
+
+        if (req.user.role === 'teacher') {
+            const managerIds = (task.jobManagers?.length
+                ? task.jobManagers
+                : [task.jobManager || task.createdBy]).filter(Boolean).map(String);
+            if (!managerIds.includes(String(req.user.id))) {
+                return res.status(403).json({ success: false, message: 'You can only manage applicants for your own jobs' });
+            }
+        }
+
+        const applicantId = String(req.params.userId);
+        const isAssigned = (task.assignedTo || []).some(userId => String(userId) === applicantId);
+        if (isAssigned) {
+            return res.status(400).json({ success: false, message: 'Unassign this user before deleting the application' });
+        }
+
+        const previousCount = task.applicants.length;
+        task.applicants = task.applicants.filter(applicant => String(applicant.user) !== applicantId);
+        if (task.applicants.length === previousCount) {
+            return res.status(404).json({ success: false, message: 'Application not found' });
+        }
+
+        await task.save();
+
+        const io = req.app.get('io');
+        if (io) {
+            io.to(applicantId).emit('new_browser_notification', {
+                title: 'Application Removed',
+                message: `Your application for "${task.title}" was removed. You can apply again.`,
+                url: '/job/tasks'
+            });
+        }
+
+        res.json({ success: true, message: 'Application removed successfully' });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
 // @route   PUT /api/tasks/:id/assign
 // @desc    Assign task to an applicant (can be multiple)
 // @access  Private (Admin or assigned job manager teacher)

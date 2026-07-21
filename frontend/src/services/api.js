@@ -199,6 +199,7 @@ export const taskAPI = {
     apply: (id, message) => api.post(`/tasks/${id}/apply`, { message }),
     assign: (id, userId) => api.put(`/tasks/${id}/assign`, { userId }),
     unassign: (id, userId) => api.put(`/tasks/${id}/unassign`, { userId }),
+    deleteApplicant: (id, userId) => api.delete(`/tasks/${id}/applicants/${userId}`),
     submit: (id, formData) => api.post(`/tasks/${id}/submit`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
     }),

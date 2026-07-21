@@ -20,6 +20,7 @@ const PaidTasksManagement = () => {
     const { user } = useSelector((state) => state.auth);
     const navigate = useNavigate();
     const [isDeleting, setIsDeleting] = useState(false);
+    const [deletingApplicantId, setDeletingApplicantId] = useState(null);
     const [selectedTask, setSelectedTask] = useState(null);
     const [editingTask, setEditingTask] = useState(null);
     const [viewMode, setViewMode] = useState(null);
@@ -130,8 +131,8 @@ const PaidTasksManagement = () => {
         }
     }, []);
 
-    const fetchTasks = async () => {
-        setIsFetching(true);
+    const fetchTasks = async (silent = false) => {
+        if (!silent) setIsFetching(true);
         setError('');
         try {
             const [allRes, showcaseRes] = await Promise.all([
@@ -148,7 +149,7 @@ const PaidTasksManagement = () => {
             console.error('Error fetching tasks:', err);
             setError('Failed to load tasks. Please try again.');
         } finally {
-            setIsFetching(false);
+            if (!silent) setIsFetching(false);
         }
     };
 
@@ -161,8 +162,28 @@ const PaidTasksManagement = () => {
         return new Date(task.deadline) < new Date() && (!task.assignedTo || task.assignedTo.length === 0) && task.status === 'open';
     };
 
+    const getPendingApplicants = (task) => {
+        const latestByUser = new Map();
+        (task.applicants || []).forEach(applicant => {
+            const applicantId = String(applicant.user?._id || applicant.user);
+            const existing = latestByUser.get(applicantId);
+            if (!existing || (applicant.cycle || 1) >= (existing.cycle || 1)) {
+                latestByUser.set(applicantId, applicant);
+            }
+        });
+
+        return [...latestByUser.values()].filter(applicant => {
+            const applicantId = applicant.user?._id || applicant.user;
+            const isAlreadyAssigned = (task.assignedTo || []).some(assignedUser =>
+                String(assignedUser?._id || assignedUser) === String(applicantId)
+            );
+            return applicant.status === 'applied' && !isAlreadyAssigned;
+        });
+    };
+
     // Filter tasks by status category
     const openTasks = tasks.filter(t => t.status === 'open' && !isExpired(t));
+    const applicantTasks = tasks.filter(task => getPendingApplicants(task).length > 0);
     // Assigned or submitted means "in progress" effectively
     const assignedTasks = tasks.filter(t => t.status === 'assigned' || t.status === 'submitted');
     const completedTasks = tasks.filter(t => t.status === 'completed');
@@ -170,6 +191,7 @@ const PaidTasksManagement = () => {
 
     const getFilteredByTab = () => {
         switch (activeTab) {
+            case 'applicants': return applicantTasks;
             case 'open': return openTasks;
             case 'assigned': return assignedTasks;
             case 'completed': return completedTasks;
@@ -263,7 +285,7 @@ const PaidTasksManagement = () => {
             setEditingTask(null);
             setFormData({ title: '', description: '', budget: '', deadline: '', skills: '', category: 'web', type: 'task', images: [], isLifetime: false, manualStatus: 'none', jobManagers: [] });
             setImagePreviews([]);
-            fetchTasks(); // Refresh list
+            await fetchTasks(true); // Refresh cards without replacing the page with a loader
         } catch (err) {
             console.error('Error saving task:', err);
             setError(err.response?.data?.message || 'Failed to save task/item');
@@ -405,6 +427,30 @@ const PaidTasksManagement = () => {
         });
     };
 
+    const handleDeleteApplicant = async (taskId, applicantId) => {
+        if (!window.confirm('Remove this application? The user will be able to apply for this job again.')) return;
+
+        setDeletingApplicantId(String(applicantId));
+        try {
+            await taskAPI.deleteApplicant(taskId, applicantId);
+            const removeApplicant = task => task._id === taskId
+                ? {
+                    ...task,
+                    applicants: (task.applicants || []).filter(applicant =>
+                        String(applicant.user?._id || applicant.user) !== String(applicantId)
+                    )
+                }
+                : task;
+
+            setTasks(previousTasks => previousTasks.map(removeApplicant));
+            setSelectedTask(previousTask => previousTask ? removeApplicant(previousTask) : previousTask);
+        } catch (err) {
+            alert(err.response?.data?.message || 'Failed to remove application');
+        } finally {
+            setDeletingApplicantId(null);
+        }
+    };
+
     const getLatestApplicants = (task) => {
         const latestByUser = new Map();
         (task.applicants || []).forEach(applicant => {
@@ -423,7 +469,7 @@ const PaidTasksManagement = () => {
         );
     }
 
-    const totalApplicantsCount = tasks.reduce((sum, task) => sum + (task.applicants?.length || 0), 0);
+    const totalApplicantsCount = tasks.reduce((sum, task) => sum + getPendingApplicants(task).length, 0);
     const totalAssignedCount = tasks.reduce((sum, task) => sum + (task.assignedTo?.length || 0), 0);
 
     return (
@@ -434,12 +480,20 @@ const PaidTasksManagement = () => {
                     <div className="flex items-center gap-3">
                         <h1 className="text-2xl font-bold text-gray-900">Job Posting</h1>
                         <div className="flex gap-2">
-                            <span className="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs font-bold rounded-lg border border-yellow-200">
+                            <button
+                                type="button"
+                                onClick={() => setActiveTab('applicants')}
+                                className={`px-2 py-1 text-xs font-bold rounded-lg border transition-all ${activeTab === 'applicants' ? 'bg-yellow-500 border-yellow-500 text-white shadow-sm' : 'bg-yellow-100 text-yellow-700 border-yellow-200 hover:bg-yellow-200'}`}
+                            >
                                 Applicants: {totalApplicantsCount}
-                            </span>
-                            <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-lg border border-green-200">
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setActiveTab('assigned')}
+                                className={`px-2 py-1 text-xs font-bold rounded-lg border transition-all ${activeTab === 'assigned' ? 'bg-green-600 border-green-600 text-white shadow-sm' : 'bg-green-100 text-green-700 border-green-200 hover:bg-green-200'}`}
+                            >
                                 Assigned: {totalAssignedCount}
-                            </span>
+                            </button>
                         </div>
                     </div>
                     <p className="text-gray-500 text-sm mt-1">Create and manage freelance tasks</p>
@@ -1063,6 +1117,18 @@ const PaidTasksManagement = () => {
                                                     </div>
                                                 </div>
                                                 <div className="flex items-center gap-2">
+                                                    {!isAssigned && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleDeleteApplicant(selectedTask._id, applicant.user?._id)}
+                                                            disabled={deletingApplicantId === String(applicant.user?._id)}
+                                                            className="w-9 h-9 flex items-center justify-center bg-red-50 hover:bg-red-100 text-red-500 rounded-xl transition-all disabled:opacity-50"
+                                                            title="Delete application"
+                                                            aria-label={`Delete ${applicant.user?.name || 'user'} application`}
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
+                                                    )}
                                                     {user?.role === 'admin' && <button
                                                         onClick={() => setViewingProfile(applicant.user)}
                                                         className="flex-1 sm:flex-none px-4 py-2 text-primary bg-purple-50 hover:bg-primary/10 text-xs rounded-xl font-black uppercase tracking-widest transition-all"
