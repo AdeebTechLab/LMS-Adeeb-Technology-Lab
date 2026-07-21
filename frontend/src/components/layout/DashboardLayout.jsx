@@ -159,6 +159,7 @@ const DashboardLayout = () => {
         const handleRefresh = () => {
             fetchNotifications();
             fetchPendingTasks();
+            window.dispatchEvent(new CustomEvent('job-applications-updated'));
         };
 
         socket.on('new_browser_notification', handleRefresh);

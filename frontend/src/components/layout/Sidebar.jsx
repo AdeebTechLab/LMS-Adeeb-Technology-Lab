@@ -2,7 +2,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
-import { assignmentAPI, courseAPI, dailyTaskAPI, chatAPI, enrollmentAPI, feeAPI, certificateAPI, testAPI } from '../../services/api';
+import { assignmentAPI, courseAPI, dailyTaskAPI, chatAPI, enrollmentAPI, feeAPI, certificateAPI, testAPI, taskAPI } from '../../services/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     LayoutDashboard,
@@ -52,6 +52,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     const [adminPendingCounts, setAdminPendingCounts] = useState({});
     const [teacherSubmissionCount, setTeacherSubmissionCount] = useState(0);
     const [jobChatSummary, setJobChatSummary] = useState({ totalUnread: 0, totalApplicants: 0 });
+    const [jobApplicationCount, setJobApplicationCount] = useState(0);
     const [studentNavCounts, setStudentNavCounts] = useState({});
     const [discussionUnread, setDiscussionUnread] = useState(0);
     const [availableRoles, setAvailableRoles] = useState([]);
@@ -71,6 +72,37 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         const timer = setInterval(loadJobSummary, 30000);
         return () => clearInterval(timer);
     }, [role]);
+
+    useEffect(() => {
+        if (role !== 'job' || !user) return;
+
+        const loadApplicationCount = async () => {
+            try {
+                const response = await taskAPI.getMy();
+                const userId = String(user._id || user.id);
+                const count = (response.data.data || []).filter(task => {
+                    const assigned = (task.assignedTo || []).some(assignedUser =>
+                        String(assignedUser?._id || assignedUser) === userId
+                    );
+                    const applications = (task.applicants || [])
+                        .filter(application => String(application.user?._id || application.user) === userId)
+                        .sort((a, b) => (b.cycle || 1) - (a.cycle || 1));
+                    return !assigned && applications[0]?.status === 'applied';
+                }).length;
+                setJobApplicationCount(count);
+            } catch (_) {
+                setJobApplicationCount(0);
+            }
+        };
+
+        loadApplicationCount();
+        const timer = window.setInterval(loadApplicationCount, 15000);
+        window.addEventListener('job-applications-updated', loadApplicationCount);
+        return () => {
+            window.clearInterval(timer);
+            window.removeEventListener('job-applications-updated', loadApplicationCount);
+        };
+    }, [role, user]);
 
     useEffect(() => {
         if (!user || !role) return;
@@ -417,7 +449,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             job: [
                 { id: 'dashboard', labelKey: 'nav.dashboard', icon: LayoutDashboard, path: '/job/dashboard' },
                 { id: 'available', labelKey: 'Available', icon: Briefcase, path: '/job/tasks', state: { tab: 'available' } },
-                { id: 'applied', labelKey: 'Applications', icon: FileText, path: '/job/tasks', state: { tab: 'applied' } },
+                { id: 'applied', labelKey: 'Applications', icon: FileText, path: '/job/tasks', state: { tab: 'applied' }, badge: jobApplicationCount },
                 { id: 'assigned', labelKey: 'Assigned', icon: CheckCircle, path: '/job/tasks', state: { tab: 'assigned' }, badge: jobChatSummary.totalUnread },
                 { id: 'job-chat', labelKey: 'Job Chat', icon: MessageSquare, path: '/job/job-chat', badge: jobChatSummary.totalUnread },
                 { id: 'completed', labelKey: 'Completed', icon: Award, path: '/job/tasks', state: { tab: 'completed' } },

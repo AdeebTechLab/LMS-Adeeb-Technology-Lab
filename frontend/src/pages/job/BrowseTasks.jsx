@@ -65,10 +65,17 @@ const BrowseTasks = () => {
     // Fetch tasks on component mount
     useEffect(() => {
         fetchTasks();
+        const refreshTasksSilently = () => fetchTasks(true);
+        const refreshTimer = window.setInterval(refreshTasksSilently, 15000);
+        window.addEventListener('job-applications-updated', refreshTasksSilently);
+        return () => {
+            window.clearInterval(refreshTimer);
+            window.removeEventListener('job-applications-updated', refreshTasksSilently);
+        };
     }, []);
 
-    const fetchTasks = async () => {
-        setIsFetching(true);
+    const fetchTasks = async (silent = false) => {
+        if (!silent) setIsFetching(true);
         setError('');
         try {
             const [allTasksRes, myTasksRes, showcaseRes] = await Promise.all([
@@ -83,7 +90,7 @@ const BrowseTasks = () => {
             console.error('Error fetching tasks:', err);
             setError('Failed to load tasks. Please try again.');
         } finally {
-            setIsFetching(false);
+            if (!silent) setIsFetching(false);
         }
     };
 
@@ -146,7 +153,7 @@ const BrowseTasks = () => {
     const availableTasks = tasks.filter(t => t.status !== 'completed' && !hasApplied(t));
 
     // Get tasks I've applied to (from my tasks)
-    const appliedTasks = myTasks.filter(t => hasApplied(t) && !isAssignedToMe(t) && t.status === 'open');
+    const appliedTasks = myTasks.filter(t => getCurrentApplication(t)?.status === 'applied' && !isAssignedToMe(t));
 
     // Get tasks assigned to me (in progress - not yet submitted, pending payment, or awaiting feedback)
     const assignedTasks = myTasks.filter(t =>
@@ -194,7 +201,9 @@ const BrowseTasks = () => {
             setApplyModalOpen(false);
             setApplicationMessage('');
             setSelectedTask(null);
-            fetchTasks();
+            await fetchTasks(true);
+            setActiveTab('applied');
+            window.dispatchEvent(new CustomEvent('job-applications-updated'));
         } catch (err) {
             console.error('Error applying:', err);
             setError(err.response?.data?.message || 'Failed to apply. Please try again.');

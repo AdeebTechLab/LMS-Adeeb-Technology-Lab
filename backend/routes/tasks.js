@@ -182,15 +182,8 @@ router.post('/:id/apply', protect, authorize('job'), async (req, res) => {
             message,
             appliedAt: new Date(),
             cycle: nextCycle,
-            status: 'assigned'
+            status: 'applied'
         });
-
-        if (!task.assignedTo.some(id => id.toString() === req.user.id)) {
-            task.assignedTo.push(req.user.id);
-        }
-        task.assignedAt = new Date();
-        task.status = 'assigned';
-        task.paymentSent = false;
 
         await task.save();
 
