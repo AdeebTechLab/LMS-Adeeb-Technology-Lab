@@ -266,13 +266,18 @@ router.post('/login', async (req, res) => {
 
         // Find all users with this email (using select +password to verify)
         // Use primary read to ensure we get the latest data
-        const users = await User.find({ email })
+        const normalizedEmail = email.trim().toLowerCase();
+        const users = await User.find({ email: normalizedEmail })
             .select('+password')
             .read('primary')
             .maxTimeMS(10000);
 
         if (!users || users.length === 0) {
-            return res.status(401).json({ success: false, message: 'Invalid credentials' });
+            return res.status(401).json({
+                success: false,
+                field: 'email',
+                message: 'The email address you entered is incorrect.'
+            });
         }
 
         // Try to find all users where the password matches
@@ -285,7 +290,11 @@ router.post('/login', async (req, res) => {
         }
 
         if (matchedUsers.length === 0) {
-            return res.status(401).json({ success: false, message: 'Invalid credentials' });
+            return res.status(401).json({
+                success: false,
+                field: 'password',
+                message: 'The password you entered is incorrect.'
+            });
         }
 
         // Prioritize 'job' role if available, otherwise pick the first matching account

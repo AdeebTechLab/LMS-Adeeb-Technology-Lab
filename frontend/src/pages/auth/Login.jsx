@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { motion } from 'framer-motion';
 import { Eye, EyeOff, Mail, Lock, ArrowLeft, GraduationCap } from 'lucide-react';
-import { loginStart, loginSuccess, loginFailure } from '../../features/auth/authSlice';
+import { loginStart, loginSuccess, loginFailure, clearError } from '../../features/auth/authSlice';
 import { authAPI } from '../../services/api';
 import { ButtonLoader } from '../../components/ui/Loader';
 import GuestChatWidget from '../../components/shared/GuestChatWidget';
@@ -53,6 +53,9 @@ const Login = () => {
         if (errors[name]) {
             setErrors((prev) => ({ ...prev, [name]: '' }));
         }
+        if (error && (name === 'email' || name === 'password')) {
+            dispatch(clearError());
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -86,6 +89,10 @@ const Login = () => {
             else navigate('/student/profile');
         } catch (err) {
             const message = err.response?.data?.message || t('auth.invalidCredentials');
+            const field = err.response?.data?.field;
+            if (field === 'email' || field === 'password') {
+                setErrors((previousErrors) => ({ ...previousErrors, [field]: message }));
+            }
             dispatch(loginFailure(message));
         }
     };
@@ -178,7 +185,7 @@ const Login = () => {
                         <motion.div
                             initial={{ opacity: 0, y: -10 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className={`mb-4 p-4 ${error.includes('pending') ? 'bg-amber-50 border-amber-200 text-amber-700' : 'bg-red-50 border-red-200 text-red-600'} border rounded-xl text-sm font-medium`}
+                            className={`mb-4 p-4 ${error.includes('pending') || error.includes('email address') || error.includes('password you entered') ? 'bg-primary/5 border-primary text-primary' : 'bg-red-50 border-red-200 text-red-600'} border rounded-xl text-sm font-medium`}
                         >
                             {error}
                         </motion.div>
