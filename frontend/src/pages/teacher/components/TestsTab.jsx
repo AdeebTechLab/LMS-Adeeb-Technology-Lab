@@ -24,6 +24,20 @@ const getAutomaticFeedback = (percentage) => {
     return "Poor performance. Let's work on the basics and improve.";
 };
 
+const getSubmissionResult = (submission, test) => {
+    const totalMarks = Math.max(1, test?.questions?.length || 0);
+    const storedTotal = Number(submission?.totalPossibleScore) || totalMarks;
+    const storedScore = Number(submission?.score) || 0;
+    const score = storedTotal === totalMarks
+        ? storedScore
+        : Math.round((storedScore / storedTotal) * totalMarks);
+
+    return {
+        score: Math.min(totalMarks, Math.max(0, score)),
+        totalMarks
+    };
+};
+
 const normalizeMcqText = (value) => String(value || '')
     .toLowerCase()
     .replace(/\s+/g, ' ')
@@ -587,7 +601,7 @@ const TestsTab = ({ course, students }) => {
                                                 {[...test.submissions]
                                                     .sort((a, b) => new Date(b.submittedAt || b.createdAt) - new Date(a.submittedAt || a.createdAt))
                                                     .map((submission, idx) => {
-                                                        const totalMarks = submission.totalPossibleScore || test.totalMarks || test.questions?.reduce((acc, q) => acc + (q.marks || 1), 0) || test.questions?.length;
+                                                        const { score, totalMarks } = getSubmissionResult(submission, test);
 
                                                         return (
                                                             <div key={submission._id || idx} className="flex items-center justify-between w-full">
@@ -612,7 +626,7 @@ const TestsTab = ({ course, students }) => {
                                                                 </div>
                                                                 <div className="flex items-center gap-2">
                                                                     <div className="text-right bg-primary/5 px-3 py-1.5 rounded-xl border border-primary/10">
-                                                                        <span className="text-xs font-black text-primary block leading-none">{submission.score}/{totalMarks}</span>
+                                                                        <span className="text-xs font-black text-primary block leading-none">{score}/{totalMarks}</span>
                                                                         <span className="text-[7px] font-black text-primary uppercase tracking-tighter opacity-70">Result</span>
                                                                     </div>
                                                                 </div>
@@ -1301,7 +1315,7 @@ const TestsTab = ({ course, students }) => {
                 <div className="space-y-4 max-h-[60vh] overflow-y-auto py-2 pr-2">
                     {selectedTest?.submissions && selectedTest.submissions.length > 0 ? (
                         [...selectedTest.submissions].sort((a, b) => new Date(b.submittedAt || b.createdAt) - new Date(a.submittedAt || a.createdAt)).map((submission) => {
-                            const totalMarks = submission.totalPossibleScore || selectedTest.totalMarks || selectedTest.questions?.length;
+                            const { score, totalMarks } = getSubmissionResult(submission, selectedTest);
                             return (
                                 <div key={submission._id} className="bg-gray-50 p-4 rounded-xl border border-gray-100 relative group">
                                     <button
@@ -1336,18 +1350,18 @@ const TestsTab = ({ course, students }) => {
                                             </div>
                                         </div>
                                         <div className="text-right flex flex-col items-end">
-                                            <Badge variant={submission.score >= (totalMarks / 2) ? 'success' : 'error'}>
-                                                {submission.score >= (totalMarks / 2) ? 'PASSED' : 'FAILED'}
+                                            <Badge variant={score >= (totalMarks / 2) ? 'success' : 'error'}>
+                                                {score >= (totalMarks / 2) ? 'PASSED' : 'FAILED'}
                                             </Badge>
                                             <p className="text-xl font-black text-primary mt-1 leading-none">
-                                                {submission.score}/{totalMarks}
+                                                {score}/{totalMarks}
                                             </p>
                                         </div>
                                     </div>
                                     <div className="mt-4 pt-4 border-t border-gray-100">
                                         <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Generated Feedback</p>
                                         <p className="text-xs font-medium text-gray-600">
-                                            {getAutomaticFeedback((submission.score / totalMarks) * 100)}
+                                            {getAutomaticFeedback((score / totalMarks) * 100)}
                                         </p>
                                     </div>
                                 </div>

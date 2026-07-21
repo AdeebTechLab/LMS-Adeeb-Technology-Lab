@@ -62,11 +62,20 @@ const sanitizeQuestions = (questions = []) => questions.map(q => {
         question: (q.question || '').trim(),
         options,
         correctOption,
-        marks: Number(q.marks) > 0 ? Number(q.marks) : 1
+        // Every MCQ carries exactly one mark.
+        marks: 1
     };
 }).filter(q => q.question.length > 0 && q.options.length >= 2);
 
-const calculateTotalMarks = (questions = []) => questions.reduce((total, q) => total + (Number(q.marks) > 0 ? Number(q.marks) : 1), 0);
+const calculateTotalMarks = (questions = []) => questions.length;
+
+const normalizeSubmissionScore = (submission, totalQuestions) => {
+    const previousTotal = Number(submission.totalPossibleScore) || totalQuestions;
+    if (previousTotal > 0 && previousTotal !== totalQuestions) {
+        submission.score = Math.round((Number(submission.score) / previousTotal) * totalQuestions);
+    }
+    submission.totalPossibleScore = totalQuestions;
+};
 
 // @route   GET /api/tests/course/:courseId
 // @desc    Get all tests for a course
@@ -86,6 +95,7 @@ router.get('/course/:courseId', protect, async (req, res) => {
         tests.forEach(test => {
             const computedTotal = calculateTotalMarks(test.questions);
             if (computedTotal > 0) test.totalMarks = computedTotal;
+            test.submissions.forEach(submission => normalizeSubmissionScore(submission, computedTotal));
         });
 
         // If student, filter out answers from questions to prevent cheating
@@ -216,7 +226,7 @@ router.post('/:id/submit', protect, async (req, res) => {
             const selectedOption = question ? resolveOptionIndex(ans.selectedOption, question.options) : -1;
 
             if (question) {
-                const questionMarks = Number(question.marks) > 0 ? Number(question.marks) : 1;
+                const questionMarks = 1;
                 totalPossibleScore += questionMarks;
                 if (question.correctOption === selectedOption) {
                     score += questionMarks;
