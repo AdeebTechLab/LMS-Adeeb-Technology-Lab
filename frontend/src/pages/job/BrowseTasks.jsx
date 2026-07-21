@@ -758,7 +758,7 @@ const BrowseTasks = () => {
 
             {/* Image Gallery Fullscreen View */}
             {galleryOpen && galleryImages.length > 0 && (
-                <div className="fixed inset-0 z-[999] bg-black/95 flex items-center justify-center flex-col">
+                <div className="fixed inset-0 z-[1200] bg-black flex items-center justify-center flex-col">
                     <div className="absolute top-4 right-4 flex items-center gap-4">
                         <span className="text-white/70 text-sm">{currentImageIndex + 1} / {galleryImages.length}</span>
                         <button 
