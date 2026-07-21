@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { useSelector } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
-    Search, Calendar, Briefcase, CheckCircle, Send, Upload, CreditCard, AlertCircle, Link, Trash2, MessageSquare, ChevronLeft, ChevronRight, X
+    Search, Calendar, Briefcase, CheckCircle, Send, Upload, CreditCard, AlertCircle, Link, Trash2, MessageSquare, ChevronLeft, ChevronRight, X, Eye
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
@@ -30,6 +30,7 @@ const BrowseTasks = () => {
     const [completedShowcase, setCompletedShowcase] = useState([]);
     const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
     const [feedbackData, setFeedbackData] = useState({ rating: 5, text: '' });
+    const [viewingPayment, setViewingPayment] = useState(null);
     const [galleryOpen, setGalleryOpen] = useState(false);
     const [galleryImages, setGalleryImages] = useState([]);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -113,6 +114,14 @@ const BrowseTasks = () => {
     const hasCurrentFeedback = (task) => {
         const cycle = getCurrentApplication(task)?.cycle || 1;
         return task.feedback?.some(feedback => String(feedback.user?._id || feedback.user) === String(user?.id || user?._id) && (feedback.cycle || 1) === cycle);
+    };
+
+    const getCurrentPayment = (task) => {
+        const userId = String(user?.id || user?._id);
+        const cycle = getCurrentApplication(task)?.cycle || 1;
+        return [...(task.paymentHistory || [])].reverse().find(payment =>
+            String(payment.user?._id || payment.user) === userId && (payment.cycle || 1) === cycle
+        );
     };
 
     const getUniqueApplicants = (task) => {
@@ -389,7 +398,7 @@ const BrowseTasks = () => {
                                         Deadline Over
                                     </div>
                                 )}
-                                {!expired && !hasApplied(task) && !assigned && activeTab !== 'showcase' && (
+                                {!expired && !hasApplied(task) && !assigned && activeTab === 'available' && task.status !== 'completed' && task.manualStatus !== 'completed' && (
                                     <button
                                         onClick={() => { setSelectedTask(task); setApplyModalOpen(true); }}
                                         className="w-full py-2.5 bg-primary hover:bg-purple-700 text-white rounded-xl font-medium flex items-center justify-center gap-2"
@@ -428,6 +437,13 @@ const BrowseTasks = () => {
                                             <CheckCircle className="w-4 h-4" />
                                             Payment Received
                                         </div>
+                                        <button
+                                            onClick={() => setViewingPayment({ task, payment: getCurrentPayment(task) })}
+                                            className="w-full py-2.5 bg-primary/10 hover:bg-primary/15 text-primary rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-colors"
+                                        >
+                                            <Eye className="w-4 h-4" />
+                                            View Payment
+                                        </button>
                                         {activeTab !== 'showcase' && !hasUserFeedback && (
                                             <>
                                                 <div className="text-center text-xs text-amber-600 mb-1">
@@ -444,25 +460,32 @@ const BrowseTasks = () => {
                                     </div>
                                 )}
                                 {activeTab === 'showcase' && task.feedback && task.feedback.length > 0 && (
-                                    <div className="mt-4 space-y-3 bg-indigo-50/50 p-4 rounded-xl border border-indigo-100">
-                                        <p className="text-xs font-bold text-indigo-700 uppercase tracking-widest">Jobber Feedback</p>
+                                    <div className="mt-4 space-y-3 bg-indigo-50/50 dark:bg-gray-900 p-4 rounded-xl border border-indigo-100 dark:border-gray-700">
+                                        <p className="text-xs font-bold text-indigo-700 dark:text-primary uppercase tracking-widest">Jobber Feedback</p>
                                         {task.feedback.map((f, i) => (
-                                            <div key={i} className="border-t border-indigo-100 pt-2 first:border-0 first:pt-0">
+                                            <div key={i} className="border-t border-indigo-100 dark:border-gray-700 pt-2 first:border-0 first:pt-0">
                                                 <div className="flex items-center gap-2 mb-1">
                                                     <div className="flex items-center gap-2">
                                                         <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center overflow-hidden border border-indigo-200 shadow-sm">
                                                             {f.user?.photo ? (
                                                                 <img src={f.user.photo} alt={f.user.name} className="w-full h-full object-cover" />
                                                             ) : (
-                                                                <span className="text-xs font-bold text-indigo-600">{(f.user?.name || 'A').charAt(0)}</span>
+                                                            <span className="text-xs font-bold text-indigo-600 dark:text-primary">{(f.user?.name || 'A').charAt(0)}</span>
                                                             )}
                                                         </div>
-                                                        <span className="text-sm font-semibold text-indigo-900">{f.user?.name || 'Anonymous'}</span>
+                                                        <div>
+                                                            <span className="block text-sm font-semibold text-indigo-900 dark:text-white">{f.user?.name || 'Anonymous'}</span>
+                                                            <div className="flex text-amber-500 text-xs mt-0.5" aria-label={`${f.rating || 0} out of 5 stars`}>
+                                                                {[...Array(5)].map((_, starIndex) => (
+                                                                    <span key={starIndex}>{starIndex < (f.rating || 0) ? '★' : '☆'}</span>
+                                                                ))}
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                                <p className="text-sm text-indigo-800 italic">"{f.text}"</p>
-                                                <p className="text-xs font-bold text-emerald-600 mt-1">Total Earnings: Rs {Number(f.user?.totalEarnings || 0).toLocaleString()}</p>
-                                                <div className="flex text-amber-500 text-sm mt-1" aria-label={`${f.rating || 0} out of 5 stars`}>
+                                                <p className="text-sm text-indigo-800 dark:text-gray-300 italic">"{f.text}"</p>
+                                                <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400 mt-1">Total Earnings: Rs {Number(f.user?.totalEarnings || 0).toLocaleString()}</p>
+                                                <div className="hidden" aria-hidden="true">
                                                     {[...Array(5)].map((_, starIndex) => (
                                                         <span key={starIndex}>{starIndex < (f.rating || 0) ? '★' : '☆'}</span>
                                                     ))}
@@ -511,6 +534,28 @@ const BrowseTasks = () => {
                     <p className="text-gray-500">No tasks found</p>
                 </div>
             )}
+
+            {/* Leave Feedback Modal */}
+            <Modal isOpen={Boolean(viewingPayment)} onClose={() => setViewingPayment(null)} title="Payment Details" size="md">
+                {viewingPayment && (
+                    <div className="space-y-4">
+                        <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
+                            <p className="font-bold text-gray-900">{viewingPayment.task.title}</p>
+                            <p className="text-sm text-gray-500 mt-1">Payment received</p>
+                            <p className="text-2xl font-black text-primary mt-2">Rs {Number(viewingPayment.payment?.amount || 0).toLocaleString()}</p>
+                        </div>
+                        {viewingPayment.payment?.paymentProof ? (
+                            <a href={viewingPayment.payment.paymentProof} target="_blank" rel="noopener noreferrer" className="block rounded-xl overflow-hidden border border-gray-200 bg-gray-50">
+                                <img src={viewingPayment.payment.paymentProof} alt="Payment screenshot" className="w-full max-h-[420px] object-contain" />
+                                <span className="flex items-center justify-center gap-2 py-3 text-sm font-bold text-primary"><Eye className="w-4 h-4" /> Open Full Screenshot</span>
+                            </a>
+                        ) : (
+                            <div className="p-6 text-center text-sm text-gray-500 bg-gray-50 rounded-xl">Payment screenshot is not available for this older payment.</div>
+                        )}
+                        <button onClick={() => setViewingPayment(null)} className="w-full py-3 bg-primary text-white rounded-xl font-bold">Close</button>
+                    </div>
+                )}
+            </Modal>
 
             {/* Leave Feedback Modal */}
             <Modal isOpen={feedbackModalOpen} onClose={() => setFeedbackModalOpen(false)} title="Share Your Experience" size="md">

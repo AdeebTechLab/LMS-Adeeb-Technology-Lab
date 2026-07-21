@@ -702,20 +702,36 @@ const PaidTasksManagement = () => {
 
                                         {/* Feedback Entries */}
                                         <div className="space-y-3">
-                                            <p className="text-xs font-bold text-indigo-700 uppercase tracking-widest">Jobber Feedback</p>
+                                            <p className="text-xs font-bold text-indigo-700 dark:text-primary uppercase tracking-widest">Jobber Feedback</p>
                                             {task.feedback.map((f) => (
-                                                <div key={f._id} className="bg-indigo-50/50 p-4 rounded-xl border border-indigo-100">
-                                                    <div className="flex items-center justify-between mb-2">
-                                                        <span className="text-sm font-semibold text-indigo-900">{f.user?.name || 'Anonymous'}</span>
-                                                        <div className="flex text-amber-500 text-xs">
+                                                <div key={f._id} className="bg-indigo-50/50 dark:bg-gray-800 p-4 rounded-xl border border-indigo-100 dark:border-gray-700 shadow-sm dark:shadow-none">
+                                                    <div className="flex items-center justify-between gap-3 mb-3">
+                                                        <div className="flex items-center gap-2 min-w-0">
+                                                            <div className="w-9 h-9 rounded-full bg-indigo-100 flex items-center justify-center overflow-hidden border border-indigo-200 shadow-sm shrink-0">
+                                                                {f.user?.photo ? (
+                                                                    <img src={f.user.photo} alt={f.user.name || 'User'} className="w-full h-full object-cover" />
+                                                                ) : (
+                                                                    <span className="text-xs font-bold text-indigo-600 dark:text-primary">{(f.user?.name || 'A').charAt(0)}</span>
+                                                                )}
+                                                            </div>
+                                                            <div className="min-w-0">
+                                                                <span className="block text-sm font-semibold text-indigo-900 dark:text-white truncate">{f.user?.name || 'Anonymous'}</span>
+                                                                <div className="flex text-amber-500 text-xs mt-0.5" aria-label={`${f.rating || 0} out of 5 stars`}>
+                                                                    {[...Array(5)].map((_, starIndex) => (
+                                                                        <span key={starIndex}>{starIndex < (f.rating || 0) ? '★' : '☆'}</span>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div className="hidden">
                                                             {[...Array(5)].map((_, i) => (
                                                                 <span key={i}>{i < f.rating ? '★' : '☆'}</span>
                                                             ))}
                                                         </div>
                                                     </div>
-                                                    <p className="text-sm text-indigo-800 italic mb-3">"{f.text}"</p>
-                                                    <p className="text-xs font-bold text-emerald-600 mb-2">Total Earnings: Rs {Number(f.user?.totalEarnings || 0).toLocaleString()}</p>
-                                                    <div className="flex items-center gap-2 pt-2 border-t border-indigo-100">
+                                                    <p className="text-sm text-indigo-800 dark:text-gray-300 italic mb-3">"{f.text}"</p>
+                                                    <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400 mb-2">Total Earnings: Rs {Number(f.user?.totalEarnings || 0).toLocaleString()}</p>
+                                                    <div className="flex items-center gap-2 pt-2">
                                                         {user?.role === 'admin' && <button
                                                             onClick={() => handleEditFeedback(task, f)}
                                                             className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-indigo-600 bg-white hover:bg-indigo-100 rounded-lg border border-indigo-200 transition-all"
