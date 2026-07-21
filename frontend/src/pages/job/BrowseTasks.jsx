@@ -317,6 +317,7 @@ const BrowseTasks = () => {
                     const assigned = isAssignedToMe(task);
                     const submitted = hasSubmitted(task);
                     const isPaid = task.paymentSent && task.status === 'completed';
+                    const currentPayment = getCurrentPayment(task);
                     const expired = isExpired(task);
                     const hasUserFeedback = hasCurrentFeedback(task);
 
@@ -431,15 +432,11 @@ const BrowseTasks = () => {
                                 {submitted && !isPaid && (
                                     <div className="text-center text-sm text-amber-600 py-2">Awaiting verification & payment</div>
                                 )}
-                                {isPaid && (
+                                {(isPaid || currentPayment) && (
                                     <div className="flex flex-col gap-2">
-                                        <div className="text-center text-sm text-primary py-1 flex items-center justify-center gap-1">
-                                            <CheckCircle className="w-4 h-4" />
-                                            Payment Received
-                                        </div>
                                         <button
-                                            onClick={() => setViewingPayment({ task, payment: getCurrentPayment(task) })}
-                                            className="w-full py-2.5 bg-primary/10 hover:bg-primary/15 text-primary rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-colors"
+                                            onClick={() => setViewingPayment({ task, payment: currentPayment })}
+                                            className="w-full py-2.5 bg-primary hover:bg-primary/90 text-white rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-colors"
                                         >
                                             <Eye className="w-4 h-4" />
                                             View Payment
