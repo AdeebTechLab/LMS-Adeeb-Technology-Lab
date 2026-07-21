@@ -51,7 +51,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     const [pendingCount, setPendingCount] = useState(0);
     const [adminPendingCounts, setAdminPendingCounts] = useState({});
     const [teacherSubmissionCount, setTeacherSubmissionCount] = useState(0);
-    const [jobChatSummary, setJobChatSummary] = useState({ totalUnread: 0, totalApplicants: 0 });
+    const [jobChatSummary, setJobChatSummary] = useState({ totalUnread: 0, totalApplicants: 0, totalAssigned: 0 });
     const [jobApplicationCount, setJobApplicationCount] = useState(0);
     const [studentNavCounts, setStudentNavCounts] = useState({});
     const [discussionUnread, setDiscussionUnread] = useState(0);
@@ -65,7 +65,11 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         const loadJobSummary = async () => {
             try {
                 const res = await chatAPI.getJobChats();
-                setJobChatSummary({ totalUnread: res.data.totalUnread || 0, totalApplicants: res.data.totalApplicants || 0 });
+                setJobChatSummary({
+                    totalUnread: res.data.totalUnread || 0,
+                    totalApplicants: res.data.totalApplicants || 0,
+                    totalAssigned: res.data.totalAssigned || 0
+                });
             } catch (_) { /* no job chats yet */ }
         };
         loadJobSummary();
@@ -393,7 +397,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 { id: 'dashboard', labelKey: 'nav.dashboard', icon: LayoutDashboard, path: '/admin/dashboard' },
                 { id: 'directory', labelKey: 'nav.directory', icon: FolderOpen, path: '/admin/directory' },
                 { id: 'courses', labelKey: 'nav.courses', icon: BookOpen, path: '/admin/courses' },
-                { id: 'paid-tasks', labelKey: 'nav.paidTasks', icon: Briefcase, path: '/admin/paid-tasks', badge: adminPendingCounts.newApplicants },
+                { id: 'paid-tasks', labelKey: 'nav.paidTasks', icon: Briefcase, path: '/admin/paid-tasks', counters: { applicants: jobChatSummary.totalApplicants, assigned: jobChatSummary.totalAssigned } },
                 { id: 'job-chat', labelKey: 'Job Chats', icon: MessageSquare, path: '/admin/job-chat', badge: jobChatSummary.totalUnread },
                 { id: 'certificates', labelKey: 'nav.certificates', icon: Award, path: '/admin/certificates' },
                 { id: 'students', labelKey: 'nav.students', icon: Users, path: '/admin/students', badge: adminPendingCounts.studentRegisteredNew },
@@ -414,7 +418,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 { id: 'student-search', labelKey: 'Students', icon: Search, path: '/teacher/student-search' },
                 { id: 'attendance', labelKey: 'nav.attendance', icon: Calendar, path: '/teacher/quick-attendance' },
                 { id: 'certificates', labelKey: 'nav.certificates', icon: Award, path: '/teacher/certificates' },
-                { id: 'jobs', labelKey: 'Job Posting', icon: Briefcase, path: '/teacher/jobs', badge: jobChatSummary.totalApplicants + jobChatSummary.totalUnread },
+                { id: 'jobs', labelKey: 'Job Posting', icon: Briefcase, path: '/teacher/jobs', counters: { applicants: jobChatSummary.totalApplicants, assigned: jobChatSummary.totalAssigned } },
                 { id: 'job-chat', labelKey: 'Applicant Chats', icon: MessageSquare, path: '/teacher/job-chat', badge: jobChatSummary.totalUnread },
                 { id: 'discussion-room', labelKey: 'Discussion Room', icon: MessageSquare, path: '/teacher/discussion-room', badge: discussionUnread },
             ],
@@ -614,7 +618,19 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                                     }}
                                 >
                                     <item.icon className="w-5 h-5 flex-shrink-0" />
-                                    <span className="font-medium flex-1">{t(item.labelKey)}</span>
+                                    <div className="font-medium flex-1 min-w-0">
+                                        <span>{t(item.labelKey)}</span>
+                                        {item.counters && location.pathname === item.path && (
+                                            <div className="flex flex-wrap gap-1.5 mt-1.5">
+                                                <span className="px-1.5 py-0.5 rounded-md bg-yellow-500/20 text-yellow-400 text-[9px] font-black whitespace-nowrap">
+                                                    Applicants: {item.counters.applicants}
+                                                </span>
+                                                <span className="px-1.5 py-0.5 rounded-md bg-green-500/20 text-green-400 text-[9px] font-black whitespace-nowrap">
+                                                    Assigned: {item.counters.assigned}
+                                                </span>
+                                            </div>
+                                        )}
+                                    </div>
                                     {item.id === 'assignments' && role !== 'student' && pendingCount > 0 && (
                                         <motion.span
                                             initial={{ scale: 0 }}
@@ -625,7 +641,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                                         </motion.span>
                                     )}
                                     {/* Navigation count badge */}
-                                    {item.badge > 0 && (
+                                    {!item.counters && item.badge > 0 && (
                                         <motion.span
                                             initial={{ scale: 0 }}
                                             animate={{ scale: 1 }}

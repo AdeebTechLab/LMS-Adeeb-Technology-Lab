@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
+import { useLocation } from 'react-router-dom';
 import { Briefcase, MessageCircle, Send, Trash2 } from 'lucide-react';
 import { chatAPI } from '../../services/api';
 import Loader from '../../components/ui/Loader';
 
 const JobChat = () => {
     const { user } = useSelector(state => state.auth);
+    const location = useLocation();
     const [jobs, setJobs] = useState([]);
     const [activeJob, setActiveJob] = useState(null);
     const [activeContact, setActiveContact] = useState(null);
@@ -52,6 +54,12 @@ const JobChat = () => {
         if (!primaryManager) return;
         await openChat(job, primaryManager);
     };
+
+    useEffect(() => {
+        if (user?.role !== 'job' || !location.state?.taskId || activeJob || jobs.length === 0) return;
+        const requestedJob = jobs.find(job => String(job._id) === String(location.state.taskId));
+        if (requestedJob) openApplicantJobChat(requestedJob);
+    }, [jobs, location.state?.taskId, user?.role, activeJob]);
 
     const send = async e => {
         e.preventDefault();

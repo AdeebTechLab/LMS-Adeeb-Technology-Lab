@@ -616,7 +616,7 @@ router.get('/job/tasks', protect, authorize('admin', 'teacher', 'job'), async (r
             .populate('jobManager', 'name photo role')
             .populate('jobManagers', 'name photo role')
             .populate('applicants.user', 'name email photo role')
-            .select('title createdBy jobManager jobManagers applicants status')
+            .select('title createdBy jobManager jobManagers applicants assignedTo status')
             .sort('-updatedAt');
 
         const data = await Promise.all(tasks.map(async task => {
@@ -638,9 +638,35 @@ router.get('/job/tasks', protect, authorize('admin', 'teacher', 'job'), async (r
             const totalUnread = req.user.role === 'job'
                 ? await GlobalMessage.countDocuments({ task: task._id, recipient: userId, isRead: false })
                 : contactsWithUnread.reduce((n, c) => n + c.unreadCount, 0);
-            return { _id: task._id, title: task.title, status: task.status, contacts: contactsWithUnread, totalUnread };
+            const latestApplicationByUser = new Map();
+            task.applicants.forEach(application => {
+                const applicantId = String(application.user?._id || application.user);
+                const existing = latestApplicationByUser.get(applicantId);
+                if (!existing || (application.cycle || 1) >= (existing.cycle || 1)) {
+                    latestApplicationByUser.set(applicantId, application);
+                }
+            });
+            const assignedIds = new Set((task.assignedTo || []).map(String));
+            const pendingApplicants = [...latestApplicationByUser.values()].filter(application =>
+                application.status === 'applied' && !assignedIds.has(String(application.user?._id || application.user))
+            ).length;
+            return {
+                _id: task._id,
+                title: task.title,
+                status: task.status,
+                contacts: contactsWithUnread,
+                totalUnread,
+                pendingApplicants,
+                assignedCount: assignedIds.size
+            };
         }));
-        res.json({ success: true, data, totalUnread: data.reduce((n, t) => n + t.totalUnread, 0), totalApplicants: data.reduce((n, t) => n + (req.user.role === 'job' ? 0 : t.contacts.length), 0) });
+        res.json({
+            success: true,
+            data,
+            totalUnread: data.reduce((n, t) => n + t.totalUnread, 0),
+            totalApplicants: data.reduce((n, t) => n + (req.user.role === 'job' ? 0 : t.pendingApplicants), 0),
+            totalAssigned: data.reduce((n, t) => n + (req.user.role === 'job' ? 0 : t.assignedCount), 0)
+        });
     } catch (error) { res.status(500).json({ success: false, message: error.message }); }
 });
 

@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useSelector } from 'react-redux';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
-    Search, Calendar, Briefcase, CheckCircle, Send, Upload, CreditCard, AlertCircle, Link, Trash2, MessageSquare, ChevronLeft, ChevronRight, X, XCircle
+    Search, Calendar, Briefcase, CheckCircle, Send, Upload, CreditCard, AlertCircle, Link, Trash2, MessageSquare, ChevronLeft, ChevronRight, X
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
@@ -27,7 +27,6 @@ const BrowseTasks = () => {
     const [isFetching, setIsFetching] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState('');
-    const [isCancelling, setIsCancelling] = useState(false);
     const [completedShowcase, setCompletedShowcase] = useState([]);
     const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
     const [feedbackData, setFeedbackData] = useState({ rating: 5, text: '' });
@@ -36,6 +35,7 @@ const BrowseTasks = () => {
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
     const location = useLocation();
+    const navigate = useNavigate();
     
     useEffect(() => {
         if (location.state?.tab) {
@@ -257,22 +257,6 @@ const BrowseTasks = () => {
         }
     };
 
-    const handleCancelTask = async (taskId) => {
-        if (!window.confirm('Are you sure you want to cancel your assignment for this task?')) return;
-
-        setIsCancelling(taskId);
-        try {
-            await taskAPI.cancel(taskId);
-            fetchTasks();
-            alert('Task assignment cancelled successfully.');
-        } catch (err) {
-            console.error('Error cancelling task:', err);
-            alert(err.response?.data?.message || 'Failed to cancel task');
-        } finally {
-            setIsCancelling(false);
-        }
-    };
-
     if (isFetching) {
         return (
             <div className="flex items-center justify-center min-h-[400px]">
@@ -425,13 +409,11 @@ const BrowseTasks = () => {
                                             Submit
                                         </button>
                                         <button
-                                            onClick={() => handleCancelTask(task._id)}
-                                            disabled={isCancelling === task._id}
-                                            className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl font-medium flex items-center justify-center gap-2 disabled:opacity-70"
+                                            onClick={() => navigate('/job/job-chat', { state: { taskId: task._id } })}
+                                            className="flex-1 py-2.5 bg-slate-800 hover:bg-slate-900 dark:bg-slate-700 dark:hover:bg-slate-600 text-white rounded-xl font-medium flex items-center justify-center gap-2"
                                         >
-                                            <ButtonLoader isLoading={isCancelling === task._id} icon={<XCircle className="w-4 h-4" />}>
-                                                Cancel
-                                            </ButtonLoader>
+                                            <MessageSquare className="w-4 h-4" />
+                                            Team Chat
                                         </button>
                                     </div>
                                 )}
