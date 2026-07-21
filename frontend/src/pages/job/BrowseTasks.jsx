@@ -413,7 +413,7 @@ const BrowseTasks = () => {
                                             className="flex-1 py-2.5 bg-slate-800 hover:bg-slate-900 dark:bg-slate-700 dark:hover:bg-slate-600 text-white rounded-xl font-medium flex items-center justify-center gap-2"
                                         >
                                             <MessageSquare className="w-4 h-4" />
-                                            Team Chat
+                                            Job Chat
                                         </button>
                                     </div>
                                 )}

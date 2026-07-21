@@ -53,6 +53,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     const [teacherSubmissionCount, setTeacherSubmissionCount] = useState(0);
     const [jobChatSummary, setJobChatSummary] = useState({ totalUnread: 0, totalApplicants: 0, totalAssigned: 0 });
     const [jobApplicationCount, setJobApplicationCount] = useState(0);
+    const [jobAssignedCount, setJobAssignedCount] = useState(0);
     const [studentNavCounts, setStudentNavCounts] = useState({});
     const [discussionUnread, setDiscussionUnread] = useState(0);
     const [availableRoles, setAvailableRoles] = useState([]);
@@ -84,7 +85,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             try {
                 const response = await taskAPI.getMy();
                 const userId = String(user._id || user.id);
-                const count = (response.data.data || []).filter(task => {
+                const myJobTasks = response.data.data || [];
+                const count = myJobTasks.filter(task => {
                     const assigned = (task.assignedTo || []).some(assignedUser =>
                         String(assignedUser?._id || assignedUser) === userId
                     );
@@ -94,8 +96,14 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                     return !assigned && applications[0]?.status === 'applied';
                 }).length;
                 setJobApplicationCount(count);
+                setJobAssignedCount(myJobTasks.filter(task =>
+                    task.status !== 'completed' && (task.assignedTo || []).some(assignedUser =>
+                        String(assignedUser?._id || assignedUser) === userId
+                    )
+                ).length);
             } catch (_) {
                 setJobApplicationCount(0);
+                setJobAssignedCount(0);
             }
         };
 
@@ -398,7 +406,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 { id: 'directory', labelKey: 'nav.directory', icon: FolderOpen, path: '/admin/directory' },
                 { id: 'courses', labelKey: 'nav.courses', icon: BookOpen, path: '/admin/courses' },
                 { id: 'paid-tasks', labelKey: 'nav.paidTasks', icon: Briefcase, path: '/admin/paid-tasks', counters: { applicants: jobChatSummary.totalApplicants, assigned: jobChatSummary.totalAssigned } },
-                { id: 'job-chat', labelKey: 'Job Chats', icon: MessageSquare, path: '/admin/job-chat', badge: jobChatSummary.totalUnread },
+                ...(jobChatSummary.totalAssigned > 0 ? [{ id: 'job-chat', labelKey: 'Job Chats', icon: MessageSquare, path: '/admin/job-chat', badge: jobChatSummary.totalUnread }] : []),
                 { id: 'certificates', labelKey: 'nav.certificates', icon: Award, path: '/admin/certificates' },
                 { id: 'students', labelKey: 'nav.students', icon: Users, path: '/admin/students', badge: adminPendingCounts.studentRegisteredNew },
                 { id: 'teachers', labelKey: 'nav.teachers', icon: GraduationCap, path: '/admin/teachers', badge: adminPendingCounts.teacherRegisteredNew },
@@ -419,7 +427,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 { id: 'attendance', labelKey: 'nav.attendance', icon: Calendar, path: '/teacher/quick-attendance' },
                 { id: 'certificates', labelKey: 'nav.certificates', icon: Award, path: '/teacher/certificates' },
                 { id: 'jobs', labelKey: 'Job Posting', icon: Briefcase, path: '/teacher/jobs', counters: { applicants: jobChatSummary.totalApplicants, assigned: jobChatSummary.totalAssigned } },
-                { id: 'job-chat', labelKey: 'Applicant Chats', icon: MessageSquare, path: '/teacher/job-chat', badge: jobChatSummary.totalUnread },
+                ...(jobChatSummary.totalAssigned > 0 ? [{ id: 'job-chat', labelKey: 'Applicant Chats', icon: MessageSquare, path: '/teacher/job-chat', badge: jobChatSummary.totalUnread }] : []),
                 { id: 'discussion-room', labelKey: 'Discussion Room', icon: MessageSquare, path: '/teacher/discussion-room', badge: discussionUnread },
             ],
             student: [
@@ -454,8 +462,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 { id: 'dashboard', labelKey: 'nav.dashboard', icon: LayoutDashboard, path: '/job/dashboard' },
                 { id: 'available', labelKey: 'Available', icon: Briefcase, path: '/job/tasks', state: { tab: 'available' } },
                 { id: 'applied', labelKey: 'Applications', icon: FileText, path: '/job/tasks', state: { tab: 'applied' }, badge: jobApplicationCount },
-                { id: 'assigned', labelKey: 'Assigned', icon: CheckCircle, path: '/job/tasks', state: { tab: 'assigned' }, badge: jobChatSummary.totalUnread },
-                { id: 'job-chat', labelKey: 'Job Chat', icon: MessageSquare, path: '/job/job-chat', badge: jobChatSummary.totalUnread },
+                { id: 'assigned', labelKey: 'Assigned', icon: CheckCircle, path: '/job/tasks', state: { tab: 'assigned' }, badge: jobAssignedCount },
+                ...(jobChatSummary.totalAssigned > 0 ? [{ id: 'job-chat', labelKey: 'Job Chat', icon: MessageSquare, path: '/job/job-chat', badge: jobChatSummary.totalUnread }] : []),
                 { id: 'completed', labelKey: 'Completed', icon: Award, path: '/job/tasks', state: { tab: 'completed' } },
                 { id: 'expired', labelKey: 'Expired', icon: Clock, path: '/job/tasks', state: { tab: 'expired' } },
                 { id: 'showcase', labelKey: 'Feedback', icon: MessageSquare, path: '/job/tasks', state: { tab: 'showcase' } },

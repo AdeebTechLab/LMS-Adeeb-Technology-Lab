@@ -606,16 +606,17 @@ router.get('/job/tasks', protect, authorize('admin', 'teacher', 'job'), async (r
     try {
         const userId = req.user.id;
         const query = req.user.role === 'admin'
-            ? { 'applicants.0': { $exists: true } }
+            ? { 'assignedTo.0': { $exists: true } }
             : req.user.role === 'teacher'
-                ? { $or: [{ jobManagers: userId }, { jobManager: userId }, { jobManagers: { $size: 0 }, jobManager: null, createdBy: userId }], 'applicants.0': { $exists: true } }
-                : { 'applicants.user': userId };
+                ? { $or: [{ jobManagers: userId }, { jobManager: userId }, { jobManagers: { $size: 0 }, jobManager: null, createdBy: userId }], 'assignedTo.0': { $exists: true } }
+                : { assignedTo: userId };
 
         const tasks = await PaidTask.find(query)
             .populate('createdBy', 'name photo role')
             .populate('jobManager', 'name photo role')
             .populate('jobManagers', 'name photo role')
             .populate('applicants.user', 'name email photo role')
+            .populate('assignedTo', 'name email photo role')
             .select('title createdBy jobManager jobManagers applicants assignedTo status')
             .sort('-updatedAt');
 
@@ -623,7 +624,7 @@ router.get('/job/tasks', protect, authorize('admin', 'teacher', 'job'), async (r
             const managers = task.jobManagers?.length ? task.jobManagers : (task.jobManager ? [task.jobManager] : (task.createdBy ? [task.createdBy] : []));
             const contacts = req.user.role === 'job'
                 ? managers
-                : task.applicants.map(a => a.user).filter(Boolean);
+                : (task.assignedTo || []).filter(Boolean);
             const contactsWithUnread = await Promise.all(contacts.map(async contact => {
                 const unreadQuery = { task: task._id, sender: contact._id, recipient: userId, isRead: false };
                 return {
@@ -646,7 +647,7 @@ router.get('/job/tasks', protect, authorize('admin', 'teacher', 'job'), async (r
                     latestApplicationByUser.set(applicantId, application);
                 }
             });
-            const assignedIds = new Set((task.assignedTo || []).map(String));
+            const assignedIds = new Set((task.assignedTo || []).map(assignedUser => String(assignedUser?._id || assignedUser)));
             const pendingApplicants = [...latestApplicationByUser.values()].filter(application =>
                 application.status === 'applied' && !assignedIds.has(String(application.user?._id || application.user))
             ).length;
@@ -665,16 +666,17 @@ router.get('/job/tasks', protect, authorize('admin', 'teacher', 'job'), async (r
             data,
             totalUnread: data.reduce((n, t) => n + t.totalUnread, 0),
             totalApplicants: data.reduce((n, t) => n + (req.user.role === 'job' ? 0 : t.pendingApplicants), 0),
-            totalAssigned: data.reduce((n, t) => n + (req.user.role === 'job' ? 0 : t.assignedCount), 0)
+            totalAssigned: data.reduce((n, t) => n + (req.user.role === 'job' ? 1 : t.assignedCount), 0)
         });
     } catch (error) { res.status(500).json({ success: false, message: error.message }); }
 });
 
 const canAccessJobChat = async (task, user, otherUserId) => {
-    if (user.role === 'admin') return true;
+    const assignedIds = (task.assignedTo || []).map(String);
+    if (user.role === 'admin') return assignedIds.includes(String(otherUserId));
     const managerIds = (task.jobManagers?.length ? task.jobManagers : [task.jobManager || task.createdBy]).filter(Boolean).map(String);
-    if (user.role === 'teacher') return managerIds.includes(String(user.id)) && task.applicants.some(a => String(a.user) === String(otherUserId));
-    return user.role === 'job' && task.applicants.some(a => String(a.user) === String(user.id)) && managerIds.includes(String(otherUserId));
+    if (user.role === 'teacher') return managerIds.includes(String(user.id)) && assignedIds.includes(String(otherUserId));
+    return user.role === 'job' && assignedIds.includes(String(user.id)) && managerIds.includes(String(otherUserId));
 };
 
 router.get('/job/:taskId/messages/:userId', protect, authorize('admin', 'teacher', 'job'), async (req, res) => {
