@@ -167,6 +167,10 @@ router.post('/:id/apply', protect, authorize('job'), async (req, res) => {
             return res.status(400).json({ success: false, message: 'Task is not open for applications' });
         }
 
+        if (task.manualStatus === 'expired' || task.manualStatus === 'completed') {
+            return res.status(400).json({ success: false, message: 'Task is closed for applications' });
+        }
+
         // Check if already applied
         const userApplications = task.applicants.filter(a => a.user.toString() === req.user.id);
         const latestApplication = userApplications.sort((a, b) => (b.cycle || 1) - (a.cycle || 1))[0];

@@ -143,6 +143,8 @@ const BrowseTasks = () => {
 
     // Check if task deadline has passed
     const isExpired = (task) => {
+        if (task.manualStatus === 'expired') return true;
+        if (task.manualStatus === 'active') return false;
         if (task.isLifetime) return false;
         if (!task.deadline) return false;
         // Expired if not assigned to ANYONE and status is open
@@ -150,7 +152,7 @@ const BrowseTasks = () => {
     };
 
     // Get available tasks (open, assigned, or submitted - basically any not completed)
-    const availableTasks = tasks.filter(t => t.status !== 'completed' && !hasApplied(t));
+    const availableTasks = tasks.filter(t => t.status !== 'completed' && t.manualStatus !== 'completed' && !hasApplied(t));
 
     // Get tasks I've applied to (from my tasks)
     const appliedTasks = myTasks.filter(t => getCurrentApplication(t)?.status === 'applied' && !isAssignedToMe(t));

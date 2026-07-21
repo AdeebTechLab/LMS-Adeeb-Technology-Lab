@@ -64,7 +64,7 @@ const paidTaskSchema = new mongoose.Schema({
     },
     manualStatus: {
         type: String,
-        enum: ['active', 'expired', 'none'],
+        enum: ['active', 'expired', 'completed', 'none'],
         default: 'none'
     },
     status: {

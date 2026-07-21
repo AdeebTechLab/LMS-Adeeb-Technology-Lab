@@ -388,6 +388,14 @@ const PaidTasksManagement = () => {
         setViewMode(null);
     };
 
+    const handleCompleteAndPayClick = (task) => {
+        if (user?.role !== 'admin') {
+            alert('Only Admin can complete the task and make the payment.');
+            return;
+        }
+        openPaymentDialog(task);
+    };
+
     const handlePaymentProof = (event) => {
         const file = event.target.files?.[0];
         if (!file) return;
@@ -790,6 +798,18 @@ const PaidTasksManagement = () => {
                                             className={`px-2 py-1 text-[10px] font-black uppercase tracking-tighter rounded-md transition-all ${task.manualStatus === 'expired' ? 'bg-red-600 text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
                                         >
                                             Expired
+                                        </button>
+                                        <button
+                                            onClick={async () => {
+                                                try {
+                                                    await taskAPI.update(task._id, { manualStatus: 'completed' });
+                                                    fetchTasks();
+                                                } catch (err) { alert(err.response?.data?.message || 'Update failed'); }
+                                            }}
+                                            className={`px-2 py-1 text-[10px] font-black uppercase tracking-tighter rounded-md transition-all ${task.manualStatus === 'completed' || task.status === 'completed' ? 'bg-primary text-white shadow-sm' : 'text-gray-500 hover:text-primary'}`}
+                                            title="Close project applications"
+                                        >
+                                            Complete
                                         </button>
                                     </div>
                                 </div>
@@ -1353,7 +1373,7 @@ const PaidTasksManagement = () => {
                                 Close
                             </button>
                             <button
-                                onClick={() => openPaymentDialog(selectedTask)}
+                                onClick={() => handleCompleteAndPayClick(selectedTask)}
                                 className="flex-1 py-3 bg-primary hover:bg-primary text-white rounded-xl font-medium flex items-center justify-center gap-2"
                             >
                                 <CheckCircle className="w-5 h-5" />
@@ -1391,10 +1411,14 @@ const PaidTasksManagement = () => {
                                 <div key={payableUserId}>
                                     <label className="block text-xs font-medium text-gray-500 mb-1.5">{payableUser.name || 'Submitted user'} (Rs)</label>
                                     <input
-                                        type="number"
-                                        min="1"
+                                        type="text"
+                                        inputMode="numeric"
                                         value={paymentAmounts[payableUserId] || ''}
-                                        onChange={event => setPaymentAmounts(previous => ({ ...previous, [payableUserId]: event.target.value }))}
+                                        onChange={event => {
+                                            const digits = event.target.value.replace(/\D/g, '');
+                                            const formattedAmount = digits ? Number(digits).toLocaleString('en-US') : '';
+                                            setPaymentAmounts(previous => ({ ...previous, [payableUserId]: formattedAmount }));
+                                        }}
                                         placeholder="Enter payment amount"
                                         className="w-full px-4 py-3 bg-white text-gray-900 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
                                     />
