@@ -403,14 +403,14 @@ const BrowseTasks = () => {
                                     <div className="flex gap-2">
                                         <button
                                             onClick={() => { setSelectedTask(task); setSubmitModalOpen(true); }}
-                                            className="flex-1 py-2.5 bg-primary hover:bg-primary text-white rounded-xl font-medium flex items-center justify-center gap-2"
+                                            className="flex-[1.35] min-w-0 px-3 py-2.5 bg-primary hover:bg-primary text-white rounded-xl font-medium flex items-center justify-center gap-1.5 whitespace-nowrap"
                                         >
                                             <Upload className="w-4 h-4" />
                                             Submit Project
                                         </button>
                                         <button
                                             onClick={() => navigate('/job/job-chat', { state: { taskId: task._id } })}
-                                            className="flex-1 py-2.5 bg-slate-800 hover:bg-slate-900 dark:bg-slate-700 dark:hover:bg-slate-600 text-white rounded-xl font-medium flex items-center justify-center gap-2"
+                                            className="flex-1 min-w-0 px-2 py-2.5 bg-slate-800 hover:bg-slate-900 dark:bg-slate-700 dark:hover:bg-slate-600 text-white rounded-xl font-medium flex items-center justify-center gap-1.5 whitespace-nowrap"
                                         >
                                             <MessageSquare className="w-4 h-4" />
                                             Job Chat
