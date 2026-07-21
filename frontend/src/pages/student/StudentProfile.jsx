@@ -11,6 +11,17 @@ import { updateUser } from '../../features/auth/authSlice';
 import Loader, { ButtonLoader } from '../../components/ui/Loader';
 import ImageCropper from '../../components/ui/ImageCropper';
 import { formatDate } from '../../utils/dateFormatter';
+import { COUNTRIES } from '../../utils/locations';
+
+const HEARD_ABOUT_OPTIONS = [
+    'Poster & Panaflex', 'Facebook', 'Instagram', 'WhatsApp Group', 'Website',
+    'YouTube', 'Friends & Family', 'Twitter', 'LinkedIn', 'Other'
+];
+
+const asSelectOptions = (values, placeholder) => [
+    { value: '', label: placeholder },
+    ...values.map(value => ({ value, label: value }))
+];
 
 const InfoField = ({ icon: Icon, label, value, name, type = 'text', editable = true, isEditing, editForm, onChange }) => (
     <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-xl">
@@ -20,13 +31,25 @@ const InfoField = ({ icon: Icon, label, value, name, type = 'text', editable = t
         <div className="flex-1 min-w-0">
             <p className="text-sm text-gray-500 mb-1">{label}</p>
             {isEditing && editable ? (
-                <input
-                    type={type}
-                    name={name}
-                    value={editForm[name] || ''}
-                    onChange={onChange}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                />
+                <div className="relative">
+                    <input
+                        type={type}
+                        name={name}
+                        value={editForm[name] || ''}
+                        onChange={onChange}
+                        className={`w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary ${type === 'date' ? 'profile-date-input pr-11' : ''}`}
+                    />
+                    {type === 'date' && (
+                        <button
+                            type="button"
+                            onClick={(event) => event.currentTarget.parentElement.querySelector('input')?.showPicker?.()}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-lg text-primary hover:bg-primary/10 transition-colors"
+                            aria-label="Open date calendar"
+                        >
+                            <Calendar className="w-4 h-4" />
+                        </button>
+                    )}
+                </div>
             ) : (
                 <p className="font-medium text-gray-900 truncate">{value || 'Not provided'}</p>
             )}
@@ -411,13 +434,13 @@ const StudentProfile = () => {
                         )}
                         <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={User} label="Father's Name" value={profileData.fatherName} name="fatherName" editable={canEditBio} />
                         <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={CreditCard} label="CNIC" value={profileData.cnic} name="cnic" editable={canEditBio} />
-                        <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={Calendar} label="Date of Birth" value={profileData.dob ? formatDate(profileData.dob) : ''} name="dob" editable={canEditBio} />
-                        <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={User} label="Gender" value={profileData.gender} name="gender" editable={canEditBio} />
+                        <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={Calendar} label="Date of Birth" value={profileData.dob ? formatDate(profileData.dob) : ''} name="dob" type="date" editable={canEditBio} />
+                        <SelectField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={User} label="Gender" value={profileData.gender} name="gender" options={asSelectOptions(['Male', 'Female'], 'Select Gender')} editable={canEditBio} />
                         <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={GraduationCap} label="Education" value={profileData.education} name="education" editable={canEditBio} />
                         <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={MapPin} label="Address" value={profileData.address} name="address" editable={canEditBio} />
                         <div className="grid grid-cols-2 gap-4">
                             <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={MapPin} label="City" value={profileData.city} name="city" editable={canEditBio} />
-                            <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={MapPin} label="Country" value={profileData.country} name="country" editable={canEditBio} />
+                            <SelectField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={MapPin} label="Country" value={profileData.country} name="country" options={asSelectOptions(COUNTRIES, 'Select Country')} editable={canEditBio} />
                         </div>
                     </div>
                 </motion.div>
@@ -434,7 +457,7 @@ const StudentProfile = () => {
                             Academic Information
                         </h2>
                         <div className="space-y-4">
-                            <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={Users} label="Heard About Us Via" value={profileData.heardAbout} name="heardAbout" editable={canEditBio} />
+                            <SelectField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={Users} label="Heard About Us Via" value={profileData.heardAbout} name="heardAbout" options={asSelectOptions(HEARD_ABOUT_OPTIONS, 'Select Option')} editable={canEditBio} />
                             <div className="grid grid-cols-2 gap-4">
                                 <SelectField 
                                     isEditing={isEditing} 

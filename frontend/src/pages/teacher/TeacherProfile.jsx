@@ -11,6 +11,17 @@ import { getCourseIcon } from '../../utils/courseIcons';
 import ProfileAvatar from '../../components/ui/ProfileAvatar';
 import Loader, { ButtonLoader } from '../../components/ui/Loader';
 import { formatDate } from '../../utils/dateFormatter';
+import { COUNTRIES } from '../../utils/locations';
+
+const HEARD_ABOUT_OPTIONS = [
+    'Poster & Panaflex', 'Facebook', 'Instagram', 'WhatsApp Group', 'Website',
+    'YouTube', 'Friends & Family', 'Twitter', 'LinkedIn', 'Other'
+];
+
+const asSelectOptions = (values, placeholder) => [
+    { value: '', label: placeholder },
+    ...values.map(value => ({ value, label: value }))
+];
 
 const InfoField = ({ icon: Icon, label, value, name, type = 'text', editable = true, isEditing, editForm, onChange }) => (
     <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-xl">
@@ -20,15 +31,54 @@ const InfoField = ({ icon: Icon, label, value, name, type = 'text', editable = t
         <div className="flex-1 min-w-0">
             <p className="text-sm text-gray-500 mb-1">{label}</p>
             {isEditing && editable ? (
-                <input
-                    type={type}
+                <div className="relative">
+                    <input
+                        type={type}
+                        name={name}
+                        value={editForm[name] || ''}
+                        onChange={onChange}
+                        className={`w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary ${type === 'date' ? 'profile-date-input pr-11' : ''}`}
+                    />
+                    {type === 'date' && (
+                        <button
+                            type="button"
+                            onClick={(event) => event.currentTarget.parentElement.querySelector('input')?.showPicker?.()}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-lg text-primary hover:bg-primary/10 transition-colors"
+                            aria-label="Open date calendar"
+                        >
+                            <Calendar className="w-4 h-4" />
+                        </button>
+                    )}
+                </div>
+            ) : (
+                <p className="font-medium text-gray-900 truncate">{value || 'Not provided'}</p>
+            )}
+        </div>
+    </div>
+);
+
+const SelectField = ({ icon: Icon, label, value, name, options, editable = true, isEditing, editForm, onChange }) => (
+    <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-xl">
+        <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+            <Icon className="w-5 h-5 text-primary" />
+        </div>
+        <div className="flex-1 min-w-0">
+            <p className="text-sm text-gray-500 mb-1">{label}</p>
+            {isEditing && editable ? (
+                <select
                     name={name}
                     value={editForm[name] || ''}
                     onChange={onChange}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                />
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white"
+                >
+                    {options.map(option => (
+                        <option key={option.value} value={option.value}>{option.label}</option>
+                    ))}
+                </select>
             ) : (
-                <p className="font-medium text-gray-900 truncate">{value || 'Not provided'}</p>
+                <p className="font-medium text-gray-900 truncate">
+                    {options.find(option => option.value === value)?.label || value || 'Not provided'}
+                </p>
             )}
         </div>
     </div>
@@ -299,16 +349,16 @@ const TeacherProfile = () => {
                         <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={CreditCard} label="CNIC" value={profileData.cnic} name="cnic" editable={canEditBio} />
                         <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={User} label="Father Name" value={profileData.fatherName} name="fatherName" editable={canEditBio} />
                         <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={Calendar} label="Date of Birth" value={profileData.dob ? formatDate(profileData.dob) : ''} name="dob" type="date" editable={canEditBio} />
-                        <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={User} label="Gender" value={profileData.gender} name="gender" editable={canEditBio} />
+                        <SelectField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={User} label="Gender" value={profileData.gender} name="gender" options={asSelectOptions(['Male', 'Female'], 'Select Gender')} editable={canEditBio} />
                         <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={GraduationCap} label="Qualification" value={profileData.qualification} name="qualification" editable={canEditBio} />
                         <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={Briefcase} label="Specialization / Skills" value={profileData.specialization} name="specialization" editable={canEditBio} />
                         <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={Briefcase} label="Experience" value={profileData.experience} name="experience" editable={canEditBio} />
                         <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={MapPin} label="City" value={profileData.city} name="city" editable={canEditBio} />
-                        <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={MapPin} label="Country" value={profileData.country} name="country" editable={canEditBio} />
+                        <SelectField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={MapPin} label="Country" value={profileData.country} name="country" options={asSelectOptions(COUNTRIES, 'Select Country')} editable={canEditBio} />
                         <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={MapPin} label="Address" value={profileData.address} name="address" editable={canEditBio} />
                         <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={BookOpen} label="Campus City" value={profileData.campusCity} name="campusCity" editable={canEditBio} />
-                        <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={BookOpen} label="Attend Classes" value={profileData.attendType} name="attendType" editable={canEditBio} />
-                        <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={Users} label="Heard About Us" value={profileData.heardAbout} name="heardAbout" editable={canEditBio} />
+                        <SelectField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={BookOpen} label="Attend Classes" value={profileData.attendType} name="attendType" options={asSelectOptions(['Physical', 'Online'], 'Select Attend Type')} editable={canEditBio} />
+                        <SelectField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={Users} label="Heard About Us" value={profileData.heardAbout} name="heardAbout" options={asSelectOptions(HEARD_ABOUT_OPTIONS, 'Select Option')} editable={canEditBio} />
                     </div>
                 </motion.div>
 

@@ -1435,3 +1435,7 @@ body {
 .dark .test-modal-content .text-gray-400 {
   color: #cbd5e1;
 }
+.profile-date-input::-webkit-calendar-picker-indicator {
+  opacity: 0;
+  pointer-events: none;
+}
