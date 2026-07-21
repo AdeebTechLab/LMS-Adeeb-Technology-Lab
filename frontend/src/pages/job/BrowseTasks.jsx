@@ -542,10 +542,19 @@ const BrowseTasks = () => {
                             <p className="text-2xl font-black text-primary mt-2">Rs {Number(viewingPayment.payment?.amount || 0).toLocaleString()}</p>
                         </div>
                         {viewingPayment.payment?.paymentProof ? (
-                            <a href={viewingPayment.payment.paymentProof} target="_blank" rel="noopener noreferrer" className="block rounded-xl overflow-hidden border border-gray-200 bg-gray-50">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setGalleryImages([viewingPayment.payment.paymentProof]);
+                                    setCurrentImageIndex(0);
+                                    setGalleryOpen(true);
+                                }}
+                                className="block w-full rounded-xl overflow-hidden border border-gray-200 bg-gray-50 cursor-zoom-in"
+                                title="Open full image"
+                            >
                                 <img src={viewingPayment.payment.paymentProof} alt="Payment screenshot" className="w-full max-h-[420px] object-contain" />
                                 <span className="flex items-center justify-center gap-2 py-3 text-sm font-bold text-primary"><Eye className="w-4 h-4" /> Open Full Screenshot</span>
-                            </a>
+                            </button>
                         ) : (
                             <div className="p-6 text-center text-sm text-gray-500 bg-gray-50 rounded-xl">Payment screenshot is not available for this older payment.</div>
                         )}
