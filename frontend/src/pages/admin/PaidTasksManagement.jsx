@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
-    Search, Calendar, CheckCircle, Eye, Users, Briefcase, AlertCircle, Link, Trash2, PenSquare, MessageSquare, Star, X, ChevronLeft, ChevronRight
+    Search, Calendar, CheckCircle, Eye, Users, Briefcase, AlertCircle, Link, Trash2, PenSquare, MessageSquare, Star, X, ChevronLeft, ChevronRight, ImagePlus
 } from 'lucide-react';
 import Loader, { ButtonLoader } from '../../components/ui/Loader';
 import Badge from '../../components/ui/Badge';
@@ -32,6 +32,10 @@ const PaidTasksManagement = () => {
     const [isSavingFeedback, setIsSavingFeedback] = useState(false);
     const [error, setError] = useState('');
     const [teachers, setTeachers] = useState([]);
+    const [paymentTask, setPaymentTask] = useState(null);
+    const [paymentAmounts, setPaymentAmounts] = useState({});
+    const [paymentProof, setPaymentProof] = useState('');
+    const [isCompletingPayment, setIsCompletingPayment] = useState(false);
 
     const [formData, setFormData] = useState({
         title: '',
@@ -369,30 +373,55 @@ const PaidTasksManagement = () => {
         }
     };
 
-    const handleVerifyAndPay = async (taskId) => {
-        const task = tasks.find(item => item._id === taskId) || selectedTask;
+    const openPaymentDialog = (taskOrId) => {
+        const task = typeof taskOrId === 'string'
+            ? (tasks.find(item => item._id === taskOrId) || selectedTask)
+            : taskOrId;
         const payableUsers = [...new Map((task?.submissions || []).filter(sub => sub.user).map(sub => [String(sub.user._id || sub.user), sub.user])).values()];
         if (!payableUsers.length) {
             alert('No submitted users found for payment.');
             return;
         }
+        setPaymentTask(task);
+        setPaymentAmounts({});
+        setPaymentProof('');
+        setViewMode(null);
+    };
 
-        const payments = [];
-        for (const payableUser of payableUsers) {
-            const amountInput = window.prompt(`Payment amount for ${payableUser.name || 'this user'} (Rs):`, '');
-            if (amountInput === null) return;
-            const amount = Number(String(amountInput).replace(/,/g, '').trim());
-            if (!Number.isFinite(amount) || amount <= 0) {
-                alert('Please enter a valid payment amount.');
-                return;
-            }
-            payments.push({ userId: payableUser._id || payableUser, amount });
+    const handlePaymentProof = (event) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+        if (!file.type.startsWith('image/')) {
+            alert('Please select an image screenshot.');
+            return;
+        }
+        const reader = new FileReader();
+        reader.onload = () => setPaymentProof(String(reader.result || ''));
+        reader.readAsDataURL(file);
+    };
+
+    const handleVerifyAndPay = async () => {
+        if (!paymentTask) return;
+        const payableUsers = [...new Map((paymentTask.submissions || []).filter(sub => sub.user).map(sub => [String(sub.user._id || sub.user), sub.user])).values()];
+        const payments = payableUsers.map(payableUser => ({
+            userId: payableUser._id || payableUser,
+            amount: Number(String(paymentAmounts[String(payableUser._id || payableUser)] || '').replace(/,/g, '').trim())
+        }));
+        if (payments.some(payment => !Number.isFinite(payment.amount) || payment.amount <= 0)) {
+            alert('Please enter a valid payment amount for every submitted user.');
+            return;
+        }
+        if (!paymentProof) {
+            alert('Please upload the payment screenshot.');
+            return;
         }
 
-        if (!window.confirm(`Confirm payment for ${payments.length} submitted user(s)?`)) return;
-
+        setIsCompletingPayment(true);
         try {
-            await taskAPI.adminComplete(taskId, payments);
+            await taskAPI.adminComplete(paymentTask._id, payments, paymentProof);
+            setPaymentTask(null);
+            setPaymentAmounts({});
+            setPaymentProof('');
             setViewMode(null);
             setSelectedTask(null);
             setActiveTab('completed'); // Switch to completed tab
@@ -400,6 +429,8 @@ const PaidTasksManagement = () => {
         } catch (err) {
             console.error('Error completing task:', err);
             alert(err.response?.data?.message || 'Failed to complete task');
+        } finally {
+            setIsCompletingPayment(false);
         }
     };
 
@@ -842,7 +873,7 @@ const PaidTasksManagement = () => {
                                             )}
                                         </button>
                                         {user?.role === 'admin' && <button
-                                            onClick={() => handleVerifyAndPay(task._id)}
+                                            onClick={() => openPaymentDialog(task)}
                                             className="px-4 py-2 text-sm font-medium text-primary bg-primary/5 hover:bg-primary/10 rounded-xl flex items-center justify-center gap-1"
                                             title="Complete & Pay Task"
                                         >
@@ -869,7 +900,7 @@ const PaidTasksManagement = () => {
                                             Applicants
                                         </button>
                                         {user?.role === 'admin' && <button
-                                            onClick={() => handleVerifyAndPay(task._id)}
+                                            onClick={() => openPaymentDialog(task)}
                                             className="px-4 py-2 text-sm font-medium text-primary bg-primary/5 hover:bg-primary/10 rounded-xl flex items-center justify-center gap-1"
                                             title="Complete & Pay Task"
                                         >
@@ -1322,7 +1353,7 @@ const PaidTasksManagement = () => {
                                 Close
                             </button>
                             <button
-                                onClick={() => handleVerifyAndPay(selectedTask._id)}
+                                onClick={() => openPaymentDialog(selectedTask)}
                                 className="flex-1 py-3 bg-primary hover:bg-primary text-white rounded-xl font-medium flex items-center justify-center gap-2"
                             >
                                 <CheckCircle className="w-5 h-5" />
@@ -1335,6 +1366,79 @@ const PaidTasksManagement = () => {
                         No submissions found for this task yet.
                     </div>
                 )}
+            </Modal>
+
+            {/* Complete task and record payment */}
+            <Modal
+                isOpen={Boolean(paymentTask)}
+                onClose={() => !isCompletingPayment && setPaymentTask(null)}
+                title="Complete & Pay Task"
+                size="md"
+            >
+                <div className="space-y-5">
+                    <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
+                        <p className="font-bold text-gray-900">{paymentTask?.title}</p>
+                        <p className="text-sm text-gray-500 mt-1">
+                            Project budget: <span className="font-semibold text-primary">Rs {isNaN(Number(paymentTask?.budget)) ? paymentTask?.budget : Number(paymentTask?.budget || 0).toLocaleString()}</span>
+                        </p>
+                    </div>
+
+                    <div className="space-y-3">
+                        <p className="text-sm font-bold text-gray-800">Payment Amount</p>
+                        {[...new Map((paymentTask?.submissions || []).filter(sub => sub.user).map(sub => [String(sub.user._id || sub.user), sub.user])).values()].map(payableUser => {
+                            const payableUserId = String(payableUser._id || payableUser);
+                            return (
+                                <div key={payableUserId}>
+                                    <label className="block text-xs font-medium text-gray-500 mb-1.5">{payableUser.name || 'Submitted user'} (Rs)</label>
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        value={paymentAmounts[payableUserId] || ''}
+                                        onChange={event => setPaymentAmounts(previous => ({ ...previous, [payableUserId]: event.target.value }))}
+                                        placeholder="Enter payment amount"
+                                        className="w-full px-4 py-3 bg-white text-gray-900 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                                    />
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                    <div>
+                        <p className="text-sm font-bold text-gray-800 mb-2">Payment Screenshot</p>
+                        <label className="min-h-32 border-2 border-dashed border-gray-200 hover:border-primary rounded-xl flex flex-col items-center justify-center cursor-pointer overflow-hidden transition-colors bg-gray-50">
+                            {paymentProof ? (
+                                <img src={paymentProof} alt="Payment screenshot preview" className="w-full max-h-56 object-contain" />
+                            ) : (
+                                <div className="py-7 text-center text-gray-500">
+                                    <ImagePlus className="w-8 h-8 mx-auto mb-2 text-primary" />
+                                    <p className="text-sm font-medium">Upload payment screenshot</p>
+                                    <p className="text-xs mt-1">PNG, JPG or WEBP</p>
+                                </div>
+                            )}
+                            <input type="file" accept="image/*" onChange={handlePaymentProof} className="hidden" />
+                        </label>
+                    </div>
+
+                    <div className="flex gap-3 pt-2">
+                        <button
+                            type="button"
+                            disabled={isCompletingPayment}
+                            onClick={() => setPaymentTask(null)}
+                            className="flex-1 py-3 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl font-medium disabled:opacity-50"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="button"
+                            disabled={isCompletingPayment}
+                            onClick={handleVerifyAndPay}
+                            className="flex-1 py-3 bg-primary hover:bg-primary text-white rounded-xl font-medium flex items-center justify-center gap-2 disabled:opacity-60"
+                        >
+                            {isCompletingPayment ? <ButtonLoader /> : <CheckCircle className="w-5 h-5" />}
+                            Confirm Payment
+                        </button>
+                    </div>
+                </div>
             </Modal>
 
             {/* Edit Feedback Modal */}

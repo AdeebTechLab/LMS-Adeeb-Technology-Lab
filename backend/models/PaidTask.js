@@ -116,6 +116,7 @@ const paidTaskSchema = new mongoose.Schema({
     paymentHistory: [{
         user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
         amount: { type: Number, required: true, min: 0 },
+        paymentProof: String,
         cycle: { type: Number, default: 1 },
         paidAt: { type: Date, default: Date.now },
         feedbackSubmitted: { type: Boolean, default: false }

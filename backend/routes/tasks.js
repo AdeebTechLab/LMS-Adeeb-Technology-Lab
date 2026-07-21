@@ -545,6 +545,7 @@ router.post('/:id/submit', protect, uploadSubmission.single('file'), async (req,
 router.put('/:id/admin-complete', protect, authorize('admin'), async (req, res) => {
     try {
         const payments = Array.isArray(req.body.payments) ? req.body.payments : [];
+        const paymentProof = typeof req.body.paymentProof === 'string' ? req.body.paymentProof : '';
         const task = await PaidTask.findById(req.params.id);
 
         if (!task) {
@@ -576,7 +577,7 @@ router.put('/:id/admin-complete', protect, authorize('admin'), async (req, res) 
                 const currentApplication = userApplications.sort((a, b) => (b.cycle || 1) - (a.cycle || 1))[0];
                 const cycle = currentApplication?.cycle || 1;
                 const amount = paymentMap.get(userId);
-                task.paymentHistory.push({ user: userId, amount, cycle, paidAt: new Date(), feedbackSubmitted: false });
+                task.paymentHistory.push({ user: userId, amount, paymentProof, cycle, paidAt: new Date(), feedbackSubmitted: false });
                 if (currentApplication) currentApplication.status = 'paid';
                 await User.findByIdAndUpdate(userId, { $inc: { completedTasks: 1, totalEarnings: amount } });
             }
