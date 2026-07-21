@@ -1403,3 +1403,35 @@ body {
     grid-column: span 2 / span 2;
   }
 }
+/* Test create/edit dialog contrast in dark mode */
+.dark .test-modal-content h4 {
+  color: #f8fafc;
+}
+
+.dark .test-modal-content .bg-gray-50\/50 {
+  background-color: rgba(30, 41, 59, 0.72);
+  border-color: #475569;
+}
+
+.dark .test-modal-content input,
+.dark .test-modal-content textarea,
+.dark .test-modal-content .bg-white {
+  background-color: #0f172a;
+  border-color: #475569;
+  color: #f8fafc;
+}
+
+.dark .test-modal-content input::placeholder,
+.dark .test-modal-content textarea::placeholder {
+  color: #94a3b8;
+}
+
+.dark .test-modal-content input[type="date"],
+.dark .test-modal-content input[type="datetime-local"] {
+  color-scheme: dark;
+}
+
+.dark .test-modal-content label span.text-gray-400,
+.dark .test-modal-content .text-gray-400 {
+  color: #cbd5e1;
+}

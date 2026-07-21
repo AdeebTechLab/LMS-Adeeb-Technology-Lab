@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 
 const userSchema = new mongoose.Schema({
     name: {
@@ -158,10 +159,26 @@ userSchema.methods.matchPassword = async function (enteredPassword) {
 };
 
 // Generate JWT token
-userSchema.methods.getSignedJwtToken = function (expiresIn) {
-    return jwt.sign({ id: this._id }, process.env.JWT_SECRET, {
-        expiresIn: expiresIn || process.env.JWT_EXPIRE || '30d'
-    });
+userSchema.methods.getPasswordFingerprint = function () {
+    if (!this.password) {
+        throw new Error('Password must be selected before creating an authentication token');
+    }
+
+    return crypto
+        .createHmac('sha256', process.env.JWT_SECRET)
+        .update(String(this.password))
+        .digest('hex');
+};
+
+userSchema.methods.getSignedJwtToken = function (expiresIn = '2h', rememberMe = false) {
+    const payload = {
+        id: this._id,
+        passwordFingerprint: this.getPasswordFingerprint(),
+        rememberMe: Boolean(rememberMe)
+    };
+
+    const options = rememberMe ? {} : { expiresIn };
+    return jwt.sign(payload, process.env.JWT_SECRET, options);
 };
 
 module.exports = mongoose.model('User', userSchema);

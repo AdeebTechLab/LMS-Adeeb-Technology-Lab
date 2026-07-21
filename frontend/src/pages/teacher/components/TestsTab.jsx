@@ -644,7 +644,7 @@ const TestsTab = ({ course, students }) => {
                 title="Create New Test"
                 size="xl"
             >
-                <div className="space-y-8 py-4">
+                <div className="test-modal-content space-y-8 py-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-4">
                             <h4 className="text-sm font-black text-gray-900 uppercase tracking-wider flex items-center gap-2">
@@ -966,7 +966,7 @@ const TestsTab = ({ course, students }) => {
                 size="xl"
             >
                 {editingTest && (
-                    <div className="space-y-8 py-4">
+                    <div className="test-modal-content space-y-8 py-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-4">
                                 <h4 className="text-sm font-black text-gray-900 uppercase tracking-wider flex items-center gap-2">

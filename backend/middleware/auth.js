@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const User = require('../models/User');
 
 // Protect routes - verify JWT token
@@ -9,12 +10,33 @@ const protect = async (req, res, next) => {
         try {
             token = req.headers.authorization.split(' ')[1];
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
-            req.user = await User.findById(decoded.id).select('-password');
+            const authenticatedUser = await User.findById(decoded.id).select('+password');
 
-            if (!req.user) {
+            if (!authenticatedUser) {
                 console.log(`❌ Auth failed: User not found for token`);
                 return res.status(401).json({ success: false, message: 'User not found' });
             }
+
+            if (!decoded.passwordFingerprint) {
+                return res.status(401).json({ success: false, message: 'Session expired. Please login again.' });
+            }
+
+            const currentFingerprint = authenticatedUser.getPasswordFingerprint();
+            const tokenFingerprint = String(decoded.passwordFingerprint);
+            const fingerprintsMatch = currentFingerprint.length === tokenFingerprint.length
+                && crypto.timingSafeEqual(Buffer.from(currentFingerprint), Buffer.from(tokenFingerprint));
+
+            if (!fingerprintsMatch) {
+                return res.status(401).json({ success: false, message: 'Password changed. Please login again.' });
+            }
+
+            if (authenticatedUser.role !== 'admin' && !authenticatedUser.isVerified) {
+                return res.status(401).json({ success: false, message: 'Your account has been suspended by admin.' });
+            }
+
+            authenticatedUser.password = undefined;
+            req.user = authenticatedUser;
+            req.auth = decoded;
 
             // Update lastSeen (debounced to 2 mins)
             const now = new Date();

@@ -232,7 +232,7 @@ router.post('/register', uploadRegistration.fields([
         }
 
         // Generate token for admins (if created via this route)
-        const token = user.getSignedJwtToken();
+        const token = user.getSignedJwtToken('2h', false);
 
         res.status(201).json({
             success: true,
@@ -308,10 +308,9 @@ router.post('/login', async (req, res) => {
         user.lastSeen = new Date();
         await user.save({ validateBeforeSave: false });
 
-        // Generate token
-        // If rememberMe is true, expire in 365 days. Otherwise, expire in 2 hours.
-        const expiresIn = rememberMe ? '365d' : '2h';
-        const token = user.getSignedJwtToken(expiresIn);
+        // Normal sessions expire after 2 hours. Remembered sessions remain
+        // active until the password/account changes or the user logs out.
+        const token = user.getSignedJwtToken('2h', Boolean(rememberMe));
 
         res.json({
             success: true,
@@ -409,7 +408,7 @@ router.post('/switch-role', protect, async (req, res) => {
         const email = currentUser.email;
 
         // Find the user object for the requested role
-        const targetUser = await User.findOne({ email, role: targetRole });
+        const targetUser = await User.findOne({ email, role: targetRole }).select('+password');
         if (!targetUser) {
             return res.status(403).json({ success: false, message: `Access denied. You have not registered as a ${targetRole}.` });
         }
@@ -425,8 +424,8 @@ router.post('/switch-role', protect, async (req, res) => {
 
         // Generate a new token for the target user (same session duration logic as login)
         const { rememberMe } = req.body;
-        const expiresIn = rememberMe ? '365d' : '2h';
-        const token = targetUser.getSignedJwtToken(expiresIn);
+        const keepRemembered = typeof rememberMe === 'boolean' ? rememberMe : Boolean(req.auth?.rememberMe);
+        const token = targetUser.getSignedJwtToken('2h', keepRemembered);
 
         res.json({
             success: true,

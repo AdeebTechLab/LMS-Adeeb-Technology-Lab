@@ -254,6 +254,18 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
         handleStartTest(testToStart);
     };
 
+    const handleSelectAnswer = (questionId, selectedOption) => {
+        setAnswers((previousAnswers) => ({
+            ...previousAnswers,
+            [questionId]: selectedOption
+        }));
+
+        if (currentQuestionIndex < shuffledQuestions.length - 1) {
+            setDirection(1);
+            setCurrentQuestionIndex((currentIndex) => currentIndex + 1);
+        }
+    };
+
     const handleSubmitTest = async (forceSubmit = false) => {
         if (isSubmitting) return;
 
@@ -437,7 +449,7 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
                                     {currentQuestion.shuffledOptions.map((opt, oIdx) => (
                                         <button
                                             key={oIdx}
-                                            onClick={() => setAnswers({...answers, [currentQuestion._id]: opt.originalIndex})}
+                                            onClick={() => handleSelectAnswer(currentQuestion._id, opt.originalIndex)}
                                             className={`group p-5 rounded-2xl text-left border-2 transition-all flex items-center gap-6 ${
                                                 answers[currentQuestion._id] === opt.originalIndex
                                                 ? 'border-primary bg-primary/5 dark:bg-slate-800 shadow-xl shadow-primary/20 translate-x-2'
@@ -490,29 +502,30 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
                                     {/* Final Score Card at Top */}
                                     <div className="bg-gradient-to-br from-slate-900 to-slate-800 p-8 sm:p-10 rounded-[3rem] text-center shadow-2xl shadow-slate-200 relative overflow-hidden">
                                         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent" />
-                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] block mb-3">Final Performance Score</span>
-                                        <div className="flex items-baseline justify-center gap-2 mb-6">
-                                            <span className="text-6xl font-black text-white leading-none">{testResult.score}/{testResult.totalMarks}</span>
-                                        </div>
-                                        
-                                        <div className="flex items-center justify-center gap-8 py-5 border-y border-slate-700/50 mb-6">
+                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] block mb-6">Final Performance</span>
+
+                                        <div className="grid grid-cols-2 sm:grid-cols-4 items-stretch border-y border-slate-700/50 mb-6">
                                             <div className="text-center">
-                                                <span className="text-[10px] font-black text-primary uppercase tracking-widest block mb-1">Correct</span>
-                                                <span className="text-xl font-black text-white">{(testResult?.questions || []).filter(q => testResult.userAnswers?.[q._id] === q.correctOption).length}</span>
+                                                <div className="h-full py-6 flex flex-col items-center justify-center">
+                                                    <span className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Total Marks</span>
+                                                    <span className="text-3xl sm:text-4xl font-black text-white">{testResult.totalMarks}</span>
+                                                </div>
                                             </div>
-                                            <div className="w-px h-6 bg-slate-700" />
-                                            <div className="text-center">
-                                                <span className="text-[10px] font-black text-red-400 uppercase tracking-widest block mb-1">Incorrect</span>
-                                                <span className="text-xl font-black text-white">{(testResult?.questions || []).filter(q => testResult.userAnswers?.[q._id] !== q.correctOption).length}</span>
+                                            <div className="text-center py-6 border-l border-slate-700/50">
+                                                <span className="text-[9px] sm:text-[10px] font-black text-primary uppercase tracking-widest block mb-2">Obtained Marks</span>
+                                                <span className="text-3xl sm:text-4xl font-black text-white">{testResult.score}</span>
                                             </div>
-                                            <div className="w-px h-6 bg-slate-700" />
-                                            <div className="text-center">
-                                                <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest block mb-1">Grade</span>
+                                            <div className="text-center py-6 border-t sm:border-t-0 sm:border-l border-slate-700/50">
+                                                <span className="text-[9px] sm:text-[10px] font-black text-red-400 uppercase tracking-widest block mb-2">Wrong Answers</span>
+                                                <span className="text-3xl sm:text-4xl font-black text-white">
+                                                    {(testResult?.questions || []).filter(q => testResult.userAnswers?.[q._id] !== q.correctOption).length}
+                                                </span>
+                                            </div>
+                                            <div className="text-center py-6 border-t border-l sm:border-t-0 border-slate-700/50">
+                                                <span className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Grade</span>
                                                 {(() => {
-                                                    const pct = Math.round((testResult.score / testResult.totalMarks) * 100);
-                                                    const grade = pct >= 90 ? 'A+' : pct >= 85 ? 'A' : pct >= 80 ? 'B+' : pct >= 75 ? 'B' : pct >= 70 ? 'C+' : pct >= 65 ? 'C' : pct >= 60 ? 'D' : 'F';
-                                                    const gradeColor = pct >= 85 ? 'text-emerald-400' : pct >= 75 ? 'text-sky-400' : pct >= 65 ? 'text-yellow-400' : 'text-red-400';
-                                                    return <span className={`text-xl font-black ${gradeColor}`}>{grade}</span>;
+                                                    const grade = getTestGrade(testResult.score, testResult.totalMarks);
+                                                    return <span className={`text-3xl sm:text-4xl font-black ${grade.color}`}>{grade.label}</span>;
                                                 })()}
                                             </div>
                                         </div>
@@ -828,6 +841,18 @@ const StudentTestsTab = ({ courseId, isRestricted }) => {
             </AnimatePresence>
         </div>
     );
+};
+
+const getTestGrade = (score, totalMarks) => {
+    const percentage = totalMarks > 0 ? Math.round((score / totalMarks) * 100) : 0;
+    if (percentage >= 90) return { label: 'A+', color: 'text-emerald-400' };
+    if (percentage >= 85) return { label: 'A', color: 'text-emerald-400' };
+    if (percentage >= 80) return { label: 'B+', color: 'text-sky-400' };
+    if (percentage >= 75) return { label: 'B', color: 'text-sky-400' };
+    if (percentage >= 70) return { label: 'C+', color: 'text-yellow-400' };
+    if (percentage >= 65) return { label: 'C', color: 'text-yellow-400' };
+    if (percentage >= 60) return { label: 'D', color: 'text-red-400' };
+    return { label: 'F', color: 'text-red-400' };
 };
 
 export default StudentTestsTab;

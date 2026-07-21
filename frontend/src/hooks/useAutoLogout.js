@@ -1,7 +1,8 @@
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { logout } from '../features/auth/authSlice';
+import { logout, setUser } from '../features/auth/authSlice';
+import { authAPI } from '../services/api';
 
 const TWO_HOURS = 2 * 60 * 60 * 1000; // 2 hours in milliseconds
 
@@ -13,46 +14,53 @@ const useAutoLogout = () => {
     useEffect(() => {
         if (!isAuthenticated) return;
 
-        const checkSession = () => {
+        let timeoutId;
+        let cancelled = false;
+
+        const expireSession = () => {
+            dispatch(logout());
+            navigate('/login', {
+                state: { message: 'Your session has expired after 2 hours. Please login again.' }
+            });
+        };
+
+        const checkSession = async () => {
             // Check if "Remember Me" was selected - if so, skip auto-logout
             const rememberMeLocal = localStorage.getItem('rememberMe');
-            const rememberMeSession = sessionStorage.getItem('rememberMe');
-            
-            // If rememberMe is 'true' in localStorage, user selected remember me - don't auto-logout
-            if (rememberMeLocal === 'true') {
-                return;
-            }
-            
-            // If using sessionStorage (rememberMe was false), apply 2-hour timeout
-            const loginTime = sessionStorage.getItem('loginTime') || localStorage.getItem('loginTime');
-            if (!loginTime) {
-                // No login time stored, logout for safety
-                dispatch(logout());
-                navigate('/login', {
-                    state: { message: 'Session expired. Please login again.' }
-                });
+            try {
+                const response = await authAPI.getMe();
+                if (!cancelled && response.data?.user) {
+                    dispatch(setUser(response.data.user));
+                }
+            } catch {
+                // The API interceptor clears an invalid session and redirects.
                 return;
             }
 
-            const currentTime = new Date().getTime();
-            const elapsed = currentTime - parseInt(loginTime);
+            if (rememberMeLocal !== 'true') {
+                const loginTime = Number(sessionStorage.getItem('loginTime') || localStorage.getItem('loginTime'));
+                if (!loginTime) {
+                    expireSession();
+                    return;
+                }
 
-            if (elapsed >= TWO_HOURS) {
-                // Session expired
-                dispatch(logout());
-                navigate('/login', {
-                    state: { message: 'Your session has expired after 2 hours. Please login again.' }
-                });
+                const remaining = TWO_HOURS - (Date.now() - loginTime);
+                if (remaining <= 0) {
+                    expireSession();
+                    return;
+                }
+
+                timeoutId = window.setTimeout(expireSession, remaining);
             }
         };
 
         // Check immediately
         checkSession();
 
-        // Check every minute
-        const interval = setInterval(checkSession, 60 * 1000);
-
-        return () => clearInterval(interval);
+        return () => {
+            cancelled = true;
+            if (timeoutId) window.clearTimeout(timeoutId);
+        };
     }, [isAuthenticated, dispatch, navigate]);
 };
 
