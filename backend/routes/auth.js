@@ -468,6 +468,10 @@ router.put('/profile', protect, uploadPhoto.single('photo'), async (req, res) =>
             return res.status(404).json({ success: false, message: 'User not found' });
         }
 
+        const requestedEmail = typeof req.body.email === 'string'
+            ? req.body.email.trim().toLowerCase()
+            : '';
+
         // Check Global Bio Editing Permission based on user role
         if (req.user.role !== 'admin') { // Admin always allowed
             // Use role-specific setting key
@@ -479,33 +483,55 @@ router.put('/profile', protect, uploadPhoto.single('photo'), async (req, res) =>
             const hasNoData = !currentUser.phone && !currentUser.city && !currentUser.address;
 
             if (!isBioEditingAllowed && !hasNoData) {
-                // If editing is disabled and user has data, allow ONLY photo updates
-                if (!req.file) {
+                // Email and photo remain editable even when other bio fields are disabled.
+                if (!req.file && !requestedEmail) {
                     return res.status(403).json({
                         success: false,
                         message: 'Profile editing is currently disabled by the administrator.'
                     });
                 }
-                // If photo is uploaded, we proceed but ignore all body fields
-                req.body = {};
+                req.body = requestedEmail ? { email: requestedEmail } : {};
             }
         }
 
         const updates = { ...req.body };
+
+        if (requestedEmail) {
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(requestedEmail)) {
+                return res.status(400).json({ success: false, message: 'Please enter a valid email address.' });
+            }
+            updates.email = requestedEmail;
+        } else {
+            delete updates.email;
+        }
 
         // Add new photo if uploaded
         if (req.file) {
             updates.photo = req.file.path;
         }
 
-        // Restrict only email and role for non-admins
-        if (req.user.role !== 'admin') {
-            const restrictedFields = ['email', 'role', 'isVerified', 'rollNo'];
-            restrictedFields.forEach(field => delete updates[field]);
-        }
+        const restrictedFields = ['role', 'isVerified', 'rollNo'];
+        restrictedFields.forEach(field => delete updates[field]);
 
         // Remove password from updates
         delete updates.password;
+
+        const linkedAccounts = await User.find({ email: currentUser.email }).select('_id role');
+        const linkedAccountIds = linkedAccounts.map(account => account._id);
+
+        if (updates.email && updates.email !== currentUser.email) {
+            const conflictingAccount = await User.findOne({
+                email: updates.email,
+                _id: { $nin: linkedAccountIds }
+            }).select('_id');
+
+            if (conflictingAccount) {
+                return res.status(409).json({
+                    success: false,
+                    message: 'This email is already linked to another account.'
+                });
+            }
+        }
 
         // Update current user
         const user = await User.findByIdAndUpdate(req.user.id, updates, { new: true, runValidators: true });
@@ -523,17 +549,21 @@ router.put('/profile', protect, uploadPhoto.single('photo'), async (req, res) =>
             }
         });
 
+        if (updates.email && updates.email !== currentUser.email) {
+            syncData.email = updates.email;
+        }
+
         // Synchronize across all other roles with the same email
         if (Object.keys(syncData).length > 0) {
             await User.updateMany(
-                { email: currentUser.email, _id: { $ne: req.user.id } },
+                { _id: { $in: linkedAccountIds, $ne: req.user.id } },
                 { $set: syncData }
             );
             // Notify active socket sessions for all accounts with this email so open portals refresh
             try {
                 const io = req.app.get('io');
                 if (io) {
-                    const usersToNotify = await User.find({ email: currentUser.email }).select('_id');
+                    const usersToNotify = await User.find({ _id: { $in: linkedAccountIds } }).select('_id');
                     const payload = {
                         type: 'user_profile_updated',
                         userId: req.user.id,

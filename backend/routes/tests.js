@@ -71,10 +71,12 @@ const calculateTotalMarks = (questions = []) => questions.length;
 
 const normalizeSubmissionScore = (submission, totalQuestions) => {
     const previousTotal = Number(submission.totalPossibleScore) || totalQuestions;
+    const previousScore = Number(submission.score) || 0;
     if (previousTotal > 0 && previousTotal !== totalQuestions) {
-        submission.score = Math.round((Number(submission.score) / previousTotal) * totalQuestions);
+        submission.score = Math.round((previousScore / previousTotal) * totalQuestions);
     }
     submission.totalPossibleScore = totalQuestions;
+    return previousTotal !== totalQuestions || previousScore !== Number(submission.score);
 };
 
 // @route   GET /api/tests/course/:courseId
@@ -92,11 +94,32 @@ router.get('/course/:courseId', protect, async (req, res) => {
         }
 
         const tests = await query;
+        const scoreCorrectionWrites = [];
         tests.forEach(test => {
             const computedTotal = calculateTotalMarks(test.questions);
+            const storedTestTotal = Number(test.totalMarks);
             if (computedTotal > 0) test.totalMarks = computedTotal;
-            test.submissions.forEach(submission => normalizeSubmissionScore(submission, computedTotal));
+            const correctedFields = { totalMarks: computedTotal };
+            let needsCorrection = storedTestTotal !== computedTotal;
+
+            test.submissions.forEach((submission, submissionIndex) => {
+                if (normalizeSubmissionScore(submission, computedTotal)) {
+                    needsCorrection = true;
+                    correctedFields[`submissions.${submissionIndex}.score`] = submission.score;
+                    correctedFields[`submissions.${submissionIndex}.totalPossibleScore`] = computedTotal;
+                }
+            });
+
+            if (needsCorrection) {
+                scoreCorrectionWrites.push(
+                    Test.updateOne({ _id: test._id }, { $set: correctedFields })
+                );
+            }
         });
+
+        if (scoreCorrectionWrites.length > 0) {
+            await Promise.all(scoreCorrectionWrites);
+        }
 
         // If student, filter out answers from questions to prevent cheating
         if (req.user.role === 'student' || req.user.role === 'intern') {

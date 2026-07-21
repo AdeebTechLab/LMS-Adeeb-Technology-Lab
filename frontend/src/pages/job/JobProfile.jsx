@@ -121,6 +121,7 @@ const JobProfile = () => {
         setIsSaving(true);
         try {
             const response = await authAPI.updateProfile({
+                email: editForm.email,
                 name: editForm.fullName,
                 phone: editForm.phone,
                 city: editForm.city,
@@ -264,7 +265,7 @@ const JobProfile = () => {
                     </h2>
                     <div className="space-y-4">
                         <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={User} label="Full Name" value={profileData.fullName} name="fullName" editable={canEditBio} />
-                        <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={Mail} label="Email" value={profileData.email} name="email" type="email" editable={false} />
+                        <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={Mail} label="Email" value={profileData.email} name="email" type="email" editable />
                         <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={Phone} label="Phone" value={profileData.phone} name="phone" editable={canEditBio} />
                         {!canEditBio && isEditing && (
                             <p className="text-xs text-red-500 font-medium px-4">

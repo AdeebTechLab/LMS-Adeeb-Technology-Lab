@@ -226,6 +226,7 @@ const StudentProfile = () => {
         setIsSaving(true);
         try {
             const formData = new FormData();
+            formData.append('email', editForm.email || '');
             formData.append('name', editForm.fullName || '');
             formData.append('phone', editForm.phone || '');
             formData.append('cnic', editForm.cnic || '');
@@ -401,7 +402,7 @@ const StudentProfile = () => {
                     </h2>
                     <div className="space-y-4">
                         <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={User} label="Full Name" value={profileData.fullName} name="fullName" editable={canEditBio} />
-                        <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={Mail} label="Email" value={profileData.email} name="email" type="email" editable={false} />
+                        <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={Mail} label="Email" value={profileData.email} name="email" type="email" editable />
                         <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={Phone} label="Phone" value={profileData.phone} name="phone" editable={canEditBio} />
                         {!canEditBio && isEditing && (
                             <p className="text-xs text-red-500 font-medium px-4">
