@@ -1334,3 +1334,5 @@ GET /pending: Returning 187 total fees for frontend filtering
 🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
 🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
 🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
