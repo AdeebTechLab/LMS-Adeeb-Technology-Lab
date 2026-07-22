@@ -202,3 +202,501 @@
 🔐 Auth OK: Super Admin (admin) - PUT /api/tasks/6a39e04a5160a5e5a15c8476/reopen
 🔐 Auth OK: Super Admin (admin) - GET /api/tasks/completed-showcase
 🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/attendance/global-holidays
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - PUT /api/tasks/6a39e04a5160a5e5a15c8476
+🔐 Auth OK: Super Admin (admin) - GET /api/tasks/completed-showcase
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - PUT /api/tasks/6a4a1a129c2968f188d1ecc2
+🔐 Auth OK: Super Admin (admin) - GET /api/tasks/completed-showcase
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - PUT /api/tasks/6a39e04a5160a5e5a15c8476/reopen
+🔐 Auth OK: Super Admin (admin) - GET /api/tasks/completed-showcase
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/attendance/global-holidays
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔌 Client disconnected | Active: 1
+🔌 Client disconnected | Active: 1
+🔌 Client disconnected | Active: 0
+🔌 New client connected
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/available-roles
+🔌 New client connected
+🔌 New client connected
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/tasks/completed-showcase
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+🔐 Auth OK: Super Admin (admin) - GET /api/users/role/teacher
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/conversations
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/me
+🔐 Auth OK: Super Admin (admin) - GET /api/attendance/global-holidays
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/available-roles
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/tasks/completed-showcase
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/me
+🔌 Client disconnected | Active: 1
+🔌 Client disconnected | Active: 1
+🔐 Auth OK: Super Admin (admin) - GET /api/attendance/global-holidays
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔌 New client connected
+🔌 New client connected
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/users/role/teacher
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/available-roles
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/conversations
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/tasks/completed-showcase
+🔐 Auth OK: Super Admin (admin) - GET /api/users/role/teacher
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔌 Client disconnected | Active: 1
+🔌 Client disconnected | Active: 1
+🔌 Client disconnected | Active: 0
+🔌 New client connected
+🔌 New client connected
+🔌 New client connected
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/tasks/completed-showcase
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/available-roles
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/users/role/teacher
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/conversations
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/me
+🔐 Auth OK: Super Admin (admin) - GET /api/attendance/global-holidays
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/tasks/completed-showcase
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/available-roles
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/me
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔌 Client disconnected | Active: 1
+🔌 Client disconnected | Active: 1
+🔌 New client connected
+🔌 New client connected
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/attendance/global-holidays
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/available-roles
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/users/role/teacher
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/conversations
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/users/role/teacher
+🔐 Auth OK: Super Admin (admin) - GET /api/tasks/completed-showcase
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔌 Client disconnected | Active: 1
+🔌 Client disconnected | Active: 1
+🔌 Client disconnected | Active: 0
+🔌 New client connected
+🔌 New client connected
+🔌 New client connected
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/tasks/completed-showcase
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/available-roles
+🔐 Auth OK: Super Admin (admin) - GET /api/users/role/teacher
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/conversations
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/me
+🔐 Auth OK: Super Admin (admin) - GET /api/attendance/global-holidays
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/tasks/completed-showcase
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/available-roles
+🔐 Auth OK: Super Admin (admin) - GET /api/attendance/global-holidays
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/me
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔌 Client disconnected | Active: 1
+🔌 Client disconnected | Active: 1
+🔌 New client connected
+🔌 New client connected
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/available-roles
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/users/role/teacher
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/conversations
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/unread
+🔌 Client disconnected | Active: 1
+🔌 Client disconnected | Active: 1
+🔌 Client disconnected | Active: 0
+🔌 New client connected
+🔌 New client connected
+🔌 New client connected
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/tasks/completed-showcase
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/available-roles
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+🔐 Auth OK: Super Admin (admin) - GET /api/users/role/teacher
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/conversations
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/me
+🔐 Auth OK: Super Admin (admin) - GET /api/attendance/global-holidays
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/tasks/completed-showcase
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/available-roles
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/me
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/attendance/global-holidays
+🔌 Client disconnected | Active: 1
+🔌 Client disconnected | Active: 1
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔌 New client connected
+🔌 New client connected
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/users/role/teacher
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/available-roles
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/conversations
+🔌 Client disconnected | Active: 1
+🔌 Client disconnected | Active: 1
+🔌 Client disconnected | Active: 0
+🔌 New client connected
+🔌 New client connected
+🔌 New client connected
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/available-roles
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/conversations
+🔐 Auth OK: Super Admin (admin) - GET /api/tasks/completed-showcase
+🔐 Auth OK: Super Admin (admin) - GET /api/users/role/teacher
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/me
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/attendance/global-holidays
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/available-roles
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/tasks/completed-showcase
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/me
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔌 Client disconnected | Active: 1
+🔌 Client disconnected | Active: 1
+🔐 Auth OK: Super Admin (admin) - GET /api/attendance/global-holidays
+🔌 New client connected
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/unread
+🔌 New client connected
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/available-roles
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/users/role/teacher
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/conversations
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - PUT /api/tasks/69861405b0053f278d713e04/unassign
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/tasks/completed-showcase
+🔌 Client disconnected | Active: 1
+🔌 Client disconnected | Active: 1
+🔌 Client disconnected | Active: 0
+🔌 New client connected
+🔌 New client connected
+🔌 New client connected
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/available-roles
+🔐 Auth OK: Super Admin (admin) - GET /api/tasks/completed-showcase
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+🔐 Auth OK: Super Admin (admin) - GET /api/users/role/teacher
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/conversations
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/me
+🔐 Auth OK: Super Admin (admin) - GET /api/attendance/global-holidays
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/available-roles
+🔐 Auth OK: Super Admin (admin) - GET /api/tasks/completed-showcase
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/me
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/attendance/global-holidays
+🔌 Client disconnected | Active: 1
+🔌 Client disconnected | Active: 1
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/users/role/teacher
+🔌 New client connected
+🔌 New client connected
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/available-roles
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/conversations
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/unread
+🔐 Auth OK: Super Admin (admin) - PUT /api/tasks/69861405b0053f278d713e04/unassign
+🔐 Auth OK: Super Admin (admin) - GET /api/tasks/completed-showcase
+🔐 Auth OK: Super Admin (admin) - PUT /api/tasks/6982e11104a102554fc125f3/unassign
+🔐 Auth OK: Super Admin (admin) - GET /api/tasks/completed-showcase
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔌 Client disconnected | Active: 1
+🔌 New client connected
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/me
+🔐 Auth OK: Super Admin (admin) - GET /api/users/role/student
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/settings
+🔌 Client disconnected | Active: 1
+🔌 Client disconnected | Active: 1
+🔐 Auth OK: Super Admin (admin) - GET /api/settings
+🔌 New client connected
+🔌 New client connected
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/available-roles
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/users/role/student
+🔌 Client disconnected | Active: 1
+🔌 New client connected
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/settings
+🔐 Auth OK: Super Admin (admin) - GET /api/users/role/intern
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/me
+🔌 Client disconnected | Active: 1
+🔌 Client disconnected | Active: 1
+🔐 Auth OK: Super Admin (admin) - GET /api/settings
+🔌 New client connected
+🔌 New client connected
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/available-roles
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔌 Client disconnected | Active: 1
+🔌 New client connected
+🔌 New client connected
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+🔐 Auth OK: Super Admin (admin) - GET /api/enrollments/all
+🔐 Auth OK: Super Admin (admin) - GET /api/fees/pending
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/me
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔌 Client disconnected | Active: 1
+🔌 Client disconnected | Active: 1
+🔐 Auth OK: Super Admin (admin) - GET /api/users/role/intern
+🔌 New client connected
+🔌 New client connected
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/available-roles
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+GET /pending: Returning 187 total fees for frontend filtering
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/enrollments/all
+🔐 Auth OK: Super Admin (admin) - GET /api/fees/pending
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+GET /pending: Returning 187 total fees for frontend filtering
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
-    Search, Calendar, CheckCircle, Eye, Users, Briefcase, AlertCircle, Link, Trash2, PenSquare, MessageSquare, Star, X, ChevronLeft, ChevronRight, ImagePlus
+    Search, Calendar, CheckCircle, Eye, Users, Briefcase, AlertCircle, Link, Trash2, PenSquare, MessageSquare, Star, X, ChevronLeft, ChevronRight, ImagePlus, DollarSign
 } from 'lucide-react';
 import Loader, { ButtonLoader } from '../../components/ui/Loader';
 import Badge from '../../components/ui/Badge';
@@ -33,6 +33,8 @@ const PaidTasksManagement = () => {
     const [error, setError] = useState('');
     const [teachers, setTeachers] = useState([]);
     const [paymentTask, setPaymentTask] = useState(null);
+    const [viewingPaymentHistoryTask, setViewingPaymentHistoryTask] = useState(null);
+    const [viewingPaymentProof, setViewingPaymentProof] = useState(null);
     const [paymentAmounts, setPaymentAmounts] = useState({});
     const [paymentProof, setPaymentProof] = useState('');
     const [isCompletingPayment, setIsCompletingPayment] = useState(false);
@@ -899,6 +901,19 @@ const PaidTasksManagement = () => {
                                 </div>
                             )}
 
+                            {/* Keep the card compact; full payment details open in a dialog. */}
+                            {task.paymentHistory && task.paymentHistory.length > 0 && (
+                                <button
+                                    type="button"
+                                    onClick={() => setViewingPaymentHistoryTask(task)}
+                                    className="mb-4 w-full px-3 py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-xl border border-emerald-200 flex items-center justify-center gap-2 text-sm font-bold transition-colors"
+                                    title="View payment names, amounts and screenshots"
+                                >
+                                    <Eye className="w-4 h-4" />
+                                    View Payments ({task.paymentHistory.length})
+                                </button>
+                            )}
+
                             {/* Actions based on status */}
                             <div className="flex gap-2 pt-4 border-t border-gray-100">
                                 {task.status === 'open' && (
@@ -971,6 +986,82 @@ const PaidTasksManagement = () => {
                     );
                 })}
             </div>}
+
+            <Modal
+                isOpen={Boolean(viewingPaymentHistoryTask)}
+                onClose={() => setViewingPaymentHistoryTask(null)}
+                title="Payment Details"
+                size="lg"
+            >
+                {viewingPaymentHistoryTask && (
+                    <div className="space-y-4">
+                        <div className="p-4 bg-gray-50 dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700">
+                            <p className="text-xs font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider">Job</p>
+                            <p className="font-bold text-gray-900 dark:text-white mt-1">{viewingPaymentHistoryTask.title}</p>
+                        </div>
+
+                        <div className="overflow-hidden rounded-xl border border-gray-200 dark:border-slate-700">
+                            {[...viewingPaymentHistoryTask.paymentHistory].reverse().map((payment, paymentIndex) => (
+                                <div key={payment._id || `${payment.user?._id || payment.user}-${payment.cycle || 1}-${paymentIndex}`} className="flex items-center gap-3 p-3 bg-white dark:bg-slate-800 border-b last:border-b-0 border-gray-200 dark:border-slate-700">
+                                    {payment.user?.photo ? (
+                                        <img
+                                            src={payment.user.photo}
+                                            alt={payment.user?.name || 'Paid user'}
+                                            className="w-9 h-9 shrink-0 rounded-full object-cover border border-gray-200 dark:border-slate-600"
+                                        />
+                                    ) : (
+                                        <div className="w-9 h-9 shrink-0 rounded-full bg-emerald-100 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 flex items-center justify-center font-black">
+                                            {(payment.user?.name || 'U').charAt(0).toUpperCase()}
+                                        </div>
+                                    )}
+                                    <div className="min-w-0 flex-1">
+                                        <p className="font-bold text-sm text-gray-900 dark:text-white truncate">{payment.user?.name || 'Paid User'}</p>
+                                        <p className="text-xs text-gray-500 dark:text-slate-400">
+                                            {payment.paidAt ? new Date(payment.paidAt).toLocaleString() : 'Date unavailable'}
+                                        </p>
+                                    </div>
+                                    <p className="shrink-0 font-black text-sm text-emerald-700 dark:text-emerald-400">
+                                        Rs {Number(payment.amount || 0).toLocaleString()}
+                                    </p>
+                                    {payment.paymentProof ? (
+                                        <button
+                                            type="button"
+                                            onClick={() => setViewingPaymentProof({
+                                                image: payment.paymentProof,
+                                                userName: payment.user?.name || 'Paid User'
+                                            })}
+                                            className="shrink-0 p-2 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary dark:text-purple-300 transition-colors"
+                                            title="View payment screenshot"
+                                            aria-label={`View payment screenshot for ${payment.user?.name || 'paid user'}`}
+                                        >
+                                            <DollarSign className="w-4 h-4" />
+                                        </button>
+                                    ) : (
+                                        <span className="shrink-0 text-[10px] text-gray-400 dark:text-slate-500">No screenshot</span>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+            </Modal>
+
+            <Modal
+                isOpen={Boolean(viewingPaymentProof)}
+                onClose={() => setViewingPaymentProof(null)}
+                title={`Payment Screenshot${viewingPaymentProof?.userName ? ` - ${viewingPaymentProof.userName}` : ''}`}
+                size="lg"
+            >
+                {viewingPaymentProof?.image && (
+                    <div className="p-2 bg-gray-100 dark:bg-slate-900 rounded-xl">
+                        <img
+                            src={viewingPaymentProof.image}
+                            alt={`Payment proof for ${viewingPaymentProof.userName}`}
+                            className="w-full max-h-[70vh] object-contain rounded-lg"
+                        />
+                    </div>
+                )}
+            </Modal>
 
             {/* Create/Edit Task Modal */}
             <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingTask ? (editingTask.type === 'product' ? "Edit Item" : "Edit Paid Task") : (formData.type === 'product' ? "Add Item For Sale" : "Create Paid Task")} size="lg">

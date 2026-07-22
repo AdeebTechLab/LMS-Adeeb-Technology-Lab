@@ -318,6 +318,10 @@ const BrowseTasks = () => {
                     const submitted = hasSubmitted(task);
                     const isPaid = task.paymentSent && task.status === 'completed';
                     const currentPayment = getCurrentPayment(task);
+                    const userId = String(user?.id || user?._id);
+                    const userPaymentHistory = (task.paymentHistory || []).filter(payment =>
+                        String(payment.user?._id || payment.user) === userId
+                    );
                     const expired = isExpired(task);
                     const hasUserFeedback = hasCurrentFeedback(task);
 
@@ -390,6 +394,30 @@ const BrowseTasks = () => {
                                     Rs {isNaN(Number(task.budget)) ? task.budget : Number(task.budget).toLocaleString()}
                                 </span>
                             </div>
+
+                            {/* Always show this user's historical payments on the same job post. */}
+                            {userPaymentHistory.length > 0 && (
+                                <div className="mb-4 p-3 bg-emerald-50 rounded-xl border border-emerald-200">
+                                    <p className="text-xs font-bold text-emerald-700 uppercase tracking-wider mb-2">
+                                        Your Payments
+                                    </p>
+                                    <div className="space-y-2">
+                                        {[...userPaymentHistory].reverse().map((payment, paymentIndex) => (
+                                            <div key={payment._id || `${payment.cycle || 1}-${paymentIndex}`} className="flex items-center justify-between gap-3 text-xs">
+                                                <div>
+                                                    <p className="font-semibold text-gray-700">Cycle {payment.cycle || 1}</p>
+                                                    <p className="text-gray-500">
+                                                        {payment.paidAt ? new Date(payment.paidAt).toLocaleDateString() : 'Payment date unavailable'}
+                                                    </p>
+                                                </div>
+                                                <span className="font-black text-emerald-700">
+                                                    Rs {Number(payment.amount || 0).toLocaleString()}
+                                                </span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Actions */}
                             <div className="pt-4 border-t border-gray-100">
