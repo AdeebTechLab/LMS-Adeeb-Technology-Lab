@@ -796,7 +796,7 @@ const PaidTasksManagement = () => {
                                         <button
                                             onClick={async () => {
                                                 try {
-                                                    await taskAPI.update(task._id, { manualStatus: 'active' });
+                                                    await taskAPI.update(task._id, { manualStatus: task.manualStatus === 'active' ? 'none' : 'active' });
                                                     fetchTasks();
                                                 } catch (err) { alert('Update failed'); }
                                             }}
@@ -807,7 +807,7 @@ const PaidTasksManagement = () => {
                                         <button
                                             onClick={async () => {
                                                 try {
-                                                    await taskAPI.update(task._id, { manualStatus: 'expired' });
+                                                    await taskAPI.update(task._id, { manualStatus: task.manualStatus === 'expired' ? 'none' : 'expired' });
                                                     fetchTasks();
                                                 } catch (err) { alert('Update failed'); }
                                             }}
@@ -818,11 +818,12 @@ const PaidTasksManagement = () => {
                                         <button
                                             onClick={async () => {
                                                 try {
-                                                    await taskAPI.update(task._id, { manualStatus: 'completed' });
+                                                    await taskAPI.update(task._id, { manualStatus: task.manualStatus === 'completed' ? 'none' : 'completed' });
                                                     fetchTasks();
                                                 } catch (err) { alert(err.response?.data?.message || 'Update failed'); }
                                             }}
-                                            className={`px-2 py-1 text-[10px] font-black uppercase tracking-tighter rounded-md transition-all ${task.manualStatus === 'completed' || task.status === 'completed' ? 'bg-primary text-white shadow-sm' : 'text-gray-500 hover:text-primary'}`}
+                                            disabled={task.status === 'completed' && task.paymentSent}
+                                            className={`px-2 py-1 text-[10px] font-black uppercase tracking-tighter rounded-md transition-all ${task.manualStatus === 'completed' || (task.status === 'completed' && task.paymentSent) ? 'bg-primary text-white shadow-sm' : 'text-gray-500 hover:text-primary'} disabled:cursor-not-allowed`}
                                             title="Close project applications"
                                         >
                                             Complete
