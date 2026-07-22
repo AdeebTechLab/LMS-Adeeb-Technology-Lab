@@ -37,7 +37,7 @@ const CertificateVerification = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col">
+        <div className="bg-gray-50 dark:bg-gray-950">
             {/* Header / Hero Section */}
             <div className="bg-[#1a1c23] text-white pt-16 pb-28 px-4 relative overflow-hidden">
                 <div className="absolute inset-0 overflow-hidden z-0">
@@ -313,7 +313,7 @@ const CertificateVerification = () => {
             )}
 
             {/* Complete Footer */}
-            <footer className="bg-[#1a1c23] text-white mt-auto">
+            <footer className="bg-[#1a1c23] text-white">
                 <div className="max-w-6xl mx-auto px-4 py-10">
                     {/* Header */}
                     <div className="flex items-center gap-4 mb-8 pb-6 border-b border-white/10">
