@@ -161,7 +161,12 @@ const BrowseTasks = () => {
     };
 
     // Get available tasks (open, assigned, or submitted - basically any not completed)
-    const availableTasks = tasks.filter(t => t.status !== 'completed' && t.manualStatus !== 'completed' && !hasApplied(t));
+    const availableTasks = tasks.filter(t =>
+        t.status !== 'completed' &&
+        t.manualStatus !== 'completed' &&
+        !isExpired(t) &&
+        !hasApplied(t)
+    );
 
     // Get tasks I've applied to (from my tasks)
     const appliedTasks = myTasks.filter(t => getCurrentApplication(t)?.status === 'applied' && !isAssignedToMe(t));

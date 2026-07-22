@@ -54,6 +54,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     const [jobChatSummary, setJobChatSummary] = useState({ totalUnread: 0, totalApplicants: 0, totalAssigned: 0 });
     const [jobApplicationCount, setJobApplicationCount] = useState(0);
     const [jobAssignedCount, setJobAssignedCount] = useState(0);
+    const [jobAvailableCount, setJobAvailableCount] = useState(0);
     const [studentNavCounts, setStudentNavCounts] = useState({});
     const [discussionUnread, setDiscussionUnread] = useState(0);
     const [availableRoles, setAvailableRoles] = useState([]);
@@ -83,9 +84,13 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
 
         const loadApplicationCount = async () => {
             try {
-                const response = await taskAPI.getMy();
+                const [myTasksResponse, allTasksResponse] = await Promise.all([
+                    taskAPI.getMy(),
+                    taskAPI.getAll({})
+                ]);
                 const userId = String(user._id || user.id);
-                const myJobTasks = response.data.data || [];
+                const myJobTasks = myTasksResponse.data.data || [];
+                const allJobTasks = allTasksResponse.data.data || [];
                 const count = myJobTasks.filter(task => {
                     const assigned = (task.assignedTo || []).some(assignedUser =>
                         String(assignedUser?._id || assignedUser) === userId
@@ -101,9 +106,30 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                         String(assignedUser?._id || assignedUser) === userId
                     )
                 ).length);
+
+                const isTaskExpired = (task) => {
+                    if (task.manualStatus === 'expired') return true;
+                    if (task.manualStatus === 'active' || task.isLifetime || !task.deadline) return false;
+                    return new Date(task.deadline) < new Date() &&
+                        (!task.assignedTo || task.assignedTo.length === 0) &&
+                        task.status === 'open';
+                };
+                const hasCurrentApplication = (task) => {
+                    const latestApplication = (task.applicants || [])
+                        .filter(application => String(application.user?._id || application.user) === userId)
+                        .sort((a, b) => (b.cycle || 1) - (a.cycle || 1))[0];
+                    return Boolean(latestApplication && latestApplication.status !== 'completed');
+                };
+                setJobAvailableCount(allJobTasks.filter(task =>
+                    task.status !== 'completed' &&
+                    task.manualStatus !== 'completed' &&
+                    !isTaskExpired(task) &&
+                    !hasCurrentApplication(task)
+                ).length);
             } catch (_) {
                 setJobApplicationCount(0);
                 setJobAssignedCount(0);
+                setJobAvailableCount(0);
             }
         };
 
@@ -460,7 +486,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             ],
             job: [
                 { id: 'dashboard', labelKey: 'nav.dashboard', icon: LayoutDashboard, path: '/job/dashboard' },
-                { id: 'available', labelKey: 'Available', icon: Briefcase, path: '/job/tasks', state: { tab: 'available' } },
+                { id: 'available', labelKey: 'Available', icon: Briefcase, path: '/job/tasks', state: { tab: 'available' }, badge: jobAvailableCount },
                 { id: 'applied', labelKey: 'Applications', icon: FileText, path: '/job/tasks', state: { tab: 'applied' }, badge: jobApplicationCount },
                 { id: 'assigned', labelKey: 'Assigned', icon: CheckCircle, path: '/job/tasks', state: { tab: 'assigned' }, badge: jobAssignedCount },
                 ...(jobChatSummary.totalAssigned > 0 ? [{ id: 'job-chat', labelKey: 'Job Chat', icon: MessageSquare, path: '/job/job-chat', badge: jobChatSummary.totalUnread }] : []),
