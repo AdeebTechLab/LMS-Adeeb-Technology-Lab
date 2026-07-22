@@ -25,3 +25,4 @@ Emitted 'error' event on Server instance at:
 }
 
 Node.js v24.12.0
+⚠️ Replace placeholder EMAIL_USER / EMAIL_PASS in backend/.env with a real Gmail App Password.

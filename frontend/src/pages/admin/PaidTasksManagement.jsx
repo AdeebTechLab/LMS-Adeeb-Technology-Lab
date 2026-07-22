@@ -833,13 +833,12 @@ const PaidTasksManagement = () => {
                                         <button
                                             onClick={async () => {
                                                 try {
-                                                    await taskAPI.update(task._id, { manualStatus: 'none' });
+                                                    await taskAPI.reopen(task._id);
                                                     fetchTasks();
-                                                } catch (err) { alert(err.response?.data?.message || 'Update failed'); }
+                                                } catch (err) { alert(err.response?.data?.message || 'Unable to reopen job'); }
                                             }}
-                                            disabled={task.status === 'completed' && task.paymentSent}
-                                            className={`px-2 py-1 text-[10px] font-black uppercase tracking-tighter rounded-md transition-all ${task.manualStatus !== 'completed' ? 'bg-slate-600 text-white shadow-sm' : 'text-gray-500 hover:text-slate-700'} disabled:opacity-50 disabled:cursor-not-allowed`}
-                                            title="Reopen project applications"
+                                            className={`px-2 py-1 text-[10px] font-black uppercase tracking-tighter rounded-md transition-all ${task.status === 'open' && task.manualStatus === 'active' ? 'bg-slate-600 text-white shadow-sm' : 'text-gray-500 hover:text-slate-700'}`}
+                                            title="Reopen for fresh applications while keeping previous feedback"
                                         >
                                             Uncomplete
                                         </button>

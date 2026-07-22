@@ -205,6 +205,7 @@ export const taskAPI = {
     }),
     complete: (id) => api.put(`/tasks/${id}/complete`),
     adminComplete: (id, payments, paymentProof = '') => api.put(`/tasks/${id}/admin-complete`, { payments, paymentProof }),
+    reopen: (id) => api.put(`/tasks/${id}/reopen`),
     addFeedback: (id, data) => api.post(`/tasks/${id}/feedback`, data),
     editFeedback: (taskId, feedbackId, data) => api.put(`/tasks/${taskId}/feedback/${feedbackId}`, data),
     deleteFeedback: (taskId, feedbackId) => api.delete(`/tasks/${taskId}/feedback/${feedbackId}`),

@@ -631,6 +631,61 @@ router.put('/:id/admin-complete', protect, authorize('admin'), async (req, res) 
     }
 });
 
+// @route   PUT /api/tasks/:id/reopen
+// @desc    Reopen a completed job for a fresh application cycle
+// @access  Private (Admin or assigned job manager)
+router.put('/:id/reopen', protect, authorize('admin', 'teacher'), async (req, res) => {
+    try {
+        const task = await PaidTask.findById(req.params.id);
+
+        if (!task) {
+            return res.status(404).json({ success: false, message: 'Task not found' });
+        }
+
+        const managerIds = (task.jobManagers?.length
+            ? task.jobManagers
+            : [task.jobManager || task.createdBy]
+        ).filter(Boolean).map(String);
+
+        if (req.user.role === 'teacher' && !managerIds.includes(String(req.user.id))) {
+            return res.status(403).json({ success: false, message: 'You can only reopen jobs you manage' });
+        }
+
+        // Close every user's latest application cycle so all users, including
+        // previous workers, can create a new cycle when they apply again.
+        const latestApplicationByUser = new Map();
+        (task.applicants || []).forEach(applicant => {
+            const userId = String(applicant.user);
+            const existing = latestApplicationByUser.get(userId);
+            if (!existing || (applicant.cycle || 1) >= (existing.cycle || 1)) {
+                latestApplicationByUser.set(userId, applicant);
+            }
+        });
+        latestApplicationByUser.forEach(applicant => {
+            applicant.status = 'completed';
+        });
+
+        // Feedback and paymentHistory are intentionally preserved as history.
+        task.assignedTo = [];
+        task.submissions = [];
+        task.assignedAt = undefined;
+        task.status = 'open';
+        task.manualStatus = 'active';
+        task.paymentSent = false;
+        task.paymentSentAt = undefined;
+
+        await task.save();
+
+        res.json({
+            success: true,
+            task,
+            message: 'Job reopened for new applications; previous feedback was preserved'
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
 // @route   POST /api/tasks/:id/feedback
 // @desc    Add feedback after task is completed and paid
 // @access  Private (Job role - assigned users only)
