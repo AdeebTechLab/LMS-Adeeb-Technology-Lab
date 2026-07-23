@@ -507,7 +507,11 @@ const PaidTasksManagement = () => {
             const existing = latestByUser.get(userId);
             if (!existing || (applicant.cycle || 1) >= (existing.cycle || 1)) latestByUser.set(userId, applicant);
         });
-        return [...latestByUser.values()];
+        return [...latestByUser.values()].sort((a, b) => {
+            const aIsAssigned = isAssignedTo(task, a.user?._id || a.user);
+            const bIsAssigned = isAssignedTo(task, b.user?._id || b.user);
+            return Number(bIsAssigned) - Number(aIsAssigned);
+        });
     };
 
     if (isFetching) {
@@ -592,7 +596,7 @@ const PaidTasksManagement = () => {
                         onClick={() => setActiveTab('open')}
                         className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all ${activeTab === 'open' ? 'bg-white text-primary shadow-sm' : 'text-gray-600'}`}
                     >
-                        Open ({openTasks.length})
+                        Active ({openTasks.length})
                     </button>
                     <button
                         onClick={() => setActiveTab('assigned')}
