@@ -149,7 +149,7 @@ const AssignmentSubmission = () => {
         try {
             // Build FormData so multipart/form-data content-type is satisfied
             const formData = new FormData();
-            if (submissionUrl.trim()) formData.append('fileUrl', submissionUrl.trim());
+            if (submissionUrl.trim() && !driveFile) formData.append('fileUrl', submissionUrl.trim());
             if (submissionText.trim()) formData.append('notes', submissionText.trim());
             if (driveFile) {
                 formData.append('fileUrl', driveFile.webViewLink);

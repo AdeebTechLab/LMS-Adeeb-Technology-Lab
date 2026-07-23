@@ -271,6 +271,9 @@ router.post('/', protect, authorize('teacher', 'admin'), async (req, res) => {
 router.post('/:id/submit', protect, uploadSubmission.single('file'), async (req, res) => {
     try {
         const { notes } = req.body;
+        const submittedFileUrl = Array.isArray(req.body.fileUrl)
+            ? req.body.fileUrl[req.body.fileUrl.length - 1]
+            : req.body.fileUrl;
         const assignment = await Assignment.findById(req.params.id);
 
         if (!assignment) {
@@ -320,7 +323,7 @@ router.post('/:id/submit', protect, uploadSubmission.single('file'), async (req,
 
             // Update the existing submission in-place
             existingSubmission.notes = notes || req.body.notes || existingSubmission.notes;
-            existingSubmission.fileUrl = req.file ? req.file.path : (req.body.fileUrl || existingSubmission.fileUrl);
+            existingSubmission.fileUrl = req.file ? req.file.path : (submittedFileUrl || existingSubmission.fileUrl);
             if (req.body.googleDriveFileId) {
                 existingSubmission.googleDriveFile = {
                     id: req.body.googleDriveFileId,
@@ -373,7 +376,7 @@ router.post('/:id/submit', protect, uploadSubmission.single('file'), async (req,
         assignment.submissions.push({
             user: req.user.id,
             notes: notes || req.body.notes,
-            fileUrl: req.file ? req.file.path : req.body.fileUrl || null,
+            fileUrl: req.file ? req.file.path : submittedFileUrl || null,
             ...(req.body.googleDriveFileId ? {
                 googleDriveFile: {
                     id: req.body.googleDriveFileId,
