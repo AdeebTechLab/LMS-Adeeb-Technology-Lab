@@ -617,7 +617,7 @@ router.get('/job/tasks', protect, authorize('admin', 'teacher', 'job'), async (r
             .populate('jobManagers', 'name photo role')
             .populate('applicants.user', 'name email photo role')
             .populate('assignedTo', 'name email photo role')
-            .select('title createdBy jobManager jobManagers applicants assignedTo status')
+            .select('title createdBy jobManager jobManagers applicants assignedTo submissions status')
             .sort('-updatedAt');
 
         const data = await Promise.all(tasks.map(async task => {
@@ -648,6 +648,7 @@ router.get('/job/tasks', protect, authorize('admin', 'teacher', 'job'), async (r
                 }
             });
             const assignedIds = new Set((task.assignedTo || []).map(assignedUser => String(assignedUser?._id || assignedUser)));
+            const submittedIds = new Set((task.submissions || []).map(submission => String(submission.user?._id || submission.user)));
             const pendingApplicants = [...latestApplicationByUser.values()].filter(application =>
                 application.status === 'applied' && !assignedIds.has(String(application.user?._id || application.user))
             ).length;
@@ -658,7 +659,8 @@ router.get('/job/tasks', protect, authorize('admin', 'teacher', 'job'), async (r
                 contacts: contactsWithUnread,
                 totalUnread,
                 pendingApplicants,
-                assignedCount: assignedIds.size
+                assignedCount: assignedIds.size,
+                submittedCount: submittedIds.size
             };
         }));
         res.json({
@@ -666,7 +668,8 @@ router.get('/job/tasks', protect, authorize('admin', 'teacher', 'job'), async (r
             data,
             totalUnread: data.reduce((n, t) => n + t.totalUnread, 0),
             totalApplicants: data.reduce((n, t) => n + (req.user.role === 'job' ? 0 : t.pendingApplicants), 0),
-            totalAssigned: data.reduce((n, t) => n + (req.user.role === 'job' ? 1 : t.assignedCount), 0)
+            totalAssigned: data.reduce((n, t) => n + (req.user.role === 'job' ? 1 : t.assignedCount), 0),
+            totalSubmitted: data.reduce((n, t) => n + (req.user.role === 'job' ? 0 : t.submittedCount), 0)
         });
     } catch (error) { res.status(500).json({ success: false, message: error.message }); }
 });

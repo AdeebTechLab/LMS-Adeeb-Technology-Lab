@@ -473,6 +473,7 @@ router.post('/:id/cancel', protect, async (req, res) => {
 router.post('/:id/submit', protect, uploadSubmission.single('file'), async (req, res) => {
     try {
         const { notes, projectLink, accountDetails } = req.body;
+        const requestedAmount = Number(String(req.body.requestedAmount || '').replace(/,/g, ''));
         const task = await PaidTask.findById(req.params.id);
 
         if (!task) {
@@ -485,6 +486,10 @@ router.post('/:id/submit', protect, uploadSubmission.single('file'), async (req,
 
         if (!isAssigned) {
             return res.status(403).json({ success: false, message: 'Not authorized - You are not assigned to this task' });
+        }
+
+        if (!Number.isFinite(requestedAmount) || requestedAmount <= 0) {
+            return res.status(400).json({ success: false, message: 'Please enter a valid requested payment amount' });
         }
 
         // Initialize submissions if undefined
@@ -505,6 +510,7 @@ router.post('/:id/submit', protect, uploadSubmission.single('file'), async (req,
             projectLink,
             fileUrl: req.file ? req.file.path : null,
             accountDetails,
+            requestedAmount,
             submittedAt: new Date(),
             cycle: currentCycle
         });

@@ -87,6 +87,7 @@ const paidTaskSchema = new mongoose.Schema({
         projectLink: String,
         fileUrl: String,
         accountDetails: String,
+        requestedAmount: { type: Number, min: 1 },
         submittedAt: Date,
         cycle: { type: Number, default: 1 }
     }],

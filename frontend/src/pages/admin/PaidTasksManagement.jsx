@@ -192,6 +192,7 @@ const PaidTasksManagement = () => {
     const applicantTasks = tasks.filter(task => getPendingApplicants(task).length > 0);
     // Assigned or submitted means "in progress" effectively
     const assignedTasks = tasks.filter(t => t.status === 'assigned' || t.status === 'submitted');
+    const submittedTasks = tasks.filter(t => (t.submissions || []).length > 0);
     const completedTasks = tasks.filter(t => t.status === 'completed');
     const expiredTasks = tasks.filter(t => isExpired(t));
 
@@ -200,6 +201,7 @@ const PaidTasksManagement = () => {
             case 'applicants': return applicantTasks;
             case 'open': return openTasks;
             case 'assigned': return assignedTasks;
+            case 'submitted': return submittedTasks;
             case 'completed': return completedTasks;
             case 'expired': return expiredTasks;
             case 'showcase': return completedShowcase;
@@ -385,7 +387,13 @@ const PaidTasksManagement = () => {
             return;
         }
         setPaymentTask(task);
-        setPaymentAmounts({});
+        const suggestedAmounts = {};
+        payableUsers.forEach(payableUser => {
+            const payableUserId = String(payableUser._id || payableUser);
+            const userSubmission = [...(task.submissions || [])].reverse().find(submission => String(submission.user?._id || submission.user) === payableUserId);
+            if (Number(userSubmission?.requestedAmount) > 0) suggestedAmounts[payableUserId] = Number(userSubmission.requestedAmount).toLocaleString('en-US');
+        });
+        setPaymentAmounts(suggestedAmounts);
         setPaymentProof('');
         setViewMode(null);
     };
@@ -512,6 +520,7 @@ const PaidTasksManagement = () => {
 
     const totalApplicantsCount = tasks.reduce((sum, task) => sum + getPendingApplicants(task).length, 0);
     const totalAssignedCount = tasks.reduce((sum, task) => sum + (task.assignedTo?.length || 0), 0);
+    const totalSubmittedCount = tasks.reduce((sum, task) => sum + new Set((task.submissions || []).map(submission => String(submission.user?._id || submission.user))).size, 0);
 
     return (
         <div className="space-y-6">
@@ -534,6 +543,13 @@ const PaidTasksManagement = () => {
                                 className={`px-2 py-1 text-xs font-bold rounded-lg border transition-all ${activeTab === 'assigned' ? 'bg-green-600 border-green-600 text-white shadow-sm' : 'bg-green-100 text-green-700 border-green-200 hover:bg-green-200'}`}
                             >
                                 Assigned: {totalAssignedCount}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setActiveTab('submitted')}
+                                className={`px-2 py-1 text-xs font-bold rounded-lg border transition-all ${activeTab === 'submitted' ? 'bg-blue-600 border-blue-600 text-white shadow-sm' : 'bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-200'}`}
+                            >
+                                Submitted: {totalSubmittedCount}
                             </button>
                         </div>
                     </div>
@@ -1485,6 +1501,9 @@ const PaidTasksManagement = () => {
                                     <div className="bg-primary/5 p-3 rounded-lg">
                                         <p className="text-xs font-bold text-primary uppercase tracking-wider mb-1">Payment Details</p>
                                         <p className="text-sm font-mono text-primary">{sub.accountDetails}</p>
+                                        {Number(sub.requestedAmount) > 0 && (
+                                            <p className="text-sm font-black text-emerald-600 mt-2">Requested Payment: Rs {Number(sub.requestedAmount).toLocaleString()}</p>
+                                        )}
                                     </div>
                                 </div>
                             </div>

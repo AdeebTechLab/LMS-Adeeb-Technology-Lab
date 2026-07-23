@@ -21,7 +21,7 @@ const BrowseTasks = () => {
     const [submitModalOpen, setSubmitModalOpen] = useState(false);
     const [viewModalOpen, setViewModalOpen] = useState(false);
     const [applicationMessage, setApplicationMessage] = useState('');
-    const [submission, setSubmission] = useState({ notes: '', projectLink: '', bankName: '', accountName: '', accountNumber: '' });
+    const [submission, setSubmission] = useState({ notes: '', projectLink: '', bankName: '', accountName: '', accountNumber: '', requestedAmount: '' });
     const [tasks, setTasks] = useState([]);
     const [myTasks, setMyTasks] = useState([]);
     const [isFetching, setIsFetching] = useState(true);
@@ -229,7 +229,7 @@ const BrowseTasks = () => {
     };
 
     const handleSubmitWork = async () => {
-        if (!submission.notes.trim() || !submission.bankName.trim() || !submission.accountName.trim() || !submission.accountNumber.trim() || !selectedTask) {
+        if (!submission.notes.trim() || !submission.bankName.trim() || !submission.accountName.trim() || !submission.accountNumber.trim() || !submission.requestedAmount || !selectedTask) {
             alert('Please fill all required fields');
             return;
         }
@@ -241,9 +241,10 @@ const BrowseTasks = () => {
             formData.append('projectLink', submission.projectLink);
             const accountDetails = `Bank: ${submission.bankName} | Account Name: ${submission.accountName} | Account Number: ${submission.accountNumber}`;
             formData.append('accountDetails', accountDetails);
+            formData.append('requestedAmount', submission.requestedAmount.replace(/,/g, ''));
             await taskAPI.submit(selectedTask._id, formData);
             setSubmitModalOpen(false);
-            setSubmission({ notes: '', projectLink: '', bankName: '', accountName: '', accountNumber: '' });
+            setSubmission({ notes: '', projectLink: '', bankName: '', accountName: '', accountNumber: '', requestedAmount: '' });
             setSelectedTask(null);
             fetchTasks();
         } catch (err) {
@@ -745,6 +746,17 @@ const BrowseTasks = () => {
                                     value={submission.accountNumber}
                                     onChange={(e) => setSubmission({ ...submission, accountNumber: e.target.value })}
                                     placeholder="Account Number / IBAN / Phone"
+                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                                />
+                                <input
+                                    type="text"
+                                    inputMode="numeric"
+                                    value={submission.requestedAmount}
+                                    onChange={(e) => {
+                                        const digits = e.target.value.replace(/\D/g, '');
+                                        setSubmission({ ...submission, requestedAmount: digits ? Number(digits).toLocaleString('en-US') : '' });
+                                    }}
+                                    placeholder="Requested Payment (Rs)"
                                     className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
                                 />
                             </div>

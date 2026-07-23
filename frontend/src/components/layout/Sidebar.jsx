@@ -51,7 +51,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     const [pendingCount, setPendingCount] = useState(0);
     const [adminPendingCounts, setAdminPendingCounts] = useState({});
     const [teacherSubmissionCount, setTeacherSubmissionCount] = useState(0);
-    const [jobChatSummary, setJobChatSummary] = useState({ totalUnread: 0, totalApplicants: 0, totalAssigned: 0 });
+    const [jobChatSummary, setJobChatSummary] = useState({ totalUnread: 0, totalApplicants: 0, totalAssigned: 0, totalSubmitted: 0 });
     const [jobApplicationCount, setJobApplicationCount] = useState(0);
     const [jobAssignedCount, setJobAssignedCount] = useState(0);
     const [jobAvailableCount, setJobAvailableCount] = useState(0);
@@ -70,7 +70,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 setJobChatSummary({
                     totalUnread: res.data.totalUnread || 0,
                     totalApplicants: res.data.totalApplicants || 0,
-                    totalAssigned: res.data.totalAssigned || 0
+                    totalAssigned: res.data.totalAssigned || 0,
+                    totalSubmitted: res.data.totalSubmitted || 0
                 });
             } catch (_) { /* no job chats yet */ }
         };
@@ -431,7 +432,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 { id: 'dashboard', labelKey: 'nav.dashboard', icon: LayoutDashboard, path: '/admin/dashboard' },
                 { id: 'directory', labelKey: 'nav.directory', icon: FolderOpen, path: '/admin/directory' },
                 { id: 'courses', labelKey: 'nav.courses', icon: BookOpen, path: '/admin/courses' },
-                { id: 'paid-tasks', labelKey: 'nav.paidTasks', icon: Briefcase, path: '/admin/paid-tasks', counters: { applicants: jobChatSummary.totalApplicants, assigned: jobChatSummary.totalAssigned } },
+                { id: 'paid-tasks', labelKey: 'nav.paidTasks', icon: Briefcase, path: '/admin/paid-tasks', counters: { applicants: jobChatSummary.totalApplicants, assigned: jobChatSummary.totalAssigned, submitted: jobChatSummary.totalSubmitted } },
                 ...(jobChatSummary.totalAssigned > 0 ? [{ id: 'job-chat', labelKey: 'Job Chats', icon: MessageSquare, path: '/admin/job-chat', badge: jobChatSummary.totalUnread }] : []),
                 { id: 'certificates', labelKey: 'nav.certificates', icon: Award, path: '/admin/certificates' },
                 { id: 'students', labelKey: 'nav.students', icon: Users, path: '/admin/students', badge: adminPendingCounts.studentRegisteredNew },
@@ -452,7 +453,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 { id: 'student-search', labelKey: 'Students', icon: Search, path: '/teacher/student-search' },
                 { id: 'attendance', labelKey: 'nav.attendance', icon: Calendar, path: '/teacher/quick-attendance' },
                 { id: 'certificates', labelKey: 'nav.certificates', icon: Award, path: '/teacher/certificates' },
-                { id: 'jobs', labelKey: 'Job Posting', icon: Briefcase, path: '/teacher/jobs', counters: { applicants: jobChatSummary.totalApplicants, assigned: jobChatSummary.totalAssigned } },
+                { id: 'jobs', labelKey: 'Job Posting', icon: Briefcase, path: '/teacher/jobs', counters: { applicants: jobChatSummary.totalApplicants, assigned: jobChatSummary.totalAssigned, submitted: jobChatSummary.totalSubmitted } },
                 ...(jobChatSummary.totalAssigned > 0 ? [{ id: 'job-chat', labelKey: 'Applicant Chats', icon: MessageSquare, path: '/teacher/job-chat', badge: jobChatSummary.totalUnread }] : []),
                 { id: 'discussion-room', labelKey: 'Discussion Room', icon: MessageSquare, path: '/teacher/discussion-room', badge: discussionUnread },
             ],
@@ -661,6 +662,9 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                                                 </span>
                                                 <span className="px-1.5 py-0.5 rounded-md bg-green-500/20 text-green-400 text-[9px] font-black whitespace-nowrap">
                                                     Assigned: {item.counters.assigned}
+                                                </span>
+                                                <span className="px-1.5 py-0.5 rounded-md bg-blue-500/20 text-blue-400 text-[9px] font-black whitespace-nowrap">
+                                                    Submitted: {item.counters.submitted}
                                                 </span>
                                             </div>
                                         )}
