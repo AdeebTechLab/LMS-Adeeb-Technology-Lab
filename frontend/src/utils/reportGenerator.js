@@ -269,7 +269,23 @@ export const generateComprehensiveReport = async (user, enrollments, assignments
                 // Add Summary Stats
                 doc.setFontSize(9);
                 doc.setTextColor(80, 80, 80);
-                doc.text(`Total: ${enrollment.totalClasses || 0} | Present: ${enrollment.attendedClasses || 0} | Progress: ${enrollment.progress || 0}%`, 14, y);
+                const totalAttendance = Number(enrollment.totalClasses || enrollment.attendanceDetails.length || 0);
+                const presentAttendance = Number(
+                    enrollment.attendedClasses
+                    ?? enrollment.attendanceDetails.filter(record => record.status === 'present').length
+                );
+                const absentAttendance = Number(
+                    enrollment.absentClasses
+                    ?? enrollment.attendanceDetails.filter(record => record.status === 'absent').length
+                );
+                const attendancePercentage = Number.isFinite(Number(enrollment.attendancePercentage))
+                    ? Number(enrollment.attendancePercentage)
+                    : (totalAttendance > 0 ? Math.round((presentAttendance / totalAttendance) * 100) : 0);
+                doc.text(
+                    `Total: ${totalAttendance} | Present: ${presentAttendance} | Absent: ${absentAttendance} | Attendance: ${attendancePercentage}%`,
+                    14,
+                    y
+                );
                 y += 10;
             } else {
                 doc.setFontSize(10);

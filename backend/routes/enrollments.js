@@ -144,12 +144,13 @@ router.get('/user/:userId', protect, authorize('admin', 'teacher'), async (req, 
             const courseId = e.course?._id;
 
             if (courseId) {
-                const enrollmentDate = moment(e.createdAt).tz('Asia/Karachi').startOf('day').toDate();
                 const resolvedUserIdStr = resolvedUserId.toString();
 
+                // Keep academic reports aligned with the student's portal.
+                // The portal shows every attendance entry recorded for this user/course,
+                // including valid classes attended before the formal enrollment was verified.
                 const attendanceRecords = await Attendance.find({
                     course: courseId,
-                    date: { $gte: enrollmentDate },
                     'records.user': resolvedUserId
                 }).sort('date');
 
@@ -165,6 +166,10 @@ router.get('/user/:userId', protect, authorize('admin', 'teacher'), async (req, 
 
                 const totalClasses = attendanceRecords.length;
                 const attendedClasses = detailedAttendance.filter(r => r.status === 'present').length;
+                const absentClasses = detailedAttendance.filter(r => r.status === 'absent').length;
+                const attendancePercentage = totalClasses > 0
+                    ? Math.round((attendedClasses / totalClasses) * 100)
+                    : 0;
 
                 const userId = resolvedUserIdStr;
 
@@ -211,6 +216,8 @@ router.get('/user/:userId', protect, authorize('admin', 'teacher'), async (req, 
 
                 eObj.totalClasses = totalClasses;
                 eObj.attendedClasses = attendedClasses;
+                eObj.absentClasses = absentClasses;
+                eObj.attendancePercentage = attendancePercentage;
                 eObj.attendanceDetails = detailedAttendance;
                 eObj.progress = activeMetricsCount > 0 ? Math.round(totalPercent / activeMetricsCount) : 0;
             } else {
