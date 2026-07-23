@@ -519,7 +519,7 @@ const PaidTasksManagement = () => {
     }
 
     const totalApplicantsCount = tasks.reduce((sum, task) => sum + getPendingApplicants(task).length, 0);
-    const totalAssignedCount = tasks.reduce((sum, task) => sum + (task.assignedTo?.length || 0), 0);
+    const totalAssignedCount = assignedTasks.reduce((sum, task) => sum + (task.assignedTo?.length || 0), 0);
     const totalSubmittedCount = tasks.reduce((sum, task) => sum + new Set((task.submissions || []).map(submission => String(submission.user?._id || submission.user))).size, 0);
 
     return (
