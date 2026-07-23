@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     ClipboardList, Plus, FileText, CheckCircle, Clock,
-    Trash2, Edit2, PlayCircle, Eye, AlertCircle, X, ChevronRight,
+    Trash2, Edit2, PlayCircle, Eye, AlertCircle, X,
     RefreshCw, Upload, Zap, Users, Type, List, Search
 } from 'lucide-react';
 import { testAPI } from '../../../services/api';
@@ -101,9 +101,7 @@ const TestsTab = ({ course, students }) => {
     const [isSaving, setIsSaving] = useState(false);
 
     // Filter states
-    const [selectedStudentFilter, setSelectedStudentFilter] = useState('all');
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    const [studentSearchTerm, setStudentSearchTerm] = useState('');
+    const [selectedStudentFilters, setSelectedStudentFilters] = useState(null);
 
     useEffect(() => {
         fetchTests();
@@ -340,14 +338,15 @@ const TestsTab = ({ course, students }) => {
 
     const filteredTests = tests.filter(test => {
         const matchesSearch = test.title.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesStudent = selectedStudentFilter === 'all' ||
-            test.assignTo === 'all' ||
-            (test.assignedUsers && test.assignedUsers.includes(selectedStudentFilter));
+        const selectedIds = selectedStudentFilters?.map(String) || [];
+        const matchesStudent = selectedStudentFilters === null ||
+            (selectedIds.length > 0 && (
+                test.assignTo === 'all' ||
+                test.assignedUsers?.some(userId => selectedIds.includes(String(userId?._id || userId)))
+            ));
 
         return matchesSearch && matchesStudent;
     });
-
-    const selectedStudent = students?.find(s => s.id === selectedStudentFilter || s._id === selectedStudentFilter);
 
     if (isLoading) {
         return <Loader message="Accessing test repository..." />;
@@ -406,99 +405,70 @@ const TestsTab = ({ course, students }) => {
                     ))}
                 </div>
 
-                <div className="flex items-center gap-3">
-                    <div className="relative">
-                        <button
-                            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                            className="flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-100 rounded-xl text-xs font-black uppercase tracking-widest text-gray-700 hover:bg-gray-50 transition-all shadow-sm"
-                        >
-                            <Users className="w-4 h-4 text-primary" />
-                            {selectedStudentFilter === 'all' ? 'Filter by Student' : `Student: ${selectedStudent?.name}`}
-                            <ChevronRight className={`w-4 h-4 transition-transform ${isDropdownOpen ? 'rotate-90' : ''}`} />
-                        </button>
-
-                        <AnimatePresence>
-                            {isDropdownOpen && (
-                                <motion.div
-                                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                                    className="absolute left-0 top-full mt-2 w-72 bg-white rounded-2xl shadow-2xl border border-gray-100 z-[60] overflow-hidden"
-                                >
-                                    <div className="p-3 border-b border-gray-50">
-                                        <div className="relative">
-                                            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                                            <input
-                                                type="text"
-                                                placeholder="Search student..."
-                                                value={studentSearchTerm}
-                                                onChange={(e) => setStudentSearchTerm(e.target.value)}
-                                                className="w-full pl-9 pr-3 py-2 bg-gray-50 border-none rounded-lg text-xs font-bold outline-none focus:ring-2 focus:ring-[#ff8e01]/20"
-                                            />
-                                        </div>
-                                    </div>
-                                    <div className="max-h-60 overflow-y-auto p-2 space-y-1 custom-scrollbar">
-                                        <button
-                                            onClick={() => {
-                                                setSelectedStudentFilter('all');
-                                                setIsDropdownOpen(false);
-                                                setStudentSearchTerm('');
-                                            }}
-                                            className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${selectedStudentFilter === 'all'
-                                                ? 'bg-primary/5 text-primary'
-                                                : 'text-gray-600 hover:bg-gray-50'
-                                                }`}
-                                        >
-                                            View All Tests
-                                            {selectedStudentFilter === 'all' && <CheckCircle className="w-3.5 h-3.5" />}
-                                        </button>
-
-                                        <div className="h-px bg-gray-50 my-1" />
-
-                                        {students?.filter(s => s.name?.toLowerCase().includes(studentSearchTerm.toLowerCase())).map((student) => (
-                                            <button
-                                                key={student.id || student._id}
-                                                onClick={() => {
-                                                    setSelectedStudentFilter(student.id || student._id);
-                                                    setIsDropdownOpen(false);
-                                                    setStudentSearchTerm('');
-                                                }}
-                                                className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${selectedStudentFilter === (student.id || student._id)
-                                                    ? 'bg-primary/5 text-primary'
-                                                    : 'text-gray-600 hover:bg-gray-50'
-                                                    }`}
-                                            >
-                                                <div className="flex items-center gap-3">
-                                                    {student.photo ? (
-                                                        <img src={student.photo} alt="" className="w-6 h-6 rounded-full object-cover" />
-                                                    ) : (
-                                                        <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-[8px] text-primary">
-                                                            {student.name?.charAt(0)}
-                                                        </div>
-                                                    )}
-                                                    <span className="truncate max-w-[140px]">{student.name}</span>
-                                                </div>
-                                                {selectedStudentFilter === (student.id || student._id) && <CheckCircle className="w-3.5 h-3.5" />}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
+                <div>
+                    <div className="flex items-center justify-between gap-3 mb-2">
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                            <Users className="w-3 h-3" />
+                            Filter by Student
+                        </p>
+                        <div className="flex items-center gap-2">
+                            <button
+                                type="button"
+                                onClick={() => setSelectedStudentFilters(null)}
+                                className="px-3 py-2 text-xs font-bold text-primary bg-primary/5 hover:bg-primary/10 rounded-lg"
+                            >
+                                Select All
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setSelectedStudentFilters([])}
+                                className="px-3 py-2 text-xs font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg"
+                            >
+                                Clear
+                            </button>
+                        </div>
                     </div>
 
-                    {selectedStudentFilter !== 'all' && (
-                        <button
-                            onClick={() => setSelectedStudentFilter('all')}
-                            className="text-[10px] font-black text-red-500 hover:text-red-600 uppercase tracking-widest flex items-center gap-1.5 px-3 py-2 bg-red-50 rounded-lg transition-colors"
-                        >
-                            <X className="w-3 h-3" />
-                            Clear Filter
-                        </button>
-                    )}
+                    <div className="flex flex-wrap items-start gap-3">
+                        {(students || []).map(student => {
+                            const studentId = student.id || student._id;
+                            const selected = selectedStudentFilters === null || selectedStudentFilters.map(String).includes(String(studentId));
+                            return (
+                                <label
+                                    key={studentId}
+                                    className={`inline-flex w-fit flex-none items-center gap-3 px-3 py-2.5 rounded-xl border text-left transition-all ${selected
+                                        ? 'border-primary bg-primary/5 shadow-sm'
+                                        : 'border-gray-200 bg-white hover:border-primary/40 hover:shadow-sm'
+                                        }`}
+                                >
+                                    <input
+                                        type="checkbox"
+                                        checked={selected}
+                                        onChange={(event) => {
+                                            const allIds = students.map(item => item.id || item._id);
+                                            const current = selectedStudentFilters === null ? allIds : selectedStudentFilters;
+                                            setSelectedStudentFilters(event.target.checked
+                                                ? [...new Set([...current, studentId])]
+                                                : current.filter(id => String(id) !== String(studentId)));
+                                        }}
+                                        className="w-4 h-4 rounded accent-orange-500 text-orange-500 focus:ring-orange-500"
+                                    />
+                                    {student.photo ? (
+                                        <img src={student.photo} alt={student.name} className="w-8 h-8 rounded-full object-cover" />
+                                    ) : (
+                                        <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold">
+                                            {student.name?.charAt(0)}
+                                        </div>
+                                    )}
+                                    <div>
+                                        <p className="text-sm font-medium text-gray-900">{student.name}</p>
+                                        {student.rollNo && <p className="text-xs text-gray-400">{student.rollNo}</p>}
+                                    </div>
+                                </label>
+                            );
+                        })}
+                    </div>
                 </div>
-
-                {isDropdownOpen && <div className="fixed inset-0 z-[55]" onClick={() => setIsDropdownOpen(false)} />}
             </div>
 
             {/* Test Title Search Bar */}

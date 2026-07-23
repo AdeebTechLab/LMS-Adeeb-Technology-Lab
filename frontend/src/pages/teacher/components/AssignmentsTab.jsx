@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { FileText, Plus, Calendar, MoreHorizontal, Users, RefreshCw, CheckCircle, Clock, X, Upload, Edit2, Search, ChevronDown, Check, Trash2, Eye } from 'lucide-react';
+import { FileText, Plus, Calendar, MoreHorizontal, Users, RefreshCw, CheckCircle, Clock, X, Upload, Edit2, Search, Trash2, Eye } from 'lucide-react';
 import api, { assignmentAPI } from '../../../services/api';
 import Modal from '../../../components/ui/Modal';
 import Badge from '../../../components/ui/Badge';
@@ -35,9 +35,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
     const [editingAssignment, setEditingAssignment] = useState(null);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [selectedSubmission, setSelectedSubmission] = useState(null);
-    const [selectedStudentFilter, setSelectedStudentFilter] = useState('all');
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    const [studentSearchTerm, setStudentSearchTerm] = useState('');
+    const [selectedStudentFilters, setSelectedStudentFilters] = useState(null);
     const [assignSearchTerm, setAssignSearchTerm] = useState(''); // For searching students when assigning
     const [assignmentTitleFilter, setAssignmentTitleFilter] = useState(''); // For searching assignments by title
     const [activeStatFilter, setActiveStatFilter] = useState('all'); // For stat block filtering
@@ -345,126 +343,70 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                 </div>
             </div>
 
-            {/* Student Filter - Improved Design */}
+            {/* Student Filter */}
             <div className="relative">
-                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2 mb-2">
-                    <Users className="w-3 h-3" />
-                    Filter {itemsLabel} by Student
-                </p>
-
-                <div className="flex flex-wrap items-center gap-3">
-                    <div className="relative min-w-[300px]">
+                <div className="flex items-center justify-between gap-3 mb-2">
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                        <Users className="w-3 h-3" />
+                        Filter by Student
+                    </p>
+                    <div className="flex items-center gap-2">
                         <button
-                            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                            className={`w-full flex items-center justify-between px-4 py-3 bg-white border-2 rounded-xl transition-all ${isDropdownOpen ? 'border-primary ring-4 ring-primary/10' : 'border-gray-100 hover:border-gray-200'
-                                }`}
+                            type="button"
+                            onClick={() => setSelectedStudentFilters(null)}
+                            className="px-3 py-2 text-xs font-bold text-primary bg-primary/5 hover:bg-primary/10 rounded-lg"
                         >
-                            <div className="flex items-center gap-2">
-                                <Users className="w-4 h-4 text-primary" />
-                                <span className="text-sm font-bold text-gray-700">
-                                    {selectedStudentFilter === 'all'
-                                        ? `All Students (View All ${itemsLabel})`
-                                        : students.find(s => s.id === selectedStudentFilter)?.name || 'Select Student'}
-                                </span>
-                            </div>
-                            <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                            Select All
                         </button>
-
-                        {isDropdownOpen && (
-                            <motion.div
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-100 rounded-2xl shadow-2xl z-[60] overflow-hidden"
-                            >
-                                <div className="p-3 border-b border-gray-50 bg-gray-50/50">
-                                    <div className="relative">
-                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                                        <input
-                                            type="text"
-                                            placeholder="Search student name..."
-                                            value={studentSearchTerm}
-                                            onChange={(e) => setStudentSearchTerm(e.target.value)}
-                                            className="w-full pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm outline-none focus:border-primary transition-all font-medium"
-                                            onClick={(e) => e.stopPropagation()}
-                                            autoFocus
-                                        />
-                                    </div>
-                                </div>
-                                <div className="max-h-60 overflow-y-auto p-2 space-y-1 custom-scrollbar">
-                                    <button
-                                        onClick={() => {
-                                            setSelectedStudentFilter('all');
-                                            setIsDropdownOpen(false);
-                                            setStudentSearchTerm('');
-                                        }}
-                                        className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${selectedStudentFilter === 'all'
-                                            ? 'bg-primary/5 text-primary'
-                                            : 'text-gray-600 hover:bg-gray-50'
-                                            }`}
-                                    >
-                                        View All {itemsLabel}
-                                        {selectedStudentFilter === 'all' && <Check className="w-4 h-4" />}
-                                    </button>
-
-                                    <div className="h-px bg-gray-50 my-1" />
-
-                                    {students && students
-                                        .filter(s => s.name.toLowerCase().includes(studentSearchTerm.toLowerCase()))
-                                        .map((student) => (
-                                            <button
-                                                key={student.id}
-                                                onClick={() => {
-                                                    setSelectedStudentFilter(student.id);
-                                                    setIsDropdownOpen(false);
-                                                    setStudentSearchTerm('');
-                                                }}
-                                                className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${selectedStudentFilter === student.id
-                                                    ? 'bg-primary/5 text-primary'
-                                                    : 'text-gray-600 hover:bg-gray-50'
-                                                    }`}
-                                            >
-                                                <div className="flex items-center gap-3">
-                                                    {student.photo ? (
-                                                        <img src={student.photo} alt={student.name} className="w-6 h-6 rounded-full object-cover" />
-                                                    ) : (
-                                                        <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] text-primary">
-                                                            {student.name.charAt(0)}
-                                                        </div>
-                                                    )}
-                                                    {student.name}
-                                                </div>
-                                                {selectedStudentFilter === student.id && <Check className="w-4 h-4" />}
-                                            </button>
-                                        ))}
-
-                                    {students && students.filter(s => s.name.toLowerCase().includes(studentSearchTerm.toLowerCase())).length === 0 && (
-                                        <div className="py-8 text-center text-xs text-gray-400 font-medium">
-                                            No students found
-                                        </div>
-                                    )}
-                                </div>
-                            </motion.div>
-                        )}
+                        <button
+                            type="button"
+                            onClick={() => setSelectedStudentFilters([])}
+                            className="px-3 py-2 text-xs font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg"
+                        >
+                            Clear
+                        </button>
                     </div>
-
-                    {selectedStudentFilter !== 'all' && (
-                        <button
-                            onClick={() => setSelectedStudentFilter('all')}
-                            className="text-xs font-bold text-red-500 hover:text-red-600 uppercase tracking-wider flex items-center gap-1.5 px-3 py-2 bg-red-50 rounded-lg transition-colors"
-                        >
-                            <X className="w-3 h-3" />
-                            Clear Filter
-                        </button>
-                    )}
                 </div>
 
-                {/* Overlay to close dropdown when clicking outside */}
-                {isDropdownOpen && (
-                    <div
-                        className="fixed inset-0 z-[55]"
-                        onClick={() => setIsDropdownOpen(false)}
-                    />
-                )}
+                <div className="flex flex-wrap items-start gap-3">
+                    {(students || []).map(student => {
+                        const studentId = student.id || student._id;
+                        const selected = selectedStudentFilters === null || selectedStudentFilters.map(String).includes(String(studentId));
+                        return (
+                            <label
+                                key={studentId}
+                                className={`inline-flex w-fit flex-none items-center gap-3 px-3 py-2.5 rounded-xl border text-left transition-all ${selected
+                                    ? 'border-primary bg-primary/5 shadow-sm'
+                                    : 'border-gray-200 bg-white hover:border-primary/40 hover:shadow-sm'
+                                    }`}
+                            >
+                                <input
+                                    type="checkbox"
+                                    checked={selected}
+                                    onChange={(event) => {
+                                        const allIds = students.map(item => item.id || item._id);
+                                        const current = selectedStudentFilters === null ? allIds : selectedStudentFilters;
+                                        setSelectedStudentFilters(event.target.checked
+                                            ? [...new Set([...current, studentId])]
+                                            : current.filter(id => String(id) !== String(studentId)));
+                                    }}
+                                    className="w-4 h-4 rounded accent-orange-500 text-orange-500 focus:ring-orange-500"
+                                />
+                                {student.photo ? (
+                                    <img src={student.photo} alt={student.name} className="w-8 h-8 rounded-full object-cover" />
+                                ) : (
+                                    <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold">
+                                        {student.name?.charAt(0)}
+                                    </div>
+                                )}
+                                <div>
+                                    <p className="text-sm font-medium text-gray-900">{student.name}</p>
+                                    {student.rollNo && <p className="text-xs text-gray-400">{student.rollNo}</p>}
+                                </div>
+                            </label>
+                        );
+                    })}
+                </div>
             </div>
 
             {/* Assignment Title Search Bar */}
@@ -516,15 +458,15 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                             }
 
                             // 3. Filter by Selected Student
-                            if (selectedStudentFilter === 'all') return true;
+                            if (selectedStudentFilters === null) return true;
+                            if (selectedStudentFilters.length === 0) return false;
 
-                            // Check if student is in assignedUsers
+                            const selectedIds = selectedStudentFilters.map(String);
                             const isAssigned = assignment.assignedUsers &&
-                                assignment.assignedUsers.includes(selectedStudentFilter);
+                                assignment.assignedUsers.some(userId => selectedIds.includes(String(userId?._id || userId)));
 
-                            // Check if student has a submission
                             const hasSubmission = assignment.submissions &&
-                                assignment.submissions.some(s => (s.user?._id || s.user) === selectedStudentFilter);
+                                assignment.submissions.some(s => selectedIds.includes(String(s.user?._id || s.user)));
 
                             return isAssigned || hasSubmission;
                         })
@@ -537,8 +479,8 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                             const isScheduled = new Date(assignment.publishDate) > new Date();
 
                             // Spotlight submission if student filter is active
-                            const spotlightSubmission = selectedStudentFilter !== 'all'
-                                ? assignment.submissions?.find(s => String(s.user?._id || s.user) === String(selectedStudentFilter))
+                            const spotlightSubmission = selectedStudentFilters?.length === 1
+                                ? assignment.submissions?.find(s => String(s.user?._id || s.user) === String(selectedStudentFilters[0]))
                                 : null;
 
                             return (
