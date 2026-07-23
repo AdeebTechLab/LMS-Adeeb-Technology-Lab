@@ -1439,3 +1439,68 @@ body {
   opacity: 0;
   pointer-events: none;
 }
+
+/* Shared phone polish for every authenticated portal. */
+html,
+body,
+#root {
+  min-width: 0;
+  max-width: 100%;
+}
+
+#root {
+  overflow-x: clip;
+}
+
+@media (max-width: 640px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+
+  .p-10,
+  .p-12,
+  .p-16 {
+    padding: 1.25rem !important;
+  }
+
+  .px-10,
+  .px-12,
+  .px-16 {
+    padding-left: 1.25rem !important;
+    padding-right: 1.25rem !important;
+  }
+
+  .py-10,
+  .py-12,
+  .py-16 {
+    padding-top: 1.5rem !important;
+    padding-bottom: 1.5rem !important;
+  }
+
+  table {
+    font-size: 0.75rem;
+  }
+
+  th,
+  td {
+    white-space: nowrap;
+  }
+
+  img,
+  video,
+  canvas,
+  svg {
+    max-width: 100%;
+  }
+
+  .break-words,
+  p,
+  h1,
+  h2,
+  h3,
+  h4 {
+    overflow-wrap: anywhere;
+  }
+}

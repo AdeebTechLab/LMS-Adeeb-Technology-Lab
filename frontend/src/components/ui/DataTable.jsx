@@ -27,7 +27,7 @@ const DataTable = ({
 
     if (!data || data.length === 0) {
         return (
-            <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
+            <div className="bg-white rounded-2xl border border-gray-100 p-6 sm:p-12 text-center">
                 <p className="text-gray-500">{emptyMessage}</p>
             </div>
         );
@@ -35,8 +35,8 @@ const DataTable = ({
 
     return (
         <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-            <div className="overflow-x-auto">
-                <table className="w-full">
+            <div className="w-full overflow-x-auto overscroll-x-contain">
+                <table className="w-full min-w-max">
                     <thead>
                         <tr className="bg-gray-50/80 border-b border-gray-100">
                             {columns.map((column, index) => (
