@@ -913,7 +913,7 @@ const StudentsManagement = () => {
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: index * 0.05 }}
-                                className="bg-white rounded-2xl p-6 border border-gray-100"
+                                className="bg-white dark:bg-slate-900/70 rounded-2xl p-4 sm:p-6 border border-gray-100 dark:border-slate-700 shadow-sm dark:shadow-none"
                             >
                                 <div className="flex flex-col gap-4">
                                     <div className="flex flex-col lg:flex-row lg:items-center gap-6">
@@ -928,59 +928,47 @@ const StudentsManagement = () => {
                                         </div>
                                         <div className="min-w-0">
                                             <div className="flex flex-wrap items-center gap-2 mb-1.5">
-                                                <h3 className="text-base font-black text-gray-900 uppercase tracking-tighter truncate">{student.name}</h3>
+                                                <h3 className="text-base font-black text-gray-900 dark:text-white uppercase tracking-tighter truncate">{student.name}</h3>
                                                 {student.rollNo && (
                                                     <Badge variant="primary" size="xxs">#{student.rollNo}</Badge>
                                                 )}
                                             </div>
-                                            <p className="text-xs font-medium text-gray-500 flex items-center gap-1.5 truncate">
-                                                <Mail className="w-3.5 h-3.5 text-gray-400" /> {student.email}
+                                            <p className="text-xs font-medium text-gray-500 dark:text-slate-400 flex items-center gap-1.5 truncate">
+                                                <Mail className="w-3.5 h-3.5 text-gray-400 dark:text-slate-500" /> {student.email}
                                             </p>
                                         </div>
                                     </div>
 
-                                    <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-8 gap-3 sm:gap-4 flex-1 bg-gray-50/50 p-4 rounded-2xl border border-gray-100">
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-4 flex-1 bg-gray-50/80 dark:bg-slate-800/80 p-4 rounded-2xl border border-gray-100 dark:border-slate-600">
                                         <div className="space-y-1">
-                                            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Phone</p>
-                                            <p className="text-xs font-bold text-gray-700">{student.phone || 'N/A'}</p>
+                                            <p className="text-[9px] font-black text-gray-400 dark:text-slate-400 uppercase tracking-widest">Phone</p>
+                                            <p className="text-xs font-bold text-gray-700 dark:text-slate-100">{student.phone || 'N/A'}</p>
                                         </div>
                                         <div className="space-y-1">
-                                            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">CNIC</p>
-                                            <p className="text-xs font-bold text-gray-700 font-mono tracking-tighter">{student.cnic || 'N/A'}</p>
+                                            <p className="text-[9px] font-black text-gray-400 dark:text-slate-400 uppercase tracking-widest">CNIC</p>
+                                            <p className="text-xs font-bold text-gray-700 dark:text-slate-100 font-mono tracking-tighter">{student.cnic || 'N/A'}</p>
                                         </div>
                                         <div className="space-y-1">
-                                            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Education</p>
-                                            <p className="text-xs font-bold text-gray-700 truncate" title={student.education || 'N/A'}>{student.education || 'N/A'}</p>
+                                            <p className="text-[9px] font-black text-gray-400 dark:text-slate-400 uppercase tracking-widest">City</p>
+                                            <p className="text-xs font-bold text-gray-700 dark:text-slate-100 capitalize">{student.city || student.location || 'N/A'}</p>
                                         </div>
                                         <div className="space-y-1">
-                                            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">City</p>
-                                            <p className="text-xs font-bold text-gray-700 capitalize">{student.location || student.city || 'N/A'}</p>
+                                            <p className="text-[9px] font-black text-gray-400 dark:text-slate-400 uppercase tracking-widest">Father Name</p>
+                                            <p className="text-xs font-bold text-gray-700 dark:text-slate-100 truncate" title={student.fatherName || student.guardianName || 'N/A'}>{student.fatherName || student.guardianName || 'N/A'}</p>
                                         </div>
                                         <div className="space-y-1">
-                                            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Father Name</p>
-                                            <p className="text-xs font-bold text-gray-700 truncate" title={student.fatherName || student.guardianName || 'N/A'}>{student.fatherName || student.guardianName || 'N/A'}</p>
+                                            <p className="text-[9px] font-black text-gray-400 dark:text-slate-400 uppercase tracking-widest">Father Phone</p>
+                                            <p className="text-xs font-bold text-gray-700 dark:text-slate-100">{student.guardianPhone || student.parentPhone || 'N/A'}</p>
                                         </div>
                                         <div className="space-y-1">
-                                            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Relation</p>
-                                            <p className="text-xs font-bold text-gray-700 truncate" title={student.guardianRelation || 'N/A'}>{student.guardianRelation || 'N/A'}</p>
-                                        </div>
-                                        <div className="space-y-1">
-                                            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Father Phone</p>
-                                            <p className="text-xs font-bold text-gray-700">{student.guardianPhone || student.parentPhone || 'N/A'}</p>
-                                        </div>
-                                        <div className="space-y-1">
-                                            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Location</p>
-                                            <p className="text-xs font-bold text-gray-700 truncate" title={student.address || 'N/A'}>{student.address || 'N/A'}</p>
-                                        </div>
-                                        <div className="space-y-1">
-                                            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Campus</p>
-                                            <p className="text-xs font-bold text-gray-700 capitalize">
-                                                {(student.attendType === 'Physical' || student.attendType === 'On-Site') ? 'Onsite' : (student.attendType === 'Online' ? 'Remote' : (student.attendType || 'N/A'))}
+                                            <p className="text-[9px] font-black text-gray-400 dark:text-slate-400 uppercase tracking-widest">Campus</p>
+                                            <p className="text-xs font-bold text-gray-700 dark:text-slate-100 capitalize">
+                                                {student.campusCity || student.location || student.city || 'N/A'}
                                             </p>
                                         </div>
                                     </div>
 
-                                    <div className="h-8 w-px bg-gray-100 hidden lg:block mx-1" />
+                                    <div className="h-8 w-px bg-gray-100 dark:bg-slate-700 hidden lg:block mx-1" />
                                     <button
                                         onClick={() => setConfirmModal({ open: true, action: student.isVerified ? 'unverify' : 'verify', user: student })}
                                         className={`px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all shadow-lg ${student.isVerified
@@ -994,7 +982,7 @@ const StudentsManagement = () => {
                                     </div>
 
                                     {/* Action Buttons */}
-                                    <div className="flex flex-wrap items-center justify-end gap-2 pt-4 border-t border-gray-100 w-full">
+                                    <div className="flex flex-wrap items-center justify-end gap-2 pt-4 border-t border-gray-100 dark:border-slate-700 w-full">
                                         <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2 lg:pb-0 w-full lg:w-auto justify-end">
                                             {(((student.totalEnrollments || 0) === 0 && !student.registeredOld) || getStudentStatus(student) === 'Enrolled (Active)') && (
                                                 <button

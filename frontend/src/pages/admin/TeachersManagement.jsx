@@ -583,9 +583,9 @@ const TeachersManagement = () => {
 
             {/* Teachers List */}
             {filteredTeachers.length === 0 ? (
-                <div className="bg-white rounded-2xl p-12 border border-gray-100 text-center">
-                    <User className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                    <p className="text-gray-500">No teachers found</p>
+                <div className="bg-white dark:bg-slate-900/70 rounded-2xl p-12 border border-gray-100 dark:border-slate-700 text-center">
+                    <User className="w-12 h-12 text-gray-300 dark:text-slate-600 mx-auto mb-4" />
+                    <p className="text-gray-500 dark:text-slate-400">No teachers found</p>
                 </div>
             ) : (
                 <div className="grid gap-4">
@@ -595,9 +595,9 @@ const TeachersManagement = () => {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: index * 0.05 }}
-                            className="bg-white rounded-2xl p-6 border border-gray-100"
+                            className="bg-white dark:bg-slate-900/70 rounded-2xl p-4 sm:p-6 border border-gray-100 dark:border-slate-700 shadow-sm dark:shadow-none"
                         >
-                            <div className="flex flex-col lg:flex-row lg:items-center gap-6">
+                            <div className="flex flex-col 2xl:flex-row 2xl:items-center gap-5 2xl:gap-6">
                                 {/* Photo & Basic Info */}
                                 <div className="flex items-center gap-4 min-w-0">
                                     <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center overflow-hidden shrink-0 shadow-lg shadow-orange-900/10">
@@ -609,54 +609,54 @@ const TeachersManagement = () => {
                                     </div>
                                     <div className="min-w-0">
                                         <div className="flex flex-wrap items-center gap-2 mb-1.5">
-                                            <h3 className="text-sm font-black text-gray-900 uppercase tracking-tighter truncate">{teacher.name}</h3>
+                                            <h3 className="text-sm font-black text-gray-900 dark:text-white uppercase tracking-tighter truncate">{teacher.name}</h3>
                                             {teacher.rollNo && (
                                                 <Badge variant="primary" size="xxs">#{teacher.rollNo}</Badge>
                                             )}
                                         </div>
-                                        <p className="text-xs font-medium text-gray-500 flex items-center gap-1.5 truncate">
-                                            <Mail className="w-3.5 h-3.5 text-gray-400" /> {teacher.email}
+                                        <p className="text-xs font-medium text-gray-500 dark:text-slate-400 flex items-center gap-1.5 truncate">
+                                            <Mail className="w-3.5 h-3.5 text-gray-400 dark:text-slate-500" /> {teacher.email}
                                         </p>
                                     </div>
                                 </div>
 
                                 {/* Details Grid */}
-                                <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-6 flex-[2] bg-gray-50/50 p-4 rounded-2xl border border-gray-100">
+                                <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-5 w-full 2xl:flex-[2] bg-gray-50/80 dark:bg-slate-800/80 p-4 rounded-2xl border border-gray-100 dark:border-slate-600">
                                     <div className="space-y-1">
-                                        <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Teacher ID</p>
-                                        <p className="text-xs font-bold text-blue-600 font-mono tracking-tighter">{teacher.rollNo || 'N/A'}</p>
+                                        <p className="text-[9px] font-black text-gray-400 dark:text-slate-400 uppercase tracking-widest">Teacher ID</p>
+                                        <p className="text-xs font-bold text-blue-600 dark:text-blue-300 font-mono tracking-tighter">{teacher.rollNo || 'N/A'}</p>
                                     </div>
                                     <div className="space-y-1">
-                                        <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Phone</p>
-                                        <p className="text-xs font-bold text-gray-700">{teacher.phone || 'N/A'}</p>
+                                        <p className="text-[9px] font-black text-gray-400 dark:text-slate-400 uppercase tracking-widest">Phone</p>
+                                        <p className="text-xs font-bold text-gray-700 dark:text-slate-100 break-all">{teacher.phone || 'N/A'}</p>
                                     </div>
                                     <div className="space-y-1">
-                                        <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">CNIC</p>
-                                        <p className="text-xs font-bold text-gray-700 font-mono tracking-tighter">{teacher.cnic || 'N/A'}</p>
+                                        <p className="text-[9px] font-black text-gray-400 dark:text-slate-400 uppercase tracking-widest">CNIC</p>
+                                        <p className="text-xs font-bold text-gray-700 dark:text-slate-100 font-mono tracking-tighter break-all">{teacher.cnic || 'N/A'}</p>
                                     </div>
                                     <div className="space-y-1">
-                                        <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Gender</p>
-                                        <p className="text-xs font-bold text-gray-700">{teacher.gender || 'N/A'}</p>
+                                        <p className="text-[9px] font-black text-gray-400 dark:text-slate-400 uppercase tracking-widest">Gender</p>
+                                        <p className="text-xs font-bold text-gray-700 dark:text-slate-100">{teacher.gender || 'N/A'}</p>
                                     </div>
                                     <div className="space-y-1">
-                                        <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Qualification</p>
-                                        <p className="text-xs font-bold text-gray-700 truncate">{teacher.qualification || 'N/A'}</p>
+                                        <p className="text-[9px] font-black text-gray-400 dark:text-slate-400 uppercase tracking-widest">Qualification</p>
+                                        <p className="text-xs font-bold text-gray-700 dark:text-slate-100 truncate">{teacher.qualification || 'N/A'}</p>
                                     </div>
                                     <div className="space-y-1">
-                                        <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Campus</p>
-                                        <p className="text-xs font-bold text-gray-700 capitalize">{teacher.location || 'N/A'}</p>
+                                        <p className="text-[9px] font-black text-gray-400 dark:text-slate-400 uppercase tracking-widest">Campus</p>
+                                        <p className="text-xs font-bold text-gray-700 dark:text-slate-100 capitalize">{teacher.campusCity || teacher.location || teacher.city || 'N/A'}</p>
                                     </div>
                                 </div>
 
                                 {/* Actions */}
-                                <div className="flex flex-wrap items-center justify-end gap-2 shrink-0 border-t lg:border-t-0 pt-4 lg:pt-0">
-                                    <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2 lg:pb-0">
+                                <div className="flex flex-wrap items-center justify-end gap-2 shrink-0 border-t border-gray-100 dark:border-slate-700 2xl:border-t-0 pt-4 2xl:pt-0">
+                                    <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2 2xl:pb-0">
                                         {(teacher.totalEnrollments || 0) === 0 && (
                                             <button
                                                 onClick={() => handleMoveToOld(teacher)}
                                                 className={`px-3 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all border ${teacher.registeredOld
-                                                    ? 'bg-purple-50 border-purple-200 text-purple-700'
-                                                    : 'bg-gray-50 border-gray-200 text-gray-500 hover:text-purple-700'
+                                                    ? 'bg-purple-50 dark:bg-purple-500/10 border-purple-200 dark:border-purple-400/20 text-purple-700 dark:text-purple-300'
+                                                    : 'bg-gray-50 dark:bg-slate-800 border-gray-200 dark:border-slate-600 text-gray-500 dark:text-slate-300 hover:text-purple-700'
                                                     }`}
                                                 title={teacher.registeredOld ? 'Move to New' : 'Move to Old'}
                                             >
@@ -665,34 +665,34 @@ const TeachersManagement = () => {
                                         )}
                                         <button
                                             onClick={() => downloadTeacherPDF(teacher)}
-                                            className="p-2.5 bg-primary/5 hover:bg-primary/10 text-primary rounded-xl border border-primary/10 transition-all"
+                                            className="p-2.5 bg-primary/5 dark:bg-primary/10 hover:bg-primary/10 dark:hover:bg-primary/20 text-primary dark:text-orange-300 rounded-xl border border-primary/10 dark:border-primary/20 transition-all"
                                             title="PDF"
                                         >
                                             <Download className="w-5 h-5" />
                                         </button>
                                         <button
                                             onClick={() => openPauseModal(teacher)}
-                                            className="p-2.5 bg-primary/5 hover:bg-primary/10 text-primary rounded-xl border border-primary/10 transition-all"
+                                            className="p-2.5 bg-primary/5 dark:bg-primary/10 hover:bg-primary/10 dark:hover:bg-primary/20 text-primary dark:text-orange-300 rounded-xl border border-primary/10 dark:border-primary/20 transition-all"
                                             title="Pause"
                                         >
                                             <PauseCircle className="w-5 h-5" />
                                         </button>
                                         <button
                                             onClick={() => handleEditClick(teacher)}
-                                            className="p-2.5 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl border border-blue-100 transition-all"
+                                            className="p-2.5 bg-blue-50 dark:bg-blue-500/10 hover:bg-blue-100 dark:hover:bg-blue-500/20 text-blue-600 dark:text-blue-300 rounded-xl border border-blue-100 dark:border-blue-400/20 transition-all"
                                             title="Edit"
                                         >
                                             <Edit2 className="w-5 h-5" />
                                         </button>
                                         <button
                                             onClick={() => setConfirmModal({ open: true, action: 'delete', teacher })}
-                                            className="p-2.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl border border-red-100 transition-all"
+                                            className="p-2.5 bg-red-50 dark:bg-red-500/10 hover:bg-red-100 dark:hover:bg-red-500/20 text-red-600 dark:text-red-300 rounded-xl border border-red-100 dark:border-red-400/20 transition-all"
                                         >
                                             <Trash2 className="w-5 h-5" />
                                         </button>
                                     </div>
 
-                                    <div className="h-8 w-px bg-gray-100 hidden lg:block mx-1" />
+                                    <div className="h-8 w-px bg-gray-100 dark:bg-slate-700 hidden 2xl:block mx-1" />
 
                                     <button
                                         onClick={() => setConfirmModal({ open: true, action: teacher.isVerified ? 'unverify' : 'verify', teacher })}
@@ -708,39 +708,39 @@ const TeachersManagement = () => {
                             </div>
 
                             {/* Extra Info */}
-                            <div className="mt-4 pt-4 border-t border-gray-50 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div className="mt-4 pt-4 border-t border-gray-100 dark:border-slate-700 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
                                 {teacher.specialization && (
-                                    <div className="flex items-center gap-2.5 px-3 py-2 bg-gray-50/50 rounded-xl border border-gray-100">
+                                    <div className="flex items-center gap-2.5 min-w-0 px-3 py-3 bg-gray-50/80 dark:bg-slate-800/80 rounded-xl border border-gray-100 dark:border-slate-600">
                                         <GraduationCap className="w-4 h-4 text-primary" />
                                         <div>
-                                            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Skills</p>
-                                            <p className="text-[11px] font-bold text-gray-700 truncate">{teacher.specialization}</p>
+                                            <p className="text-[9px] font-black text-gray-400 dark:text-slate-400 uppercase tracking-widest leading-none mb-1">Skills</p>
+                                            <p className="text-[11px] font-bold text-gray-700 dark:text-slate-100 truncate">{teacher.specialization}</p>
                                         </div>
                                     </div>
                                 )}
                                 {teacher.experience && (
-                                    <div className="flex items-center gap-2.5 px-3 py-2 bg-gray-50/50 rounded-xl border border-gray-100">
+                                    <div className="flex items-center gap-2.5 min-w-0 px-3 py-3 bg-gray-50/80 dark:bg-slate-800/80 rounded-xl border border-gray-100 dark:border-slate-600">
                                         <Calendar className="w-4 h-4 text-primary" />
                                         <div>
-                                            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Experience</p>
-                                            <p className="text-[11px] font-bold text-gray-700 truncate">{teacher.experience} Years</p>
+                                            <p className="text-[9px] font-black text-gray-400 dark:text-slate-400 uppercase tracking-widest leading-none mb-1">Experience</p>
+                                            <p className="text-[11px] font-bold text-gray-700 dark:text-slate-100 truncate">{teacher.experience} Years</p>
                                         </div>
                                     </div>
                                 )}
-                                <div className="flex items-center gap-2.5 px-3 py-2 bg-gray-50/50 rounded-xl border border-gray-100">
+                                <div className="flex items-center gap-2.5 min-w-0 px-3 py-3 bg-gray-50/80 dark:bg-slate-800/80 rounded-xl border border-gray-100 dark:border-slate-600">
                                     <MapPin className="w-4 h-4 text-blue-500" />
                                     <div>
-                                        <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Address</p>
-                                        <p className="text-[11px] font-bold text-gray-700 truncate">
+                                        <p className="text-[9px] font-black text-gray-400 dark:text-slate-400 uppercase tracking-widest leading-none mb-1">Address</p>
+                                        <p className="text-[11px] font-bold text-gray-700 dark:text-slate-100 truncate">
                                             {[teacher.address, teacher.city, teacher.country].filter(Boolean).join(', ') || 'N/A'}
                                         </p>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-2.5 px-3 py-2 bg-gray-50/50 rounded-xl border border-gray-100">
+                                <div className="flex items-center gap-2.5 min-w-0 px-3 py-3 bg-gray-50/80 dark:bg-slate-800/80 rounded-xl border border-gray-100 dark:border-slate-600">
                                     <BookOpen className="w-4 h-4 text-blue-500" />
                                     <div>
-                                        <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Attend Classes</p>
-                                        <p className="text-[11px] font-bold text-gray-700 truncate">{teacher.attendType || 'N/A'}</p>
+                                        <p className="text-[9px] font-black text-gray-400 dark:text-slate-400 uppercase tracking-widest leading-none mb-1">Attend Classes</p>
+                                        <p className="text-[11px] font-bold text-gray-700 dark:text-slate-100 truncate">{teacher.attendType || 'N/A'}</p>
                                     </div>
                                 </div>
                             </div>

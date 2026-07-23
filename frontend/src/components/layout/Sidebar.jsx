@@ -432,19 +432,20 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 { id: 'dashboard', labelKey: 'nav.dashboard', icon: LayoutDashboard, path: '/admin/dashboard' },
                 { id: 'directory', labelKey: 'nav.directory', icon: FolderOpen, path: '/admin/directory' },
                 { id: 'courses', labelKey: 'nav.courses', icon: BookOpen, path: '/admin/courses' },
-                { id: 'paid-tasks', labelKey: 'nav.paidTasks', icon: Briefcase, path: '/admin/paid-tasks' },
-                ...(jobChatSummary.totalAssigned > 0 ? [{ id: 'job-chat', labelKey: 'Job Chats', icon: MessageSquare, path: '/admin/job-chat', badge: jobChatSummary.totalUnread }] : []),
                 { id: 'certificates', labelKey: 'nav.certificates', icon: Award, path: '/admin/certificates' },
                 { id: 'students', labelKey: 'nav.students', icon: Users, path: '/admin/students', badge: adminPendingCounts.studentRegisteredNew },
                 { id: 'teachers', labelKey: 'nav.teachers', icon: GraduationCap, path: '/admin/teachers', badge: adminPendingCounts.teacherRegisteredNew },
                 { id: 'interns', labelKey: 'nav.interns', icon: Users, path: '/admin/interns', badge: adminPendingCounts.internRegisteredNew },
-                { id: 'jobs', labelKey: 'nav.freelancers', icon: Briefcase, path: '/admin/jobs', badge: adminPendingCounts.job },
                 { id: 'notifications', labelKey: 'nav.notifications', icon: Bell, path: '/admin/notifications' },
                 { id: 'fees', labelKey: 'nav.feeVerification', icon: CreditCard, path: '/admin/fees', badge: adminPendingCounts.fees },
-                { id: 'expense', labelKey: 'Expense', icon: Wallet, path: '/admin/expense' },
                 { id: 'discussion-room', labelKey: 'Discussion Room', icon: MessageSquare, path: '/admin/discussion-room', badge: discussionUnread },
                 { id: 'attendance-settings', labelKey: 'nav.attendanceSettings', icon: ClipboardList, path: '/admin/attendance-settings' },
                 { id: 'registration-pages', labelKey: 'Registration Forms', icon: FileText, path: '/admin/registration-pages' },
+                { id: 'job-section-label', type: 'section', label: 'Job Section' },
+                { id: 'paid-tasks', labelKey: 'nav.paidTasks', icon: Briefcase, path: '/admin/paid-tasks' },
+                ...(jobChatSummary.totalAssigned > 0 ? [{ id: 'job-chat', labelKey: 'Job Chats', icon: MessageSquare, path: '/admin/job-chat', badge: jobChatSummary.totalUnread }] : []),
+                { id: 'jobs', labelKey: 'nav.freelancers', icon: Briefcase, path: '/admin/jobs', badge: adminPendingCounts.job },
+                { id: 'expense', labelKey: 'Expense', icon: Wallet, path: '/admin/expense' },
             ],
             teacher: [
                 { id: 'dashboard', labelKey: 'nav.dashboard', icon: LayoutDashboard, path: '/teacher/dashboard', submissionBadge: teacherSubmissionCount },
@@ -635,7 +636,17 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 {/* Navigation */}
                 <nav className="flex-1 overflow-y-auto py-4 px-3">
                     <ul className="space-y-1">
-                        {menuItems.map((item) => (
+                        {menuItems.map((item) => item.type === 'section' ? (
+                            <li key={item.id} className="pt-5 pb-1 px-4">
+                                <div className="flex items-center gap-2">
+                                    <span className="h-px flex-1 bg-primary/30" />
+                                    <span className="text-[9px] font-black uppercase tracking-[0.22em] text-primary whitespace-nowrap">
+                                        {item.label}
+                                    </span>
+                                    <span className="h-px flex-1 bg-primary/30" />
+                                </div>
+                            </li>
+                        ) : (
                             <li key={item.id}>
                                 <NavLink
                                     to={item.path}

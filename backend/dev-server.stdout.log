@@ -5103,3 +5103,1387 @@
 🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/697f9f0ff525fb948dcac3bc
 🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/69cabd3363b8f921ac476499
 🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/69cabd6a63b8f921ac4765a2
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/attendance/global-holidays
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/69df3e37783ee8eaf14326b9
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/user-notifications
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/chat/job/tasks
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/chat/discussion/unread
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/courses/teacher/dashboard
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/697f5c2599f8d4e879bf7504
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/6a0754a4fb0806cc84eb3086
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/697f5ca299f8d4e879bf751f
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/6a4528b877e656d6225c26df
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/697f5da299f8d4e879bf7544
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/697f5df899f8d4e879bf754b
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/697f657699f8d4e879bf7665
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/chat/job/tasks
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/settings
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/697f662099f8d4e879bf7697
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/chat/discussion/unread
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/chat/job/tasks
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/chat/discussion/unread
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/courses/teacher/dashboard
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/user-notifications
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/697f5c2599f8d4e879bf7504
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/697f5ca299f8d4e879bf751f
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/697f5da299f8d4e879bf7544
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/697f5df899f8d4e879bf754b
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/697f657699f8d4e879bf7665
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/697f662099f8d4e879bf7697
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/697f9c8af525fb948dcac364
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/697f9f0ff525fb948dcac3bc
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/chat/job/tasks
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/69cabd3363b8f921ac476499
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/69cabd6a63b8f921ac4765a2
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/chat/discussion/unread
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/chat/job/tasks
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/chat/discussion/unread
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/user-notifications
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/courses/teacher/dashboard
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/697f5c2599f8d4e879bf7504
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/697f5ca299f8d4e879bf751f
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/697f5da299f8d4e879bf7544
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/697f5df899f8d4e879bf754b
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/697f657699f8d4e879bf7665
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/697f662099f8d4e879bf7697
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/697f9c8af525fb948dcac364
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/69df3e37783ee8eaf14326b9
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/697f9f0ff525fb948dcac3bc
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/chat/job/tasks
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/69cabd3363b8f921ac476499
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/chat/discussion/unread
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/69cabd6a63b8f921ac4765a2
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/69df3e37783ee8eaf14326b9
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/6a0754a4fb0806cc84eb3086
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/6a4528b877e656d6225c26df
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/chat/job/tasks
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/user-notifications
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/courses/teacher/dashboard
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/chat/discussion/unread
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/697f5c2599f8d4e879bf7504
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/chat/discussion/unread
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/chat/job/tasks
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/chat/job/tasks
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/courses/teacher/dashboard
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/chat/discussion/unread
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/user-notifications
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/settings
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/697f5ca299f8d4e879bf751f
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/697f5c2599f8d4e879bf7504
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/697f5ca299f8d4e879bf751f
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/697f5da299f8d4e879bf7544
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/chat/job/tasks
+⚠️ MongoDB disconnected. Reconnecting...
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/chat/discussion/unread
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/697f5df899f8d4e879bf754b
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/697f657699f8d4e879bf7665
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/697f662099f8d4e879bf7697
+Skipping Live class auto-cleanup because MongoDB is not connected.
+Skipping Class time reminders because MongoDB is not connected.
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/697f9c8af525fb948dcac364
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/chat/job/tasks
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/697f9f0ff525fb948dcac3bc
+✅ MongoDB reconnected
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/attendance/global-holidays
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/chat/discussion/unread
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/user-notifications
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/courses/teacher/dashboard
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/69cabd3363b8f921ac476499
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/69cabd6a63b8f921ac4765a2
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/6a5b244cc92784d580dac714
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/6a5b2438c92784d580dab21c
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/6a4f93c51f8eefb87c2e4751
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/697f5c2599f8d4e879bf7504
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/697f5ca299f8d4e879bf751f
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/697f5da299f8d4e879bf7544
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/69df3e37783ee8eaf14326b9
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/chat/job/tasks
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/chat/discussion/unread
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/6a0754a4fb0806cc84eb3086
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/697f5df899f8d4e879bf754b
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/6a4528b877e656d6225c26df
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/697f657699f8d4e879bf7665
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/6a4528b877e656d6225c26df
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/697f662099f8d4e879bf7697
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/697f9c8af525fb948dcac364
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/6a4528b677e656d6225c252c
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/6a2d0351e3b028a4dd95d304
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/697f9f0ff525fb948dcac3bc
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/6a2d0326e3b028a4dd95cdaa
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/6a12dd3708117238ac69280f
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/6a0754a4fb0806cc84eb3086
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/6a0486bc47db239c71e4c64d
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/69cabd3363b8f921ac476499
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/69cabd6a63b8f921ac4765a2
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/6a0028fcbbe445753c945194
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/chat/job/tasks
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/69df3e37783ee8eaf14326b9
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/user-notifications
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/courses/teacher/dashboard
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/chat/discussion/unread
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/69f1fe8c121206442b7855db
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/69e9af85542ba7f91db190d9
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/6a0754a4fb0806cc84eb3086
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/6a4528b877e656d6225c26df
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/69df3e37783ee8eaf14326b9
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/697f5c2599f8d4e879bf7504
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/69cfe08a85061d099abf887a
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/69cabdcc63b8f921ac47666d
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/697f5ca299f8d4e879bf751f
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/69cabd9363b8f921ac476646
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/assignments/course/69cabd6a63b8f921ac4765a2
+🔌 Client disconnected | Active: 1
+🔌 Client disconnected | Active: 1
+🔌 Client disconnected | Active: 1
+🔌 Client disconnected | Active: 0
+❌ Auth failed: No token provided for GET /api/assignments/course/697f5da299f8d4e879bf7544
+🔐 Auth OK: Salman Adeeb (teacher) - GET /api/settings
+🔌 New client connected
+🔌 New client connected
+🔌 New client connected
+🔌 New client connected
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+🔐 Auth OK: Super Admin (admin) - GET /api/stats/admin-dashboard?startDate=2026-07-01&endDate=2026-07-23
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/available-roles
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/conversations
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/me
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/attendance/global-holidays
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/available-roles
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/me
+🔌 Client disconnected | Active: 1
+🔌 Client disconnected | Active: 1
+🔌 New client connected
+🔌 New client connected
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/attendance/global-holidays
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/available-roles
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/stats/admin-dashboard?startDate=2026-07-01&endDate=2026-07-23
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/conversations
+🔐 Auth OK: Super Admin (admin) - GET /api/stats/admin-dashboard?startDate=2026-07-01&endDate=2026-07-23
+🔐 Auth OK: Super Admin (admin) - GET /api/stats/admin-dashboard?startDate=2026-07-01&endDate=2026-07-23
+🔐 Auth OK: Super Admin (admin) - GET /api/stats/admin-dashboard?startDate=2026-07-01&endDate=2026-07-23
+🔌 Client disconnected | Active: 1
+🔌 Client disconnected | Active: 1
+🔌 New client connected
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+🔐 Auth OK: Super Admin (admin) - GET /api/stats/admin-dashboard?startDate=2026-07-01&endDate=2026-07-23
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/stats/admin-dashboard?startDate=2026-07-01&endDate=2026-07-23
+🔐 Auth OK: Super Admin (admin) - GET /api/stats/admin-dashboard?startDate=2026-07-01&endDate=2026-07-23
+🔐 Auth OK: Super Admin (admin) - GET /api/stats/admin-dashboard?startDate=2026-07-01&endDate=2026-07-23
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/users/birthdays
+🔐 Auth OK: Super Admin (admin) - GET /api/users/role/student
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/me
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/users/birthdays
+🔌 Client disconnected | Active: 1
+🔌 Client disconnected | Active: 1
+🔌 Client disconnected | Active: 0
+🔐 Auth OK: Super Admin (admin) - GET /api/settings
+🔌 New client connected
+🔌 New client connected
+🔌 New client connected
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+🔐 Auth OK: Super Admin (admin) - GET /api/users/role/student
+🔐 Auth OK: Super Admin (admin) - GET /api/settings
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/me
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/available-roles
+🔐 Auth OK: Super Admin (admin) - GET /api/users/role/student
+🔐 Auth OK: Super Admin (admin) - GET /api/settings
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/conversations
+🔐 Auth OK: Super Admin (admin) - GET /api/attendance/global-holidays
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/users/role/student
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/available-roles
+🔐 Auth OK: Super Admin (admin) - GET /api/settings
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/conversations
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/attendance/global-holidays
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/me
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔌 Client disconnected | Active: 1
+🔌 Client disconnected | Active: 1
+🔌 Client disconnected | Active: 0
+🔌 New client connected
+🔌 New client connected
+🔌 New client connected
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/available-roles
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/settings
+🔐 Auth OK: Super Admin (admin) - GET /api/users/role/student
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/conversations
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/me
+🔐 Auth OK: Super Admin (admin) - GET /api/attendance/global-holidays
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/settings
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/available-roles
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/me
+🔌 Client disconnected | Active: 1
+🔌 Client disconnected | Active: 1
+🔌 New client connected
+🔌 New client connected
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/attendance/global-holidays
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/available-roles
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/users/role/student
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/conversations
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/attendance/global-holidays
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔌 Client disconnected | Active: 1
+🔌 New client connected
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+🔐 Auth OK: Super Admin (admin) - GET /api/settings
+🔐 Auth OK: Super Admin (admin) - GET /api/users/role/intern
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/me
+🔐 Auth OK: Super Admin (admin) - GET /api/settings
+🔌 Client disconnected | Active: 1
+🔌 Client disconnected | Active: 1
+🔌 New client connected
+🔌 New client connected
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/available-roles
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/users/role/intern
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔌 Client disconnected | Active: 1
+🔌 New client connected
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+🔐 Auth OK: Super Admin (admin) - GET /api/users/role/job
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/me
+🔐 Auth OK: Super Admin (admin) - GET /api/settings
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔌 Client disconnected | Active: 1
+🔌 Client disconnected | Active: 1
+🔌 New client connected
+🔌 New client connected
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/available-roles
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/settings
+🔐 Auth OK: Super Admin (admin) - GET /api/users/role/job
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔌 Client disconnected | Active: 1
+🔌 Client disconnected | Active: 1
+🔌 Client disconnected | Active: 0
+🔌 New client connected
+🔌 New client connected
+🔌 New client connected
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/settings
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/available-roles
+🔐 Auth OK: Super Admin (admin) - GET /api/users/role/job
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/conversations
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/me
+🔐 Auth OK: Super Admin (admin) - GET /api/attendance/global-holidays
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/settings
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/available-roles
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/me
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/users/role/job
+🔐 Auth OK: Super Admin (admin) - GET /api/attendance/global-holidays
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔌 Client disconnected | Active: 1
+🔌 Client disconnected | Active: 1
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/available-roles
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔌 New client connected
+🔌 New client connected
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/conversations
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔌 Client disconnected | Active: 1
+🔌 New client connected
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+🔐 Auth OK: Super Admin (admin) - GET /api/settings
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/users/role/intern
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/me
+🔌 Client disconnected | Active: 1
+🔌 Client disconnected | Active: 1
+🔐 Auth OK: Super Admin (admin) - GET /api/settings
+🔌 New client connected
+🔌 New client connected
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/available-roles
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/users/role/intern
+🔌 Client disconnected | Active: 1
+🔌 New client connected
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+🔐 Auth OK: Super Admin (admin) - GET /api/users/role/teacher
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/settings
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/me
+🔌 Client disconnected | Active: 1
+🔌 Client disconnected | Active: 1
+🔐 Auth OK: Super Admin (admin) - GET /api/settings
+🔌 New client connected
+🔌 New client connected
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/available-roles
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/users/role/teacher
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔌 Client disconnected | Active: 1
+🔌 New client connected
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+🔐 Auth OK: Super Admin (admin) - GET /api/users/role/student
+🔐 Auth OK: Super Admin (admin) - GET /api/settings
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/me
+🔌 Client disconnected | Active: 1
+🔌 Client disconnected | Active: 1
+🔐 Auth OK: Super Admin (admin) - GET /api/settings
+🔌 New client connected
+🔌 New client connected
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/available-roles
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/users/role/student
+🔌 Client disconnected | Active: 1
+🔌 New client connected
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/certificates/requests
+📋 [ROUTES] Fetching pending certificate requests for user: Super Admin
+🔐 Auth OK: Super Admin (admin) - GET /api/certificates/teachers
+🔐 Auth OK: Super Admin (admin) - GET /api/certificates/courses
+📚 [CERTIFICATES] Fetching courses for certificate management
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/me
+✅ [ROUTES] Found 0 certificate requests (0 total)
+🔌 Client disconnected | Active: 1
+🔌 Client disconnected | Active: 1
+🔐 Auth OK: Super Admin (admin) - GET /api/certificates/requests
+📋 [ROUTES] Fetching pending certificate requests for user: Super Admin
+🔌 New client connected
+🔌 New client connected
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/available-roles
+📚 [CERTIFICATES] Found 71 courses
+✅ [ROUTES] Found 0 certificate requests (0 total)
+  └─ Course "Tester for App software Website": 0 enrollments
+  └─ Course "WordPress + Elementor": 0 enrollments
+  └─ Course "Online Quran Course": 0 enrollments
+  └─ Course "Online Quran Course": 0 enrollments
+  └─ Course "Joint Secretary (Adeeb LMS Manager) (IT)": 0 enrollments
+  └─ Course "Cyber Security (Online)": 0 enrollments
+  └─ Course "AI Automation & AI Agents Course (Online)": 0 enrollments
+  └─ Course "Learn & Earn – Free Earning Training Program (Online)": 0 enrollments
+  └─ Course "Internet of Things (IoT)": 0 enrollments
+  └─ Course "UI/UX Design": 0 enrollments
+  └─ Course "App Dev Without Coding": 0 enrollments
+  └─ Course "App Development": 0 enrollments
+  └─ Course "Internet of Thing [IOT]": 0 enrollments
+  └─ Course "Home Architecture": 0 enrollments
+  └─ Course "UX/UI Designing": 0 enrollments
+  └─ Course "Freelancing": 0 enrollments
+  └─ Course "Software Development ( online )": 0 enrollments
+  └─ Course "Trading   (Online)": 0 enrollments
+  └─ Course "Truck Dispatching": 0 enrollments
+  └─ Course "Internet of Thing [IOT]   (Online)": 0 enrollments
+  └─ Course "App Dev Without Coding   (Online)": 0 enrollments
+  └─ Course "App Development   (Online)": 0 enrollments
+  └─ Course "YouTuber Course (Online)": 0 enrollments
+  └─ Course "E-Commerce (Online)": 0 enrollments
+  └─ Course "UX/UI Designing (Online)": 0 enrollments
+  └─ Course "Digital Marketing, Ads (Online)": 0 enrollments
+  └─ Course "HR Manager": 0 enrollments
+  └─ Course "Team Manager": 0 enrollments
+  └─ Course "Tech Store Manager": 0 enrollments
+  └─ Course "Video Editor": 0 enrollments
+  └─ Course "Team Manager": 0 enrollments
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+  └─ Course "Artificial Intelligence - Ai Tools": 1 enrollments
+  └─ Course "Tester for App software Website": 1 enrollments
+  └─ Course "WordPress + Elementor": 1 enrollments
+  └─ Course "Joint Secretary (Adeeb LMS Manager) (IT)": 2 enrollments
+  └─ Course "Artificial Intelligence - Ai Tools": 1 enrollments
+  └─ Course "Ai and Ml": 5 enrollments
+  └─ Course "Programming": 1 enrollments
+  └─ Course "Basic Computer": 2 enrollments
+  └─ Course "UI / UX Designing": 1 enrollments
+  └─ Course "Basic Computer": 16 enrollments
+  └─ Course "Internet of Things (IoT)": 3 enrollments
+  └─ Course "Digital Marketing, Ads": 2 enrollments
+  └─ Course "Web Development": 3 enrollments
+  └─ Course "Graphic Designer": 2 enrollments
+  └─ Course "Youtuber Course": 1 enrollments
+  └─ Course "Office Work [IT]": 6 enrollments
+  └─ Course "E-Commerce": 2 enrollments
+  └─ Course "Video Editing": 5 enrollments
+  └─ Course "Web Development   (Online)": 9 enrollments
+  └─ Course "Home Architecture   (Online)": 1 enrollments
+  └─ Course "Graphic Designer": 15 enrollments
+  └─ Course "Video Editing": 11 enrollments
+  └─ Course "Freelancing (Online)": 1 enrollments
+  └─ Course "Software Development": 1 enrollments
+  └─ Course "App Development": 4 enrollments
+  └─ Course "Web Development (HTML+CSS+Java)": 5 enrollments
+  └─ Course "Graphic Designer": 1 enrollments
+  └─ Course "Social media manager": 2 enrollments
+  └─ Course "YouTube Manager": 1 enrollments
+  └─ Course "Office Work [IT]": 26 enrollments
+  └─ Course "Office Work [IT] Documentation Managment": 1 enrollments
+  └─ Course "Software Development (Visual Studio)": 1 enrollments
+  └─ Course "HR Manager": 5 enrollments
+  └─ Course "App Development": 6 enrollments
+  └─ Course "Tech Store Manager + Content Writer": 1 enrollments
+  └─ Course "Web Development (HTML+CSS+Java)": 12 enrollments
+  └─ Course "YouTube Manager + Video Editor": 2 enrollments
+  └─ Course "Office Work [IT] Documentation Management": 5 enrollments
+  └─ Course "Social media manager": 4 enrollments
+  └─ Course "Graphic Designer": 4 enrollments
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/certificates/teachers
+    👤 Salman Adeeb: Fee=2, Enrollment=2, Final=2
+    👤 Muhammad Bilal: Fee=0, Enrollment=0, Final=0
+    👤 Imran Nadeem: Fee=0, Enrollment=0, Final=0
+    👤 Muhammad Ahmad: Fee=1, Enrollment=1, Final=1
+    👤 Kashan Abid Magasi: Fee=3, Enrollment=1, Final=3
+    👤 Nimra: Fee=0, Enrollment=0, Final=0
+    👤 Dua Noor: Fee=1, Enrollment=1, Final=1
+    👤 Yasmeen Fayyaz: Fee=0, Enrollment=0, Final=0
+    👤 Muhammad Aryan Khan Niazi: Fee=1, Enrollment=1, Final=1
+    👤 Abdul Rauf: Fee=0, Enrollment=0, Final=0
+    👤 Yalmaz khan: Fee=0, Enrollment=0, Final=0
+    👤 Fatima javed: Fee=1, Enrollment=1, Final=1
+    👤 Aliza Yasin: Fee=1, Enrollment=1, Final=1
+    👤 Asma Iqbal: Fee=1, Enrollment=1, Final=1
+    👤 Nosheen yousaf: Fee=1, Enrollment=1, Final=1
+    👤 Abu Bakar: Fee=2, Enrollment=2, Final=2
+    👤 Muhammad Asjad: Fee=1, Enrollment=1, Final=1
+    👤 Hafiz Arif: Fee=3, Enrollment=3, Final=3
+    👤 Abdul Hadi: Fee=2, Enrollment=2, Final=2
+    👤 Muhammad Rizwan: Fee=1, Enrollment=1, Final=1
+    👤 Chaudhary Furqan: Fee=3, Enrollment=3, Final=3
+    👤 AHTESHAM KHAN: Fee=2, Enrollment=2, Final=2
+    👤 Shayan israr: Fee=4, Enrollment=4, Final=4
+    👤 FALAK KHAN: Fee=2, Enrollment=2, Final=2
+    👤 Muhammad Arslan: Fee=2, Enrollment=2, Final=2
+    👤 M Abdullah: Fee=1, Enrollment=1, Final=1
+    👤 Rehan sajjad: Fee=1, Enrollment=1, Final=1
+    👤 Noor Nawaz: Fee=2, Enrollment=2, Final=2
+    👤 Mehwish BiBi: Fee=1, Enrollment=1, Final=1
+    👤 Mehnaz BiBi: Fee=1, Enrollment=1, Final=1
+    👤 mufassir Qureshi: Fee=0, Enrollment=0, Final=0
+    👤 Ghulam Muhammad Taqi Shah: Fee=3, Enrollment=3, Final=3
+    👤 Muhammad Zulqarnain: Fee=2, Enrollment=1, Final=2
+    👤 Furqan Ali: Fee=3, Enrollment=3, Final=3
+    👤 Anees Khan: Fee=1, Enrollment=1, Final=1
+    👤 Homam sajjad: Fee=3, Enrollment=3, Final=3
+    👤 Hashim Ali: Fee=3, Enrollment=3, Final=3
+    👤 Muhammad Asjad: Fee=2, Enrollment=1, Final=2
+    👤 Sharyar: Fee=1, Enrollment=1, Final=1
+    👤 Kashif Khalid: Fee=4, Enrollment=4, Final=4
+    👤 Sharyar: Fee=3, Enrollment=3, Final=3
+    👤 Huma Nawaz: Fee=0, Enrollment=0, Final=0
+    👤 Abdul Hanan Hashmi Qureshi: Fee=2, Enrollment=2, Final=2
+    👤 Waqas Anwar Khan: Fee=4, Enrollment=4, Final=4
+    👤 M Aman Khan: Fee=3, Enrollment=3, Final=3
+    👤 Abdur Rahim: Fee=3, Enrollment=3, Final=3
+    👤 Muhammad  Farhad: Fee=2, Enrollment=2, Final=2
+    👤 Nadeem: Fee=0, Enrollment=0, Final=0
+    👤 Gul Imtiaz Qureshi: Fee=1, Enrollment=1, Final=1
+    👤 Hassan Ali: Fee=2, Enrollment=2, Final=2
+    👤 Adnan Ahmad: Fee=3, Enrollment=3, Final=3
+    👤 M Abdullah: Fee=1, Enrollment=1, Final=1
+    👤 Shayan ali: Fee=1, Enrollment=1, Final=1
+    👤 Anees Khan: Fee=3, Enrollment=3, Final=3
+    👤 M Saeed khan: Fee=1, Enrollment=1, Final=1
+    👤 Aimen Irfan: Fee=1, Enrollment=1, Final=1
+    👤 Muhammad Amin: Fee=1, Enrollment=1, Final=1
+    👤 Talha Siyal: Fee=1, Enrollment=1, Final=1
+    👤 Kainat Mehmood: Fee=1, Enrollment=1, Final=1
+    👤 Ayesha Ishtiaq: Fee=1, Enrollment=1, Final=1
+    👤 Anza Aleem: Fee=1, Enrollment=1, Final=1
+    👤 Ghulam Mustafa: Fee=1, Enrollment=1, Final=1
+    👤 Zahra Baloch: Fee=3, Enrollment=3, Final=3
+    👤 Ahsan Abbas: Fee=1, Enrollment=1, Final=1
+    👤 Taimoor Saif: Fee=1, Enrollment=1, Final=1
+    👤 Amna Nargis: Fee=1, Enrollment=1, Final=1
+    👤 Zaighum Siddique: Fee=1, Enrollment=1, Final=1
+    👤 Saiqa Yaseen: Fee=1, Enrollment=1, Final=1
+    👤 Farha Batool: Fee=1, Enrollment=1, Final=1
+    👤 Arbab Ghafoor: Fee=1, Enrollment=1, Final=1
+    👤 Armeeza Siyal: Fee=1, Enrollment=1, Final=1
+    👤 M. Zubair Younis: Fee=1, Enrollment=1, Final=1
+    👤 Muhammad Hashir: Fee=1, Enrollment=1, Final=1
+    👤 Abdullah Shahid: Fee=1, Enrollment=1, Final=1
+    👤 Raqeeb Ullah: Fee=1, Enrollment=1, Final=1
+    👤 M.Ahsan: Fee=1, Enrollment=1, Final=1
+    👤 Ali Raza: Fee=1, Enrollment=1, Final=1
+    👤 Aliza Yasin: Fee=1, Enrollment=1, Final=1
+    👤 Hafiz Muhammad Ahmad Raza Khan: Fee=1, Enrollment=1, Final=1
+    👤 Muhammad Bilal: Fee=0, Enrollment=0, Final=0
+    👤 Ahsaan-Ullah: Fee=1, Enrollment=1, Final=1
+    👤 Hafiz Muhammad Ahmad Raza Khan: Fee=5, Enrollment=4, Final=5
+    👤 Muhammad Shahbaz Habib: Fee=1, Enrollment=1, Final=1
+    👤 Imran Patras: Fee=1, Enrollment=1, Final=1
+    👤 Aliza Yasin: Fee=1, Enrollment=1, Final=1
+    👤 Muhammad Umar: Fee=1, Enrollment=1, Final=1
+    👤 Abdullah Shahid: Fee=1, Enrollment=1, Final=1
+    👤 Mustafa Faraz: Fee=1, Enrollment=1, Final=1
+    👤 Muhammad Shahbaz: Fee=1, Enrollment=1, Final=1
+    👤 Syed Adnan Adi: Fee=1, Enrollment=1, Final=1
+    👤 Muhammad Bilal: Fee=0, Enrollment=0, Final=0
+    👤 Muhammad Bilal: Fee=0, Enrollment=0, Final=0
+    👤 Amna Shumail: Fee=0, Enrollment=0, Final=0
+    👤 Hassan Tahir: Fee=0, Enrollment=0, Final=0
+    👤 Iman Durrani: Fee=0, Enrollment=0, Final=0
+    👤 Ali Aslam: Fee=0, Enrollment=0, Final=0
+    👤 Muhammad Solan Sajid: Fee=0, Enrollment=0, Final=0
+    👤 Abeera: Fee=0, Enrollment=0, Final=0
+    👤 Mansab Ali: Fee=0, Enrollment=0, Final=0
+    👤 Muhammad Shahwar Ajmal: Fee=0, Enrollment=0, Final=0
+    👤 Muhammad Israr Khan: Fee=0, Enrollment=0, Final=0
+    👤 Hijab: Fee=0, Enrollment=0, Final=0
+    👤 Sharyar: Fee=1, Enrollment=1, Final=1
+    👤 Muhammad Abdullah: Fee=0, Enrollment=0, Final=0
+    👤 Muqadas Zahrah: Fee=3, Enrollment=3, Final=3
+    👤 Sidra Parveen: Fee=0, Enrollment=0, Final=0
+    👤 Muhammad Ali: Fee=1, Enrollment=1, Final=1
+    👤 Muhammad Amir: Fee=1, Enrollment=1, Final=1
+    👤 Ahmad Hassan: Fee=1, Enrollment=1, Final=1
+    👤 Bisma Noor: Fee=1, Enrollment=1, Final=1
+    👤 Sami-Ullah: Fee=1, Enrollment=1, Final=1
+    👤 Syed Fyzan Gull: Fee=1, Enrollment=1, Final=1
+    👤 Muhammad Mudasir: Fee=1, Enrollment=1, Final=1
+    👤 Ali Ch: Fee=1, Enrollment=1, Final=1
+    👤 Ameer Hamza: Fee=1, Enrollment=1, Final=1
+    👤 Zia UR Rehman: Fee=1, Enrollment=1, Final=1
+    👤 Umar Sajid: Fee=1, Enrollment=1, Final=1
+    👤 Taimoor Saif: Fee=1, Enrollment=1, Final=1
+    👤 Sameer Qasim: Fee=1, Enrollment=1, Final=1
+    👤 Farhan Talib: Fee=1, Enrollment=1, Final=1
+    👤 Ayyaz Hussain: Fee=1, Enrollment=1, Final=1
+    👤 Laiba Saleem: Fee=1, Enrollment=1, Final=1
+    👤 Aqsa Bibi: Fee=1, Enrollment=1, Final=1
+    👤 Aqsa Naseer: Fee=1, Enrollment=1, Final=1
+    👤 Ashna Zahid: Fee=6, Enrollment=6, Final=6
+    👤 Hammad Sadiq: Fee=1, Enrollment=1, Final=1
+    👤 Abdul Wahab: Fee=1, Enrollment=1, Final=1
+    👤 Salman Tariq: Fee=1, Enrollment=1, Final=1
+    👤 Muhammad Mohsin: Fee=1, Enrollment=1, Final=1
+    👤 Muhammad Hymn Abdullah Bukhari: Fee=1, Enrollment=1, Final=1
+    👤 Muhammad Aneeb Bukhari: Fee=1, Enrollment=1, Final=1
+    👤 Aliza Yasin: Fee=1, Enrollment=1, Final=1
+    👤 Malaika M.Nazakat: Fee=0, Enrollment=0, Final=0
+    👤 Abdul Hanan: Fee=0, Enrollment=0, Final=0
+    👤 Amna Bibi: Fee=1, Enrollment=1, Final=1
+    👤 Hadia: Fee=1, Enrollment=1, Final=1
+    👤 Muhammad Shahzaib malik: Fee=0, Enrollment=0, Final=0
+    👤 Muqadas Zahrah: Fee=3, Enrollment=3, Final=3
+    👤 Yalmaz khan: Fee=0, Enrollment=0, Final=0
+    👤 Adil Asif: Fee=1, Enrollment=1, Final=1
+    👤 Syed Ahmer Bukhari: Fee=3, Enrollment=1, Final=3
+    👤 Malik Raheem Bukhsh: Fee=0, Enrollment=0, Final=0
+    👤 Rao Mehtab Ahmed: Fee=2, Enrollment=1, Final=2
+    👤 Faizan Musa: Fee=1, Enrollment=1, Final=1
+    👤 Noreen Fatima: Fee=1, Enrollment=1, Final=1
+    👤 Ujala Hanif: Fee=1, Enrollment=1, Final=1
+    👤 Tooba Adrees: Fee=1, Enrollment=1, Final=1
+    👤 Muhammad Mohsin: Fee=1, Enrollment=1, Final=1
+    👤 Hadia Sarwar: Fee=1, Enrollment=1, Final=1
+    👤 Adil Asif: Fee=1, Enrollment=1, Final=1
+    👤 Moazzam Ali Zahid: Fee=1, Enrollment=1, Final=1
+    👤 Muhammad Hamza Zakriya: Fee=1, Enrollment=1, Final=1
+    👤 Aftab Ahmad: Fee=3, Enrollment=1, Final=3
+    👤 Abdul Hanan: Fee=0, Enrollment=0, Final=0
+    👤 Muhammad Arham Khalid: Fee=1, Enrollment=1, Final=1
+    👤 Alizah Fatima: Fee=1, Enrollment=1, Final=1
+    👤 Sana Fiaz: Fee=1, Enrollment=1, Final=1
+    👤 Husnain Abid: Fee=0, Enrollment=0, Final=0
+    👤 Muhammad Amar: Fee=0, Enrollment=0, Final=0
+    👤 Fareena Batool: Fee=0, Enrollment=0, Final=0
+    👤 Muhammad Talha Hussain: Fee=1, Enrollment=1, Final=1
+    👤 Ujala Hanif: Fee=1, Enrollment=1, Final=1
+    👤 Amna Bibi: Fee=1, Enrollment=1, Final=1
+    👤 Manhal chuahdary: Fee=1, Enrollment=1, Final=1
+    👤 Muhammad Mohsin Nehan: Fee=1, Enrollment=1, Final=1
+    👤 Tooba Adrees: Fee=1, Enrollment=1, Final=1
+    👤 Muntaha Fatima: Fee=1, Enrollment=1, Final=1
+    👤 Ateeq ur Rehman: Fee=1, Enrollment=1, Final=1
+    👤 Muhammad Faiz Arshad: Fee=0, Enrollment=0, Final=0
+    👤 Amna Bibi: Fee=1, Enrollment=1, Final=1
+    👤 Aneeza Yaseen: Fee=0, Enrollment=0, Final=0
+    👤 Hadia: Fee=1, Enrollment=1, Final=1
+    👤 Ansa: Fee=0, Enrollment=0, Final=0
+✅ [CERTIFICATES] Returning 71 courses with students
+🔐 Auth OK: Super Admin (admin) - GET /api/certificates/courses
+📚 [CERTIFICATES] Fetching courses for certificate management
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+📚 [CERTIFICATES] Found 71 courses
+  └─ Course "Joint Secretary (Adeeb LMS Manager) (IT)": 0 enrollments
+  └─ Course "WordPress + Elementor": 0 enrollments
+  └─ Course "Online Quran Course": 0 enrollments
+  └─ Course "Online Quran Course": 0 enrollments
+  └─ Course "Tester for App software Website": 0 enrollments
+  └─ Course "AI Automation & AI Agents Course (Online)": 0 enrollments
+  └─ Course "Cyber Security (Online)": 0 enrollments
+  └─ Course "Learn & Earn – Free Earning Training Program (Online)": 0 enrollments
+  └─ Course "Internet of Things (IoT)": 0 enrollments
+  └─ Course "UI/UX Design": 0 enrollments
+  └─ Course "App Dev Without Coding": 0 enrollments
+  └─ Course "App Development": 0 enrollments
+  └─ Course "Internet of Thing [IOT]": 0 enrollments
+  └─ Course "Home Architecture": 0 enrollments
+  └─ Course "UX/UI Designing": 0 enrollments
+  └─ Course "Freelancing": 0 enrollments
+  └─ Course "Truck Dispatching": 0 enrollments
+  └─ Course "Software Development ( online )": 0 enrollments
+  └─ Course "Trading   (Online)": 0 enrollments
+  └─ Course "Internet of Thing [IOT]   (Online)": 0 enrollments
+  └─ Course "App Dev Without Coding   (Online)": 0 enrollments
+  └─ Course "App Development   (Online)": 0 enrollments
+  └─ Course "YouTuber Course (Online)": 0 enrollments
+  └─ Course "UX/UI Designing (Online)": 0 enrollments
+  └─ Course "E-Commerce (Online)": 0 enrollments
+  └─ Course "Digital Marketing, Ads (Online)": 0 enrollments
+  └─ Course "HR Manager": 0 enrollments
+  └─ Course "Team Manager": 0 enrollments
+  └─ Course "Tech Store Manager": 0 enrollments
+  └─ Course "Video Editor": 0 enrollments
+  └─ Course "Team Manager": 0 enrollments
+  └─ Course "WordPress + Elementor": 1 enrollments
+  └─ Course "Artificial Intelligence - Ai Tools": 1 enrollments
+  └─ Course "Tester for App software Website": 1 enrollments
+  └─ Course "Joint Secretary (Adeeb LMS Manager) (IT)": 2 enrollments
+  └─ Course "Artificial Intelligence - Ai Tools": 1 enrollments
+  └─ Course "Ai and Ml": 5 enrollments
+  └─ Course "Programming": 1 enrollments
+  └─ Course "Basic Computer": 2 enrollments
+  └─ Course "Basic Computer": 16 enrollments
+  └─ Course "UI / UX Designing": 1 enrollments
+  └─ Course "Internet of Things (IoT)": 3 enrollments
+  └─ Course "Digital Marketing, Ads": 2 enrollments
+  └─ Course "Web Development": 3 enrollments
+  └─ Course "Graphic Designer": 2 enrollments
+  └─ Course "Office Work [IT]": 6 enrollments
+  └─ Course "Youtuber Course": 1 enrollments
+  └─ Course "E-Commerce": 2 enrollments
+  └─ Course "Video Editing": 5 enrollments
+  └─ Course "Web Development   (Online)": 9 enrollments
+  └─ Course "Home Architecture   (Online)": 1 enrollments
+  └─ Course "Graphic Designer": 15 enrollments
+  └─ Course "Video Editing": 11 enrollments
+  └─ Course "Freelancing (Online)": 1 enrollments
+  └─ Course "Software Development": 1 enrollments
+  └─ Course "App Development": 4 enrollments
+  └─ Course "Web Development (HTML+CSS+Java)": 5 enrollments
+  └─ Course "Social media manager": 2 enrollments
+  └─ Course "Graphic Designer": 1 enrollments
+  └─ Course "YouTube Manager": 1 enrollments
+  └─ Course "Office Work [IT] Documentation Managment": 1 enrollments
+  └─ Course "Office Work [IT]": 26 enrollments
+  └─ Course "Software Development (Visual Studio)": 1 enrollments
+  └─ Course "HR Manager": 5 enrollments
+  └─ Course "App Development": 6 enrollments
+  └─ Course "Tech Store Manager + Content Writer": 1 enrollments
+  └─ Course "Web Development (HTML+CSS+Java)": 12 enrollments
+  └─ Course "Social media manager": 4 enrollments
+  └─ Course "YouTube Manager + Video Editor": 2 enrollments
+  └─ Course "Office Work [IT] Documentation Management": 5 enrollments
+  └─ Course "Graphic Designer": 4 enrollments
+    👤 Asma Iqbal: Fee=1, Enrollment=1, Final=1
+    👤 Fatima javed: Fee=1, Enrollment=1, Final=1
+    👤 Muhammad Ahmad: Fee=1, Enrollment=1, Final=1
+    👤 Abdul Rauf: Fee=0, Enrollment=0, Final=0
+    👤 Aliza Yasin: Fee=1, Enrollment=1, Final=1
+    👤 Yalmaz khan: Fee=0, Enrollment=0, Final=0
+    👤 Kashan Abid Magasi: Fee=3, Enrollment=1, Final=3
+    👤 Nimra: Fee=0, Enrollment=0, Final=0
+    👤 Dua Noor: Fee=1, Enrollment=1, Final=1
+    👤 Yasmeen Fayyaz: Fee=0, Enrollment=0, Final=0
+    👤 Muhammad Aryan Khan Niazi: Fee=1, Enrollment=1, Final=1
+    👤 Imran Nadeem: Fee=0, Enrollment=0, Final=0
+    👤 Salman Adeeb: Fee=2, Enrollment=2, Final=2
+    👤 Muhammad Bilal: Fee=0, Enrollment=0, Final=0
+    👤 Abu Bakar: Fee=2, Enrollment=2, Final=2
+    👤 Muhammad Asjad: Fee=1, Enrollment=1, Final=1
+    👤 Hafiz Arif: Fee=3, Enrollment=3, Final=3
+    👤 Abdul Hadi: Fee=2, Enrollment=2, Final=2
+    👤 Muhammad Rizwan: Fee=1, Enrollment=1, Final=1
+    👤 Mehnaz BiBi: Fee=1, Enrollment=1, Final=1
+    👤 Shayan israr: Fee=4, Enrollment=4, Final=4
+    👤 Chaudhary Furqan: Fee=3, Enrollment=3, Final=3
+    👤 Mehwish BiBi: Fee=1, Enrollment=1, Final=1
+    👤 AHTESHAM KHAN: Fee=2, Enrollment=2, Final=2
+    👤 FALAK KHAN: Fee=2, Enrollment=2, Final=2
+    👤 Muhammad Arslan: Fee=2, Enrollment=2, Final=2
+    👤 M Abdullah: Fee=1, Enrollment=1, Final=1
+    👤 Rehan sajjad: Fee=1, Enrollment=1, Final=1
+    👤 Noor Nawaz: Fee=2, Enrollment=2, Final=2
+    👤 mufassir Qureshi: Fee=0, Enrollment=0, Final=0
+    👤 Nosheen yousaf: Fee=1, Enrollment=1, Final=1
+    👤 Ghulam Muhammad Taqi Shah: Fee=3, Enrollment=3, Final=3
+    👤 Muhammad Zulqarnain: Fee=2, Enrollment=1, Final=2
+    👤 Furqan Ali: Fee=3, Enrollment=3, Final=3
+    👤 Anees Khan: Fee=1, Enrollment=1, Final=1
+    👤 Homam sajjad: Fee=3, Enrollment=3, Final=3
+    👤 Hashim Ali: Fee=3, Enrollment=3, Final=3
+    👤 Muhammad Asjad: Fee=2, Enrollment=1, Final=2
+    👤 Sharyar: Fee=1, Enrollment=1, Final=1
+    👤 Kashif Khalid: Fee=4, Enrollment=4, Final=4
+    👤 Sharyar: Fee=3, Enrollment=3, Final=3
+    👤 Abdul Hanan Hashmi Qureshi: Fee=2, Enrollment=2, Final=2
+    👤 Waqas Anwar Khan: Fee=4, Enrollment=4, Final=4
+    👤 M Aman Khan: Fee=3, Enrollment=3, Final=3
+    👤 Abdur Rahim: Fee=3, Enrollment=3, Final=3
+    👤 Muhammad  Farhad: Fee=2, Enrollment=2, Final=2
+    👤 Nadeem: Fee=0, Enrollment=0, Final=0
+    👤 Huma Nawaz: Fee=0, Enrollment=0, Final=0
+    👤 Gul Imtiaz Qureshi: Fee=1, Enrollment=1, Final=1
+    👤 Hassan Ali: Fee=2, Enrollment=2, Final=2
+    👤 Adnan Ahmad: Fee=3, Enrollment=3, Final=3
+    👤 Shayan ali: Fee=1, Enrollment=1, Final=1
+    👤 Anees Khan: Fee=3, Enrollment=3, Final=3
+    👤 M Saeed khan: Fee=1, Enrollment=1, Final=1
+    👤 M Abdullah: Fee=1, Enrollment=1, Final=1
+    👤 Muhammad Amin: Fee=1, Enrollment=1, Final=1
+    👤 Aimen Irfan: Fee=1, Enrollment=1, Final=1
+    👤 Talha Siyal: Fee=1, Enrollment=1, Final=1
+    👤 Kainat Mehmood: Fee=1, Enrollment=1, Final=1
+    👤 Ayesha Ishtiaq: Fee=1, Enrollment=1, Final=1
+    👤 Anza Aleem: Fee=1, Enrollment=1, Final=1
+    👤 Ghulam Mustafa: Fee=1, Enrollment=1, Final=1
+    👤 Zahra Baloch: Fee=3, Enrollment=3, Final=3
+    👤 Taimoor Saif: Fee=1, Enrollment=1, Final=1
+    👤 Ahsan Abbas: Fee=1, Enrollment=1, Final=1
+    👤 Amna Nargis: Fee=1, Enrollment=1, Final=1
+    👤 Saiqa Yaseen: Fee=1, Enrollment=1, Final=1
+    👤 Zaighum Siddique: Fee=1, Enrollment=1, Final=1
+    👤 Farha Batool: Fee=1, Enrollment=1, Final=1
+    👤 Arbab Ghafoor: Fee=1, Enrollment=1, Final=1
+    👤 Armeeza Siyal: Fee=1, Enrollment=1, Final=1
+    👤 M. Zubair Younis: Fee=1, Enrollment=1, Final=1
+    👤 Muhammad Hashir: Fee=1, Enrollment=1, Final=1
+    👤 Abdullah Shahid: Fee=1, Enrollment=1, Final=1
+    👤 Raqeeb Ullah: Fee=1, Enrollment=1, Final=1
+    👤 M.Ahsan: Fee=1, Enrollment=1, Final=1
+    👤 Ali Raza: Fee=1, Enrollment=1, Final=1
+    👤 Aliza Yasin: Fee=1, Enrollment=1, Final=1
+    👤 Hafiz Muhammad Ahmad Raza Khan: Fee=1, Enrollment=1, Final=1
+    👤 Muhammad Bilal: Fee=0, Enrollment=0, Final=0
+    👤 Muhammad Shahbaz Habib: Fee=1, Enrollment=1, Final=1
+    👤 Ahsaan-Ullah: Fee=1, Enrollment=1, Final=1
+    👤 Hafiz Muhammad Ahmad Raza Khan: Fee=5, Enrollment=4, Final=5
+    👤 Imran Patras: Fee=1, Enrollment=1, Final=1
+    👤 Aliza Yasin: Fee=1, Enrollment=1, Final=1
+    👤 Muhammad Umar: Fee=1, Enrollment=1, Final=1
+    👤 Abdullah Shahid: Fee=1, Enrollment=1, Final=1
+    👤 Mustafa Faraz: Fee=1, Enrollment=1, Final=1
+    👤 Muhammad Shahbaz: Fee=1, Enrollment=1, Final=1
+    👤 Syed Adnan Adi: Fee=1, Enrollment=1, Final=1
+    👤 Muhammad Bilal: Fee=0, Enrollment=0, Final=0
+    👤 Muhammad Bilal: Fee=0, Enrollment=0, Final=0
+    👤 Amna Shumail: Fee=0, Enrollment=0, Final=0
+    👤 Hassan Tahir: Fee=0, Enrollment=0, Final=0
+    👤 Iman Durrani: Fee=0, Enrollment=0, Final=0
+    👤 Ali Aslam: Fee=0, Enrollment=0, Final=0
+    👤 Muhammad Solan Sajid: Fee=0, Enrollment=0, Final=0
+    👤 Abeera: Fee=0, Enrollment=0, Final=0
+    👤 Mansab Ali: Fee=0, Enrollment=0, Final=0
+    👤 Muhammad Shahwar Ajmal: Fee=0, Enrollment=0, Final=0
+    👤 Muhammad Israr Khan: Fee=0, Enrollment=0, Final=0
+    👤 Hijab: Fee=0, Enrollment=0, Final=0
+    👤 Muhammad Abdullah: Fee=0, Enrollment=0, Final=0
+    👤 Muqadas Zahrah: Fee=3, Enrollment=3, Final=3
+    👤 Sharyar: Fee=1, Enrollment=1, Final=1
+    👤 Sidra Parveen: Fee=0, Enrollment=0, Final=0
+    👤 Malaika M.Nazakat: Fee=0, Enrollment=0, Final=0
+    👤 Muhammad Amir: Fee=1, Enrollment=1, Final=1
+    👤 Muhammad Ali: Fee=1, Enrollment=1, Final=1
+    👤 Ahmad Hassan: Fee=1, Enrollment=1, Final=1
+    👤 Bisma Noor: Fee=1, Enrollment=1, Final=1
+    👤 Sami-Ullah: Fee=1, Enrollment=1, Final=1
+    👤 Syed Fyzan Gull: Fee=1, Enrollment=1, Final=1
+    👤 Muhammad Mudasir: Fee=1, Enrollment=1, Final=1
+    👤 Ali Ch: Fee=1, Enrollment=1, Final=1
+    👤 Ameer Hamza: Fee=1, Enrollment=1, Final=1
+    👤 Zia UR Rehman: Fee=1, Enrollment=1, Final=1
+    👤 Taimoor Saif: Fee=1, Enrollment=1, Final=1
+    👤 Umar Sajid: Fee=1, Enrollment=1, Final=1
+    👤 Sameer Qasim: Fee=1, Enrollment=1, Final=1
+    👤 Farhan Talib: Fee=1, Enrollment=1, Final=1
+    👤 Ayyaz Hussain: Fee=1, Enrollment=1, Final=1
+    👤 Laiba Saleem: Fee=1, Enrollment=1, Final=1
+    👤 Aqsa Bibi: Fee=1, Enrollment=1, Final=1
+    👤 Aqsa Naseer: Fee=1, Enrollment=1, Final=1
+    👤 Hammad Sadiq: Fee=1, Enrollment=1, Final=1
+    👤 Ashna Zahid: Fee=6, Enrollment=6, Final=6
+    👤 Muhammad Mohsin: Fee=1, Enrollment=1, Final=1
+    👤 Aliza Yasin: Fee=1, Enrollment=1, Final=1
+    👤 Muhammad Hymn Abdullah Bukhari: Fee=1, Enrollment=1, Final=1
+    👤 Muhammad Aneeb Bukhari: Fee=1, Enrollment=1, Final=1
+    👤 Abdul Hanan: Fee=0, Enrollment=0, Final=0
+    👤 Abdul Wahab: Fee=1, Enrollment=1, Final=1
+    👤 Salman Tariq: Fee=1, Enrollment=1, Final=1
+    👤 Amna Bibi: Fee=1, Enrollment=1, Final=1
+    👤 Muhammad Shahzaib malik: Fee=0, Enrollment=0, Final=0
+    👤 Yalmaz khan: Fee=0, Enrollment=0, Final=0
+    👤 Hadia: Fee=1, Enrollment=1, Final=1
+    👤 Adil Asif: Fee=1, Enrollment=1, Final=1
+    👤 Muqadas Zahrah: Fee=3, Enrollment=3, Final=3
+    👤 Syed Ahmer Bukhari: Fee=3, Enrollment=1, Final=3
+    👤 Malik Raheem Bukhsh: Fee=0, Enrollment=0, Final=0
+    👤 Rao Mehtab Ahmed: Fee=2, Enrollment=1, Final=2
+    👤 Faizan Musa: Fee=1, Enrollment=1, Final=1
+    👤 Ujala Hanif: Fee=1, Enrollment=1, Final=1
+    👤 Noreen Fatima: Fee=1, Enrollment=1, Final=1
+    👤 Tooba Adrees: Fee=1, Enrollment=1, Final=1
+    👤 Hadia Sarwar: Fee=1, Enrollment=1, Final=1
+    👤 Moazzam Ali Zahid: Fee=1, Enrollment=1, Final=1
+    👤 Muhammad Hamza Zakriya: Fee=1, Enrollment=1, Final=1
+    👤 Muhammad Mohsin: Fee=1, Enrollment=1, Final=1
+    👤 Adil Asif: Fee=1, Enrollment=1, Final=1
+    👤 Aftab Ahmad: Fee=3, Enrollment=1, Final=3
+    👤 Abdul Hanan: Fee=0, Enrollment=0, Final=0
+    👤 Husnain Abid: Fee=0, Enrollment=0, Final=0
+    👤 Muhammad Talha Hussain: Fee=1, Enrollment=1, Final=1
+    👤 Fareena Batool: Fee=0, Enrollment=0, Final=0
+    👤 Ujala Hanif: Fee=1, Enrollment=1, Final=1
+    👤 Muntaha Fatima: Fee=1, Enrollment=1, Final=1
+    👤 Tooba Adrees: Fee=1, Enrollment=1, Final=1
+    👤 Ateeq ur Rehman: Fee=1, Enrollment=1, Final=1
+    👤 Muhammad Faiz Arshad: Fee=0, Enrollment=0, Final=0
+    👤 Amna Bibi: Fee=1, Enrollment=1, Final=1
+    👤 Manhal chuahdary: Fee=1, Enrollment=1, Final=1
+    👤 Muhammad Arham Khalid: Fee=1, Enrollment=1, Final=1
+    👤 Muhammad Amar: Fee=0, Enrollment=0, Final=0
+    👤 Alizah Fatima: Fee=1, Enrollment=1, Final=1
+    👤 Sana Fiaz: Fee=1, Enrollment=1, Final=1
+    👤 Muhammad Mohsin Nehan: Fee=1, Enrollment=1, Final=1
+    👤 Amna Bibi: Fee=1, Enrollment=1, Final=1
+    👤 Hadia: Fee=1, Enrollment=1, Final=1
+    👤 Aneeza Yaseen: Fee=0, Enrollment=0, Final=0
+    👤 Ansa: Fee=0, Enrollment=0, Final=0
+✅ [CERTIFICATES] Returning 71 courses with students
+🔌 Client disconnected | Active: 1
+🔌 New client connected
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/me
+🔌 Client disconnected | Active: 1
+🔌 Client disconnected | Active: 1
+🔌 New client connected
+🔌 New client connected
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/available-roles
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔌 Client disconnected | Active: 1
+🔌 New client connected
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+🔐 Auth OK: Super Admin (admin) - GET /api/tasks/completed-showcase
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/me
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/users/role/teacher
+🔌 Client disconnected | Active: 1
+🔌 Client disconnected | Active: 1
+🔌 New client connected
+🔌 New client connected
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/available-roles
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/tasks/completed-showcase
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/users/role/teacher
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/attendance/global-holidays
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔌 Client disconnected | Active: 1
+🔌 Client disconnected | Active: 1
+🔌 Client disconnected | Active: 0
+🔌 New client connected
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/available-roles
+🔌 New client connected
+🔌 New client connected
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/tasks/completed-showcase
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+🔐 Auth OK: Super Admin (admin) - GET /api/users/role/teacher
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/conversations
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/me
+🔐 Auth OK: Super Admin (admin) - GET /api/attendance/global-holidays
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/tasks/completed-showcase
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/available-roles
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/me
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/users/role/teacher
+🔐 Auth OK: Super Admin (admin) - GET /api/attendance/global-holidays
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔌 Client disconnected | Active: 1
+🔌 Client disconnected | Active: 1
+🔌 New client connected
+🔌 New client connected
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+👤 User joined personal chat room: 6979f4a7fe559715b806b751 | Active: 1
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/auth/available-roles
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/conversations
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/attendance/global-holidays
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/attendance/global-holidays
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/attendance/global-holidays
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/attendance/global-holidays
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/attendance/global-holidays
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/attendance/global-holidays
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/attendance/global-holidays
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks
+🔐 Auth OK: Super Admin (admin) - GET /api/users/pending-counts
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/discussion/unread
+🔐 Auth OK: Super Admin (admin) - GET /api/user-notifications/unread-count
+🔐 Auth OK: Super Admin (admin) - GET /api/chat/job/tasks

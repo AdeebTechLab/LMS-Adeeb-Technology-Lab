@@ -491,9 +491,9 @@ const JobsManagement = () => {
 
             {/* Job Users List */}
             {filteredUsers.length === 0 ? (
-                <div className="bg-white rounded-2xl p-12 border border-gray-100 text-center">
-                    <Briefcase className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                    <p className="text-gray-500">No job applicants found</p>
+                <div className="bg-white dark:bg-slate-900/70 rounded-2xl p-12 border border-gray-100 dark:border-slate-700 text-center">
+                    <Briefcase className="w-12 h-12 text-gray-300 dark:text-slate-600 mx-auto mb-4" />
+                    <p className="text-gray-500 dark:text-slate-400">No job applicants found</p>
                 </div>
             ) : (
                 <div className="grid gap-4">
@@ -503,9 +503,9 @@ const JobsManagement = () => {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: index * 0.05 }}
-                            className="bg-white rounded-2xl p-6 border border-gray-100"
+                            className="bg-white dark:bg-slate-900/70 rounded-2xl p-4 sm:p-6 border border-gray-100 dark:border-slate-700 shadow-sm dark:shadow-none"
                         >
-                            <div className="flex flex-col lg:flex-row lg:items-center gap-6">
+                            <div className="flex flex-col 2xl:flex-row 2xl:items-center gap-5 2xl:gap-6">
                                 {/* Photo & Basic Info */}
                                 <div className="flex items-center gap-4 min-w-0">
                                     <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center overflow-hidden shrink-0 shadow-lg shadow-purple-900/10">
@@ -516,30 +516,30 @@ const JobsManagement = () => {
                                         )}
                                     </div>
                                     <div className="min-w-0">
-                                        <h3 className="text-sm font-black text-gray-900 uppercase tracking-tighter truncate mb-1.5">{user.name}</h3>
-                                        <p className="text-xs font-medium text-gray-500 flex items-center gap-1.5 truncate">
-                                            <Mail className="w-3.5 h-3.5 text-gray-400" /> {user.email}
+                                        <h3 className="text-sm font-black text-gray-900 dark:text-white uppercase tracking-tighter truncate mb-1.5">{user.name}</h3>
+                                        <p className="text-xs font-medium text-gray-500 dark:text-slate-400 flex items-center gap-1.5 truncate">
+                                            <Mail className="w-3.5 h-3.5 text-gray-400 dark:text-slate-500" /> {user.email}
                                         </p>
                                     </div>
                                 </div>
 
                                 {/* Stats Grid */}
-                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-6 flex-1 bg-gray-50/50 p-4 rounded-2xl border border-gray-100">
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-6 w-full 2xl:flex-1 bg-gray-50/80 dark:bg-slate-800/80 p-4 rounded-2xl border border-gray-100 dark:border-slate-600">
                                     <div className="space-y-1">
-                                        <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Phone</p>
-                                        <p className="text-xs font-bold text-gray-700">{user.phone || 'N/A'}</p>
+                                        <p className="text-[9px] font-black text-gray-400 dark:text-slate-400 uppercase tracking-widest">Phone</p>
+                                        <p className="text-xs font-bold text-gray-700 dark:text-slate-100 break-all">{user.phone || 'N/A'}</p>
                                     </div>
                                     <div className="space-y-1">
-                                        <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Location</p>
-                                        <p className="text-xs font-bold text-gray-700 capitalize truncate">{user.location || 'N/A'}</p>
+                                        <p className="text-[9px] font-black text-gray-400 dark:text-slate-400 uppercase tracking-widest">Location</p>
+                                        <p className="text-xs font-bold text-gray-700 dark:text-slate-100 capitalize truncate">{user.location || user.city || 'N/A'}</p>
                                     </div>
                                     <div className="space-y-1">
-                                        <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Tasks Done</p>
-                                        <p className="text-xs font-bold text-gray-700">{user.completedTasks || 0}</p>
+                                        <p className="text-[9px] font-black text-gray-400 dark:text-slate-400 uppercase tracking-widest">Tasks Done</p>
+                                        <p className="text-xs font-bold text-gray-700 dark:text-slate-100">{user.completedTasks || 0}</p>
                                     </div>
                                     <div className="space-y-1">
-                                        <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Rating</p>
-                                        <p className="text-xs font-bold text-gray-700 flex items-center gap-1">
+                                        <p className="text-[9px] font-black text-gray-400 dark:text-slate-400 uppercase tracking-widest">Rating</p>
+                                        <p className="text-xs font-bold text-gray-700 dark:text-slate-100 flex items-center gap-1">
                                             <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
                                             {user.rating > 0 ? user.rating.toFixed(1) : 'N/A'}
                                         </p>
@@ -548,11 +548,11 @@ const JobsManagement = () => {
 
                                 {/* Skills */}
                                 {user.skills && (
-                                    <div className="flex flex-col sm:flex-row sm:items-center gap-3 bg-purple-50/30 p-3 rounded-xl border border-primary/10/50 flex-1">
-                                        <p className="text-[9px] font-black text-purple-400 uppercase tracking-widest shrink-0">Expertise</p>
+                                    <div className="flex flex-col sm:flex-row sm:items-start gap-3 w-full 2xl:max-w-sm bg-purple-50/60 dark:bg-purple-500/10 p-4 rounded-xl border border-purple-100 dark:border-purple-400/20">
+                                        <p className="text-[9px] font-black text-purple-500 dark:text-purple-300 uppercase tracking-widest shrink-0 sm:pt-1.5">Expertise</p>
                                         <div className="flex flex-wrap gap-1.5">
                                             {user.skills.split(',').map((skill, idx) => (
-                                                <span key={idx} className="px-2 py-0.5 bg-white text-purple-700 rounded-md text-[10px] font-bold border border-primary/10 shadow-sm">
+                                                <span key={idx} className="px-2.5 py-1 bg-white dark:bg-slate-800 text-purple-700 dark:text-purple-200 rounded-lg text-[10px] font-bold border border-purple-100 dark:border-purple-400/20 shadow-sm">
                                                     {skill.trim()}
                                                 </span>
                                             ))}
@@ -561,31 +561,31 @@ const JobsManagement = () => {
                                 )}
 
                                 {/* Actions */}
-                                <div className="flex flex-wrap items-center justify-end gap-2 shrink-0 border-t lg:border-t-0 pt-4 lg:pt-0">
-                                    <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2 lg:pb-0">
+                                <div className="flex flex-wrap items-center justify-end gap-2 shrink-0 border-t border-gray-100 dark:border-slate-700 2xl:border-t-0 pt-4 2xl:pt-0">
+                                    <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2 2xl:pb-0">
                                         <button
                                             onClick={() => downloadUserPDF(user)}
-                                            className="p-2.5 bg-primary/5 hover:bg-primary/10 text-primary rounded-xl border border-primary/10 transition-all"
+                                            className="p-2.5 bg-primary/5 dark:bg-primary/10 hover:bg-primary/10 dark:hover:bg-primary/20 text-primary dark:text-orange-300 rounded-xl border border-primary/10 dark:border-primary/20 transition-all"
                                             title="Download Profile"
                                         >
                                             <Download className="w-5 h-5" />
                                         </button>
                                         <button
                                             onClick={() => handleEditClick(user)}
-                                            className="p-2.5 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl border border-blue-100 transition-all"
+                                            className="p-2.5 bg-blue-50 dark:bg-blue-500/10 hover:bg-blue-100 dark:hover:bg-blue-500/20 text-blue-600 dark:text-blue-300 rounded-xl border border-blue-100 dark:border-blue-400/20 transition-all"
                                             title="Edit Bio"
                                         >
                                             <Edit2 className="w-5 h-5" />
                                         </button>
                                         <button
                                             onClick={() => setConfirmModal({ open: true, action: 'delete', user })}
-                                            className="p-2.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl border border-red-100 transition-all"
+                                            className="p-2.5 bg-red-50 dark:bg-red-500/10 hover:bg-red-100 dark:hover:bg-red-500/20 text-red-600 dark:text-red-300 rounded-xl border border-red-100 dark:border-red-400/20 transition-all"
                                         >
                                             <Trash2 className="w-5 h-5" />
                                         </button>
                                     </div>
 
-                                    <div className="h-8 w-px bg-gray-100 hidden lg:block mx-1" />
+                                    <div className="h-8 w-px bg-gray-100 dark:bg-slate-700 hidden 2xl:block mx-1" />
 
                                     <button
                                         onClick={() => setConfirmModal({ open: true, action: user.isVerified ? 'unverify' : 'verify', user })}
