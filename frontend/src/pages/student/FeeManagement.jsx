@@ -32,8 +32,6 @@ const FeeManagement = () => {
 
     const navigate = useNavigate();
     const QR_LINKS = {
-        hbl: 'https://res.cloudinary.com/adeeb-tech-lab/image/upload/v1776804616/HBL_Bank_nbng72.png',
-        jazzcash: 'https://res.cloudinary.com/adeeb-tech-lab/image/upload/v1776804616/jazzcash_ztcw5s.png',
         easypaisa: 'https://res.cloudinary.com/adeeb-tech-lab/image/upload/v1776804616/easypaisa_yr7gux.png'
     };
 
@@ -458,130 +456,35 @@ const FeeManagement = () => {
                     <h2 className="text-xl font-bold text-gray-900">Payment Methods</h2>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {/* HBL Card */}
-                    <motion.div
-                        whileHover={{ y: -5 }}
-                        className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-all border-l-4 border-l-primary flex flex-col h-full"
-                    >
-                        <div className="flex items-center justify-between mb-6">
-                            <div className="p-2.5 bg-primary/5 rounded-xl">
-                                <CreditCard className="w-5 h-5 text-primary" />
-                            </div>
-                            <span className="text-[10px] font-black text-primary uppercase tracking-widest bg-primary/5 px-2 py-1 rounded-md">Bank Transfer</span>
-                        </div>
-                        
-                        <div className="flex items-center justify-between gap-4 mb-6">
-                            <div className="space-y-4">
-                                <div>
-                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Provider</p>
-                                    <p className="font-black text-primary text-xl">HBL</p>
-                                </div>
-                                <div>
-                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Account Name</p>
-                                    <p className="font-bold text-gray-900 text-lg">Salman Yasin</p>
-                                </div>
-                            </div>
-                            <button
-                                type="button"
-                                onClick={() => setQrPreview({ open: true, src: QR_LINKS.hbl, title: 'HBL QR Code' })}
-                                className="w-28 h-28 rounded-2xl overflow-hidden border border-gray-200 bg-gray-50 hover:scale-105 transition-transform shadow-sm flex-shrink-0 p-1.5"
-                                title="Open HBL QR"
-                            >
-                                <img src={QR_LINKS.hbl} alt="HBL QR" className="w-full h-full object-contain" />
-                            </button>
-                        </div>
-
-                        <div className="mt-auto">
-                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter mb-2">Transfer Number</p>
-                            <div
-                                onClick={() => {
-                                    navigator.clipboard.writeText('14737991982703');
-                                    alert('Account number copied!');
-                                }}
-                                className="bg-gray-50 p-4 rounded-2xl border border-gray-100 font-black text-primary text-2xl tracking-widest cursor-pointer hover:bg-primary/5 hover:border-primary/20 transition-all select-all flex justify-between items-center group/copy"
-                            >
-                                <span>14737991982703</span>
-                                <span className="text-[10px] font-black text-primary bg-white px-3 py-1.5 rounded-xl shadow-sm border border-primary/10 group-hover/copy:bg-primary group-hover/copy:text-white transition-colors">COPY</span>
-                            </div>
-                        </div>
-                    </motion.div>
-
-                    {/* JazzCash Card */}
-                    <motion.div
-                        whileHover={{ y: -5 }}
-                        className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-all border-l-4 border-l-primary flex flex-col h-full"
-                    >
-                        <div className="flex items-center justify-between mb-6">
-                            <div className="p-2.5 bg-primary/5 rounded-xl">
-                                <CreditCard className="w-5 h-5 text-primary" />
-                            </div>
-                            <span className="text-[10px] font-black text-primary uppercase tracking-widest bg-primary/5 px-2 py-1 rounded-md">Mobile Wallet</span>
-                        </div>
-
-                        <div className="flex items-center justify-between gap-4 mb-6">
-                            <div className="space-y-4">
-                                <div>
-                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Provider</p>
-                                    <p className="font-black text-primary text-xl">JAZZCASH</p>
-                                </div>
-                                <div>
-                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Account Name</p>
-                                    <p className="font-bold text-gray-900 text-lg">Salman Yasin</p>
-                                </div>
-                            </div>
-                            <button
-                                type="button"
-                                onClick={() => setQrPreview({ open: true, src: QR_LINKS.jazzcash, title: 'JazzCash QR Code' })}
-                                className="w-28 h-28 rounded-2xl overflow-hidden border border-gray-200 bg-gray-50 hover:scale-105 transition-transform shadow-sm flex-shrink-0 p-1.5"
-                                title="Open JazzCash QR"
-                            >
-                                <img src={QR_LINKS.jazzcash} alt="JazzCash QR" className="w-full h-full object-contain" />
-                            </button>
-                        </div>
-
-                        <div className="mt-auto">
-                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter mb-2">Transfer Number</p>
-                            <div
-                                onClick={() => {
-                                    navigator.clipboard.writeText('03092333121');
-                                    alert('Number copied!');
-                                }}
-                                className="bg-gray-50 p-4 rounded-2xl border border-gray-100 font-black text-primary text-2xl tracking-widest cursor-pointer hover:bg-primary/5 hover:border-primary/20 transition-all select-all flex justify-between items-center group/copy"
-                            >
-                                <span>03092333121</span>
-                                <span className="text-[10px] font-black text-primary bg-white px-3 py-1.5 rounded-xl shadow-sm border border-primary/10 group-hover/copy:bg-primary group-hover/copy:text-white transition-colors">COPY</span>
-                            </div>
-                        </div>
-                    </motion.div>
-
+                <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-[minmax(0,1.15fr)_minmax(340px,0.85fr)] gap-4 items-stretch">
                     {/* Easypaisa Card */}
                     <motion.div
                         whileHover={{ y: -5 }}
-                        className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-all border-l-4 border-l-primary flex flex-col h-full"
+                        className="relative overflow-hidden bg-gradient-to-br from-white to-emerald-50/70 dark:from-slate-900 dark:to-emerald-950/30 rounded-3xl p-5 sm:p-7 border border-emerald-200 dark:border-emerald-800/70 shadow-lg shadow-emerald-900/5 hover:shadow-xl transition-all flex flex-col h-full"
                     >
+                        <div className="absolute -top-20 -right-20 w-48 h-48 rounded-full bg-emerald-400/10 pointer-events-none" />
                         <div className="flex items-center justify-between mb-6">
-                            <div className="p-2.5 bg-primary/5 rounded-xl">
-                                <CreditCard className="w-5 h-5 text-primary" />
+                            <div className="p-2.5 bg-emerald-100 dark:bg-emerald-900/50 rounded-xl">
+                                <CreditCard className="w-5 h-5 text-emerald-600 dark:text-emerald-300" />
                             </div>
-                            <span className="text-[10px] font-black text-primary uppercase tracking-widest bg-primary/5 px-2 py-1 rounded-md">Mobile Wallet</span>
+                            <span className="text-[10px] font-black text-emerald-700 dark:text-emerald-300 uppercase tracking-widest bg-emerald-100 dark:bg-emerald-900/50 px-3 py-1.5 rounded-full">Official Mobile Wallet</span>
                         </div>
 
-                        <div className="flex items-center justify-between gap-4 mb-6">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5 mb-6">
                             <div className="space-y-4">
                                 <div>
                                     <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Provider</p>
-                                    <p className="font-black text-primary text-xl">EASYPAISA</p>
+                                    <p className="font-black text-emerald-600 dark:text-emerald-300 text-2xl">EASYPAISA</p>
                                 </div>
                                 <div>
                                     <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Account Name</p>
-                                    <p className="font-bold text-gray-900 text-lg">Salman Yasin</p>
+                                    <p className="font-bold text-gray-900 dark:text-white text-lg">Salman Yasin</p>
                                 </div>
                             </div>
                             <button
                                 type="button"
                                 onClick={() => setQrPreview({ open: true, src: QR_LINKS.easypaisa, title: 'Easypaisa QR Code' })}
-                                className="w-28 h-28 rounded-2xl overflow-hidden border border-gray-200 bg-gray-50 hover:scale-105 transition-transform shadow-sm flex-shrink-0 p-1.5"
+                                className="w-32 h-32 self-center rounded-2xl overflow-hidden border-2 border-emerald-200 dark:border-emerald-700 bg-white hover:scale-105 transition-transform shadow-md flex-shrink-0 p-2"
                                 title="Open Easypaisa QR"
                             >
                                 <img src={QR_LINKS.easypaisa} alt="Easypaisa QR" className="w-full h-full object-contain" />
@@ -595,31 +498,53 @@ const FeeManagement = () => {
                                     navigator.clipboard.writeText('03441713141');
                                     alert('Number copied!');
                                 }}
-                                className="bg-gray-50 p-4 rounded-2xl border border-gray-100 font-black text-primary text-2xl tracking-widest cursor-pointer hover:bg-primary/5 hover:border-primary/20 transition-all select-all flex justify-between items-center group/copy"
+                                className="bg-white/90 dark:bg-slate-800 p-3 sm:p-4 rounded-2xl border border-emerald-200 dark:border-emerald-700 font-black text-emerald-600 dark:text-emerald-300 text-lg sm:text-2xl tracking-wider cursor-pointer hover:bg-emerald-50 dark:hover:bg-slate-700 transition-all select-all flex justify-between items-center gap-3 group/copy"
                             >
-                                <span>03441713141</span>
-                                <span className="text-[10px] font-black text-primary bg-white px-3 py-1.5 rounded-xl shadow-sm border border-primary/10 group-hover/copy:bg-primary group-hover/copy:text-white transition-colors">COPY</span>
+                                <span className="min-w-0 break-all">03441713141</span>
+                                <span className="text-[10px] font-black text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-900/60 px-3 py-1.5 rounded-xl border border-emerald-200 dark:border-emerald-700 group-hover/copy:bg-emerald-600 group-hover/copy:text-white transition-colors">COPY</span>
                             </div>
                         </div>
                     </motion.div>
-                </div>
 
-                {/* Clear Step Banner */}
-                <div className="bg-primary-darkest rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-4 text-white">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2 bg-white/10 rounded-lg">
-                            <AlertCircle className="w-5 h-5 text-primary" />
+                    {/* Payment steps */}
+                    <motion.div
+                        whileHover={{ y: -5 }}
+                        className="bg-gradient-to-br from-slate-900 to-slate-800 dark:from-slate-900 dark:to-slate-950 rounded-3xl p-5 sm:p-7 border border-slate-700 shadow-lg text-white flex flex-col"
+                    >
+                        <div className="flex items-center gap-3 mb-5">
+                            <div className="p-2.5 bg-primary/15 rounded-xl border border-primary/20">
+                                <AlertCircle className="w-5 h-5 text-primary" />
+                            </div>
+                            <div>
+                                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-primary">How to Pay</p>
+                                <h3 className="font-black text-lg">Complete in 3 steps</h3>
+                            </div>
                         </div>
-                        <div>
-                            <p className="font-bold text-sm">Transfer the amount, take a screenshot, and click "Pay Now" below.</p>
-                            <p className="text-primary/60 text-[10px] uppercase font-bold">Please ensure the Slip ID is correct for verification.</p>
+
+                        <div className="space-y-3 flex-1">
+                            {[
+                                ['1', 'Transfer', 'Send the required amount to the EasyPaisa number.'],
+                                ['2', 'Screenshot', 'Take a clear screenshot of the successful payment.'],
+                                ['3', 'Upload', 'Click “Pay Now” and upload your payment proof.']
+                            ].map(([number, title, description]) => (
+                                <div key={number} className="flex gap-3 p-3 rounded-xl bg-white/5 border border-white/10">
+                                    <span className="w-7 h-7 rounded-lg bg-primary text-white flex items-center justify-center text-xs font-black shrink-0">
+                                        {number}
+                                    </span>
+                                    <div>
+                                        <p className="text-xs font-black uppercase tracking-wide">{title}</p>
+                                        <p className="text-[11px] leading-relaxed text-slate-400 mt-0.5">{description}</p>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
-                    </div>
-                    <div className="flex gap-2">
-                        <div className="px-3 py-1 bg-white/5 rounded-full text-[10px] font-bold border border-white/10">1. TRANSFER</div>
-                        <div className="px-3 py-1 bg-white/5 rounded-full text-[10px] font-bold border border-white/10">2. SCREENSHOT</div>
-                        <div className="px-3 py-1 bg-white/5 rounded-full text-[10px] font-bold border border-white/10">3. UPLOAD</div>
-                    </div>
+
+                        <div className="mt-4 p-3 rounded-xl bg-amber-500/10 border border-amber-400/20">
+                            <p className="text-[10px] leading-relaxed text-amber-200 font-bold">
+                                Please ensure the Slip ID is correct before submitting for verification.
+                            </p>
+                        </div>
+                    </motion.div>
                 </div>
             </div>
 

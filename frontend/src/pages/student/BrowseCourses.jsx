@@ -31,6 +31,7 @@ const BrowseCourses = () => {
     const [isFetching, setIsFetching] = useState(true);
     const [isEnrolling, setIsEnrolling] = useState(false);
     const [internshipDurationMonths, setInternshipDurationMonths] = useState('');
+    const [durationValidationAttempt, setDurationValidationAttempt] = useState(0);
     const [error, setError] = useState('');
     const [courses, setCourses] = useState([]);
     const [myEnrollments, setMyEnrollments] = useState([]);
@@ -158,6 +159,7 @@ const BrowseCourses = () => {
     const handleEnrollClick = (course) => {
         setSelectedCourse(course);
         setInternshipDurationMonths('');
+        setDurationValidationAttempt(0);
         setIsEnrollModalOpen(true);
     };
 
@@ -165,6 +167,8 @@ const BrowseCourses = () => {
         if (!selectedCourse) return;
         if (role === 'intern' && !internshipDurationMonths) {
             setError('Please select your internship duration.');
+            setDurationValidationAttempt(attempt => attempt + 1);
+            navigator.vibrate?.(120);
             return;
         }
         setIsEnrolling(true);
@@ -649,8 +653,21 @@ const BrowseCourses = () => {
                         </div>
 
                         {role === 'intern' && (
-                            <div>
-                                <label className="block text-sm font-bold text-gray-700 mb-3">
+                            <motion.div
+                                key={`duration-validation-${durationValidationAttempt}`}
+                                animate={durationValidationAttempt > 0 ? { x: [0, -9, 9, -7, 7, -4, 4, 0] } : { x: 0 }}
+                                transition={{ duration: 0.45 }}
+                                className={`rounded-xl border p-3 transition-colors ${
+                                    durationValidationAttempt > 0 && !internshipDurationMonths
+                                        ? 'border-red-500 bg-red-50/70 dark:bg-red-950/20'
+                                        : 'border-transparent'
+                                }`}
+                            >
+                                <label className={`block text-sm font-bold mb-3 ${
+                                    durationValidationAttempt > 0 && !internshipDurationMonths
+                                        ? 'text-red-600 dark:text-red-400'
+                                        : 'text-gray-700'
+                                }`}>
                                     Internship Duration <span className="text-red-500">*</span>
                                 </label>
                                 <div className="grid grid-cols-3 gap-2">
@@ -660,11 +677,14 @@ const BrowseCourses = () => {
                                             type="button"
                                             onClick={() => {
                                                 setInternshipDurationMonths(months);
+                                                setDurationValidationAttempt(0);
                                                 setError('');
                                             }}
                                             className={`py-3 px-2 rounded-xl border text-sm font-bold transition-all ${
                                                 Number(internshipDurationMonths) === months
                                                     ? 'bg-primary text-white border-primary shadow-md'
+                                                    : durationValidationAttempt > 0
+                                                        ? 'bg-white dark:bg-slate-900 text-red-600 dark:text-red-400 border-red-400 hover:bg-red-50'
                                                     : 'bg-white text-gray-600 border-gray-200 hover:border-primary hover:text-primary'
                                             }`}
                                         >
@@ -672,10 +692,16 @@ const BrowseCourses = () => {
                                         </button>
                                     ))}
                                 </div>
-                                <p className="mt-2 text-xs text-gray-500">
-                                    Select how long you want to join this internship.
+                                <p className={`mt-2 text-xs ${
+                                    durationValidationAttempt > 0 && !internshipDurationMonths
+                                        ? 'text-red-600 dark:text-red-400 font-semibold'
+                                        : 'text-gray-500'
+                                }`}>
+                                    {durationValidationAttempt > 0 && !internshipDurationMonths
+                                        ? 'Please select 3, 6, or 12 months before confirming.'
+                                        : 'Select how long you want to join this internship.'}
                                 </p>
-                            </div>
+                            </motion.div>
                         )}
 
                         <div className="flex gap-3">
