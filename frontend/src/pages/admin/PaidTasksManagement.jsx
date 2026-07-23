@@ -557,12 +557,6 @@ const PaidTasksManagement = () => {
                 </div>
                 <div className="flex items-center gap-3">
                     <button
-                        onClick={() => navigate(`/${user?.role}/job-chat`)}
-                        className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-primary/20 text-primary rounded-xl font-bold text-xs uppercase tracking-widest"
-                    >
-                        <MessageSquare className="w-5 h-5" /> Applicant Chat
-                    </button>
-                    <button
                         onClick={() => {
                             setEditingTask(null);
                             setFormData({ title: '', description: '', budget: '', deadline: '', skills: '', category: 'web', type: 'task', images: [], isLifetime: false, manualStatus: 'none', jobManagers: [] });
@@ -810,57 +804,6 @@ const PaidTasksManagement = () => {
                                         <PenSquare className="w-3 h-3" />
                                         Edit
                                     </button>
-                                    <div className="flex bg-gray-100 p-0.5 rounded-lg border border-gray-200">
-                                        <button
-                                            onClick={async () => {
-                                                try {
-                                                    await taskAPI.update(task._id, { manualStatus: task.manualStatus === 'active' ? 'none' : 'active' });
-                                                    fetchTasks();
-                                                } catch (err) { alert('Update failed'); }
-                                            }}
-                                            className={`px-2 py-1 text-[10px] font-black uppercase tracking-tighter rounded-md transition-all ${task.manualStatus === 'active' ? 'bg-green-600 text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-                                        >
-                                            Active
-                                        </button>
-                                        <button
-                                            onClick={async () => {
-                                                try {
-                                                    await taskAPI.update(task._id, { manualStatus: task.manualStatus === 'expired' ? 'none' : 'expired' });
-                                                    fetchTasks();
-                                                } catch (err) { alert('Update failed'); }
-                                            }}
-                                            className={`px-2 py-1 text-[10px] font-black uppercase tracking-tighter rounded-md transition-all ${task.manualStatus === 'expired' ? 'bg-red-600 text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-                                        >
-                                            Expired
-                                        </button>
-                                    </div>
-                                    <div className="flex bg-gray-100 p-0.5 rounded-lg border border-gray-200">
-                                        <button
-                                            onClick={async () => {
-                                                try {
-                                                    await taskAPI.update(task._id, { manualStatus: 'completed' });
-                                                    fetchTasks();
-                                                } catch (err) { alert(err.response?.data?.message || 'Update failed'); }
-                                            }}
-                                            disabled={task.status === 'completed' && task.paymentSent}
-                                            className={`px-2 py-1 text-[10px] font-black uppercase tracking-tighter rounded-md transition-all ${task.manualStatus === 'completed' || (task.status === 'completed' && task.paymentSent) ? 'bg-primary text-white shadow-sm' : 'text-gray-500 hover:text-primary'} disabled:cursor-not-allowed`}
-                                            title="Close project applications"
-                                        >
-                                            Complete
-                                        </button>
-                                        <button
-                                            onClick={async () => {
-                                                try {
-                                                    await taskAPI.reopen(task._id);
-                                                    fetchTasks();
-                                                } catch (err) { alert(err.response?.data?.message || 'Unable to reopen job'); }
-                                            }}
-                                            className={`px-2 py-1 text-[10px] font-black uppercase tracking-tighter rounded-md transition-all ${task.status === 'open' && task.manualStatus === 'active' ? 'bg-slate-600 text-white shadow-sm' : 'text-gray-500 hover:text-slate-700'}`}
-                                            title="Reopen for fresh applications while keeping previous feedback"
-                                        >
-                                            Uncomplete
-                                        </button>
-                                    </div>
                                 </div>
                             </div>
 
@@ -1238,6 +1181,56 @@ const PaidTasksManagement = () => {
                             </div>}
                     </>
                 )}
+                    {editingTask && formData.type !== 'product' && (
+                        <div className="p-4 bg-gray-50 dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700">
+                            <label className="block text-sm font-bold text-gray-800 dark:text-white mb-3">Job Status</label>
+                            <div className="flex flex-wrap gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setFormData({ ...formData, manualStatus: 'active' })}
+                                    className={`px-4 py-2 rounded-lg text-xs font-black uppercase transition-all ${formData.manualStatus === 'active' ? 'bg-green-600 text-white' : 'bg-white dark:bg-slate-900 text-gray-500 border border-gray-200 dark:border-slate-700'}`}
+                                >
+                                    Active
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setFormData({ ...formData, manualStatus: 'expired' })}
+                                    className={`px-4 py-2 rounded-lg text-xs font-black uppercase transition-all ${formData.manualStatus === 'expired' ? 'bg-red-600 text-white' : 'bg-white dark:bg-slate-900 text-gray-500 border border-gray-200 dark:border-slate-700'}`}
+                                >
+                                    Expired
+                                </button>
+                                <button
+                                    type="button"
+                                    disabled={editingTask.status === 'completed' && editingTask.paymentSent}
+                                    onClick={() => setFormData({ ...formData, manualStatus: 'completed' })}
+                                    className={`px-4 py-2 rounded-lg text-xs font-black uppercase transition-all ${formData.manualStatus === 'completed' || (editingTask.status === 'completed' && editingTask.paymentSent) ? 'bg-primary text-white' : 'bg-white dark:bg-slate-900 text-gray-500 border border-gray-200 dark:border-slate-700'} disabled:cursor-not-allowed`}
+                                >
+                                    Complete
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={async () => {
+                                        if (editingTask.status === 'completed') {
+                                            try {
+                                                await taskAPI.reopen(editingTask._id);
+                                                setIsModalOpen(false);
+                                                setEditingTask(null);
+                                                fetchTasks();
+                                            } catch (err) {
+                                                alert(err.response?.data?.message || 'Unable to reopen job');
+                                            }
+                                            return;
+                                        }
+                                        setFormData({ ...formData, manualStatus: 'active' });
+                                    }}
+                                    className="px-4 py-2 rounded-lg text-xs font-black uppercase transition-all bg-slate-700 hover:bg-slate-800 text-white"
+                                >
+                                    Uncomplete
+                                </button>
+                            </div>
+                            <p className="text-xs text-gray-500 dark:text-slate-400 mt-2">Choose a status, then click Update Task. Uncomplete reopens a completed job immediately.</p>
+                        </div>
+                    )}
                     <div className="flex gap-3 pt-4 border-t">
                         <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-3 text-gray-600 hover:bg-gray-100 rounded-xl font-medium">
                             Cancel
