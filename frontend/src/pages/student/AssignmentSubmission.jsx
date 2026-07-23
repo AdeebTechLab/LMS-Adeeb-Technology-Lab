@@ -196,7 +196,6 @@ const AssignmentSubmission = () => {
             formData.append('assignmentId', selectedAssignment._id);
             const response = await googleDriveAPI.upload(formData);
             setDriveFile(response.data.file);
-            setSubmissionUrl(response.data.file.webViewLink);
         } catch (error) {
             setDriveError(error.response?.data?.message || 'Google Drive upload failed.');
         } finally {
@@ -663,32 +662,38 @@ const AssignmentSubmission = () => {
                                     {selectedAssignment && (
                                         <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
                                             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setSelectedAssignment(null)} className="fixed inset-0 bg-[#0f172a]/80 backdrop-blur-xl" />
-                                            <motion.div initial={{ opacity: 0, scale: 0.95, y: 30 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 30 }} className="bg-white dark:bg-[#0f172a] w-full max-w-3xl rounded-2xl shadow-2xl border border-white/20 relative z-10 overflow-hidden">
-                                                <div className="bg-primary p-10 text-white relative">
-                                                    <h3 className="text-2xl font-black uppercase tracking-tight leading-none mb-2">Submit Assignment</h3>
-                                                    <p className="text-white/70 text-xs font-bold uppercase tracking-widest">Share your work link and notes for evaluation</p>
-                                                    <button onClick={() => setSelectedAssignment(null)} className="absolute top-8 right-8 w-10 h-10 rounded-full bg-black/10 hover:bg-black/20 flex items-center justify-center text-white"><X className="w-5 h-5" /></button>
+                                            <motion.div initial={{ opacity: 0, scale: 0.95, y: 30 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 30 }} className="bg-white dark:bg-[#111827] w-full max-w-2xl max-h-[92vh] rounded-2xl shadow-2xl border border-gray-200 dark:border-slate-700 relative z-10 overflow-hidden flex flex-col">
+                                                <div className="bg-gradient-to-r from-primary to-orange-500 px-6 py-5 sm:px-8 sm:py-6 text-white relative shrink-0">
+                                                    <div className="pr-14">
+                                                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/70 mb-1">Student Workspace</p>
+                                                        <h3 className="text-xl sm:text-2xl font-black uppercase tracking-tight leading-none mb-2">Submit Assignment</h3>
+                                                        <p className="text-white/80 text-[11px] sm:text-xs font-semibold">Upload your work to Drive, add notes, then submit.</p>
+                                                    </div>
+                                                    <button onClick={() => setSelectedAssignment(null)} className="absolute top-1/2 -translate-y-1/2 right-5 w-10 h-10 rounded-xl bg-black/10 hover:bg-black/20 border border-white/15 flex items-center justify-center text-white transition-colors"><X className="w-5 h-5" /></button>
                                                 </div>
-                                                <div className="p-10 space-y-8">
-                                                    <div className="space-y-4">
-                                                        <div className="rounded-2xl border-2 border-dashed border-blue-200 dark:border-blue-900 bg-blue-50/60 dark:bg-blue-950/20 p-5">
+                                                <div className="p-5 sm:p-7 space-y-5 overflow-y-auto">
+                                                    <div className="space-y-5">
+                                                        <div className="rounded-2xl border border-blue-200 dark:border-blue-800 bg-gradient-to-br from-blue-50 to-white dark:from-blue-950/30 dark:to-slate-900 p-4 sm:p-5 shadow-sm">
                                                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                                                                 <div className="flex items-center gap-3">
-                                                                    <div className="w-11 h-11 rounded-xl bg-blue-600 text-white flex items-center justify-center">
+                                                                    <div className="w-11 h-11 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-lg shadow-blue-600/20">
                                                                         <Cloud className="w-5 h-5" />
                                                                     </div>
                                                                     <div>
-                                                                        <p className="text-sm font-black text-gray-900 dark:text-white">Upload to your Google Drive</p>
-                                                                        <p className="text-[11px] text-gray-500 dark:text-slate-400">
+                                                                        <div className="flex items-center gap-2">
+                                                                            <p className="text-sm font-black text-gray-900 dark:text-white">Google Drive Upload</p>
+                                                                            {driveStatus.connected && <span className="text-[8px] font-black uppercase tracking-wider text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-900/50 px-2 py-0.5 rounded-full">Connected</span>}
+                                                                        </div>
+                                                                        <p className="text-[10px] sm:text-[11px] text-gray-500 dark:text-slate-400 truncate max-w-[260px]">
                                                                             {driveStatus.connected
-                                                                                ? `Connected${driveStatus.googleEmail ? `: ${driveStatus.googleEmail}` : ''}`
+                                                                                ? (driveStatus.googleEmail || 'Your Google account')
                                                                                 : 'Connect once, then select a file from this device.'}
                                                                         </p>
                                                                     </div>
                                                                 </div>
 
                                                                 {driveStatus.connected ? (
-                                                                    <label className={`px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-black uppercase tracking-wide flex items-center justify-center gap-2 cursor-pointer ${isDriveUploading ? 'opacity-60 pointer-events-none' : ''}`}>
+                                                                    <label className={`px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-blue-600/20 transition-all ${isDriveUploading ? 'opacity-60 pointer-events-none' : ''}`}>
                                                                         <Upload className="w-4 h-4" />
                                                                         {isDriveUploading ? 'Uploading...' : 'Choose Media'}
                                                                         <input
@@ -730,22 +735,27 @@ const AssignmentSubmission = () => {
                                                                 <p className="mt-3 text-[11px] font-semibold text-red-600 dark:text-red-400">{driveError}</p>
                                                             )}
                                                         </div>
+                                                        {!driveFile && (
                                                         <div>
-                                                            <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-3 block">Work Link</label>
-                                                            <input type="text" placeholder="e.g. GitHub, Drive, or Portfolio Link" value={submissionUrl} onChange={(e) => setSubmissionUrl(e.target.value)} className="w-full px-6 py-5 bg-slate-50 dark:bg-black/40 border-2 border-slate-100 dark:border-slate-800 rounded-3xl outline-none focus:border-primary font-bold transition-all text-sm" />
+                                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Work Link <span className="font-semibold normal-case tracking-normal">(Optional alternative)</span></label>
+                                                            <div className="relative">
+                                                                <LinkIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                                                <input type="text" placeholder="GitHub, portfolio, or another link" value={submissionUrl} onChange={(e) => setSubmissionUrl(e.target.value)} className="w-full pl-11 pr-4 py-3.5 bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 font-semibold transition-all text-sm" />
+                                                            </div>
                                                         </div>
+                                                        )}
                                                         <div>
-                                                            <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-3 block">Notes</label>
+                                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Notes for Teacher <span className="font-semibold normal-case tracking-normal">(Optional)</span></label>
                                                             <RichTextEditor
                                                                 value={submissionText}
                                                                 onChange={setSubmissionText}
                                                                 placeholder="Any additional notes for the teacher..."
-                                                                minHeight="200px"
+                                                                minHeight="120px"
                                                                 className="border-primary/30"
                                                             />
                                                         </div>
                                                     </div>
-                                                    <button onClick={() => handleSubmit(selectedAssignment._id)} disabled={isSubmitting} className="w-full py-5 bg-primary text-white font-black uppercase tracking-widest text-xs rounded-3xl shadow-2xl transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-3">
+                                                    <button onClick={() => handleSubmit(selectedAssignment._id)} disabled={isSubmitting || isDriveUploading} className="w-full py-4 bg-primary hover:bg-orange-600 text-white font-black uppercase tracking-widest text-xs rounded-xl shadow-lg shadow-primary/20 transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-3">
                                                         <ButtonLoader isLoading={isSubmitting}>CONFIRM SUBMISSION</ButtonLoader>
                                                     </button>
                                                 </div>
