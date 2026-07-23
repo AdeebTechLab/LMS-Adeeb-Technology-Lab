@@ -531,35 +531,36 @@ const PaidTasksManagement = () => {
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
-                    <div className="flex items-center gap-3">
-                        <h1 className="text-2xl font-bold text-gray-900">Job Posting</h1>
-                        <div className="flex gap-2">
-                            <button
-                                type="button"
-                                onClick={() => setActiveTab('applicants')}
-                                className={`px-2 py-1 text-xs font-bold rounded-lg border transition-all ${activeTab === 'applicants' ? 'bg-yellow-500 border-yellow-500 text-white shadow-sm' : 'bg-yellow-100 text-yellow-700 border-yellow-200 hover:bg-yellow-200'}`}
-                            >
-                                Applicants: {totalApplicantsCount}
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setActiveTab('assigned')}
-                                className={`px-2 py-1 text-xs font-bold rounded-lg border transition-all ${activeTab === 'assigned' ? 'bg-green-600 border-green-600 text-white shadow-sm' : 'bg-green-100 text-green-700 border-green-200 hover:bg-green-200'}`}
-                            >
-                                Assigned: {totalAssignedCount}
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setActiveTab('submitted')}
-                                className={`px-2 py-1 text-xs font-bold rounded-lg border transition-all ${activeTab === 'submitted' ? 'bg-blue-600 border-blue-600 text-white shadow-sm' : 'bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-200'}`}
-                            >
-                                Submitted: {totalSubmittedCount}
-                            </button>
-                        </div>
-                    </div>
+                    <h1 className="text-2xl font-bold text-gray-900">Job Posting</h1>
                     <p className="text-gray-500 text-sm mt-1">Create and manage freelance tasks</p>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                    <div className="flex items-center gap-1.5 overflow-x-auto rounded-xl border border-gray-200 bg-gray-50 p-1.5 shadow-sm">
+                        <button
+                            type="button"
+                            onClick={() => setActiveTab('applicants')}
+                            className={`flex items-center gap-2 whitespace-nowrap px-3 py-2 rounded-lg transition-all ${activeTab === 'applicants' ? 'bg-yellow-500 text-white shadow-sm' : 'bg-white text-gray-600 hover:text-yellow-700 hover:bg-yellow-50'}`}
+                        >
+                            <span className="text-[10px] font-black uppercase tracking-wide">Applicants</span>
+                            <span className={`min-w-5 h-5 px-1.5 rounded-md flex items-center justify-center text-[10px] font-black ${activeTab === 'applicants' ? 'bg-white/25 text-white' : 'bg-yellow-100 text-yellow-700'}`}>{totalApplicantsCount}</span>
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setActiveTab('assigned')}
+                            className={`flex items-center gap-2 whitespace-nowrap px-3 py-2 rounded-lg transition-all ${activeTab === 'assigned' ? 'bg-green-600 text-white shadow-sm' : 'bg-white text-gray-600 hover:text-green-700 hover:bg-green-50'}`}
+                        >
+                            <span className="text-[10px] font-black uppercase tracking-wide">Assigned</span>
+                            <span className={`min-w-5 h-5 px-1.5 rounded-md flex items-center justify-center text-[10px] font-black ${activeTab === 'assigned' ? 'bg-white/25 text-white' : 'bg-green-100 text-green-700'}`}>{totalAssignedCount}</span>
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setActiveTab('submitted')}
+                            className={`flex items-center gap-2 whitespace-nowrap px-3 py-2 rounded-lg transition-all ${activeTab === 'submitted' ? 'bg-blue-600 text-white shadow-sm' : 'bg-white text-gray-600 hover:text-blue-700 hover:bg-blue-50'}`}
+                        >
+                            <span className="text-[10px] font-black uppercase tracking-wide">Submitted</span>
+                            <span className={`min-w-5 h-5 px-1.5 rounded-md flex items-center justify-center text-[10px] font-black ${activeTab === 'submitted' ? 'bg-white/25 text-white' : 'bg-blue-100 text-blue-700'}`}>{totalSubmittedCount}</span>
+                        </button>
+                    </div>
                     <button
                         onClick={() => {
                             setEditingTask(null);
@@ -567,7 +568,7 @@ const PaidTasksManagement = () => {
                             setImagePreviews([]);
                             setIsModalOpen(true);
                         }}
-                        className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2.5 bg-primary hover:bg-purple-700 text-white rounded-xl transition-all duration-300 font-bold text-xs uppercase tracking-widest shadow-lg shadow-purple-200"
+                        className="w-full sm:w-auto self-stretch flex items-center justify-center gap-2 px-5 py-2.5 bg-primary hover:bg-purple-700 text-white rounded-xl transition-all duration-300 font-bold text-xs uppercase tracking-widest shadow-lg shadow-purple-200"
                     >
                         <Briefcase className="w-5 h-5" />
                         Create Task
@@ -786,7 +787,7 @@ const PaidTasksManagement = () => {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: index * 0.1 }}
-                            className={`bg-white rounded-2xl p-6 border border-gray-100 ${task.status === 'assigned' ? 'opacity-95' : ''}`}
+                            className={`bg-white dark:bg-slate-900 rounded-2xl p-6 border border-gray-100 dark:border-slate-700 shadow-sm dark:shadow-black/20 ${task.status === 'assigned' ? 'opacity-95' : ''}`}
                         >
                             <div className="flex items-start justify-end mb-4">
                                               <div className="flex flex-wrap items-center justify-end gap-2">
@@ -822,19 +823,19 @@ const PaidTasksManagement = () => {
                                 </div>
                             )}
 
-                            <h3 className="font-bold text-gray-900 mb-2">{task.title}</h3>
-                            <p className="text-sm text-gray-500 mb-4 line-clamp-2">{task.description}</p>
+                            <h3 className="font-bold text-gray-900 dark:text-slate-100 mb-2">{task.title}</h3>
+                            <p className="text-sm text-gray-500 dark:text-slate-400 mb-4 line-clamp-2">{task.description}</p>
 
                             <div className="flex flex-wrap gap-1 mb-4">
                                 {(task.skills || '').split(',').map((skill, i) => (
-                                    <span key={i} className="px-2 py-1 bg-purple-50 text-primary text-xs rounded-md">
+                                    <span key={i} className="px-2 py-1 bg-purple-50 dark:bg-slate-800 text-primary dark:text-orange-300 text-xs rounded-md border border-transparent dark:border-slate-700">
                                         {skill.trim()}
                                     </span>
                                 ))}
                             </div>
 
                             <div className="flex items-center justify-between text-sm mb-4">
-                                <span className="flex items-center gap-1 text-gray-500">
+                                <span className="flex items-center gap-1 text-gray-500 dark:text-slate-400">
                                     <Calendar className="w-4 h-4" />
                                     {task.isLifetime ? 'Lifetime' : (task.deadline && new Date(task.deadline).toLocaleDateString())}
                                 </span>
@@ -869,7 +870,7 @@ const PaidTasksManagement = () => {
                                 <button
                                     type="button"
                                     onClick={() => setViewingPaymentHistoryTask(task)}
-                                    className="mb-4 w-full px-3 py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-xl border border-emerald-200 flex items-center justify-center gap-2 text-sm font-bold transition-colors"
+                                    className="mb-4 w-full px-3 py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:hover:bg-emerald-900/60 dark:text-emerald-300 rounded-xl border border-emerald-200 dark:border-emerald-800 flex items-center justify-center gap-2 text-sm font-bold transition-colors"
                                     title="View payment names, amounts and screenshots"
                                 >
                                     <Eye className="w-4 h-4" />
@@ -878,11 +879,11 @@ const PaidTasksManagement = () => {
                             )}
 
                             {/* Actions based on status */}
-                            <div className="flex gap-2 pt-4 border-t border-gray-100">
+                            <div className="flex gap-2 pt-4 border-t border-gray-100 dark:border-slate-700">
                                 {task.status === 'open' && (
                                     <button
                                         onClick={() => handleViewApplicants(task)}
-                                        className="flex-1 py-2 text-sm font-medium text-primary bg-purple-50 hover:bg-primary/10 rounded-xl flex items-center justify-center gap-1"
+                                        className="flex-1 py-2 text-sm font-bold text-primary dark:text-orange-300 bg-purple-50 hover:bg-primary/10 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-xl border border-transparent dark:border-slate-700 flex items-center justify-center gap-1 transition-colors"
                                     >
                                         <Users className="w-4 h-4" />
                                         {task.applicants?.length || 0} Applicants

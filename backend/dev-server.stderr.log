@@ -56,3 +56,4 @@ VAPID keys are not set. Push notifications will not work.
 ⚠️ Replace placeholder EMAIL_USER / EMAIL_PASS in backend/.env with a real Gmail App Password.
 ⚠️ Replace placeholder EMAIL_USER / EMAIL_PASS in backend/.env with a real Gmail App Password.
 ⚠️ Replace placeholder EMAIL_USER / EMAIL_PASS in backend/.env with a real Gmail App Password.
+⚠️ Replace placeholder EMAIL_USER / EMAIL_PASS in backend/.env with a real Gmail App Password.

@@ -38,6 +38,10 @@ const enrollmentSchema = new mongoose.Schema({
         ref: 'Course',
         required: true
     },
+    internshipDurationMonths: {
+        type: Number,
+        enum: [3, 6, 12]
+    },
     status: {
         type: String,
         enum: ['pending', 'enrolled', 'completed', 'suspended'],

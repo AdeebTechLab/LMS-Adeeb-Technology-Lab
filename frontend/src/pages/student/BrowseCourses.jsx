@@ -30,6 +30,7 @@ const BrowseCourses = () => {
     const [selectedCourse, setSelectedCourse] = useState(null);
     const [isFetching, setIsFetching] = useState(true);
     const [isEnrolling, setIsEnrolling] = useState(false);
+    const [internshipDurationMonths, setInternshipDurationMonths] = useState('');
     const [error, setError] = useState('');
     const [courses, setCourses] = useState([]);
     const [myEnrollments, setMyEnrollments] = useState([]);
@@ -156,15 +157,22 @@ const BrowseCourses = () => {
 
     const handleEnrollClick = (course) => {
         setSelectedCourse(course);
+        setInternshipDurationMonths('');
         setIsEnrollModalOpen(true);
     };
 
     const handleConfirmEnroll = async () => {
         if (!selectedCourse) return;
+        if (role === 'intern' && !internshipDurationMonths) {
+            setError('Please select your internship duration.');
+            return;
+        }
         setIsEnrolling(true);
         setError('');
         try {
-            await enrollmentAPI.enroll(selectedCourse._id);
+            await enrollmentAPI.enroll(selectedCourse._id, role === 'intern'
+                ? { internshipDurationMonths: Number(internshipDurationMonths) }
+                : {});
             setIsEnrollModalOpen(false);
             setSelectedCourse(null);
             // fetchData(); // No need to fetch here if we are navigating
@@ -639,6 +647,36 @@ const BrowseCourses = () => {
                                 By enrolling, you agree to pay the course fee. You can upload your payment receipt in Fee Management.
                             </p>
                         </div>
+
+                        {role === 'intern' && (
+                            <div>
+                                <label className="block text-sm font-bold text-gray-700 mb-3">
+                                    Internship Duration <span className="text-red-500">*</span>
+                                </label>
+                                <div className="grid grid-cols-3 gap-2">
+                                    {[3, 6, 12].map(months => (
+                                        <button
+                                            key={months}
+                                            type="button"
+                                            onClick={() => {
+                                                setInternshipDurationMonths(months);
+                                                setError('');
+                                            }}
+                                            className={`py-3 px-2 rounded-xl border text-sm font-bold transition-all ${
+                                                Number(internshipDurationMonths) === months
+                                                    ? 'bg-primary text-white border-primary shadow-md'
+                                                    : 'bg-white text-gray-600 border-gray-200 hover:border-primary hover:text-primary'
+                                            }`}
+                                        >
+                                            {months} Months
+                                        </button>
+                                    ))}
+                                </div>
+                                <p className="mt-2 text-xs text-gray-500">
+                                    Select how long you want to join this internship.
+                                </p>
+                            </div>
+                        )}
 
                         <div className="flex gap-3">
                             <button

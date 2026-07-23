@@ -240,7 +240,7 @@ router.get('/user/:userId', protect, authorize('admin', 'teacher'), async (req, 
 // @access  Private
 router.post('/', protect, async (req, res) => {
     try {
-        const { courseId, installments } = req.body;
+        const { courseId, installments, internshipDurationMonths } = req.body;
 
         // Check if course exists and is active
         const course = await Course.findById(courseId);
@@ -259,6 +259,13 @@ router.post('/', protect, async (req, res) => {
 
         // Get user registration date
         const user = await User.findById(req.user.id);
+        const selectedDuration = Number(internshipDurationMonths);
+        if (user.role === 'intern' && ![3, 6, 12].includes(selectedDuration)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Please select an internship duration: 3, 6, or 12 months'
+            });
+        }
 
         // Create enrollment with installments
         const enrollmentData = {
@@ -269,6 +276,11 @@ router.post('/', protect, async (req, res) => {
             feeStatus: 'pending',
             isActive: false // Will become true when first installment verified
         };
+        if (user.role === 'intern') {
+            enrollmentData.internshipDurationMonths = selectedDuration;
+            user.internshipDurationMonths = selectedDuration;
+            await user.save();
+        }
 
         // If installments provided, add them; otherwise create single default installment
         if (installments && installments.length > 0) {

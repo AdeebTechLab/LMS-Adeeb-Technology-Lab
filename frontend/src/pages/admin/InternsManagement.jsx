@@ -271,6 +271,7 @@ const InternsManagement = () => {
             rollNumber: intern.rollNumber || '',
             cgpa: intern.cgpa || '',
             majorSubjects: intern.majorSubjects || '',
+            internshipDurationMonths: intern.internshipDurationMonths || '',
             attendType: normalizedAttendType,
             heardAbout: intern.heardAbout || '',
             password: intern.password || ''
@@ -614,6 +615,7 @@ const InternsManagement = () => {
         try {
             const formData = new FormData();
             Object.keys(editForm).forEach(key => {
+                if (key === 'internshipDurationMonths' && !editForm[key]) return;
                 if (editForm[key] !== null && editForm[key] !== undefined) {
                     formData.append(key, editForm[key]);
                 }
@@ -974,7 +976,7 @@ const InternsManagement = () => {
                                         </div>
                                     </div>
 
-                                    <div className="grid grid-cols-2 sm:grid-cols-4 2xl:grid-cols-8 gap-3 sm:gap-4 flex-1 bg-gray-50/80 dark:bg-slate-800/80 p-4 rounded-2xl border border-gray-100 dark:border-slate-600">
+                                    <div className="grid grid-cols-2 sm:grid-cols-4 2xl:grid-cols-9 gap-3 sm:gap-4 flex-1 bg-gray-50/80 dark:bg-slate-800/80 p-4 rounded-2xl border border-gray-100 dark:border-slate-600">
                                         <div className="space-y-1">
                                             <p className="text-[9px] font-black text-gray-400 dark:text-slate-400 uppercase tracking-widest">Phone</p>
                                             <p className="text-xs font-bold text-gray-700 dark:text-slate-100">{intern.phone || 'N/A'}</p>
@@ -1007,6 +1009,12 @@ const InternsManagement = () => {
                                             <p className="text-[9px] font-black text-gray-400 dark:text-slate-400 uppercase tracking-widest">Campus</p>
                                             <p className="text-xs font-bold text-gray-700 dark:text-slate-100 capitalize">
                                                 {intern.campusCity || intern.location || intern.city || 'N/A'}
+                                            </p>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="text-[9px] font-black text-gray-400 dark:text-slate-400 uppercase tracking-widest">Duration</p>
+                                            <p className="text-xs font-bold text-gray-700 dark:text-slate-100">
+                                                {intern.internshipDurationMonths ? `${intern.internshipDurationMonths} Months` : 'N/A'}
                                             </p>
                                         </div>
                                     </div>
@@ -1658,6 +1666,19 @@ const InternsManagement = () => {
                                 <option value="">Select Type</option>
                                 <option value="OnSite">Onsite</option>
                                 <option value="Remote">Remote</option>
+                            </select>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">Duration</label>
+                            <select
+                                value={editForm.internshipDurationMonths || ''}
+                                onChange={(e) => setEditForm({ ...editForm, internshipDurationMonths: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                            >
+                                <option value="">Not Selected</option>
+                                <option value="3">3 Months</option>
+                                <option value="6">6 Months</option>
+                                <option value="12">12 Months</option>
                             </select>
                         </div>
                     </div>

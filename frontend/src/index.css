@@ -1440,6 +1440,15 @@ body {
   pointer-events: none;
 }
 
+/* Slightly sharper card surfaces across every portal. */
+:where(div, article, section).rounded-2xl {
+  border-radius: 0.75rem;
+}
+
+:where(div, article, section).rounded-3xl {
+  border-radius: 1rem;
+}
+
 /* Shared phone polish for every authenticated portal. */
 html,
 body,

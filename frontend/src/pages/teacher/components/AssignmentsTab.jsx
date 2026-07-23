@@ -471,7 +471,12 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                             return isAssigned || hasSubmission;
                         })
                         .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-                        .map((assignment, index) => {
+                        .map((assignment) => {
+                            // Number assignments by creation order, while keeping the
+                            // newest assignment at the top of the visible list.
+                            const assignmentNumber = [...assignments]
+                                .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
+                                .findIndex(item => String(item._id) === String(assignment._id)) + 1;
                             const submissionCount = assignment.submissions?.length || 0;
                             const gradedCount = assignment.submissions?.filter(s => s.marks !== undefined && s.marks !== null).length || 0;
                             const isFullyGraded = submissionCount > 0 && gradedCount === submissionCount;
@@ -493,7 +498,7 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                     <div className="flex items-start justify-between mb-4">
                                         <div className="flex-1">
                                             <div className="flex items-center gap-3 mb-1">
-                                                <span className="text-xs font-black text-gray-300 tracking-tighter uppercase whitespace-nowrap bg-gray-50 px-2 py-1 rounded-lg border border-gray-100">ASGN #{index + 1}</span>
+                                                <span className="text-xs font-black text-gray-300 tracking-tighter uppercase whitespace-nowrap bg-gray-50 px-2 py-1 rounded-lg border border-gray-100">ASGN #{assignmentNumber}</span>
                                                 <h4 className="font-bold text-gray-900 text-lg uppercase tracking-tight">{assignment.title}</h4>
                                                 <div className="flex gap-2">
                                                     <Badge variant="info">ASSIGNED</Badge>

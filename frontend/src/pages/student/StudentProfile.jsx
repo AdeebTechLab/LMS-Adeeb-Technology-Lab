@@ -121,6 +121,7 @@ const StudentProfile = () => {
         semester: user?.semester || '',
         cgpa: user?.cgpa || '',
         majorSubjects: user?.majorSubjects || '',
+        internshipDurationMonths: user?.internshipDurationMonths || '',
         resumeUrl: user?.resumeUrl || '',
         pictureUrl: user?.photo || '',
         registeredAt: user?.createdAt || new Date().toISOString(),
@@ -167,6 +168,7 @@ const StudentProfile = () => {
                 semester: user.semester || '',
                 cgpa: user.cgpa || '',
                 majorSubjects: user.majorSubjects || '',
+                internshipDurationMonths: user.internshipDurationMonths || '',
                 resumeUrl: user.resumeUrl || '',
                 pictureUrl: user.photo || '',
                 registeredAt: user.createdAt || new Date().toISOString(),
@@ -516,6 +518,18 @@ const StudentProfile = () => {
                                     <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={Award} label="CGPA / Grade" value={profileData.cgpa} name="cgpa" editable={canEditBio} />
                                     <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={LinkIcon} label="Resume Link" value={profileData.resumeUrl} name="resumeUrl" editable={canEditBio} />
                                 </div>
+                                {user?.role === 'intern' && (
+                                    <InfoField
+                                        isEditing={isEditing}
+                                        editForm={editForm}
+                                        onChange={handleChange}
+                                        icon={Clock}
+                                        label="Internship Duration"
+                                        value={profileData.internshipDurationMonths ? `${profileData.internshipDurationMonths} Months` : 'Not selected'}
+                                        name="internshipDurationMonths"
+                                        editable={false}
+                                    />
+                                )}
                                 <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={FileText} label="Major Subjects" value={profileData.majorSubjects} name="majorSubjects" editable={canEditBio} />
                             </div>
                         </motion.div>

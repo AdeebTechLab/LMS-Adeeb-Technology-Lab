@@ -90,6 +90,10 @@ const userSchema = new mongoose.Schema({
     rollNumber: String,
     cgpa: String,
     majorSubjects: String,
+    internshipDurationMonths: {
+        type: Number,
+        enum: [3, 6, 12]
+    },
     // Teacher specific
     specialization: String,
     qualification: String,

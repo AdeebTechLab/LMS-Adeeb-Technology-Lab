@@ -261,19 +261,6 @@ const GuestChatWidget = () => {
 
             {!isOpen && (
                 <div className="relative">
-                    {/* Tooltip Popup */}
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 1, duration: 0.4 }}
-                        className="absolute -top-14 left-0 whitespace-nowrap bg-white text-gray-800 text-xs font-semibold px-4 py-2 rounded-xl shadow-lg border border-gray-100 flex items-center gap-2 z-50 pointer-events-none animate-bounce"
-                    >
-                        <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                        Need Help? Chat with us!
-                        {/* Triangle pointer */}
-                        <div className="absolute -bottom-1.5 left-6 w-3 h-3 bg-white border-b border-r border-gray-100 transform rotate-45"></div>
-                    </motion.div>
-
                     <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}

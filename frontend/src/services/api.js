@@ -109,7 +109,7 @@ export const courseAPI = {
 // Enrollment APIs
 export const enrollmentAPI = {
     getMy: () => api.get('/enrollments/my'),
-    enroll: (courseId) => api.post('/enrollments', { courseId }),
+    enroll: (courseId, data = {}) => api.post('/enrollments', { courseId, ...data }),
     complete: (id, data) => api.put(`/enrollments/${id}/complete`, data),
     withdraw: (id) => api.delete(`/enrollments/${id}`),
     getAll: () => api.get('/enrollments/all'),

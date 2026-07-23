@@ -23,6 +23,13 @@ const asSelectOptions = (values, placeholder) => [
     ...values.map(value => ({ value, label: value }))
 ];
 
+const normalizeCampusCity = (city = '') => {
+    const campus = ['Bahawalpur', 'Islamabad'].find(
+        option => option.toLowerCase() === String(city).trim().toLowerCase()
+    );
+    return campus || '';
+};
+
 const InfoField = ({ icon: Icon, label, value, name, type = 'text', editable = true, isEditing, editForm, onChange }) => (
     <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-xl">
         <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -108,7 +115,7 @@ const TeacherProfile = () => {
         address: user?.address || '',
         city: user?.city || '',
         country: user?.country || 'Pakistan',
-        campusCity: user?.location || '',
+        campusCity: normalizeCampusCity(user?.location),
         attendType: user?.attendType || '',
         heardAbout: user?.heardAbout || '',
         joinedAt: user?.createdAt || new Date().toISOString(),
@@ -217,6 +224,9 @@ const TeacherProfile = () => {
         { label: 'My Courses', value: myCourses.length.toString(), icon: BookOpen, color: 'bg-primary/10 text-primary' },
         { label: 'Active Students', value: totalStudents.toString(), icon: User, color: 'bg-primary/10 text-primary' },
         { label: 'Classes This Month', value: '0', icon: GraduationCap, color: 'bg-primary/10 text-primary' },
+        { label: 'Campus City', value: profileData.campusCity || 'Not set', icon: MapPin, color: 'bg-blue-50 text-blue-600' },
+        { label: 'Attend Classes', value: profileData.attendType || 'Not set', icon: Users, color: 'bg-emerald-50 text-emerald-600' },
+        { label: 'Experience', value: profileData.experience || 'Not set', icon: Briefcase, color: 'bg-amber-50 text-amber-600' },
     ];
 
     if (isLoading) {
@@ -310,15 +320,15 @@ const TeacherProfile = () => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.1 }}
-                        className={`bg-white rounded-xl p-4 sm:p-6 border border-primary/20 shadow-sm ${index === 2 ? 'col-span-2 lg:col-span-1' : ''}`}
+                        className="bg-white rounded-xl p-4 sm:p-6 border border-primary/20 shadow-sm"
                     >
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-[10px] sm:text-sm font-black text-gray-500 uppercase tracking-widest mb-1">{stat.label}</p>
-                                <p className="text-lg sm:text-2xl font-black text-gray-900 leading-none">{stat.value}</p>
+                                <p className="text-base sm:text-2xl font-black text-gray-900 leading-tight break-words">{stat.value}</p>
                             </div>
                             <div className={`w-9 h-9 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${stat.color}`}>
-                                <stat.icon className="w-5 h-5 sm:w-6 h-6" />
+                                <stat.icon className="w-5 h-5 sm:w-6 sm:h-6" />
                             </div>
                         </div>
                     </motion.div>
@@ -356,7 +366,7 @@ const TeacherProfile = () => {
                         <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={MapPin} label="City" value={profileData.city} name="city" editable={canEditBio} />
                         <SelectField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={MapPin} label="Country" value={profileData.country} name="country" options={asSelectOptions(COUNTRIES, 'Select Country')} editable={canEditBio} />
                         <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={MapPin} label="Address" value={profileData.address} name="address" editable={canEditBio} />
-                        <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={BookOpen} label="Campus City" value={profileData.campusCity} name="campusCity" editable={canEditBio} />
+                        <SelectField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={BookOpen} label="Campus City" value={profileData.campusCity} name="campusCity" options={asSelectOptions(['Bahawalpur', 'Islamabad'], 'Select Campus City')} editable={canEditBio} />
                         <SelectField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={BookOpen} label="Attend Classes" value={profileData.attendType} name="attendType" options={asSelectOptions(['Physical', 'Online'], 'Select Attend Type')} editable={canEditBio} />
                         <SelectField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={Users} label="Heard About Us" value={profileData.heardAbout} name="heardAbout" options={asSelectOptions(HEARD_ABOUT_OPTIONS, 'Select Option')} editable={canEditBio} />
                     </div>
