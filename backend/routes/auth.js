@@ -8,9 +8,9 @@ const { uploadPhoto, uploadRegistration } = require('../config/cloudinary');
 const User = require('../models/User');
 
 const getLinkedAccountQuery = (user) => {
-    const links = [{ email: user.email }];
-    if (user.rollNo) links.push({ rollNo: user.rollNo });
-    return links.length === 1 ? links[0] : { $or: links };
+    const rollNo = user.rollNo?.toString().trim();
+    if (rollNo) return { rollNo };
+    return { email: user.email?.toString().trim().toLowerCase() };
 };
 
 // @route   POST /api/auth/register
@@ -638,13 +638,16 @@ router.put('/change-password', protect, async (req, res) => {
         user.password = newPassword;
         await user.save();
 
-        // Synchronize password across all OTHER accounts with the same email
-        await User.updateMany(
+        // Roll number is the shared identity across Student/Teacher/Intern/Job portals.
+        const syncResult = await User.updateMany(
             { $and: [getLinkedAccountQuery(user), { _id: { $ne: user._id } }] },
             { $set: { password: newPassword } }
         );
 
-        res.json({ success: true, message: 'Password updated successfully' });
+        res.json({
+            success: true,
+            message: `Password updated for ${syncResult.modifiedCount + 1} linked portal account(s)`
+        });
     } catch (error) {
         console.error('Change password error:', error);
         res.status(500).json({ success: false, message: error.message });
@@ -818,15 +821,15 @@ router.post('/reset-password/:token', async (req, res) => {
         user.passwordResetExpires = undefined;
         await user.save();
 
-        // Synchronize password across all OTHER accounts with the same email
-        await User.updateMany(
+        // Synchronize through the person's global roll number (email is legacy fallback).
+        const syncResult = await User.updateMany(
             { $and: [getLinkedAccountQuery(user), { _id: { $ne: user._id } }] },
             { $set: { password: password } }
         );
 
         res.json({
             success: true,
-            message: 'Password reset successful. Please login with your new password.'
+            message: `Password reset for ${syncResult.modifiedCount + 1} linked portal account(s). Please login with your new password.`
         });
     } catch (error) {
         console.error('Reset password error:', error);

@@ -54,28 +54,32 @@ const getOrCreateFolder = async (drive, name, parentId = null) => {
     return created.data.id;
 };
 
-const uploadAssignmentFile = async ({ auth, file, courseTitle, assignmentTitle, teacherEmails }) => {
+const uploadAssignmentFiles = async ({ auth, files, courseTitle, assignmentTitle, teacherEmails }) => {
     const drive = google.drive({ version: 'v3', auth });
-    const rootFolder = await getOrCreateFolder(drive, 'LMS Submissions');
+    const rootFolder = await getOrCreateFolder(drive, 'Adeeb LMS');
     const courseFolder = await getOrCreateFolder(drive, courseTitle, rootFolder);
     const assignmentFolder = await getOrCreateFolder(drive, assignmentTitle, courseFolder);
 
-    const uploaded = await drive.files.create({
-        requestBody: {
-            name: file.originalname,
-            parents: [assignmentFolder]
-        },
-        media: {
-            mimeType: file.mimetype,
-            body: Readable.from(file.buffer)
-        },
-        fields: 'id,name,mimeType,size,webViewLink,thumbnailLink'
-    });
+    const uploadedFiles = [];
+    for (const file of files) {
+        const uploaded = await drive.files.create({
+            requestBody: {
+                name: file.originalname,
+                parents: [assignmentFolder]
+            },
+            media: {
+                mimeType: file.mimetype,
+                body: Readable.from(file.buffer)
+            },
+            fields: 'id,name,mimeType,size,webViewLink,thumbnailLink'
+        });
+        uploadedFiles.push(uploaded.data);
+    }
 
     for (const emailAddress of [...new Set(teacherEmails.filter(Boolean))]) {
         try {
             await drive.permissions.create({
-                fileId: uploaded.data.id,
+                fileId: assignmentFolder,
                 requestBody: { type: 'user', role: 'reader', emailAddress },
                 sendNotificationEmail: false
             });
@@ -84,12 +88,17 @@ const uploadAssignmentFile = async ({ auth, file, courseTitle, assignmentTitle, 
         }
     }
 
-    return uploaded.data;
+    const folder = await drive.files.get({
+        fileId: assignmentFolder,
+        fields: 'id,name,webViewLink'
+    });
+
+    return { folder: folder.data, files: uploadedFiles };
 };
 
 module.exports = {
     encryptToken,
     decryptToken,
     getOAuthClient,
-    uploadAssignmentFile
+    uploadAssignmentFiles
 };

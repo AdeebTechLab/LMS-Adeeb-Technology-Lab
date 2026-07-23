@@ -81,6 +81,7 @@ const StudentRegister = () => {
     const [apiError, setApiError] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [showMobileInfo, setShowMobileInfo] = useState(true);
 
     const [formData, setFormData] = useState({
         fullName: '',
@@ -326,7 +327,11 @@ const StudentRegister = () => {
                 />
             )}
             {/* Left Side - Dynamic Content */}
-            <RegistrationLeftPanel formType="student" />
+            <RegistrationLeftPanel
+                formType="student"
+                mobileOpen={showMobileInfo}
+                onMobileClose={() => setShowMobileInfo(false)}
+            />
 
             {/* Right Side - Registration Form - Scrollable */}
             <motion.div

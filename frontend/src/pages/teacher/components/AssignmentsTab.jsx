@@ -1188,7 +1188,9 @@ const AssignmentsTab = ({ course, students }) => { // Accept students prop
                                             className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-xs font-bold hover:bg-blue-100 border border-blue-100 transition-colors"
                                         >
                                             <Upload className="w-3.5 h-3.5" />
-                                            VIEW ATTACHED FILE
+                                            {submission.googleDriveFile?.mimeType === 'application/vnd.google-apps.folder'
+                                                ? 'VIEW SUBMISSION FOLDER'
+                                                : 'VIEW ATTACHED FILE'}
                                         </a>
                                     )}
 

@@ -23,6 +23,7 @@ import {
     X,
     ChevronDown,
     Hand,
+    Pin,
 } from 'lucide-react';
 import { io } from 'socket.io-client';
 import toast from 'react-hot-toast';
@@ -70,6 +71,7 @@ const AdeebMeet = () => {
     const [audioLevels, setAudioLevels] = useState({});
     const [peerScreenShare, setPeerScreenShare] = useState({});
     const [screenFocusOn, setScreenFocusOn] = useState(true);
+    const [pinnedScreenSharerId, setPinnedScreenSharerId] = useState(null);
     const [unreadChat, setUnreadChat] = useState(0);
     const [audioDevices, setAudioDevices] = useState([]);
     const [videoDevices, setVideoDevices] = useState([]);
@@ -504,12 +506,11 @@ const AdeebMeet = () => {
                     userVideoRef.current.srcObject = displayStream;
                 }
                 setIsScreenSharing(true);
-                setIsVideoOff(false);
                 setScreenFocusOn(true);
                 socketRef.current?.emit('classroom_media_state', {
                     roomId: roomName,
                     isMuted,
-                    isVideoOff: false,
+                    isVideoOff,
                 });
                 toast.success('Screen sharing started');
             } else {
@@ -520,6 +521,11 @@ const AdeebMeet = () => {
                 }
                 setIsScreenSharing(false);
                 setScreenFocusOn(false);
+                socketRef.current?.emit('classroom_media_state', {
+                    roomId: roomName,
+                    isMuted,
+                    isVideoOff,
+                });
             }
         } catch (err) {
             console.error(err);
@@ -567,11 +573,23 @@ const AdeebMeet = () => {
     };
 
     const mySocketId = socketRef.current?.id;
-    const screenSharerId = isScreenSharing
-        ? mySocketId
-        : peers.find((p) => peerScreenShare[p.peerId] || p.isScreenSharing)?.peerId ?? null;
+    const activeScreenSharerIds = [
+        ...(isScreenSharing && mySocketId ? [mySocketId] : []),
+        ...peers
+            .filter((peer) => peerScreenShare[peer.peerId] || peer.isScreenSharing)
+            .map((peer) => peer.peerId),
+    ];
+    const screenSharerId = activeScreenSharerIds.includes(pinnedScreenSharerId)
+        ? pinnedScreenSharerId
+        : activeScreenSharerIds[0] ?? null;
 
     const showScreenLayout = screenSharerId && screenFocusOn;
+
+    useEffect(() => {
+        if (pinnedScreenSharerId && !activeScreenSharerIds.includes(pinnedScreenSharerId)) {
+            setPinnedScreenSharerId(null);
+        }
+    }, [pinnedScreenSharerId, activeScreenSharerIds.join('|')]);
 
     const displayTiles = [
         { key: 'local', isLocal: true },
@@ -631,6 +649,11 @@ const AdeebMeet = () => {
         setFocusedTileId((prev) => (prev === tileId ? null : tileId));
     };
 
+    const toggleScreenPin = (screenOwnerId) => {
+        setPinnedScreenSharerId((current) => current === screenOwnerId ? null : screenOwnerId);
+        setScreenFocusOn(true);
+    };
+
     const renderLocalTile = (className = '', tileOptions = {}) => (
         <VideoTile
             stream={isScreenSharing ? screenStreamRef.current : userStreamRef.current}
@@ -652,6 +675,8 @@ const AdeebMeet = () => {
             onToggleFocus={toggleTileFocus}
             showTileControls={tileOptions.showTileControls !== false}
             showDpWave={showDpWaveForTile('local', className)}
+            onPinScreen={isScreenSharing ? () => toggleScreenPin(mySocketId) : undefined}
+            isScreenPinned={pinnedScreenSharerId === mySocketId}
         />
     );
 
@@ -765,6 +790,8 @@ const AdeebMeet = () => {
                                                   className={screenStageClass}
                                                   isScreenShare
                                                   showDpWave={false}
+                                                  onPinScreen={() => toggleScreenPin(screenSharerId)}
+                                                  isScreenPinned={pinnedScreenSharerId === screenSharerId}
                                               />
                                           ) : null;
                                       })()}
@@ -792,6 +819,12 @@ const AdeebMeet = () => {
                                                 handRaised={isHandRaised(tile.peer.peerId)}
                                                 className="!aspect-video min-w-[120px] lg:min-w-0 shrink-0 max-h-[120px] lg:max-h-none"
                                                 showDpWave={false}
+                                                onPinScreen={
+                                                    peerScreenShare[tile.peer.peerId] || tile.peer.isScreenSharing
+                                                        ? () => toggleScreenPin(tile.peer.peerId)
+                                                        : undefined
+                                                }
+                                                isScreenPinned={pinnedScreenSharerId === tile.peer.peerId}
                                             />
                                         )
                                     )}
@@ -1195,6 +1228,8 @@ const VideoTile = ({
     tileId,
     isTileFocused = false,
     onToggleFocus,
+    onPinScreen,
+    isScreenPinned = false,
     showTileControls = true,
     showDpWave = false,
 }) => {
@@ -1244,6 +1279,24 @@ const VideoTile = ({
                     : undefined
             }
         >
+            {isScreenShare && onPinScreen && (
+                <button
+                    type="button"
+                    onClick={(event) => {
+                        event.stopPropagation();
+                        onPinScreen();
+                    }}
+                    className={`absolute top-2 left-2 z-30 h-8 px-2.5 rounded-lg border flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider transition-all ${
+                        isScreenPinned
+                            ? 'bg-primary text-white border-primary shadow-lg'
+                            : 'bg-black/65 hover:bg-primary/90 text-white border-white/20'
+                    }`}
+                    title={isScreenPinned ? 'Unpin this screen' : 'Pin this screen'}
+                >
+                    <Pin className={`w-3.5 h-3.5 ${isScreenPinned ? 'fill-current' : ''}`} />
+                    {isScreenPinned ? 'Pinned' : 'Pin'}
+                </button>
+            )}
             {handRaised && (
                 <HandRaisedBadge className="absolute top-2 right-2" />
             )}
@@ -1331,6 +1384,8 @@ const RemoteVideoTile = ({
     tileId,
     isTileFocused = false,
     onToggleFocus,
+    onPinScreen,
+    isScreenPinned = false,
     showDpWave = false,
 }) => {
     if (!peer) return null;
@@ -1402,6 +1457,8 @@ const RemoteVideoTile = ({
             tileId={tileId || peer.peerId}
             isTileFocused={isTileFocused}
             onToggleFocus={onToggleFocus}
+            onPinScreen={onPinScreen}
+            isScreenPinned={isScreenPinned}
             showDpWave={showDpWave}
         />
     );

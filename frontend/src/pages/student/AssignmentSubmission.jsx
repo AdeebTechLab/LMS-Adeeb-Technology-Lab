@@ -4,7 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     CheckCircle, Clock, Calendar, Search, Filter, AlertCircle, XCircle, ChevronLeft, ChevronRight,
-    BookOpen, GraduationCap, ArrowRight, ExternalLink, Send, FileText, ClipboardList, Plus, Link as LinkIcon, MessageCircle, MapPin, Zap, X, Pencil, Trash2, Cloud, Upload
+    BookOpen, GraduationCap, ArrowRight, ExternalLink, Send, FileText, ClipboardList, Plus, Link as LinkIcon, MessageCircle, MapPin, Zap, X, Pencil, Trash2, Upload
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import Loader, { ButtonLoader } from '../../components/ui/Loader';
@@ -26,6 +26,14 @@ const getSocketURL = () => {
 };
 
 const SOCKET_URL = getSocketURL();
+
+const GoogleDriveIcon = ({ className = '' }) => (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className={className}>
+        <path fill="currentColor" d="M8.1 3h5.2l7.3 12.6H15.4L8.1 3Z" opacity="0.95" />
+        <path fill="currentColor" d="M8.1 3 1.4 14.6 4 19.1 10.7 7.5 8.1 3Z" opacity="0.75" />
+        <path fill="currentColor" d="M4 19.1h13.5l2.6-4.5H6.6L4 19.1Z" />
+    </svg>
+);
 
 const AssignmentSubmission = () => {
     const { user, role } = useSelector((state) => state.auth);
@@ -185,14 +193,14 @@ const AssignmentSubmission = () => {
     };
 
     const handleDriveUpload = async (event) => {
-        const file = event.target.files?.[0];
+        const files = Array.from(event.target.files || []);
         event.target.value = '';
-        if (!file || !selectedAssignment) return;
+        if (!files.length || !selectedAssignment) return;
         setIsDriveUploading(true);
         setDriveError('');
         try {
             const formData = new FormData();
-            formData.append('file', file);
+            files.forEach(file => formData.append('files', file));
             formData.append('assignmentId', selectedAssignment._id);
             const response = await googleDriveAPI.upload(formData);
             setDriveFile(response.data.file);
@@ -673,11 +681,11 @@ const AssignmentSubmission = () => {
                                                 </div>
                                                 <div className="p-5 sm:p-7 space-y-5 overflow-y-auto">
                                                     <div className="space-y-5">
-                                                        <div className="rounded-2xl border border-blue-200 dark:border-blue-800 bg-gradient-to-br from-blue-50 to-white dark:from-blue-950/30 dark:to-slate-900 p-4 sm:p-5 shadow-sm">
+                                                        <div className="rounded-2xl border border-primary/30 dark:border-primary/40 bg-gradient-to-br from-primary/10 to-white dark:from-primary/10 dark:to-slate-900 p-4 sm:p-5 shadow-sm">
                                                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                                                                 <div className="flex items-center gap-3">
-                                                                    <div className="w-11 h-11 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-lg shadow-blue-600/20">
-                                                                        <Cloud className="w-5 h-5" />
+                                                                    <div className="w-12 h-12 rounded-xl bg-primary text-white flex items-center justify-center shadow-lg shadow-primary/25">
+                                                                        <GoogleDriveIcon className="w-7 h-7" />
                                                                     </div>
                                                                     <div>
                                                                         <div className="flex items-center gap-2">
@@ -693,11 +701,16 @@ const AssignmentSubmission = () => {
                                                                 </div>
 
                                                                 {driveStatus.connected ? (
-                                                                    <label className={`px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-blue-600/20 transition-all ${isDriveUploading ? 'opacity-60 pointer-events-none' : ''}`}>
-                                                                        <Upload className="w-4 h-4" />
-                                                                        {isDriveUploading ? 'Uploading...' : 'Choose Media'}
+                                                                    <label className={`min-h-12 px-5 sm:px-6 py-3 rounded-xl bg-primary hover:bg-orange-600 text-white text-[10px] sm:text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2.5 cursor-pointer shadow-lg shadow-primary/25 transition-all hover:-translate-y-0.5 active:translate-y-0 ${isDriveUploading ? 'opacity-60 pointer-events-none' : ''}`}>
+                                                                        <Upload className="w-4 h-4 sm:w-5 sm:h-5" />
+                                                                        {isDriveUploading
+                                                                            ? 'Uploading...'
+                                                                            : role === 'intern'
+                                                                                ? 'Upload Project'
+                                                                                : 'Upload Assignment'}
                                                                         <input
                                                                             type="file"
+                                                                            multiple
                                                                             className="hidden"
                                                                             accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.zip"
                                                                             onChange={handleDriveUpload}
@@ -709,7 +722,7 @@ const AssignmentSubmission = () => {
                                                                         type="button"
                                                                         onClick={handleConnectGoogleDrive}
                                                                         disabled={!driveStatus.configured}
-                                                                        className="px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-300 text-xs font-black uppercase tracking-wide disabled:opacity-50"
+                                                                        className="min-h-12 px-5 sm:px-6 py-3 rounded-xl bg-primary hover:bg-orange-600 text-white text-[10px] sm:text-xs font-black uppercase tracking-wide shadow-lg shadow-primary/25 disabled:opacity-50"
                                                                     >
                                                                         Connect Google Drive
                                                                     </button>
@@ -719,10 +732,21 @@ const AssignmentSubmission = () => {
                                                             {driveFile && (
                                                                 <div className="mt-4 flex items-center justify-between gap-3 rounded-xl bg-white dark:bg-slate-900 border border-emerald-200 dark:border-emerald-800 p-3">
                                                                     <div className="min-w-0">
-                                                                        <p className="text-xs font-black text-emerald-700 dark:text-emerald-300 truncate">{driveFile.name}</p>
-                                                                        <p className="text-[10px] text-gray-400">Saved in your Drive • Teacher access enabled</p>
+                                                                        <p className="text-xs font-black text-emerald-700 dark:text-emerald-300">
+                                                                            {driveFile.files?.length || 1} file{(driveFile.files?.length || 1) === 1 ? '' : 's'} uploaded
+                                                                        </p>
+                                                                        <p className="text-[10px] text-gray-400">Saved together in one Drive folder • Teacher access enabled</p>
                                                                     </div>
                                                                     <CheckCircle className="w-5 h-5 text-emerald-500 shrink-0" />
+                                                                </div>
+                                                            )}
+                                                            {driveFile?.files?.length > 0 && (
+                                                                <div className="mt-2 flex flex-wrap gap-1.5">
+                                                                    {driveFile.files.map(file => (
+                                                                        <span key={file.id} className="max-w-full truncate px-2 py-1 rounded-lg bg-white dark:bg-slate-900 border border-primary/20 dark:border-primary/30 text-[9px] font-bold text-gray-500 dark:text-slate-300">
+                                                                            {file.name}
+                                                                        </span>
+                                                                    ))}
                                                                 </div>
                                                             )}
 

@@ -436,6 +436,7 @@ export class WebRTCMeetingManager {
         if (!this.cameraVideoTrack) {
             this.cameraVideoTrack = this.localStream?.getVideoTracks()[0] ?? null;
         }
+        this.cameraWasEnabledBeforeShare = Boolean(this.cameraVideoTrack?.enabled);
 
         try {
             await screenTrack.applyConstraints({
@@ -485,16 +486,21 @@ export class WebRTCMeetingManager {
 
         let cameraTrack = this.cameraVideoTrack;
         if (!cameraTrack || cameraTrack.readyState === 'ended') {
-            try {
-                const cam = await navigator.mediaDevices.getUserMedia({
-                    video: VIDEO_CONSTRAINTS,
-                });
-                cameraTrack = cam.getVideoTracks()[0];
-                this.cameraVideoTrack = cameraTrack;
-            } catch {
+            if (this.cameraWasEnabledBeforeShare) {
+                try {
+                    const cam = await navigator.mediaDevices.getUserMedia({
+                        video: VIDEO_CONSTRAINTS,
+                    });
+                    cameraTrack = cam.getVideoTracks()[0];
+                    this.cameraVideoTrack = cameraTrack;
+                } catch {
+                    cameraTrack = null;
+                }
+            } else {
                 cameraTrack = null;
             }
         }
+        if (cameraTrack) cameraTrack.enabled = Boolean(this.cameraWasEnabledBeforeShare);
 
         for (const [peerId, { pc }] of this.peers) {
             const sender = pc.getSenders().find((s) => s.track?.kind === 'video');

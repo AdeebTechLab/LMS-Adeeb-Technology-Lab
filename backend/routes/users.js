@@ -10,9 +10,9 @@ const moment = require('moment-timezone');
 const { sendPushNotification } = require('../utils/pushHelper');
 
 const getLinkedAccountQuery = (user) => {
-    const links = [{ email: user.email }];
-    if (user.rollNo) links.push({ rollNo: user.rollNo });
-    return links.length === 1 ? links[0] : { $or: links };
+    const rollNo = user.rollNo?.toString().trim();
+    if (rollNo) return { rollNo };
+    return { email: user.email?.toString().trim().toLowerCase() };
 };
 
 // @route   GET /api/users/birthdays
@@ -428,6 +428,27 @@ router.put('/:id', protect, authorize('admin'), uploadPhoto.single('photo'), asy
             return res.status(404).json({ success: false, message: 'User not found' });
         }
 
+        if (typeof updateData.email === 'string') {
+            updateData.email = updateData.email.trim().toLowerCase();
+        }
+
+        const linkedAccounts = await User.find(getLinkedAccountQuery(currentUser)).select('_id');
+        const linkedAccountIds = linkedAccounts.map(account => account._id);
+
+        if (updateData.email && updateData.email !== currentUser.email) {
+            const conflictingAccount = await User.findOne({
+                email: updateData.email,
+                _id: { $nin: linkedAccountIds }
+            }).select('_id');
+
+            if (conflictingAccount) {
+                return res.status(409).json({
+                    success: false,
+                    message: 'This email belongs to a different roll number.'
+                });
+            }
+        }
+
         // Shared identity fields must stay identical across every portal/role.
         const syncFields = [
             'name', 'email', 'phone', 'cnic', 'dob', 'age', 'gender', 
@@ -454,14 +475,21 @@ router.put('/:id', protect, authorize('admin'), uploadPhoto.single('photo'), asy
 
         // Use the old identity values so an email/roll-number change still reaches
         // every linked role before applying the new shared values.
+        let linkedUpdatedCount = 1;
         if (Object.keys(syncData).length > 0) {
-            await User.updateMany(
-                { $and: [getLinkedAccountQuery(currentUser), { _id: { $ne: req.params.id } }] },
+            const syncResult = await User.updateMany(
+                { _id: { $in: linkedAccountIds, $ne: req.params.id } },
                 { $set: syncData }
             );
+            linkedUpdatedCount += syncResult.modifiedCount;
         }
 
-        res.json({ success: true, data: user });
+        res.json({
+            success: true,
+            data: user,
+            linkedUpdatedCount,
+            message: `Updated ${linkedUpdatedCount} linked portal account(s)`
+        });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }

@@ -137,6 +137,7 @@ const JobRegister = () => {
     const [apiError, setApiError] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [showMobileInfo, setShowMobileInfo] = useState(true);
     const [photoFile, setPhotoFile] = useState(null);
     const [photoPreview, setPhotoPreview] = useState(null);
     const [cropperSrc, setCropperSrc] = useState(null);
@@ -388,7 +389,11 @@ const JobRegister = () => {
                 />
             )}
             {/* Left Side - Dynamic Content */}
-            <RegistrationLeftPanel formType="job" />
+            <RegistrationLeftPanel
+                formType="job"
+                mobileOpen={showMobileInfo}
+                onMobileClose={() => setShowMobileInfo(false)}
+            />
 
             {/* Right Side - Registration Form - Scrollable */}
             <motion.div

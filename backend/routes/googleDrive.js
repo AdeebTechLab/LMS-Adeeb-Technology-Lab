@@ -10,7 +10,7 @@ const {
     encryptToken,
     decryptToken,
     getOAuthClient,
-    uploadAssignmentFile
+    uploadAssignmentFiles
 } = require('../utils/googleDrive');
 
 const router = express.Router();
@@ -95,10 +95,10 @@ router.get('/callback', async (req, res) => {
     }
 });
 
-router.post('/upload', protect, upload.single('file'), async (req, res) => {
+router.post('/upload', protect, upload.array('files', 10), async (req, res) => {
     try {
-        if (!req.file) {
-            return res.status(400).json({ success: false, message: 'Please select a file' });
+        if (!req.files?.length) {
+            return res.status(400).json({ success: false, message: 'Please select at least one file' });
         }
         const assignment = await Assignment.findById(req.body.assignmentId)
             .populate({
@@ -121,9 +121,9 @@ router.post('/upload', protect, upload.single('file'), async (req, res) => {
             refresh_token: decryptToken(connection.encryptedRefreshToken)
         });
 
-        const driveFile = await uploadAssignmentFile({
+        const driveUpload = await uploadAssignmentFiles({
             auth: oauth2Client,
-            file: req.file,
+            files: req.files,
             courseTitle: assignment.course?.title || 'Course',
             assignmentTitle: assignment.title,
             teacherEmails: assignment.course?.teachers?.map(teacher => teacher.email) || []
@@ -132,12 +132,20 @@ router.post('/upload', protect, upload.single('file'), async (req, res) => {
         res.status(201).json({
             success: true,
             file: {
-                id: driveFile.id,
-                name: driveFile.name,
-                mimeType: driveFile.mimeType,
-                size: Number(driveFile.size || req.file.size),
-                webViewLink: driveFile.webViewLink,
-                thumbnailLink: driveFile.thumbnailLink || ''
+                id: driveUpload.folder.id,
+                name: driveUpload.folder.name,
+                mimeType: 'application/vnd.google-apps.folder',
+                size: driveUpload.files.reduce((total, file) => total + Number(file.size || 0), 0),
+                webViewLink: driveUpload.folder.webViewLink,
+                thumbnailLink: '',
+                files: driveUpload.files.map(file => ({
+                    id: file.id,
+                    name: file.name,
+                    mimeType: file.mimeType,
+                    size: Number(file.size || 0),
+                    webViewLink: file.webViewLink,
+                    thumbnailLink: file.thumbnailLink || ''
+                }))
             }
         });
     } catch (error) {

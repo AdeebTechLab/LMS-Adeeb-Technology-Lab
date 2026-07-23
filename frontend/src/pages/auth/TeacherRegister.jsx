@@ -144,6 +144,7 @@ const TeacherRegister = () => {
 
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [showMobileInfo, setShowMobileInfo] = useState(true);
     const [errors, setErrors] = useState({});
 
     const formatCNIC = (value) => {
@@ -381,7 +382,11 @@ const TeacherRegister = () => {
                 />
             )}
             {/* Left Side - Dynamic Content */}
-            <RegistrationLeftPanel formType="teacher" />
+            <RegistrationLeftPanel
+                formType="teacher"
+                mobileOpen={showMobileInfo}
+                onMobileClose={() => setShowMobileInfo(false)}
+            />
 
             {/* Right Side - Register Form - Scrollable */}
             <motion.div
