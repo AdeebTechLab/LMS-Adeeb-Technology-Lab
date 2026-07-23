@@ -165,6 +165,16 @@ export const assignmentAPI = {
     deleteSubmission: (assignmentId, submissionId) => api.delete(`/assignments/${assignmentId}/submissions/${submissionId}`)
 };
 
+export const googleDriveAPI = {
+    getStatus: () => api.get('/google-drive/status'),
+    getAuthUrl: () => api.get('/google-drive/auth-url'),
+    upload: (formData) => api.post('/google-drive/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        timeout: 180000
+    }),
+    disconnect: () => api.delete('/google-drive/disconnect')
+};
+
 // Certificate APIs
 export const certificateAPI = {
     getMy: () => api.get('/certificates/my'),

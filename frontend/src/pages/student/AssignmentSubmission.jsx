@@ -4,11 +4,11 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     CheckCircle, Clock, Calendar, Search, Filter, AlertCircle, XCircle, ChevronLeft, ChevronRight,
-    BookOpen, GraduationCap, ArrowRight, ExternalLink, Send, FileText, ClipboardList, Plus, Link as LinkIcon, MessageCircle, MapPin, Zap, X, Pencil, Trash2
+    BookOpen, GraduationCap, ArrowRight, ExternalLink, Send, FileText, ClipboardList, Plus, Link as LinkIcon, MessageCircle, MapPin, Zap, X, Pencil, Trash2, Cloud, Upload
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import Loader, { ButtonLoader } from '../../components/ui/Loader';
-import { assignmentAPI, courseAPI, dailyTaskAPI, enrollmentAPI, chatAPI, feeAPI } from '../../services/api';
+import { assignmentAPI, courseAPI, dailyTaskAPI, enrollmentAPI, chatAPI, feeAPI, googleDriveAPI } from '../../services/api';
 import { formatDate } from '../../utils/dateFormatter';
 import RichTextEditor from '../../components/ui/RichTextEditor';
 import RichTextContent from '../../components/ui/RichTextContent';
@@ -42,6 +42,10 @@ const AssignmentSubmission = () => {
     const [selectedAssignment, setSelectedAssignment] = useState(null);
     const [submissionUrl, setSubmissionUrl] = useState('');
     const [submissionText, setSubmissionText] = useState('');
+    const [driveStatus, setDriveStatus] = useState({ configured: false, connected: false, googleEmail: '' });
+    const [driveFile, setDriveFile] = useState(null);
+    const [isDriveUploading, setIsDriveUploading] = useState(false);
+    const [driveError, setDriveError] = useState('');
     const [newTaskLink, setNewTaskLink] = useState('');
     const [newTaskContent, setNewTaskContent] = useState('');
     const [resubmittingTaskId, setResubmittingTaskId] = useState(null);
@@ -55,6 +59,9 @@ const AssignmentSubmission = () => {
 
     useEffect(() => {
         fetchMyCourses();
+        googleDriveAPI.getStatus()
+            .then(response => setDriveStatus(response.data))
+            .catch(() => setDriveStatus({ configured: false, connected: false, googleEmail: '' }));
         socketRef.current = io(SOCKET_URL, { withCredentials: true });
         
         return () => {
@@ -137,24 +144,63 @@ const AssignmentSubmission = () => {
     };
 
     const handleSubmit = async (assignmentId) => {
-        if (!submissionUrl.trim() && !submissionText.trim()) return;
+        if (!submissionUrl.trim() && !submissionText.trim() && !driveFile) return;
         setIsSubmitting(true);
         try {
             // Build FormData so multipart/form-data content-type is satisfied
             const formData = new FormData();
             if (submissionUrl.trim()) formData.append('fileUrl', submissionUrl.trim());
             if (submissionText.trim()) formData.append('notes', submissionText.trim());
+            if (driveFile) {
+                formData.append('fileUrl', driveFile.webViewLink);
+                formData.append('googleDriveFileId', driveFile.id);
+                formData.append('googleDriveFileName', driveFile.name);
+                formData.append('googleDriveFileMimeType', driveFile.mimeType || '');
+                formData.append('googleDriveFileSize', String(driveFile.size || 0));
+                formData.append('googleDriveThumbnailLink', driveFile.thumbnailLink || '');
+            }
 
             await assignmentAPI.submit(assignmentId, formData);
             setSelectedAssignment(null);
             setSubmissionUrl('');
             setSubmissionText('');
+            setDriveFile(null);
             fetchCourseData();
         } catch (error) {
             console.error('Submission failed:', error);
             alert(error.response?.data?.message || 'Failed to submit assignment');
         } finally {
             setIsSubmitting(false);
+        }
+    };
+
+    const handleConnectGoogleDrive = async () => {
+        try {
+            setDriveError('');
+            const response = await googleDriveAPI.getAuthUrl();
+            window.location.assign(response.data.url);
+        } catch (error) {
+            setDriveError(error.response?.data?.message || 'Google Drive connection is not configured yet.');
+        }
+    };
+
+    const handleDriveUpload = async (event) => {
+        const file = event.target.files?.[0];
+        event.target.value = '';
+        if (!file || !selectedAssignment) return;
+        setIsDriveUploading(true);
+        setDriveError('');
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('assignmentId', selectedAssignment._id);
+            const response = await googleDriveAPI.upload(formData);
+            setDriveFile(response.data.file);
+            setSubmissionUrl(response.data.file.webViewLink);
+        } catch (error) {
+            setDriveError(error.response?.data?.message || 'Google Drive upload failed.');
+        } finally {
+            setIsDriveUploading(false);
         }
     };
 
@@ -399,7 +445,17 @@ const AssignmentSubmission = () => {
                         ].map((tab) => (
                             <button
                                 key={tab.id}
-                                onClick={() => setActiveTab(tab.id)}
+                                onClick={() => {
+                                    setActiveTab(tab.id);
+                                    navigate(location.pathname, {
+                                        replace: true,
+                                        state: {
+                                            ...location.state,
+                                            tab: tab.id,
+                                            courseId: selectedCourseId
+                                        }
+                                    });
+                                }}
                                 className={`flex-1 flex items-center justify-center gap-2.5 py-3.5 px-6 rounded-xl font-black text-[11px] uppercase tracking-wider transition-all whitespace-nowrap ${activeTab === tab.id
                                     ? 'bg-primary text-white shadow-xl shadow-primary/30'
                                     : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-slate-800 hover:text-primary'
@@ -574,7 +630,7 @@ const AssignmentSubmission = () => {
                                                             <div className="flex items-center gap-4 shrink-0 ml-auto">
                                                                 {submissionStatus === 'graded' && submissionMarks !== undefined && (
                                                                     <div className="text-right bg-primary/5 px-4 py-2 rounded-2xl border border-primary/10">
-                                                                        <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-1">Score</p>
+                                                                        <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-1">Marks</p>
                                                                         <p className="text-3xl font-black text-primary leading-none">{submissionMarks}<span className="text-lg opacity-50">/{assignment.totalMarks}</span></p>
                                                                     </div>
                                                                 )}
@@ -584,6 +640,8 @@ const AssignmentSubmission = () => {
                                                                         setSelectedAssignment(assignment);
                                                                         setSubmissionUrl(submissionLink || '');
                                                                         setSubmissionText(submissionNotes || '');
+                                                                        setDriveFile(null);
+                                                                        setDriveError('');
                                                                     }}
                                                                     disabled={isRestricted}
                                                                     className={`px-10 py-3.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all text-white shadow-xl hover:shadow-2xl hover:scale-[1.05] active:scale-95 ${submissionStatus === 'rejected' ? 'bg-red-600 hover:bg-red-700' : canResubmit ? 'bg-blue-600 hover:bg-blue-700' : 'bg-primary hover:bg-[#e67e00]'} disabled:opacity-50`}
@@ -613,6 +671,65 @@ const AssignmentSubmission = () => {
                                                 </div>
                                                 <div className="p-10 space-y-8">
                                                     <div className="space-y-4">
+                                                        <div className="rounded-2xl border-2 border-dashed border-blue-200 dark:border-blue-900 bg-blue-50/60 dark:bg-blue-950/20 p-5">
+                                                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                                                <div className="flex items-center gap-3">
+                                                                    <div className="w-11 h-11 rounded-xl bg-blue-600 text-white flex items-center justify-center">
+                                                                        <Cloud className="w-5 h-5" />
+                                                                    </div>
+                                                                    <div>
+                                                                        <p className="text-sm font-black text-gray-900 dark:text-white">Upload to your Google Drive</p>
+                                                                        <p className="text-[11px] text-gray-500 dark:text-slate-400">
+                                                                            {driveStatus.connected
+                                                                                ? `Connected${driveStatus.googleEmail ? `: ${driveStatus.googleEmail}` : ''}`
+                                                                                : 'Connect once, then select a file from this device.'}
+                                                                        </p>
+                                                                    </div>
+                                                                </div>
+
+                                                                {driveStatus.connected ? (
+                                                                    <label className={`px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-black uppercase tracking-wide flex items-center justify-center gap-2 cursor-pointer ${isDriveUploading ? 'opacity-60 pointer-events-none' : ''}`}>
+                                                                        <Upload className="w-4 h-4" />
+                                                                        {isDriveUploading ? 'Uploading...' : 'Choose Media'}
+                                                                        <input
+                                                                            type="file"
+                                                                            className="hidden"
+                                                                            accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.zip"
+                                                                            onChange={handleDriveUpload}
+                                                                            disabled={isDriveUploading}
+                                                                        />
+                                                                    </label>
+                                                                ) : (
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={handleConnectGoogleDrive}
+                                                                        disabled={!driveStatus.configured}
+                                                                        className="px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-300 text-xs font-black uppercase tracking-wide disabled:opacity-50"
+                                                                    >
+                                                                        Connect Google Drive
+                                                                    </button>
+                                                                )}
+                                                            </div>
+
+                                                            {driveFile && (
+                                                                <div className="mt-4 flex items-center justify-between gap-3 rounded-xl bg-white dark:bg-slate-900 border border-emerald-200 dark:border-emerald-800 p-3">
+                                                                    <div className="min-w-0">
+                                                                        <p className="text-xs font-black text-emerald-700 dark:text-emerald-300 truncate">{driveFile.name}</p>
+                                                                        <p className="text-[10px] text-gray-400">Saved in your Drive • Teacher access enabled</p>
+                                                                    </div>
+                                                                    <CheckCircle className="w-5 h-5 text-emerald-500 shrink-0" />
+                                                                </div>
+                                                            )}
+
+                                                            {!driveStatus.configured && (
+                                                                <p className="mt-3 text-[11px] font-semibold text-amber-600 dark:text-amber-400">
+                                                                    Google Drive setup is awaiting administrator configuration.
+                                                                </p>
+                                                            )}
+                                                            {driveError && (
+                                                                <p className="mt-3 text-[11px] font-semibold text-red-600 dark:text-red-400">{driveError}</p>
+                                                            )}
+                                                        </div>
                                                         <div>
                                                             <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-3 block">Work Link</label>
                                                             <input type="text" placeholder="e.g. GitHub, Drive, or Portfolio Link" value={submissionUrl} onChange={(e) => setSubmissionUrl(e.target.value)} className="w-full px-6 py-5 bg-slate-50 dark:bg-black/40 border-2 border-slate-100 dark:border-slate-800 rounded-3xl outline-none focus:border-primary font-bold transition-all text-sm" />
@@ -742,9 +859,6 @@ const AssignmentSubmission = () => {
                                                                                 {user?.rollNo}
                                                                             </span>
                                                                         )}
-                                                                        <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border ${role === 'intern' ? 'bg-purple-50 dark:bg-purple-900/20 text-primary border-primary/10' : 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 border-blue-100 dark:border-blue-800/30'}`}>
-                                                                            {role || 'student'}
-                                                                        </span>
                                                                     </div>
                                                                     <p className="text-[10px] text-gray-400 font-medium flex items-center gap-1.5 uppercase tracking-wider">
                                                                         <Clock className="w-3.5 h-3.5" />
@@ -819,13 +933,13 @@ const AssignmentSubmission = () => {
                                                             <div className="mt-5 pt-5 border-t border-gray-100 dark:border-slate-800/50 flex flex-wrap items-center gap-4">
                                                                 {/* Compact Score */}
                                                                 <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/5 dark:bg-primary/20 rounded-xl border border-primary/10 dark:border-primary/30">
-                                                                    <span className="text-[10px] font-black text-primary uppercase tracking-widest">Score:</span>
+                                                                    <span className="text-[10px] font-black text-primary uppercase tracking-widest">Marks:</span>
                                                                     <span className="text-sm font-black text-primary">{task.marks !== undefined ? task.marks : 0}<span className="text-[10px]">/10</span></span>
                                                                 </div>
 
                                                                 {/* Inline Feedback */}
                                                                 <div className="flex items-center gap-2 flex-1 min-w-[200px]">
-                                                                    <span className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest shrink-0">Feedback:</span>
+                                                                    <span className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest shrink-0">Teacher Feedback:</span>
                                                                     <span className="text-[11px] text-primary dark:text-primary-light font-bold italic truncate">"{task.feedback}"</span>
                                                                 </div>
                                                             </div>

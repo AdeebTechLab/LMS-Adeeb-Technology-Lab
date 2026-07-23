@@ -100,7 +100,6 @@ const DailyTasksTab = ({ course, students = [] }) => {
             // Update local state
             setTasks(prev => prev.map(t => t._id === taskId ? { ...res.data.data, user: t.user } : t));
             setSelectedTaskForGrading(null);
-            alert(`Task ${status === 'verified' ? 'verified' : 'rejected'} successfully`);
         } catch (error) {
             console.error(`Error ${status} task:`, error);
             alert(`Failed to ${status} task`);

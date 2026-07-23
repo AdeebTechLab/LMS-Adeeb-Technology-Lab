@@ -315,12 +315,12 @@ const BrowseCourses = () => {
             )}
 
             {/* Tabs */}
-            <div className="flex gap-2 mb-6 bg-gray-100/80 p-1.5 rounded-2xl w-fit border border-primary">
+            <div className="flex gap-1.5 mb-6 bg-gray-100/80 dark:bg-slate-900 p-1.5 rounded-2xl w-fit max-w-full overflow-x-auto border border-primary/50 dark:border-slate-700 shadow-sm">
                 <button
                     onClick={() => setActiveTab('available')}
                     className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${activeTab === 'available'
-                        ? 'bg-white text-primary shadow-sm border border-primary'
-                        : 'text-gray-600 hover:bg-gray-200 hover:text-gray-900'
+                        ? 'bg-primary text-white shadow-md border border-primary'
+                        : 'text-gray-600 dark:text-slate-400 hover:bg-gray-200 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-white border border-transparent'
                         }`}
                 >
                     All Courses ({courses.length})
@@ -328,8 +328,8 @@ const BrowseCourses = () => {
                 <button
                     onClick={() => setActiveTab('enrolled')}
                     className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${activeTab === 'enrolled'
-                        ? 'bg-white text-primary shadow-sm border border-primary'
-                        : 'text-gray-600 hover:bg-gray-200 hover:text-gray-900'
+                        ? 'bg-primary text-white shadow-md border border-primary'
+                        : 'text-gray-600 dark:text-slate-400 hover:bg-gray-200 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-white border border-transparent'
                         }`}
                 >
                     Enrolled ({enrolledCourses.length})
@@ -337,8 +337,8 @@ const BrowseCourses = () => {
                 <button
                     onClick={() => setActiveTab('completed')}
                     className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${activeTab === 'completed'
-                        ? 'bg-white text-primary shadow-sm border border-primary'
-                        : 'text-gray-600 hover:bg-gray-200 hover:text-gray-900'
+                        ? 'bg-primary text-white shadow-md border border-primary'
+                        : 'text-gray-600 dark:text-slate-400 hover:bg-gray-200 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-white border border-transparent'
                         }`}
                 >
                     Completed ({completedCourses.length})

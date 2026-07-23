@@ -251,9 +251,11 @@ const TeacherProfile = () => {
                         <div className="w-28 h-28 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center border-4 border-white/30 overflow-hidden">
                             <ProfileAvatar src={user?.photo} name={profileData.fullName || 'T'} size="2xl" shape="rounded-none" border="" fallbackColor="bg-white/20" />
                         </div>
-                        <button className="absolute -bottom-2 -right-2 w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-lg hover:bg-gray-50 transition-colors">
-                            <Camera className="w-5 h-5 text-primary" />
-                        </button>
+                        {allowBioEditing && (
+                            <button className="absolute -bottom-2 -right-2 w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-lg hover:bg-gray-50 transition-colors">
+                                <Camera className="w-5 h-5 text-primary" />
+                            </button>
+                        )}
                     </div>
 
                     {/* Basic Info */}
@@ -349,7 +351,7 @@ const TeacherProfile = () => {
                     </h2>
                     <div className="space-y-4">
                         <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={User} label="Full Name" value={profileData.fullName} name="fullName" editable={canEditBio} />
-                        <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={Mail} label="Email" value={profileData.email} name="email" type="email" editable />
+                        <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={Mail} label="Email" value={profileData.email} name="email" type="email" editable={allowBioEditing} />
                         <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={Phone} label="Phone" value={profileData.phone} name="phone" editable={canEditBio} />
                         {!canEditBio && isEditing && (
                             <p className="text-xs text-red-500 font-medium px-4">

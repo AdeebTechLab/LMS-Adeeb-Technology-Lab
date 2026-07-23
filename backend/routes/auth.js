@@ -493,11 +493,29 @@ router.put('/profile', protect, uploadPhoto.single('photo'), async (req, res) =>
             const bioSetting = await SystemSetting.findOne({ key: settingKey });
             const isBioEditingAllowed = bioSetting ? bioSetting.value : false; // Default to false if not set
 
+            if (!isBioEditingAllowed && req.file) {
+                return res.status(403).json({
+                    success: false,
+                    message: 'Profile image editing is currently disabled by the administrator.'
+                });
+            }
+
+            if (
+                !isBioEditingAllowed &&
+                requestedEmail &&
+                requestedEmail !== currentUser.email
+            ) {
+                return res.status(403).json({
+                    success: false,
+                    message: 'Email editing is currently disabled by the administrator.'
+                });
+            }
+
             // Check if user has no data - allow editing to fill initial data
             const hasNoData = !currentUser.phone && !currentUser.city && !currentUser.address;
 
             if (!isBioEditingAllowed && !hasNoData) {
-                // Email and photo remain editable even when other bio fields are disabled.
+                // Email and photo both follow the admin bio permission.
                 if (!req.file && !requestedEmail) {
                     return res.status(403).json({
                         success: false,

@@ -28,6 +28,16 @@ if (!isEmailConfigured()) {
     console.warn('⚠️ Replace placeholder EMAIL_USER / EMAIL_PASS in backend/.env with a real Gmail App Password.');
 }
 
+if (
+    process.env.GOOGLE_DRIVE_CLIENT_ID &&
+    process.env.GOOGLE_DRIVE_CLIENT_SECRET &&
+    process.env.GOOGLE_DRIVE_REDIRECT_URI
+) {
+    console.log('Google Drive assignment uploads are configured.');
+} else {
+    console.warn('Google Drive assignment uploads are not configured.');
+}
+
 // Validate environment variables
 console.log('\n========================================');
 console.log('🔧 LMS BACKEND - Starting...');
@@ -54,6 +64,7 @@ const directoryRoutes = require('./routes/directory');
 const financeRoutes = require('./routes/finance');
 const reportRoutes = require('./routes/reports');
 const registrationPageRoutes = require('./routes/registrationPages');
+const googleDriveRoutes = require('./routes/googleDrive');
 
 // Import attendance lock function
 const { lockTodayAttendance } = require('./controllers/attendanceController');
@@ -459,6 +470,7 @@ app.use('/api/directory', directoryRoutes);
 app.use('/api/finance', financeRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/registration-pages', registrationPageRoutes);
+app.use('/api/google-drive', googleDriveRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

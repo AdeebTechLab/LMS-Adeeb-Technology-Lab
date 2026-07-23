@@ -323,7 +323,7 @@ const StudentProfile = () => {
                                 profileData.fullName.charAt(0).toUpperCase()
                             )}
                             
-                            {isEditing && (
+                            {isEditing && allowBioEditing && (
                                 <label className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity">
                                     <Camera className="w-8 h-8 text-white mb-1" />
                                     <span className="text-[10px] font-bold text-white uppercase tracking-widest">Change</span>
@@ -343,7 +343,7 @@ const StudentProfile = () => {
                                 </label>
                             )}
                         </div>
-                        {isEditing && (
+                        {isEditing && allowBioEditing && (
                             <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-lg pointer-events-none">
                                 <Camera className="w-5 h-5 text-primary" />
                             </div>
@@ -361,8 +361,8 @@ const StudentProfile = () => {
                             )}
                         </div>
                         <p className="text-white/80 text-lg mb-3">
-                            <BookOpen className="w-5 h-5 inline mr-2" />
-                            {profileData.course || 'Student'}
+                            <GraduationCap className="w-5 h-5 inline mr-2" />
+                            {user?.role === 'intern' ? 'Intern' : 'Student'}
                         </p>
                         <div className="flex flex-wrap gap-3 justify-center md:justify-start">
                             <span className="px-3 py-1 bg-white/20 rounded-full text-sm">
@@ -427,7 +427,7 @@ const StudentProfile = () => {
                     </h2>
                     <div className="space-y-4">
                         <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={User} label="Full Name" value={profileData.fullName} name="fullName" editable={canEditBio} />
-                        <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={Mail} label="Email" value={profileData.email} name="email" type="email" editable />
+                        <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={Mail} label="Email" value={profileData.email} name="email" type="email" editable={allowBioEditing} />
                         <InfoField isEditing={isEditing} editForm={editForm} onChange={handleChange} icon={Phone} label="Phone" value={profileData.phone} name="phone" editable={canEditBio} />
                         {!canEditBio && isEditing && (
                             <p className="text-xs text-red-500 font-medium px-4">

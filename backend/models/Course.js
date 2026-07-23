@@ -24,7 +24,7 @@ const courseSchema = new mongoose.Schema({
     },
     durationMonths: {
         type: Number,
-        required: [true, 'Duration is required'],
+        default: null,
         min: [1, 'Duration must be at least 1 month'],
         max: [10, 'Duration cannot exceed 10 months']
     },

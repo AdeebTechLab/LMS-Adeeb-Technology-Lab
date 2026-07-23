@@ -174,7 +174,7 @@ const CourseManagement = () => {
             submitData.append('description', formData.description);
             submitData.append('fee', formData.fee);
             if (formData.originalPrice) submitData.append('originalPrice', formData.originalPrice);
-            submitData.append('durationMonths', formData.durationMonths);
+            if (formData.durationMonths) submitData.append('durationMonths', formData.durationMonths);
             submitData.append('targetAudience', formData.targetAudience);
             submitData.append('location', formData.city.toLowerCase());
             if (editingCourse && formData.category) submitData.append('category', formData.category);
@@ -413,7 +413,9 @@ const CourseManagement = () => {
                         <div className="grid grid-cols-2 gap-2 mb-4 text-sm">
                             <div className="flex items-center gap-1.5 text-gray-500">
                                 <Clock className="w-4 h-4" />
-                                {course.durationMonths} {course.durationMonths === 1 ? 'month' : 'months'}
+                                {course.durationMonths
+                                    ? `${course.durationMonths} ${course.durationMonths === 1 ? 'month' : 'months'}`
+                                    : 'Flexible duration'}
                             </div>
                             <div className="flex items-center gap-1.5 text-gray-500">
                                 <Calendar className="w-4 h-4" />
@@ -636,13 +638,12 @@ const CourseManagement = () => {
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Duration (Months) <span className="text-red-500">*</span>
+                                Duration (Months) <span className="text-xs text-gray-400 font-normal">(Optional)</span>
                             </label>
                             <select
                                 value={formData.durationMonths}
                                 onChange={(e) => setFormData({ ...formData, durationMonths: e.target.value })}
                                 className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-white"
-                                required
                             >
                                 <option value="">Select duration</option>
                                 <option value="1">1 month</option>

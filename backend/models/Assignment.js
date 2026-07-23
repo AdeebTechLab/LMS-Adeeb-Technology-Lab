@@ -7,6 +7,13 @@ const submissionSchema = new mongoose.Schema({
         required: true
     },
     fileUrl: String,
+    googleDriveFile: {
+        id: String,
+        name: String,
+        mimeType: String,
+        size: Number,
+        thumbnailLink: String
+    },
     notes: String,
     submittedAt: {
         type: Date,

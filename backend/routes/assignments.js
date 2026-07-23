@@ -321,6 +321,15 @@ router.post('/:id/submit', protect, uploadSubmission.single('file'), async (req,
             // Update the existing submission in-place
             existingSubmission.notes = notes || req.body.notes || existingSubmission.notes;
             existingSubmission.fileUrl = req.file ? req.file.path : (req.body.fileUrl || existingSubmission.fileUrl);
+            if (req.body.googleDriveFileId) {
+                existingSubmission.googleDriveFile = {
+                    id: req.body.googleDriveFileId,
+                    name: req.body.googleDriveFileName || '',
+                    mimeType: req.body.googleDriveFileMimeType || '',
+                    size: Number(req.body.googleDriveFileSize || 0),
+                    thumbnailLink: req.body.googleDriveThumbnailLink || ''
+                };
+            }
             existingSubmission.submittedAt = moment().tz('Asia/Karachi').toDate();
             existingSubmission.status = 'submitted';
             // Clear marks and feedback so teacher grades fresh submission
@@ -365,6 +374,15 @@ router.post('/:id/submit', protect, uploadSubmission.single('file'), async (req,
             user: req.user.id,
             notes: notes || req.body.notes,
             fileUrl: req.file ? req.file.path : req.body.fileUrl || null,
+            ...(req.body.googleDriveFileId ? {
+                googleDriveFile: {
+                    id: req.body.googleDriveFileId,
+                    name: req.body.googleDriveFileName || '',
+                    mimeType: req.body.googleDriveFileMimeType || '',
+                    size: Number(req.body.googleDriveFileSize || 0),
+                    thumbnailLink: req.body.googleDriveThumbnailLink || ''
+                }
+            } : {}),
             submittedAt: moment().tz('Asia/Karachi').toDate()
         });
 
