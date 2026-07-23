@@ -73,7 +73,7 @@ import ChatWidget from '../shared/ChatWidget';
 import { userNotificationAPI, assignmentAPI, courseAPI, authAPI, attendanceAPI } from '../../services/api';
 import useAutoLogout from '../../hooks/useAutoLogout';
 import { useTheme } from '../../context/ThemeContext';
-import Loader, { FullScreenLoader } from '../ui/Loader';
+import Loader, { FullScreenLoader, ButtonLoader } from '../ui/Loader';
 import ProfileAvatar from '../ui/ProfileAvatar';
 import { useTranslation } from 'react-i18next';
 
@@ -297,8 +297,8 @@ const DashboardLayout = () => {
     const handleResetPasswordSubmit = async (e) => {
         e.preventDefault();
         setResetPasswordError('');
-        if (resetPasswordForm.newPassword.length < 6) {
-            setResetPasswordError('Password must be at least 6 characters.');
+        if (resetPasswordForm.newPassword.length < 4) {
+            setResetPasswordError('Password must be at least 4 characters.');
             return;
         }
         if (resetPasswordForm.newPassword !== resetPasswordForm.confirmPassword) {
@@ -957,7 +957,7 @@ const DashboardLayout = () => {
                                             }`}
                                             placeholder="Enter new password"
                                             required
-                                            minLength={6}
+                                            minLength={4}
                                         />
                                         <button
                                             type="button"
@@ -986,7 +986,7 @@ const DashboardLayout = () => {
                                             }`}
                                             placeholder="Confirm new password"
                                             required
-                                            minLength={6}
+                                            minLength={4}
                                         />
                                         <button
                                             type="button"
@@ -1014,7 +1014,9 @@ const DashboardLayout = () => {
                                         disabled={isResettingPassword}
                                         className="px-5 py-2.5 bg-primary text-white font-medium rounded-xl hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-w-[120px]"
                                     >
-                                        {isResettingPassword ? <Loader className="w-5 h-5 text-white" /> : 'Save Password'}
+                                        <ButtonLoader isLoading={isResettingPassword} className="w-4 h-4">
+                                            {isResettingPassword ? 'Saving...' : 'Save Password'}
+                                        </ButtonLoader>
                                     </button>
                                 </div>
                             </form>

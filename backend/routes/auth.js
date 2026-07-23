@@ -7,6 +7,12 @@ const { protect } = require('../middleware/auth');
 const { uploadPhoto, uploadRegistration } = require('../config/cloudinary');
 const User = require('../models/User');
 
+const getLinkedAccountQuery = (user) => {
+    const links = [{ email: user.email }];
+    if (user.rollNo) links.push({ rollNo: user.rollNo });
+    return links.length === 1 ? links[0] : { $or: links };
+};
+
 // @route   POST /api/auth/register
 // @desc    Register new user
 // @access  Public
@@ -169,14 +175,14 @@ router.post('/register', uploadRegistration.fields([
         try {
             user = await User.create(userData);
 
-            // Synchronize password, photo, and core fields across all OTHER accounts with the same email
+            // Synchronize shared fields across every role belonging to this person.
             // We do this AFTER creating the new user to ensure the new user is safe.
             // Note: password hashing is handled by User model middleware (if any) or pre-save hooks.
             // If User.js has a pre-save hook for password, .create() will trigger it.
             // UpdateMany will NOT trigger pre-save hooks, so we need to be careful if hashing is used.
             // Let's check User model for hashing.
             await User.updateMany(
-                { email, _id: { $ne: user._id } },
+                { $and: [getLinkedAccountQuery(user), { _id: { $ne: user._id } }] },
                 { $set: syncData }
             );
         } catch (createError) {
@@ -392,9 +398,8 @@ router.get('/available-roles', protect, async (req, res) => {
         const currentUser = await User.findById(req.user.id);
         if (!currentUser) return res.status(404).json({ success: false, message: 'User not found' });
 
-        const email = currentUser.email;
-        // Find all roles associated with this email
-        const usersWithEmail = await User.find({ email }).select('role');
+        // Find all roles linked by email or the shared global roll number.
+        const usersWithEmail = await User.find(getLinkedAccountQuery(currentUser)).select('role');
         const roles = usersWithEmail.map(u => u.role);
 
         res.json({ success: true, roles });
@@ -414,10 +419,10 @@ router.post('/switch-role', protect, async (req, res) => {
         const currentUser = await User.findById(req.user.id);
         if (!currentUser) return res.status(404).json({ success: false, message: 'Current user not found' });
 
-        const email = currentUser.email;
-
         // Find the user object for the requested role
-        const targetUser = await User.findOne({ email, role: targetRole }).select('+password');
+        const targetUser = await User.findOne({
+            $and: [getLinkedAccountQuery(currentUser), { role: targetRole }]
+        }).select('+password');
         if (!targetUser) {
             return res.status(403).json({ success: false, message: `Access denied. You have not registered as a ${targetRole}.` });
         }
@@ -525,7 +530,7 @@ router.put('/profile', protect, uploadPhoto.single('photo'), async (req, res) =>
         // Remove password from updates
         delete updates.password;
 
-        const linkedAccounts = await User.find({ email: currentUser.email }).select('_id role');
+        const linkedAccounts = await User.find(getLinkedAccountQuery(currentUser)).select('_id role');
         const linkedAccountIds = linkedAccounts.map(account => account._id);
 
         if (updates.email && updates.email !== currentUser.email) {
@@ -603,8 +608,8 @@ router.put('/profile', protect, uploadPhoto.single('photo'), async (req, res) =>
 router.put('/change-password', protect, async (req, res) => {
     try {
         const { newPassword } = req.body;
-        if (!newPassword || newPassword.length < 6) {
-            return res.status(400).json({ success: false, message: 'Password must be at least 6 characters' });
+        if (!newPassword || newPassword.length < 4) {
+            return res.status(400).json({ success: false, message: 'Password must be at least 4 characters' });
         }
 
         const user = await User.findById(req.user.id);
@@ -617,7 +622,7 @@ router.put('/change-password', protect, async (req, res) => {
 
         // Synchronize password across all OTHER accounts with the same email
         await User.updateMany(
-            { email: user.email, _id: { $ne: user._id } },
+            { $and: [getLinkedAccountQuery(user), { _id: { $ne: user._id } }] },
             { $set: { password: newPassword } }
         );
 
@@ -772,8 +777,8 @@ router.post('/reset-password/:token', async (req, res) => {
     try {
         const { password } = req.body;
 
-        if (!password || password.length < 6) {
-            return res.status(400).json({ success: false, message: 'Password must be at least 6 characters' });
+        if (!password || password.length < 4) {
+            return res.status(400).json({ success: false, message: 'Password must be at least 4 characters' });
         }
 
         // Hash the token from URL
@@ -797,7 +802,7 @@ router.post('/reset-password/:token', async (req, res) => {
 
         // Synchronize password across all OTHER accounts with the same email
         await User.updateMany(
-            { email: user.email, _id: { $ne: user._id } },
+            { $and: [getLinkedAccountQuery(user), { _id: { $ne: user._id } }] },
             { $set: { password: password } }
         );
 

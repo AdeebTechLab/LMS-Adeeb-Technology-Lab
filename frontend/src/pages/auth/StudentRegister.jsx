@@ -205,7 +205,7 @@ const StudentRegister = () => {
         if (!formData.country) newErrors.country = 'Country is required';
         if (!formData.heardAbout) newErrors.heardAbout = 'This field is required';
         if (!formData.password) newErrors.password = 'Password is required';
-        else if (formData.password.length < 6) newErrors.password = 'Password must be at least 6 characters';
+        else if (formData.password.length < 4) newErrors.password = 'Password must be at least 4 characters';
         if (formData.password !== formData.confirmPassword) newErrors.confirmPassword = 'Passwords do not match';
         if (!formData.termsAccepted) newErrors.termsAccepted = 'You must accept terms';
 

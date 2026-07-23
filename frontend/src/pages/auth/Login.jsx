@@ -41,7 +41,7 @@ const Login = () => {
         }
         if (!formData.password) {
             newErrors.password = t('auth.passwordRequired');
-        } else if (formData.password.length < 6) {
+        } else if (formData.password.length < 4) {
             newErrors.password = t('auth.passwordMin');
         }
         if (!formData.agreeTerms) {

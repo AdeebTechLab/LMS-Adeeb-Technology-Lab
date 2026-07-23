@@ -9,6 +9,12 @@ const { uploadPhoto } = require('../config/cloudinary');
 const moment = require('moment-timezone');
 const { sendPushNotification } = require('../utils/pushHelper');
 
+const getLinkedAccountQuery = (user) => {
+    const links = [{ email: user.email }];
+    if (user.rollNo) links.push({ rollNo: user.rollNo });
+    return links.length === 1 ? links[0] : { $or: links };
+};
+
 // @route   GET /api/users/birthdays
 // @desc    Get users with birthdays in the current window (3 days)
 // @access  Private
@@ -358,6 +364,37 @@ router.get('/role/:role', protect, authorize('admin'), async (req, res) => {
     }
 });
 
+// @route   PUT /api/users/change-password-by-email
+// @desc    Change user password by email (admin only)
+// @access  Private/Admin
+// Keep this static route above /:id so Express does not treat its name as a user id.
+router.put('/change-password-by-email', protect, authorize('admin'), async (req, res) => {
+    try {
+        const { email, newPassword } = req.body;
+        if (!email || !newPassword) {
+            return res.status(400).json({ success: false, message: 'Please provide email and new password' });
+        }
+
+        const normalizedEmail = email.trim().toLowerCase();
+        const requestedUser = await User.findOne({ email: normalizedEmail });
+        if (!requestedUser) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+
+        // The same person can have a different legacy email on another role, so
+        // include accounts linked through the shared global roll number.
+        const users = await User.find(getLinkedAccountQuery(requestedUser)).select('+password');
+        for (const user of users) {
+            user.password = newPassword;
+            await user.save();
+        }
+
+        res.json({ success: true, message: `Password updated successfully for ${users.length} linked account(s)` });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
 // @route   GET /api/users/:id
 // @desc    Get single user
 // @access  Private/Admin
@@ -391,9 +428,9 @@ router.put('/:id', protect, authorize('admin'), uploadPhoto.single('photo'), asy
             return res.status(404).json({ success: false, message: 'User not found' });
         }
 
-        // Fields that should be synchronized across all roles for the same email
+        // Shared identity fields must stay identical across every portal/role.
         const syncFields = [
-            'name', 'phone', 'cnic', 'dob', 'age', 'gender', 
+            'name', 'email', 'phone', 'cnic', 'dob', 'age', 'gender', 
             'address', 'city', 'country', 'fatherName', 'photo', 'rollNo'
         ];
 
@@ -415,10 +452,11 @@ router.put('/:id', protect, authorize('admin'), uploadPhoto.single('photo'), asy
             runValidators: true
         }).select('-password');
 
-        // Synchronize core fields across all other roles with the same email
+        // Use the old identity values so an email/roll-number change still reaches
+        // every linked role before applying the new shared values.
         if (Object.keys(syncData).length > 0) {
             await User.updateMany(
-                { email: currentUser.email, _id: { $ne: req.params.id } },
+                { $and: [getLinkedAccountQuery(currentUser), { _id: { $ne: req.params.id } }] },
                 { $set: syncData }
             );
         }
@@ -508,33 +546,6 @@ router.get('/role/:role/verified', protect, async (req, res) => {
     }
 });
 
-// @route   PUT /api/users/change-password-by-email
-// @desc    Change user password by email (admin only)
-// @access  Private/Admin
-router.put('/change-password-by-email', protect, authorize('admin'), async (req, res) => {
-    try {
-        const { email, newPassword } = req.body;
-        if (!email || !newPassword) {
-            return res.status(400).json({ success: false, message: 'Please provide email and new password' });
-        }
-
-        // Find all users with this email (one email can have multiple roles in this system)
-        const users = await User.find({ email });
-        if (!users || users.length === 0) {
-            return res.status(404).json({ success: false, message: 'User not found' });
-        }
-
-        // Update password for all accounts with this email
-        for (const user of users) {
-            user.password = newPassword;
-            await user.save();
-        }
-
-        res.json({ success: true, message: `Password updated successfully for ${users.length} account(s) matching ${email}` });
-    } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
-    }
-});
 // @route   PUT /api/users/:id/class-time
 // @desc    Update user class time (admin/teacher only)
 // @access  Private/Admin/Teacher

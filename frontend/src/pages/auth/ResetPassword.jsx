@@ -26,8 +26,8 @@ const ResetPassword = () => {
             return;
         }
 
-        if (password.length < 6) {
-            setError('Password must be at least 6 characters');
+        if (password.length < 4) {
+            setError('Password must be at least 4 characters');
             return;
         }
 
@@ -95,7 +95,7 @@ const ResetPassword = () => {
                                         className="w-full bg-white/10 border border-white/20 rounded-lg py-3 px-10 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                                         placeholder="Enter new password"
                                         required
-                                        minLength={6}
+                                        minLength={4}
                                     />
                                     <button
                                         type="button"
